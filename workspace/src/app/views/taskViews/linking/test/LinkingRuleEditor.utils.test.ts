@@ -29,7 +29,6 @@ describe("Linking rule editor utils", () => {
                 })
             ]
             const [expectedSourceInput, expectedTargetInput] = reverseParameterValue === "true" ? ["inB", "inA"] : ["inA", "inB"]
-            console.log(sourcePlugin, targetPlugin, expectedSourceInput, reverseParameterValue)
             const tree = utils.constructLinkageRuleTree(nodes) as IComparisonOperator
             expect(tree.sourceInput.id).toBe(expectedSourceInput)
             expect(tree.targetInput.id).toBe(expectedTargetInput)

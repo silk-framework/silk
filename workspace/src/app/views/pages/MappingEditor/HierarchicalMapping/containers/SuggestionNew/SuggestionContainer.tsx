@@ -7,6 +7,7 @@ import {
     CardOptions,
     CardTitle,
     Divider,
+    Markdown,
     Notification,
     Spacing,
     TableContainer,
@@ -24,7 +25,7 @@ import {
     IPrefix,
     ISuggestionCandidate,
     ITransformedSuggestion,
-    IVocabularyInfo
+    IVocabularyInfo, SuggestionIssues
 } from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
@@ -81,6 +82,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [error, setError] = useState<any[]>([]);
 
     const [data, setData] = useState<ITransformedSuggestion[]>([]);
+
+    const [suggestionsIssues, setSuggestionIssues] = useState<SuggestionIssues | undefined>(undefined)
 
     const [filteredData, setFilteredData] = useState<ITransformedSuggestion[]>([]);
 
@@ -209,6 +212,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         const vocabs = selectedVocabularies ? selectedVocabularies : selectedVocabs
         setData([])
         setError([])
+        setSuggestionIssues(undefined)
         return new Promise((resolve, reject) => {
             setLoader && setLoading(true)
             getSuggestionsAsync(
@@ -221,12 +225,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 },
                 executeMatching
             ).subscribe(
-                ({suggestions, warnings}) => {
+                ({suggestions, warnings, suggestionIssues}) => {
                     try {
                         if (warnings.length) {
                             reject(warnings);
                         }
                         setData(suggestions);
+                        setSuggestionIssues(suggestionIssues)
                         handleFilter(suggestions);
                         resolve(suggestions);
                     } finally {
@@ -374,6 +379,26 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         <Spacing size="small" />
     </>
 
+    const SuggestionIssues = () => {
+        if(suggestionsIssues && suggestionsIssues.notFoundClasses.length > 0) {
+            const noClassFound = targetClassUris.length > 0 && suggestionsIssues.notFoundClasses.length === targetClassUris.length
+            const classesString = suggestionsIssues.notFoundClasses.map(c => `\`${c}\``).join(", ")
+            let message: string = `Following target classes have not been found in any of the target vocabularies: ${classesString}.\n\n` +
+                `Matching only against ${targetClassUris.length - suggestionsIssues.notFoundClasses.length} of ${targetClassUris.length} target classes.`
+            if(noClassFound) {
+                message = `None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.`
+            }
+            return <>
+                <Notification warning={true}>
+                    <Markdown data-test-id={"mapping-suggestion-issues"}>{message}</Markdown>
+                </Notification>
+                <Spacing />
+            </>
+        } else {
+            return null
+        }
+    }
+
     // Execute vocabulary matching from vocabulary matching dialog
     const executeVocabMatchingFromDialog = async (vocabs) => {
             try {
@@ -398,6 +423,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             <CardContent>
                 {errorWidget}
                 {vocabularyInfoNotification}
+                <SuggestionIssues />
                 {
                     <SuggestionListContext.Provider value={{
                         portalContainer: document.body,

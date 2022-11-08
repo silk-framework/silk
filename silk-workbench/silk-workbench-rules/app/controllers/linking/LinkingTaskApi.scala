@@ -34,7 +34,7 @@ import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
+import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc._
@@ -927,6 +927,76 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         case None =>
           ErrorResult(INTERNAL_SERVER_ERROR, "No value generated", "The linking tasks did not generate any value.")
       }
+    }
+  }
+
+  @Operation(
+    summary = "Evaluate current linking rule",
+    description = "Evaluate a linking task based on its current linkage rule.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(`type` = "object"),
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def evaluateCurrentLinkageRule(@Parameter(
+                                   name = "project",
+                                   description = "The project identifier",
+                                   required = true,
+                                   in = ParameterIn.PATH,
+                                   schema = new Schema(implementation = classOf[String])
+                                 )
+                                 projectName: String,
+                                 @Parameter(
+                                   name = "linkingTaskName",
+                                   description = "The task identifier",
+                                   required = true,
+                                   in = ParameterIn.PATH,
+                                   schema = new Schema(implementation = classOf[String])
+                                 )
+                                 linkingTaskName: String,
+                                 @Parameter(
+                                   name = "includeReferenceLinks",
+                                   description = "When true, this will return an evaluation of the reference links in addition to freshly matched links.",
+                                   required = false,
+                                   in = ParameterIn.QUERY,
+                                   schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                                 )
+                                 includeReferenceLinks: Boolean,
+                                 offset: Int,
+                                 limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
+    val sources = task.dataSources
+    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val prefixes: Prefixes = project.config.prefixes
+
+    val evaluationActivity = task.activity[EvaluateLinkingActivity]
+    if(evaluationActivity.control.status.get.isEmpty) {
+      evaluationActivity.control.startBlocking()
+    }
+    evaluationActivity.value.get match {
+      case Some(evaluationResult) =>
+        val linkJsonFormat = new LinkJsonFormat(Some(task.data.rule))
+        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+        val links = evaluationResult.links.slice(offset, offset + limit)
+          .map(link => linkJsonFormat.write(link))
+        Ok(Json.obj(
+          "links" -> links
+        ))
+      case None =>
+        throw NotFoundException("No evaluation results available.")
     }
   }
 }
