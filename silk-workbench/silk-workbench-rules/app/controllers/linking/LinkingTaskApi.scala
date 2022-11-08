@@ -976,7 +976,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                  )
                                  includeReferenceLinks: Boolean,
                                  offset: Int,
-                                 limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                                 limit: Int,
+                                 query: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
 
     val evaluationActivity = task.activity[EvaluateLinkingActivity]
