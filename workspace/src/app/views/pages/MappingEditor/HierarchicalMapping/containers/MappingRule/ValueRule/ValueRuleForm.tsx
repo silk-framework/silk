@@ -19,6 +19,7 @@ import { wasTouched } from "../../../utils/wasTouched";
 import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { TextField, Spinner } from "@eccenca/gui-elements";
+import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 
 const LANGUAGES_LIST = [
     "en",
@@ -93,6 +94,7 @@ interface IProps {
     parentId?: string;
     onAddNewRule?: (call: () => any) => any;
     openMappingEditor: (ruleId: string) => void;
+    viewActions: IViewActions;
 }
 
 /** The edit form of a value mapping rule. */
@@ -101,7 +103,7 @@ export function ValueRuleForm(props: IProps) {
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
     const [valueType, setValueType] = useState<IValueType>({ nodeType: "StringValueType" });
-    const sourceProperty = React.useRef<string | { value: string }>("")
+    const sourceProperty = React.useRef<string | { value: string }>("");
     const [isAttribute, setIsAttribute] = useState(false);
     const [initialValues, setInitialValues] = useState<Partial<IState>>({});
     const [error, setError] = useState<any>(null);
@@ -110,7 +112,7 @@ export function ValueRuleForm(props: IProps) {
     const [targetProperty, setTargetProperty] = useState<string>("");
     const [valuePathValid, setValuePathValid] = useState<boolean>(false);
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
-    const lastEmittedEvent = React.useRef<string>("")
+    const lastEmittedEvent = React.useRef<string>("");
 
     const { id, parentId } = props;
 
@@ -163,8 +165,8 @@ export function ValueRuleForm(props: IProps) {
                     initialValues.label && setLabel(initialValues.label);
                     initialValues.targetProperty && setTargetProperty(initialValues.targetProperty);
                     initialValues.valueType && setValueType(initialValues.valueType);
-                    if(initialValues.sourceProperty) {
-                        sourceProperty.current = initialValues.sourceProperty
+                    if (initialValues.sourceProperty) {
+                        sourceProperty.current = initialValues.sourceProperty;
                     }
                     initialValues.isAttribute && setIsAttribute(initialValues.isAttribute);
                     setInitialValues(initialValues);
@@ -248,9 +250,9 @@ export function ValueRuleForm(props: IProps) {
         const touched = wasTouched(initialValues, currValues);
         const id = _.get(props, "id", 0);
 
-        const eventId = `${id}_${touched}`
+        const eventId = `${id}_${touched}`;
         if (id !== 0 && eventId !== lastEmittedEvent.current) {
-            lastEmittedEvent.current = eventId
+            lastEmittedEvent.current = eventId;
             if (touched) {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
@@ -283,6 +285,12 @@ export function ValueRuleForm(props: IProps) {
         return targetPropertyNotEmpty && languageTagSet;
     };
 
+    const allowConfirm = allowConfirmation();
+
+    React.useEffect(() => {
+        props.viewActions.savedChanges && props.viewActions.savedChanges(allowConfirm);
+    }, [allowConfirm]);
+
     const handleComplexEdit = (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -290,8 +298,6 @@ export function ValueRuleForm(props: IProps) {
             props.openMappingEditor(ruleId!);
         });
     };
-
-    const allowConfirm = allowConfirmation();
 
     const complexEditButton = () =>
         allowConfirm ? (
@@ -303,9 +309,12 @@ export function ValueRuleForm(props: IProps) {
             />
         ) : null;
 
-    const updateSourceProperty = React.useMemo(() => (value: string | {value: string}) => {
-        sourceProperty.current = value
-    }, [])
+    const updateSourceProperty = React.useMemo(
+        () => (value: string | { value: string }) => {
+            sourceProperty.current = value;
+        },
+        []
+    );
 
     // template rendering
     const render = () => {
@@ -353,11 +362,16 @@ export function ValueRuleForm(props: IProps) {
             (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
                 <ExampleView
                     id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || "root"}
-                    key={typeof sourceProperty.current === "string" ? sourceProperty.current : sourceProperty.current.value}
+                    key={
+                        typeof sourceProperty.current === "string"
+                            ? sourceProperty.current
+                            : sourceProperty.current.value
+                    }
                     rawRule={type === MAPPING_RULE_TYPE_COMPLEX ? undefined : state}
                     ruleType={type}
                 />
             ) : null;
+
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>

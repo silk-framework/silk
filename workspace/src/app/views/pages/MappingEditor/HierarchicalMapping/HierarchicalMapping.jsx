@@ -24,6 +24,7 @@ class HierarchicalMapping extends React.Component {
         initialRule: PropTypes.string,
         history: PropTypes.object,
         startFullScreen: PropTypes.bool,
+        viewActions: PropTypes.object,
     };
 
     constructor(props) {
@@ -55,12 +56,14 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        EventEmitter.on(MESSAGES.PREVENT_TAB_CLOSING, this.shouldPrompt);
     }
 
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        EventEmitter.off(MESSAGES.PREVENT_TAB_CLOSING, this.shouldPrompt);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -77,6 +80,10 @@ class HierarchicalMapping extends React.Component {
             this.loadNavigationTree();
         }
     }
+
+    shouldPrompt = (shouldPrompt) => {
+        this.props.tabSwitchPrompt(shouldPrompt);
+    };
 
     onOpenEdit = (obj) => {
         const id = _.get(obj, "id", 0);
@@ -287,6 +294,7 @@ class HierarchicalMapping extends React.Component {
                             onClickedRemove={this.handleClickRemove}
                             openMappingEditor={this.handleOpenMappingEditorModal}
                             startFullScreen={this.props.startFullScreen}
+                            viewActions={this.props.viewActions}
                         />
                     }
                 </div>

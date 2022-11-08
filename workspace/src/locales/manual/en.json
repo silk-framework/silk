@@ -219,6 +219,7 @@
             "abort": "Abort",
             "add": "Add",
             "cancel": "Cancel",
+            "proceed":"Proceed",
             "copy": "Copy",
             "clone": "Clone",
             "close": "Close",

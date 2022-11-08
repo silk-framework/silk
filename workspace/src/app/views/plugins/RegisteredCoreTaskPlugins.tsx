@@ -1,4 +1,4 @@
-import { LinkingRuleEditor , LinkingRuleEditorOptionalContext} from "../taskViews/linking/LinkingRuleEditor";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
 import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
@@ -35,9 +35,19 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("transform", {
             id: "hierarchicalMappingEditor",
             label: "Mapping editor",
-            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+            render(
+                projectId: string,
+                taskId: string,
+                viewActions: IViewActions,
+                startFullScreen: boolean
+            ): JSX.Element {
                 return (
-                    <HierarchicalMapping project={projectId} transformTask={taskId} startFullScreen={startFullScreen} />
+                    <HierarchicalMapping
+                        project={projectId}
+                        transformTask={taskId}
+                        startFullScreen={startFullScreen}
+                        viewActions={viewActions}
+                    />
                 );
             },
         });

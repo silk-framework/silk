@@ -162,6 +162,7 @@ class ObjectRule extends React.Component {
                     parentId={this.props.parentId}
                     ruleData={transformRuleOfObjectMapping(ruleData)}
                     onAddNewRule={this.handleAddNewRule}
+                    viewActions={this.props.viewActions}
                 />
             );
         }
