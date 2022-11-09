@@ -1,24 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
+import React, {useEffect, useState} from "react";
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC} from "gui-elements-deprecated";
 import {
     AffirmativeButton,
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { AutoSuggestion, IconButton } from "@eccenca/gui-elements";
+import {AutoSuggestion, IconButton, Spacing, Spinner, TextField} from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
-import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
+import store, {checkValuePathValidity, fetchValuePathSuggestions} from "../../../store";
+import {convertToUri} from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import { trimValue } from "../../../utils/trimValue";
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
+import {trimValue} from "../../../utils/trimValue";
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
+import {wasTouched} from "../../../utils/wasTouched";
+import {newValueIsIRI} from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import { TextField, Spinner } from "@eccenca/gui-elements";
 
 const LANGUAGES_LIST = [
     "en",
@@ -291,9 +290,17 @@ export function ValueRuleForm(props: IProps) {
         });
     };
 
+    // Reset a complex mapping rule back to a direct mapping rule with empty path
+    const handleComplexRemove = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setType(MAPPING_RULE_TYPE_DIRECT)
+        handleChangeValue("sourceProperty", "", () => {})
+    };
+
     const allowConfirm = allowConfirmation();
 
-    const complexEditButton = () =>
+    const ComplexRuleEditButton = () =>
         allowConfirm ? (
             <IconButton
                 name="item-edit"
@@ -302,6 +309,14 @@ export function ValueRuleForm(props: IProps) {
                 text={changed || !id ? "Save rule and open formula editor" : "Open formula editor"}
             />
         ) : null;
+
+    const ComplexRuleDeleteButton = () => <IconButton
+        name="item-remove"
+        disruptive={true}
+        data-test-id="complex-rule-delete-button"
+        onClick={handleComplexRemove}
+        text={"Reset complex mapping rule to empty path."}
+    />
 
     const updateSourceProperty = React.useMemo(() => (value: string | {value: string}) => {
         sourceProperty.current = value
@@ -333,18 +348,22 @@ export function ValueRuleForm(props: IProps) {
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
                         onFocusChange={setValuePathInputHasFocus}
-                        rightElement={complexEditButton()}
+                        rightElement={<ComplexRuleEditButton />}
                     />
                 </>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
-            let editButton = complexEditButton();
+            const editButton = <ComplexRuleEditButton />
+            const actions = <span>
+                    {editButton}
+                <ComplexRuleDeleteButton/>
+                </span>
             sourcePropertyInput = (
                 <TextField
                     data-id="test-complex-input"
                     disabled
                     value="The value formula cannot be modified in the edit form."
-                    rightElement={editButton !== null ? editButton : undefined}
+                    rightElement={actions}
                 />
             );
         }
@@ -410,7 +429,9 @@ export function ValueRuleForm(props: IProps) {
                             onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
                         />
                         {sourcePropertyInput}
+                        <Spacing size={"small"} />
                         {exampleView}
+                        <Spacing size={"small"} />
                         <LegacyTextField
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"

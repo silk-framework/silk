@@ -224,6 +224,7 @@ const prepareValueMappingPayload = (data: IProps) => {
 
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty ? handleCreatedSelectBoxValue(data, "sourceProperty") : "";
+        payload.type = MAPPING_RULE_TYPE_DIRECT
     }
 
     if (!data.id) {

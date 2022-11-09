@@ -1669,7 +1669,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView();
+            reactFlowInstance?.fitView({maxZoom: 1});
             ruleEditorContext.initialFitToViewZoomLevel &&
                 reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);

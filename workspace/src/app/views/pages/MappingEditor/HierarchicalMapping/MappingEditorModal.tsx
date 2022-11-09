@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, SimpleDialog, Spacing } from "@eccenca/gui-elements";
+import { Button, HtmlContentBlock, IconButton, SimpleDialog } from "@eccenca/gui-elements";
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
 
@@ -38,14 +38,14 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
     /** Warning prompt that shows up when the user decides to close the modal with unsaved changes */
     const WarningModal = React.memo(() => (
         <SimpleDialog
+            intent="warning"
             data-test-id="mapping-editor-warning-modal"
             isOpen={showWarningModal}
-            title="Editor Warning"
+            title="Unsaved changes"
             size="small"
             onClose={() => setShowWarningModal(false)}
             actions={[
                 <Button
-                    disruptive={true}
                     onClick={() => {
                         setShowWarningModal(false);
                         onClose();
@@ -58,7 +58,9 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                 </Button>,
             ]}
         >
-            <p>{t("taskViews.transformRulesEditor.warning.modal.body")}</p>
+            <HtmlContentBlock>
+                <p>{t("taskViews.transformRulesEditor.warning.modal.body")}</p>
+            </HtmlContentBlock>
         </SimpleDialog>
     ));
 
@@ -66,10 +68,13 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
         <SimpleDialog
             data-test-id="transform-mapping-editor-modal"
             isOpen={isOpen}
-            title="Mapping Editor"
+            title="Value formula editor"
             size="fullscreen"
             canEscapeKeyClose={unsavedChanges}
             onClose={onClose}
+            headerOptions={
+                <IconButton name="navigation-close" text={t("common.action.close")} onClick={closeEditorModal} data-test-id="transform-mapping-editor-close-btn" />
+            }
         >
             <>
                 <WarningModal />
@@ -83,14 +88,6 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                             savedChanges: (status) => setUnsavedChanges(status),
                             integratedView: true,
                         }}
-                        additionalToolBarComponents={() => (
-                            <>
-                                <Button onClick={closeEditorModal} data-test-id="transform-mapping-editor-close-btn">
-                                    Close
-                                </Button>
-                                <Spacing vertical />
-                            </>
-                        )}
                     />
                 </div>
             </>

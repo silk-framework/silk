@@ -49,7 +49,7 @@ POST          /tasks/:project/:linkingTaskId/referenceLinksEvaluated            
 
 POST          /tasks/:project/:task/postLinkDatasource                              controllers.linking.LinkingTaskApi.postLinkDatasource(project: String, task: String)
 POST          /tasks/:project/:linkingTaskName/evaluateLinkageRule                  controllers.linking.LinkingTaskApi.evaluateLinkageRule(project: String, linkingTaskName: String, linkLimit: Int ?= 1000, timeoutInMs: Int ?= 30000, includeReferenceLinks: Boolean ?= false)
-GET           /tasks/:project/:linkingTaskName/evaluate                             controllers.linking.LinkingTaskApi.evaluateCurrentLinkageRule(project: String, linkingTaskName: String, includeReferenceLinks: Boolean ?= false, offset: Int ?= 0, limit: Int ?= 100)
+GET           /tasks/:project/:linkingTaskName/evaluate                             controllers.linking.LinkingTaskApi.evaluateCurrentLinkageRule(project: String, linkingTaskName: String, includeReferenceLinks: Boolean ?= false, offset: Int ?= 0, limit: Int ?= 100, query: String ?= "")
 
 # Auto-completion API
 GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30, langPref: String ?= "en")
