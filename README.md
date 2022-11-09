@@ -56,6 +56,8 @@ __Example__
 docker run -d --name silk-workbench -v $PWD:/opt/silk/workspace -p 80:80 silkframework/silk-workbench:latest
 ```
 This will start a silk-workbench with a docker container and can be accessed via http port 80.
+The default production configuration can be found in `conf/defaultProduction.conf`. If you want
+to use a different configuration add `-v <PATH_TO_OTHER_CONFIG>:/opt/config/production.conf` to the `docker run` command.
 
 ## Packaging the Silk Workbench as archive
 
