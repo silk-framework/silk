@@ -3,13 +3,7 @@ FROM openjdk:11-jdk as builder
 COPY . /build
 WORKDIR /build
 RUN \
-  echo "Install Maven 3.3.x" \
-#  && curl -sL https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz | tar -xz -C /opt \
-#  && echo "Link current Maven" \
-#  && ln -s /opt/apache-maven-3.3.9 /opt/maven \
-#  && echo "\ncurrent maven version:" \
-#  && /opt/maven/bin/mvn --version \
-  && echo "install yarn" \
+  echo "install yarn" \
   && apt-get update -y \
   && apt-get install -y apt-transport-https curl \
   && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
@@ -21,8 +15,6 @@ RUN \
   && echo "\ncurrent yarn version:" \
   && npm install -g npm \
   && yarn --version \
-#  && echo "fetch jai-core to fix bug with missing maven artifacts" \
-#  && /opt/maven/bin/mvn dependency:get -DremoteRepositories=http://maven.geotoolkit.org -Dartifact=javax.media:jai_core:1.1.3 -Ddest=/tmp
 RUN \
   ./sbt "project workbench" compile universal:packageZipTarball
 RUN \
