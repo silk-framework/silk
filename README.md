@@ -42,18 +42,18 @@ Downloading and installing sbt is not necessary as it is available from this dir
   - Build the docker image with:
     ```
     sbt universal:packageZipTarball
-    docker build -t silkframework/silk-workbench:latest .
+    docker build -t silkworkbench/silk-framework:latest .
     ```
     (This maybe take some minutes)
-  - Pull the docker image via: docker pull silkframework/silk-workbench
-- Run the docker container with: `docker run -d --name silk-workbench -p 80:80 silkframework/silk-workbench:latest`
+  - Pull the docker image via: docker pull silkworkbench/silk-framework
+- Run the docker container with: `docker run -d --name silk-workbench -p 80:80 silkworkbench/silk-framework:latest`
 - In your browser, navigate to 'http://DOCKER_HOST:80'
 - To make the userdata available from outside the docker container you can add a volume mount, therefore add `-v $PWD:/opt/silk/workspace` to the docker run command.
 
 __Example__
 
 ```bash
-docker run -d --name silk-workbench -v $PWD:/opt/silk/workspace -p 80:80 silkframework/silk-workbench:latest
+docker run -d --name silk-workbench -v $PWD:/opt/silk/workspace -p 80:80 silkworkbench/silk-framework:latest
 ```
 This will start a silk-workbench with a docker container and can be accessed via http port 80.
 The default production configuration can be found in `conf/defaultProduction.conf`. If you want
