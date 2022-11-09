@@ -24,8 +24,7 @@ RUN \
 #  && echo "fetch jai-core to fix bug with missing maven artifacts" \
 #  && /opt/maven/bin/mvn dependency:get -DremoteRepositories=http://maven.geotoolkit.org -Dartifact=javax.media:jai_core:1.1.3 -Ddest=/tmp
 RUN \
-  ./sbt "project workbench" universal:packageZipTarball || echo "" \
-  && ./sbt "project workbench" universal:package-zip-tarball
+  ./sbt "project workbench" compile universal:packageZipTarball
 RUN \
   mkdir -p /build/app \
   && tar -xvzf /build/silk-workbench/target/universal/silk-workbench*.tgz -C /build/app
