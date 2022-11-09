@@ -8,6 +8,7 @@ import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import play.api.libs.json.JsArray
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
 
@@ -141,6 +142,22 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     }
   }
 
+  it should "support auto-config" in {
+    // This payload will not work the way it is
+    val csvPayLoad =
+      s"""$sourceProperty1;$sourceProperty2
+         |sourceVal1;sourceVal2
+         |""".stripMargin
+    val response = checkResponseExactStatusCode(
+      executeVariableWorkflow(
+        validVariableWorkflows.head, contentOpt = Some((csvPayLoad, "text/csv")),
+        additionalQueryParameters = Map(VariableWorkflowRequestUtils.QUERY_CONFIG_PARAM_AUTO_CONFIG -> "true")
+      ))
+    for(i <- 1 to 2) {
+      (response.json \\ s"targetProp$i").head.as[JsArray].value.map(_.as[String]) mustBe IndexedSeq(s"sourceVal$i")
+    }
+  }
+
   it should "return an error if a content-type is specified without valid content" in {
     for(mimeType <- Seq(APPLICATION_JSON, APPLICATION_XML, "text/csv")) {
       checkResponseExactStatusCode(
@@ -236,7 +253,8 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
                                       parameters: Map[String, Seq[String]] = Map.empty,
                                       usePost: Boolean = false,
                                       acceptMimeType: String = "application/xml",
-                                      contentOpt: Option[(String, String)] = None): Future[WSResponse] = {
+                                      contentOpt: Option[(String, String)] = None,
+                                      additionalQueryParameters: Map[String, String] = Map.empty): Future[WSResponse] = {
     val path = {
       if(usePost) {
         controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
@@ -246,6 +264,9 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     }
     var request = client.url(s"$baseUrl$path")
         .withHttpHeaders(ACCEPT -> acceptMimeType)
+    additionalQueryParameters.foreach { queryParam =>
+      request = request.addQueryStringParameters(queryParam)
+    }
     if(usePost || contentOpt.isDefined) {
       contentOpt match {
         case Some(content) =>

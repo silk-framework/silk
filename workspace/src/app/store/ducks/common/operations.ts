@@ -15,7 +15,10 @@ import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance, { fetchStoredLang } from "../../../../language";
-import {URI_PROPERTY_PARAMETER_ID} from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
+import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
+import utils from "../../../views/shared/Metadata/MetadataUtils";
+import { Keyword } from "@ducks/workspace/typings";
+import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 
 const {
     setError,
@@ -168,13 +171,10 @@ const buildTaskObject = (formData: any): object => {
 };
 
 type ArtefactDataParameters = {
-    [key: string]: string
-}
+    [key: string]: string;
+};
 
-
-const createArtefactAsync = (formData,
-                             taskType: TaskType | "Project",
-                             dataParameters?: ArtefactDataParameters) => {
+const createArtefactAsync = (formData, taskType: TaskType | "Project", dataParameters?: ArtefactDataParameters) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
@@ -185,7 +185,9 @@ const createArtefactAsync = (formData,
             default:
                 if (selectedArtefact) {
                     selectedArtefact &&
-                        (await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType, dataParameters)));
+                        (await dispatch(
+                            fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType, dataParameters)
+                        ));
                 } else {
                     console.error("selectedArtefact not set! Cannot create item.");
                 }
@@ -194,22 +196,50 @@ const createArtefactAsync = (formData,
     };
 };
 
+/** creates new tags for specific taskType and updates the metadata */
+const createTagsAndAddToMetadata = async (payload: {
+    label: string;
+    description?: string;
+    tags?: SelectedParamsType<Keyword>;
+    projectId?: string;
+    taskId?: string;
+}) => {
+    if (!payload.tags?.createdItems.length || !payload.tags.selectedItems.length) return;
+    const tags = await utils.getSelectedTagsAndCreateNew(
+        payload.tags?.createdItems,
+        payload.projectId,
+        payload.tags?.selectedItems
+    );
+
+    await utils.updateMetaData(
+        {
+            label: payload.label,
+            description: payload.description,
+            tags: tags ?? [],
+        },
+        payload.projectId,
+        payload.taskId
+    );
+};
+
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
 const extractDataAttributes = (formData): ArtefactDataParameters => {
-    let returnValue: ArtefactDataParameters = {}
-    const uriAttribute = formData[URI_PROPERTY_PARAMETER_ID]
-    returnValue = {}
-    returnValue[URI_PROPERTY_PARAMETER_ID] = uriAttribute
-    return returnValue
-}
+    let returnValue: ArtefactDataParameters = {};
+    const uriAttribute = formData[URI_PROPERTY_PARAMETER_ID];
+    returnValue = {};
+    returnValue[URI_PROPERTY_PARAMETER_ID] = uriAttribute;
+    return returnValue;
+};
 
-const fetchCreateTaskAsync = (formData: any,
-                              artefactId: string,
-                              taskType: TaskType,
-                              dataParameters?: {[key: string]: string}) => {
+const fetchCreateTaskAsync = (
+    formData: any,
+    artefactId: string,
+    taskType: TaskType,
+    dataParameters?: { [key: string]: string }
+) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
-        const { label, description, id, ...restFormData } = formData;
+        const { label, description, id, tags, ...restFormData } = formData;
         const requestData = buildTaskObject(restFormData);
         const metadata = {
             label,
@@ -232,6 +262,13 @@ const fetchCreateTaskAsync = (formData: any,
         dispatch(setModalError({}));
         try {
             const data = await requestCreateTask(payload, currentProjectId);
+            await createTagsAndAddToMetadata({
+                label,
+                description,
+                tags,
+                projectId: currentProjectId,
+                taskId: data.data.id,
+            });
             batch(() => {
                 dispatch(closeArtefactModal());
                 dispatch(
@@ -252,10 +289,12 @@ const fetchCreateTaskAsync = (formData: any,
 };
 
 /** Updates the technical parameters of a project task. */
-const fetchUpdateTaskAsync = (projectId: string,
-                              itemId: string,
-                              formData: any,
-                              dataParameters?: ArtefactDataParameters) => {
+const fetchUpdateTaskAsync = (
+    projectId: string,
+    itemId: string,
+    formData: any,
+    dataParameters?: ArtefactDataParameters
+) => {
     return async (dispatch) => {
         const requestData = buildTaskObject(formData);
         const payload = {
@@ -276,10 +315,15 @@ const fetchUpdateTaskAsync = (projectId: string,
     };
 };
 
-const fetchCreateProjectAsync = (formData: { label: string; description?: string; id?: string }) => {
+const fetchCreateProjectAsync = (formData: {
+    label: string;
+    description?: string;
+    id?: string;
+    tags?: SelectedParamsType<Keyword>;
+}) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
-        const { label, description, id } = formData;
+        const { label, description, id, tags } = formData;
         const payload = {
             metaData: {
                 label,
@@ -289,6 +333,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
         if (id) payload["id"] = id;
         try {
             const data = await requestCreateProject(payload);
+            await createTagsAndAddToMetadata({ label, description, tags, projectId: data.name });
             // Added project, workspace state may have changed
             dispatch(commonOp.fetchCommonSettingsAsync());
             dispatch(closeArtefactModal());

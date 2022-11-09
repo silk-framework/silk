@@ -39,6 +39,15 @@ import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 
+export const getDateData = (dateTime: number | string) => {
+    const then = new Date(dateTime);
+    return {
+        year: then.getFullYear(),
+        month: ("0" + (then.getMonth() + 1)).slice(-2),
+        day: ("0" + then.getDate()).slice(-2),
+    };
+};
+
 interface IProps {
     projectId?: string;
     taskId?: string;
@@ -141,26 +150,8 @@ export function Metadata(props: IProps) {
         try {
             await letLoading(async () => {
                 const path = location.pathname;
-                //create new tags if exists
-                if (createdTags.length) {
-                    const createdTagsResponse = await utils.createNewTag(
-                        createdTags.map((t) => ({ label: t.label })),
-                        projectId
-                    );
-                    //defensive correction to ensure uris match.
-                    const metadataTags = selectedTags.map((tag) => {
-                        const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find(
-                            (t) => t.label === tag.label
-                        );
-                        if (newlyCreatedTagMatch) {
-                            return newlyCreatedTagMatch.uri;
-                        }
-                        return tag.uri;
-                    });
-                    formEditData.tags = metadataTags;
-                } else {
-                    formEditData.tags = selectedTags.map((tag) => tag.uri);
-                }
+                const tags = await utils.getSelectedTagsAndCreateNew(createdTags, projectId, selectedTags);
+                formEditData.tags = tags;
                 const metadata = await sharedOp.updateTaskMetadataAsync(formEditData!!, taskId, projectId);
                 removeDirtyState();
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
@@ -265,15 +256,6 @@ export function Metadata(props: IProps) {
         const now = Date.now();
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
-    };
-
-    const getDateData = (dateTime: number | string) => {
-        const then = new Date(dateTime);
-        return {
-            year: then.getFullYear(),
-            month: ("0" + (then.getMonth() + 1)).slice(-2),
-            day: ("0" + then.getDate()).slice(-2),
-        };
     };
 
     const widgetContent = (

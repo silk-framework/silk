@@ -190,12 +190,12 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     jsesc "^2.5.1"
 
-"@babel/generator@^7.19.4":
-  version "7.19.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/generator/-/generator-7.19.4.tgz#60050cf3f0a593d7b2471b4be4f62a56b949237f"
-  integrity sha1-YAUM8/Clk9eyRxtL5PYqVrlJI38=
+"@babel/generator@^7.19.3":
+  version "7.19.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/generator/-/generator-7.19.3.tgz#d7f4d1300485b4547cb6f94b27d10d237b42bf59"
+  integrity sha1-1/TRMASFtFR8tvlLJ9ENI3tCv1k=
   dependencies:
-    "@babel/types" "^7.19.4"
+    "@babel/types" "^7.19.3"
     "@jridgewell/gen-mapping" "^0.3.2"
     jsesc "^2.5.1"
 
@@ -745,10 +745,10 @@
   dependencies:
     "@babel/types" "^7.18.6"
 
-"@babel/helper-string-parser@^7.19.4":
-  version "7.19.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/helper-string-parser/-/helper-string-parser-7.19.4.tgz#38d3acb654b4701a9b77fb0615a96f775c3a9e63"
-  integrity sha1-ONOstlS0cBqbd/sGFalvd1w6nmM=
+"@babel/helper-string-parser@^7.18.10":
+  version "7.18.10"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/helper-string-parser/-/helper-string-parser-7.18.10.tgz#181f22d28ebe1b3857fa575f5c290b1aaf659b56"
+  integrity sha1-GB8i0o6+GzhX+ldfXCkLGq9lm1Y=
 
 "@babel/helper-validator-identifier@^7.15.7":
   version "7.15.7"
@@ -869,10 +869,10 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/parser/-/parser-7.18.4.tgz#6774231779dd700e0af29f6ad8d479582d7ce5ef"
   integrity sha1-Z3QjF3ndcA4K8p9q2NR5WC185e8=
 
-"@babel/parser@^7.18.10", "@babel/parser@^7.19.4":
-  version "7.19.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/parser/-/parser-7.19.4.tgz#03c4339d2b8971eb3beca5252bafd9b9f79db3dc"
-  integrity sha1-A8QznSuJces77KUlK6/Zufeds9w=
+"@babel/parser@^7.18.10", "@babel/parser@^7.19.3":
+  version "7.19.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/parser/-/parser-7.19.3.tgz#8dd36d17c53ff347f9e55c328710321b49479a9a"
+  integrity sha1-jdNtF8U/80f55VwyhxAyG0lHmpo=
 
 "@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression@^7.16.2":
   version "7.16.2"
@@ -2824,9 +2824,9 @@
     regenerator-runtime "^0.13.4"
 
 "@babel/runtime@^7.17.8", "@babel/runtime@^7.8.7":
-  version "7.19.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/runtime/-/runtime-7.19.4.tgz#a42f814502ee467d55b38dd1c256f53a7b885c78"
-  integrity sha1-pC+BRQLuRn1Vs43Rwlb1OnuIXHg=
+  version "7.19.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/runtime/-/runtime-7.19.0.tgz#22b11c037b094d27a8a2504ea4dcff00f50e2259"
+  integrity sha1-IrEcA3sJTSeoolBOpNz/APUOIlk=
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -2929,18 +2929,18 @@
     globals "^11.1.0"
 
 "@babel/traverse@^7.19.1":
-  version "7.19.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/traverse/-/traverse-7.19.4.tgz#f117820e18b1e59448a6c1fa9d0ff08f7ac459a8"
-  integrity sha1-8ReCDhix5ZRIpsH6nQ/wj3rEWag=
+  version "7.19.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/traverse/-/traverse-7.19.3.tgz#3a3c5348d4988ba60884e8494b0592b2f15a04b4"
+  integrity sha1-OjxTSNSYi6YIhOhJSwWSsvFaBLQ=
   dependencies:
     "@babel/code-frame" "^7.18.6"
-    "@babel/generator" "^7.19.4"
+    "@babel/generator" "^7.19.3"
     "@babel/helper-environment-visitor" "^7.18.9"
     "@babel/helper-function-name" "^7.19.0"
     "@babel/helper-hoist-variables" "^7.18.6"
     "@babel/helper-split-export-declaration" "^7.18.6"
-    "@babel/parser" "^7.19.4"
-    "@babel/types" "^7.19.4"
+    "@babel/parser" "^7.19.3"
+    "@babel/types" "^7.19.3"
     debug "^4.1.0"
     globals "^11.1.0"
 
@@ -2976,12 +2976,12 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@babel/types@^7.18.10", "@babel/types@^7.18.6", "@babel/types@^7.18.9", "@babel/types@^7.19.0", "@babel/types@^7.19.4":
-  version "7.19.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/types/-/types-7.19.4.tgz#0dd5c91c573a202d600490a35b33246fed8a41c7"
-  integrity sha1-DdXJHFc6IC1gBJCjWzMkb+2KQcc=
+"@babel/types@^7.18.10", "@babel/types@^7.18.6", "@babel/types@^7.18.9", "@babel/types@^7.19.0", "@babel/types@^7.19.3":
+  version "7.19.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/types/-/types-7.19.3.tgz#fc420e6bbe54880bce6779ffaf315f5e43ec9624"
+  integrity sha1-/EIOa75UiAvOZ3n/rzFfXkPsliQ=
   dependencies:
-    "@babel/helper-string-parser" "^7.19.4"
+    "@babel/helper-string-parser" "^7.18.10"
     "@babel/helper-validator-identifier" "^7.19.1"
     to-fast-properties "^2.0.0"
 
@@ -3622,11 +3622,6 @@
     "@jridgewell/sourcemap-codec" "^1.4.10"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@jridgewell/resolve-uri@3.1.0":
-  version "3.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz#2203b118c157721addfe69d47b70465463066d78"
-  integrity sha1-IgOxGMFXchrd/mnUe3BGVGMGbXg=
-
 "@jridgewell/resolve-uri@^3.0.3":
   version "3.0.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@jridgewell/resolve-uri/-/resolve-uri-3.0.4.tgz#b876e3feefb9c8d3aa84014da28b5e52a0640d72"
@@ -3650,11 +3645,6 @@
     "@jridgewell/gen-mapping" "^0.3.0"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@jridgewell/sourcemap-codec@1.4.14":
-  version "1.4.14"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.14.tgz#add4c98d341472a289190b424efbdb096991bb24"
-  integrity sha1-rdTJjTQUcqKJGQtCTvvbCWmRuyQ=
-
 "@jridgewell/sourcemap-codec@^1.4.10":
   version "1.4.10"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@jridgewell/sourcemap-codec/-/sourcemap-codec-1.4.10.tgz#baf57b4e2a690d4f38560171f91783656b7f8186"
@@ -3677,12 +3667,12 @@
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
 "@jridgewell/trace-mapping@^0.3.14":
-  version "0.3.16"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@jridgewell/trace-mapping/-/trace-mapping-0.3.16.tgz#a7982f16c18cae02be36274365433e5b49d7b23f"
-  integrity sha1-p5gvFsGMrgK+NidDZUM+W0nXsj8=
+  version "0.3.15"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@jridgewell/trace-mapping/-/trace-mapping-0.3.15.tgz#aba35c48a38d3fd84b37e66c9c0423f9744f9774"
+  integrity sha1-q6NcSKONP9hLN+ZsnAQj+XRPl3Q=
   dependencies:
-    "@jridgewell/resolve-uri" "3.1.0"
-    "@jridgewell/sourcemap-codec" "1.4.14"
+    "@jridgewell/resolve-uri" "^3.0.3"
+    "@jridgewell/sourcemap-codec" "^1.4.10"
 
 "@jridgewell/trace-mapping@^0.3.9":
   version "0.3.13"
@@ -3797,13 +3787,13 @@
     rimraf "^3.0.2"
 
 "@pmmmwh/react-refresh-webpack-plugin@^0.5.3":
-  version "0.5.8"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.5.8.tgz#da3383761e2c0c440610819f3204769022a38d12"
-  integrity sha1-2jODdh4sDEQGEIGfMgR2kCKjjRI=
+  version "0.5.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@pmmmwh/react-refresh-webpack-plugin/-/react-refresh-webpack-plugin-0.5.7.tgz#58f8217ba70069cc6a73f5d7e05e85b458c150e2"
+  integrity sha1-WPghe6cAacxqc/XX4F6FtFjBUOI=
   dependencies:
     ansi-html-community "^0.0.8"
     common-path-prefix "^3.0.0"
-    core-js-pure "^3.23.3"
+    core-js-pure "^3.8.1"
     error-stack-parser "^2.0.6"
     find-up "^5.0.0"
     html-entities "^2.1.0"
@@ -9182,10 +9172,10 @@ core-js-pure@^3.19.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/core-js-pure/-/core-js-pure-3.20.0.tgz#7253feccf8bb05b72c153ddccdbe391ddbffbe03"
   integrity sha1-clP+zPi7BbcsFT3czb45Hdv/vgM=
 
-core-js-pure@^3.23.3:
-  version "3.25.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js-pure/-/core-js-pure-3.25.5.tgz#79716ba54240c6aa9ceba6eee08cf79471ba184d"
-  integrity sha1-eXFrpUJAxqqc66bu4Iz3lHG6GE0=
+core-js-pure@^3.8.1:
+  version "3.21.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js-pure/-/core-js-pure-3.21.0.tgz#819adc8dfb808205ce25b51d50591becd615db7e"
+  integrity sha1-gZrcjfuAggXOJbUdUFkb7NYV234=
 
 core-js@^2.4.0, core-js@^2.5.0:
   version "2.6.12"
@@ -10366,9 +10356,9 @@ electron-to-chromium@^1.4.118:
   integrity sha1-ml0fQUUuzGW2htUprpGSSNpE9AY=
 
 electron-to-chromium@^1.4.251:
-  version "1.4.276"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/electron-to-chromium/-/electron-to-chromium-1.4.276.tgz#17837b19dafcc43aba885c4689358b298c19b520"
-  integrity sha1-F4N7Gdr8xDq6iFxGiTWLKYwZtSA=
+  version "1.4.275"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/electron-to-chromium/-/electron-to-chromium-1.4.275.tgz#db25c8e39c9cc910a996d1ec9b73eee834cb0ac1"
+  integrity sha1-2yXI45ycyRCpltHsm3Pu6DTLCsE=
 
 element-resize-detector@^1.2.2:
   version "1.2.4"

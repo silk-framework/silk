@@ -1,13 +1,12 @@
 package controllers.transform
 
 import java.time.Instant
-
 import controllers.util.SerializationUtils
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
@@ -15,6 +14,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.DPair
+import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.{JsArray, JsValue}
 
 class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
@@ -101,6 +101,15 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   "Execute with alternative linking rule" in {
     evaluateLinkageRule()
     evaluateLinkageRule(linkLimit = Some(2), expectedLinks = 2)
+  }
+
+  "Return evaluated links for the current linking rule" in {
+    workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate")
+    val response = request.
+      get()
+    val jsonBody = checkResponse(response).json
+    (jsonBody \ "links").as[JsArray].value must have size 2
   }
 
   // Alternative linkage rule returns 4 links, the original rule only returns 2

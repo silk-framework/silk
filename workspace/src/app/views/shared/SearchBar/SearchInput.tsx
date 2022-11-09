@@ -1,4 +1,5 @@
 import React, { memo } from "react";
+import { useTranslation } from "react-i18next";
 import { SearchField } from "@eccenca/gui-elements";
 
 export interface ISearchInputProps {
@@ -23,6 +24,7 @@ const SearchInput = ({
     focusOnCreation = false,
     ...restProps
 }: ISearchInputProps) => {
+    const [t] = useTranslation();
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             onEnter();
@@ -38,10 +40,11 @@ const SearchInput = ({
             onKeyDown={handleKeyDown}
             value={filterValue}
             onClearanceHandler={onClearanceHandler}
+            onClearanceText={t("common.action.clearInput", "Clear input")}
             emptySearchInputMessage={emptySearchInputMessage}
         />
     );
 };
 
-const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => p.filterValue === n.filterValue;
+const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => (p.filterValue === n.filterValue) && (p.emptySearchInputMessage === n.emptySearchInputMessage);
 export default memo<ISearchInputProps>(SearchInput, areEqual);

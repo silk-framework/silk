@@ -252,7 +252,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} zoomRange={zoomRange} />
+                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} zoomRange={zoomRange} readOnlyMode={readOnlyMode} />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

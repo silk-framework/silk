@@ -5,6 +5,9 @@
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
         "updateTitle": "Update item of type {{type}}",
+        "autoConfigButton": "Auto-config",
+        "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
+        "autoConfigParametersUpdated": "Auto-configuration has changed {{number}} parameter values.",
         "projectContext": {
             "configResetInfo": "All settings are going to be reset, except label and description.",
             "selectProjectLabel": "Select target project",
@@ -25,7 +28,8 @@
         }
     },
     "ShowIdentifierModal": {
-        "title": "Item identifier"
+        "title": "Item identifier",
+        "combinedIdentifier": "Combined project and task identifier"
     },
     "StickyNoteModal": {
         "title": "Add note",
@@ -242,6 +246,8 @@
             "update": "Update",
             "showApiDoc": "API",
             "copyClipboard": "Copy to clipboard",
+            "configure": "Configure",
+            "clearInput": "Clear input",
             "filterOn": "Use as filter",
             "filterOff": "Remove filter"
         },
@@ -440,7 +446,7 @@
         "node": {
             "menu": {
                 "description": {
-                    "label": "Operator description"
+                    "label": "Show documentation"
                 },
                 "remove": {
                     "label": "Remove"
@@ -469,11 +475,33 @@
             "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
             "emptyList": "No operator found.",
             "searchInput": "Search for operators and paths...",
-            "searchTooltip": "Search for rule operators and input paths."
+            "searchTooltip": "Search for rule operators and input paths.",
+            "tab": {
+                "all": "All",
+                "sourcePaths": "Source paths",
+                "targetPaths": "Target paths",
+                "transform": "Transform",
+                "comparison": "Comparison",
+                "aggregation": "Aggregation"
+            },
+            "operator": {
+                "markdownTooltip": "{{shortDescription}}\n\nClick to view full documentation",
+                "markdownModalTitle": "{{operatorName}}'s documentation",
+                "sourcePathLabel": "Source path",
+                "sourcePathDesc": "The value path of the source input of the linking task.",
+                "targetPathLabel": "Target path",
+                "targetPathDesc": "The value path of the target input of the linking task."
+            },
+            "parameter": {
+                "weightLabel": "Weight",
+                "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
+                "thresholdLabel": "Threshold",
+                "thresholdDesc": "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+            }
         },
         "toolbar": {
             "advancedParameterMode": "advanced",
-            "autoLayout": "Auto-layout",
+            "autoLayout": "Layout automatically the rule tree",
             "readOnly": "Read-only mode is enabled. No saving possible.",
             "save": "Save",
             "saveError": {
@@ -730,82 +758,6 @@
             "title": "Error log"
         }
     },
-    "WorkflowEditor": {
-        "canvasControlTooltips": {
-            "fitview": "Center workflow",
-            "zoomin": "Zoom in",
-            "zoomout": "Zoom out",
-            "lock": "Switch to read-only mode",
-            "unlock": "Switch to edit mode"
-        },
-        "sidebar": {
-            "searchInput": "Find datasets and workflow operators",
-            "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar. Pressing the <Enter> key refreshes the list from the server.",
-            "availableTasks": "Available task",
-            "availableTasks_plural": "Available tasks ({{count}})",
-            "usedTasks": "Matching node",
-            "usedTasks_plural": "Node matches ({{count}})",
-            "cycleNext": "Next match",
-            "cyclePrevious": "Previous match",
-            "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
-            "cancelCycling": "Cancel cycling"
-        },
-        "executionReport": {
-            "title": "Workflow execution report"
-        },
-        "header": {
-            "saveBtnTooltip": "Save the current state of the workflow",
-            "toggleProgressLabel": "Toggle progress",
-            "warning": {
-                "tooltip": "Centers the failed node and if available, opens its loading error report."
-            },
-            "warningMenuTooltip": "Show list of errors and warnings"
-        },
-        "handle": {
-            "configuration": {
-                "label": "Configuration input",
-                "tooltip": "Values passed here will be used to reconfigure the operator parameters. The attribute names must match the name of the parameters to be reconfigured. It's possible to configure a subset of all available parameters."
-            }
-        },
-        "edge": {
-            "menu": {
-                "delete": {
-                    "label": "Remove edge",
-                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the [←] (backspace) key on the keyboard."
-                }
-            }
-        },
-        "errors": {
-            "WorkflowEditor_fetchPortsConfigs": "Could not load task configurations.",
-            "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
-            "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
-            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow.",
-            "WorkflowEditor_taskNotLoaded": "Workflow task could not be loaded properly"
-        },
-        "node": {
-            "actions": {
-                "showExecutionReport": "Show execution report"
-            },
-            "menu": {
-                "remove": {
-                    "label": "Remove node"
-                },
-                "showExecutionReport": {
-                    "label": "Show execution report"
-                },
-                "showSummary": {
-                    "label": "Show summary"
-                },
-                "toggleConfigPort": {
-                    "label": "Toggle config port",
-                    "description": "Show or hide config port that allows to re-configure parameters of this workflow node by inputting a single flat entity/row with properties matching the parameter IDs. Parameter IDs are listed in the documentation of the corresponding DataIntegration plugin."
-                }
-            }
-        },
-        "warnings": {
-            "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
-        }
-    },
     "DatasetUriPropertyParameter": {
         "label": "URI attribute",
         "description": "When reading data from the dataset, the specified attribute will be used to get the URIs of the entities. When writing to a dataset, the specified attribute will be automatically added to the schema as well as the generated entity URIs will be added as values for each entity. If the entered value is not a valid URI, it will be converted to a valid URI.",
@@ -893,7 +845,7 @@
             "reset": "Reset",
             "failed": "Could not reset learning session."
         },
-        "saveDialog":{
+        "saveDialog": {
             "title": "Save reference links and/or best learned rule",
             "saveReferenceLinks": {
                 "label": "Save reference links",
@@ -936,6 +888,21 @@
             "modalTitle": "Reference link entity URIs",
             "sourceEntity": "Source entity",
             "targetEntity": "Target entity"
+        }
+    },
+    "HierarchicalMapping": {
+        "ExampleView": {
+            "errors": {
+                "emptyResult": "Preview has returned no results.",
+                "emptyWithExceptions": "Preview has returned no results, possibly because of transform validation errors.",
+                "notSupported": "Input source does not support the transform preview."
+            }
+        }
+    },
+    "MappingSuggestion": {
+        "suggestionIssues": {
+            "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
+            "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
         }
     }
 }

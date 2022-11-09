@@ -6,9 +6,10 @@ import _ from "lodash";
 
 import { childExampleAsync, ruleExampleAsync } from "../../store";
 import { InfoBox } from "../../components/InfoBox";
-import { Notification } from "@eccenca/gui-elements";
+import {IconButton, Markdown, Notification } from "@eccenca/gui-elements";
 import EventEmitter from "../../utils/EventEmitter";
 import { MESSAGES } from "../../utils/constants";
+import {useTranslation} from "react-i18next";
 
 interface IProps {
     id: string;
@@ -19,10 +20,28 @@ interface IProps {
     // The number of milliseconds to wait before updating the example view on changes. Changes are aggregated and only one request will be send if changes happen below this delay.
     updateDelay?: number;
 }
+
+interface RuleExamples {
+    sourcePaths: string[][]
+    results: RuleExample[]
+    status: {
+        id: "success" | "not supported" | "empty with exceptions" | "empty" | string
+        msg?: string
+    }
+}
+
+interface RuleExample {
+    sourceValues: string[][]
+    transformedValues: string[]
+}
+
 /** Shows example input and output values for a mapping rule. */
 export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, updateDelay = 500 }: IProps) => {
-    const [example, setExample] = useState<any>(undefined);
+    const [examples, setExamples] = useState<RuleExamples | undefined>(undefined);
+    // Show message details
+    const [showDetails, setShowDetails] = useState(false)
     const [error, setError] = useState<any>(undefined);
+    const [t] = useTranslation()
 
     const ruleExampleFunc = rawRule ? childExampleAsync : ruleExampleAsync;
     const updateFn = () =>
@@ -33,7 +52,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
             objectPath: objectSourcePathContext,
         }).subscribe(
             ({ example }) => {
-                setExample(example);
+                setExamples(example);
             },
             (error) => {
                 setError(error);
@@ -60,18 +79,50 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
         return <ErrorView {...error} titlePrefix={"There has been an error loading the examples: "} />;
     }
 
-    if (_.isUndefined(example)) {
+    if (_.isUndefined(examples)) {
         return <div />;
     }
 
-    const pathsCount = _.size(example.sourcePaths);
-    const resultsCount = _.size(example.results);
-
-    if (resultsCount === 0) {
-        return <Notification>Preview has returned no results.</Notification>;
+    const pathsCount = _.size(examples.sourcePaths);
+    const resultsCount = _.size(examples.results);
+    const handleToggleDetails = () => {
+        setShowDetails(current => !current)
+    }
+    const ProblemNotification = ({message, details}: {message: string, details?: string}) => {
+        const detailMessage = showDetails && details ? details : undefined
+        return <Notification
+            actions={details ? <IconButton
+                name={showDetails ? "toggler-showless" : "toggler-showmore"}
+                onClick={details ? handleToggleDetails : undefined}
+            /> : undefined}
+            onClick={details ? handleToggleDetails : undefined}
+            message={detailMessage ? <Markdown>
+                {message + "\n\n`" + detailMessage + "`"}
+            </Markdown> : undefined}
+        >{
+            detailMessage ? "" : message
+        }
+        </Notification>
     }
 
-    const sourcePaths = pathsCount === 0 ? [""] : example.sourcePaths;
+    if(examples.status.id === "not supported") {
+        return <ProblemNotification
+            message={t("HierarchicalMapping.ExampleView.errors.notSupported")}
+            details={examples.status.msg}
+        />
+    } else if (resultsCount === 0 && examples.status.id === "empty with exceptions") {
+        return <ProblemNotification
+            message={t("HierarchicalMapping.ExampleView.errors.emptyWithExceptions")}
+            details={examples.status.msg}
+        />
+    } else if (resultsCount === 0) {
+        return <ProblemNotification
+            message={t("HierarchicalMapping.ExampleView.errors.emptyResult")}
+            details={examples.status.msg}
+        />
+    }
+
+    const sourcePaths = pathsCount === 0 ? [""] : examples.sourcePaths;
 
     return (
         <InfoBox>
@@ -86,7 +137,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
                         <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
                     </tr>
                 </thead>
-                {_.map(example.results, (result, index) => (
+                {_.map(examples.results, (result, index) => (
                     <tbody key={`tbody_${index}`}>
                         {sourcePaths.map((sourcePath, i) => (
                             <tr key={`${index}_${sourcePath}_${i}`} id={`${index}_${sourcePath}_${i}`}>
@@ -106,7 +157,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
                                         className="ecc-silk-mapping__rulesviewer__examples-table__result"
                                         rowSpan={pathsCount}
                                     >
-                                        {_.map(example.results[index].transformedValues, (transformedValue, row) => (
+                                        {_.map(examples.results[index].transformedValues, (transformedValue, row) => (
                                             <Chip key={`value_${index}_${i}_${row}`} id={`value_${index}_${i}_${row}`}>
                                                 {transformedValue}
                                             </Chip>

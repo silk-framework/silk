@@ -1,9 +1,15 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginDescription, PluginList, PluginObjectParameterTypeTrait, PluginParameter}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.{ProjectTrait, WorkspaceReadTrait}
 import play.api.libs.json._
+
+import java.util.logging.{Level, Logger}
+import scala.util.control.NonFatal
 
 object PluginSerializers {
   final val MARKDOWN_DOCUMENTATION_PARAMETER = "markdownDocumentation"
@@ -14,15 +20,21 @@ object PluginSerializers {
     */
   implicit object PluginListJsonFormat extends WriteOnlyJsonFormat[PluginList] {
 
+    private lazy val log = Logger.getLogger(getClass.getName)
+
     override def write(pluginList: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         for((_, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
-          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, taskType = None)
+          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, taskType = None, withLabels = false)
         }
       )
     }
 
-    def serializePlugin(plugin: PluginDescription[_], withMarkdownDocumentation: Boolean, overviewOnly: Boolean, taskType: Option[String])
+    def serializePlugin(plugin: PluginDescription[_],
+                        withMarkdownDocumentation: Boolean,
+                        overviewOnly: Boolean,
+                        taskType: Option[String],
+                        withLabels: Boolean)
                        (implicit writeContext: WriteContext[JsValue]): JsObject = {
       val markdownDocumentation = if(withMarkdownDocumentation && plugin.documentation.nonEmpty){
         Some((MARKDOWN_DOCUMENTATION_PARAMETER -> JsString(plugin.documentation)))
@@ -35,29 +47,25 @@ object PluginSerializers {
       val tt = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
       val details = Seq (
         "type" -> JsString("object"),
-        "properties" -> JsObject(serializeParams(plugin.parameters)),
+        "properties" -> JsObject(serializeParams(plugin.parameters, withLabels)),
         "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString)),
         "pluginId" -> JsString(plugin.id)
       ).filter(_ => !overviewOnly)
       JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
     }
 
-    private def serializeParams(params: Seq[PluginParameter])
+    private def serializeParams(params: Seq[PluginParameter],
+                                withLabels: Boolean)
                                (implicit writeContext: WriteContext[JsValue]): Seq[(String, JsValue)] = {
       for(param <- params) yield {
-        param.name -> serializeParam(param)
+        param.name -> serializeParam(param, withLabels)
       }
     }
 
-    private def serializeParam(param: PluginParameter)
+    private def serializeParam(param: PluginParameter,
+                               withLabels: Boolean)
                               (implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val defaultValue: JsValue = (param.parameterType, param.defaultValue) match {
-        case (objectType: PluginObjectParameterTypeTrait, Some(v)) =>
-          serializeParameterValue(objectType.pluginObjectParameterClass, v)
-        case (_, Some(_)) =>
-          JsString(param.stringDefaultValue(Prefixes.empty).get)
-        case (_, None) => JsNull
-      }
+      val defaultValue: JsValue = defaultValueToJs(param, withLabels)
       val pluginId: Option[String] = param.parameterType match {
         case objectType: PluginObjectParameterTypeTrait => objectType.pluginDescription.map(_.id.toString)
         case _ => None
@@ -66,7 +74,7 @@ object PluginSerializers {
       val (parameters, requiredList): (Option[JsObject], Option[Seq[String]]) = param.parameterType match {
         case objectType: PluginObjectParameterTypeTrait if param.visibleInDialog =>
           val pluginDescription = ClassPluginDescription(objectType.pluginObjectParameterClass)
-          val parameters = JsObject(pluginDescription.parameters.map(p => p.name -> serializeParam(p)))
+          val parameters = JsObject(pluginDescription.parameters.map(p => p.name -> serializeParam(p, withLabels)))
           val requiredParameters = pluginDescription.parameters.filterNot(_.defaultValue.isDefined).map(_.name)
           (Some(parameters), Some(requiredParameters))
         case _ => (None, None)
@@ -90,12 +98,56 @@ object PluginSerializers {
       ))
     }
 
+    private def defaultValueToJs(param: PluginParameter,
+                                 withLabels: Boolean)
+                                (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      (param.parameterType, param.defaultValue) match {
+        case (objectType: PluginObjectParameterTypeTrait, Some(v)) =>
+          val value = serializeParameterValue(objectType.pluginObjectParameterClass, v)
+          if (withLabels) {
+            Json.obj("value" -> value)
+          } else {
+            value
+          }
+        case (_, Some(_)) =>
+          val value = param.stringDefaultValue(Prefixes.empty).get
+          param.autoCompletion match {
+            case Some(autoCompletion) if withLabels =>
+              val label: Option[String] = if(autoCompletion.autoCompleteValueWithLabels) {
+                // No project ID/workspace available, only add label for parameters that do not need project/workspace information
+                try {
+                  autoCompletion.autoCompletionProvider.valueToLabel(writeContext.projectId.getOrElse("dummy"), value, Seq.empty, DummyWorkspaceRead)(UserContext.Empty)
+                } catch {
+                  case NonFatal(ex) =>
+                    log.log(Level.WARNING, s"Could not retrieve label for default parameter value '$value'", ex)
+                    None
+                }
+              } else {
+                None
+              }
+              Json.obj(
+                "value" -> value,
+                "label" -> label
+              )
+            case _ =>
+              JsString(value)
+          }
+        case (_, None) => JsNull
+      }
+    }
+
     def serializeParameterValue(pluginObjectParameterClass: Class[_],
                                 value: AnyRef)
                                (implicit writeContext: WriteContext[JsValue]): JsValue = {
       val jsonFormat = Serialization.formatForDynamicType[JsValue](pluginObjectParameterClass)
       jsonFormat.write(value)
     }
+  }
+
+  object DummyWorkspaceRead extends WorkspaceReadTrait {
+    override def projects(implicit userContext: UserContext): Seq[ProjectTrait] = Seq.empty
+    override def project(name: Identifier)(implicit userContext: UserContext): ProjectTrait = throw new RuntimeException("Cannot retrieve projects!")
+    override def findProject(name: Identifier)(implicit userContext: UserContext): Option[ProjectTrait] = None
   }
 }
 

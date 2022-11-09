@@ -29,8 +29,13 @@ interface ParameterAutoCompletionProps {
     intent: Intent;
     /** Show errors in the auto-completion list instead of the global error notification widget. */
     showErrorsInline?: boolean;
-    /** When set to true the auto-complete input field will be disabled */
-    disabled?: boolean
+    /** When set to true the auto-complete input field will be in read-only mode and cannot be edited. */
+    readOnly?: boolean;
+    /** Creates a backdrop when the popover is shown that captures outside clicks in order to close the popover.
+     * This is needed if other components on the same page are swallowing events, e.g. the react-flow canvas.
+     * hasBackDrop should then be set to true in these cases otherwise the popover won't close when clicking those other components.
+     **/
+    hasBackDrop?: boolean
 }
 
 /** Component for parameter auto-completion. */
@@ -46,7 +51,8 @@ export const ParameterAutoCompletion = ({
     required,
     onChange,
     showErrorsInline = false,
-    disabled
+    readOnly,
+    hasBackDrop = false
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -109,12 +115,13 @@ export const ParameterAutoCompletion = ({
             onChange={onChange}
             initialValue={initialValue}
             disabled={
-                !!disabled || selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
+                selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
             }
             inputProps={{
                 name: formParamId,
                 id: formParamId,
                 intent: intent,
+                readOnly: !!readOnly,
             }}
             reset={
                 !required
@@ -142,6 +149,7 @@ export const ParameterAutoCompletion = ({
             }
             noResultText={t("common.messages.noResults")}
             requestErrorPrefix={errorTitle}
+            hasBackDrop={hasBackDrop}
         />
     );
 };

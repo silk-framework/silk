@@ -1,24 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
+import React, {useEffect, useState} from "react";
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC} from "gui-elements-deprecated";
 import {
     AffirmativeButton,
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { AutoSuggestion, IconButton } from "@eccenca/gui-elements";
+import {AutoSuggestion, IconButton, Spacing, Spinner, TextField} from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
-import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
+import store, {checkValuePathValidity, fetchValuePathSuggestions} from "../../../store";
+import {convertToUri} from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import { trimValue } from "../../../utils/trimValue";
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
+import {trimValue} from "../../../utils/trimValue";
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
+import {wasTouched} from "../../../utils/wasTouched";
+import {newValueIsIRI} from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import { TextField, Spinner } from "@eccenca/gui-elements";
 
 const LANGUAGES_LIST = [
     "en",
@@ -101,7 +100,7 @@ export function ValueRuleForm(props: IProps) {
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
     const [valueType, setValueType] = useState<IValueType>({ nodeType: "StringValueType" });
-    const [sourceProperty, setSourceProperty] = useState<string | { value: string }>("");
+    const sourceProperty = React.useRef<string | { value: string }>("")
     const [isAttribute, setIsAttribute] = useState(false);
     const [initialValues, setInitialValues] = useState<Partial<IState>>({});
     const [error, setError] = useState<any>(null);
@@ -110,6 +109,7 @@ export function ValueRuleForm(props: IProps) {
     const [targetProperty, setTargetProperty] = useState<string>("");
     const [valuePathValid, setValuePathValid] = useState<boolean>(false);
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
+    const lastEmittedEvent = React.useRef<string>("")
 
     const { id, parentId } = props;
 
@@ -120,7 +120,7 @@ export function ValueRuleForm(props: IProps) {
         changed,
         type,
         valueType,
-        sourceProperty,
+        sourceProperty: sourceProperty.current,
         isAttribute,
         initialValues,
         error,
@@ -162,7 +162,9 @@ export function ValueRuleForm(props: IProps) {
                     initialValues.label && setLabel(initialValues.label);
                     initialValues.targetProperty && setTargetProperty(initialValues.targetProperty);
                     initialValues.valueType && setValueType(initialValues.valueType);
-                    initialValues.sourceProperty && setSourceProperty(initialValues.sourceProperty);
+                    if(initialValues.sourceProperty) {
+                        sourceProperty.current = initialValues.sourceProperty
+                    }
                     initialValues.isAttribute && setIsAttribute(initialValues.isAttribute);
                     setInitialValues(initialValues);
                     setLoading(false);
@@ -194,7 +196,7 @@ export function ValueRuleForm(props: IProps) {
                 label: label,
                 targetProperty: trimValue(targetProperty),
                 valueType: valueType,
-                sourceProperty: trimValue(sourceProperty),
+                sourceProperty: trimValue(sourceProperty.current),
                 isAttribute: isAttribute,
             })
             .subscribe(
@@ -245,7 +247,9 @@ export function ValueRuleForm(props: IProps) {
         const touched = wasTouched(initialValues, currValues);
         const id = _.get(props, "id", 0);
 
-        if (id !== 0) {
+        const eventId = `${id}_${touched}`
+        if (id !== 0 && eventId !== lastEmittedEvent.current) {
+            lastEmittedEvent.current = eventId
             if (touched) {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
@@ -286,9 +290,17 @@ export function ValueRuleForm(props: IProps) {
         });
     };
 
+    // Reset a complex mapping rule back to a direct mapping rule with empty path
+    const handleComplexRemove = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setType(MAPPING_RULE_TYPE_DIRECT)
+        handleChangeValue("sourceProperty", "", () => {})
+    };
+
     const allowConfirm = allowConfirmation();
 
-    const complexEditButton = () =>
+    const ComplexRuleEditButton = () =>
         allowConfirm ? (
             <IconButton
                 name="item-edit"
@@ -297,6 +309,18 @@ export function ValueRuleForm(props: IProps) {
                 text={changed || !id ? "Save rule and open formula editor" : "Open formula editor"}
             />
         ) : null;
+
+    const ComplexRuleDeleteButton = () => <IconButton
+        name="item-remove"
+        disruptive={true}
+        data-test-id="complex-rule-delete-button"
+        onClick={handleComplexRemove}
+        text={"Reset complex mapping rule to empty path."}
+    />
+
+    const updateSourceProperty = React.useMemo(() => (value: string | {value: string}) => {
+        sourceProperty.current = value
+    }, [])
 
     // template rendering
     const render = () => {
@@ -314,37 +338,41 @@ export function ValueRuleForm(props: IProps) {
                     <AutoSuggestion
                         id={"value-path-auto-suggestion"}
                         label="Value path"
-                        initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
+                        initialValue={initialValues.sourceProperty ?? ""}
                         clearIconText={"Clear value path"}
                         validationErrorText={"The entered value path is invalid."}
-                        onChange={handleChangeSelectBox.bind(null, "sourceProperty", setSourceProperty)}
+                        onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
                         fetchSuggestions={(input, cursorPosition) =>
                             fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false)
                         }
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
                         onFocusChange={setValuePathInputHasFocus}
-                        rightElement={complexEditButton()}
+                        rightElement={<ComplexRuleEditButton />}
                     />
                 </>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
-            let editButton = complexEditButton();
+            const editButton = <ComplexRuleEditButton />
+            const actions = <span>
+                    {editButton}
+                <ComplexRuleDeleteButton/>
+                </span>
             sourcePropertyInput = (
                 <TextField
                     data-id="test-complex-input"
                     disabled
                     value="The value formula cannot be modified in the edit form."
-                    rightElement={editButton !== null ? editButton : undefined}
+                    rightElement={actions}
                 />
             );
         }
         const exampleView =
-            (!_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus) ||
+            (!_.isEmpty(sourceProperty.current) && valuePathValid && !valuePathInputHasFocus) ||
             (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
                 <ExampleView
                     id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || "root"}
-                    key={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
+                    key={typeof sourceProperty.current === "string" ? sourceProperty.current : sourceProperty.current.value}
                     rawRule={type === MAPPING_RULE_TYPE_COMPLEX ? undefined : state}
                     ruleType={type}
                 />
@@ -366,7 +394,7 @@ export function ValueRuleForm(props: IProps) {
                             ruleId={autoCompleteRuleId}
                             onChange={handleChangeSelectBox.bind(null, "targetProperty", setTargetProperty)}
                             resetQueryToValue={true}
-                            itemDisplayLabel={(item) => (item.label ? `${item.label} <${item.value}>` : item.value)}
+                            itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
                         />
                         <AutoComplete
                             placeholder="Data type"
@@ -401,7 +429,9 @@ export function ValueRuleForm(props: IProps) {
                             onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
                         />
                         {sourcePropertyInput}
+                        <Spacing size={"small"} />
                         {exampleView}
+                        <Spacing size={"small"} />
                         <LegacyTextField
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"

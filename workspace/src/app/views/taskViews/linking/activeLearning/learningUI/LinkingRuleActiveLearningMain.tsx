@@ -35,6 +35,8 @@ import { connectWebSocket } from "../../../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
 import { activeLearningActivities } from "../LinkingRuleActiveLearning";
 import { LinkingRuleActiveLearningSaveModal } from "./LinkingRuleActiveLearningSaveModal";
+import {useActiveLearningSessionInfo} from "../shared/ActiveLearningSessionInfoWidget";
+import {FetchError} from "../../../../../services/fetch/responseInterceptor";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -58,8 +60,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const [referenceLinksInitiallyLoaded, setReferenceLinksInitiallyLoaded] = React.useState(false);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
     const [bestRule, setBestRule] = React.useState<ActiveLearningBestRule | undefined>(undefined);
+    const [unsavedStateExists, setUnsavedStateExists] = React.useState(false)
     const [showSaveDialog, setShowSaveDialog] = React.useState(false);
     const linkTypeToShow = React.useRef<"labeled" | "unlabeled">("labeled");
+    const {sessionInfo} = useActiveLearningSessionInfo(projectId, linkingTaskId)
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
@@ -80,6 +84,16 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         return cleanUp;
     }, []);
 
+    React.useEffect(() => {
+        if (sessionInfo) {
+            const changes = sessionInfo.referenceLinks
+            if (changes.addedLinks ||
+                changes.removedLinks) {
+                setUnsavedStateExists(true)
+            }
+        }
+    }, [sessionInfo])
+
     const onActiveLearningUpdate = (activityStatus: IActivityStatus) => {
         if (activityStatus.statusName === "Finished") {
             fetchReferenceLinks();
@@ -92,7 +106,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             const rule = (await bestLearnedLinkageRule(projectId, linkingTaskId)).data;
             setBestRule(rule);
         } catch (err) {
-            // TODO
+            if(err.isHttpError && (err as FetchError).httpStatus !== 404) {
+                registerError("activeLearning-updateBestLearnedRule", "Currently best learned rule could not be fetched from the backend.", err)
+            }
+
         }
     };
 
@@ -144,7 +161,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             );
             setSelectedEntityLink(undefined);
         } catch (ex) {
-            // TODO
+            registerError("activeLearning-updateReferenceLink", "Updating reference links has failed.", ex)
         }
     };
 
@@ -172,16 +189,16 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                         <Spacing vertical={true} size="small" />
                         <IconButton
                             text={t("ActiveLearning.feedback.propertyConfiguration")}
-                            name={"settings"}
+                            name={"item-settings"}
                             onClick={() => activeLearningContext.navigateTo("config")}
                         />
                         <Spacing vertical={true} size="small" />
                         <Button
+                            data-test-id={"save-active-learning-state-btn"}
                             text={t("common.action.save")}
                             title={t("ActiveLearning.saveDialog.title")}
                             affirmative={true}
-                            // TODO: Disable if no reference link was added
-                            disabled={!bestRule}
+                            disabled={!bestRule && !unsavedStateExists}
                             onClick={onSaveClick}
                         />
                     </ToolbarSection>
@@ -201,9 +218,12 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         }
     };
 
-    const onClose = (saved: boolean, ruleSaved: boolean) => {
+    const onClose = (saved: boolean, ruleSaved: boolean, saveReferenceLinks: boolean) => {
         setShowSaveDialog(false);
         if (!saved) return;
+        if(saveReferenceLinks) {
+            setUnsavedStateExists(false)
+        }
         if (ruleSaved) {
             activeLearningContext.navigateTo("linkingEditor");
         } else {
@@ -223,7 +243,9 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             <Section>
                 <Title />
                 <Spacing />
-                <LinkingRuleActiveLearningFeedbackComponent />
+                <LinkingRuleActiveLearningFeedbackComponent
+                    setUnsavedStateExists={() => setUnsavedStateExists(true)}
+                />
                 <Spacing />
                 <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} />
                 <Spacing />

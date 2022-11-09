@@ -27,6 +27,7 @@ function ArtefactTypesList({ onSelect }) {
                             key={type.id}
                             onClick={() => onSelect(type.id)}
                             active={selectedDType === type.id}
+                            data-test-id={`item-type-${type.id}`}
                         />
                     ))}
             </Menu>

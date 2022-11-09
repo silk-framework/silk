@@ -22,13 +22,13 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import {
-    ComparisionDataBody,
-    ComparisionDataCell,
-    ComparisionDataConnection,
-    ComparisionDataContainer,
-    ComparisionDataHead,
-    ComparisionDataHeader,
-    ComparisionDataRow,
+    ComparisonDataBody,
+    ComparisonDataCell,
+    ComparisonDataConnection,
+    ComparisonDataContainer,
+    ComparisonDataHead,
+    ComparisonDataHeader,
+    ComparisonDataRow,
 } from "./components/ComparisionData";
 import { PropertyBox } from "./components/PropertyBox";
 import { ComparisonPair, ComparisonPairs, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
@@ -250,6 +250,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         />
                         <Spacing vertical={true} size="small" />
                         <Button
+                            data-test-id={"go-to-learning-btn"}
                             affirmative={true}
                             disabled={comparisonPairState.propertiesToCompare.length === 0}
                             onClick={() => {
@@ -302,28 +303,28 @@ const SelectedPropertyPair = ({ pair, remove }: SelectedPropertyPairProps) => {
     const [t] = useTranslation();
     const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
     return (
-        <ComparisionDataRow className="diapp-linking-learningdata__row-body">
+        <ComparisonDataRow className="diapp-linking-learningdata__row-body" data-test-id={"selected-property-pair-row"}>
             <SelectedProperty
                 property={pair.source}
                 exampleValues={pair.sourceExamples}
                 sameExampleValues={sameExampleValues}
                 datasink="source"
             />
-            <ComparisionDataConnection>
+            <ComparisonDataConnection>
                 <ConnectionEnabled
                     label={utils.comparisonType(pair)}
                     actions={
                         <IconButton text={t("common.action.remove")} name={"item-remove"} disruptive onClick={remove} />
                     }
                 />
-            </ComparisionDataConnection>
+            </ComparisonDataConnection>
             <SelectedProperty
                 property={pair.target}
                 exampleValues={pair.targetExamples}
                 sameExampleValues={sameExampleValues}
                 datasink="target"
             />
-        </ComparisionDataRow>
+        </ComparisonDataRow>
     );
 };
 
@@ -337,13 +338,13 @@ const SelectedPropertiesWidget = ({ propertiesToCompare, removePair }: SelectedP
     const [t] = useTranslation();
 
     return (
-        <Card elevation={0}>
+        <Card elevation={0} data-test-id={"selected-properties-for-active-learning"}>
             <CardHeader>
                 <CardTitle>{t("ActiveLearning.config.entitiyPair.title")}</CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
-                <ComparisionDataContainer>
+                <ComparisonDataContainer>
                     <ComparisonPairTableHeader />
                     {(!propertiesToCompare || propertiesToCompare.length === 0) && (
                         <>
@@ -351,7 +352,7 @@ const SelectedPropertiesWidget = ({ propertiesToCompare, removePair }: SelectedP
                             <InfoWidget />
                         </>
                     )}
-                    <ComparisionDataBody>
+                    <ComparisonDataBody>
                         {(propertiesToCompare ?? []).map((selected) => (
                             <SelectedPropertyPair
                                 key={selected.pairId}
@@ -359,8 +360,8 @@ const SelectedPropertiesWidget = ({ propertiesToCompare, removePair }: SelectedP
                                 pair={selected}
                             />
                         ))}
-                    </ComparisionDataBody>
-                </ComparisionDataContainer>
+                    </ComparisonDataBody>
+                </ComparisonDataContainer>
             </CardContent>
         </Card>
     );
@@ -388,7 +389,7 @@ const SuggestedPathSelection = ({
     const [t] = useTranslation();
     const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
     return (
-        <ComparisionDataRow className="diapp-linking-learningdata__row-body">
+        <ComparisonDataRow className="diapp-linking-learningdata__row-body" data-test-id={"suggested-comparison-pair-row"}>
             <SelectedProperty
                 property={pair.source}
                 exampleValues={pair.sourceExamples}
@@ -397,17 +398,18 @@ const SuggestedPathSelection = ({
                 isActiveFilter={isActiveFilterCheck(pair.source.path, false)}
                 datasink="source"
             />
-            <ComparisionDataConnection>
+            <ComparisonDataConnection>
                 <ConnectionAvailable
                     actions={
                         <IconButton
+                            data-test-id={"add-comparison-pair-btn"}
                             text={t("common.action.add")}
                             name={"item-add-artefact"}
                             onClick={() => addSuggestion(pair.pairId)}
                         />
                     }
                 />
-            </ComparisionDataConnection>
+            </ComparisonDataConnection>
             <SelectedProperty
                 property={pair.target}
                 exampleValues={pair.targetExamples}
@@ -416,7 +418,7 @@ const SuggestedPathSelection = ({
                 isActiveFilter={isActiveFilterCheck(pair.target.path, true)}
                 datasink="target"
             />
-        </ComparisionDataRow>
+        </ComparisonDataRow>
     );
 };
 
@@ -439,7 +441,7 @@ const SelectedProperty = ({
     const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
     const exampleTitle = flatExampleValues.join(" | ");
     return (
-        <ComparisionDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
+        <ComparisonDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
             <PropertyBox
                 propertyName={property.label ?? property.path}
                 propertyTooltip={showLabel ? property.path : undefined}
@@ -452,7 +454,7 @@ const SelectedProperty = ({
                 onFilter={filterByPath}
                 filtered={isActiveFilter}
             />
-        </ComparisionDataCell>
+        </ComparisonDataCell>
     );
 };
 
@@ -478,6 +480,10 @@ const SuggestionWidget = ({
     React.useEffect(() => {
         if (!showInfo && suggestions.length === 0) {
             setShowInfo(true);
+        }
+        if(pathFilter.current) {
+            // Suggestions have changed, update filtered suggestions
+            filterSuggestions(pathFilter.current.path, pathFilter.current.isTarget)
         }
     }, [suggestions]);
 
@@ -517,7 +523,7 @@ const SuggestionWidget = ({
     );
 
     return (
-        <Card elevation={0}>
+        <Card elevation={0} data-test-id={"comparison-pair-suggestions"}>
             <CardHeader>
                 <CardTitle>
                     {t("ActiveLearning.config.suggestions.title")}
@@ -580,9 +586,9 @@ const SuggestionWidget = ({
                             </Toolbar>
                         ) : null}
                         {suggestions.length > 0 && (
-                            <ComparisionDataContainer>
+                            <ComparisonDataContainer>
                                 <ComparisonPairTableHeader />
-                                <ComparisionDataBody>
+                                <ComparisonDataBody>
                                     {(filteredSuggestions ?? suggestions).map((suggestion) => {
                                         return (
                                             <SuggestedPathSelection
@@ -594,8 +600,8 @@ const SuggestionWidget = ({
                                             />
                                         );
                                     })}
-                                </ComparisionDataBody>
-                            </ComparisionDataContainer>
+                                </ComparisonDataBody>
+                            </ComparisonDataContainer>
                         )}
                     </>
                 )}
@@ -647,18 +653,18 @@ const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
 const ComparisonPairTableHeader = () => {
     const [t] = useTranslation();
     return (
-        <ComparisionDataHead>
-            <ComparisionDataRow>
-                <ComparisionDataHeader className="diapp-linking-learningdata__source">
+        <ComparisonDataHead>
+            <ComparisonDataRow>
+                <ComparisonDataHeader className="diapp-linking-learningdata__source">
                     {t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}
-                </ComparisionDataHeader>
-                <ComparisionDataConnection>
+                </ComparisonDataHeader>
+                <ComparisonDataConnection>
                     <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
-                </ComparisionDataConnection>
-                <ComparisionDataHeader className="diapp-linking-learningdata__target">
+                </ComparisonDataConnection>
+                <ComparisonDataHeader className="diapp-linking-learningdata__target">
                     {t("ActiveLearning.config.entitiyPair.targetColumnTitle")}
-                </ComparisionDataHeader>
-            </ComparisionDataRow>
-        </ComparisionDataHead>
+                </ComparisonDataHeader>
+            </ComparisonDataRow>
+        </ComparisonDataHead>
     );
 };

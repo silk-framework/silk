@@ -125,8 +125,8 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /**
     * Generates the same operator with new children.
     */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
-    if(newChildren.isEmpty) {
+  override def withChildren(newChildren: Seq[Operator]): TransformRule = {
+    if (newChildren.isEmpty) {
       this
     } else {
       throw new IllegalArgumentException(s"$this cannot have any children")
@@ -206,7 +206,7 @@ case class RootMappingRule(override val rules: MappingRules,
   /**
     * Generates the same operator with new children.
     */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
+  override def withChildren(newChildren: Seq[Operator]): TransformRule = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
     this.copy(rules = MappingRules.fromSeq(newRules))
   }
@@ -419,7 +419,7 @@ case class ObjectMapping(id: Identifier = "mapping",
   /**
     * Generates the same operator with new children.
     */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
+  override def withChildren(newChildren: Seq[Operator]): TransformRule = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
     this.copy(rules = MappingRules.fromSeq(newRules))
   }
@@ -535,6 +535,9 @@ object TransformRule {
     * Tries to express a complex mapping as a basic mapping, such as a direct mapping.
     */
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
+    // Direct Mapping
+    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
+      DirectMapping(id, path.asUntypedPath, target, metaData)
     // Rule with annotations or layout info is always treated as complex (URI) mapping rule
     case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
       if(targetOpt.isEmpty) {
@@ -542,9 +545,6 @@ object TransformRule {
       } else {
         complexMapping
       }
-    // Direct Mapping
-    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _, _) =>
-      DirectMapping(id, path.asUntypedPath, target, metaData)
     // Pattern URI Mapping
     case ComplexMapping(id, UriPattern(pattern), None, metaData, _, _) =>
       PatternUriMapping(id, pattern, metaData, prefixes = prefixes)

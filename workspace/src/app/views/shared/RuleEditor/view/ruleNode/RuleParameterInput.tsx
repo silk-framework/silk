@@ -26,6 +26,8 @@ interface RuleParameterInputProps {
     dependentValue: (paramId: string) => string | undefined;
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
+    /** When used inside a modal, the behavior of some components will be optimized. */
+    insideModal: boolean
 }
 
 /** An input widget for a parameter value. */
@@ -36,6 +38,7 @@ export const RuleParameterInput = ({
     hasValidationError,
     dependentValue,
     large,
+    insideModal
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -51,7 +54,7 @@ export const RuleParameterInput = ({
         defaultValue: defaultValue,
         onChange,
         intent: hasValidationError ? Intent.DANGER : undefined,
-        disabled: ruleEditorContext.readOnlyMode || modelContext.readOnly,
+        readOnly: ruleEditorContext.readOnlyMode || modelContext.readOnly,
     };
 
     const handleFileSearch = async (input: string) => {
@@ -104,9 +107,11 @@ export const RuleParameterInput = ({
                     {...inputAttributes}
                     onChange={(value: boolean) => inputAttributes.onChange(`${value}`)}
                     defaultChecked={inputAttributes.defaultValue?.toLowerCase() === "true"}
+                    disabled={inputAttributes.readOnly}
                 />
             );
         case "code":
+            // FIXME: Add readOnly mode
             return <CodeEditor {...inputAttributes} />;
         case "password":
             return (
@@ -130,9 +135,13 @@ export const RuleParameterInput = ({
                         itemValueSelector: resourceNameFn,
                         itemValueString: resourceNameFn,
                         noResultText: t("common.messages.noResults", "No results."),
+                        inputProps: {
+                            readOnly: inputAttributes.readOnly,
+                        },
                     }}
                     required={ruleParameter.parameterSpecification.required}
                     {...inputAttributes}
+                    insideModal={insideModal}
                 />
             );
         case "int":
@@ -159,7 +168,8 @@ export const RuleParameterInput = ({
                         formParamId={uniqueId}
                         dependentValue={dependentValue}
                         required={ruleParameter.parameterSpecification.required}
-                        disabled={inputAttributes.disabled}
+                        readOnly={inputAttributes.readOnly}
+                        hasBackDrop={!insideModal}
                     />
                 );
             } else {

@@ -21,13 +21,13 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import {
-    ComparisionDataBody,
-    ComparisionDataCell,
-    ComparisionDataConnection,
-    ComparisionDataContainer,
-    ComparisionDataHead,
-    ComparisionDataHeader,
-    ComparisionDataRow,
+    ComparisonDataBody,
+    ComparisonDataCell,
+    ComparisonDataConnection,
+    ComparisonDataContainer,
+    ComparisonDataHead,
+    ComparisonDataHeader,
+    ComparisonDataRow,
 } from "./../components/ComparisionData";
 import { PropertyBox } from "./../components/PropertyBox";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
@@ -49,7 +49,12 @@ import utils from "../LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues, highlightedTagColor } from "../shared/ActiveLearningValueExamples";
 import {EntityLinkUrisModal} from "../../referenceLinks/EntityLinkUrisModal";
 
-export const LinkingRuleActiveLearningFeedbackComponent = () => {
+interface Props {
+    /** Called when changes are made that still need to be saved. */
+    setUnsavedStateExists: () => any
+}
+
+export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExists}: Props) => {
     const [t] = useTranslation();
     const [showInfo, setShowInfo] = React.useState<boolean>(false);
     /** Contexts */
@@ -105,6 +110,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
             setSubmittingEntityLink(true);
             try {
                 await activeLearningFeedbackContext.updateReferenceLink(link, decision);
+                setUnsavedStateExists()
             } finally {
                 setSubmittingEntityLink(false);
             }
@@ -198,7 +204,6 @@ interface HeaderProps {
     showEntityUris?: () => any
 }
 
-/** TODO: Clean up sub-components */
 const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo, showEntityUris }: HeaderProps) => {
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
@@ -250,7 +255,6 @@ interface DecisionButtonsProps {
     cancel: () => any;
 }
 
-/** TODO: Clean up sub-components */
 const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel }: DecisionButtonsProps) => {
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
@@ -259,6 +263,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
     return (
         <div style={{ textAlign: "center" }}>
             <Button
+                data-test-id={"learning-confirm-btn"}
                 title={t("ActiveLearning.feedback.confirmDescription")}
                 icon={"state-confirmed"}
                 disabled={disabledButtons}
@@ -270,6 +275,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
             </Button>
             <Spacing vertical size={"small"} />
             <Button
+                data-test-id={"learning-uncertain-btn"}
                 title={t("ActiveLearning.feedback.uncertainDescription")}
                 disabled={disabledButtons}
                 onClick={() => submitLink("unlabeled")}
@@ -279,6 +285,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
             </Button>
             <Spacing vertical size={"small"} />
             <Button
+                data-test-id={"learning-decline-btn"}
                 title={t("ActiveLearning.feedback.declineDescription")}
                 disabled={disabledButtons}
                 onClick={() => (negativeSelected ? cancel() : submitLink("negative"))}
@@ -307,23 +314,23 @@ const EntityComparisonHeader = ({
 }: EntityComparisonHeaderProps) => {
     const [t] = useTranslation();
     return (
-        <ComparisionDataHead>
-            <ComparisionDataRow>
-                <ComparisionDataHeader className="diapp-linking-learningdata__source">
+        <ComparisonDataHead>
+            <ComparisonDataRow>
+                <ComparisonDataHeader className="diapp-linking-learningdata__source">
                     {(!sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{t("ActiveLearning.feedback.sourceColumnTitle")}</Link> : t("ActiveLearning.feedback.sourceColumnTitle")}
                     {sourceTitle ? ": " : ""}
                     {(sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{sourceTitle}</Link> : sourceTitle}
-                </ComparisionDataHeader>
-                <ComparisionDataConnection>
+                </ComparisonDataHeader>
+                <ComparisonDataConnection>
                     <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
-                </ComparisionDataConnection>
-                <ComparisionDataHeader className="diapp-linking-learningdata__target">
+                </ComparisonDataConnection>
+                <ComparisonDataHeader className="diapp-linking-learningdata__target">
                 {(!targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{t("ActiveLearning.feedback.targetColumnTitle")}</Link> : t("ActiveLearning.feedback.targetColumnTitle")}
                 {targetTitle ? ": " : ""}
                 {(targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{targetTitle}</Link> : targetTitle}
-                </ComparisionDataHeader>
-            </ComparisionDataRow>
-        </ComparisionDataHead>
+                </ComparisonDataHeader>
+            </ComparisonDataRow>
+        </ComparisonDataHead>
     );
 };
 
@@ -350,14 +357,14 @@ const SelectedEntityLink = ({
     const sourceEntityLabel = labelPropertyPairValues.map((values) => values.sourceExamples.join(", ")).join(", ");
     const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetExamples.join(", ")).join(", ");
     return (
-        <ComparisionDataContainer>
+        <ComparisonDataContainer>
             <EntityComparisonHeader
                 sourceUrl={resourceLinks ? resourceLinks.source : undefined}
                 targetUrl={resourceLinks ? resourceLinks.target : undefined}
                 sourceTitle={sourceEntityLabel}
                 targetTitle={targetEntityLabel}
             />
-            <ComparisionDataBody>
+            <ComparisonDataBody>
                 {(valuesToDisplay ?? []).map((selected: EntityLinkPropertyPairValues | ComparisonPair, idx) => {
                     const values: EntityLinkPropertyPairValues = {
                         sourceExamples: selected.sourceExamples.flat(),
@@ -374,8 +381,8 @@ const SelectedEntityLink = ({
                         />
                     );
                 })}
-            </ComparisionDataBody>
-        </ComparisionDataContainer>
+            </ComparisonDataBody>
+        </ComparisonDataContainer>
     );
 };
 
@@ -398,14 +405,14 @@ const EntitiesPropertyPair = ({
     const [t] = useTranslation();
     const sameExampleValues = sameValues(values.sourceExamples, values.targetExamples);
     return (
-        <ComparisionDataRow className="diapp-linking-learningdata__row-body">
+        <ComparisonDataRow className="diapp-linking-learningdata__row-body">
             <EntityPropertyValues
                 property={propertyPair.source}
                 values={values.sourceExamples}
                 sameExampleValues={sameExampleValues}
                 datasink="source"
             />
-            <ComparisionDataConnection>
+            <ComparisonDataConnection>
                 <ConnectionEnabled
                     label={utils.comparisonType(propertyPair)}
                     actions={
@@ -415,21 +422,21 @@ const EntitiesPropertyPair = ({
                                     ? t("ActiveLearning.feedback.removeFromLabel")
                                     : t("ActiveLearning.feedback.addToLabel")
                             }
-                            name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
+                            name={selectedForLabel ? "toggler-star-filled" : "toggler-star-empty"}
                             elevated
                             onClick={toggleLabelSelection}
                         />
                     }
                     color={scoreColor}
                 />
-            </ComparisionDataConnection>
+            </ComparisonDataConnection>
             <EntityPropertyValues
                 property={propertyPair.target}
                 values={values.targetExamples}
                 sameExampleValues={sameExampleValues}
                 datasink="target"
             />
-        </ComparisionDataRow>
+        </ComparisonDataRow>
     );
 };
 
@@ -444,7 +451,7 @@ const EntityPropertyValues = ({ property, values, sameExampleValues, datasink }:
     const propertyLabel = property.label ? property.label : property.path;
     const exampleTitle = values.join(" | ");
     return (
-        <ComparisionDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
+        <ComparisonDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
             <PropertyBox
                 propertyName={propertyLabel}
                 exampleValues={values.length > 0 ? (
@@ -455,7 +462,7 @@ const EntityPropertyValues = ({ property, values, sameExampleValues, datasink }:
                 ) : undefined}
                 exampleTooltip={exampleTitle}
             />
-        </ComparisionDataCell>
+        </ComparisonDataCell>
     );
 };
 

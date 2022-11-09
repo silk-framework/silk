@@ -1,14 +1,11 @@
-import { Icon, SearchField } from "@eccenca/gui-elements";
+import { Icon, SearchField, AutoSuggestionList } from "@eccenca/gui-elements";
 import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { AutoSuggestionList } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestionList";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 interface SidebarSearchFieldProps {
     activeTabId?: string;
-
     onQueryChange: (textQuery) => any;
-
     searchSuggestions?: () => ISuggestionWithReplacementInfo[];
 }
 
@@ -74,6 +71,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                 onItemSelectionChange={(item) => {
                     setTextQuery(item.value + " ");
                 }}
+                style={{top: "auto"}}
             />
         </>
     );

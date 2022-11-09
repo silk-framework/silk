@@ -11,7 +11,7 @@ import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import java.util.concurrent.atomic.AtomicInteger
 import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamException, XMLStreamReader}
 import scala.collection.mutable
@@ -32,6 +32,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   // Create and init stream reader, positions the stream reader on the first tag
   private def initStreamReader(inputStream: InputStream) = {
     try {
+      // Don't resolve external references such as DTDs
+      xmlFactory.setXMLResolver((publicID: String, systemID: String, baseURI: String, namespace: String) => {
+        new ByteArrayInputStream(Array[Byte]())
+      })
       val reader = xmlFactory.createXMLStreamReader(inputStream)
       var foundStartElement = false
       while (reader.hasNext && !foundStartElement) {
@@ -134,6 +138,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       }
 
     GenericEntityTable(entities, entitySchema, underlyingTask)
+  }
+
+  def buildNode(): InMemoryXmlElem = {
+    file.read { inputStream => {
+      val reader = initStreamReader(inputStream)
+      NodeBuilder(reader).buildNode()
+    }}
   }
 
   private case class NodeBuilder(reader: XMLStreamReader) {

@@ -36,7 +36,7 @@ import scala.util.control.NonFatal
 class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager)
              (implicit userContext: UserContext) extends ProjectTrait {
 
-  private implicit val logger = Logger.getLogger(classOf[Project].getName)
+  private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
@@ -68,7 +68,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /** This must be executed once when the project was loaded into the workspace */
-  def startActivities()(implicit userContext: UserContext) {
+  def startActivities()(implicit userContext: UserContext): Unit = {
     allTasks.foreach(_.startActivities())
   }
 

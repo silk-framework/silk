@@ -43,7 +43,7 @@ import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent"
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { Markdown, nodeUtils } from "@eccenca/gui-elements";
+import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
@@ -111,6 +111,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
     const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
+    /** True while the editor is initializing. */
+    const [initializing, setInitializing] = React.useState(true);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
@@ -1186,7 +1188,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Copy and paste nodes with a given offset. */
-    const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
+    const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition = { x: 100, y: 100 }) => {
         changeElementsInternal((els) => {
             const originalNodes = utils.nodesById(els, nodeIds);
             const nodeIdMap = new Map<string, string>();
@@ -1469,6 +1471,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const operatorNodeOperationsInternal: IOperatorNodeOperations = {
         handleDeleteNode: deleteNode,
         handleParameterChange: changeNodeParameter,
+        handleCloneNode: (nodeId) => copyAndPasteNodes([nodeId])
     };
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
@@ -1590,6 +1593,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const initModel = async () => {
+        setInitializing(true);
         const handleDeleteNode = (nodeId: string) => {
             startChangeTransaction();
             deleteNode(nodeId);
@@ -1661,10 +1665,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleUndoStack.splice(0);
         ruleRedoStack.splice(0);
         // Center and then zoom not too far out
-        setTimeout(() => {
-            reactFlowInstance?.fitView();
+        setTimeout(async () => {
+            if (needsLayout) {
+                await autoLayoutInternal(elems, false, false);
+            }
+            reactFlowInstance?.fitView({maxZoom: 1});
             ruleEditorContext.initialFitToViewZoomLevel &&
                 reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
+            setInitializing(false);
         }, 1);
     };
 
@@ -1707,7 +1715,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 ruleOperatorNodes,
             }}
         >
-            {children}
+            <InteractionGate
+                showSpinner={initializing}
+                useParentPositioning
+            >
+                {children}
+            </InteractionGate>
         </RuleEditorModelContext.Provider>
     );
 };

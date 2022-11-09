@@ -2,7 +2,9 @@ package controllers.projectApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.util.TextSearchUtils
+import controllers.util.SerializationUtils.serializeCompileTime
+import controllers.util.{SerializationUtils, TextSearchUtils}
+import controllers.workspace.doc.DatasetApiDoc
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -12,11 +14,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.util.{Identifier, IdentifierUtils}
+import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -273,13 +280,64 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     }
   }
 
+  @Operation(
+    summary = "Auto-configure dataset",
+    description = "Retrieve an auto-configured version of the dataset that was send with the request.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset type does not support auto-configuration."
+      )
+    )
+  )
+  def postDatasetAutoConfigured(@Parameter(
+                                  name = "projectId",
+                                  description = "The project identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
+    implicit val project: Project = WorkspaceFactory().workspace.project(projectId)
+    implicit val context: PluginContext = PluginContext.fromProject(project)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
+    SerializationUtils.deserializeCompileTime[GenericDatasetSpec]() { datasetSpec =>
+      val datasetPlugin = datasetSpec.plugin
+      datasetPlugin match {
+        case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
+          val autoConfDataset = autoConfigurable.autoConfigured
+          serializeCompileTime[GenericDatasetSpec](DatasetSpec[Dataset](autoConfDataset, datasetSpec.uriAttribute), Some(project))
+        case _ =>
+          ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
+      }
+    }
+  }
+
   private def filterRelatedItems(relatedItems: Seq[RelatedItem], textQuery: Option[String]): Seq[RelatedItem] = {
     val searchWords =  TextSearchUtils.extractSearchTerms(textQuery.getOrElse(""))
     if(searchWords.isEmpty) {
       relatedItems
     } else {
       relatedItems.filter(relatedItem => // Description is not displayed, so don't search in description.
-        TextSearchUtils.matchesSearchTerm(searchWords, s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel}".toLowerCase))
+        TextSearchUtils.matchesSearchTerm(
+          searchWords,
+          s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")}".toLowerCase
+        )
+      )
     }
   }
 }
