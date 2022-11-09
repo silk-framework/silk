@@ -12,7 +12,7 @@ const TabSwitchPrompt: React.FC<TabSwitchPromptModalProps> = ({ onClose, isOpen,
     const [t] = useTranslation();
     return (
         <SimpleDialog
-            data-test-id="project-tab-modal"
+            data-test-id="project-tab-prompt-modal"
             title="Warning"
             size="small"
             isOpen={isOpen}
@@ -22,7 +22,9 @@ const TabSwitchPrompt: React.FC<TabSwitchPromptModalProps> = ({ onClose, isOpen,
                 <Button disruptive={true} onClick={changeTab}>
                     {t("common.action.proceed")}
                 </Button>,
-                <Button onClick={onClose}>{t("common.action.cancel")}</Button>,
+                <Button onClick={onClose} id="prompt-cancel">
+                    {t("common.action.cancel")}
+                </Button>,
             ]}
         >
             <p>{t("Metadata.unsavedMetaDataWarning")}</p>
