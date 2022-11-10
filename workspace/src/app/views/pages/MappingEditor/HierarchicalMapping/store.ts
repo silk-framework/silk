@@ -15,7 +15,7 @@ import {
 import EventEmitter from "./utils/EventEmitter";
 import React, { useState } from "react";
 import silkApi, { HttpResponsePromise } from "../api/silkRestApi";
-import { ITransformedSuggestion } from "./containers/SuggestionNew/suggestion.typings";
+import {ITransformedSuggestion, SuggestionIssues} from "./containers/SuggestionNew/suggestion.typings";
 import {
     IPartialAutoCompleteResult,
     IValidationResult,
@@ -224,6 +224,7 @@ const prepareValueMappingPayload = (data: IProps) => {
 
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty ? handleCreatedSelectBoxValue(data, "sourceProperty") : "";
+        payload.type = MAPPING_RULE_TYPE_DIRECT
     }
 
     if (!data.id) {
@@ -407,7 +408,7 @@ const fetchVocabularyMatchingResults = (data: ISuggestAsyncProps) => {
             return Rx.Observable.return({ error: errorBody });
         })
         .map((returned) => {
-            const data = _.get(returned, "body.matches", {});
+            const data = _.get(returned, "body", {});
             const error = _.get(returned, "error", []);
 
             if (error) {
@@ -465,8 +466,11 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps, executeVocabularyM
         fetchValueSourcePaths(data),
         (vocabDatasetsResponse, sourcePaths) => {
             const suggestions: ITransformedSuggestion[] = [];
+            let suggestionIssues: SuggestionIssues | undefined = undefined
             if (vocabDatasetsResponse.data) {
-                vocabDatasetsResponse.data.map((match) => {
+                const {matches, issues} = vocabDatasetsResponse.data
+                suggestionIssues = issues
+                matches.map((match) => {
                     const { uri: sourceUri, description, label, candidates, graph } = match;
                     return suggestions.push({
                         uri: sourceUri,
@@ -497,6 +501,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps, executeVocabularyM
             }
             return {
                 suggestions,
+                suggestionIssues,
                 warnings: _.filter([vocabDatasetsResponse.error, sourcePaths.error], (e) => !_.isUndefined(e)),
             };
         }

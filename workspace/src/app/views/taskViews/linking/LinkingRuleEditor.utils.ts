@@ -197,9 +197,14 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                 comparison.parameters[REVERSE_PARAMETER_ID] != null &&
                 ruleOperatorNode.inputs[0] != null
             ) {
-                // Set reverse parameter correctly
-                const sourceInput = ruleOperatorNodes.get(ruleOperatorNode.inputs[0]);
-                const reverse = sourceInput ? fromType(sourceInput, ruleOperatorNodes) === "target" : false;
+                // Set reverse parameter correctly. Either the first input has a target path or the second input has a source path.
+                const reverseNeeded = (inputIdx: 0 | 1): boolean => {
+                    const inputId = ruleOperatorNode.inputs[inputIdx]
+                    const input = inputId ? ruleOperatorNodes.get(inputId) : undefined
+                    const typeNeedingReversing = inputIdx === 0 ? "target" : "source"
+                    return input ? fromType(input, ruleOperatorNodes) === typeNeedingReversing : false;
+                }
+                const reverse = reverseNeeded(0) || reverseNeeded(1)
                 comparison.parameters[REVERSE_PARAMETER_ID] = `${reverse}`;
                 // Switch inputs if they have the order target-source. The reverse parameter is handling the correct order.
                 if (reverse) {

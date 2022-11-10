@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
     Button,
@@ -59,10 +59,10 @@ export interface InfoMessage {
 }
 
 interface ArtefactDocumentation {
-    key: string,
-    title?: string,
-    description?: string,
-    markdownDocumentation?: string
+    key: string;
+    title?: string;
+    description?: string;
+    markdownDocumentation?: string;
 }
 
 export function CreateArtefactModal() {
@@ -96,10 +96,10 @@ export function CreateArtefactModal() {
     const [autoConfigPending, setAutoConfigPending] = useState(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
-    const updateTaskPluginDetails: IPluginOverview | undefined = updateExistingTask ?
-        {...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId} :
-        undefined
-    const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore
+    const updateTaskPluginDetails: IPluginOverview | undefined = updateExistingTask
+        ? { ...updateExistingTask.taskPluginDetails, key: updateExistingTask.taskPluginDetails.pluginId }
+        : undefined;
+    const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
     const selectedArtefactKey: string | undefined = selectedArtefactFromStore?.key;
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
 
@@ -174,11 +174,14 @@ export function CreateArtefactModal() {
     // Fetch Artefact list
     useEffect(() => {
         if (isOpen && !isEmptyWorkspace) {
-            dispatch(
-                commonOp.fetchArtefactsListAsync({
-                    textQuery: searchValue,
-                })
-            );
+            batch(() => {
+                dispatch(commonOp.fetchAvailableDTypesAsync());
+                dispatch(
+                    commonOp.fetchArtefactsListAsync({
+                        textQuery: searchValue,
+                    })
+                );
+            });
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
@@ -590,7 +593,7 @@ export function CreateArtefactModal() {
     const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
     const additionalButtons: JSX.Element[] = [];
     if (
-        (projectId  || currentProject) &&
+        (projectId || currentProject) &&
         ((updateExistingTask && updateExistingTask.taskPluginDetails.autoConfigurable) ||
             (selectedArtefactKey && cachedArtefactProperties[selectedArtefactKey]?.autoConfigurable))
     ) {
@@ -615,13 +618,17 @@ export function CreateArtefactModal() {
     const headerOptions: JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(
-            <IconButton name="item-question" onClick={(e) =>
-                handleShowEnhancedDescription(e, {
-                    key: selectedArtefact.key,
-                    title: selectedArtefactTitle,
-                    description: selectedArtefact.description,
-                    markdownDocumentation: selectedArtefact.markdownDocumentation
-                })} />
+            <IconButton
+                name="item-question"
+                onClick={(e) =>
+                    handleShowEnhancedDescription(e, {
+                        key: selectedArtefact.key,
+                        title: selectedArtefactTitle,
+                        description: selectedArtefact.description,
+                        markdownDocumentation: selectedArtefact.markdownDocumentation,
+                    })
+                }
+            />
         );
     }
 
@@ -793,15 +800,13 @@ export function CreateArtefactModal() {
                                                                     <IconButton
                                                                         name="item-question"
                                                                         onClick={(e) => {
-                                                                            handleShowEnhancedDescription(
-                                                                                e,
-                                                                                {
-                                                                                    key: artefact.key,
-                                                                                    title: artefact.title,
-                                                                                    description: artefact.description,
-                                                                                    markdownDocumentation: artefact.markdownDocumentation
-                                                                                }
-                                                                            );
+                                                                            handleShowEnhancedDescription(e, {
+                                                                                key: artefact.key,
+                                                                                title: artefact.title,
+                                                                                description: artefact.description,
+                                                                                markdownDocumentation:
+                                                                                    artefact.markdownDocumentation,
+                                                                            });
                                                                         }}
                                                                     />
                                                                 </OverviewItemActions>

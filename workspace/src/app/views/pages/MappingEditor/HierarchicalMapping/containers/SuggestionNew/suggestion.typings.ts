@@ -45,6 +45,12 @@ export interface ISuggestionCandidate {
     alreadyMapped?: boolean
 }
 
+/** Issues occurring in the mapping suggestion process. */
+export interface SuggestionIssues {
+    /** Classes defined by the user (target classes) were not found in any vocabulary. */
+    notFoundClasses: string[]
+}
+
 export interface ITransformedSuggestion {
     // URI or source path of the left side of the suggestion table. Either source path or target URI depending on matching direction.
     uri: string;

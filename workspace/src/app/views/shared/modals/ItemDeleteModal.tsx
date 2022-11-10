@@ -76,7 +76,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             // Skip check the relations for projects
             if (
                 (data as ITaskMetadataResponse).relations &&
-                (data as ITaskMetadataResponse).relations.dependentTasksDirect.length
+                (data as ITaskMetadataResponse).relations.dependentTasksAll.length
             ) {
                 setDeleteModalOptions({
                     confirmationRequired: true,
@@ -85,7 +85,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                             {t("DeleteModal.confirmMsg", { name: data.label || item.id, itemType: itemType })}
                             <Spacing />
                             <ul>
-                                {(data as ITaskMetadataResponse).relations.dependentTasksDirect.map((taskRef) =>
+                                {(data as ITaskMetadataResponse).relations.dependentTasksAll.map((taskRef) =>
                                     typeof taskRef === "string" ? (
                                         <li key={taskRef}>{taskRef}</li>
                                     ) : (

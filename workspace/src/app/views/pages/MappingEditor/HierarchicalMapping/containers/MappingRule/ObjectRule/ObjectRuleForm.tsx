@@ -57,14 +57,16 @@ export const ObjectRuleForm = (props: IProps) => {
     const [allowConfirm, setAllowConfirm] = useState(false);
     const create = !props.id;
     // get a deep copy of origin data for modification
-    const _modifiedValues = React.useRef<any>(_.cloneDeep(props.ruleData));
-    const modifiedValues = () => _modifiedValues.current;
-    const setModifiedValues = (value: any) => {
-        _modifiedValues.current = value;
-    };
-    const [targetEntityType, setTargetEntityType] = useState<(string | { value: string })[]>(
-        _modifiedValues.current.targetEntityType
-    );
+    const _modifiedValues = React.useRef<any>(_.cloneDeep(props.ruleData))
+    const modifiedValues = () => _modifiedValues.current
+    const setModifiedValues = (valueOrFunction: any | ((old: any) => any)) => {
+        if(typeof valueOrFunction === "function") {
+            _modifiedValues.current = valueOrFunction(_modifiedValues.current)
+        } else {
+            _modifiedValues.current = valueOrFunction
+        }
+    }
+    const [targetEntityType, setTargetEntityType] = useState<(string | {value: string})[]>(_modifiedValues.current.targetEntityType)
     // Used for setting a new URI pattern from the existing URI pattern selection
     const [initialUriPattern, setInitialUriPattern] = useState<string>((props.ruleData as any).pattern ?? "");
     const [saveObjectError, setSaveObjectError] = useState<any>(undefined);
