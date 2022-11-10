@@ -1,25 +1,12 @@
 FROM openjdk:11-jdk as builder
 
-COPY . /build
+COPY ./silk-workbench/target/universal /build
+COPY ./conf /build/conf
+
 WORKDIR /build
 RUN \
-  echo "install yarn" \
-  && apt-get update -y \
-  && apt-get install -y apt-transport-https curl \
-  && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - \
-  && echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list \
-  && apt-get update -y \
-  && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
-  && apt-get install -y nodejs yarn \
-  && curl -L https://www.npmjs.com/install.sh | sh \
-  && echo "\ncurrent yarn version:" \
-  && npm install -g npm \
-  && yarn --version \
-RUN \
-  ./sbt "project workbench" compile universal:packageZipTarball
-RUN \
   mkdir -p /build/app \
-  && tar -xvzf /build/silk-workbench/target/universal/silk-workbench*.tgz -C /build/app
+  && tar -xvzf /build/silk-workbench*.tgz -C /build/app
 
 FROM openjdk:11-jre
 ENV \
