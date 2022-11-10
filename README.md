@@ -44,6 +44,10 @@ Downloading and installing sbt is not necessary as it is available from this dir
     docker build -t silkworkbench/silk-framework:latest .
     ```
     (This maybe take some minutes)
+    For a production build you can set following ENV variables when building the application artefact, e.g.
+    ```
+    BUILD_ENV=production GIT_DESCRIBE=$(git describe) sbt universal:packageZipTarball
+    ```
   - Pull the docker image via: docker pull silkworkbench/silk-framework
 - Run the docker container with: `docker run -d --name silk-workbench -p 80:80 silkworkbench/silk-framework:latest`
 - In your browser, navigate to 'http://DOCKER_HOST:80'
