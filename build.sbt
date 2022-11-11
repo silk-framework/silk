@@ -176,7 +176,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.7",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.3"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -206,7 +206,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.3",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2",
     libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.0"
   )
 
