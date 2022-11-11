@@ -18,7 +18,7 @@ export interface ExecutionReportProps {
     /*
      * DI store object that provides the business layer API to DI related services
      */
-    diStore: {
+    diStore?: {
         getLinkingExecutionReport: (project: string, task: string) => Promise<ExecutionReportType>;
         getTransformExecutionReport: () => Promise<ExecutionReportProps>;
     };

@@ -58,11 +58,9 @@ object ItemType {
     val itemTypeSpecificLinks = itemType match {
       case ItemType.transform => Seq(
         ItemLink("evaluate", "Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
-        // ItemLink("execute", "Transform execution", s"$context/transform/$projectId/$itemId/execute")
       )
       case ItemType.linking => Seq(
         ItemLink("evaluate", "Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
-        // ItemLink("execute", "Linking execution", s"$context/linking/$projectId/$itemId/execute"),
         ItemLink("referenceLinks", "Reference links", s"$context/linking/$projectId/$itemId/referenceLinks")
       )
       case ItemType.workflow if !WorkbenchConfig().tabs.legacyWorkflowEditor => Seq(
