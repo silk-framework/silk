@@ -58,9 +58,6 @@ export const registerCorePlugins = () => {
             },
         });
 
-        /** Transform plugins. FIXME: CMEM-4266: Find solution for opening mapping rules in the rule editor without redirecting. */
-        // Hierarchical mapping editor
-
         // Mapping evaluation // FIXME: Does not render well when not in i-frame
         // pluginRegistry.registerTaskView("transform", {
         //     id: "hierarchicalMappingEvaluation",

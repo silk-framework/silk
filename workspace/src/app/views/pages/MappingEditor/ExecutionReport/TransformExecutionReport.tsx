@@ -12,7 +12,13 @@ const TransformExecutionReport: React.FC<ExecutionReportProps> = ({
     updateCounter,
     diStore = silkStore,
 }) => {
-    const [executionReport, setExecutionReport] = React.useState<ExecutionReportType | undefined>();
+    const [executionReport, setExecutionReport] = React.useState<ExecutionReportType | undefined>({
+        task: {
+            id: task,
+        },
+        summary: [],
+        warnings: [],
+    });
 
     const updateExecutionReport = () => {
         diStore
