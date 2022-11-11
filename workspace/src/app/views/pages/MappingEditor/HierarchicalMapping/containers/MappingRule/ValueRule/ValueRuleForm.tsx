@@ -1,22 +1,22 @@
-import React, {useEffect, useState} from "react";
-import {Card, CardActions, CardContent, CardTitle, ScrollingHOC} from "gui-elements-deprecated";
+import React, { useEffect, useState } from "react";
+import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
 import {
     AffirmativeButton,
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import {AutoSuggestion, IconButton, Spacing, Spinner, TextField} from "@eccenca/gui-elements";
+import { AutoSuggestion, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
-import store, {checkValuePathValidity, fetchValuePathSuggestions} from "../../../store";
-import {convertToUri} from "../../../utils/convertToUri";
+import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
+import { convertToUri } from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import {trimValue} from "../../../utils/trimValue";
-import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from "../../../utils/constants";
+import { trimValue } from "../../../utils/trimValue";
+import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import {wasTouched} from "../../../utils/wasTouched";
-import {newValueIsIRI} from "../../../utils/newValueIsIRI";
+import { wasTouched } from "../../../utils/wasTouched";
+import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 
@@ -181,10 +181,15 @@ export function ValueRuleForm(props: IProps) {
         }
     };
 
+    const toggleTabViewDirtyState = React.useCallback((status: boolean) => {
+        props.viewActions.savedChanges && props.viewActions.savedChanges(status);
+    }, []);
+
     const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
         saveRule(true);
+        toggleTabViewDirtyState(false);
     };
 
     const saveRule = (reload: boolean, onSuccess?: (ruleId?: string) => any) => {
@@ -267,6 +272,7 @@ export function ValueRuleForm(props: IProps) {
         const id = _.get(props, "id", 0);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
+        toggleTabViewDirtyState(false);
     };
 
     // Closes the edit form. Reacts to changes in the mapping rules.
@@ -286,8 +292,9 @@ export function ValueRuleForm(props: IProps) {
 
     const allowConfirm = allowConfirmation();
 
+    /** update tab view component with current dirty state status */
     React.useEffect(() => {
-        props.viewActions.savedChanges && props.viewActions.savedChanges(allowConfirm);
+        toggleTabViewDirtyState(allowConfirm);
     }, [allowConfirm]);
 
     const handleComplexEdit = (event) => {
@@ -302,8 +309,8 @@ export function ValueRuleForm(props: IProps) {
     const handleComplexRemove = (event) => {
         event.preventDefault();
         event.stopPropagation();
-        setType(MAPPING_RULE_TYPE_DIRECT)
-        handleChangeValue("sourceProperty", "", () => {})
+        setType(MAPPING_RULE_TYPE_DIRECT);
+        handleChangeValue("sourceProperty", "", () => {});
     };
 
     const ComplexRuleEditButton = () =>
@@ -316,17 +323,22 @@ export function ValueRuleForm(props: IProps) {
             />
         ) : null;
 
-    const ComplexRuleDeleteButton = () => <IconButton
-        name="item-remove"
-        disruptive={true}
-        data-test-id="complex-rule-delete-button"
-        onClick={handleComplexRemove}
-        text={"Reset complex mapping rule to empty path."}
-    />
+    const ComplexRuleDeleteButton = () => (
+        <IconButton
+            name="item-remove"
+            disruptive={true}
+            data-test-id="complex-rule-delete-button"
+            onClick={handleComplexRemove}
+            text={"Reset complex mapping rule to empty path."}
+        />
+    );
 
-    const updateSourceProperty = React.useMemo(() => (value: string | {value: string}) => {
-        sourceProperty.current = value
-    }, [])
+    const updateSourceProperty = React.useMemo(
+        () => (value: string | { value: string }) => {
+            sourceProperty.current = value;
+        },
+        []
+    );
 
     // template rendering
     const render = () => {
@@ -359,11 +371,13 @@ export function ValueRuleForm(props: IProps) {
                 </>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
-            const editButton = <ComplexRuleEditButton />
-            const actions = <span>
+            const editButton = <ComplexRuleEditButton />;
+            const actions = (
+                <span>
                     {editButton}
-                <ComplexRuleDeleteButton/>
+                    <ComplexRuleDeleteButton />
                 </span>
+            );
             sourcePropertyInput = (
                 <TextField
                     data-id="test-complex-input"

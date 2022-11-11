@@ -57,16 +57,18 @@ export const ObjectRuleForm = (props: IProps) => {
     const [allowConfirm, setAllowConfirm] = useState(false);
     const create = !props.id;
     // get a deep copy of origin data for modification
-    const _modifiedValues = React.useRef<any>(_.cloneDeep(props.ruleData))
-    const modifiedValues = () => _modifiedValues.current
+    const _modifiedValues = React.useRef<any>(_.cloneDeep(props.ruleData));
+    const modifiedValues = () => _modifiedValues.current;
     const setModifiedValues = (valueOrFunction: any | ((old: any) => any)) => {
-        if(typeof valueOrFunction === "function") {
-            _modifiedValues.current = valueOrFunction(_modifiedValues.current)
+        if (typeof valueOrFunction === "function") {
+            _modifiedValues.current = valueOrFunction(_modifiedValues.current);
         } else {
-            _modifiedValues.current = valueOrFunction
+            _modifiedValues.current = valueOrFunction;
         }
-    }
-    const [targetEntityType, setTargetEntityType] = useState<(string | {value: string})[]>(_modifiedValues.current.targetEntityType)
+    };
+    const [targetEntityType, setTargetEntityType] = useState<(string | { value: string })[]>(
+        _modifiedValues.current.targetEntityType
+    );
     // Used for setting a new URI pattern from the existing URI pattern selection
     const [initialUriPattern, setInitialUriPattern] = useState<string>((props.ruleData as any).pattern ?? "");
     const [saveObjectError, setSaveObjectError] = useState<any>(undefined);
@@ -90,7 +92,7 @@ export const ObjectRuleForm = (props: IProps) => {
     );
 
     React.useEffect(() => {
-        props.viewActions.savedChanges && props.viewActions.savedChanges(allowConfirm);
+        toggleTabViewDirtyState(allowConfirm);
     }, [allowConfirm]);
 
     useEffect(() => {
@@ -100,6 +102,10 @@ export const ObjectRuleForm = (props: IProps) => {
         if (!id) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
+    }, []);
+
+    const toggleTabViewDirtyState = React.useCallback((status: boolean) => {
+        props.viewActions.savedChanges && props.viewActions.savedChanges(status);
     }, []);
 
     const uriValue = (uri: string) => {
@@ -166,6 +172,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
+        toggleTabViewDirtyState(false);
         const uriPattern = trimValue(modifiedValues().pattern);
         setLoading(true);
         createMappingAsync(
@@ -245,6 +252,7 @@ export const ObjectRuleForm = (props: IProps) => {
         const { id = 0 } = props;
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
+        toggleTabViewDirtyState(false);
     };
 
     const checkUriPattern = async (uriPattern: string) => {

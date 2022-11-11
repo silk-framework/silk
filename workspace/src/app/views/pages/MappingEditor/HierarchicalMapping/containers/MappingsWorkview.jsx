@@ -408,6 +408,7 @@ class MappingsWorkview extends React.Component {
                         onClickedRemove={this.props.onClickedRemove}
                         openMappingEditor={this.props.openMappingEditor}
                         startFullScreen={this.props.startFullScreen}
+                        viewActions={this.props.viewActions}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>
