@@ -25,9 +25,12 @@ class MappingsTree extends React.Component {
 
     componentDidMount() {
         this.updateNavigationTree();
-        const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
-        if (searchQuery) {
-            this.getRuleById(searchQuery);
+        if(this.props.trackRuleInUrl) {
+            // Ignore rule ID parameter in URL
+            const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
+            if (searchQuery) {
+                this.getRuleById(searchQuery);
+            }
         }
         EventEmitter.on(MESSAGES.RELOAD, this.updateNavigationTree);
     }
@@ -230,7 +233,7 @@ class MappingsTree extends React.Component {
                 className="ecc-silk-mapping__treenav--item-handler"
                 data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
                 onClick={() => {
-                    if (!this.props.startFullScreen) {
+                    if (!this.props.startFullScreen && this.props.trackRuleInUrl) {
                         const history = getHistory();
                         history.replace({
                             search: `?${new URLSearchParams({ ruleId: id })}`,
@@ -337,12 +340,14 @@ MappingsTree.propTypes = {
     showValueMappings: PropTypes.bool,
     // For each rule id, contains one of the following: "ok", "warning"
     ruleValidation: PropTypes.objectOf(PropTypes.oneOf(["ok", "warning"])),
+    trackRuleInUrl: PropTypes.bool
 };
 
 MappingsTree.defaultProps = {
     currentRuleId: undefined,
     ruleTree: undefined, // The mapping rule tree. Optional, because old components don't set this and rely on the message bus instead...
     handleRuleNavigation: () => {},
+    trackRuleInUrl: true
 };
 
 export default MappingsTree;

@@ -133,6 +133,7 @@ export default class ExecutionReport extends React.Component {
                     showValueMappings={true}
                     handleRuleNavigation={this.onRuleNavigation}
                     ruleValidation={this.generateIcons()}
+                    trackRuleInUrl={this.props.trackRuleInUrl}
                 />
             </div>
             <div className="mdl-cell mdl-cell--9-col">
@@ -197,7 +198,7 @@ export default class ExecutionReport extends React.Component {
     }
 
     render() {
-        return <div>
+        return <div data-test-id={"execution-report"}>
             {this.renderSummary()}
             {'ruleResults' in this.props.executionReport && this.renderTransformReport()}
         </div>
@@ -208,5 +209,10 @@ ExecutionReport.propTypes = {
     project: PropTypes.string.isRequired, // project ID
     nodeId: PropTypes.string.isRequired, // workflow node ID
     executionReport: PropTypes.object, // The execution report to render
-    executionMetaData: PropTypes.object // Optional execution meta data that includes start time, user, etc.
+    executionMetaData: PropTypes.object, // Optional execution meta data that includes start time, user, etc.
+    trackRuleInUrl: PropTypes.bool
 };
+
+ExecutionReport.defaultProps = {
+    trackRuleInUrl: true
+}
