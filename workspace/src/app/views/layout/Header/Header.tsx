@@ -59,7 +59,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
 
     const handleCreateDialog = React.useCallback(() => {
-        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
+        dispatch(commonOp.setSelectedArtefactDType("all"));
     }, []);
 
     const handleNavigate = (path: string) => {
