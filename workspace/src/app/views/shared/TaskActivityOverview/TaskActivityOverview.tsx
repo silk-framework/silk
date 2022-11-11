@@ -45,14 +45,12 @@ import { activityErrorReportFactory, activityQueryString } from "./taskActivityU
 interface IProps {
     projectId: string;
     taskId: string;
-    /** optional property to all show main activity widget without showing caches */
-    hideCacheActivities?: boolean;
 }
 
 type StringOrUndefined = string | undefined;
 
 /** Displays some activities of a task, usually the main activity, cache activities and other failed or running activities. */
-export function TaskActivityOverview({ projectId, taskId, hideCacheActivities = false }: IProps) {
+export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [activities, setActivities] = useState<IActivityListEntry[]>([]);
@@ -438,7 +436,7 @@ export function TaskActivityOverview({ projectId, taskId, hideCacheActivities = 
                 ) : (
                     <>
                         {mainActivities.map((a) => activityControl(a, { border: true, visualization: "spinner" }))}
-                        {!hideCacheActivities && cacheActivities.length ? (
+                        {cacheActivities.length ? (
                             <Card isOnlyLayout elevation={0} data-test-id={"taskActivityOverview-cacheActivityGroup"}>
                                 <CacheGroupWidget />
                                 {displayCacheList && (

@@ -122,6 +122,11 @@ export const requestExportTypes = async (): Promise<IExportTypes[]> => {
     }
 };
 
+/**
+ * provides only information about whether a task can be downloaded or not.
+ * @param projectId
+ * @param taskId
+ */
 export const checkIfTaskSupportsDownload = async (
     projectId: string,
     taskId: string
