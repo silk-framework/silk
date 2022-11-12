@@ -91,10 +91,6 @@ export const ObjectRuleForm = (props: IProps) => {
         ).values()
     );
 
-    React.useEffect(() => {
-        toggleTabViewDirtyState(allowConfirm);
-    }, [allowConfirm]);
-
     useEffect(() => {
         const { id, scrollIntoView } = props;
         // set screen focus to this element
@@ -220,6 +216,8 @@ export const ObjectRuleForm = (props: IProps) => {
         };
 
         const changed = create || wasTouched(ruleData, newModifiedValues);
+
+        toggleTabViewDirtyState(Object.keys(initialValues).length ? changed : true);
 
         const eventId = `${id}_${changed}`;
         if (id && eventId !== lastEmittedEvent.current) {

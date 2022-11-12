@@ -254,6 +254,8 @@ export function ValueRuleForm(props: IProps) {
         const touched = wasTouched(initialValues, currValues);
         const id = _.get(props, "id", 0);
 
+        toggleTabViewDirtyState(Object.keys(initialValues).length ? touched : true);
+
         const eventId = `${id}_${touched}`;
         if (id !== 0 && eventId !== lastEmittedEvent.current) {
             lastEmittedEvent.current = eventId;
@@ -291,11 +293,6 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const allowConfirm = allowConfirmation();
-
-    /** update tab view component with current dirty state status */
-    React.useEffect(() => {
-        toggleTabViewDirtyState(allowConfirm);
-    }, [allowConfirm]);
 
     const handleComplexEdit = (event) => {
         event.preventDefault();
