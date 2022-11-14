@@ -608,63 +608,6 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok(JsBoolean(cachesLoaded))
   }
 
-  @Operation(
-    summary = "Task output",
-    description = "Downloads the contents of the first output dataset of the specified task. Note that this does not execute the task, but assumes that it has been executed already. The output dataset must be file based.",
-    responses = Array(
-      new ApiResponse(
-        responseCode = "200",
-        description = "The task output.",
-      ),
-      new ApiResponse(
-        responseCode = "400",
-        description = "If the output could not be downloaded. The reason is stated in the response body."
-      ),
-      new ApiResponse(
-        responseCode = "404",
-        description = "If the project or task does not exist."
-      )
-    )
-  )
-  def downloadOutput(@Parameter(
-                       name = "project",
-                       description = "The project identifier",
-                       required = true,
-                       in = ParameterIn.PATH,
-                       schema = new Schema(implementation = classOf[String])
-                     )
-                     projectName: String,
-                     @Parameter(
-                       name = "task",
-                       description = "The task identifier",
-                       required = true,
-                       in = ParameterIn.PATH,
-                       schema = new Schema(implementation = classOf[String])
-                     )
-                     taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-
-    task.data.outputTasks.headOption match {
-      case Some(outputId) =>
-        project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
-          case Some(ds: ResourceBasedDataset) =>
-            ds.file match {
-              case FileResource(file) =>
-                Ok.sendFile(file)
-              case _ =>
-                ErrorResult(BAD_REQUEST, "Output resource is not a file", s"The specified output dataset '$outputId' is not based on a file resource.")
-            }
-          case Some(_) =>
-            ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
-          case None =>
-            ErrorResult(BAD_REQUEST, "Output dataset not found", s"The specified output dataset '$outputId' has not been found.")
-        }
-      case None =>
-        ErrorResult(BAD_REQUEST, "No output dataset", "This task does not specify an output dataset.")
-    }
-  }
-
 }
 
 

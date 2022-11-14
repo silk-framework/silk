@@ -16,6 +16,17 @@ export default class ExecutionReport extends React.Component {
         this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
 
+    componentDidUpdate(prevProps)  {
+        const ruleResults = this.props.executionReport?.ruleResults
+        const ruleResultsChanged = prevProps.executionReport?.ruleResults !== ruleResults
+        if(ruleResults && ruleResultsChanged) {
+            const initialRuleId = new URLSearchParams(window.location.search).get("ruleId");
+            if(initialRuleId && ruleResults[initialRuleId]) {
+                this.onRuleNavigation({newRuleId: initialRuleId})
+            }
+        }
+    }
+
     onRuleNavigation({newRuleId}) {
         this.setState({currentRuleId: newRuleId});
     }
@@ -128,7 +139,7 @@ export default class ExecutionReport extends React.Component {
         return <div className="mdl-grid mdl-grid--no-spacing">
             <div className="mdl-cell mdl-cell--3-col">
                 <MappingsTree
-                    currentRuleId="root"
+                    currentRuleId={this.state.currentRuleId ?? "root"}
                     ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
                     showValueMappings={true}
                     handleRuleNavigation={this.onRuleNavigation}
@@ -197,10 +208,14 @@ export default class ExecutionReport extends React.Component {
         </TableRow>
     }
 
+    isTransformReport() {
+        return 'ruleResults' in this.props.executionReport;
+    }
+
     render() {
         return <div data-test-id={"execution-report"}>
             {this.renderSummary()}
-            {'ruleResults' in this.props.executionReport && this.renderTransformReport()}
+            {this.isTransformReport() && this.renderTransformReport()}
         </div>
     }
 }
