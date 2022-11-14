@@ -81,8 +81,8 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.7" % "test",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.7.1" % "test",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.7",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.7.1",
 
   // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
   // Can be removed as soon as there are newer stable versions of logback
