@@ -1,7 +1,9 @@
-import { LinkingRuleEditor , LinkingRuleEditorOptionalContext} from "../taskViews/linking/LinkingRuleEditor";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
 import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
+import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
+import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
 
 let registered = false;
 export const registerCorePlugins = () => {
@@ -30,8 +32,14 @@ export const registerCorePlugins = () => {
             },
         });
 
-        /** Transform plugins. FIXME: CMEM-4266: Find solution for opening mapping rules in the rule editor without redirecting. */
-        // Hierarchical mapping editor
+        pluginRegistry.registerTaskView("linking", {
+            id: "LinkingExecution",
+            label: "Linking execution",
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+                return <LinkingExecutionTab taskId={taskId} projectId={projectId} />;
+            },
+        });
+
         pluginRegistry.registerTaskView("transform", {
             id: "hierarchicalMappingEditor",
             label: "Mapping editor",
@@ -39,6 +47,14 @@ export const registerCorePlugins = () => {
                 return (
                     <HierarchicalMapping project={projectId} transformTask={taskId} startFullScreen={startFullScreen} />
                 );
+            },
+        });
+
+        pluginRegistry.registerTaskView("transform", {
+            id: "TransformExecution",
+            label: "Transform execution",
+            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+                return <TransformExecutionTab taskId={taskId} projectId={projectId} />;
             },
         });
 

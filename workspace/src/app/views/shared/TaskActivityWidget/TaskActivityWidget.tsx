@@ -32,6 +32,10 @@ interface TaskActivityWidgetProps {
     };
     /** If the activity is a cache activity the presentation will be different, e.g. reload button shown etc. */
     isCacheActivity?: boolean;
+    /**
+     * callback executed when an update is received.
+     */
+    registerToReceiveUpdates?: (IActivityStatus) => void;
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
@@ -47,6 +51,7 @@ export const useTaskActivityWidget = ({
     label = "",
     layoutConfig,
     activityActionPreAction = {},
+    registerToReceiveUpdates,
     isCacheActivity = false,
 }: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
@@ -60,6 +65,9 @@ export const useTaskActivityWidget = ({
         activityStatus.activityStatus = status;
         if (updatesHandler.updateHandler) {
             updatesHandler.updateHandler(status);
+        }
+        if (registerToReceiveUpdates) {
+            registerToReceiveUpdates(status);
         }
     };
 

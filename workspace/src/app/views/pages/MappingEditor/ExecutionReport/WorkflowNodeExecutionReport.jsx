@@ -49,7 +49,9 @@ export default class WorkflowNodeExecutionReport extends React.Component {
         return <ExecutionReport
                                 project={this.props.project}
                                 nodeId={this.props.nodeId}
-                                executionReport={report}/>
+                                executionReport={report}
+                                trackRuleInUrl={false}
+        />
       }
     })
   }

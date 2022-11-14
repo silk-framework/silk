@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import { getVocabInfoAsync } from '../store';
+import {getApiDetails, getVocabInfoAsync} from '../store';
 import { NotAvailable } from 'gui-elements-deprecated';
 
 export class URIInfo extends React.Component {
@@ -9,7 +9,9 @@ export class URIInfo extends React.Component {
     };
 
     componentDidMount() {
-        this.loadData(this.props);
+        if(getApiDetails().transformTask) {
+            this.loadData(this.props);
+        }
     }
 
     componentDidUpdate(prevProps) {
