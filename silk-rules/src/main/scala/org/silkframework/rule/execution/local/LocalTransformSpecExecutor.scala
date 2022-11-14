@@ -26,19 +26,6 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     }
     val transformContext = context.asInstanceOf[ActivityContext[TransformReport]]
     transformContext.value() = TransformReport(task)
-//    input match {
-//      case mt: MultiEntityTable =>
-//        val outputTable = mutable.Buffer[LocalEntities]()
-//        val transformer = new EntityTransformer(task, (mt.asInstanceOf[LocalEntities] +: mt.subTables).to[mutable.Buffer], outputTable, output)
-//        transformer.transformEntities("root", task.mappingRule, task.outputSchema, transformContext)
-//        Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
-//      case _ =>
-//        val outputTable = mutable.Buffer[LocalEntities]()
-//        val transformer = new EntityTransformer(task, mutable.Buffer(input), outputTable, output)
-//        transformer.transformEntities("root", task.mappingRule, task.outputSchema, transformContext)
-//        Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
-//    }
-
     val flatInputs = flattenInputs(input).toIndexedSeq
     val outputTables = mutable.Buffer[LocalEntities]()
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
