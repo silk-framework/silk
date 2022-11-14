@@ -7,7 +7,7 @@ import { Card, CardContent, Spinner } from "@eccenca/gui-elements";
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
 import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
-import { getHierarchyAsync, getRuleAsync } from "../store";
+import {getApiDetails, getHierarchyAsync, getRuleAsync} from "../store";
 import EventEmitter from "../utils/EventEmitter";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "../utils/constants";
 import { getHistory } from "../../../../../store/configureStore";
@@ -47,6 +47,10 @@ class MappingsTree extends React.Component {
     }
 
     getRuleById = (searchId) => {
+        if(!getApiDetails().transformTask) {
+            // API details not loaded, do not continue
+            return
+        }
         this.setState({
             navigationLoading: true,
         });
