@@ -224,7 +224,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     log.info(s"Starting import of project '$name'...")
     val start = System.currentTimeMillis()
     marshaller.unmarshalProject(name, provider, repository.get(name), file)
-    reloadProject(name)
+    reloadProjectInternal(name)
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
@@ -248,6 +248,13 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     loadProjects()
   }
 
+  def reloadProject(projectId: Identifier)
+                   (implicit userContext: UserContext): Unit = synchronized {
+    loadUserProjects()
+    log.info(s"Reloading project with ID '$projectId' from backend.")
+    reloadProjectInternal(projectId, throwError = true)
+  }
+
   /** Reloads the registered prefixes if the workspace provider supports this operation. */
   def reloadPrefixes()(implicit userContext: UserContext): Unit = {
     additionalPrefixes = provider.fetchRegisteredPrefixes()
@@ -257,8 +264,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   }
 
   /** Reload a project from the backend */
-  private def reloadProject(id: Identifier)
-                           (implicit userContext: UserContext): Unit = synchronized {
+  private def reloadProjectInternal(id: Identifier, throwError: Boolean = false)
+                                   (implicit userContext: UserContext): Unit = synchronized {
     // remove project
     Try(project(id).cancelActivities())
     removeProjectFromCache(id)
@@ -268,7 +275,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
         project.startActivities()
         addProjectToCache(project)
       case None =>
-        log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
+        val errorMessage = s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!"
+        log.warning(errorMessage)
+        if(throwError) {
+          throw new RuntimeException(errorMessage)
+        }
     }
   }
 

@@ -95,7 +95,7 @@ export interface IPluginDetails {
     pluginId: string;
     pluginType?: PluginType;
     markdownDocumentation?: string;
-    autoConfigurable?: boolean
+    autoConfigurable?: boolean;
 }
 
 /** Overview version of an item description. */
@@ -118,8 +118,13 @@ export interface IProjectTaskUpdatePayload {
         [key: string]: string | object;
     };
     dataParameters?: {
-        [key: string]: string
-    }
+        [key: string]: string;
+    };
+}
+
+export interface ProjectTaskDownloadInfo {
+    downloadSupported: boolean;
+    info: string;
 }
 
 export interface IExportTypes {
