@@ -345,7 +345,7 @@ export function ProjectTaskTabView({
                                 ref={iframeRef}
                                 name={iFrameName}
                                 data-test-id={iFrameName}
-                                src={createIframeUrl((selectedTab as IItemLink)?.path)}
+                                src={createIframeUrl((selectedTab as IItemLink)?.path ?? "")}
                                 title={tLabel((selectedTab as IItemLink)?.label)}
                                 style={{
                                     position: "absolute",

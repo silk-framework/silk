@@ -67,13 +67,15 @@ class TransformedEntities(task: Task[TransformSpec],
 
     count = 0
     var lastUpdateTime = System.currentTimeMillis()
+    var lastCount = 0
     try {
       for (entity <- entities) {
         mapEntity(entity, f, report)
-        if (count % 100 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
+        if (count > lastCount && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
           context.value.update(report.build())
           context.status.updateMessage(s"Executing ($count Entities)")
           lastUpdateTime = System.currentTimeMillis()
+          lastCount = count
         }
       }
     } catch {

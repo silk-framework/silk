@@ -138,7 +138,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.inputSchema, ruleSchemata.tail.map(_.inputSchema).toIndexedSeq)
+    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.inputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.inputSchema).toIndexedSeq)
   }
 
 
@@ -146,7 +146,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.outputSchema, ruleSchemata.tail.map(_.outputSchema).toIndexedSeq)
+    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
   }
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */

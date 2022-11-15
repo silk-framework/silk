@@ -17,6 +17,7 @@ import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace._
@@ -266,6 +267,32 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
       val result = copyRequest.copyProject(projectName)
       Ok(Json.toJson(result))
     }
+  }
+
+  @Operation(
+    summary = "Reload a project from the workspace provider",
+    description = "Reloads all tasks of a project from the workspace provider. This is the same as the workspace reload, but for only a single project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  def reloadProject(@Parameter(
+                      name = "project",
+                      description = "The project identifier.",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request =>
+    implicit userContext =>
+      WorkspaceFactory().workspace.reloadProject(Identifier(projectId))
+      NoContent
   }
 
   def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
