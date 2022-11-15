@@ -81,7 +81,9 @@ export const connectWebSocket = <T>(
 
         cleanUpFunctions.push(() => {
             websocketState.socket.onerror = null;
-            websocketState.socket.close(1000, "Closing web socket connection.");
+            if (websocketState.socket.readyState === websocketState.socket.OPEN) {
+                websocketState.socket.close(1000, "Closing web socket connection.");
+            }
         });
     };
     initWebsocket();

@@ -325,6 +325,7 @@ class MappingsWorkview extends React.Component {
                         }}
                         ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
                         onAddNewRule={this.handleAddNewRule}
+                        viewActions={this.props.viewActions}
                     />
                 ) : (
                     <ValueMappingRuleForm
@@ -333,6 +334,7 @@ class MappingsWorkview extends React.Component {
                         edit
                         onAddNewRule={this.handleAddNewRule}
                         openMappingEditor={this.props.openMappingEditor}
+                        viewActions={this.props.viewActions}
                     />
                 )}
             </div>
@@ -381,6 +383,7 @@ class MappingsWorkview extends React.Component {
                     openMappingEditor={this.props.openMappingEditor}
                     loading={this.state.loading}
                     startFullScreen={this.props.startFullScreen}
+                    viewActions={this.props.viewActions}
                 />
             ) : null;
 
@@ -405,6 +408,7 @@ class MappingsWorkview extends React.Component {
                         onClickedRemove={this.props.onClickedRemove}
                         openMappingEditor={this.props.openMappingEditor}
                         startFullScreen={this.props.startFullScreen}
+                        viewActions={this.props.viewActions}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

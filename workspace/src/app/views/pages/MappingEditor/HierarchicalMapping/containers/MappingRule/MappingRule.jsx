@@ -148,6 +148,7 @@ export class MappingRule extends React.Component {
                     handleCopy={this.props.handleCopy}
                     handleClone={this.props.handleClone}
                     onClickedRemove={this.props.onClickedRemove}
+                    viewActions={this.props.viewActions}
                     type={type}
                 />
             ) : (
@@ -161,6 +162,7 @@ export class MappingRule extends React.Component {
                     handleClone={this.props.handleClone}
                     onClickedRemove={this.props.onClickedRemove}
                     mapRuleLoading={this.props.mapRuleLoading}
+                    viewActions={this.props.viewActions}
                 />
             )
         ) : (

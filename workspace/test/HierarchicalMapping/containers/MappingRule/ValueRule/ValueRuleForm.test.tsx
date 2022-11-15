@@ -13,6 +13,9 @@ const props = {
     parentId: "2",
     scrollIntoView: jest.fn(),
     scrollElementIntoView: jest.fn(),
+    viewActions: {
+        savedChanges: jest.fn(),
+    },
 };
 
 const selectors = {
