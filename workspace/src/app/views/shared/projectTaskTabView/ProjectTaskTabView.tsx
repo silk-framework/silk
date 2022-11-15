@@ -24,7 +24,7 @@ import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
-import TabSwitchPrompt from "./TabSwitchPrompt";
+import PromptModal from "./PromptModal";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -181,10 +181,13 @@ export function ProjectTaskTabView({
         }
     };
 
+    /** show browser prompt when making route changes except changes with search params */
     React.useEffect(() => {
         window.onbeforeunload = () => (unsavedChanges ? true : null);
-        const unBlock = history.block(() =>
-            unsavedChanges && !openTabSwitchPrompt ? (t("Metadata.unsavedMetaDataWarning") as string) : undefined
+        const unBlock = history.block((location) =>
+            !location.search.length && unsavedChanges && !openTabSwitchPrompt
+                ? (t("Metadata.unsavedMetaDataWarning") as string)
+                : undefined
         );
         return () => unBlock();
     }, [unsavedChanges, openTabSwitchPrompt]);
@@ -372,13 +375,13 @@ export function ProjectTaskTabView({
 
     return (
         <>
-            <TabSwitchPrompt
+            <PromptModal
                 onClose={() => {
                     setOpenTabSwitchPrompt(false);
                     setBlockedTab(undefined);
                 }}
                 isOpen={openTabSwitchPrompt}
-                changeTab={() => blockedTab && changeTab(blockedTab, true)}
+                proceed={() => blockedTab && changeTab(blockedTab, true)}
             />
             {selectedTask === taskId && !!handlerRemoveModal ? (
                 <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>

@@ -10,11 +10,11 @@ import MappingsWorkview from "./containers/MappingsWorkview";
 import MessageHandler from "./components/MessageHandler";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";
 import RemoveMappingRuleDialog from "./elements/RemoveMappingRuleDialog";
-import DiscardChangesDialog from "./elements/DiscardChangesDialog";
 import EventEmitter from "./utils/EventEmitter";
 import { withHistoryHOC } from "./utils/withHistoryHOC";
 import MappingEditorModal from "./MappingEditorModal";
 import { getHistory } from "../../../../store/configureStore";
+import PromptModal from "../../../../views/shared/projectTaskTabView/PromptModal";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -56,14 +56,12 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        EventEmitter.on(MESSAGES.PREVENT_TAB_CLOSING, this.shouldPrompt);
     }
 
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        EventEmitter.off(MESSAGES.PREVENT_TAB_CLOSING, this.shouldPrompt);
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -80,10 +78,6 @@ class HierarchicalMapping extends React.Component {
             this.loadNavigationTree();
         }
     }
-
-    shouldPrompt = (shouldPrompt) => {
-        this.props.tabSwitchPrompt(shouldPrompt);
-    };
 
     onOpenEdit = (obj) => {
         const id = _.get(obj, "id", 0);
@@ -187,6 +181,11 @@ class HierarchicalMapping extends React.Component {
 
     // react to rule id changes
     onRuleNavigation = ({ newRuleId }) => {
+        console.log({
+            newRuleId,
+            currentRuleId: this.state.currentRuleId,
+            editingElements: this.state.editingElements,
+        });
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
@@ -214,6 +213,7 @@ class HierarchicalMapping extends React.Component {
             currentRuleId: this.state.askForDiscard,
         });
         this.toggleAskForDiscard(false);
+        this.props.viewActions.savedChanges && this.props.viewActions.savedChanges(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
     };
 
@@ -264,13 +264,11 @@ class HierarchicalMapping extends React.Component {
                         handleCancelRemove={this.handleCancelRemove}
                     />
                 )}
-                {askForDiscard && (
-                    <DiscardChangesDialog
-                        handleDiscardConfirm={this.handleDiscardChanges}
-                        handleDiscardCancel={() => this.toggleAskForDiscard(false)}
-                        numberEditingElements={editingElements.length}
-                    />
-                )}
+                <PromptModal
+                    onClose={() => this.toggleAskForDiscard(false)}
+                    proceed={this.handleDiscardChanges}
+                    isOpen={askForDiscard}
+                />
                 {loading}
                 <div className="ecc-temp__appmessages">
                     <MessageHandler />

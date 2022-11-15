@@ -2,13 +2,13 @@ import { Button, SimpleDialog } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-interface TabSwitchPromptModalProps {
+interface PromptModalProps {
     onClose: () => void;
     isOpen: boolean;
-    changeTab: () => void;
+    proceed: () => void;
 }
 
-const TabSwitchPrompt: React.FC<TabSwitchPromptModalProps> = ({ onClose, isOpen, changeTab }) => {
+const PromptModal: React.FC<PromptModalProps> = ({ onClose, isOpen, proceed }) => {
     const [t] = useTranslation();
     return (
         <SimpleDialog
@@ -19,7 +19,7 @@ const TabSwitchPrompt: React.FC<TabSwitchPromptModalProps> = ({ onClose, isOpen,
             onClose={onClose}
             intent="warning"
             actions={[
-                <Button disruptive={true} onClick={changeTab}>
+                <Button disruptive={true} onClick={proceed}>
                     {t("common.action.proceed")}
                 </Button>,
                 <Button onClick={onClose} id="prompt-cancel">
@@ -32,4 +32,4 @@ const TabSwitchPrompt: React.FC<TabSwitchPromptModalProps> = ({ onClose, isOpen,
     );
 };
 
-export default TabSwitchPrompt;
+export default PromptModal;
