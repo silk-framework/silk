@@ -179,6 +179,7 @@ class RootMappingRule extends React.Component {
                             onClickedRemove={this.props.onClickedRemove}
                             openMappingEditor={this.props.openMappingEditor}
                             type={this.props.rule.type}
+                            viewActions={this.props.viewActions}
                         />
                     )}
                 </Card>

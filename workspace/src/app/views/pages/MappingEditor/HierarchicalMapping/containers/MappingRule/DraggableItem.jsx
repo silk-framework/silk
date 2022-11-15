@@ -97,6 +97,7 @@ class DraggableItem extends React.Component {
                         onOrderRules={this.props.onOrderRules}
                         updateHistory={this.updateHistory}
                         mapRuleLoading={this.props.mapRuleLoading}
+                        viewActions={this.props.viewActions}
                         {...this.props}
                     />
                 )}

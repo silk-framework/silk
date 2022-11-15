@@ -10,6 +10,7 @@ import reorderArray from "../../utils/reorderArray";
 import { Spinner } from "@eccenca/gui-elements";
 import silkRestApi from "../../../api/silkRestApi";
 import useErrorHandler from "../../../../../../hooks/useErrorHandler";
+import { IViewActions } from "../../../../../../views/plugins/PluginRegistry";
 
 interface MappingsListProps {
     rules: any[];
@@ -28,6 +29,7 @@ interface MappingsListProps {
     startFullScreen: boolean;
     // Executes when one of the create mapping options are clicked. The type specifies the type of mapping.
     onMappingCreate?: (mappingSkeleton: { type: "direct" | "object" }) => any;
+    viewActions: IViewActions;
 }
 
 const nop = () => {};
@@ -49,6 +51,7 @@ const MappingsList = ({
     onMappingCreate = nop,
     openMappingEditor,
     startFullScreen = false,
+    viewActions,
 }: MappingsListProps) => {
     const [items, setItems] = useState<any[]>(rulesToList(rules, parentRuleId || currentRuleId));
     const [reorderingRequestPending, setReorderingRequestPending] = useState(false);
@@ -128,6 +131,7 @@ const MappingsList = ({
                                             openMappingEditor={openMappingEditor}
                                             mapRuleLoading={loading}
                                             startFullScreen={startFullScreen}
+                                            viewActions={viewActions}
                                         />
                                     ))}
                                     {provided.placeholder}
