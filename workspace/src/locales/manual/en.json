@@ -19,7 +19,9 @@
         },
         "CustomIdentifierInput": {
             "ProjectId": "Project identifier",
+            "ProjectUri": "Project URI",
             "TaskId": "Item identifier",
+            "TaskUri": "Item URI",
             "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
             "validations": {
                 "invalid": "Only following characters (ranges) are allowed in a valid ID: a - z, A - Z, 0 - 9, _, -",
