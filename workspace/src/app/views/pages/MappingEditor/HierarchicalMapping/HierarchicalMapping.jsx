@@ -234,7 +234,6 @@ class HierarchicalMapping extends React.Component {
             askForRemove,
             elementToDelete,
             askForDiscard,
-            editingElements,
         } = this.state;
         const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
