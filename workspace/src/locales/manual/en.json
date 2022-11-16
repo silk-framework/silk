@@ -370,6 +370,16 @@
             "timeout": "Timeout"
         }
     },
+    "linkingEvaluationTabView": {
+        "table": {
+            "header": {
+                "source": "source",
+                "target": "target",
+                "score": "score",
+                "correct": "correct"
+            }
+        }
+    },
     "navigation": {
         "side": {
             "di": {
