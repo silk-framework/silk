@@ -986,12 +986,14 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
     evaluationActivity.value.get match {
       case Some(evaluationResult) =>
-        val linkJsonFormat = new LinkJsonFormat(Some(task.data.rule))
+        val linkingRule = task.data.rule
+        val linkJsonFormat = new LinkJsonFormat(Some(linkingRule))
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
         val links = evaluationResult.links.slice(offset, offset + limit)
           .map(link => linkJsonFormat.write(link))
         Ok(Json.obj(
-          "links" -> links
+          "links" -> links,
+          "linkRule" -> JsonSerialization.toJson(linkingRule)
         ))
       case None =>
         throw NotFoundException("No evaluation results available.")
