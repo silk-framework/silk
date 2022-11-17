@@ -68,6 +68,8 @@ export interface IOperatorCreateContext {
     ruleEvaluationContext: RuleEditorEvaluationContextProps;
     // Updates several node parameters in a single transaction
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
+    // If the operator is in permanent read-only mode
+    readOnlyMode: boolean
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -94,7 +96,7 @@ function createOperatorNode(
 
     const editBtn = (setAdjustedContentProps: React.Dispatch<React.SetStateAction<Partial<RuleNodeContentProps>>>) => (
         <IconButton
-            name={"item-edit"}
+            name={operatorContext.readOnlyMode ? "item-viewdetails" : "item-edit"}
             onClick={() => {
                 setAdjustedContentProps({
                     showEditModal: true,

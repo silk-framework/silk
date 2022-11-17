@@ -129,7 +129,7 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksHeader = () => {
         return (
             <CardHeader>
-                <CardTitle>{title}</CardTitle>
+                <CardTitle>{title} {referenceLinks?.links.length ? ` (${referenceLinks?.links.length})` : ""}</CardTitle>
                 <CardOptions>
                     {showLinksList && (
                         <>
