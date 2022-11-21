@@ -3,7 +3,6 @@ package org.silkframework.runtime.activity
 import java.time.Instant
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent._
-
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 import org.silkframework.runtime.execution.Execution
 
@@ -68,15 +67,17 @@ private class ActivityExecution[T](activity: Activity[T],
     StatusLock.synchronized {
       // Check if the current activity is still running
       if (status().isRunning) {
-        throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
+        throw new IllegalStateException(s"Cannot start while activity '${this.activity.name}' is still running!")
       }
       setStartMetaData(user)
     }
   }
 
-  override def startBlocking()(implicit user: UserContext): Unit = synchronized {
+  override def startBlocking()(implicit user: UserContext): Unit = {
     initStatus(user)
-    ForkJoinPool.managedBlock(new BlockingRunner())
+    this.synchronized {
+      ForkJoinPool.managedBlock(new BlockingRunner())
+    }
   }
 
   private def setStartMetaData(user: UserContext): Unit = {
@@ -85,12 +86,14 @@ private class ActivityExecution[T](activity: Activity[T],
     this.startedByUser = user
   }
 
-  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = synchronized {
+  override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
     initStatus(user)
-    for (v <- initialValue)
-      value.update(v)
-    runActivity()
-    value()
+    this.synchronized {
+      for (v <- initialValue)
+        value.update(v)
+      runActivity()
+      value()
+    }
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
