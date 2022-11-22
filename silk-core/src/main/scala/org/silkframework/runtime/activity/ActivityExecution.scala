@@ -76,7 +76,7 @@ private class ActivityExecution[T](activity: Activity[T],
   override def startBlocking()(implicit user: UserContext): Unit = {
     initStatus(user)
     this.synchronized {
-      ForkJoinPool.managedBlock(new BlockingRunner())
+      runActivity()
     }
   }
 
