@@ -98,7 +98,7 @@ class PluginRegistry {
     }
 
     /** Fetches an arbitrary plugin. The type parameter is just for documentation and type checking on the caller-side. */
-    public pluginComponent<I = never>(pluginId: string): I {
+    public pluginComponent<I = never>(pluginId: string): I | undefined {
         return this.pluginComponents.get(pluginId);
     }
 }
