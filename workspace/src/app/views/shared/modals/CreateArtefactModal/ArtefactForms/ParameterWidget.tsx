@@ -83,7 +83,7 @@ export const ParameterWidget = (props: IProps) => {
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS);
     const errors = formHooks.errors[taskParameter.paramId];
-    const propertyDetails = parameterExtensions.extend(taskParameter.param);
+    const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
     const [t] = useTranslation();
 
