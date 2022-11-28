@@ -94,7 +94,7 @@ class ActivityMonitor[T](name: String,
     * Possibly executes other activities that are blocked.
     */
   def helpQuiesce(): Unit = {
-    if(ForkJoinTask.getQueuedTaskCount > 1) {
+    if(ForkJoinTask.getQueuedTaskCount >= 1) {
       ForkJoinTask.helpQuiesce()
     }
   }
