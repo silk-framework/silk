@@ -7,11 +7,14 @@ $diapp-entitybox-cell-background-hovered: $eccgui-color-tablerow-hover !default;
 $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
 
 .diapp-linking-learningdata__container {
-
 }
 
 .diapp-linking-learningdata__row {
+}
 
+.diapp-linking-learningdata__header.fullwidth,
+.diapp-linking-learningdata__cell.fullwidth {
+    max-width: 100%;
 }
 
 .diapp-linking-learningdata__header {

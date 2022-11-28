@@ -1,0 +1,531 @@
+{
+    "links": [
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#69",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#84",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#149",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#487",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#492",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#669",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#925",
+            "target": "urn:instance:1505301396771_mega_customerscsv#63",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["62"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["62"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["62"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["62"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#120",
+            "target": "urn:instance:1505301396771_mega_customerscsv#96",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["95"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["95"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["95"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["95"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["95"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#298",
+            "target": "urn:instance:1505301396771_mega_customerscsv#96",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["95"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["95"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["95"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["95"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["95"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "source": "urn:instance:1505385663725_mega_loanscsv#401",
+            "target": "urn:instance:1505301396771_mega_customerscsv#96",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "min",
+                "score": 1,
+                "children": [
+                    {
+                        "operatorId": "jaccard",
+                        "score": 1,
+                        "sourceValue": {
+                            "operatorId": "stripUriPrefix",
+                            "values": ["95"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "lowerCase",
+                                    "values": ["95"],
+                                    "error": null,
+                                    "children": [
+                                        {
+                                            "operatorId": "sourcePath",
+                                            "values": ["95"],
+                                            "error": null
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        "targetValue": {
+                            "operatorId": "tokenize",
+                            "values": ["95"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "targetPath",
+                                    "values": ["95"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "linkRule": {
+        "operator": {
+            "id": "min",
+            "type": "Aggregation",
+            "weight": 4,
+            "aggregator": "min",
+            "parameters": {},
+            "inputs": [
+                {
+                    "id": "jaccard",
+                    "type": "Comparison",
+                    "weight": 12,
+                    "threshold": 0.6499948035065077,
+                    "indexing": true,
+                    "metric": "jaccard",
+                    "parameters": {},
+                    "sourceInput": {
+                        "type": "transformInput",
+                        "id": "stripUriPrefix",
+                        "function": "stripUriPrefix",
+                        "inputs": [
+                            {
+                                "type": "transformInput",
+                                "id": "lowerCase",
+                                "function": "lowerCase",
+                                "inputs": [
+                                    {
+                                        "type": "pathInput",
+                                        "id": "sourcePath",
+                                        "path": "fibo-fnd-acc-dbt:identity"
+                                    }
+                                ],
+                                "parameters": {}
+                            }
+                        ],
+                        "parameters": {}
+                    },
+                    "targetInput": {
+                        "type": "transformInput",
+                        "id": "tokenize",
+                        "function": "tokenize",
+                        "inputs": [
+                            {
+                                "type": "pathInput",
+                                "id": "targetPath",
+                                "path": "fibo-fnd-acc-dbt:identity"
+                            }
+                        ],
+                        "parameters": {
+                            "regex": "\\s"
+                        }
+                    }
+                }
+            ]
+        },
+        "filter": {
+            "limit": null,
+            "unambiguous": null
+        },
+        "linkType": "owl:sameAs",
+        "layout": {
+            "nodePositions": {}
+        },
+        "uiAnnotations": {
+            "stickyNotes": []
+        }
+    }
+}

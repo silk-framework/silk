@@ -373,10 +373,10 @@
     "linkingEvaluationTabView": {
         "table": {
             "header": {
-                "source": "source",
-                "target": "target",
-                "score": "score",
-                "correct": "correct"
+                "source": "Source",
+                "target": "Target",
+                "score": "Score",
+                "linkState": "Link state"
             }
         }
     },
