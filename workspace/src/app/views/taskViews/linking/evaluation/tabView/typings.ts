@@ -23,38 +23,6 @@ export interface LinkingEvaluationResult {
     };
 }
 
-export interface LinkingInputValue {
-    type: string;
-    id: string;
-    function: string;
-    path?: string;
-    inputs: Array<{ type: string; id: string; path: string }>;
-}
-export interface LinkingEvaluationRule {
-    operator: {
-        id: string;
-        type: string;
-        weight: number;
-        aggregator: string;
-        sourceInput?: LinkingInputValue;
-        targetInput?: LinkingInputValue;
-        inputs: Array<{
-            id: string;
-            type: string;
-            weight: number;
-            threshold: number;
-            indexing: boolean;
-            metric: string;
-            parameters: {
-                minChar: string;
-                maxChar: string;
-            };
-            sourceInput: LinkingInputValue;
-            targetInput: LinkingInputValue;
-        }>;
-    } | null;
-}
-
 export interface EvaluationLinkInputValue {
     source: Record<string, string[]>;
     target: Record<string, string[]>;

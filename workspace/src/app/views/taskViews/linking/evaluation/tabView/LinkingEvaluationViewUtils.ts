@@ -1,14 +1,15 @@
 import fetch from "../../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../../../services/fetch/responseInterceptor";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, LinkingEvaluationRule } from "./typings";
+import { EvaluationLinkInputValue, LinkingEvaluationResult } from "./typings";
+import { ILinkingRule } from "../../linking.types";
 
 ///linking/tasks/:project/:linkingTaskId/evaluate
 export const getLinkingEvaluations = async (
     projectId: string,
     taskId: string,
     pagination: { current: number; total: number; limit: number }
-): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: LinkingEvaluationRule }> | undefined> =>
+): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule }> | undefined> =>
     fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate`),
         query: { page: pagination.current, limit: pagination.limit },

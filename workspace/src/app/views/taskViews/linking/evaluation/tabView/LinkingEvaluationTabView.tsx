@@ -30,25 +30,23 @@ import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
 import Pagination from "../../../../../views/shared/Pagination";
 import { getLinkingEvaluations, getLinkRuleInputPaths } from "./LinkingEvaluationViewUtils";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, LinkingEvaluationRule } from "./typings";
+import { EvaluationLinkInputValue, LinkingEvaluationResult } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
 import { ComparisonDataCell, ComparisonDataHeader } from "../../activeLearning/components/ComparisionData";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
 import { PropertyBox } from "../../activeLearning/components/PropertyBox";
+import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
     linkingTaskId: string;
 }
 
-const defaultEvaluationResult = { links: [], linkRule: { operator: null } };
-
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
-    const [evaluationResults, setEvaluationResults] =
-        React.useState<{ links: Array<LinkingEvaluationResult>; linkRule: LinkingEvaluationRule }>(
-            defaultEvaluationResult
-        );
+    const [evaluationResults, setEvaluationResults] = React.useState<
+        { links: Array<LinkingEvaluationResult>; linkRule: ILinkingRule } | undefined
+    >();
     const [pagination, setPagination] = React.useState<{ current: number; total: number; limit: number }>({
         current: 1,
         total: 25,
@@ -61,60 +59,58 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     React.useEffect(() => {
         (async () => {
-            setEvaluationResults(
-                (await getLinkingEvaluations(projectId, linkingTaskId, pagination))?.data ?? defaultEvaluationResult
-            );
+            setEvaluationResults((await getLinkingEvaluations(projectId, linkingTaskId, pagination))?.data);
         })();
     }, [pagination]);
 
     React.useEffect(() => {
-        const ruleOperator = evaluationResults.linkRule.operator;
-        if (ruleOperator) {
-            const linkInputValues: Array<EvaluationLinkInputValue> = [];
+        if (evaluationResults && evaluationResults.linkRule && evaluationResults.links) {
+            const ruleOperator = evaluationResults.linkRule.operator;
+            if (ruleOperator) {
+                const linkInputValues: Array<EvaluationLinkInputValue> = [];
 
-            const inputPaths = ruleOperator.sourceInput
-                ? getLinkRuleInputPaths(ruleOperator)
-                : (ruleOperator.inputs ?? []).reduce(
-                      (inputPaths, input) => {
-                          const linkRuleInputPaths = getLinkRuleInputPaths(input);
-                          inputPaths = {
-                              source: {
-                                  ...inputPaths.source,
-                                  ...linkRuleInputPaths.source,
-                              },
-                              target: {
-                                  ...inputPaths.target,
-                                  ...linkRuleInputPaths.target,
-                              },
-                          };
-                          return inputPaths;
-                      },
-                      { source: {}, target: {} } as EvaluationLinkInputValue
-                  );
+                const inputPaths = (ruleOperator as IComparisonOperator)?.sourceInput
+                    ? getLinkRuleInputPaths(ruleOperator)
+                    : ((ruleOperator as IAggregationOperator)?.inputs ?? []).reduce(
+                          (inputPaths, input) => {
+                              const linkRuleInputPaths = getLinkRuleInputPaths(input);
+                              inputPaths = {
+                                  source: {
+                                      ...inputPaths.source,
+                                      ...linkRuleInputPaths.source,
+                                  },
+                                  target: {
+                                      ...inputPaths.target,
+                                      ...linkRuleInputPaths.target,
+                                  },
+                              };
+                              return inputPaths;
+                          },
+                          { source: {}, target: {} } as EvaluationLinkInputValue
+                      );
 
-            const linksToValueMap = evaluationResults.links.map((link) => utils.linkToValueMap(link as any));
-            linksToValueMap.forEach((linkToValueMap) => {
-                const matchingInputValue: EvaluationLinkInputValue = { source: {}, target: {} };
-                Object.entries(inputPaths.source).forEach(([uri, operatorIds]) => {
-                    matchingInputValue.source[uri] = operatorIds
-                        .map((id) => linkToValueMap.get(id)?.value ?? [])
-                        .flat();
+                const linksToValueMap = evaluationResults.links.map((link) => utils.linkToValueMap(link as any));
+                linksToValueMap.forEach((linkToValueMap) => {
+                    const matchingInputValue: EvaluationLinkInputValue = { source: {}, target: {} };
+                    Object.entries(inputPaths.source).forEach(([uri, operatorIds]) => {
+                        matchingInputValue.source[uri] = operatorIds
+                            .map((id) => linkToValueMap.get(id)?.value ?? [])
+                            .flat();
+                    });
+
+                    Object.entries(inputPaths.target).forEach(([uri, operatorIds]) => {
+                        matchingInputValue.target[uri] = operatorIds
+                            .map((id) => linkToValueMap.get(id)?.value ?? [])
+                            .flat();
+                    });
+
+                    linkInputValues.push(matchingInputValue);
                 });
 
-                Object.entries(inputPaths.target).forEach(([uri, operatorIds]) => {
-                    matchingInputValue.target[uri] = operatorIds
-                        .map((id) => linkToValueMap.get(id)?.value ?? [])
-                        .flat();
-                });
-
-                linkInputValues.push(matchingInputValue);
-            });
-
-            console.log({ inputPaths, linkInputValues });
-
-            setInputValues(linkInputValues);
+                setInputValues(linkInputValues);
+            }
         }
-    }, [evaluationResults.linkRule.operator]);
+    }, [evaluationResults]);
 
     const handlePagination = React.useCallback((page: number, limit: number) => {
         setPagination({ current: 1, total: 25, limit });
@@ -135,7 +131,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         },
     ];
 
-    const rowData = evaluationResults.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` }));
+    const rowData = evaluationResults?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
 
     const handleRowExpansion = React.useCallback(
         (rowId?: string) => {
