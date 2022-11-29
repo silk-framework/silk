@@ -1,14 +1,21 @@
 package controllers.workflowApi.variableWorkflow
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.{Dataset, ResourceBasedDataset}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.FileUtils
 import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
 import play.api.mvc._
 
+import java.nio.file.{Files, Path, Paths}
+import scala.collection.mutable
 import scala.io.{Codec, Source}
 
 /**
@@ -105,8 +112,9 @@ object VariableWorkflowRequestUtils {
 
   private def variableDataSourceConfig(datasetId: String,
                                        mediaType: Option[String])
-                                      (implicit request: Request[_]): JsValue = {
-    val datasetType = mediaType match {
+                                      (implicit request: Request[AnyContent]): JsValue = {
+    val multiPartFileContentType = request.body.asMultipartFormData.toSeq.flatMap(_.files.flatMap(_.contentType)).headOption
+    val datasetType = multiPartFileContentType.orElse(mediaType) match {
       case Some("application/json") | Some("application/x-www-form-urlencoded") | None =>
         "json"
       case Some("application/xml") =>
@@ -124,16 +132,54 @@ object VariableWorkflowRequestUtils {
     xmlMimeType,
     csvMimeType,
     csvMimeTypeShort,
-    "application/x-www-form-urlencoded"
+    "application/x-www-form-urlencoded",
+    "multipart/form-data"
   )
+
+  val tempFileBaseDir: Path = {
+    val tempDirPath = FileUtils.tempDir
+    Paths.get(tempDirPath)
+  }
+
+  /**
+    * The config for the variable workflow as extracted from the request.
+    *
+    * @param configParameters       The variable workflow configuration parameters.
+    * @param variableDataSinkConfig Optional data sink config.
+    * @param resourceManager        The temp file based resource manager that should be used to read and write resources to/from.
+    *                               This includes files uploaded via multipart/form-data request.
+    */
+  case class VariableWorkflowRequestConfig(configParameters: Map[String, String],
+                                           variableDataSinkConfig: Option[String],
+                                           resourceManager: FileMapResourceManager)
+
+  private def variableWorkflowFileResourceManager(implicit request: Request[AnyContent]): FileMapResourceManager = {
+    val baseDir = Files.createTempDirectory(tempFileBaseDir, "variableWorkflowResourceManager")
+    val fileMap = mutable.HashMap[String, Path]()
+    for(multipart <- request.body.asMultipartFormData.toSeq;
+      (file, idx) <- multipart.files.zipWithIndex) {
+      // only get the last part of the filename
+      // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
+      val filename = Paths.get(file.filename).getFileName
+      // TODO: put content-type
+      val contentType = file.contentType
+      val managerFile = Paths.get(baseDir.toString, filename.toString)
+      file.ref.moveTo(managerFile, replace = true)
+      if(idx == 0) {
+        fileMap.put(INPUT_FILE_RESOURCE_NAME, managerFile)
+      }
+      fileMap.put(filename.toString, managerFile)
+    }
+    FileMapResourceManager(baseDir, fileMap.toMap, removeFilesOnGc = true)
+  }
 
   /** Returns the variable workflow config with the query parameter values as input entity.
     * The data source is always a JSON data source.
     * The data sink is chosen with regards to the ACCEPT header.
     **/
-  def queryStringToWorkflowConfig(project: Project,
-                                  workflowTask: Task[Workflow])
-                                 (implicit request: Request[_], userContext: UserContext): (Map[String, String], Option[String]) = {
+  def requestToWorkflowConfig(project: Project,
+                              workflowTask: Task[Workflow])
+                             (implicit request: Request[AnyContent], userContext: UserContext): VariableWorkflowRequestConfig  = {
     val variableDatasets = workflowTask.data.variableDatasets(project)
     if(variableDatasets.sinks.size > 1 || variableDatasets.dataSources.size > 1) {
       throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one variable data source " +
@@ -148,32 +194,57 @@ object VariableWorkflowRequestUtils {
     // Optional data source config depending on whether there is a variable input dataset or not.
     val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(dataSourceId => variableDataSourceConfig(dataSourceId, mediaType))
     // Only parse resource if a variable input dataset is defined in the workflow
-    val resourceJson: Option[JsValue] = dataSourceConfig.map(_ => requestToInputResource(mediaType))
+    val resourceJson: Option[Option[JsValue]] = dataSourceConfig.map(_ => requestToInputResource(mediaType))
     // Optional data sink config and corresponding mime type depending on whether a variable output dataset is part of the workflow.
     val variableDataSinkConfigOpt: Option[VariableDataSinkConfig] = variableDatasets.sinks.headOption.map(variableDataSinkConfig)
     val resourceContentJson = resourceJson match {
-      case Some(jsValue) => jsValue
-      case None => JsArray(Seq.empty)
+      case Some(Some(jsValue)) => Some(jsValue)
+      case Some(None) => None
+      case None => Some(JsArray(Seq.empty))
+    }
+    val resources = resourceContentJson match {
+      case Some(content) =>
+        Json.obj(
+          INPUT_FILE_RESOURCE_NAME -> content
+        )
+      case None =>
+        Json.obj()
     }
     val workflowConfig = Json.obj(
       "DataSources" -> dataSourceConfig.toSeq,
       "Sinks" -> variableDataSinkConfigOpt.map(_.configJson).toSeq,
-      "Resources" -> Json.obj(
-        INPUT_FILE_RESOURCE_NAME -> resourceContentJson
-      ),
+      "Resources" -> resources,
       "config" -> Json.obj(
         "autoConfig" -> request.getQueryString(QUERY_CONFIG_PARAM_AUTO_CONFIG).map(_.trim).contains("true")
       )
     )
-    (Map(
-      "configuration" -> workflowConfig.toString(),
-      "configurationType" -> jsonMimeType
-    ), variableDataSinkConfigOpt.map(_.mimeType))
+    VariableWorkflowRequestConfig(
+      configParameters = Map(
+        "configuration" -> workflowConfig.toString(),
+        "configurationType" -> jsonMimeType
+      ),
+      variableDataSinkConfig = variableDataSinkConfigOpt.map(_.mimeType),
+      resourceManager = variableWorkflowFileResourceManager
+    )
   }
 
-  // Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
-  private def requestToInputResource(mediaType: Option[String])(implicit request: Request[_]): JsValue = {
-    request.body match {
+  /** Get the plugin IDs of all resource based datasets. */
+  def resourceBasedDatasetPluginIds: Seq[String] = {
+    PluginRegistry.availablePlugins[Dataset]
+      .filter(plugin => classOf[ResourceBasedDataset].isAssignableFrom(plugin.pluginClass))
+      .map(_.id.toString)
+  }
+
+  /* Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
+   * Or returns None if the request is a multipart/form-data request and the input file has been uploaded.
+   */
+  private def requestToInputResource(mediaType: Option[String])
+                                    (implicit request: Request[_]): Option[JsValue] = {
+    if(request.body.isInstanceOf[AnyContentAsMultipartFormData]) {
+      // Input resource is part of multipart/form-data request and will be loaded directly into the resource manager.
+      return None
+    }
+    val inputResource = request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
         parametersToJsonResource(v)
       case AnyContentAsJson(jsValue) =>
@@ -204,6 +275,7 @@ object VariableWorkflowRequestUtils {
       case _ =>
         throwUnsupportedMediaType(request.contentType.getOrElse("-none-"))
     }
+    Some(inputResource)
   }
 
   private def throwUnsupportedMediaType(givenMediaType: String): Nothing = {

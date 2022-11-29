@@ -14,15 +14,33 @@
 
 package org.silkframework.util
 
-import java.io.{File, IOException}
+import org.silkframework.config.DefaultConfig
 
+import java.io.{File, IOException}
+import java.nio.file.Files
 import scala.language.implicitConversions
+import scala.util.Try
 
 /**
  * Defines additional methods on Files, which are not in the standard library.
  */
 object FileUtils {
   implicit def toFileUtils(file: File): FileUtils = new FileUtils(file)
+  final val tmpDirKey = "config.tempFilesDirectory"
+
+  /** Directory containing temporary files that will be removed on every application start-up. */
+  lazy val tempDir: String = {
+    val cfg = DefaultConfig.instance()
+    def default: String = {
+      val tmpDir = Files.createTempDirectory("silk-tmp-file-dir")
+      tmpDir.toString
+    }
+    if(cfg.hasPath(tmpDirKey)) {
+      Try(cfg.getString(tmpDirKey)).getOrElse(default)
+    } else {
+      default
+    }
+  }
 }
 
 /**
@@ -46,12 +64,12 @@ class FileUtils(file: File) {
    *
    * @throws java.io.IOException if the directory or any of its sub directories could not be deleted
    */
-  def deleteRecursive(): Unit = {
+  def deleteRecursive(keepBaseFile: Boolean = false): Unit = {
     if (file.isDirectory) {
       file.listFiles().foreach(child => new FileUtils(child).deleteRecursive())
     }
 
-    if (file.exists && !file.delete()) throw new IOException("Could not delete file " + file)
+    if (!keepBaseFile && file.exists && !file.delete()) throw new IOException("Could not delete file " + file)
   }
 
   /**

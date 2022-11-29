@@ -231,6 +231,7 @@ object ProjectUtils {
                                                 projectName: String,
                                                 withProjectResources: Boolean)
                                                (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
+    // Write resources from the variable workflow config into the in-memory resource manager
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -245,10 +246,11 @@ object ProjectUtils {
                                                 projectName: String,
                                                 withProjectResources: Boolean)
                                                (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
-    val resourceManager = InMemoryResourceManager()
+    // Write resources from the variable workflow config into the in-memory resource manager
+    val inMemoryResourceManager = InMemoryResourceManager()
     val resources = (workflowJson \ "Resources").as[JsObject]
     for ((resourceId, resourceJs) <- resources.fields){
-      val managedResource = resourceManager.
+      val managedResource = inMemoryResourceManager.
           get(resourceId)
       val resourceStringValue = resourceJs match {
         case jsObject: JsObject =>
@@ -262,17 +264,24 @@ object ProjectUtils {
       }
       managedResource.writeString(resourceStringValue)
     }
-    wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
+    wrapProjectResourceManager(projectName, withProjectResources, inMemoryResourceManager)
   }
 
-  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager)
+  private def wrapProjectResourceManager(projectName: String,
+                                         withProjectResources: Boolean,
+                                         inMemoryResourceManager: InMemoryResourceManager)
                                         (implicit userContext: UserContext)= {
+    var wrappedResourceManager: ResourceManager = inMemoryResourceManager
+    userContext.executionContext.primaryResourceManager foreach  { optionalPrimaryResourceManager =>
+      wrappedResourceManager = FallbackResourceManager(optionalPrimaryResourceManager, wrappedResourceManager, writeIntoFallbackLoader = true)
+    }
     if (withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
-      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)
-    } else {
-      (resourceManager, resourceManager)
+      wrappedResourceManager = FallbackResourceManager(wrappedResourceManager, projectResourceManager, writeIntoFallbackLoader = true)
     }
+    val resultResourceManager = userContext.executionContext.primaryResourceManager
+      .getOrElse(inMemoryResourceManager)
+    (wrappedResourceManager, resultResourceManager)
   }
 
   /**

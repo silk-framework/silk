@@ -30,7 +30,7 @@ case class WorkflowWithPayloadExecutorFactory(configuration: MultilineStringPara
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[Workflow]): Activity[WorkflowOutput] = {
-    new WorkflowWithPayloadExecutor(task, configuration.str, configurationType)
+    new WorkflowWithPayloadExecutor(task, WorkflowWithPayloadConfiguration(configuration.str, configurationType))
   }
 }
 
@@ -74,7 +74,15 @@ object WorkflowWithPayloadExecutorFactory {
     """.stripMargin
 }
 
-class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: String, configurationType: String) extends Activity[WorkflowOutput] {
+/** The configuration for the workflow.
+  *
+  * @param configurationString            The configuration given as XML or JSON string.
+  * @param format                         Either application/json or application/xml.
+  * @param optionalPrimaryResourceManager An optional resource manager that is used as primary resource manager to resolve file resources used for the replacements datasets.
+  */
+case class WorkflowWithPayloadConfiguration(configurationString: String, format: String, optionalPrimaryResourceManager: Option[ResourceManager] = None)
+
+class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowWithPayloadConfiguration) extends Activity[WorkflowOutput] {
 
   override def run(context: ActivityContext[WorkflowOutput])
                   (implicit userContext: UserContext): Unit = {
@@ -84,12 +92,12 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
 
     // Create sinks and resources for variable datasets, all resources are returned in the response
     val variableSinks = variableDatasets.sinks
-    val (dataSources, sinks, resultResourceManager) = configurationType match {
+    val (dataSources, sinks, resultResourceManager) = config.format match {
       case "application/xml" | "text/xml" =>
-        val xml = XML.loadString(configuration)
+        val xml = XML.loadString(config.configurationString)
         createSourcesSinksFromXml(projectName, variableDatasets, variableSinks.toSet, xml)
       case "application/json" =>
-        val json = Json.parse(configuration)
+        val json = Json.parse(config.configurationString)
         createSourceSinksFromJson(projectName, variableDatasets, variableSinks.toSet, json)
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
@@ -100,6 +108,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
     context.child(activity, 1.0).startBlocking()
   }
 
+  /** Create data sources and sinks for variable datasets in the workflow from a JSON configuration. */
   private def createSourceSinksFromJson(projectName: String,
                                         variableDatasets: AllVariableDatasets,
                                         sinkIds: Set[String],
@@ -125,6 +134,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
     (dataSources, sinks, resultResourceManager)
   }
 
+  /** Create data sources and sinks for variable datasets in the workflow from the XML configuration. */
   private def createSourcesSinksFromXml(projectName: String, variableDatasets: AllVariableDatasets, sinkIds: Set[String], xmlRoot: NodeSeq)
                                        (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
     // Create data sources from request payload
