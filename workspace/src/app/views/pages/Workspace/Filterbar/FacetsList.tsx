@@ -20,7 +20,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
     const [visibleFacetsKeywords, setVisibleFacetsKeywords] = useState({});
     const [toggledFacets, setToggledFacets] = useState<string[]>([]);
 
-    const FACETS_PREVIEW_LIMIT = 5;
+    const FACETS_PREVIEW_LIMIT = 7;
 
     useEffect(() => {
         const visiblesOnly = {} as any;

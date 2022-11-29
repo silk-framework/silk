@@ -25,7 +25,6 @@ import {
     WorkspaceHeader,
 } from "@eccenca/gui-elements";
 import {commonOp, commonSel} from "@ducks/common";
-import {workspaceSel} from "@ducks/workspace";
 import {routerOp} from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
 import {CreateArtefactModal} from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -49,7 +48,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
-    const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
     const diUserMenuItems = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
@@ -58,9 +56,9 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     );
     const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
 
-    const handleCreateDialog = () => {
-        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
-    };
+    const handleCreateDialog = React.useCallback(() => {
+        dispatch(commonOp.setSelectedArtefactDType("all"));
+    }, []);
 
     const handleNavigate = (path: string) => {
         dispatch(routerOp.goToPage(path));

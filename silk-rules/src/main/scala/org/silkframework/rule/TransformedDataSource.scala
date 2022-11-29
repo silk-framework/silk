@@ -53,7 +53,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val sourceEntities = source.retrieve(inputSchema, limit).entities
     val taskContext = new ActivityMonitor[TransformReport](task.id, None)
-    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule.rules,
+    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule,
       entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, taskContext)
     GenericEntityTable(transformedEntities, entitySchema, underlyingTask)
   }

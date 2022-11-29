@@ -189,8 +189,11 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                       (implicit userContext: UserContext): Result = {
     implicit val prefixes: Prefixes = project.config.prefixes
 
-    project.anyTask(inputTaskId).data match {
+    val inputTask = project.anyTask(inputTaskId)
+    val inputTaskLabel = inputTask.label()
+    inputTask.data match {
       case dataset: GenericDatasetSpec =>
+        val pluginLabel = dataset.plugin.pluginSpec.label
         DataSource.pluginSource(dataset) match {
           case peakDataSource: PeakDataSource =>
             try {
@@ -198,28 +201,26 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
               generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
             } catch {
               case pe: PeakException =>
-                Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
-                  " of type " + dataset.plugin.pluginSpec.label +
-                  " raised following issue:" + pe.msg))))
+                Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input dataset '$inputTaskLabel'" +
+                  s" of type '$pluginLabel' raised following issue:" + pe.msg))))
             }
           case _ =>
-            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input dataset task " + inputTaskId.toString +
-              " of type " + dataset.plugin.pluginSpec.label +
-              " does not support transformation preview!"))))
+            Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input dataset '$inputTaskLabel'" +
+              s" of type '$pluginLabel' does not support transformation preview!"))))
         }
       case sparqlSelectTask: SparqlSelectCustomTask =>
-        peakIntoSparqlSelectTask(project, inputTaskId, ruleSchemata, limit, maxTryEntities, sparqlSelectTask)
+        peakIntoSparqlSelectTask(project, inputTaskLabel, ruleSchemata, limit, maxTryEntities, sparqlSelectTask)
       case _: TransformSpec =>
-        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
       case t: TaskSpec =>
-        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${t.getClass.getSimpleName} " +
+        Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel' of type ${t.getClass.getSimpleName} " +
           s"is not supported. Currently only dataset and transform tasks support producing example values."))))
     }
   }
 
   private def peakIntoSparqlSelectTask(project: Project,
-                                       inputTaskId: Identifier,
+                                       inputTaskLabel: Identifier,
                                        ruleSchemata: RuleSchemata,
                                        limit: Int,
                                        maxTryEntities: Int,
@@ -227,8 +228,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                       (implicit prefixes: Prefixes,
                                        userContext: UserContext): Result = {
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
-    if (sparqlDataset.toString == "") {
-      Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
+    if (sparqlDataset == "") {
+      Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel' of type ${sparqlSelectTask.pluginSpec.label} " +
         s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
@@ -243,12 +244,12 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
             generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
           } catch {
             case pe: PeakException =>
-              Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
-                " of type " + sparqlSelectTask.pluginSpec.label +
-                " raised following issue:" + pe.msg))))
+              Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +
+                " of type '" + sparqlSelectTask.pluginSpec.label +
+                "' raised following issue:" + pe.msg))))
           }
         case _ =>
-          throw new ValidationException(s"Configured dataset $sparqlDataset for task $inputTaskId offers no SPARQL endpoint!")
+          throw new ValidationException(s"Configured dataset $sparqlDataset for task '$inputTaskLabel' offers no SPARQL endpoint!")
       }
     }
   }
@@ -265,11 +266,11 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     } else if (errorCounter > 0) {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
         status = PeakStatus("empty with exceptions",
-          s"Transformation result was always empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
+          s"Transformation result has always been empty or exceptions occurred. $tryCounter processed and $errorCounter exceptions occurred. " +
             "First exception: " + errorMessage))))
     } else {
       Ok(Json.toJson(PeakResults(Some(rule.sourcePaths.map(serializePath)), Some(sourceAndTargetResults),
-        status = PeakStatus("empty", s"Transformation result was always empty. Processed first $tryCounter entities."))))
+        status = PeakStatus("empty", s"Transformation result has always been empty. Processed first $tryCounter entities."))))
     }
   }
 

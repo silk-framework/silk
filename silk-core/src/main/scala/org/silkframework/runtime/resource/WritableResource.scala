@@ -1,9 +1,8 @@
 package org.silkframework.runtime.resource
 
-import java.io.{File, FileInputStream, InputStream, OutputStream}
-
 import org.silkframework.util.StreamUtils
 
+import java.io.{File, FileInputStream, InputStream, OutputStream}
 import scala.io.Codec
 
 trait WritableResource extends Resource {

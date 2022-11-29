@@ -124,14 +124,21 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * Input and output schemata of all object rules in the tree.
     */
   lazy val ruleSchemata: Seq[RuleSchemata] = {
-    collectSchemata(mappingRule, UntypedPath.empty)
+    collectSchemata(mappingRule, UntypedPath.empty, withEmptyObjectRules = true)
+  }
+
+  /**
+    * The same with ruleSchemata, but without empty object mapping rules, i.e. object rules that contain at most a URI rule and nothing else.
+    **/
+  lazy val ruleSchemataWithoutEmptyObjectRules: Seq[RuleSchemata] = {
+    collectSchemata(mappingRule, UntypedPath.empty, withEmptyObjectRules = false)
   }
 
   /**
     * Input schemata of all object rules in the tree.
     */
   lazy val inputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemata.head.inputSchema, ruleSchemata.tail.map(_.inputSchema).toIndexedSeq)
+    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.inputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.inputSchema).toIndexedSeq)
   }
 
 
@@ -139,7 +146,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * Output schemata of all object rules in the tree.``
     */
   lazy val outputSchema: MultiEntitySchema = {
-    new MultiEntitySchema(ruleSchemata.head.outputSchema, ruleSchemata.tail.map(_.outputSchema).toIndexedSeq)
+    new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
   }
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
@@ -155,7 +162,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
   /**
     * Collects the input and output schemata of all rules recursively.
     */
-  private def collectSchemata(rule: TransformRule, subPath: UntypedPath): Seq[RuleSchemata] = {
+  private def collectSchemata(rule: TransformRule, subPath: UntypedPath, withEmptyObjectRules: Boolean): Seq[RuleSchemata] = {
     var schemata = Seq[RuleSchemata]()
 
     // Add rule schemata for this rule
@@ -163,8 +170,8 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
 
     // Add rule schemata of all child object rules
     for(objectMapping @ ObjectMapping(_, relativePath, _, objectMappingRules, _, _) <- rule.rules.allRules
-        if objectMappingRules.typeRules.nonEmpty || objectMappingRules.propertyRules.nonEmpty) {
-      schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath)
+        if withEmptyObjectRules || objectMappingRules.typeRules.nonEmpty || objectMappingRules.propertyRules.nonEmpty) {
+      schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath, withEmptyObjectRules)
     }
 
     schemata

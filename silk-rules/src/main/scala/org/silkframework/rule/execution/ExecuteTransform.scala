@@ -44,9 +44,9 @@ class ExecuteTransform(task: Task[TransformSpec],
 
     context.status.updateMessage("Retrieving entities")
     try {
-      for ((ruleSchemata, index) <- transform.ruleSchemata.zipWithIndex) {
+      for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
         transformEntities(dataSource, ruleSchemata, entitySink, errorEntitySink, context)
-        context.status.updateProgress((index + 1.0) / transform.ruleSchemata.size)
+        context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
       }
     } finally {
       entitySink.close()
@@ -70,7 +70,7 @@ class ExecuteTransform(task: Task[TransformSpec],
       case NonFatal(ex) =>
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
-    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRule.rules, rule.outputSchema,
+    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRule, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
     var count = 0
     breakable {

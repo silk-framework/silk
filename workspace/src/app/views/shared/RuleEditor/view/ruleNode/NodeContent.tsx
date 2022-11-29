@@ -96,6 +96,7 @@ export const NodeContent = ({
                     parameters={parameters}
                     dependentValue={dependentValue}
                     large={false}
+                    insideModal={false}
                 />
             ) : null}
             {tags ? utils.createOperatorTags(tags) : null}

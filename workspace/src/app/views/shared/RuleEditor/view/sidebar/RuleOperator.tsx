@@ -6,6 +6,8 @@ import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 import Color from "color";
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
+import { useTranslation } from "react-i18next";
+import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
@@ -23,6 +25,12 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
             ? extractSearchSnippet(ruleOperator.description, createMultiWordRegex(searchWords))
             : undefined;
     const itemLabel = ruleOperator.label;
+    const [t] = useTranslation();
+    const operatorDoc = `${ruleOperator.description ?? ""} ${
+        ruleOperator.markdownDocumentation ? `\n\n ${ruleOperator.markdownDocumentation}` : ""
+    }`;
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
+
     return (
         <OverviewItemDescription>
             {wrapTooltip(
@@ -33,7 +41,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     <OverflowText ellipsis={"reverse"}>
                         <Highlighter label={itemLabel} searchValue={textQuery} />
                     </OverflowText>
-                    {ruleOperator.description && (
+                    {ruleOperator.description && !ruleOperator.markdownDocumentation && (
                         <>
                             <Spacing vertical={true} size={"tiny"} />
                             <Icon
@@ -42,6 +50,24 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                                 tooltipText={ruleOperator.description}
                                 tooltipProps={{
                                     placement: "right",
+                                    rootBoundary: "viewport",
+                                }}
+                            />
+                        </>
+                    )}
+                    {ruleOperator.markdownDocumentation && (
+                        <>
+                            <Spacing vertical={true} size={"tiny"} />
+                            <Icon
+                                data-test-id="operator-markdown-icon"
+                                name="item-question"
+                                onClick={() => ruleEditorUiContext.setCurrentRuleNodeDescription(operatorDoc)}
+                                small
+                                tooltipText={t("RuleEditor.sidebar.operator.markdownTooltip", {
+                                    shortDescription: ruleOperator.description,
+                                })}
+                                tooltipProps={{
+                                    placement: "top",
                                     rootBoundary: "viewport",
                                 }}
                             />

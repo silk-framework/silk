@@ -94,6 +94,9 @@ export interface IUploaderOptions {
     maxFileUploadSizeBytes?: number;
 
     t(key: string, options?: object | string): string;
+
+    /** When used inside a modal, the behavior of some components will be optimized. */
+    insideModal: boolean
 }
 
 interface IState {
@@ -301,6 +304,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                         htmlFor: "autocompleteInput",
                                     }}
                                     required={this.props.required}
+                                    insideModal={this.props.insideModal}
                                 />
                             )}
                             {selectedFileMenu === "NEW" && (

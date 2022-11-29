@@ -7,18 +7,29 @@ interface NodeMenuProps {
     nodeId: string;
     t: (translationKey: string, defaultValue?: string) => string;
     handleDeleteNode: (nodeId: string) => void;
+    handleCloneNode: (nodeId: string) => void;
     ruleOperatorDescription?: string;
+    ruleOperatorDocumentation?: string;
 }
 
 /** The menu of a rule node. */
-export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescription }: NodeMenuProps) => {
+export const RuleNodeMenu = ({
+    nodeId,
+    t,
+    handleDeleteNode,
+    handleCloneNode,
+    ruleOperatorDescription,
+    ruleOperatorDocumentation,
+}: NodeMenuProps) => {
     const [menuFns, setMenuFns] = useState<NodeToolsMenuFunctions | undefined>(undefined);
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const closeMenu = () => {
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
-
+    const operatorDoc = `${ruleOperatorDescription ?? ""} ${
+        ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
+    }`;
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
             <Menu>
@@ -31,16 +42,28 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                         handleDeleteNode(nodeId);
                     }}
                     text={t("RuleEditor.node.menu.remove.label")}
+                    htmlTitle={"Hotkey: <Backspace>"}
                     intent="danger"
                 />
-                {ruleOperatorDescription ? (
+                <MenuItem
+                    data-test-id="rule-node-clone-btn"
+                    key="clone"
+                    icon={"item-clone"}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        handleCloneNode(nodeId);
+                    }}
+                    htmlTitle={"Hotkey: CTRL/CMD + d"}
+                    text={t("common.action.clone")}
+                />
+                {ruleOperatorDescription || ruleOperatorDocumentation ? (
                     <MenuItem
                         data-test-id="rule-node-info"
                         key="info"
                         icon={"item-info"}
                         onClick={(e) => {
                             closeMenu();
-                            ruleEditorUiContext.setCurrentRuleNodeDescription(ruleOperatorDescription);
+                            ruleEditorUiContext.setCurrentRuleNodeDescription(operatorDoc);
                             e.preventDefault();
                             e.stopPropagation();
                         }}

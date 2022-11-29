@@ -6,7 +6,7 @@ import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
 import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.validation.ValidationException
 
@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
   *
   * @param task              The transform task these entities originate from.
   * @param entities          The source entities the transformation is applied to.
-  * @param rules             The transformation rules that are applied against the source entities.
+  * @param rule              The transformation rules that are applied against the source entities.
   * @param outputSchema      The output schema of the transformation.
   * @param isRequestedSchema True, if the output schema was requested by the following task. False if this is the output
   *                          schema defined by the mapping itself. A requested schema is type agnostic.
@@ -28,13 +28,15 @@ import scala.util.control.NonFatal
 class TransformedEntities(task: Task[TransformSpec],
                           entities: Traversable[Entity],
                           ruleLabel: String,
-                          rules: Seq[TransformRule],
+                          rule: TransformRule,
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
                           context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+
+  private val rules = rule.rules
 
   private val subjectRule = rules.find(_.target.isEmpty)
 
@@ -65,13 +67,15 @@ class TransformedEntities(task: Task[TransformSpec],
 
     count = 0
     var lastUpdateTime = System.currentTimeMillis()
+    var lastCount = 0
     try {
       for (entity <- entities) {
         mapEntity(entity, f, report)
-        if (count % 100 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
+        if (count > lastCount && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
           context.value.update(report.build())
           context.status.updateMessage(s"Executing ($count Entities)")
           lastUpdateTime = System.currentTimeMillis()
+          lastCount = count
         }
       }
     } catch {
@@ -95,8 +99,8 @@ class TransformedEntities(task: Task[TransformSpec],
 
     if(uris.nonEmpty) {
       for (uri <- uris) {
-        if(outputSchema.singleEntity && count > 1) {
-          throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
+        if(count > 0 && outputSchema.singleEntity && rule.isInstanceOf[RootMappingRule]) {
+          throw new MultipleValuesException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
         }
 
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
@@ -153,6 +157,8 @@ class TransformedEntities(task: Task[TransformSpec],
       rule(entity)
     } catch {
       case ex: ExecutionException if ex.abortExecution =>
+        throw ex
+      case ex: MultipleValuesException =>
         throw ex
       case NonFatal(ex) =>
         addError(report, rule, entity, ex)

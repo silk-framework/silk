@@ -270,7 +270,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
     .mdl-list__item-primary-content {
         display: block;
-        width: 50vw;
+        min-width: 0;
     }
 }
 

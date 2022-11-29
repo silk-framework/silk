@@ -12,7 +12,7 @@ import play.api.mvc._
 import javax.inject.Inject
 
 @Tag(name = "Plugins")
-class PluginApi @Inject() () extends InjectedController {
+class PluginApi @Inject() () extends InjectedController with UserContextActions {
 
   @Operation(
     summary = "All plugins",
@@ -78,7 +78,8 @@ class PluginApi @Inject() () extends InjectedController {
                       addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
     val pluginTypes = pluginType.split("\\s*,\\s*")
     serialize(addMarkdownDocumentation, pluginTypes)
-  }}
+  }
+  }
 
   private def serialize(addMarkdownDocumentation: Boolean,
                         pluginTypes: Seq[String])

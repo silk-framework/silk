@@ -3,12 +3,12 @@
 @import org.silkframework.workbench.Context
 @import org.silkframework.workspace.activity.linking.ExecuteLinking
 @import org.silkframework.rule.LinkSpec
-@import controllers.workspace.routes.TaskApi
+@import controllers.workspace.routes.TaskDownloadApi
 @import controllers.linking.routes.ExecuteLinkingController
 @import views.html.workspace.activity.autoReload
 @import org.silkframework.workspace.activity.linking.ExecuteLinkingFactory
-
 @import config.WorkbenchConfig.WorkspaceReact
+
 @(context: Context[LinkSpec])(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
@@ -20,7 +20,7 @@
       @taskActivityControl(context.task.activity[ExecuteLinking], showButtons = true)
     </li>
     <li>
-      <a class="mdl-button mdl-js-button mdl-button--icon" href="@TaskApi.downloadOutput(context.project.id, context.task.id).url" target="_download">
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="@TaskDownloadApi.downloadOutput(context.project.id, context.task.id).url" target="_download">
         <i class="material-icons">file_download</i>
       </a>
     </li>

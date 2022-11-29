@@ -13,10 +13,12 @@ interface RuleEditorViewProps {
     hideMinimap?: boolean;
     /** Defines minimun and maximum of the available zoom levels */
     zoomRange?: [number, number];
+    /** In the permanent read-only mode the sidebar will be removed.*/
+    readOnlyMode: boolean
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange }: RuleEditorViewProps) => {
+export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyMode }: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
     const [currentRuleNodeDescription, setCurrentRuleNodeDescription] = React.useState<string | undefined>("");
@@ -50,7 +52,7 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange }: RuleEdi
                     </GridRow>
                 ) : null}
                 <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
-                    {!showRuleOnly ? (
+                    {!showRuleOnly && !readOnlyMode? (
                         <GridColumn small>
                             <RuleEditorOperatorSidebar />
                         </GridColumn>

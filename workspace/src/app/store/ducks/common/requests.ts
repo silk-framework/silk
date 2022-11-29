@@ -1,6 +1,12 @@
 import fetch from "../../../services/fetch";
 import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import { IPluginDetails, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
+import {
+    IPluginDetails,
+    IOverviewArtefactItemList,
+    IExportTypes,
+    IInitFrontend,
+    ProjectTaskDownloadInfo,
+} from "@ducks/common/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 const handleError = (error) => {
@@ -91,6 +97,10 @@ export const requestArtefactProperties = async (artefactKey: string): Promise<IP
     try {
         const { data } = await fetch({
             url: coreApi(`/plugins/${artefactKey}`),
+            query: {
+                withLabels: true,
+                addMarkdownDocumentation: true,
+            },
         });
         return data;
     } catch (e) {
@@ -112,6 +122,17 @@ export const requestExportTypes = async (): Promise<IExportTypes[]> => {
     }
 };
 
+/**
+ * provides only information about whether a task can be downloaded or not.
+ * @param projectId
+ * @param taskId
+ */
+export const checkIfTaskSupportsDownload = async (
+    projectId: string,
+    taskId: string
+): Promise<FetchResponse<ProjectTaskDownloadInfo>> =>
+    fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/downloadInfo`) });
+
 /** Fetches the rule operator plugins used in the linking and transform operators. */
 export const requestRuleOperatorPluginDetails = (
     inputOperatorsOnly: boolean
@@ -120,6 +141,7 @@ export const requestRuleOperatorPluginDetails = (
         url: coreApi("/ruleOperatorPlugins"),
         query: {
             inputOperatorsOnly: inputOperatorsOnly,
+            addMarkdownDocumentation: true,
         },
     });
 };

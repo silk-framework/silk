@@ -306,7 +306,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // A single activity control
     const activityControl = (activity: IActivityListEntry, layoutConfig: IActivityControlLayoutProps): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
-        const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name);
+        const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.label);
         const elapsedTime = activity.activityCharacteristics.isCacheActivity
             ? {
                   prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
@@ -412,7 +412,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     ): JSX.Element[] {
         const activitiesWithLabels = activities
             .map((activity) => {
-                const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name);
+                const activityLabel = t(
+                    `widget.TaskActivityOverview.activities.${activity.name}.title`,
+                    activity.label
+                );
                 return [activityLabel, activityControl(activity, layoutConfig)];
             })
             .sort(([aLabel], [bLabel]) => (aLabel < bLabel ? -1 : 1));

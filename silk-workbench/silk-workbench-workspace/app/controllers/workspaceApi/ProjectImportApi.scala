@@ -7,11 +7,11 @@ import controllers.util.FileMultiPartRequest
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import io.swagger.v3.oas.annotations.enums.{ParameterIn, ParameterStyle}
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{DefaultConfig, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
@@ -23,7 +23,7 @@ import org.silkframework.util.DurationConverters._
 import org.silkframework.util.{IdentifierUtils, StreamUtils}
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, _}
+import play.api.mvc._
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.time.{Instant, Duration => JDuration}

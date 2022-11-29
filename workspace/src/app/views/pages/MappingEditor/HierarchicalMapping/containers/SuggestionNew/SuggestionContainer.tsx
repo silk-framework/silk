@@ -7,6 +7,7 @@ import {
     CardOptions,
     CardTitle,
     Divider,
+    Markdown,
     Notification,
     Spacing,
     TableContainer,
@@ -24,7 +25,7 @@ import {
     IPrefix,
     ISuggestionCandidate,
     ITransformedSuggestion,
-    IVocabularyInfo
+    IVocabularyInfo, SuggestionIssues
 } from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
@@ -32,6 +33,7 @@ import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 import {extractSearchWords, matchesAllWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
+import {useTranslation} from "react-i18next";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -82,6 +84,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const [data, setData] = useState<ITransformedSuggestion[]>([]);
 
+    const [suggestionsIssues, setSuggestionIssues] = useState<SuggestionIssues | undefined>(undefined)
+
     const [filteredData, setFilteredData] = useState<ITransformedSuggestion[]>([]);
 
     const [search, setSearch] = useState('');
@@ -93,6 +97,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [exampleValues, setExampleValues] = useState({});
 
     const [prefixList, setPrefixList] = useState<IPrefix[]>([]);
+
+    const [t] = useTranslation()
 
     const vocabulariesAvailable = vocabularies !== undefined && vocabularies.length > 0
 
@@ -209,6 +215,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         const vocabs = selectedVocabularies ? selectedVocabularies : selectedVocabs
         setData([])
         setError([])
+        setSuggestionIssues(undefined)
         return new Promise((resolve, reject) => {
             setLoader && setLoading(true)
             getSuggestionsAsync(
@@ -221,12 +228,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 },
                 executeMatching
             ).subscribe(
-                ({suggestions, warnings}) => {
+                ({suggestions, warnings, suggestionIssues}) => {
                     try {
                         if (warnings.length) {
                             reject(warnings);
                         }
                         setData(suggestions);
+                        setSuggestionIssues(suggestionIssues)
                         handleFilter(suggestions);
                         resolve(suggestions);
                     } finally {
@@ -374,6 +382,29 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         <Spacing size="small" />
     </>
 
+    const SuggestionIssues = () => {
+        if(suggestionsIssues && suggestionsIssues.notFoundClasses.length > 0) {
+            const noClassFound = targetClassUris.length > 0 && suggestionsIssues.notFoundClasses.length === targetClassUris.length
+            const classesString = suggestionsIssues.notFoundClasses.map(c => `\`${c}\``).join(", ")
+            let message: string = t("MappingSuggestion.suggestionIssues.notAllClassesFound", {
+                classesString,
+                numberOfFoundClasses: targetClassUris.length - suggestionsIssues.notFoundClasses.length,
+                numberOfAllClasses: targetClassUris.length
+            })
+            if(noClassFound) {
+                message = t("MappingSuggestion.suggestionIssues.noFoundClass")
+            }
+            return <>
+                <Notification warning={true}>
+                    <Markdown data-test-id={"mapping-suggestion-issues"}>{message}</Markdown>
+                </Notification>
+                <Spacing />
+            </>
+        } else {
+            return null
+        }
+    }
+
     // Execute vocabulary matching from vocabulary matching dialog
     const executeVocabMatchingFromDialog = async (vocabs) => {
             try {
@@ -398,6 +429,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             <CardContent>
                 {errorWidget}
                 {vocabularyInfoNotification}
+                <SuggestionIssues />
                 {
                     <SuggestionListContext.Provider value={{
                         portalContainer: document.body,

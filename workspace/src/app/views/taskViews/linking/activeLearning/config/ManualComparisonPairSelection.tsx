@@ -1,11 +1,11 @@
 import React from "react";
 import ConnectionAvailable from "./../components/ConnectionAvailable";
 import {
-    ComparisionDataBody,
-    ComparisionDataCell,
-    ComparisionDataConnection,
-    ComparisionDataContainer,
-    ComparisionDataRow,
+    ComparisonDataBody,
+    ComparisonDataCell,
+    ComparisonDataConnection,
+    ComparisonDataContainer,
+    ComparisonDataRow,
 } from "./../components/ComparisionData";
 import {
     AutoSuggestion,
@@ -108,7 +108,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     };
 
     return (
-        <Card elevation={0}>
+        <Card elevation={0} data-test-id={"manual-comparison-selection"}>
             <CardHeader>
                 <CardTitle>{t("ActiveLearning.config.manualSelection.title")}</CardTitle>
                 <CardOptions>
@@ -138,9 +138,9 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                         <Spacing />
                     </>
                 )}
-                <ComparisionDataContainer>
-                    <ComparisionDataBody>
-                        <ComparisionDataRow>
+                <ComparisonDataContainer>
+                    <ComparisonDataBody>
+                        <ComparisonDataRow>
                             <PathAutoCompletion
                                 projectId={projectId}
                                 linkingTaskId={linkingTaskId}
@@ -148,7 +148,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                                 isTarget={false}
                                 changeManualPath={changeManualSourcePath}
                             />
-                            <ComparisionDataConnection>
+                            <ComparisonDataConnection>
                                 <ConnectionAvailable
                                     actions={
                                         <IconButton
@@ -163,7 +163,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                                         />
                                     }
                                 />
-                            </ComparisionDataConnection>
+                            </ComparisonDataConnection>
                             <PathAutoCompletion
                                 projectId={projectId}
                                 linkingTaskId={linkingTaskId}
@@ -171,9 +171,9 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                                 isTarget={true}
                                 changeManualPath={changeManualTargetPath}
                             />
-                        </ComparisionDataRow>
-                    </ComparisionDataBody>
-                </ComparisionDataContainer>
+                        </ComparisonDataRow>
+                    </ComparisonDataBody>
+                </ComparisonDataContainer>
             </CardContent>
         </Card>
     );
@@ -310,7 +310,7 @@ const PathAutoCompletion = ({
     );
 
     return (
-        <ComparisionDataCell className="diapp-linking-learningdata__pathselection">
+        <ComparisonDataCell className="diapp-linking-learningdata__pathselection">
             {resetting ? null : (
                 <AutoSuggestion
                     label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
@@ -323,6 +323,7 @@ const PathAutoCompletion = ({
                     validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
                     onInputChecked={onValidation}
                     autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
                 />
             )}
             {exampleValuesLoading && (
@@ -335,6 +336,6 @@ const PathAutoCompletion = ({
                     <ActiveLearningValueExamples exampleValues={exampleValues.current} />
                 </OverflowText>
             ) : null}
-        </ComparisionDataCell>
+        </ComparisonDataCell>
     );
 };

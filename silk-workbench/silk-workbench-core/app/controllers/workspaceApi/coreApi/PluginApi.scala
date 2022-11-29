@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{CustomTask, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -121,12 +121,22 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                in = ParameterIn.QUERY,
                schema = new Schema(implementation = classOf[Boolean], example = "true")
              )
-             pretty: Boolean): Action[AnyContent] = Action { implicit request =>
+             pretty: Boolean,
+             @Parameter(
+               name = "withLabels",
+               description = "If true, all plugin parameter values will be reified in a new object that has an optional label property. A label is added for all auto-completable parameters that have the 'autoCompleteValueWithLabels' property set to true. This guarantees that a user always sees the label of such values.",
+               required = false,
+               in = ParameterIn.QUERY,
+               schema = new Schema(implementation = classOf[Boolean])
+             )
+             withLabels: Boolean): Action[AnyContent] = Action { implicit request =>
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
-        val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
-          taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass))
+        var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
+          taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
+        val autoConfigurable = classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(pluginDesc.pluginClass)
+        resultJson += ("autoConfigurable" -> JsBoolean(autoConfigurable))
         result(pretty, resultJson)
       case None =>
         NotFound

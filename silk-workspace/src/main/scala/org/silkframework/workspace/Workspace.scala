@@ -14,11 +14,12 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.resources.ResourceRepository
@@ -45,6 +46,10 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   // Time in milliseconds to wait for the workspace to be loaded
   private val waitForWorkspaceInitialization = cfg.getLong("workspace.timeouts.waitForWorkspaceInitialization")
   private val loadProjectsLock = new ReentrantLock()
+
+  lazy val cleanUpAfterTaskDeletion: CleanUpAfterTaskDeletionFunction = {
+    TaskCleanupPlugin.retrieveCleanUpAfterTaskDeletionFunction
+  }
 
   @volatile
   private var initialized = false
@@ -160,7 +165,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     loadUserProjects()
     // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
-    for(task <- project(name).allTasks;
+    val projectTasks = project(name).allTasks
+    for(task <- projectTasks;
         activity <- task.activities) {
       activity.control.cancel()
     }
@@ -168,6 +174,9 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     repository.removeProjectResources(name)
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
+    for(task <- projectTasks) {
+      cleanUpAfterTaskDeletion(name, task.id, task.data)
+    }
     log.info(s"Removed project '$name'. " + userContext.logInfo)
   }
 
@@ -215,7 +224,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     log.info(s"Starting import of project '$name'...")
     val start = System.currentTimeMillis()
     marshaller.unmarshalProject(name, provider, repository.get(name), file)
-    reloadProject(name)
+    reloadProjectInternal(name)
     log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
@@ -239,6 +248,13 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     loadProjects()
   }
 
+  def reloadProject(projectId: Identifier)
+                   (implicit userContext: UserContext): Unit = synchronized {
+    loadUserProjects()
+    log.info(s"Reloading project with ID '$projectId' from backend.")
+    reloadProjectInternal(projectId, throwError = true)
+  }
+
   /** Reloads the registered prefixes if the workspace provider supports this operation. */
   def reloadPrefixes()(implicit userContext: UserContext): Unit = {
     additionalPrefixes = provider.fetchRegisteredPrefixes()
@@ -248,8 +264,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   }
 
   /** Reload a project from the backend */
-  private def reloadProject(id: Identifier)
-                           (implicit userContext: UserContext): Unit = synchronized {
+  private def reloadProjectInternal(id: Identifier, throwError: Boolean = false)
+                                   (implicit userContext: UserContext): Unit = synchronized {
     // remove project
     Try(project(id).cancelActivities())
     removeProjectFromCache(id)
@@ -259,7 +275,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
         project.startActivities()
         addProjectToCache(project)
       case None =>
-        log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
+        val errorMessage = s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!"
+        log.warning(errorMessage)
+        if(throwError) {
+          throw new RuntimeException(errorMessage)
+        }
     }
   }
 

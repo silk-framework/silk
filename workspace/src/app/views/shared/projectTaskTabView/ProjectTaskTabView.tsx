@@ -24,6 +24,7 @@ import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
+import PromptModal from "./PromptModal";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -33,9 +34,11 @@ const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
  * @param unBookmarkedSuffix Optional path suffix when no tab selection is present in the URL.
  * @param tabViews All tab views
  */
-const calculateBookmark = (id: string,
-                           unBookmarkedSuffix: string | undefined,
-                           tabViews: Partial<IProjectTaskView & IItemLink>[]) => {
+const calculateBookmark = (
+    id: string,
+    unBookmarkedSuffix: string | undefined,
+    tabViews: Partial<IProjectTaskView & IItemLink>[]
+) => {
     const pathnameArray = window.location.pathname.split("/");
     const [currentTab] = pathnameArray.slice(-1);
     const currentTabExist = tabViews.find((view) => view.id === currentTab);
@@ -104,15 +107,18 @@ export function ProjectTaskTabView({
     // Stores request to change the tab. The requests is represented by the tab idx.
     const [tabRouteChangeRequest, setTabRouteChangeRequest] = React.useState<string | undefined>(undefined);
     // To react to task changes
-    const [selectedTask, setSelectedTask] = React.useState<string | undefined>(taskViewConfig?.taskId)
-
+    const [selectedTask, setSelectedTask] = React.useState<string | undefined>(taskViewConfig?.taskId);
+    const [openTabSwitchPrompt, setOpenTabSwitchPrompt] = React.useState<boolean>(false);
+    const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
+    const [blockedTab, setBlockedTab] = React.useState<IItemLink | string | undefined>(undefined);
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
     // Either the ID of an IItemLink or the view ID or undefined
-    const activeTab: IProjectTaskView | IItemLink | undefined = activeIframePath?.id ?? itemLinkActive
-        ? (selectedTab as IItemLink)
-        : (taskViews ?? []).find((v) => v.id === selectedTab);
+    const activeTab: IProjectTaskView | IItemLink | undefined =
+        activeIframePath?.id ?? itemLinkActive
+            ? (selectedTab as IItemLink)
+            : (taskViews ?? []).find((v) => v.id === selectedTab);
 
     React.useEffect(() => {
         if (projectId && taskId) {
@@ -141,10 +147,10 @@ export function ProjectTaskTabView({
     }, [tabRouteChangeRequest]);
 
     React.useEffect(() => {
-        if(projectId && taskId && taskId !== selectedTask) {
-            setSelectedTask(taskId)
+        if (projectId && taskId && taskId !== selectedTask) {
+            setSelectedTask(taskId);
         }
-    }, [projectId, taskId, selectedTask])
+    }, [projectId, taskId, selectedTask]);
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -154,24 +160,47 @@ export function ProjectTaskTabView({
     };
 
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
-    const changeTab = (tabItem: IItemLink | string) => {
-        const tabRoute = viewsAndItemLink.find((itemView) => {
-            if (typeof tabItem === "string") {
-                return itemView.id === tabItem;
-            } else {
-                return tabItem.id === itemView.id;
-            }
-        });
-        setTabRouteChangeRequest(tabRoute?.id);
-        !startFullscreen && dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)));
+    const changeTab = (tabItem: IItemLink | string, overwrite = false) => {
+        if (unsavedChanges && !overwrite) {
+            //trigger modal
+            setOpenTabSwitchPrompt(true);
+            setBlockedTab(tabItem);
+        } else {
+            const tabRoute = viewsAndItemLink.find((itemView) => {
+                if (typeof tabItem === "string") {
+                    return itemView.id === tabItem;
+                } else {
+                    return tabItem.id === itemView.id;
+                }
+            });
+            setUnsavedChanges(false);
+            setOpenTabSwitchPrompt(false);
+            setTabRouteChangeRequest(tabRoute?.id);
+            !startFullscreen &&
+                dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)));
+        }
     };
 
-    const getInitialActiveLink = (itemLinks: IItemLink[], taskViews: IProjectTaskView[]): IItemLink | string | undefined => {
+    /** show browser prompt when making route changes except changes with search params */
+    React.useEffect(() => {
+        window.onbeforeunload = () => (unsavedChanges ? true : null);
+        const unBlock = history.block((location) =>
+            !location.search.length && unsavedChanges && !openTabSwitchPrompt
+                ? (t("Metadata.unsavedMetaDataWarning") as string)
+                : undefined
+        );
+        return () => unBlock();
+    }, [unsavedChanges, openTabSwitchPrompt]);
+
+    const getInitialActiveLink = (
+        itemLinks: IItemLink[],
+        taskViews: IProjectTaskView[]
+    ): IItemLink | string | undefined => {
         const initial = [...taskViews, ...itemLinks].find((elem) => {
             return elem.id === getBookmark();
         });
         if (initial) {
-            return (initial as IItemLink).path ? initial as IItemLink : initial.id;
+            return (initial as IItemLink).path ? (initial as IItemLink) : initial.id;
         } else {
             return taskViews[0]?.id ?? itemLinks[0];
         }
@@ -211,7 +240,7 @@ export function ProjectTaskTabView({
             // remove current page link
             const srcLinks = removeDuplicates(data.filter((item) => !item.path.startsWith(SERVE_PATH)));
             setItemLinks(srcLinks);
-            if(!startWithLink) {
+            if (!startWithLink) {
                 setSelectedTab(getInitialActiveLink(srcLinks, taskViews));
             }
         } catch (e) {
@@ -257,6 +286,7 @@ export function ProjectTaskTabView({
                 }
             }
         },
+        savedChanges: (status: boolean) => setUnsavedChanges(status),
     };
 
     let tabNr = 1;
@@ -315,7 +345,7 @@ export function ProjectTaskTabView({
                                 ref={iframeRef}
                                 name={iFrameName}
                                 data-test-id={iFrameName}
-                                src={createIframeUrl((selectedTab as IItemLink)?.path)}
+                                src={createIframeUrl((selectedTab as IItemLink)?.path ?? "")}
                                 title={tLabel((selectedTab as IItemLink)?.label)}
                                 style={{
                                     position: "absolute",
@@ -343,20 +373,34 @@ export function ProjectTaskTabView({
         );
     };
 
-    return selectedTask === taskId && !!handlerRemoveModal ? (
-        <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>
-            {tabsWidget(projectId, taskId)}
-        </Modal>
-    ) : selectedTask === taskId ? (
-        <section className={"diapp-iframewindow"} {...otherProps}>
-            <div className="diapp-iframewindow__placeholder">
-                <Grid fullWidth={true}>
-                    <GridRow fullHeight={true} />
-                </Grid>
-            </div>
-            <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}>
-                {tabsWidget(projectId, taskId)}
-            </div>
-        </section>
-    ) : null;
+    return (
+        <>
+            <PromptModal
+                onClose={() => {
+                    setOpenTabSwitchPrompt(false);
+                    setBlockedTab(undefined);
+                }}
+                isOpen={openTabSwitchPrompt}
+                proceed={() => blockedTab && changeTab(blockedTab, true)}
+            />
+            {selectedTask === taskId && !!handlerRemoveModal ? (
+                <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>
+                    {tabsWidget(projectId, taskId)}
+                </Modal>
+            ) : selectedTask === taskId ? (
+                <section className={"diapp-iframewindow"} {...otherProps}>
+                    <div className="diapp-iframewindow__placeholder">
+                        <Grid fullWidth={true}>
+                            <GridRow fullHeight={true} />
+                        </Grid>
+                    </div>
+                    <div
+                        className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}
+                    >
+                        {tabsWidget(projectId, taskId)}
+                    </div>
+                </section>
+            ) : null}
+        </>
+    );
 }

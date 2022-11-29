@@ -38,7 +38,7 @@
         "connected-react-router": "^6.5.2",
         "dagre": "^0.8.5",
         "dexie": "^2.0.4",
-        "@eccenca/gui-elements": "^22.1.0-rc.1",
+        "@eccenca/gui-elements": "^23.0.0-rc.4",
         "history": "^4.7.2",
         "i18next": "^19.4.3",
         "i18next-browser-languagedetector": "^4.1.1",

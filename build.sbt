@@ -81,8 +81,9 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.6" % "test",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.6" % "test",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.7",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.7.1",
+
   // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
   // Can be removed as soon as there are newer stable versions of logback
   dependencyOverrides += "org.slf4j" % "slf4j-api" % "1.7.36",
@@ -122,13 +123,13 @@ lazy val core = (project in file("silk-core"))
   )
 
 lazy val rules = (project in file("silk-rules"))
-  .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
+  .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsJson % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.2.5",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "4.4.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "4.4.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "4.6.1" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "4.6.1" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -149,7 +150,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.4.0" % "test",
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.6.1" % "test",
     libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
 )
 
@@ -174,7 +175,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.1",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.7",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2"
   )
 
@@ -401,7 +402,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
 
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .settings(commonSettings: _*)
     .settings(

@@ -3,14 +3,15 @@ import {
     Grid,
     GridRow,
     GridColumn,
+    TestableComponent
 } from "@eccenca/gui-elements";
 
-interface ComparisionDataObjectProps {
+interface ComparisonDataObjectProps extends TestableComponent {
     children?: React.ReactNode;
     className?: string;
 }
 
-export const ComparisionDataContainer = ({children, className=""}: ComparisionDataObjectProps) => {
+export const ComparisonDataContainer = ({children, className=""}: ComparisonDataObjectProps) => {
     return (
         <Grid
             columns={3}
@@ -22,7 +23,7 @@ export const ComparisionDataContainer = ({children, className=""}: ComparisionDa
     )
 }
 
-export const ComparisionDataHead = ({children}) => {
+export const ComparisonDataHead = ({children}) => {
     return (
         <>
             {children}
@@ -30,7 +31,7 @@ export const ComparisionDataHead = ({children}) => {
     )
 }
 
-export const ComparisionDataBody = ({children}) => {
+export const ComparisonDataBody = ({children}) => {
     return (
         <>
             {children}
@@ -38,15 +39,15 @@ export const ComparisionDataBody = ({children}) => {
     )
 }
 
-export const ComparisionDataRow = ({children, className=""}: ComparisionDataObjectProps) => {
+export const ComparisonDataRow = ({children, className="", ...otherProps}: ComparisonDataObjectProps) => {
     return (
-        <GridRow className={`diapp-linking-learningdata__row ${className}`}>
+        <GridRow className={`diapp-linking-learningdata__row ${className}`} data-test-id={otherProps["data-test-id"]}>
             {children}
         </GridRow>
     )
 }
 
-export const ComparisionDataHeader = ({children, className=""}: ComparisionDataObjectProps) => {
+export const ComparisonDataHeader = ({children, className=""}: ComparisonDataObjectProps) => {
     return (
         <GridColumn className={`diapp-linking-learningdata__header ${className}`}>
             {children}
@@ -54,7 +55,7 @@ export const ComparisionDataHeader = ({children, className=""}: ComparisionDataO
     )
 }
 
-export const ComparisionDataCell = ({children, className=""}: ComparisionDataObjectProps) => {
+export const ComparisonDataCell = ({children, className=""}: ComparisonDataObjectProps) => {
     return (
         <GridColumn className={`diapp-linking-learningdata__cell ${className}`}>
             {children}
@@ -62,7 +63,7 @@ export const ComparisionDataCell = ({children, className=""}: ComparisionDataObj
     )
 }
 
-export const ComparisionDataConnection = ({children, className=""}: ComparisionDataObjectProps) => {
+export const ComparisonDataConnection = ({children, className=""}: ComparisonDataObjectProps) => {
     return (
         <GridColumn className={`diapp-linking-learningdata__connection ${className}`}>
             {children}

@@ -26,7 +26,6 @@ import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings"
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import { requestTaskMetadata } from "@ducks/shared/requests";
 import { IStickyNote } from "../shared/task.typings";
 
 export interface LinkingRuleEditorProps {
@@ -67,7 +66,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // Label for source paths
     const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
     const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
-    const [editorTitle, setEditorTitle] = React.useState<string | undefined>(undefined);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -109,10 +107,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         } else {
             try {
                 const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
-                if (viewActions?.integratedView) {
-                    const taskMetaData = (await requestTaskMetadata(taskId, projectId)).data;
-                    setEditorTitle(taskMetaData.label);
-                }
                 return taskData;
             } catch (err) {
                 registerError(
@@ -209,20 +203,24 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
 
     // FIXME: Add i18n to parameter specs
     const weightParameterSpec = ruleUtils.parameterSpecification({
-        label: "Weight",
-        description:
+        label: t("RuleEditor.sidebar.parameter.weightLabel", "Weight"),
+        description: t(
+            "RuleEditor.sidebar.parameter.weightDesc",
             "The weight parameter can be used by the parent aggregation when combining " +
             "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-            "aggregation, quadraticMean and geometricMean.",
+            "aggregation, quadraticMean and geometricMean."
+        ),
         type: "int",
         advanced: true,
         defaultValue: "1",
     });
 
     const thresholdParameterSpec = ruleUtils.parameterSpecification({
-        label: "Threshold",
-        description:
-            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.",
+        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+        description: t(
+            "RuleEditor.sidebar.parameter.thresholdDesc",
+            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+        ),
         type: "float",
         defaultValue: "0.0",
     });
@@ -230,16 +228,16 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
             "sourcePathInput",
-            "Source path",
-            "The value path of the source input of the linking task.",
+            t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
+            t("RuleEditor.sidebar.operator.sourcePathDesc", "The value path of the source input of the linking task."),
             inputPathAutoCompletion("source")
         );
 
     const targetPathInput = () =>
         ruleUtils.inputPathOperator(
             "targetPathInput",
-            "Target path",
-            "The value path of the target input of the linking task.",
+            t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
+            t("RuleEditor.sidebar.operator.targetPathDesc", "The value path of the target input of the linking task."),
             inputPathAutoCompletion("target")
         );
 
@@ -250,7 +248,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
         >
             <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
-                editorTitle={editorTitle}
                 projectId={projectId}
                 taskId={linkingTaskId}
                 fetchRuleData={fetchTaskData}

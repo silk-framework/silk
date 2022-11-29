@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
+import { FieldItem, MultiSelect, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -11,7 +11,12 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 import { SUPPORTED_PLUGINS, pluginRegistry } from "../../../../plugins/PluginRegistry";
 import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
-import {URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput} from "./UriAttributeParameterInput";
+import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
+import { RegisterForExternalChangesFn } from "./InputMapper";
+import { Keyword } from "@ducks/workspace/typings";
+import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
+import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import utils from "../../../../../views/shared/Metadata/MetadataUtils";
 
 export interface IProps {
     form: any;
@@ -31,14 +36,18 @@ export interface IProps {
             [key: string]: string | object;
         };
         dataParameters?: {
-            [key: string]: string
-        }
+            [key: string]: string;
+        };
     };
+
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn;
 }
 
 const LABEL = "label";
 const DESCRIPTION = "description";
 const IDENTIFIER = "id";
+const TAGS = "tags";
 
 const datasetConfigPreview = (
     projectId: string,
@@ -55,7 +64,15 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange }: IProps) {
+export function TaskForm({
+    form,
+    projectId,
+    artefact,
+    updateTask,
+    taskId,
+    detectChange,
+    registerForExternalChanges,
+}: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
@@ -130,7 +147,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
                     }
                 } else {
-                    let value = defaultValueAsJs(param);
+                    let value = defaultValueAsJs(param, false);
                     returnKeys.push(key);
                     register(
                         {
@@ -160,9 +177,10 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             register({ name: LABEL }, { required: true });
             register({ name: DESCRIPTION });
             register({ name: IDENTIFIER });
+            register({ name: TAGS });
         }
-        if(artefact.taskType === "Dataset") {
-            register({ name: URI_PROPERTY_PARAMETER_ID})
+        if (artefact.taskType === "Dataset") {
+            register({ name: URI_PROPERTY_PARAMETER_ID });
         }
         registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
         setFormValueKeys(returnKeys);
@@ -173,6 +191,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                 unregister(LABEL);
                 unregister(DESCRIPTION);
                 unregister(IDENTIFIER);
+                unregister({ name: TAGS });
             }
             returnKeys.forEach((key) => unregister(key));
         };
@@ -201,6 +220,23 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         },
         []
     );
+
+    const handleTagSelectionChange = React.useCallback(
+        (params: SelectedParamsType<Keyword>) => setValue("tags", params),
+        []
+    );
+
+    const handleTagQueryChange = React.useCallback(async (query: string) => {
+        if (projectId) {
+            try {
+                const res = await utils.queryTags(projectId, query);
+                return res?.data.tags ?? [];
+            } catch (ex) {
+                registerError("Metadata-handleTagQueryChange", "An error occurred while searching for tags.", ex);
+                return [];
+            }
+        }
+    }, []);
 
     /**
      * All change handlers that will be passed to the ParameterWidget components.
@@ -262,6 +298,34 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                                 onChange={handleChange(DESCRIPTION)}
                             />
                         </FieldItem>
+                        <FieldItem
+                            key={TAGS}
+                            labelProps={{
+                                text: t("form.field.tags"),
+                                htmlFor: TAGS,
+                            }}
+                        >
+                            <MultiSelect<Keyword>
+                                openOnKeyDown
+                                itemId={(keyword) => keyword.uri}
+                                itemLabel={(keyword) => keyword.label}
+                                items={[]}
+                                onSelection={handleTagSelectionChange}
+                                runOnQueryChange={handleTagQueryChange}
+                                newItemCreationText={t("Metadata.addNewTag")}
+                                newItemPostfix={t("Metadata.newTagPostfix")}
+                                inputProps={{
+                                    placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                                }}
+                                tagInputProps={{
+                                    placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                                }}
+                                createNewItemFromQuery={(query) => ({
+                                    uri: removeExtraSpaces(query),
+                                    label: removeExtraSpaces(query),
+                                })}
+                            />
+                        </FieldItem>
                     </>
                 )}
                 {normalParams.map(([key, param]) => (
@@ -279,6 +343,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
                         dependentValues={dependentValues}
+                        registerForExternalChanges={registerForExternalChanges}
                     />
                 ))}
 
@@ -289,14 +354,12 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         taskId={taskId}
                         projectId={projectId}
                     />
-                    {
-                        artefact.taskType === "Dataset" ?
-                            <UriAttributeParameterInput
-                                onValueChange={handleChange(URI_PROPERTY_PARAMETER_ID)}
-                                initialValue={updateTask?.dataParameters?.uriProperty}
-                            />
-                            : null
-                    }
+                    {artefact.taskType === "Dataset" ? (
+                        <UriAttributeParameterInput
+                            onValueChange={handleChange(URI_PROPERTY_PARAMETER_ID)}
+                            initialValue={updateTask?.dataParameters?.uriProperty}
+                        />
+                    ) : null}
                     {advancedParams.map(([key, param]) => (
                         <ParameterWidget
                             key={key}
@@ -312,6 +375,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
                             dependentValues={dependentValues}
+                            registerForExternalChanges={registerForExternalChanges}
                         />
                     ))}
                 </AdvancedOptionsArea>

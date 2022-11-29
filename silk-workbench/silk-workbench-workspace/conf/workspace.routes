@@ -55,7 +55,7 @@ GET           /customTasks/editTaskDialog/:project/:task                        
 
 # API
 GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)
-POST           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = true)
+POST          /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = true)
 PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = false)
 DELETE        /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.deleteTask(project: String, name: String)
 
@@ -86,6 +86,7 @@ PUT           /projects/:project/prefixes                                       
 POST          /projects/:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
 POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
 POST          /projects/:project/copy                                           controllers.workspace.WorkspaceApi.copyProject(project: String)
+POST          /projects/:project/reload                                         controllers.workspace.WorkspaceApi.reloadProject(project: String)
 
 # Resources
 GET           /projects/:project/resources                                      controllers.workspace.ResourceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
@@ -107,7 +108,8 @@ GET           /projects/:project/tasks/:task/metadataExpanded                   
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
 POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
-GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskApi.downloadOutput(project: String, task: String)
+GET           /projects/:project/tasks/:task/downloadInfo                       controllers.workspace.TaskDownloadApi.downloadInfo(project: String, task: String)
+GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskDownloadApi.downloadOutput(project: String, task: String)
 
 # Global workspace activities
 GET           /globalWorkspaceActivities                                        controllers.workspace.ActivityApi.globalWorkspaceActivities()

@@ -3,7 +3,7 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse}
+import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse, ProjectUriResponse}
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
 import org.silkframework.util.{Identifier, IdentifierUtils}
@@ -672,8 +671,13 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     }
   }
 
+  /** Returns the project URI of a project. */
+  def projectUri(projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = getProject(projectId)
+    val uri = project.config.resourceUriOrElseDefaultUri
 
-
+    Ok(Json.toJson(ProjectUriResponse(uri)))
+  }
 }
 
 object ProjectApi {
@@ -687,7 +691,12 @@ object ProjectApi {
     def fromTags(tags: Seq[Tag]): ProjectTagsResponse = {
       ProjectTagsResponse(tags.map(FullTag.fromTag))
     }
+  }
 
+  case class ProjectUriResponse(uri: String)
+
+  object ProjectUriResponse {
+    implicit val projectUriResponseFormat: Format[ProjectUriResponse] = Json.format[ProjectUriResponse]
   }
 
   case class CreateTag(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
