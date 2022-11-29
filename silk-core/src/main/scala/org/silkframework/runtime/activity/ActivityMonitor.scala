@@ -92,6 +92,7 @@ class ActivityMonitor[T](name: String,
 
   /**
     * Possibly executes other activities that are blocked.
+    * Can be called to avoid deadlocks if child activities are run in the background.
     */
   def helpQuiesce(): Unit = {
     if(ForkJoinTask.getQueuedTaskCount >= 1) {
