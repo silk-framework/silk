@@ -6,8 +6,7 @@ import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/reques
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
 import { IModalItem, ITaskMetadataResponse } from "@ducks/shared/typings";
-import { Spacing, Tooltip } from "@eccenca/gui-elements";
-import { Link } from "carbon-components-react";
+import { Spacing, Tooltip, Link } from "@eccenca/gui-elements";
 
 interface IProps {
     item: IModalItem;

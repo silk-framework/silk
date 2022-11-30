@@ -6,12 +6,12 @@ import {
     Icon,
     OverflowText,
     OverviewItemLine,
+    Link,
 } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
-import { Link } from "carbon-components-react";
 import { EvaluationResultType } from "./LinkingRuleEvaluation";
 
 const highlightedContainerClass = `${eccgui}-container--highlighted`;
@@ -109,7 +109,9 @@ export const LinkRuleNodeEvaluation = ({
                 </ul>
             ) : referenceLinksUrl ? (
                 <div>
-                    <Link href={referenceLinksUrl} target={"_blank"}>{t("RuleEditor.evaluation.noResults")}</Link>
+                    <Link href={referenceLinksUrl} target={"_blank"}>
+                        {t("RuleEditor.evaluation.noResults")}
+                    </Link>
                 </div>
             ) : (
                 <div>{noResultMsg ?? t("RuleEditor.evaluation.noResults")}</div>
@@ -117,7 +119,9 @@ export const LinkRuleNodeEvaluation = ({
             {evaluationResult.length < numberOfLinksToShow && evaluationResult.length && referenceLinksUrl ? (
                 <div>
                     <Spacing hasDivider={true} />
-                    <Link href={referenceLinksUrl} target={"_blank"}>{t("RuleEditor.evaluation.addMoreResults")}</Link>
+                    <Link href={referenceLinksUrl} target={"_blank"}>
+                        {t("RuleEditor.evaluation.addMoreResults")}
+                    </Link>
                 </div>
             ) : null}
         </NodeContentExtension>
