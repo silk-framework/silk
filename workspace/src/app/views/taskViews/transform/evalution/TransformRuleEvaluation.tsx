@@ -47,7 +47,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         setEvaluationResult([]);
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
-    }, [projectId, transformTaskId]);
+    }, [projectId, transformTaskId, nodeUpdateCallbacks, evaluationResultMap]);
 
     React.useEffect(() => {
         try {
@@ -62,7 +62,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
-    }, [evaluationResult]);
+    }, [evaluationResult, nodeUpdateCallbacks, evaluationResultMap]);
 
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {

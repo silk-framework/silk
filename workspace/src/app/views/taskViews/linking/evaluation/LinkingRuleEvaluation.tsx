@@ -64,13 +64,18 @@ export const LinkingRuleEvaluation = ({
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
+    const clearEntities = React.useCallback(
+        () => evaluationResultEntities.splice(0, evaluationResultEntities.length),
+        [evaluationResultEntities]
+    );
+
     React.useEffect(() => {
         setEvaluationResult([]);
         clearEntities();
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
         setReferenceLinksUrl(queryParameterValue(REFERENCE_LINK_URL_PARAMETER)[0]);
-    }, [projectId, linkingTaskId]);
+    }, [projectId, linkingTaskId, clearEntities, evaluationResultMap, nodeUpdateCallbacks]);
 
     React.useEffect(() => {
         clearEntities();
@@ -87,7 +92,7 @@ export const LinkingRuleEvaluation = ({
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
-    }, [evaluationResult]);
+    }, [evaluationResult, clearEntities, evaluationResultEntities, evaluationResultMap, nodeUpdateCallbacks]);
 
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {
@@ -101,8 +106,6 @@ export const LinkingRuleEvaluation = ({
         }
         setEvaluationResultsShown(show);
     };
-
-    const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
 
     const fetchReferenceLinksEvaluation: (
         linkageRule: ILinkingRule
@@ -204,13 +207,18 @@ export const LinkingRuleEvaluation = ({
     };
 
     /** Called by a rule operator node to register for evaluation updates. */
-    const registerForEvaluationResults = (
-        ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
-    ) => {
-        nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
-        evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
-    };
+    const registerForEvaluationResults = React.useCallback(
+        (ruleOperatorId: string, evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void) => {
+            nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
+            evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
+        },
+        [nodeUpdateCallbacks, evaluationResultMap]
+    );
+
+    const unregister = React.useCallback(
+        (ruleOperatorId: string) => nodeUpdateCallbacks.delete(ruleOperatorId),
+        [nodeUpdateCallbacks]
+    );
 
     /** Factory method used by the rule editor to create an evaluation element. */
     const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
@@ -218,7 +226,7 @@ export const LinkingRuleEvaluation = ({
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
-                unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
+                unregister={unregister}
                 referenceLinksUrl={referenceLinksUrl}
                 numberOfLinksToShow={numberOfLinkToShow}
             />

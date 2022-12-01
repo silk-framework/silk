@@ -24,7 +24,7 @@ interface LinkRuleNodeEvaluationProps {
         ruleOperatorId: string,
         evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
     ) => void;
-    unregister: () => void;
+    unregister: (ruleOperatorId: string) => void;
     /** A URL to link to when there is no result found. */
     referenceLinksUrl?: string;
     numberOfLinksToShow: number;
@@ -45,8 +45,8 @@ export const LinkRuleNodeEvaluation = ({
 
     React.useEffect(() => {
         registerForEvaluationResults(ruleOperatorId, setEvaluationResult);
-        return unregister;
-    }, []);
+        return () => unregister(ruleOperatorId);
+    }, [ruleOperatorId, registerForEvaluationResults, unregister]);
 
     const onMouseEnter = (lineIdx: number) => {
         const lines = document.querySelectorAll(`.evaluationLink${lineIdx}`);
