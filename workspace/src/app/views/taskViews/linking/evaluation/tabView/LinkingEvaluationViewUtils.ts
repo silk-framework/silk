@@ -37,15 +37,15 @@ export const getOperatorPath = (
     }, {} as { precedingIds: string[]; path: string });
 };
 
-export const getLinkRuleInputPaths = (input: any) => {
+export const getLinkRuleInputPaths = (operatorInput: any) => {
     const linkRuleInputPaths = { source: {}, target: {} } as EvaluationLinkInputValue;
     //no intermittent inputs but are direct paths
-    if (!input.sourceInput?.inputs) {
-        const sourceInputPath = input.sourceInput.path;
-        linkRuleInputPaths.source[sourceInputPath] = [input.sourceInput.id];
+    if (!operatorInput.sourceInput?.inputs) {
+        const sourceInputPath = operatorInput.sourceInput.path;
+        linkRuleInputPaths.source[sourceInputPath] = [operatorInput.sourceInput.id];
     } else {
-        input.sourceInput.inputs.forEach((i) => {
-            const { path, precedingIds } = getOperatorPath(i, [input.sourceInput.id]);
+        operatorInput.sourceInput.inputs.forEach((i) => {
+            const { path, precedingIds } = getOperatorPath(i, [operatorInput.sourceInput.id]);
             if (linkRuleInputPaths.source[path]) {
                 linkRuleInputPaths.source[path].push(...precedingIds);
             } else {
@@ -54,12 +54,12 @@ export const getLinkRuleInputPaths = (input: any) => {
         });
     }
 
-    if (!input.targetInput?.inputs) {
-        const targetInputPath = input.targetInput.path;
-        linkRuleInputPaths.target[targetInputPath] = [input.targetInput.id];
+    if (!operatorInput.targetInput?.inputs) {
+        const targetInputPath = operatorInput.targetInput.path;
+        linkRuleInputPaths.target[targetInputPath] = [operatorInput.targetInput.id];
     } else {
-        input.targetInput.inputs.forEach((i) => {
-            const { path, precedingIds } = getOperatorPath(i, [input.targetInput.id]);
+        operatorInput.targetInput.inputs.forEach((i) => {
+            const { path, precedingIds } = getOperatorPath(i, [operatorInput.targetInput.id]);
             if (linkRuleInputPaths.target[path]) {
                 linkRuleInputPaths.target[path].push(...precedingIds);
             } else {
