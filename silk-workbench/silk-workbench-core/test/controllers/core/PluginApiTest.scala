@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{AutoCompletionResult, ClassPluginDescription, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
   behavior of "Plugin API"
@@ -80,6 +80,11 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
     // In mix of label and description
     checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?textQuery=unique+dummy").get()).
         json.as[JsObject].keys mustBe Set("autoCompletableTestPlugin")
+  }
+
+  it should "return a list of resource based dataset plugin IDs" in {
+    checkResponse(client.url(s"$baseUrl/api/core/datasets/resourceBased").get())
+      .json.as[JsArray].value.map(_.as[String]) must contain ("csv", "xml", "json")
   }
 }
 

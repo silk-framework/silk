@@ -271,13 +271,6 @@ object VariableWorkflowRequestUtils {
     )
   }
 
-  /** Get the plugin IDs of all resource based datasets. */
-  def resourceBasedDatasetPluginIds: Seq[String] = {
-    PluginRegistry.availablePlugins[Dataset]
-      .filter(plugin => classOf[ResourceBasedDataset].isAssignableFrom(plugin.pluginClass))
-      .map(_.id.toString)
-  }
-
   /* Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
    * Or returns None if the request is a multipart/form-data request and the input file has been uploaded.
    */

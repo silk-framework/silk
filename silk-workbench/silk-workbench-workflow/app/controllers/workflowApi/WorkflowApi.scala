@@ -4,6 +4,7 @@ import akka.stream.scaladsl.{FileIO, StreamConverters}
 import akka.util.ByteString
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.util.DatasetUtils
 import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
@@ -34,7 +35,7 @@ import javax.inject.Inject
 @Tag(name = "Workflows", description = "Workflow specific operations, such as execution of workflows with payloads.")
 class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTrait with UserContextActions {
 
-  lazy val resourceBasedDatasetPluginIds: Seq[String] = VariableWorkflowRequestUtils.resourceBasedDatasetPluginIds
+  lazy val resourceBasedDatasetPluginIds: Seq[String] = DatasetUtils.resourceBasedDatasetPluginIds
 
   @Operation(
     summary = "Parameterized workflow execution result",
