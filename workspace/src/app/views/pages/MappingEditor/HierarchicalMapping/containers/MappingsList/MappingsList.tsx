@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardTitle } from "gui-elements-deprecated";
-import { DragDropContext, Droppable } from "react-beautiful-dnd";
-import { getApiDetails } from "../../store";
-import DraggableItem from "../MappingRule/DraggableItem";
-import rulesToList from "../../utils/rulesToList";
-import ListActions from "./ListActions";
-import EmptyList from "./EmptyList";
-import reorderArray from "../../utils/reorderArray";
 import { Spinner } from "@eccenca/gui-elements";
-import silkRestApi from "../../../api/silkRestApi";
+import { Card, CardTitle } from "gui-elements-deprecated";
+import React, { useEffect, useState } from "react";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
+
 import useErrorHandler from "../../../../../../hooks/useErrorHandler";
 import { IViewActions } from "../../../../../../views/plugins/PluginRegistry";
+import silkRestApi from "../../../api/silkRestApi";
+import { getApiDetails } from "../../store";
+import reorderArray from "../../utils/reorderArray";
+import rulesToList from "../../utils/rulesToList";
+import DraggableItem from "../MappingRule/DraggableItem";
+import EmptyList from "./EmptyList";
+import ListActions from "./ListActions";
 
 interface MappingsListProps {
     rules: any[];

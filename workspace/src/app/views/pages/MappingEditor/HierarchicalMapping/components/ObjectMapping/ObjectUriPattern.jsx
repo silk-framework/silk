@@ -1,10 +1,11 @@
-import React, { Component } from "react";
-import { NotAvailable } from "gui-elements-deprecated";
-import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from "../../utils/constants";
-import getPathsRecursive from "../../utils/getUriPaths";
-import getUriOperatorsRecursive from "../../utils/getUriOperators";
-import ComplexDeleteButton from "../../elements/buttons/ComplexeDeleteButton";
 import { IconButton } from "@eccenca/gui-elements";
+import { NotAvailable } from "gui-elements-deprecated";
+import React, { Component } from "react";
+
+import ComplexDeleteButton from "../../elements/buttons/ComplexeDeleteButton";
+import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from "../../utils/constants";
+import getUriOperatorsRecursive from "../../utils/getUriOperators";
+import getPathsRecursive from "../../utils/getUriPaths";
 
 class ObjectUriPattern extends Component {
     render() {

@@ -1,6 +1,7 @@
-import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
 import React from "react";
+
 import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 
 interface Props {

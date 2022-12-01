@@ -1,5 +1,5 @@
-import React from "react";
 import { Link, Pagination, Spacing } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 export function AppPagination({ pagination, onChangeSelect, pageSizes }) {

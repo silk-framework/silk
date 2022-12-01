@@ -1,6 +1,7 @@
-import React from "react";
 import { Button } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
 import { copyToClipboard } from "../utils/copyToClipboard";
 import useErrorHandler from "./useErrorHandler";
 

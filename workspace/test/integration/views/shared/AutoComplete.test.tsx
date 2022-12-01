@@ -1,10 +1,11 @@
-import React from "react";
 import {
     AutoCompleteField,
     IAutoCompleteFieldProps,
 } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { addDocumentCreateRangeMethod, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
+import React from "react";
+
+import { addDocumentCreateRangeMethod, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 
 describe("AutoComplete", () => {
     const wrapper = (props: IAutoCompleteFieldProps<any, any>) => {

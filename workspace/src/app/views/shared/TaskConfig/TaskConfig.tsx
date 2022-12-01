@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@eccenca/gui-elements";
-import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
-import { requestTaskData } from "@ducks/shared/requests";
+import { commonSlice } from "@ducks/common/commonSlice";
 import { requestArtefactProperties } from "@ducks/common/requests";
+import { IPluginDetails } from "@ducks/common/typings";
+import { requestTaskData } from "@ducks/shared/requests";
+import { IProjectTask } from "@ducks/shared/typings";
+import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
-import { IProjectTask } from "@ducks/shared/typings";
-import { IPluginDetails } from "@ducks/common/typings";
-import { commonSlice } from "@ducks/common/commonSlice";
-import { useTranslation } from "react-i18next";
-import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     projectId: string;
@@ -60,9 +61,12 @@ export function TaskConfig(props: IProps) {
                     metaData: taskData.metadata,
                     taskPluginDetails: taskPluginDetails,
                     currentParameterValues: taskData.data.parameters,
-                    dataParameters: taskPluginDetails.taskType === "Dataset" && taskData.data.uriProperty ? {
-                        uriProperty: taskData.data.uriProperty
-                    } : undefined
+                    dataParameters:
+                        taskPluginDetails.taskType === "Dataset" && taskData.data.uriProperty
+                            ? {
+                                  uriProperty: taskData.data.uriProperty,
+                              }
+                            : undefined,
                 })
             );
         } catch (e) {
@@ -96,7 +100,10 @@ export function TaskConfig(props: IProps) {
 
     let titlePostfix = "";
     if (labelledTaskData) {
-        titlePostfix = `: ${t("common.dataTypes."+labelledTaskData.taskDescription.title.toLowerCase(), labelledTaskData.taskDescription.title)}`;
+        titlePostfix = `: ${t(
+            "common.dataTypes." + labelledTaskData.taskDescription.title.toLowerCase(),
+            labelledTaskData.taskDescription.title
+        )}`;
     }
 
     // FIXME: CMEM-3742: only return CardContent when it has items, so we need check content before rendering

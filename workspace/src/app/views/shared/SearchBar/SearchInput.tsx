@@ -1,6 +1,6 @@
+import { SearchField } from "@eccenca/gui-elements";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { SearchField } from "@eccenca/gui-elements";
 
 export interface ISearchInputProps {
     onFilterChange(e);
@@ -46,5 +46,6 @@ const SearchInput = ({
     );
 };
 
-const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => (p.filterValue === n.filterValue) && (p.emptySearchInputMessage === n.emptySearchInputMessage);
+const areEqual = (p: ISearchInputProps, n: ISearchInputProps) =>
+    p.filterValue === n.filterValue && p.emptySearchInputMessage === n.emptySearchInputMessage;
 export default memo<ISearchInputProps>(SearchInput, areEqual);

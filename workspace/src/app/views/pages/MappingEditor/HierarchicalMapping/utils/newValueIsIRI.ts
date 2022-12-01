@@ -1,19 +1,17 @@
-import { URI } from 'ecc-utils';
-import {IIsValidNewOptionParams} from "../components/AutoComplete";
+import { URI } from "ecc-utils";
 
+import { IIsValidNewOptionParams } from "../components/AutoComplete";
 
 /** Tests if the value is a relative or absolute IRI or URN? */
-export const newValueIsIRI = ({label}: IIsValidNewOptionParams) => {
-    return typeof label === "string" ?
-        valueIsIRI(label.replace(/^<|>$/g, '')) :
-        false
+export const newValueIsIRI = ({ label }: IIsValidNewOptionParams) => {
+    return typeof label === "string" ? valueIsIRI(label.replace(/^<|>$/g, "")) : false;
 };
 
 export const valueIsIRI = (value: string) => {
     try {
         if (value.length > 0) {
             const uri = new URI(value);
-            return uri.is('resourceURI') || (uri.is('url') && uri.is('relative'));
+            return uri.is("resourceURI") || (uri.is("url") && uri.is("relative"));
         }
         return false;
     } catch (e) {

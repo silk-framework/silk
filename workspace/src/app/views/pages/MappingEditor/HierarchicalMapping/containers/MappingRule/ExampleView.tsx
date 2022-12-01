@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from "react";
-
+import { IconButton, Markdown, Notification } from "@eccenca/gui-elements";
 import { Chip } from "gui-elements-deprecated";
-import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { childExampleAsync, ruleExampleAsync } from "../../store";
+import ErrorView from "../../components/ErrorView";
 import { InfoBox } from "../../components/InfoBox";
-import {IconButton, Markdown, Notification } from "@eccenca/gui-elements";
-import EventEmitter from "../../utils/EventEmitter";
+import { childExampleAsync, ruleExampleAsync } from "../../store";
 import { MESSAGES } from "../../utils/constants";
-import {useTranslation} from "react-i18next";
+import EventEmitter from "../../utils/EventEmitter";
 
 interface IProps {
     id: string;
@@ -22,26 +21,26 @@ interface IProps {
 }
 
 interface RuleExamples {
-    sourcePaths: string[][]
-    results: RuleExample[]
+    sourcePaths: string[][];
+    results: RuleExample[];
     status: {
-        id: "success" | "not supported" | "empty with exceptions" | "empty" | string
-        msg?: string
-    }
+        id: "success" | "not supported" | "empty with exceptions" | "empty" | string;
+        msg?: string;
+    };
 }
 
 interface RuleExample {
-    sourceValues: string[][]
-    transformedValues: string[]
+    sourceValues: string[][];
+    transformedValues: string[];
 }
 
 /** Shows example input and output values for a mapping rule. */
 export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, updateDelay = 500 }: IProps) => {
     const [examples, setExamples] = useState<RuleExamples | undefined>(undefined);
     // Show message details
-    const [showDetails, setShowDetails] = useState(false)
+    const [showDetails, setShowDetails] = useState(false);
     const [error, setError] = useState<any>(undefined);
-    const [t] = useTranslation()
+    const [t] = useTranslation();
 
     const ruleExampleFunc = rawRule ? childExampleAsync : ruleExampleAsync;
     const updateFn = () =>
@@ -86,40 +85,49 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
     const pathsCount = _.size(examples.sourcePaths);
     const resultsCount = _.size(examples.results);
     const handleToggleDetails = () => {
-        setShowDetails(current => !current)
-    }
-    const ProblemNotification = ({message, details}: {message: string, details?: string}) => {
-        const detailMessage = showDetails && details ? details : undefined
-        return <Notification
-            actions={details ? <IconButton
-                name={showDetails ? "toggler-showless" : "toggler-showmore"}
+        setShowDetails((current) => !current);
+    };
+    const ProblemNotification = ({ message, details }: { message: string; details?: string }) => {
+        const detailMessage = showDetails && details ? details : undefined;
+        return (
+            <Notification
+                actions={
+                    details ? (
+                        <IconButton
+                            name={showDetails ? "toggler-showless" : "toggler-showmore"}
+                            onClick={details ? handleToggleDetails : undefined}
+                        />
+                    ) : undefined
+                }
                 onClick={details ? handleToggleDetails : undefined}
-            /> : undefined}
-            onClick={details ? handleToggleDetails : undefined}
-            message={detailMessage ? <Markdown>
-                {message + "\n\n`" + detailMessage + "`"}
-            </Markdown> : undefined}
-        >{
-            detailMessage ? "" : message
-        }
-        </Notification>
-    }
+                message={detailMessage ? <Markdown>{message + "\n\n`" + detailMessage + "`"}</Markdown> : undefined}
+            >
+                {detailMessage ? "" : message}
+            </Notification>
+        );
+    };
 
-    if(examples.status.id === "not supported") {
-        return <ProblemNotification
-            message={t("HierarchicalMapping.ExampleView.errors.notSupported")}
-            details={examples.status.msg}
-        />
+    if (examples.status.id === "not supported") {
+        return (
+            <ProblemNotification
+                message={t("HierarchicalMapping.ExampleView.errors.notSupported")}
+                details={examples.status.msg}
+            />
+        );
     } else if (resultsCount === 0 && examples.status.id === "empty with exceptions") {
-        return <ProblemNotification
-            message={t("HierarchicalMapping.ExampleView.errors.emptyWithExceptions")}
-            details={examples.status.msg}
-        />
+        return (
+            <ProblemNotification
+                message={t("HierarchicalMapping.ExampleView.errors.emptyWithExceptions")}
+                details={examples.status.msg}
+            />
+        );
     } else if (resultsCount === 0) {
-        return <ProblemNotification
-            message={t("HierarchicalMapping.ExampleView.errors.emptyResult")}
-            details={examples.status.msg}
-        />
+        return (
+            <ProblemNotification
+                message={t("HierarchicalMapping.ExampleView.errors.emptyResult")}
+                details={examples.status.msg}
+            />
+        );
     }
 
     const sourcePaths = pathsCount === 0 ? [""] : examples.sourcePaths;

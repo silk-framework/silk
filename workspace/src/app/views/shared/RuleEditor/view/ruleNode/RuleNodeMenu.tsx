@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
-import { NodeTools, NodeToolsMenuFunctions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
 import { Menu, MenuItem } from "@eccenca/gui-elements";
+import { NodeTools, NodeToolsMenuFunctions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
+import React, { useMemo, useState } from "react";
+
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 
 interface NodeMenuProps {

@@ -1,5 +1,5 @@
-import React from "react";
 import { HoverToggler, Tag, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import React from "react";
 
 interface ArrowProps {
     color?: string;
@@ -7,23 +7,13 @@ interface ArrowProps {
 
 /** Arrow giond to the left. */
 export const ArrowLeft = ({ color = "#000" }: ArrowProps) => {
-    return (
-        <div
-            className={"diapp-linking-connectionenabled__arrow-left"}
-            style={{ color }}
-        />
-    );
-}
+    return <div className={"diapp-linking-connectionenabled__arrow-left"} style={{ color }} />;
+};
 
 /** Arrow going to the right. */
 export const ArrowRight = ({ color = "#000" }: ArrowProps) => {
-    return (
-        <div
-            className={"diapp-linking-connectionenabled__arrow-right"}
-            style={{ color }}
-        />
-    );
-}
+    return <div className={"diapp-linking-connectionenabled__arrow-right"} style={{ color }} />;
+};
 
 export interface ConnectionEnabledProps {
     /**
@@ -47,7 +37,7 @@ const ConnectionEnabled = ({ label, actions, color }: ConnectionEnabledProps) =>
                 <ArrowLeft color={color} />
             </ToolbarSection>
             <ToolbarSection>
-                <Tag backgroundColor={color} >{ label }</Tag>
+                <Tag backgroundColor={color}>{label}</Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true}>
                 <ArrowRight color={color} />

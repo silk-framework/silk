@@ -1,12 +1,13 @@
-import React from "react";
-import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
 import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
+import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
 import { FieldItem, FieldSet, Label, TitleSubsection, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import { Intent } from "@eccenca/gui-elements/blueprint/constants";
-import {InputMapper, RegisterForExternalChangesFn} from "./InputMapper";
-import { defaultValueAsJs } from "../../../../../utils/transformers";
-import { INPUT_TYPES } from "../../../../../constants";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
+import { INPUT_TYPES } from "../../../../../constants";
+import { defaultValueAsJs } from "../../../../../utils/transformers";
+import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
 
 const MAXLENGTH_TOOLTIP = 32;
@@ -40,7 +41,7 @@ interface IProps {
         [key: string]: string;
     };
     /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn
+    registerForExternalChanges: RegisterForExternalChangesFn;
 }
 
 /** Renders the errors message based on the error type. */
@@ -70,7 +71,7 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
-        registerForExternalChanges
+        registerForExternalChanges,
     } = props;
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = taskParameter.param;

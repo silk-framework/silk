@@ -1,4 +1,4 @@
-import MappingsTree from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree';
+import MappingsTree from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 
 describe("Mappings Tree Component", () => {
     it("should calculate expanded parent nodes based on current rule", () => {
@@ -6,15 +6,15 @@ describe("Mappings Tree Component", () => {
             return {
                 id: id,
                 rules: {
-                    propertyRules: propertyMappings
+                    propertyRules: propertyMappings,
                 },
-                type: type
+                type: type,
             };
         };
         const currentId = "current";
         const objectMapping1 = objectMapping("object1", [objectMapping("object1b", [objectMapping(currentId)])]);
         const objectMapping2 = objectMapping("object2", [objectMapping("object2b", [objectMapping("notCurrent")])]);
         const tree = objectMapping("root", [objectMapping1, objectMapping2], "root");
-        expect(MappingsTree.extractParentIds(tree, currentId)).toEqual(["root", "object1", "object1b"])
+        expect(MappingsTree.extractParentIds(tree, currentId)).toEqual(["root", "object1", "object1b"]);
     });
 });

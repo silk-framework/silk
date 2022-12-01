@@ -1,26 +1,27 @@
-import React from "react";
-import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
-import {EnzymePropSelector, mount, ReactWrapper, shallow} from "enzyme";
-import { Provider } from "react-redux";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
-import rootReducer from "../../src/app/store/reducers";
+import { render } from "@testing-library/react";
+import { AxiosError } from "axios";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
+import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
+import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import {
     AxiosMockQueueItem,
     AxiosMockRequestCriteria,
     AxiosMockType,
     HttpResponse,
 } from "jest-mock-axios/dist/lib/mock-axios-types";
-import mockAxios from "../__mocks__/axios";
-import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
-import { IStore } from "../../src/app/store/typings/IStore";
-import { render } from "@testing-library/react";
+import React from "react";
+import { Provider } from "react-redux";
+
+import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
 } from "../../src/app/services/fetch/responseInterceptor";
-import { AxiosError } from "axios";
+import rootReducer from "../../src/app/store/reducers";
+import { IStore } from "../../src/app/store/typings/IStore";
+import mockAxios from "../__mocks__/axios";
 
 interface IMockValues {
     history: History;
@@ -95,7 +96,7 @@ export type RecursivePartial<T> = {
         : T[P];
 };
 
-export const withShallow = (component) => shallow(component)
+export const withShallow = (component) => shallow(component);
 
 export const withMount = (component) => mount(component);
 

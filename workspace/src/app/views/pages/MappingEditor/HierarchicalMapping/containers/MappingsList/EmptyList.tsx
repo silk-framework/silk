@@ -1,5 +1,5 @@
-import React from 'react';
-import { CardContent, Info } from 'gui-elements-deprecated';
+import { CardContent, Info } from "gui-elements-deprecated";
+import React from "react";
 
 const EmptyList = () => {
     return (
@@ -8,7 +8,7 @@ const EmptyList = () => {
                 No existing mapping rules.
             </Info>
         </CardContent>
-    )
+    );
 };
 
 export default EmptyList;

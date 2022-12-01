@@ -1,23 +1,23 @@
-import { batch } from "react-redux";
-
-import selectors from "./selectors";
-import { filtersSlice } from "./filtersSlice";
-import { previewSlice } from "./previewSlice";
+import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
-import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
-import qs, { ParsedQs } from "qs";
+import { ISearchListRequest, ISearchListResponse, requestSearchList } from "@ducks/workspace/requests";
+import { IFacetState } from "@ducks/workspace/typings";
 import {
     fetchAddOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
     fetchRemoveProjectPrefixAsync,
 } from "@ducks/workspace/widgets/configuration.thunk";
-import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
-import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { commonSel } from "@ducks/common";
-import { ISearchListRequest, ISearchListResponse, requestSearchList } from "@ducks/workspace/requests";
+import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
+import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
+import qs, { ParsedQs } from "qs";
+import { batch } from "react-redux";
+
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { filtersSlice } from "./filtersSlice";
+import { previewSlice } from "./previewSlice";
+import selectors from "./selectors";
 
 const {
     updateResultTotal,

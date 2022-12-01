@@ -1,4 +1,5 @@
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
+
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 
 /** Default function to turn a rule operator into a rule node. */

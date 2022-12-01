@@ -1,16 +1,16 @@
-import React from "react";
-import PropTypes from "prop-types";
-import _ from "lodash";
-import { Button, Info, Icon } from "gui-elements-deprecated";
 import { Card, CardContent, Spinner } from "@eccenca/gui-elements";
+import { Button, Icon, Info } from "gui-elements-deprecated";
+import _ from "lodash";
+import PropTypes from "prop-types";
+import React from "react";
 
-import RuleTypes from "../elements/RuleTypes";
-import RuleTitle from "../elements/RuleTitle";
-import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
-import {getApiDetails, getHierarchyAsync, getRuleAsync} from "../store";
-import EventEmitter from "../utils/EventEmitter";
-import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "../utils/constants";
 import { getHistory } from "../../../../../store/configureStore";
+import RuleTitle from "../elements/RuleTitle";
+import RuleTypes from "../elements/RuleTypes";
+import { getApiDetails, getHierarchyAsync, getRuleAsync } from "../store";
+import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
+import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "../utils/constants";
+import EventEmitter from "../utils/EventEmitter";
 
 /**
  * Navigation tree of all mappings
@@ -25,7 +25,7 @@ class MappingsTree extends React.Component {
 
     componentDidMount() {
         this.updateNavigationTree();
-        if(this.props.trackRuleInUrl) {
+        if (this.props.trackRuleInUrl) {
             // Ignore rule ID parameter in URL
             const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
             if (searchQuery) {
@@ -50,9 +50,9 @@ class MappingsTree extends React.Component {
     }
 
     getRuleById = (searchId) => {
-        if(!getApiDetails().transformTask) {
+        if (!getApiDetails().transformTask) {
             // API details not loaded, do not continue
-            return
+            return;
         }
         this.setState({
             navigationLoading: true,
@@ -349,14 +349,14 @@ MappingsTree.propTypes = {
     showValueMappings: PropTypes.bool,
     // For each rule id, contains one of the following: "ok", "warning"
     ruleValidation: PropTypes.objectOf(PropTypes.oneOf(["ok", "warning"])),
-    trackRuleInUrl: PropTypes.bool
+    trackRuleInUrl: PropTypes.bool,
 };
 
 MappingsTree.defaultProps = {
     currentRuleId: undefined,
     ruleTree: undefined, // The mapping rule tree. Optional, because old components don't set this and rely on the message bus instead...
     handleRuleNavigation: () => {},
-    trackRuleInUrl: true
+    trackRuleInUrl: true,
 };
 
 export default MappingsTree;

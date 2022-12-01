@@ -1,23 +1,24 @@
-import React from "react";
-import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { commonSel } from "@ducks/common";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
+import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 import Loading from "../../../Loading";
-import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
+import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import {
     IRuleOperator,
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../RuleEditor.typings";
-import { SidebarSearchField } from "./SidebarSearchField";
-import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
-import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
-import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import ruleEditorUtils from "../../RuleEditor.utils";
+import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
+import { SidebarSearchField } from "./SidebarSearchField";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
@@ -168,9 +169,9 @@ export const RuleEditorOperatorSidebar = () => {
         id: tab.id,
         title: (
             <TabTitle
-                text={tab.icon ? null : t("RuleEditor.sidebar.tab."+tab.id, tab.label)}
+                text={tab.icon ? null : t("RuleEditor.sidebar.tab." + tab.id, tab.label)}
                 titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
-                tooltip={tab.icon ? t("RuleEditor.sidebar.tab."+tab.id, tab.label) : undefined}
+                tooltip={tab.icon ? t("RuleEditor.sidebar.tab." + tab.id, tab.label) : undefined}
                 small
             />
         ),

@@ -1,5 +1,5 @@
-import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { requestWarningList, requestWarningMarkdown } from "@ducks/workspace/requests";
+import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 
 const { setWarnings, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
 

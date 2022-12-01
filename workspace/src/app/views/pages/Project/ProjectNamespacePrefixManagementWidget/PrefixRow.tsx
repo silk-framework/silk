@@ -1,4 +1,3 @@
-import React from "react";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 import {
     IconButton,
@@ -7,6 +6,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
 } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 interface IProps {

@@ -15,17 +15,17 @@ export const scoreColorConfig = {
     unknownEquality: {
         breakingPoint: undefined,
         backgroundColor: "#fff5d5",
-    }
-}
+    },
+};
 
 export const scoreColorRepresentation = (score: number | undefined) => {
     let color: string | undefined = undefined;
     if (typeof score !== "undefined") {
         switch (true) {
-            case (score >= scoreColorConfig.strongEquality.breakingPoint):
+            case score >= scoreColorConfig.strongEquality.breakingPoint:
                 color = scoreColorConfig.strongEquality.backgroundColor;
                 break;
-            case (score >= scoreColorConfig.weakEquality.breakingPoint):
+            case score >= scoreColorConfig.weakEquality.breakingPoint:
                 color = scoreColorConfig.weakEquality.backgroundColor;
                 break;
             default:
@@ -36,4 +36,4 @@ export const scoreColorRepresentation = (score: number | undefined) => {
     }
 
     return color;
-}
+};

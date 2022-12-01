@@ -1,7 +1,8 @@
+import { Notification, OverviewItemList } from "@eccenca/gui-elements";
 import React from "react";
-import { Loading } from "../Loading/Loading";
-import { OverviewItemList, Notification } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+
+import { Loading } from "../Loading/Loading";
 
 interface IProps {
     children: JSX.Element | JSX.Element[];

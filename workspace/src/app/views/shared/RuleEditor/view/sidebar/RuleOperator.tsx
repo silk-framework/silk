@@ -1,13 +1,14 @@
-import { wrapTooltip } from "../../../../../utils/uiUtils";
-import React from "react";
-import Highlighter, { createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing } from "@eccenca/gui-elements";
+import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
+import Highlighter, { createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import Color from "color";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import { wrapTooltip } from "../../../../../utils/uiUtils";
+import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
-import Color from "color";
-import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
-import { useTranslation } from "react-i18next";
-import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered

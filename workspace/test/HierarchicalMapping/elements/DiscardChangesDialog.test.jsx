@@ -1,19 +1,17 @@
+import { mount, shallow } from "enzyme";
 import React from "react";
-import { shallow, mount } from 'enzyme';
-import DiscardChangesDialog from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/DiscardChangesDialog';
+
+import DiscardChangesDialog from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/DiscardChangesDialog";
 
 const handleDiscardCancelMock = jest.fn();
 const handleDiscardConfirmMock = jest.fn();
 const props = {
     numberEditingElements: 2,
     handleDiscardCancel: handleDiscardCancelMock,
-    handleDiscardConfirm: handleDiscardConfirmMock
+    handleDiscardConfirm: handleDiscardConfirmMock,
 };
 
-const getWrapper = (renderer = shallow) => renderer(
-    <DiscardChangesDialog {...props} />
-);
-
+const getWrapper = (renderer = shallow) => renderer(<DiscardChangesDialog {...props} />);
 
 const selectors = {
     DISCARD_BUTTON: "button.ecc-hm-accept-discard",
@@ -21,26 +19,24 @@ const selectors = {
 };
 
 describe("DiscardChangesDialog Component", () => {
-
-    describe("on user interaction, ",() => {
-
+    describe("on user interaction, ", () => {
         let wrapper;
         beforeEach(() => {
             wrapper = getWrapper(mount);
         });
 
         it("should handleDiscardConfirm called, when click on Discard button", () => {
-            wrapper.find(selectors.DISCARD_BUTTON).simulate('click');
+            wrapper.find(selectors.DISCARD_BUTTON).simulate("click");
             expect(handleDiscardConfirmMock).toHaveBeenCalled();
         });
 
         it("should handleDiscardCancel called, when click on Cancel button", () => {
-            wrapper.find(selectors.CANCEL_BUTTON).simulate('click');
+            wrapper.find(selectors.CANCEL_BUTTON).simulate("click");
             expect(handleDiscardCancelMock).toHaveBeenCalled();
         });
 
         afterEach(() => {
             wrapper.unmount();
-        })
+        });
     });
 });

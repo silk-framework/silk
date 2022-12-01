@@ -1,4 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
+
 import { IStore } from "../../typings/IStore";
 
 const locationSelector = (state: IStore) => state.router.location;

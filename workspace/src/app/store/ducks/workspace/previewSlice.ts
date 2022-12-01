@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+
 import { initialPreviewState } from "./initialState";
 
 export const previewSlice = createSlice({

@@ -1,10 +1,11 @@
-import React, { useDebugValue, useState } from "react";
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
-import FileUploader from "../../FileUploader";
-import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
+import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import React, { useDebugValue, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+
+import FileUploader from "../../FileUploader";
+import { IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;

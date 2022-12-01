@@ -1,14 +1,15 @@
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
 import React, { useState } from "react";
 import { useParams } from "react-router";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
+
 import { DATA_TYPES } from "../../../constants";
-import Metadata from "../../shared/Metadata";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
-import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
-import NotFound from "../NotFound";
+import Metadata from "../../shared/Metadata";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
+import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { ProjectTaskParams } from "../../shared/typings";
+import NotFound from "../NotFound";
 
 export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();

@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Button,
     Card,
@@ -21,6 +20,12 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { connectWebSocket } from "../../../../services/websocketUtils";
+import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import {
     ComparisonDataBody,
     ComparisonDataCell,
@@ -30,23 +35,19 @@ import {
     ComparisonDataHeader,
     ComparisonDataRow,
 } from "./components/ComparisionData";
+import ConnectionAvailable from "./components/ConnectionAvailable";
+import ConnectionEnabled from "./components/ConnectionEnabled";
 import { PropertyBox } from "./components/PropertyBox";
-import { ComparisonPair, ComparisonPairs, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
+import { ManualComparisonPairSelection } from "./config/ManualComparisonPairSelection";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
 import {
     activeLearningComparisonPairs,
     addActiveLearningComparisonPair,
     removeActiveLearningComparisonPair,
 } from "./LinkingRuleActiveLearning.requests";
-import { ManualComparisonPairSelection } from "./config/ManualComparisonPairSelection";
-import ConnectionEnabled from "./components/ConnectionEnabled";
-import ConnectionAvailable from "./components/ConnectionAvailable";
-import { useTranslation } from "react-i18next";
+import { ComparisonPair, ComparisonPairs, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import utils from "./LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues } from "./shared/ActiveLearningValueExamples";
-import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
-import { connectWebSocket } from "../../../../services/websocketUtils";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -389,7 +390,10 @@ const SuggestedPathSelection = ({
     const [t] = useTranslation();
     const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
     return (
-        <ComparisonDataRow className="diapp-linking-learningdata__row-body" data-test-id={"suggested-comparison-pair-row"}>
+        <ComparisonDataRow
+            className="diapp-linking-learningdata__row-body"
+            data-test-id={"suggested-comparison-pair-row"}
+        >
             <SelectedProperty
                 property={pair.source}
                 exampleValues={pair.sourceExamples}
@@ -481,9 +485,9 @@ const SuggestionWidget = ({
         if (!showInfo && suggestions.length === 0) {
             setShowInfo(true);
         }
-        if(pathFilter.current) {
+        if (pathFilter.current) {
             // Suggestions have changed, update filtered suggestions
-            filterSuggestions(pathFilter.current.path, pathFilter.current.isTarget)
+            filterSuggestions(pathFilter.current.path, pathFilter.current.isTarget);
         }
     }, [suggestions]);
 

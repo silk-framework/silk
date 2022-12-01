@@ -1,10 +1,11 @@
-import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
-import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
+import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
-import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
+import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
 
 export type PathInputOperator = "PathInputOperator";
 

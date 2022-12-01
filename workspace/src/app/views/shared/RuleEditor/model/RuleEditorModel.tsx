@@ -1,8 +1,11 @@
+import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
+import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import React, { useEffect } from "react";
 import {
     Edge,
-    Node,
     Elements,
+    Node,
     OnLoadParams,
     removeElements,
     useStoreActions,
@@ -10,10 +13,14 @@ import {
     useUpdateNodeInternals,
     useZoomPanHelper,
 } from "react-flow-renderer";
-import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
-import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
+import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { useTranslation } from "react-i18next";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
+
+import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
+import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
+import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import {
     IParameterSpecification,
     IRuleOperator,
@@ -21,6 +28,8 @@ import {
     RuleEditorValidationNode,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
+import StickyMenuButton from "../view/components/StickyMenuButton";
+import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import {
     AddEdge,
     AddNode,
@@ -38,15 +47,7 @@ import {
     RuleModelChangeType,
     StickyNodePropType,
 } from "./RuleEditorModel.typings";
-import { Connection, XYPosition } from "react-flow-renderer/dist/types";
-import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
-import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
-import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
-import StickyMenuButton from "../view/components/StickyMenuButton";
+import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -1471,7 +1472,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const operatorNodeOperationsInternal: IOperatorNodeOperations = {
         handleDeleteNode: deleteNode,
         handleParameterChange: changeNodeParameter,
-        handleCloneNode: (nodeId) => copyAndPasteNodes([nodeId])
+        handleCloneNode: (nodeId) => copyAndPasteNodes([nodeId]),
     };
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
@@ -1479,7 +1480,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
-        operatorSpec: Map<string, Map<string, IParameterSpecification>>,
+        operatorSpec: Map<string, Map<string, IParameterSpecification>>
     ): IOperatorCreateContext => ({
         operatorParameterSpecification: operatorSpec.get(operatorPluginId) ?? new Map(),
         t,
@@ -1489,7 +1490,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         nodePluginId,
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
-        readOnlyMode: ruleEditorContext.readOnlyMode ?? false
+        readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
     });
 
     /** Auto-layout the rule nodes.
@@ -1670,7 +1671,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView({maxZoom: 1});
+            reactFlowInstance?.fitView({ maxZoom: 1 });
             ruleEditorContext.initialFitToViewZoomLevel &&
                 reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);
@@ -1716,10 +1717,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 ruleOperatorNodes,
             }}
         >
-            <InteractionGate
-                showSpinner={initializing}
-                useParentPositioning
-            >
+            <InteractionGate showSpinner={initializing} useParentPositioning>
                 {children}
             </InteractionGate>
         </RuleEditorModelContext.Provider>

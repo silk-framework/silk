@@ -1,12 +1,13 @@
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import React from "react";
-import { AutoCompleteField } from "@eccenca/gui-elements";
+import { Intent } from "@blueprintjs/core";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
-import { useTranslation } from "react-i18next";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { AutoCompleteField } from "@eccenca/gui-elements";
 import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import { Intent } from "@blueprintjs/core";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
 
 interface ParameterAutoCompletionProps {
@@ -35,7 +36,7 @@ interface ParameterAutoCompletionProps {
      * This is needed if other components on the same page are swallowing events, e.g. the react-flow canvas.
      * hasBackDrop should then be set to true in these cases otherwise the popover won't close when clicking those other components.
      **/
-    hasBackDrop?: boolean
+    hasBackDrop?: boolean;
 }
 
 /** Component for parameter auto-completion. */
@@ -52,7 +53,7 @@ export const ParameterAutoCompletion = ({
     onChange,
     showErrorsInline = false,
     readOnly,
-    hasBackDrop = false
+    hasBackDrop = false,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();

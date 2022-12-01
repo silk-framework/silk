@@ -1,6 +1,7 @@
-import {IStickyNote} from "../shared/task.typings";
-import {IMetadata} from "@ducks/shared/typings";
-import {IValueInput, RuleLayout} from "../shared/rules/rule.typings";
+import { IMetadata } from "@ducks/shared/typings";
+
+import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
+import { IStickyNote } from "../shared/task.typings";
 
 /** Parameters of a transform task. */
 export interface ITransformRule {

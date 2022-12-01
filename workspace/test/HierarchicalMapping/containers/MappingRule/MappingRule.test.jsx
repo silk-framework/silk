@@ -1,16 +1,12 @@
+import { mount, shallow } from "enzyme";
 import React from "react";
-import {mount, shallow} from "enzyme";
-import MappingRule
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/MappingRule";
-import ObjectRule
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
-import ValueMappingRule
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
-import NavigateButton
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/NavigateButton";
-import ExpandButton
-    from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/ExpandButton";
-import {findAll} from "../../utils/TestHelpers";
+
+import MappingRule from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/MappingRule";
+import ObjectRule from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
+import ValueMappingRule from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
+import ExpandButton from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/ExpandButton";
+import NavigateButton from "../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/NavigateButton";
+import { findAll } from "../../utils/TestHelpers";
 
 const onRuleIdChangeFn = jest.fn();
 const onExpandFn = jest.fn();

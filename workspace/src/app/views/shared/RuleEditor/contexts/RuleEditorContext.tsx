@@ -1,15 +1,16 @@
 import React from "react";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
+
+import { IViewActions } from "../../../plugins/PluginRegistry";
 import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
-    RuleSaveResult,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleEditorValidationNode,
+    RuleSaveResult,
 } from "../RuleEditor.typings";
-import { IViewActions } from "../../../plugins/PluginRegistry";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and

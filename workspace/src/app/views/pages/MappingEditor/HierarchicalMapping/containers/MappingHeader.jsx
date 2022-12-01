@@ -1,13 +1,12 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import _ from 'lodash';
+import { Card, CardHeader, CardOptions, CardTitle } from "@eccenca/gui-elements";
+import { BreadcrumbItem, BreadcrumbList, ContextMenu, MenuItem } from "gui-elements-deprecated";
+import _ from "lodash";
+import PropTypes from "prop-types";
+import React from "react";
 
-import {BreadcrumbItem, BreadcrumbList, ContextMenu, MenuItem,} from 'gui-elements-deprecated';
-import {Card, CardHeader, CardOptions, CardTitle,} from "@eccenca/gui-elements";
-
-import {ParentStructure} from '../components/ParentStructure';
-import RuleTitle from '../elements/RuleTitle';
-import ArrowBackButton from '../elements/buttons/ArrowBack';
+import { ParentStructure } from "../components/ParentStructure";
+import ArrowBackButton from "../elements/buttons/ArrowBack";
+import RuleTitle from "../elements/RuleTitle";
 
 class MappingHeader extends React.Component {
     static propTypes = {
@@ -37,18 +36,12 @@ class MappingHeader extends React.Component {
             return false;
         }
 
-        const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
+        const breadcrumbs = _.get(this.props, "rule.breadcrumbs", []);
         const parent = _.last(breadcrumbs);
 
-        const navBack = _.has(parent, 'id') ? (
+        const navBack = _.has(parent, "id") ? (
             <div className="mdl-card__title-back">
-                <ArrowBackButton
-                    onNavigate={event => this.handleNavigate(
-                        parent.id,
-                        this.props.rule.id,
-                        event
-                    )}
-                />
+                <ArrowBackButton onNavigate={(event) => this.handleNavigate(parent.id, this.props.rule.id, event)} />
             </div>
         ) : (
             false
@@ -56,23 +49,19 @@ class MappingHeader extends React.Component {
         const navBreadcrumbs = (
             <BreadcrumbList>
                 {breadcrumbs.map((crumb, idx) => (
-                        <BreadcrumbItem
-                            key={idx}
-                            onClick={event => {
-                                this.handleNavigate(
-                                    crumb.id,
-                                    this.props.rule.id,
-                                    event
-                                );
-                            }}
-                            separationChar="/"
-                            data-test-selector={'breadcrumb-item'}
-                        >
-                            <ParentStructure parent={crumb} />
-                        </BreadcrumbItem>
-                    ))}
+                    <BreadcrumbItem
+                        key={idx}
+                        onClick={(event) => {
+                            this.handleNavigate(crumb.id, this.props.rule.id, event);
+                        }}
+                        separationChar="/"
+                        data-test-selector={"breadcrumb-item"}
+                    >
+                        <ParentStructure parent={crumb} />
+                    </BreadcrumbItem>
+                ))}
                 <BreadcrumbItem key={breadcrumbs.length}>
-                    <RuleTitle rule={_.get(this.props, 'rule', {})} />
+                    <RuleTitle rule={_.get(this.props, "rule", {})} />
                 </BreadcrumbItem>
             </BreadcrumbList>
         );
@@ -86,17 +75,12 @@ class MappingHeader extends React.Component {
                             {navBreadcrumbs}
                         </CardTitle>
                         <CardOptions>
-                            <ContextMenu
-                                className="ecc-silk-mapping__ruleslistmenu"
-                                iconName="tune"
-                            >
+                            <ContextMenu className="ecc-silk-mapping__ruleslistmenu" iconName="tune">
                                 <MenuItem
                                     className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
                                     onClick={() => this.props.onToggleTreeNav()}
                                 >
-                                    {this.props.showNavigation
-                                        ? 'Hide tree navigation'
-                                        : 'Show tree navigation'}
+                                    {this.props.showNavigation ? "Hide tree navigation" : "Show tree navigation"}
                                 </MenuItem>
                                 <MenuItem
                                     className="ecc-silk-mapping__ruleslistmenu__item-expand"

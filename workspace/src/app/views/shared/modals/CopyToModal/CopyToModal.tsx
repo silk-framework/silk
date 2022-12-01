@@ -1,5 +1,5 @@
-import React from "react";
-
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 //components
 import {
     Accordion,
@@ -18,12 +18,12 @@ import {
     TitleSubsection,
     Tooltip,
 } from "@eccenca/gui-elements";
-import { ICloneOptions } from "../CloneModal";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
-import ItemDepiction from "../../ItemDepiction";
+
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
+import ItemDepiction from "../../ItemDepiction";
+import { ICloneOptions } from "../CloneModal";
 
 //custom styles
 require("./CopyToModal.scss");

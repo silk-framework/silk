@@ -1,4 +1,4 @@
-import { Tooltip, ContextOverlayProps } from "@eccenca/gui-elements";
+import { ContextOverlayProps, Tooltip } from "@eccenca/gui-elements";
 import React from "react";
 
 /** Wraps an element inside a tooltip when the wrap predicate is true. */

@@ -1,13 +1,14 @@
-import fetch from "../../../services/fetch";
-import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import {
-    IPluginDetails,
-    IOverviewArtefactItemList,
     IExportTypes,
     IInitFrontend,
+    IOverviewArtefactItemList,
+    IPluginDetails,
     ProjectTaskDownloadInfo,
 } from "@ducks/common/typings";
+
+import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 
 const handleError = (error) => {
     return error.errorResponse;

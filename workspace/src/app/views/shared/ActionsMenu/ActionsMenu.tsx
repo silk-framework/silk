@@ -1,6 +1,6 @@
-import React from "react";
 import { Button, ContextMenu, IconButton, MenuItem, OverflowText } from "@eccenca/gui-elements";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import React from "react";
 
 interface IActionBasicProps {
     text: string;

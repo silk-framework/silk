@@ -1,23 +1,23 @@
 import "react-app-polyfill/ie11";
 import "react-app-polyfill/stable";
+import "./theme/index.scss";
+import "./language";
 
 import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
-import ErrorBoundary from "./app/ErrorBoundary";
-import registerGlobalListeners from "./global";
+
 import App from "./app/App";
-import configs from "./configs";
 import appRoutes, { IRouteProps } from "./app/appRoutes";
+import ErrorBoundary from "./app/ErrorBoundary";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
+import mappingEditor from "./app/views/pages/MappingEditor/index";
+import configs from "./configs";
+import registerGlobalListeners from "./global";
 
-import "./theme/index.scss";
-import mappingEditor from "./app/views/pages/MappingEditor/index"
-import "./language";
-
-if(typeof mappingEditor.hierarchicalMapping !== "function") {
-    console.error("Mapping editor factory methods no registered.")
+if (typeof mappingEditor.hierarchicalMapping !== "function") {
+    console.error("Mapping editor factory methods no registered.");
 }
 
 const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));

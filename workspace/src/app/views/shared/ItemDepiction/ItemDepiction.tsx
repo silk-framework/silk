@@ -1,5 +1,5 @@
-import React from "react";
 import { Icon } from "@eccenca/gui-elements";
+import React from "react";
 
 const sizes = ["large", "small"] as const;
 type Sizes = typeof sizes[number];

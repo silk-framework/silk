@@ -1,17 +1,18 @@
-import React from "react";
+import { commonSel } from "@ducks/common";
+import { routerOp } from "@ducks/router";
 import {
     Card,
     IconButton,
-    Spacing,
     OverviewItem,
-    OverviewItemDescription,
     OverviewItemActions,
+    OverviewItemDescription,
     OverviewItemLine,
+    Spacing,
 } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
-import { routerOp } from "@ducks/router";
+
 import { SERVE_PATH } from "../../../constants/path";
 
 const ActivityInfoWidget = () => {

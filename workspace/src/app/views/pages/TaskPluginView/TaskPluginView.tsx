@@ -1,7 +1,8 @@
 import React from "react";
 import { useParams } from "react-router";
-import NotFound from "../NotFound";
+
 import { pluginRegistry } from "../../plugins/PluginRegistry";
+import NotFound from "../NotFound";
 
 /** Renders a task's plugin view independent from the task's detail page. */
 export const TaskPluginView = () => {

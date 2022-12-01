@@ -1,5 +1,5 @@
-import { IRuleOperator } from "../../RuleEditor.typings";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IRuleOperator } from "../../RuleEditor.typings";
 
 /** The operator data that is used for rendering a rule operator in the sidebar. */
 export interface SidebarRuleOperatorBase extends Omit<IRuleOperator, "portSpecification" | "parameterSpecification"> {}

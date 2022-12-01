@@ -1,14 +1,15 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { IPrefixDefinition } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { IPrefixDefinition } from "@ducks/workspace/typings";
 import { Button, SimpleDialog } from "@eccenca/gui-elements";
-import PrefixRow from "./PrefixRow";
-import DeleteModal from "../../../shared/modals/DeleteModal";
-import PrefixNew from "./PrefixNew";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
 import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
-import { useTranslation } from "react-i18next";
+import DeleteModal from "../../../shared/modals/DeleteModal";
+import PrefixNew from "./PrefixNew";
+import PrefixRow from "./PrefixRow";
 
 interface IProps {
     projectId: string;

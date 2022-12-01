@@ -1,5 +1,5 @@
-import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { requestResourcesList } from "@ducks/shared/requests";
+import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 
 const { setFiles, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
 

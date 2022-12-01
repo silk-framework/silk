@@ -1,12 +1,13 @@
-import React from "react";
-import { FieldItem, TextField } from "@eccenca/gui-elements";
-import { errorMessage } from "./ParameterWidget";
-import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
-import useCopyButton from "../../../../../hooks/useCopyButton";
-import { useTranslation } from "react-i18next";
+import { FieldItem, TextField } from "@eccenca/gui-elements";
 import { TFunction } from "i18next";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useCopyButton from "../../../../../hooks/useCopyButton";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
+import { debounce } from "../../../../../utils/debounce";
+import { errorMessage } from "./ParameterWidget";
 
 const IDENTIFIER = "id";
 

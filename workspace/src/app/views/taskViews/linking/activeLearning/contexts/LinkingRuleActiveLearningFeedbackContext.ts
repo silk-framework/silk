@@ -1,5 +1,6 @@
-import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import React from "react";
+
+import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import {
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,

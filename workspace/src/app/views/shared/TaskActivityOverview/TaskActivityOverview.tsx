@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { commonSel } from "@ducks/common";
+import { DIErrorTypes } from "@ducks/error/typings";
 import {
     Card,
     CardContent,
@@ -17,29 +17,30 @@ import {
     Spinner,
     WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
-import { Definitions as IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
 import {
     ActivityAction,
+    ElapsedDateTimeDisplay,
     IActivityControlLayoutProps,
-    SilkActivityControl,
     IActivityStatus,
     Markdown,
-    ElapsedDateTimeDisplay,
+    SilkActivityControl,
     TimeUnits,
 } from "@eccenca/gui-elements";
+import { Definitions as IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { connectWebSocket } from "../../../services/websocketUtils";
+import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import Loading from "../Loading";
+import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
 import {
     IActivityCachesOverallStatus,
     IActivityControlFunctions,
     IActivityListEntry,
 } from "./taskActivityOverviewTypings";
-import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
-import Loading from "../Loading";
-import { connectWebSocket } from "../../../services/websocketUtils";
-import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { DIErrorTypes } from "@ducks/error/typings";
-import useErrorHandler from "../../../hooks/useErrorHandler";
-import { useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
 
 interface IProps {

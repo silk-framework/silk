@@ -2,17 +2,12 @@
  Whole overview over a hierarchical Mapping on the right, header may be defined here, loops over MappingRule
  */
 
-import React from "react";
+import { Spinner } from "@eccenca/gui-elements";
 import _ from "lodash";
 import PropTypes from "prop-types";
+import React from "react";
+
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
-import { Spinner } from "@eccenca/gui-elements";
-import MappingHeader from "./MappingHeader";
-import RootMappingRule from "./RootMappingRule";
-import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
-import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
-import MappingsList from "./MappingsList/MappingsList";
-import SuggestionsListContainer from "./SuggestionNew/SuggestionContainer";
 import {
     isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,
@@ -22,6 +17,12 @@ import {
     MESSAGES,
 } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
+import MappingHeader from "./MappingHeader";
+import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
+import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
+import MappingsList from "./MappingsList/MappingsList";
+import RootMappingRule from "./RootMappingRule";
+import SuggestionsListContainer from "./SuggestionNew/SuggestionContainer";
 
 class MappingsWorkview extends React.Component {
     // define property types

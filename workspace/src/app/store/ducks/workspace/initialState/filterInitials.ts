@@ -5,6 +5,7 @@ import {
     IFiltersState,
     ISortersState,
 } from "@ducks/workspace/typings";
+
 import { IPaginationState } from "../../../typings";
 
 export function initialPaginationState(props: Partial<IPaginationState> = {}): IPaginationState {

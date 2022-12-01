@@ -1,5 +1,6 @@
-import { clickWrapperElement, findAll } from "../../TestHelper";
 import { ReactWrapper } from "enzyme";
+
+import { clickWrapperElement, findAll } from "../../TestHelper";
 
 /** Clicks the "next" button of a paging element.
  *

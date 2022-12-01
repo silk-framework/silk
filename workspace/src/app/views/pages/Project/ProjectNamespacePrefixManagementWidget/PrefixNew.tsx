@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
+import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     onAdd: (prefixDefinition: IPrefixDefinition) => any;

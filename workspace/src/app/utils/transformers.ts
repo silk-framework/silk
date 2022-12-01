@@ -1,4 +1,5 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
+
 import { INPUT_TYPES } from "../constants";
 import {
     OptionallyLabelledParameter,

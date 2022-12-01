@@ -1,15 +1,16 @@
-import React, { useEffect } from "react";
-import { INPUT_TYPES } from "../../../../../constants";
-import { Spinner, Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
-import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
-import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
-import { AppToaster } from "../../../../../services/toaster";
-import { requestResourcesList } from "@ducks/shared/requests";
-import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
-import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { ITaskParameter } from "@ducks/common/typings";
+import { requestResourcesList } from "@ducks/shared/requests";
+import { CodeEditor, Spinner, Switch, TextArea, TextField } from "@eccenca/gui-elements";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+
+import { INPUT_TYPES } from "../../../../../constants";
+import { AppToaster } from "../../../../../services/toaster";
+import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
+import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
 
 interface IProps {

@@ -1,18 +1,19 @@
-import React from "react";
 import { mount, shallow } from "enzyme";
+import React from "react";
+
+import ExampleTarget from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ExampleTarget";
+import MetadataDesc from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataDesc";
+import MetadataLabel from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataLabel";
+import ObjectEntityRelation from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectEntityRelation";
+import ObjectSourcePath from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectSourcePath";
+import ObjectTypeRules from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectTypeRules";
+import TargetProperty from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/TargetProperty";
 import ObjectRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
 import ObjectMappingRuleForm from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm";
-import ObjectEntityRelation from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectEntityRelation";
-import TargetProperty from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/TargetProperty";
-import ObjectTypeRules from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectTypeRules";
-import ObjectSourcePath from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectSourcePath";
-import EditButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/EditButton";
-import CopyButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CopyButton";
 import CloneButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CloneButton";
+import CopyButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CopyButton";
 import DeleteButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/DeleteButton";
-import MetadataLabel from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataLabel";
-import MetadataDesc from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataDesc";
-import ExampleTarget from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ExampleTarget";
+import EditButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/EditButton";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();

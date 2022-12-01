@@ -1,25 +1,26 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useParams } from "react-router";
-import { useTranslation } from "react-i18next";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
 import { commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
 import { IProjectTask } from "@ducks/shared/typings";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { useParams } from "react-router";
+
 import { DATA_TYPES } from "../../../constants";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { Loading } from "../../shared/Loading/Loading";
-import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
-import { usePageHeader } from "../../shared/PageHeader/PageHeader";
-import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
-import Metadata from "../../shared/Metadata";
-import NotFound from "../NotFound";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ProjectTaskParams } from "../../shared/typings";
-import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
-import { SUPPORTED_PLUGINS, pluginRegistry } from "../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../plugins/plugin.types";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import { Loading } from "../../shared/Loading/Loading";
+import Metadata from "../../shared/Metadata";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
+import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
+import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
+import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
+import { ProjectTaskParams } from "../../shared/typings";
+import NotFound from "../NotFound";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];

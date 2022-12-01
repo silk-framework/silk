@@ -1,11 +1,11 @@
+import { URI } from "ecc-utils";
+import { ScrollingHOC } from "gui-elements-deprecated";
 import React from "react";
 import { Draggable } from "react-beautiful-dnd";
-import { MappingRule } from "./MappingRule";
-import { ScrollingHOC } from "gui-elements-deprecated";
 
-import { URI } from "ecc-utils";
-import { MAPPING_RULE_TYPE_OBJECT } from "../../utils/constants";
 import { getHistory } from "../../../../../../store/configureStore";
+import { MAPPING_RULE_TYPE_OBJECT } from "../../utils/constants";
+import { MappingRule } from "./MappingRule";
 
 const isPasted = (id) => {
     const pastedId = sessionStorage.getItem("pastedId");

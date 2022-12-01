@@ -1,6 +1,5 @@
 import { commonSlice } from "@ducks/common/commonSlice";
-import { batch } from "react-redux";
-import asModifier from "../../../utils/asModifier";
+import { commonOp, commonSel } from "@ducks/common/index";
 import {
     requestArtefactList,
     requestArtefactProperties,
@@ -9,16 +8,18 @@ import {
     requestSearchConfig,
 } from "@ducks/common/requests";
 import { IPluginOverview } from "@ducks/common/typings";
-import { commonOp, commonSel } from "@ducks/common/index";
-import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
-import { HttpError } from "../../../services/fetch/responseInterceptor";
-import i18Instance, { fetchStoredLang } from "../../../../language";
-import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
-import utils from "../../../views/shared/Metadata/MetadataUtils";
+import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { batch } from "react-redux";
+
+import i18Instance, { fetchStoredLang } from "../../../../language";
+import { HttpError } from "../../../services/fetch/responseInterceptor";
+import asModifier from "../../../utils/asModifier";
+import utils from "../../../views/shared/Metadata/MetadataUtils";
+import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 
 const {
     setError,

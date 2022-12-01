@@ -1,10 +1,6 @@
-import React, { useEffect, useState } from "react";
-import PrefixesDialog from "./PrefixesDialog";
-import { useDispatch, useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
-import Loading from "../../../shared/Loading";
-
 import {
     Card,
     CardContent,
@@ -18,8 +14,12 @@ import {
     OverviewItemLine,
     OverviewItemList,
 } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { commonSel } from "@ducks/common";
+import { useDispatch, useSelector } from "react-redux";
+
+import Loading from "../../../shared/Loading";
+import PrefixesDialog from "./PrefixesDialog";
 
 const VISIBLE_COUNT = 5;
 

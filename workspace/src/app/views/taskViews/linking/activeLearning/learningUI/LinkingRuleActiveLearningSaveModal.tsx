@@ -1,15 +1,16 @@
 import { Button, FieldItem, Notification, SimpleDialog, Spacing, Switch } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { saveActiveLearningResults } from "../LinkingRuleActiveLearning.requests";
+import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 import {
     ActiveLearningSessionInfoWidget,
     useActiveLearningSessionInfo,
 } from "../shared/ActiveLearningSessionInfoWidget";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
-import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningSaveModalProps {
     unsavedBestRule: ActiveLearningBestRule | undefined;

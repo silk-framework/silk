@@ -1,8 +1,9 @@
+import { createMemoryHistory } from "history";
 import React from "react";
+
+import { byTestId, clickElement, testWrapper, withMount } from "../../../../../../test/integration/TestHelper";
+import { SERVE_PATH } from "../../../../constants/path";
 import SearchItem from "../SearchItem";
-import {createMemoryHistory} from "history";
-import {byTestId, clickElement, testWrapper, withMount} from "../../../../../../test/integration/TestHelper";
-import {SERVE_PATH} from "../../../../constants/path";
 
 const onOpenDeleteModalFn = jest.fn(),
     onOpenDuplicateModalFn = jest.fn(),

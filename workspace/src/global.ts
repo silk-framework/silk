@@ -1,6 +1,6 @@
+import { HOST } from "./app/constants/path";
 import { onErrorHandler } from "./app/services/errorLogger";
 import { createPlugin } from "./app/services/pluginApi";
-import { HOST } from "./app/constants/path";
 
 /**
  * @override

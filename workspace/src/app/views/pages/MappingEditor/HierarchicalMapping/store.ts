@@ -1,7 +1,16 @@
 // Store specific to hierarchical mappings, will use silk-store internally
 
-import _ from "lodash";
+import {
+    IPartialAutoCompleteResult,
+    IValidationResult,
+} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import rxmq, { Rx } from "ecc-messagebus";
+import _ from "lodash";
+import React, { useState } from "react";
+
+import { CONTEXT_PATH } from "../../../../constants/path";
+import silkApi, { HttpResponsePromise } from "../api/silkRestApi";
+import { ITransformedSuggestion, SuggestionIssues } from "./containers/SuggestionNew/suggestion.typings";
 import {
     isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,
@@ -13,14 +22,6 @@ import {
     MESSAGES,
 } from "./utils/constants";
 import EventEmitter from "./utils/EventEmitter";
-import React, { useState } from "react";
-import silkApi, { HttpResponsePromise } from "../api/silkRestApi";
-import {ITransformedSuggestion, SuggestionIssues} from "./containers/SuggestionNew/suggestion.typings";
-import {
-    IPartialAutoCompleteResult,
-    IValidationResult,
-} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { CONTEXT_PATH } from "../../../../constants/path";
 
 export const silkStore = rxmq.channel("silk.api");
 export const errorChannel = rxmq.channel("errors");
@@ -224,7 +225,7 @@ const prepareValueMappingPayload = (data: IProps) => {
 
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty ? handleCreatedSelectBoxValue(data, "sourceProperty") : "";
-        payload.type = MAPPING_RULE_TYPE_DIRECT
+        payload.type = MAPPING_RULE_TYPE_DIRECT;
     }
 
     if (!data.id) {
@@ -466,10 +467,10 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps, executeVocabularyM
         fetchValueSourcePaths(data),
         (vocabDatasetsResponse, sourcePaths) => {
             const suggestions: ITransformedSuggestion[] = [];
-            let suggestionIssues: SuggestionIssues | undefined = undefined
+            let suggestionIssues: SuggestionIssues | undefined = undefined;
             if (vocabDatasetsResponse.data) {
-                const {matches, issues} = vocabDatasetsResponse.data
-                suggestionIssues = issues
+                const { matches, issues } = vocabDatasetsResponse.data;
+                suggestionIssues = issues;
                 matches.map((match) => {
                     const { uri: sourceUri, description, label, candidates, graph } = match;
                     return suggestions.push({

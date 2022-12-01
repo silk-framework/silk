@@ -1,5 +1,14 @@
-import React from "react";
+import { ContextMenu } from "@eccenca/gui-elements";
+import { waitFor } from "@testing-library/react";
 import { createBrowserHistory } from "history";
+import React from "react";
+import { Helmet } from "react-helmet";
+
+import { Header } from "../../../../../src/app/views/layout/Header/Header";
+import Task from "../../../../../src/app/views/pages/Task";
+import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
+import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import mockAxios from "../../../../__mocks__/axios";
 import {
     byTestId,
@@ -10,14 +19,6 @@ import {
     withMount,
     workspacePath,
 } from "../../../TestHelper";
-import { Header } from "../../../../../src/app/views/layout/Header/Header";
-import Task from "../../../../../src/app/views/pages/Task";
-import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
-import { waitFor } from "@testing-library/react";
-import { Helmet } from "react-helmet";
-import { ContextMenu } from "@eccenca/gui-elements";
-import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
-import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
 
 describe("Header", () => {
     let hostPath = process.env.HOST;

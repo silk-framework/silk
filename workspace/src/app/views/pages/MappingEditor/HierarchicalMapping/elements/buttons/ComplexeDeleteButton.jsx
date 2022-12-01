@@ -1,5 +1,5 @@
-import React from 'react';
 import { Button } from "@eccenca/gui-elements/src/legacy-replacements";
+import React from "react";
 
 const ComplexDeleteButton = ({ onDelete }) => {
     return (
@@ -10,7 +10,7 @@ const ComplexDeleteButton = ({ onDelete }) => {
             onClick={onDelete}
             tooltip="Reset to default pattern"
         />
-    )
+    );
 };
 
 export default ComplexDeleteButton;

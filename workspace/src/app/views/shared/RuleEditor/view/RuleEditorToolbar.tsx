@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Button,
     Icon,
@@ -11,18 +10,20 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import { RuleEditorContext } from "../contexts/RuleEditorContext";
-import { RuleEditorNotifications } from "./RuleEditorNotifications";
-import useHotKey from "../../HotKeyHandler/HotKeyHandler";
-import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
-import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
-import { RuleValidationError } from "../RuleEditor.typings";
+
+import useHotKey from "../../HotKeyHandler/HotKeyHandler";
+import { RuleEditorContext } from "../contexts/RuleEditorContext";
+import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import { RuleValidationError } from "../RuleEditor.typings";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
+import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
+import { RuleEditorNotifications } from "./RuleEditorNotifications";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {

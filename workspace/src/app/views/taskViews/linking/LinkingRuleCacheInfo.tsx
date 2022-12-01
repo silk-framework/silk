@@ -1,8 +1,9 @@
-import React from "react";
-import { useTranslation } from "react-i18next";
-import { Spacing, ToolbarSection, ContextOverlay, Icon } from "@eccenca/gui-elements";
+import { ContextOverlay, Icon, Spacing, ToolbarSection } from "@eccenca/gui-elements";
 import { ActivityControlWidget } from "@eccenca/gui-elements";
 import { IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
 import { useTaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
 
 interface LinkingRuleCacheInfoProps {
@@ -53,13 +54,13 @@ export const LinkingRuleCacheInfo = ({ projectId, taskId }: LinkingRuleCacheInfo
                     onClose={() => {
                         setDisplayFullInfo(false);
                     }}
-                    content={(
+                    content={
                         <div style={{ width: "40rem", padding: "0.5rem" }}>
                             {referenceCache.widget}
                             <Spacing size="small" />
                             {pathCache.widget}
                         </div>
-                    )}
+                    }
                 >
                     <ActivityControlWidget
                         small

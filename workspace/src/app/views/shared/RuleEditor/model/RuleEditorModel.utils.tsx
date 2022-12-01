@@ -1,7 +1,12 @@
-import React from "react";
+import { IconButton } from "@eccenca/gui-elements";
 import { IHandleProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import dagre from "dagre";
+import React from "react";
 import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
+import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
+
 import { rangeArray } from "../../../../utils/basicUtils";
+import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import {
     IParameterSpecification,
     IRuleNodeData,
@@ -10,13 +15,9 @@ import {
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
 } from "../RuleEditor.typings";
+import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
-import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
-import dagre from "dagre";
-import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton } from "@eccenca/gui-elements";
-import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 /** Constants */
 
@@ -69,7 +70,7 @@ export interface IOperatorCreateContext {
     // Updates several node parameters in a single transaction
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
-    readOnlyMode: boolean
+    readOnlyMode: boolean;
 }
 
 /** Creates a new react-flow rule operator node. */

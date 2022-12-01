@@ -1,6 +1,7 @@
-import { convertToWebsocketUrl, connectWebSocket } from "../websocketUtils";
-import WS from "jest-websocket-mock";
 import { waitFor } from "@testing-library/react";
+import WS from "jest-websocket-mock";
+
+import { connectWebSocket, convertToWebsocketUrl } from "../websocketUtils";
 
 describe("websocketUtils", () => {
     it("should convert to a correct websocket URL given a http URL", () => {

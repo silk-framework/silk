@@ -53,7 +53,6 @@ export const prependSlash = (relativePath: string): string => {
     }
 };
 
-
 /**
  * @param query
  */

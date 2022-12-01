@@ -1,9 +1,10 @@
-import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React from "react";
+
+import { partitionArray } from "../../../../../utils/basicUtils";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { RuleNodeFormParameter } from "./RuleNodeFormParameter";
-import {RuleEditorUiContext} from "../../contexts/RuleEditorUiContext";
-import {partitionArray} from "../../../../../utils/basicUtils";
-import {AdvancedOptionsArea} from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 
 export interface RuleNodeParametersProps {
     nodeId: string;
@@ -17,7 +18,7 @@ export interface RuleNodeParametersProps {
     /** If this is true then the parameters are put into an advanced section that is collapsed by default. */
     hasAdvancedSection?: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 /** The parameter widget of a rule node. */
@@ -28,37 +29,41 @@ export const RuleNodeParameterForm = ({
     dependentValue,
     large,
     hasAdvancedSection,
-    insideModal
+    insideModal,
 }: RuleNodeParametersProps) => {
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
-    const {
-        matches: normalParameters,
-        nonMatches: advancedParameters
-    } = partitionArray(parameters, param => !param.parameterSpecification.advanced)
+    const { matches: normalParameters, nonMatches: advancedParameters } = partitionArray(
+        parameters,
+        (param) => !param.parameterSpecification.advanced
+    );
 
-    const shownParameters = [...normalParameters]
-    if(ruleEditorUiContext.advancedParameterModeEnabled && !hasAdvancedSection) {
-        shownParameters.push(...advancedParameters)
+    const shownParameters = [...normalParameters];
+    if (ruleEditorUiContext.advancedParameterModeEnabled && !hasAdvancedSection) {
+        shownParameters.push(...advancedParameters);
     }
-    const advancedSectionParameters = hasAdvancedSection ? advancedParameters : []
-    const renderFormParameter = (param: IRuleNodeParameter) =>  {
-        return <RuleNodeFormParameter
-            key={param.parameterId}
-            nodeId={nodeId}
-            parameter={param}
-            dependentValue={dependentValue}
-            pluginId={pluginId}
-            large={large}
-            insideModal={insideModal}
-        />
-    }
+    const advancedSectionParameters = hasAdvancedSection ? advancedParameters : [];
+    const renderFormParameter = (param: IRuleNodeParameter) => {
+        return (
+            <RuleNodeFormParameter
+                key={param.parameterId}
+                nodeId={nodeId}
+                parameter={param}
+                dependentValue={dependentValue}
+                pluginId={pluginId}
+                large={large}
+                insideModal={insideModal}
+            />
+        );
+    };
 
     return (
         <div key={"ruleNodeParameters"}>
             {shownParameters.map(renderFormParameter)}
-            {advancedSectionParameters.length > 0 ? <AdvancedOptionsArea open={ruleEditorUiContext.advancedParameterModeEnabled}>
-                {advancedSectionParameters.map(renderFormParameter)}
-            </AdvancedOptionsArea> : null}
+            {advancedSectionParameters.length > 0 ? (
+                <AdvancedOptionsArea open={ruleEditorUiContext.advancedParameterModeEnabled}>
+                    {advancedSectionParameters.map(renderFormParameter)}
+                </AdvancedOptionsArea>
+            ) : null}
         </div>
     );
 };

@@ -1,13 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Intent } from "@eccenca/gui-elements/blueprint/constants";
-import { Card, CardContent, CardHeader, CardTitle, Divider, Button, Notification, Spacing } from "@eccenca/gui-elements";
-import MarkdownModal from "../../../shared/modals/MarkdownModal";
-import { AppToaster } from "../../../../services/toaster";
 import { commonSel } from "@ducks/common";
-import Loading from "../../../shared/Loading";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import {
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Divider,
+    Notification,
+    Spacing,
+} from "@eccenca/gui-elements";
+import { Intent } from "@eccenca/gui-elements/blueprint/constants";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
+import { AppToaster } from "../../../../services/toaster";
+import Loading from "../../../shared/Loading";
+import MarkdownModal from "../../../shared/modals/MarkdownModal";
 
 export const WarningWidget = () => {
     const dispatch = useDispatch();

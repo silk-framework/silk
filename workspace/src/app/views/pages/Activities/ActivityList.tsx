@@ -1,23 +1,24 @@
+import { routerOp } from "@ducks/router";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "@eccenca/gui-elements";
+import { Card, Highlighter, Icon, Notification, OverflowText, Spacing, Tag, TagList } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "@eccenca/gui-elements";
-import { Card, Tag, TagList, Highlighter, Spacing, OverflowText, Notification, Icon } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { batch } from "react-redux";
+
+import { SERVE_PATH } from "../../../constants/path";
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { connectWebSocket } from "../../../services/websocketUtils";
+import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import Datalist from "../../../views/shared/Datalist";
 import EmptyList from "../../../views/shared/SearchList/EmptyList";
-import AppliedFacets from "../Workspace/AppliedFacets";
-import Pagination from "../../shared/Pagination";
-import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { connectWebSocket } from "../../../services/websocketUtils";
 import { activityActionCreator } from "../../../views/shared/TaskActivityOverview/taskActivityOverviewRequests";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { activityErrorReportFactory } from "../../../views/shared/TaskActivityOverview/taskActivityUtils";
-import useErrorHandler from "../../../hooks/useErrorHandler";
+import Pagination from "../../shared/Pagination";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
-import { routerOp } from "@ducks/router";
-import { batch } from "react-redux";
-import { SERVE_PATH } from "../../../constants/path";
+import AppliedFacets from "../Workspace/AppliedFacets";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;

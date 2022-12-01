@@ -1,5 +1,5 @@
-import {Edge, XYPosition} from "react-flow-renderer";
-import {Node, OnConnectStartParams} from "react-flow-renderer/dist/types";
+import { Edge, XYPosition } from "react-flow-renderer";
+import { Node, OnConnectStartParams } from "react-flow-renderer/dist/types";
 
 export interface IRuleEditorViewDragState {
     nodeDragStartPosition?: XYPosition | undefined;

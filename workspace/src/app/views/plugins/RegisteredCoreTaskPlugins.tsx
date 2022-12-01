@@ -1,9 +1,10 @@
-import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
-import { IViewActions, pluginRegistry } from "./PluginRegistry";
-import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
+
 import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
 import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
+import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
+import { IViewActions, pluginRegistry } from "./PluginRegistry";
 
 let registered = false;
 export const registerCorePlugins = () => {

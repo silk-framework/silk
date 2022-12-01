@@ -2,9 +2,10 @@ import { Button, Card, List, OverviewItem, OverviewItemActions, Spacing } from "
 import { extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import React from "react";
 import { useTranslation } from "react-i18next";
+
 import { IRuleOperator, RuleOperatorNodeParameters } from "../../RuleEditor.typings";
-import { RuleOperator } from "./RuleOperator";
 import { IPreConfiguredRuleOperator } from "./RuleEditorOperatorSidebar.typings";
+import { RuleOperator } from "./RuleOperator";
 
 interface RuleOperatorListProps<T> {
     /** The rule operators that should be shown. */

@@ -1,8 +1,8 @@
-import React from "react";
 import { Markdown } from "@eccenca/gui-elements";
-import { Button, SimpleDialog, HtmlContentBlock } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
+import { Button, HtmlContentBlock, SimpleDialog } from "@eccenca/gui-elements";
 import { SimpleDialogProps } from "@eccenca/gui-elements/src/components/Dialog/SimpleDialog";
+import React from "react";
+import { useTranslation } from "react-i18next";
 
 interface IProps extends Partial<SimpleDialogProps> {
     onDiscard: () => any;

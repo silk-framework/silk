@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
-import SearchInput, { ISearchInputProps } from "./SearchInput";
-import SortButton from "../buttons/SortButton";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import SortButton from "../buttons/SortButton";
+import SearchInput, { ISearchInputProps } from "./SearchInput";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<

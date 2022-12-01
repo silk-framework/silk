@@ -1,5 +1,5 @@
-import { workspacePath } from "../../TestHelper";
 import { rangeArray } from "../../../../src/app/utils/basicUtils";
+import { workspacePath } from "../../TestHelper";
 
 export class RelatedItemsTestHelper {
     /** Generates a JSON for response for the related items endpoint. */

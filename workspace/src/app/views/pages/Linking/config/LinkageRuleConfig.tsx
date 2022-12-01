@@ -1,5 +1,3 @@
-import { Loading } from "../../../shared/Loading/Loading";
-import React, { useEffect } from "react";
 import {
     Card,
     CardContent,
@@ -14,12 +12,15 @@ import {
     PropertyValueList,
     PropertyValuePair,
 } from "@eccenca/gui-elements";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { LinkageRuleConfigModal } from "./LinkageRuleConfigModal";
+
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { fetchLinkSpec, updateLinkageRule } from "../../../taskViews/linking/LinkingRuleEditor.requests";
+import { Loading } from "../../../shared/Loading/Loading";
 import { ILinkingRule, LabelledParameterValue } from "../../../taskViews/linking/linking.types";
+import { fetchLinkSpec, updateLinkageRule } from "../../../taskViews/linking/LinkingRuleEditor.requests";
 import { invalidUriChars } from "../../Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
+import { LinkageRuleConfigModal } from "./LinkageRuleConfigModal";
 
 interface IProps {
     linkingTaskId: string;

@@ -1,5 +1,5 @@
-import { useHistory } from "react-router";
 import React from "react";
+import { useHistory } from "react-router";
 
 /** Adds the history to a component. */
 export const withHistoryHOC = (Component: any) => {

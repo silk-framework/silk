@@ -1,5 +1,5 @@
-import React from "react";
 import { Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import React from "react";
 
 /** A dashed line. */
 export const DashedLine = () => <div className="diapp-linking-connectionavailable__dashedline" />;
@@ -11,9 +11,7 @@ export interface ConnectionAvailableProps {
     actions: JSX.Element;
 }
 
-const ConnectionAvailable = ({
-    actions,
-}: ConnectionAvailableProps) => {
+const ConnectionAvailable = ({ actions }: ConnectionAvailableProps) => {
     return (
         <Toolbar style={{ height: "100%" }} noWrap>
             <ToolbarSection canGrow={true}>

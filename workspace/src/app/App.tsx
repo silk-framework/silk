@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import { commonOp } from "@ducks/common";
 import { ConnectedRouter } from "connected-react-router";
+import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 
-import { commonOp } from "@ducks/common";
+import { IRouteProps } from "./appRoutes";
 import RouterOutlet from "./RouterOutlet";
 import { getHistory } from "./store/configureStore";
-import { IRouteProps } from "./appRoutes";
 
 interface IProps {
     routes: IRouteProps[];

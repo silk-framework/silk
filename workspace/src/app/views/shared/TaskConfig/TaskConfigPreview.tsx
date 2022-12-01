@@ -1,3 +1,4 @@
+import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
 import { IProjectTask } from "@ducks/shared/typings";
 import {
     IconButton,
@@ -10,8 +11,8 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import React from "react";
-import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
+
 import { INPUT_TYPES } from "../../../constants";
 import { CONTEXT_PATH } from "../../../constants/path";
 

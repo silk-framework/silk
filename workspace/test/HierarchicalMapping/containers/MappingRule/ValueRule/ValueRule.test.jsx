@@ -1,18 +1,19 @@
-import React from "react";
 import { mount, shallow } from "enzyme";
-import TargetProperty from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/TargetProperty";
-import ObjectSourcePath from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectSourcePath";
-import EditButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/EditButton";
-import CopyButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CopyButton";
-import CloneButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CloneButton";
-import DeleteButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/DeleteButton";
-import ValueRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
-import ValueRuleForm from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import ValueNodeType from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ValueMapping/ValueNodeType";
-import ValueSourcePaths from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ValueMapping/ValueSourcePaths";
-import MetadataLabel from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataLabel";
+import React from "react";
+
 import ExampleTarget from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ExampleTarget";
 import MetadataDesc from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataDesc";
+import MetadataLabel from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataLabel";
+import ObjectSourcePath from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ObjectMapping/ObjectSourcePath";
+import TargetProperty from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/TargetProperty";
+import ValueNodeType from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ValueMapping/ValueNodeType";
+import ValueSourcePaths from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ValueMapping/ValueSourcePaths";
+import ValueRule from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule";
+import ValueRuleForm from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
+import CloneButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CloneButton";
+import CopyButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/CopyButton";
+import DeleteButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/DeleteButton";
+import EditButton from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/EditButton";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();

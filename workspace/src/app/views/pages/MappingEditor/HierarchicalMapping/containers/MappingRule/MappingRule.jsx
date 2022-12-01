@@ -2,19 +2,19 @@
  An individual Mapping Rule Line
  */
 
-import React from "react";
-import _ from "lodash";
-
-import ValueMappingRule from "./ValueRule/ValueRule";
-import ObjectRule from "./ObjectRule/ObjectRule";
-import { isObjectRule, isRootOrObjectRule, MESSAGES } from "../../utils/constants";
-import className from "classnames";
-import EventEmitter from "../../utils/EventEmitter";
-import PropTypes from "prop-types";
-import MappingRuleRow from "./MappingRuleRow";
-import NavigateButton from "../../elements/buttons/NavigateButton";
-import ExpandButton from "../../elements/buttons/ExpandButton";
 import { ContextMenu, MenuItem, Spinner } from "@eccenca/gui-elements";
+import className from "classnames";
+import _ from "lodash";
+import PropTypes from "prop-types";
+import React from "react";
+
+import ExpandButton from "../../elements/buttons/ExpandButton";
+import NavigateButton from "../../elements/buttons/NavigateButton";
+import { isObjectRule, isRootOrObjectRule, MESSAGES } from "../../utils/constants";
+import EventEmitter from "../../utils/EventEmitter";
+import MappingRuleRow from "./MappingRuleRow";
+import ObjectRule from "./ObjectRule/ObjectRule";
+import ValueMappingRule from "./ValueRule/ValueRule";
 
 export class MappingRule extends React.Component {
     // define property types

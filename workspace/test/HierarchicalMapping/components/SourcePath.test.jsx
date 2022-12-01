@@ -1,19 +1,16 @@
+import { shallow } from "enzyme";
+import { NotAvailable } from "gui-elements-deprecated";
 import React from "react";
-import { shallow } from 'enzyme';
-import { SourcePath } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/SourcePath';
-import { NotAvailable } from 'gui-elements-deprecated';
 
+import { SourcePath } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/SourcePath";
 
-const getWrapper = (renderer = shallow, args = {}) => renderer(
-    <SourcePath {...args} />
-);
-
+const getWrapper = (renderer = shallow, args = {}) => renderer(<SourcePath {...args} />);
 
 describe("SourcePath Component", () => {
-    describe("on component mounted, ",() => {
+    describe("on component mounted, ", () => {
         it("should render NotAvailable component, when `sourcePath` is NOT presented in `rule` prop", () => {
             const wrapper = getWrapper(shallow, {
-                rule: {}
+                rule: {},
             });
             expect(wrapper.find(NotAvailable)).toHaveLength(1);
         });
@@ -21,10 +18,10 @@ describe("SourcePath Component", () => {
         it("should render NotAvailable component, when `sourcePath` is presented in `rule` prop", () => {
             const wrapper = getWrapper(shallow, {
                 rule: {
-                    sourcePath: 'text'
-                }
+                    sourcePath: "text",
+                },
             });
-            expect(wrapper.find('span').text()).toEqual('text')
+            expect(wrapper.find("span").text()).toEqual("text");
         });
     });
 });

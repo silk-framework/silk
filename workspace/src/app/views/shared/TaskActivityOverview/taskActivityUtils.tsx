@@ -1,6 +1,7 @@
-import { fetchActivityErrorReport } from "./taskActivityOverviewRequests";
 import { DIErrorTypes } from "@ducks/error/typings";
 import { IActivityExecutionReport } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+
+import { fetchActivityErrorReport } from "./taskActivityOverviewRequests";
 
 /** Returns the error report function that should be given to the activity control as parameter. */
 export const activityErrorReportFactory = (

@@ -1,11 +1,11 @@
-import React from "react";
 import {
+    IconButton,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
-    IconButton,
 } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 export interface PropertyBoxProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
@@ -24,7 +24,7 @@ export const PropertyBox = ({
     exampleValues,
     exampleTooltip,
     onFilter,
-    filtered
+    filtered,
 }: PropertyBoxProps) => {
     const [t] = useTranslation();
     return (
@@ -48,4 +48,4 @@ export const PropertyBox = ({
             </OverviewItem>
         </div>
     );
-}
+};

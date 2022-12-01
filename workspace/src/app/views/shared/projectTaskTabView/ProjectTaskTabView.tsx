@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useHistory } from "react-router";
-import { useTranslation } from "react-i18next";
-import locationParser from "query-string";
+import "./projectTaskTabView.scss";
+
+import { commonSel } from "@ducks/common";
+import { requestItemLinks } from "@ducks/shared/requests";
+import { IItemLink } from "@ducks/shared/typings";
 import {
     Button,
     Card,
@@ -17,13 +17,15 @@ import {
     Modal,
     Spacing,
 } from "@eccenca/gui-elements";
-import { IItemLink } from "@ducks/shared/typings";
-import { requestItemLinks } from "@ducks/shared/requests";
-import { commonSel } from "@ducks/common";
-import Loading from "../Loading";
+import locationParser from "query-string";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory } from "react-router";
+
 import { SERVE_PATH } from "../../../constants/path";
-import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
+import Loading from "../Loading";
 import PromptModal from "./PromptModal";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];

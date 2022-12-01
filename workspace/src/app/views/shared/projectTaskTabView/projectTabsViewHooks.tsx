@@ -1,9 +1,10 @@
 import { IItemLink } from "@ducks/shared/typings";
-import { ProjectTaskTabView } from "./ProjectTaskTabView";
-import React, { useState } from "react";
-import { pluginRegistry } from "../../../views/plugins/PluginRegistry";
 import { MenuItem } from "@eccenca/gui-elements";
+import React, { useState } from "react";
+
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import { pluginRegistry } from "../../../views/plugins/PluginRegistry";
+import { ProjectTaskTabView } from "./ProjectTaskTabView";
 
 interface IProps {
     srcLinks: IItemLink[];

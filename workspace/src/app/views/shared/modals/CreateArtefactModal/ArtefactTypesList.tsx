@@ -1,8 +1,8 @@
-import React from "react";
-import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { Menu, MenuItem, TitleSubsection } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 
 /** Shows the item categories on the left side of the item type selection dialog. */
 function ArtefactTypesList({ onSelect }) {

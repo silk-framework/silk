@@ -1,9 +1,10 @@
-import React from 'react';
 import { Tag, TagList } from "@eccenca/gui-elements";
-import { COLUMN_FILTERS } from "./constants";
-import _ from 'lodash';
+import _ from "lodash";
+import React from "react";
 
-const AVAILABLE_FILTERS = _.keyBy(_.flatMap(COLUMN_FILTERS), 'action')
+import { COLUMN_FILTERS } from "./constants";
+
+const AVAILABLE_FILTERS = _.keyBy(_.flatMap(COLUMN_FILTERS), "action");
 
 interface IProps {
     // column filters
@@ -13,14 +14,13 @@ interface IProps {
 }
 
 export default function AppliedFilters({ filters, onRemove }: IProps) {
-    return <TagList label={'Applied Filters'}>
-        {
-            Object
-                .entries(filters)
-                .map(([key, filter]: [string, string]) => (
-                    <Tag key={key} onRemove={() => onRemove(key)}>
-                        {AVAILABLE_FILTERS[filter].label}
-                    </Tag>
-        ))}
-    </TagList>
+    return (
+        <TagList label={"Applied Filters"}>
+            {Object.entries(filters).map(([key, filter]: [string, string]) => (
+                <Tag key={key} onRemove={() => onRemove(key)}>
+                    {AVAILABLE_FILTERS[filter].label}
+                </Tag>
+            ))}
+        </TagList>
+    );
 }

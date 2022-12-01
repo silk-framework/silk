@@ -1,17 +1,18 @@
 import { IPluginDetails } from "@ducks/common/typings";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
-import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
-import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
-import { evaluateTransformRule } from "../transform.requests";
+
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
-import { transformToValueMap } from "../transformEditor.utils";
-import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
+import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
 import { EvaluationResultType } from "../../../../views/taskViews/linking/evaluation/LinkingRuleEvaluation";
+import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
+import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
+import { evaluateTransformRule } from "../transform.requests";
+import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
+import { transformToValueMap } from "../transformEditor.utils";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 

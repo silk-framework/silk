@@ -1,28 +1,27 @@
-import React from "react";
-import PropTypes from "prop-types";
 import { CardActions, CardContent } from "gui-elements-deprecated";
 import _ from "lodash";
-import { getEditorHref, updateObjectMappingAsync } from "../../../store";
-import ObjectMappingRuleForm from "./ObjectRuleForm";
+import PropTypes from "prop-types";
+import React from "react";
 
-import { isClonableRule, isCopiableRule, isObjectRule, isRootRule, MESSAGES } from "../../../utils/constants";
-import transformRuleOfObjectMapping from "../../../utils/transformRuleOfObjectMapping";
-import EventEmitter from "../../../utils/EventEmitter";
-
-import EditButton from "../../../elements/buttons/EditButton";
-import CopyButton from "../../../elements/buttons/CopyButton";
-import CloneButton from "../../../elements/buttons/CloneButton";
-import DeleteButton from "../../../elements/buttons/DeleteButton";
-import TargetProperty from "../../../components/TargetProperty";
-import ObjectEntityRelation from "../../../components/ObjectMapping/ObjectEntityRelation";
-import ObjectTypeRules from "../../../components/ObjectMapping/ObjectTypeRules";
-import ObjectSourcePath from "../../../components/ObjectMapping/ObjectSourcePath";
-import ObjectUriPattern from "../../../components/ObjectMapping/ObjectUriPattern";
 import ExampleTarget from "../../../components/ExampleTarget";
-import MetadataLabel from "../../../components/Metadata/MetadataLabel";
 import MetadataDesc from "../../../components/Metadata/MetadataDesc";
+import MetadataLabel from "../../../components/Metadata/MetadataLabel";
+import ObjectEntityRelation from "../../../components/ObjectMapping/ObjectEntityRelation";
+import ObjectSourcePath from "../../../components/ObjectMapping/ObjectSourcePath";
+import ObjectTypeRules from "../../../components/ObjectMapping/ObjectTypeRules";
+import ObjectUriPattern from "../../../components/ObjectMapping/ObjectUriPattern";
 import { SourcePath } from "../../../components/SourcePath";
 import TargetCardinality from "../../../components/TargetCardinality";
+import TargetProperty from "../../../components/TargetProperty";
+import CloneButton from "../../../elements/buttons/CloneButton";
+import CopyButton from "../../../elements/buttons/CopyButton";
+import DeleteButton from "../../../elements/buttons/DeleteButton";
+import EditButton from "../../../elements/buttons/EditButton";
+import { getEditorHref, updateObjectMappingAsync } from "../../../store";
+import { isClonableRule, isCopiableRule, isObjectRule, isRootRule, MESSAGES } from "../../../utils/constants";
+import EventEmitter from "../../../utils/EventEmitter";
+import transformRuleOfObjectMapping from "../../../utils/transformRuleOfObjectMapping";
+import ObjectMappingRuleForm from "./ObjectRuleForm";
 
 class ObjectRule extends React.Component {
     static propTypes = {

@@ -1,7 +1,8 @@
-import React from "react";
-import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
-import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
+import React from "react";
+
+import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
+import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
 
 export interface RuleEditorEvaluationContextProps {
     /** If evaluation is supported. */

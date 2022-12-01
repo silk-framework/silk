@@ -1,5 +1,5 @@
-import { RouteProps } from "react-router";
 import { lazy } from "react";
+import { RouteProps } from "react-router";
 
 const DashboardPage = lazy(() => import("./views/pages/Workspace"));
 const ProjectPage = lazy(() => import("./views/pages/Project"));

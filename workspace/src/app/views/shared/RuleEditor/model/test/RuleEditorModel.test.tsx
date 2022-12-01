@@ -1,10 +1,15 @@
-import React from "react";
-import { RuleEditorModel } from "../RuleEditorModel";
-import { testWrapper, withMount } from "../../../../../../../test/integration/TestHelper";
-import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
-import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
+import { nodeUtils } from "@eccenca/gui-elements";
+import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import { act, waitFor } from "@testing-library/react";
+import React from "react";
+import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
+import { XYPosition } from "react-flow-renderer/dist/types";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
+
+import { testWrapper, withMount } from "../../../../../../../test/integration/TestHelper";
+import { rangeArray } from "../../../../../utils/basicUtils";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
 import {
     IParameterSpecification,
     IPortSpecification,
@@ -14,14 +19,10 @@ import {
     RuleOperatorNodeParameters,
     RuleSaveResult,
 } from "../../RuleEditor.typings";
-import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
+import { RuleEditorModel } from "../RuleEditorModel";
 import { RuleEditorNode } from "../RuleEditorModel.typings";
-import { rangeArray } from "../../../../../utils/basicUtils";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
-import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
-import { nodeUtils } from "@eccenca/gui-elements";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;

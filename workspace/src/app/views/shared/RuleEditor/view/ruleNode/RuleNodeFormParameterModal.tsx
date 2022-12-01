@@ -1,9 +1,10 @@
 import { Button } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
-import { RuleNodeParameterForm, RuleNodeParametersProps } from "./RuleNodeParameterForm";
 import { useTranslation } from "react-i18next";
-import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+
+import { RuleEditorNodeParameterValue, ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 import { RuleEditorBaseModal } from "../components/RuleEditorBaseModal";
+import { RuleNodeParameterForm, RuleNodeParametersProps } from "./RuleNodeParameterForm";
 
 type InheritedRuleNodeParameterProps = Omit<RuleNodeParametersProps, "large" | "insideModal">;
 

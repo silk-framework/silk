@@ -1,6 +1,7 @@
-import React from 'react';
-import { autocompleteAsync } from '../../store';
-import _ from 'lodash';
+import _ from "lodash";
+import React from "react";
+
+import { autocompleteAsync } from "../../store";
 
 export class PropertyTypeInfo extends React.Component {
     state = {
@@ -11,17 +12,13 @@ export class PropertyTypeInfo extends React.Component {
 
     componentDidMount() {
         autocompleteAsync({
-            entity: 'propertyType',
+            entity: "propertyType",
             input: this.props.name,
             ruleId: null,
         }).subscribe(
-            response => {
+            (response) => {
                 this.setState({
-                    result: _.get(
-                        response,
-                        ['options', '0', this.props.option],
-                        this.props.name
-                    ),
+                    result: _.get(response, ["options", "0", this.props.option], this.props.name),
                 });
             },
             () => {

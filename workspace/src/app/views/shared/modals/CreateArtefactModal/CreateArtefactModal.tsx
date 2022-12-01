@@ -1,6 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import { commonOp, commonSel } from "@ducks/common";
+import { IArtefactModal, IPluginDetails, IPluginOverview } from "@ducks/common/typings";
+import { diErrorMessage } from "@ducks/error/typings";
+import { routerOp } from "@ducks/router";
+import { requestProjectMetadata } from "@ducks/shared/requests";
+import { DatasetTaskPlugin, TaskType } from "@ducks/shared/typings";
+import { workspaceSel } from "@ducks/workspace";
+import { requestSearchList } from "@ducks/workspace/requests";
 import {
     Button,
     Card,
@@ -25,26 +30,22 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactModal, IPluginDetails, IPluginOverview } from "@ducks/common/typings";
-import Loading from "../../Loading";
-import { ProjectForm } from "./ArtefactForms/ProjectForm";
-import { TaskForm } from "./ArtefactForms/TaskForm";
-import { DATA_TYPES } from "../../../../constants";
-import ArtefactTypesList from "./ArtefactTypesList";
-import { SearchBar } from "../../SearchBar/SearchBar";
-import { routerOp } from "@ducks/router";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { DatasetTaskPlugin, TaskType } from "@ducks/shared/typings";
-import { ProjectImportModal } from "../ProjectImportModal";
-import ItemDepiction from "../../../shared/ItemDepiction";
-import ProjectSelection from "./ArtefactForms/ProjectSelection";
-import { workspaceSel } from "@ducks/workspace";
-import { requestSearchList } from "@ducks/workspace/requests";
+import { batch, useDispatch, useSelector } from "react-redux";
+
+import { DATA_TYPES } from "../../../../constants";
 import { uppercaseFirstChar } from "../../../../utils/transformers";
-import { requestProjectMetadata } from "@ducks/shared/requests";
+import ItemDepiction from "../../../shared/ItemDepiction";
+import Loading from "../../Loading";
+import { SearchBar } from "../../SearchBar/SearchBar";
+import { ProjectImportModal } from "../ProjectImportModal";
+import { ProjectForm } from "./ArtefactForms/ProjectForm";
+import ProjectSelection from "./ArtefactForms/ProjectSelection";
+import { TaskForm } from "./ArtefactForms/TaskForm";
+import ArtefactTypesList from "./ArtefactTypesList";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
-import { diErrorMessage } from "@ducks/error/typings";
 
 const ignorableFields = new Set(["label", "description"]);
 

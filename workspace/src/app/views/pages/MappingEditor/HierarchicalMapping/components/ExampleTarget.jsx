@@ -1,19 +1,18 @@
-import React from 'react';
-import ExampleView from '../containers/MappingRule/ExampleView';
+import React from "react";
 
-const ExampleTarget = ({uriRuleId}) => {
+import ExampleView from "../containers/MappingRule/ExampleView";
+
+const ExampleTarget = ({ uriRuleId }) => {
     return (
         <div className="ecc-silk-mapping__rulesviewer__examples">
             <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                    Examples of target data
-                </dt>
+                <dt className="ecc-silk-mapping__rulesviewer__attribute-label">Examples of target data</dt>
                 <dd>
-                    <ExampleView id={uriRuleId}/>
+                    <ExampleView id={uriRuleId} />
                 </dd>
             </dl>
         </div>
-    )
+    );
 };
 
 export default ExampleTarget;

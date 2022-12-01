@@ -1,16 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { Card, CardContent, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
-import DataList from "../Datalist";
-import Spacing from "@eccenca/gui-elements/src/components/Separation/Spacing";
-import { IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
-import { SearchBar } from "../SearchBar/SearchBar";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
-import { useTranslation } from "react-i18next";
-import { RelatedItem } from "./RelatedItem";
-import useErrorHandler from "../../../hooks/useErrorHandler";
 import { requestRelatedItems } from "@ducks/shared/requests";
+import { IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
+import { Card, CardContent, CardHeader, CardTitle, Divider } from "@eccenca/gui-elements";
+import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import Spacing from "@eccenca/gui-elements/src/components/Separation/Spacing";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import DataList from "../Datalist";
+import { SearchBar } from "../SearchBar/SearchBar";
+import { RelatedItem } from "./RelatedItem";
 
 interface IProps {
     projectId?: string;

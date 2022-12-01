@@ -1,25 +1,18 @@
-import React from 'react';
-import {
-    Radio,
-    RadioGroup,
-} from 'gui-elements-deprecated';
-import { ParentElement } from '../ParentElement';
+import { Radio, RadioGroup } from "gui-elements-deprecated";
+import React from "react";
+
+import { ParentElement } from "../ParentElement";
 
 const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {
     return (
-        <RadioGroup
-            value={isBackwardProperty ? 'to' : 'from'}
-            name=""
-            disabled
-        >
+        <RadioGroup value={isBackwardProperty ? "to" : "from"} name="" disabled>
             <Radio
                 name="from"
                 checked={!isBackwardProperty}
                 value="from"
                 label={
                     <div>
-                        Connect from{' '}
-                        <ParentElement parent={parent} />
+                        Connect from <ParentElement parent={parent} />
                     </div>
                 }
             />
@@ -29,13 +22,12 @@ const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {
                 value="to"
                 label={
                     <div>
-                        Connect to{' '}
-                        <ParentElement parent={parent} />
+                        Connect to <ParentElement parent={parent} />
                     </div>
                 }
             />
         </RadioGroup>
-    )
+    );
 };
 
 export default ObjectEntityRelation;

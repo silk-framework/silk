@@ -1,11 +1,12 @@
+import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
 import React, { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import { Route, Switch } from "react-router-dom";
-import Loading from "./views/shared/Loading";
+
+import { IRouteProps } from "./appRoutes";
 import { getFullRoutePath } from "./utils/routerUtils";
 import { AppLayout } from "./views/layout/AppLayout/AppLayout";
-import { useTranslation } from "react-i18next";
-import { IRouteProps } from "./appRoutes";
-import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
+import Loading from "./views/shared/Loading";
 
 interface RouterOutletProps {
     routes: IRouteProps[];

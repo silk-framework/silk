@@ -1,9 +1,9 @@
+import { mount, shallow } from "enzyme";
+import { BreadcrumbItem, MenuItem } from "gui-elements-deprecated";
 import React from "react";
-import {mount, shallow} from 'enzyme';
-import {BreadcrumbItem, MenuItem,} from 'gui-elements-deprecated';
 
-import MappingHeader from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingHeader';
-import ArrowBackButton from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/ArrowBack';
+import MappingHeader from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingHeader";
+import ArrowBackButton from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/ArrowBack";
 
 const onRuleIdChangeFn = jest.fn();
 const onToggleTreeNavFn = jest.fn();
@@ -11,7 +11,7 @@ const onToggleDetailsFn = jest.fn();
 
 const props = {
     rule: {
-        id: 'children'
+        id: "children",
     },
     onRuleIdChange: onRuleIdChangeFn,
     onToggleTreeNav: onToggleTreeNavFn,
@@ -19,19 +19,17 @@ const props = {
 };
 
 const selectors = {
-    TREE_NAV: '.ecc-silk-mapping__ruleslistmenu__item-toggletree',
+    TREE_NAV: ".ecc-silk-mapping__ruleslistmenu__item-toggletree",
     BACK_BTN: 'button[data-button-id="back"]',
-    EXPAND_ALL_BTN: '.ecc-silk-mapping__ruleslistmenu__item-expand',
-    REDUCE_ALL_BTN: '.ecc-silk-mapping__ruleslistmenu__item-reduce',
+    EXPAND_ALL_BTN: ".ecc-silk-mapping__ruleslistmenu__item-expand",
+    REDUCE_ALL_BTN: ".ecc-silk-mapping__ruleslistmenu__item-reduce",
     BREADCRUMB_ITEM: '[data-test-selector="breadcrumb-item"]',
 };
 
-const getWrapper = (renderer = shallow, args = props) => renderer(
-    <MappingHeader {...args} />
-);
+const getWrapper = (renderer = shallow, args = props) => renderer(<MappingHeader {...args} />);
 
 describe("MappingHeader Component", () => {
-    describe("on component mounted, ",() => {
+    describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
             wrapper = getWrapper(shallow);
@@ -40,7 +38,7 @@ describe("MappingHeader Component", () => {
         it("should nothing rendered when rule is empty", () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
-                rule: {}
+                rule: {},
             });
             expect(wrapper.get(0)).toBeFalsy();
         });
@@ -53,10 +51,10 @@ describe("MappingHeader Component", () => {
                         {
                             id: "root",
                             property: false,
-                            type: "fibo-fnd-tim-tim:Day"
-                        }
-                    ]
-                }
+                            type: "fibo-fnd-tim-tim:Day",
+                        },
+                    ],
+                },
             });
             expect(wrapper.find(ArrowBackButton)).toHaveLength(1);
         });
@@ -69,10 +67,10 @@ describe("MappingHeader Component", () => {
                         {
                             id: "root",
                             property: false,
-                            type: "fibo-fnd-tim-tim:Day"
-                        }
-                    ]
-                }
+                            type: "fibo-fnd-tim-tim:Day",
+                        },
+                    ],
+                },
             });
             expect(wrapper.find(BreadcrumbItem)).toHaveLength(2);
         });
@@ -83,16 +81,16 @@ describe("MappingHeader Component", () => {
 
         afterEach(() => {
             wrapper.unmount();
-        })
+        });
     });
 
-    describe('on user interaction', () => {
+    describe("on user interaction", () => {
         let wrapper;
         beforeEach(() => {
             wrapper = getWrapper(shallow);
         });
 
-        it('should ArrowBackButton navigate back', () => {
+        it("should ArrowBackButton navigate back", () => {
             const wrapper = getWrapper(mount, {
                 ...props,
                 rule: {
@@ -101,53 +99,53 @@ describe("MappingHeader Component", () => {
                         {
                             id: "root",
                             property: false,
-                            type: "fibo-fnd-tim-tim:Day"
-                        }
-                    ]
-                }
+                            type: "fibo-fnd-tim-tim:Day",
+                        },
+                    ],
+                },
             });
-            wrapper.find(selectors.BACK_BTN).simulate('click');
-            expect(onRuleIdChangeFn).toBeCalledWith({ newRuleId: 'root', parentId: 'children' })
+            wrapper.find(selectors.BACK_BTN).simulate("click");
+            expect(onRuleIdChangeFn).toBeCalledWith({ newRuleId: "root", parentId: "children" });
         });
 
-        it('should BreadCrumb navigate the page', () => {
+        it("should BreadCrumb navigate the page", () => {
             const wrapper = getWrapper(mount, {
                 ...props,
                 rule: {
-                    id: 'root',
+                    id: "root",
                     breadcrumbs: [
                         {
                             id: "someId",
                             property: false,
-                            type: "fibo-fnd-tim-tim:Day"
-                        }
-                    ]
-                }
+                            type: "fibo-fnd-tim-tim:Day",
+                        },
+                    ],
+                },
             });
-            wrapper.find(selectors.BREADCRUMB_ITEM).last().simulate('click');
-            expect(onRuleIdChangeFn).toBeCalledWith({ newRuleId: 'someId', parentId: 'root' })
+            wrapper.find(selectors.BREADCRUMB_ITEM).last().simulate("click");
+            expect(onRuleIdChangeFn).toBeCalledWith({ newRuleId: "someId", parentId: "root" });
         });
 
-        it('should tree navigation collapse when click on button', () => {
+        it("should tree navigation collapse when click on button", () => {
             const wrapper = getWrapper(mount);
-            wrapper.find(selectors.TREE_NAV).first().simulate('click');
-            expect(onToggleTreeNavFn).toBeCalled()
+            wrapper.find(selectors.TREE_NAV).first().simulate("click");
+            expect(onToggleTreeNavFn).toBeCalled();
         });
 
-        it('should expand all button working correctly', () => {
+        it("should expand all button working correctly", () => {
             const wrapper = getWrapper(mount);
-            wrapper.find(selectors.EXPAND_ALL_BTN).first().simulate('click');
-            expect(onToggleDetailsFn).toBeCalledWith({expanded: true})
+            wrapper.find(selectors.EXPAND_ALL_BTN).first().simulate("click");
+            expect(onToggleDetailsFn).toBeCalledWith({ expanded: true });
         });
 
-        it('should reduce all button working correctly', () => {
+        it("should reduce all button working correctly", () => {
             const wrapper = getWrapper(mount);
-            wrapper.find(selectors.REDUCE_ALL_BTN).first().simulate('click');
-            expect(onToggleDetailsFn).toBeCalledWith({expanded: false})
+            wrapper.find(selectors.REDUCE_ALL_BTN).first().simulate("click");
+            expect(onToggleDetailsFn).toBeCalledWith({ expanded: false });
         });
 
         afterEach(() => {
             wrapper.unmount();
-        })
-    })
+        });
+    });
 });

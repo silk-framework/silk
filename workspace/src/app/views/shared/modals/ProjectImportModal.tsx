@@ -1,4 +1,11 @@
-import React, { useEffect, useState } from "react";
+import { routerOp } from "@ducks/router";
+import {
+    requestDeleteProjectImport,
+    requestProjectImportDetails,
+    requestProjectImportExecutionStatus,
+    requestStartProjectImport,
+} from "@ducks/workspace/requests";
+import { IProjectExecutionStatus, IProjectImportDetails } from "@ducks/workspace/typings";
 import {
     Button,
     CardActionsAux,
@@ -13,23 +20,17 @@ import {
     Spacing,
     TitleSubsection,
 } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
-import Uppy, { UppyFile } from "@uppy/core";
-import { workspaceApi } from "../../../utils/getApiEndpoint";
-import XHR from "@uppy/xhr-upload";
-import {
-    requestDeleteProjectImport,
-    requestProjectImportDetails,
-    requestProjectImportExecutionStatus,
-    requestStartProjectImport,
-} from "@ducks/workspace/requests";
-import { IProjectExecutionStatus, IProjectImportDetails } from "@ducks/workspace/typings";
-import { Loading } from "../Loading/Loading";
-import { useDispatch } from "react-redux";
-import { routerOp } from "@ducks/router";
-import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
+import Uppy, { UppyFile } from "@uppy/core";
+import XHR from "@uppy/xhr-upload";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
+
+import { workspaceApi } from "../../../utils/getApiEndpoint";
+import { absoluteProjectPath } from "../../../utils/routerUtils";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
+import { Loading } from "../Loading/Loading";
 
 interface IProps {
     // Called when closing the modal

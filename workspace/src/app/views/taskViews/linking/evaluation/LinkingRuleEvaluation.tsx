@@ -1,9 +1,16 @@
 /** Component that handles the linking rule (inline) evaluation. */
-import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import React, { ReactElement } from "react";
-import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
+import { IPluginDetails } from "@ducks/common/typings";
 import { TaskPlugin } from "@ducks/shared/typings";
+import React, { ReactElement } from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { FetchError } from "../../../../services/fetch/responseInterceptor";
+import { queryParameterValue } from "../../../../utils/basicUtils";
+import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
+import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import {
     IEntityLink,
     IEvaluatedReferenceLinks,
@@ -11,16 +18,10 @@ import {
     ILinkingRule,
     ILinkingTaskParameters,
 } from "../linking.types";
-import { IPluginDetails } from "@ducks/common/typings";
-import editorUtils from "../LinkingRuleEditor.utils";
 import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from "../LinkingRuleEditor.requests";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { useTranslation } from "react-i18next";
-import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
-import { queryParameterValue } from "../../../../utils/basicUtils";
+import editorUtils from "../LinkingRuleEditor.utils";
 import utils from "./LinkingRuleEvaluation.utils";
-import { FetchError } from "../../../../services/fetch/responseInterceptor";
-import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 

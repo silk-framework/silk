@@ -1,7 +1,8 @@
-import React from "react";
 import { Button, HtmlContentBlock, IconButton, SimpleDialog } from "@eccenca/gui-elements";
-import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
+import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -73,7 +74,12 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
             canEscapeKeyClose={unsavedChanges}
             onClose={onClose}
             headerOptions={
-                <IconButton name="navigation-close" text={t("common.action.close")} onClick={closeEditorModal} data-test-id="transform-mapping-editor-close-btn" />
+                <IconButton
+                    name="navigation-close"
+                    text={t("common.action.close")}
+                    onClick={closeEditorModal}
+                    data-test-id="transform-mapping-editor-close-btn"
+                />
             }
         >
             <>

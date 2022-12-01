@@ -1,9 +1,10 @@
-import { Button, SimpleDialog, Spacing, HtmlContentBlock } from "@eccenca/gui-elements";
+import { Button, HtmlContentBlock, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
+
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { resetActiveLearningSession } from "../LinkingRuleActiveLearning.requests";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { resetActiveLearningSession } from "../LinkingRuleActiveLearning.requests";
 import { ActiveLearningSessionInfoWidget } from "../shared/ActiveLearningSessionInfoWidget";
 
 interface Props {

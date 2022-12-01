@@ -1,62 +1,57 @@
+import { shallow } from "enzyme";
+import { NotAvailable } from "gui-elements-deprecated";
 import React from "react";
-import { shallow } from 'enzyme';
-import { NotAvailable } from 'gui-elements-deprecated';
 
-import RootMappingRule from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/RootMappingRule';
-import ObjectRule from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule';
-
+import ObjectRule from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule";
+import RootMappingRule from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/RootMappingRule";
 
 const props = {
     rule: {
-        "type": "complex",
-        "id": "country",
-        "operator": {
-            "type": "transformInput",
-            "id": "normalize",
-            "function": "GeoLocationParser",
-            "inputs": [
+        type: "complex",
+        id: "country",
+        operator: {
+            type: "transformInput",
+            id: "normalize",
+            function: "GeoLocationParser",
+            inputs: [
                 {
-                    "type": "pathInput",
-                    "id": "country",
-                    "path": "country"
-                }
+                    type: "pathInput",
+                    id: "country",
+                    path: "country",
+                },
             ],
-            "parameters": {
-                "parseTypeId": "Country",
-                "fullStateName": "true"
-            }
-        },
-        "sourcePaths": [
-            "country"
-        ],
-        "metadata": {
-            "description": "sss",
-            "label": ""
-        },
-        "mappingTarget": {
-            "uri": "<urn:ruleProperty:country>",
-            "valueType": {
-                "nodeType": "UriValueType"
+            parameters: {
+                parseTypeId: "Country",
+                fullStateName: "true",
             },
-            "isBackwardProperty": false,
-            "isAttribute": false
+        },
+        sourcePaths: ["country"],
+        metadata: {
+            description: "sss",
+            label: "",
+        },
+        mappingTarget: {
+            uri: "<urn:ruleProperty:country>",
+            valueType: {
+                nodeType: "UriValueType",
+            },
+            isBackwardProperty: false,
+            isAttribute: false,
         },
         rules: {
             uriRule: {
-                pattern: 'pattern'
-            }
-        }
+                pattern: "pattern",
+            },
+        },
     },
-    parentRuleId: 'root',
+    parentRuleId: "root",
 };
 
 const selectors = {
-    URI_PATTERN: '.ecc-silk-mapping__rulesobject__title-uripattern'
+    URI_PATTERN: ".ecc-silk-mapping__rulesobject__title-uripattern",
 };
 
-const getWrapper = (renderer = shallow, args = props) => renderer(
-    <RootMappingRule {...args} />
-);
+const getWrapper = (renderer = shallow, args = props) => renderer(<RootMappingRule {...args} />);
 
 describe("RootMappingRule Component", () => {
     describe("on component mounted, ", () => {
@@ -65,26 +60,26 @@ describe("RootMappingRule Component", () => {
             wrapper = getWrapper(shallow);
         });
 
-        it('should return null, when rule is empty', () => {
+        it("should return null, when rule is empty", () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
-                rule: {}
+                rule: {},
             });
             expect(wrapper.get(0)).toBeFalsy();
         });
 
-        it('should NotAvailable rendered in uriPattern, when rule type is not Uri or Complex', () => {
+        it("should NotAvailable rendered in uriPattern, when rule type is not Uri or Complex", () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
                 rule: {
                     ...props.rule,
-                    type: 'root'
-                }
+                    type: "root",
+                },
             });
             expect(wrapper.find(NotAvailable)).toHaveLength(1);
         });
 
-        it('should uriPattern is equal to `rules.uriRule.pattern`, when uriRule type is uri', () => {
+        it("should uriPattern is equal to `rules.uriRule.pattern`, when uriRule type is uri", () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
                 rule: {
@@ -92,16 +87,16 @@ describe("RootMappingRule Component", () => {
                     rules: {
                         ...props.rule.rules,
                         uriRule: {
-                            type: 'uri',
-                            pattern: 'pattern'
-                        }
-                    }
-                }
+                            type: "uri",
+                            pattern: "pattern",
+                        },
+                    },
+                },
             });
-            expect(wrapper.find(selectors.URI_PATTERN).text()).toBe('pattern');
+            expect(wrapper.find(selectors.URI_PATTERN).text()).toBe("pattern");
         });
 
-        it('should uriPattern is equal to `URI formula`, when uriRule type is complex', () => {
+        it("should uriPattern is equal to `URI formula`, when uriRule type is complex", () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
                 rule: {
@@ -109,23 +104,23 @@ describe("RootMappingRule Component", () => {
                     rules: {
                         ...props.rule.rules,
                         uriRule: {
-                            type: 'complexUri',
-                        }
-                    }
-                }
+                            type: "complexUri",
+                        },
+                    },
+                },
             });
-            expect(wrapper.find(selectors.URI_PATTERN).text()).toBe('URI formula');
+            expect(wrapper.find(selectors.URI_PATTERN).text()).toBe("URI formula");
         });
 
-        it('should render the ObjectRule component, when rule is expanded', () => {
+        it("should render the ObjectRule component, when rule is expanded", () => {
             wrapper.setState({
-                expanded: true
+                expanded: true,
             });
             expect(wrapper.find(ObjectRule)).toHaveLength(1);
         });
 
         afterEach(() => {
             wrapper.unmount();
-        })
-    })
+        });
+    });
 });

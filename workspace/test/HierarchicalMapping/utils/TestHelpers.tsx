@@ -1,5 +1,5 @@
-import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { render } from "@testing-library/react";
+import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 
 /** Similar to Partial, but applies recursively. */
 export type RecursivePartial<T> = {

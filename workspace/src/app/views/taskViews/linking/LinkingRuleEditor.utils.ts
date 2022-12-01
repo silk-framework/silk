@@ -2,6 +2,10 @@
  * Convert to backend model:
  */
 
+import { RuleOperatorType, TaskPlugin } from "@ducks/shared/typings";
+
+import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import {
     IRuleOperator,
     IRuleOperatorNode,
@@ -9,7 +13,10 @@ import {
     RuleEditorValidationNode,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
+import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import { IValueInput, PathWithMetaData } from "../shared/rules/rule.typings";
+import ruleUtils from "../shared/rules/rule.utils";
+import { IStickyNote } from "../shared/task.typings";
 import {
     IAggregationOperator,
     IComparisonOperator,
@@ -18,13 +25,7 @@ import {
     ISimilarityOperator,
     optionallyLabelledParameterToValue,
 } from "./linking.types";
-import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
-import ruleUtils from "../shared/rules/rule.utils";
-import { RuleOperatorType, TaskPlugin } from "@ducks/shared/typings";
 import linkingRuleRequests from "./LinkingRuleEditor.requests";
-import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
-import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { IStickyNote } from "../shared/task.typings";
 
 /**
  * Convert to editor model:

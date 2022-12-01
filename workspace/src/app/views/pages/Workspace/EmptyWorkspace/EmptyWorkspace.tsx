@@ -1,9 +1,10 @@
-import React from "react";
-import { Button, Spacing, TitleMainsection } from "@eccenca/gui-elements";
-import { useDispatch } from "react-redux";
 import { commonOp } from "@ducks/common";
-import { DATA_TYPES } from "../../../../constants";
+import { Button, Spacing, TitleMainsection } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
+import { useDispatch } from "react-redux";
+
+import { DATA_TYPES } from "../../../../constants";
 
 export const EmptyWorkspace = () => {
     const dispatch = useDispatch();

@@ -1,7 +1,7 @@
-import React from "react";
-import { EdgeTools } from "@eccenca/gui-elements/src/extensions/react-flow";
-import { XYPosition } from "react-flow-renderer/dist/types";
 import { Button } from "@eccenca/gui-elements";
+import { EdgeTools } from "@eccenca/gui-elements/src/extensions/react-flow";
+import React from "react";
+import { XYPosition } from "react-flow-renderer/dist/types";
 import { useTranslation } from "react-i18next";
 
 interface SelectionMenuProps {
