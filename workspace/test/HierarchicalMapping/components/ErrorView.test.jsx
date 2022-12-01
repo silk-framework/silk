@@ -1,11 +1,11 @@
 import React from "react";
-import {mount, shallow} from 'enzyme';
+import {mount} from 'enzyme';
 import {
     ErrorCause,
     ErrorIssue,
     ErrorView
 } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ErrorView';
-import {clickElement, logPageHtml, logWrapperHtml} from "../utils/TestHelpers";
+import {clickElement} from "../utils/TestHelpers";
 
 const props = {
     title: 'text',

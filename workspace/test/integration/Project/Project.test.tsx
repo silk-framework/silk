@@ -10,7 +10,6 @@ import {
     findSingleElement,
     keyDown,
     legacyApiUrl,
-    logRequests,
     mockAxiosResponse,
     testWrapper,
     withMount,

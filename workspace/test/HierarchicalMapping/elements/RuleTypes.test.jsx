@@ -1,5 +1,5 @@
 import React from "react";
-import { mount, shallow, render } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import { NotAvailable } from 'gui-elements-deprecated';
 import { ThingName } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName';
 import RuleTypes from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTypes';

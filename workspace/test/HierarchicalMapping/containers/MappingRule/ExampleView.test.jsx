@@ -1,8 +1,9 @@
 import React from "react";
-import ExampleView from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView';
+import ExampleView
+    from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView';
 import {ErrorView} from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ErrorView';
 import {mount} from "enzyme";
-import {findAll, logWrapperHtml} from "../../utils/TestHelpers";
+import {findAll} from "../../utils/TestHelpers";
 import {waitFor} from "@testing-library/react";
 
 const props = {

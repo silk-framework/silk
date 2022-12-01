@@ -1,4 +1,3 @@
-import React from "react";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { render } from "@testing-library/react";
 

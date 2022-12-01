@@ -178,9 +178,10 @@ describe("Rule utils", () => {
     });
 
     it("should validate complex value chain combinations", () => {
-        const [validateTrue, validateFalse] = validateRuleTreeFactory(
+        const validateFns = validateRuleTreeFactory(
             ruleTree([edge("sp1", "t1"), edge("t1", "c1"), edge("tp1", "t2")])
         );
+        const validateFalse = validateFns[1]
         validateFalse("tp1", "t1");
         validateFalse("tp1", "t1", 1);
         validateFalse("t2", "t1");

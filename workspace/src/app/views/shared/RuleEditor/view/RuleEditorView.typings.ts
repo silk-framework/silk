@@ -1,6 +1,5 @@
-import { Edge, XYPosition } from "react-flow-renderer";
-import { Node, OnConnectStartParams } from "react-flow-renderer/dist/types";
-import { RuleEditorNode } from "../model/RuleEditorModel.typings";
+import {Edge, XYPosition} from "react-flow-renderer";
+import {Node, OnConnectStartParams} from "react-flow-renderer/dist/types";
 
 export interface IRuleEditorViewDragState {
     nodeDragStartPosition?: XYPosition | undefined;

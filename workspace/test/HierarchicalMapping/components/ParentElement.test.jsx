@@ -3,12 +3,9 @@ import { shallow } from 'enzyme';
 import { ParentElement } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentElement';
 import { ThingName } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName';
 
-
-
-const getWrapper = (renderer = shallow, args = props) => renderer(
+const getWrapper = (renderer = shallow, args = {}) => renderer(
     <ParentElement {...args} />
 );
-
 
 describe("ParentElement Component", () => {
     describe("on component mounted, ",() => {

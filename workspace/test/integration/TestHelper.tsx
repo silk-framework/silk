@@ -2,7 +2,6 @@ import React from "react";
 import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
 import {EnzymePropSelector, mount, ReactWrapper, shallow} from "enzyme";
 import { Provider } from "react-redux";
-import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";

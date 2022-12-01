@@ -6,7 +6,6 @@ import {
     checkRequestMade,
     findAll,
     findSingleElement,
-    logWrapperHtml,
     mockedAxiosResponse,
     testWrapper,
     withMount,

@@ -1,11 +1,6 @@
 import React from "react";
-import { shallow, mount } from 'enzyme';
-import {
-    ContextMenu,
-    BreadcrumbList,
-    BreadcrumbItem,
-    MenuItem,
-} from 'gui-elements-deprecated';
+import {mount, shallow} from 'enzyme';
+import {BreadcrumbItem, MenuItem,} from 'gui-elements-deprecated';
 
 import MappingHeader from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingHeader';
 import ArrowBackButton from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/buttons/ArrowBack';

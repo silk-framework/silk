@@ -1,6 +1,6 @@
 import {
     getRuleLabel} from '../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/getRuleLabel';
-import { isClonableRule, isCopiableRule, isObjectMappingRule } from '../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/constants';
+import { isClonableRule, isCopiableRule } from '../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/constants';
 import { trimValue } from '../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/trimValue';
 
 describe('helpers.js', () => {

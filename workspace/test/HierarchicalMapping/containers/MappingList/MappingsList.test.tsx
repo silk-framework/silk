@@ -1,14 +1,16 @@
 import React from "react";
-import {mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
+import {ReactWrapper} from 'enzyme';
 
-import MappingsList from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList';
-import EmptyList from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/EmptyList';
+import MappingsList
+    from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList';
+import EmptyList
+    from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/EmptyList';
 import {DragDropContext} from 'react-beautiful-dnd';
-import DraggableItem from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/DraggableItem';
-import ListActions from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/ListActions';
-import {findAll, logWrapperHtml} from "../../utils/TestHelpers";
-import {testWrapper, withMount, withShallow} from "../../../integration/TestHelper";
-import {waitFor} from "@testing-library/react";
+import DraggableItem
+    from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/DraggableItem';
+import ListActions
+    from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/ListActions';
+import {testWrapper, withMount} from "../../../integration/TestHelper";
 
 const props = {
     rules: [

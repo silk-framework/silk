@@ -4,12 +4,9 @@ import { ThingName } from '../../../src/app/views/pages/MappingEditor/Hierarchic
 import { ParentStructure } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentStructure';
 import { ParentElement } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ParentElement';
 
-
-
-const getWrapper = (renderer = shallow, args = props) => renderer(
+const getWrapper = (renderer = shallow, args = {}) => renderer(
     <ParentStructure {...args} />
 );
-
 
 describe("ParentStructure Component", () => {
     describe("on component mounted, ",() => {

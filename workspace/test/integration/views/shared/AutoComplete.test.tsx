@@ -19,11 +19,6 @@ describe("AutoComplete", () => {
             counter += 1;
             return [];
         };
-        const autoCompletion = {
-            allowOnlyAutoCompletedValues: true,
-            autoCompleteValueWithLabels: false,
-            autoCompletionDependsOnParameters: [],
-        };
         const autoComplete = wrapper({ onSearch });
         expect(counter).toBe(0);
         const inputField = findSingleElement(autoComplete, "input");

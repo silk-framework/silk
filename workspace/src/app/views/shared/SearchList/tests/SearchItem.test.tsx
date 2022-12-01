@@ -1,10 +1,8 @@
 import React from "react";
-import { shallow, ShallowWrapper } from "enzyme";
 import SearchItem from "../SearchItem";
-import { createMemoryHistory } from "history";
-import { byTestId, clickElement, testWrapper, withMount } from "../../../../../../test/integration/TestHelper";
-import { CreateArtefactModal } from "../../modals/CreateArtefactModal/CreateArtefactModal";
-import { SERVE_PATH } from "../../../../constants/path";
+import {createMemoryHistory} from "history";
+import {byTestId, clickElement, testWrapper, withMount} from "../../../../../../test/integration/TestHelper";
+import {SERVE_PATH} from "../../../../constants/path";
 
 const onOpenDeleteModalFn = jest.fn(),
     onOpenDuplicateModalFn = jest.fn(),
