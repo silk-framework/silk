@@ -11,6 +11,7 @@ import org.silkframework.util.FileUtils
 import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.workflow.Workflow
+import play.api.http.MediaRange
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -59,36 +60,68 @@ object VariableWorkflowRequestUtils {
     *
     * @param datasetId The ID of the variable dataset in the workflow.
     **/
-  private def variableDataSinkConfig(datasetId: String)
+  private def variableDataSinkConfig(datasetId: String,
+                                     fileBasedPluginIds: Seq[String])
                                     (implicit request: Request[_]): VariableDataSinkConfig = {
     request.getQueryString(QUERY_PARAM_OUTPUT_TYPE) match {
       case Some(datasetType) =>
-        val datasetParams: Map[String, String] =
-          if(datasetType == "file") {
-            Map("format" -> "N-Triples")
-          } else {
-            Map.empty
-          }
-        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParams, OUTPUT_FILE_RESOURCE_NAME)
-        VariableDataSinkConfig(sinkConfig, jsonMimeType)
+        fromQueryOutputTypeParameter(datasetId, datasetType)
       case None =>
-        acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
-          case Some(mimeType) =>
-            val (datasetType: String, datasetParameters: Map[String, String]) = mimeType match {
-              case "application/json" => ("json", Map.empty)
-              case "application/xml" => ("xml", Map.empty)
-              case "application/n-triples" => ("file", Map("format" -> "N-Triples"))
-              case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ("excel", Map.empty)
-              case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty)
+        val pluginId = pluginIdFromAcceptedTypes(request.acceptedTypes, fileBasedPluginIds)
+        val (datasetType: String, datasetParameters: Map[String, String], mimeType) = pluginId match {
+          case Some("file") => ("file", Map("format" -> "N-Triples"), "application/n-triples")
+          case Some("xml") => ("xml", Map.empty, "application/xml")
+          case Some("json") => ("json", Map.empty, "application/json")
+          case Some("csv") => ("csv", Map.empty, "text/comma-separated-values")
+          case Some("excel") => ("excel", Map.empty, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+          case Some(pluginId) => (pluginId, Map.empty, s"application/x-plugin-$pluginId")
+          case _ =>
+            acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
+              case Some(mimeType) =>
+                acceptedMimeTypeToSinkConfig(mimeType)
+              case None =>
+                throw NotAcceptableException("Cannot produce response in any of the requested mime types." +
+                  s"Need to set the output type either in the query parameter '$QUERY_PARAM_OUTPUT_TYPE' or by setting the accept header. " +
+                  "Supported mime types are: " + acceptedMimeType.mkString(", "))
             }
-            val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
-            VariableDataSinkConfig(sinkConfig, mimeType)
-          case None =>
-            throw NotAcceptableException("Cannot produce response in any of the requested mime types." +
-              s"Need to set the output type either in the query parameter '$QUERY_PARAM_OUTPUT_TYPE' or by setting the accept header. " +
-              "Supported mime types are: " + acceptedMimeType.mkString(", "))
         }
+        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
+        VariableDataSinkConfig(sinkConfig, mimeType)
     }
+  }
+
+  private def acceptedMimeTypeToSinkConfig(mimeType: String) = {
+    mimeType match {
+      case "application/json" => ("json", Map.empty, mimeType)
+      case "application/xml" => ("xml", Map.empty, mimeType)
+      case "application/n-triples" => ("file", Map("format" -> "N-Triples"), mimeType)
+      case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ("excel", Map.empty, mimeType)
+      case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty, mimeType)
+    }
+  }
+
+  private def fromQueryOutputTypeParameter(datasetId: String, datasetType: String) = {
+    val datasetParams: Map[String, String] =
+      if (datasetType == "file") {
+        Map("format" -> "N-Triples")
+      } else {
+        Map.empty
+      }
+    val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParams, OUTPUT_FILE_RESOURCE_NAME)
+    VariableDataSinkConfig(sinkConfig, jsonMimeType)
+  }
+
+  private def pluginIdFromAcceptedTypes(acceptedTypes: Seq[MediaRange],
+                                        fileBasedPluginIds: Seq[String]): Option[String] = {
+    val r = customMimeTypeRegex
+    val pluginId = acceptedTypes
+      .map(m => s"${m.mediaType}/${m.mediaSubType}")
+      .flatMap (mediaType =>
+        r.findFirstMatchIn(mediaType).map(_.group(1))
+          .filter(pluginId => fileBasedPluginIds.contains(pluginId))
+      )
+      .headOption
+    pluginId
   }
 
   case class VariableDataSinkConfig(configJson: JsValue, mimeType: String)
@@ -110,10 +143,14 @@ object VariableWorkflowRequestUtils {
     )
   }
 
+  private def customMimeTypeRegex = "application/x-plugin-(.*)".r
+
   private def variableDataSourceConfig(datasetId: String,
-                                       mediaType: Option[String])
+                                       mediaType: Option[String],
+                                       fileBasedPluginIds: Seq[String])
                                       (implicit request: Request[AnyContent]): JsValue = {
     val multiPartFileContentType = request.body.asMultipartFormData.toSeq.flatMap(_.files.flatMap(_.contentType)).headOption
+    val CustomMimeType = customMimeTypeRegex
     val datasetType = multiPartFileContentType.orElse(mediaType) match {
       case Some("application/json") | Some("application/x-www-form-urlencoded") | None =>
         "json"
@@ -121,6 +158,11 @@ object VariableWorkflowRequestUtils {
         "xml"
       case Some("text/comma-separated-values") | Some("text/csv") =>
         "csv"
+      case Some(CustomMimeType(pluginId)) =>
+        if(!fileBasedPluginIds.contains(pluginId)) {
+          throw UnsupportedMediaTypeException(s"Unsupported custom media type application/x-plugin-$pluginId. No file based plugin with ID $pluginId found.")
+        }
+        pluginId
       case Some(unsupportedMediaType) =>
         throwUnsupportedMediaType(unsupportedMediaType)
     }
@@ -178,7 +220,8 @@ object VariableWorkflowRequestUtils {
     * The data sink is chosen with regards to the ACCEPT header.
     **/
   def requestToWorkflowConfig(project: Project,
-                              workflowTask: Task[Workflow])
+                              workflowTask: Task[Workflow],
+                              fileBasedPluginIds: Seq[String])
                              (implicit request: Request[AnyContent], userContext: UserContext): VariableWorkflowRequestConfig  = {
     val variableDatasets = workflowTask.data.variableDatasets(project)
     if(variableDatasets.sinks.size > 1 || variableDatasets.dataSources.size > 1) {
@@ -186,17 +229,17 @@ object VariableWorkflowRequestUtils {
           s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
     }
     val mediaType = request.contentType map { mediaType =>
-      if(!validMediaTypes.contains(mediaType)) {
+      if(customMimeTypeRegex.findFirstIn(mediaType).isEmpty && !validMediaTypes.contains(mediaType)) {
         throwUnsupportedMediaType(mediaType)
       }
       mediaType
     }
     // Optional data source config depending on whether there is a variable input dataset or not.
-    val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(dataSourceId => variableDataSourceConfig(dataSourceId, mediaType))
+    val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(dataSourceId => variableDataSourceConfig(dataSourceId, mediaType, fileBasedPluginIds))
     // Only parse resource if a variable input dataset is defined in the workflow
     val resourceJson: Option[Option[JsValue]] = dataSourceConfig.map(_ => requestToInputResource(mediaType))
     // Optional data sink config and corresponding mime type depending on whether a variable output dataset is part of the workflow.
-    val variableDataSinkConfigOpt: Option[VariableDataSinkConfig] = variableDatasets.sinks.headOption.map(variableDataSinkConfig)
+    val variableDataSinkConfigOpt: Option[VariableDataSinkConfig] = variableDatasets.sinks.headOption.map(datasetId => variableDataSinkConfig(datasetId, fileBasedPluginIds))
     val resourceContentJson = resourceJson match {
       case Some(Some(jsValue)) => Some(jsValue)
       case Some(None) => None
@@ -280,7 +323,7 @@ object VariableWorkflowRequestUtils {
 
   private def throwUnsupportedMediaType(givenMediaType: String): Nothing = {
     throw UnsupportedMediaTypeException(s"Unsupported payload content type ($givenMediaType). Supported types are: " +
-        s"application/json, application/xml, text/csv and text/comma-separated-values")
+        s"application/json, application/xml, text/csv, text/comma-separated-values and application/x-plugin-<PLUGIN_ID>")
   }
 
   // Transform a parameter map to a JSON object

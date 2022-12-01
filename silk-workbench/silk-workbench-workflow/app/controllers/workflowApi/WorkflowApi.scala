@@ -241,7 +241,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                      workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
-    val VariableWorkflowRequestConfig(workflowConfig, mimeTypeOpt, tempResourceManager) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask)
+    val VariableWorkflowRequestConfig(workflowConfig, mimeTypeOpt, tempResourceManager) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val resultValue = activity.startBlockingAndGetValue(workflowConfig)(userContext.withExecutionContext(UserExecutionContext(primaryResourceManager = Some(tempResourceManager))))
     mimeTypeOpt match {
@@ -367,7 +367,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                    )
                                    workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
-    val VariableWorkflowRequestConfig(workflowConfig, _, tempResourceManager) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask)
+    val VariableWorkflowRequestConfig(workflowConfig, _, tempResourceManager) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfig)(userContext.withExecutionContext(UserExecutionContext(primaryResourceManager = Some(tempResourceManager))))
     val result = StartActivityResponse(activity.name, id)
