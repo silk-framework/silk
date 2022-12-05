@@ -3,6 +3,10 @@ import "regenerator-runtime/runtime";
 import { configure } from "enzyme";
 import Adapter from "enzyme-adapter-react-16";
 
+import { initTestHelpers } from "../test/integration/TestHelper";
+
+initTestHelpers();
+
 configure({ adapter: new Adapter() });
 
 jest.setTimeout(30000);

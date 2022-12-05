@@ -22,8 +22,6 @@ import {
     wrapperHtml,
 } from "../TestHelper";
 
-//jest.setTimeout(50000);
-
 describe("Project page", () => {
     const testProjectId = "testproject";
     const expectedFile = "file.csv";
@@ -58,8 +56,8 @@ describe("Project page", () => {
             },
         },
     };
-    let projectPageWrapper: ReactWrapper<any, any> = null;
-    let history: History<LocationState> = null;
+    let projectPageWrapper: ReactWrapper<any, any> | null = null;
+    let history: History<LocationState> | null = null;
     beforeEach(() => {
         history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);

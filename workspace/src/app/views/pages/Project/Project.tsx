@@ -52,8 +52,10 @@ const Project = () => {
      * Get available Datatypes
      */
     useEffect(() => {
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
-    }, []);
+        if (projectId) {
+            dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
+        }
+    }, [projectId]);
 
     useEffect(() => {
         // Reset the filters, due to redirecting

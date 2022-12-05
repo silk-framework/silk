@@ -55,6 +55,8 @@ jest.mock("react-router", () => ({
     }),
 }));
 
+export const initTestHelpers = () => {};
+
 /** Creates the Redux store.
  *
  * @param history      The initial history.
@@ -411,6 +413,7 @@ export const checkRequestMade = (
         url: url,
     });
     if (!reqInfo) {
+        logRequests();
         throw new Error(`No request was made to URL ${url} with method '${method}'.`);
     }
     if (data !== null) {
