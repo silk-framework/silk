@@ -84,7 +84,7 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
 
   it should "return a list of resource based dataset plugin IDs" in {
     checkResponse(client.url(s"$baseUrl/api/core/datasets/resourceBased").get())
-      .json.as[JsArray].value.map(_.as[String]) must contain ("csv", "xml", "json")
+      .json.as[JsArray].value.map(_.as[String]) must contain allOf ("csv", "xml", "json")
   }
 }
 
