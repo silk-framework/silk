@@ -69,7 +69,7 @@ describe("ExampleView Component", () => {
             });
             const wrapper = getWrapper();
             // Match the translation key
-            expect(wrapper.text()).toMatch("HierarchicalMapping.ExampleView.errors.emptyResult");
+            expect(wrapper.text()).toMatch("Preview has returned no results.");
         });
     });
 });
