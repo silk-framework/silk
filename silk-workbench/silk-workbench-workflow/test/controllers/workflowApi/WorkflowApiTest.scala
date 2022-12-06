@@ -3,20 +3,23 @@ package controllers.workflowApi
 import controllers.workflowApi.workflow.{WorkflowNodePortConfig, WorkflowNodesPortConfig}
 import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.config.{CustomTask, Prefixes, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin._
 import org.silkframework.serialization.json.JsonHelpers
-import org.silkframework.util.{ConfigTestTrait, Uri}
+import org.silkframework.util.{ConfigTestTrait, FileUtils, Uri}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
 import play.api.routing.Router
 
-class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with ConfigTestTrait with IntegrationTestTrait with MustMatchers {
+import java.io.File
+
+class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with ConfigTestTrait
+  with IntegrationTestTrait with MustMatchers with BeforeAndAfterAll {
   behavior of "Workflow API"
 
   override def projectPathInClasspath: String = "2dc191ef-d583-4eb8-a8ed-f2a3fb94bd8f_WorkflowAPItestproject.zip"
@@ -87,6 +90,11 @@ class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTr
   override def propertyMap: Map[String, Option[String]] = Map(
     WorkspaceActivity.MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY -> Some("2")
   )
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursiveOnExit()
+  }
 }
 
 case class TestCustomTask(nrPorts: IntOptionParameter) extends CustomTask {

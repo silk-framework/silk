@@ -203,8 +203,8 @@ object VariableWorkflowRequestUtils {
       // only get the last part of the filename
       // otherwise someone can send a path like ../../home/foo/bar.txt to write to other files on the system
       val filename = Paths.get(file.filename).getFileName
-      // TODO: put content-type
-      val contentType = file.contentType
+      // FIXME: put content-type when more than 1 uploaded file will be used
+//      val contentType = file.contentType
       val managerFile = Paths.get(baseDir.toString, filename.toString)
       file.ref.moveTo(managerFile, replace = true)
       if(idx == 0) {

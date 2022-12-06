@@ -238,7 +238,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
   }
 
   it should "remove temp files on GC" in {
-    removeTempFiles(true)
+    removeTempFiles()
     val workflowId = inputOutputWorkflow
     checkResponse(executeVariableWorkflow(workflowId, nonEmptyRequestParameters))
     eventually {
@@ -368,10 +368,10 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
 
   override def afterAll(): Unit = {
     super.afterAll()
-    removeTempFiles(false)
+    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursiveOnExit()
   }
 
-  private def removeTempFiles(keepBaseDir: Boolean): Unit = {
-    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursive(keepBaseDir)
+  private def removeTempFiles(): Unit = {
+    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursive(true)
   }
 }
