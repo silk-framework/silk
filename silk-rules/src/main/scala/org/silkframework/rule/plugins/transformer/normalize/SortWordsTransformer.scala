@@ -19,16 +19,16 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExa
     output = Array("a b c")
   ),
   new TransformExample(
-    input1 = Array("Hans Hansa Hamburg", "München Marburg"),
+    input1 = Array("Hans Hansa    Hamburg", "München Marburg"),
     output = Array("Hamburg Hans Hansa", "Marburg München")
   )
 ))
 case class SortWordsTransformer(@Param("The regular expression used to split values into words.")
-                                regex: String = "\\s",
+                                splitRegex: String = "\\s+",
                                 @Param("Separator to be inserted between sorted words.")
                                 glue: String = " ") extends SimpleTransformer {
 
-  private val compiledRegex = regex.r
+  private val compiledRegex = splitRegex.r
 
   override def evaluate(value: String): String= {
     val words = compiledRegex.split(value)
