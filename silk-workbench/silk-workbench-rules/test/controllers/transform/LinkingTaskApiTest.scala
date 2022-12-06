@@ -104,12 +104,18 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "Return evaluated links for the current linking rule" in {
+    val jsonBody: JsValue = linkEvaluationResult
+    (jsonBody \ "links").as[JsArray].value must have size 2
+    (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
+  }
+
+  private def linkEvaluationResult = {
     workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate")
     val response = request.
       get()
     val jsonBody = checkResponse(response).json
-    (jsonBody \ "links").as[JsArray].value must have size 2
+    jsonBody
   }
 
   // Alternative linkage rule returns 4 links, the original rule only returns 2

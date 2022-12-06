@@ -36,7 +36,7 @@ import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 
 import java.util.logging.{Level, LogRecord, Logger}
@@ -978,25 +978,39 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                  offset: Int,
                                  limit: Int,
                                  query: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
+    implicit val (project, linkTask) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
 
-    val evaluationActivity = task.activity[EvaluateLinkingActivity]
+    val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
     if(evaluationActivity.control.status.get.isEmpty) {
       evaluationActivity.control.startBlocking()
     }
     evaluationActivity.value.get match {
       case Some(evaluationResult) =>
-        val linkingRule = task.data.rule
+        val referenceLinks = linkTask.data.referenceLinks
+        val linkingRule = linkTask.data.rule
         val linkJsonFormat = new LinkJsonFormat(Some(linkingRule))
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
-        val links = evaluationResult.links.slice(offset, offset + limit)
-          .map(link => linkJsonFormat.write(link))
+        val links: Seq[JsObject] = evaluationResult.links.slice(offset, offset + limit)
+          .map(link => {
+            val decision = linkDecision(referenceLinks, link)
+            linkJsonFormat.write(link) + ("decision", JsString(decision.getId))
+          })
         Ok(Json.obj(
           "links" -> links,
           "linkRule" -> JsonSerialization.toJson(linkingRule)
         ))
       case None =>
         throw NotFoundException("No evaluation results available.")
+    }
+  }
+
+  private def linkDecision(referenceLinks: ReferenceLinks, link: Link) = {
+    if (referenceLinks.positive.contains(link)) {
+      LinkDecision.POSITIVE
+    } else if (referenceLinks.negative.contains(link)) {
+      LinkDecision.NEGATIVE
+    } else {
+      LinkDecision.UNLABELED
     }
   }
 }
