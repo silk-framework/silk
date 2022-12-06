@@ -98,6 +98,7 @@ class RulePlugins extends PluginModule {
         classOf[EmptyValueTransformer] ::
         classOf[GenerateUUID] ::
         classOf[DefaultValueTransformer] ::
+        classOf[SortWordsTransformer] ::
         // Conditional
         classOf[IfContains] ::
         classOf[IfExists] ::
