@@ -35,7 +35,7 @@ class InitApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers w
   }
 
   private def initFrontendResult(httpHeaders: (String, String)*): collection.Map[String, JsValue] = {
-    val request = client.url(s"$baseUrl/api/workspace/initFrontend").withHttpHeaders(httpHeaders :_*)
+    val request = client.url(s"$baseUrl/api/workspace/initFrontend").addHttpHeaders(httpHeaders :_*)
     checkResponse(request.get()).json.as[JsObject].value
   }
 

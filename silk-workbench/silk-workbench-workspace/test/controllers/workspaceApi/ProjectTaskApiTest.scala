@@ -69,7 +69,7 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
     val initialDataset = DatasetSpec[CsvDataset](CsvDataset(csvResource))
     initialDataset.plugin.separator mustBe ","
     val request = client.url(s"$baseUrl$path")
-      .withHttpHeaders(ACCEPT -> APPLICATION_JSON)
+      .addHttpHeaders(ACCEPT -> APPLICATION_JSON)
       .post(JsonSerialization.toJson[GenericDatasetSpec](initialDataset))
     val response = checkResponse(request).json
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)

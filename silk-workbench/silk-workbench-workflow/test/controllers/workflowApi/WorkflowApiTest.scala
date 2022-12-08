@@ -68,7 +68,7 @@ class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTr
     def executeWorkflowAsync(expectedResponseCode: Int): Unit = {
       val url = controllers.workflowApi.routes.WorkflowApi.executeVariableWorkflowAsync(projectId, workflowId).url
       val response = client.url(s"$baseUrl$url")
-        .withHttpHeaders(CONTENT_TYPE -> "text/csv")
+        .addHttpHeaders(CONTENT_TYPE -> "text/csv")
         .post("")
       checkResponseExactStatusCode(response, expectedResponseCode)
     }

@@ -42,6 +42,9 @@ object VariableWorkflowRequestUtils {
   // Prefix for query parameters that allow to configure specific features of the variable workflow endpoints.
   final val QUERY_CONFIG_PREFIX = s"config$QUERY_PARAM_SEPARATOR"
   final val QUERY_GENERAL_CONFIG_PREFIX = s"${QUERY_CONFIG_PREFIX}general$QUERY_PARAM_SEPARATOR"
+  // Dataset parameter config prefixes
+  final val QUERY_DATA_SOURCE_CONFIG_PREFIX = s"${QUERY_CONFIG_PREFIX}dataSourceConfig$QUERY_PARAM_SEPARATOR"
+  final val QUERY_DATA_SINK_CONFIG_PREFIX = s"${QUERY_CONFIG_PREFIX}dataSinkConfig$QUERY_PARAM_SEPARATOR"
   // Auto-configure config parameter, either true or false.
   final val QUERY_CONFIG_PARAM_AUTO_CONFIG = s"${QUERY_GENERAL_CONFIG_PREFIX}autoConfig"
 
@@ -85,7 +88,7 @@ object VariableWorkflowRequestUtils {
                   "Supported mime types are: " + acceptedMimeType.mkString(", "))
             }
         }
-        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
+        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters ++ datasetParametersFromQuery(QUERY_DATA_SINK_CONFIG_PREFIX), OUTPUT_FILE_RESOURCE_NAME)
         VariableDataSinkConfig(sinkConfig, mimeType)
     }
   }
@@ -166,7 +169,18 @@ object VariableWorkflowRequestUtils {
       case Some(unsupportedMediaType) =>
         throwUnsupportedMediaType(unsupportedMediaType)
     }
-    datasetConfigJson(datasetId, datasetType, Map.empty, INPUT_FILE_RESOURCE_NAME)
+    datasetConfigJson(datasetId, datasetType, datasetParametersFromQuery(), INPUT_FILE_RESOURCE_NAME)
+  }
+
+  private def datasetParametersFromQuery(parameterPrefix: String = QUERY_DATA_SOURCE_CONFIG_PREFIX)
+                                        (implicit request: Request[_]): Map[String, String] = {
+    request.queryString
+      .filter(_._1.startsWith(parameterPrefix))
+      .map { case (key, values) =>
+        val parameterId = key.stripPrefix(parameterPrefix)
+        val parameterValue = values.headOption.getOrElse("")
+        (parameterId, parameterValue)
+      }
   }
 
   val validMediaTypes = Set(

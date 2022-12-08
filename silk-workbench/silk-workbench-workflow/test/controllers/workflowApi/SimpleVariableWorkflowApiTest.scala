@@ -158,7 +158,9 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
          |""".stripMargin
     val response = checkResponseExactStatusCode(
       executeVariableWorkflow(
-        inputOutputWorkflow, contentOpt = Some((csvPayLoad, "text/csv")),
+        inputOutputWorkflow,
+        contentOpt = Some((csvPayLoad, "text/csv")),
+        acceptMimeType = APPLICATION_JSON,
         additionalQueryParameters = Map(VariableWorkflowRequestUtils.QUERY_CONFIG_PARAM_AUTO_CONFIG -> "true")
       ))
     for (i <- 1 to 2) {
@@ -212,6 +214,26 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
     checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
     checkForValues(1, Seq("csv value 1"), response.body)
     checkForValues(2, Seq("csv value 2"), response.body)
+  }
+
+  it should "allow re-configuring the data source and sink parameters" in {
+    val csvPayLoad =
+      s"""$sourceProperty1;$sourceProperty2
+         |sourceVal1;sourceVal2
+         |""".stripMargin
+    val response = checkResponseExactStatusCode(
+      executeVariableWorkflow(
+        inputOutputWorkflow,
+        acceptMimeType = "text/csv",
+        contentOpt = Some((csvPayLoad, "text/csv")),
+        additionalQueryParameters = Map(
+          s"${VariableWorkflowRequestUtils.QUERY_DATA_SOURCE_CONFIG_PREFIX}separator" -> ";",
+          s"${VariableWorkflowRequestUtils.QUERY_DATA_SINK_CONFIG_PREFIX}separator" -> "|"
+        )
+      )
+    )
+    response.body must startWith (s"${targetProp(1)}|${targetProp(2)}")
+    response.body must include ("sourceVal1|sourceVal2")
   }
 
   val (exampleFile, exampleResource): (File, FileResource) = {
@@ -309,14 +331,14 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
       }
     }
     var request = client.url(s"$baseUrl$path")
-        .withHttpHeaders(ACCEPT -> acceptMimeType)
+        .addHttpHeaders(ACCEPT -> acceptMimeType)
     additionalQueryParameters.foreach { queryParam =>
       request = request.addQueryStringParameters(queryParam)
     }
     if(usePost || contentOpt.isDefined) {
       contentOpt match {
         case Some(content) =>
-          request.withHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
+          request.addHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
         case None =>
           request.post(parameters)
       }
@@ -339,7 +361,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
     val response =
       contentOpt match {
         case Some(content) =>
-          request.withHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
+          request.addHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
         case None =>
           request.post(parameters)
       }
@@ -350,7 +372,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
                                         instanceId: String,
                                         acceptMimeType: String = "application/xml"): Future[WSResponse] = {
     val path =  controllers.workflowApi.routes.WorkflowApi.variableWorkflowAsyncResult(projectId, workflowId, instanceId).url
-    val request = client.url(s"$baseUrl$path").withHttpHeaders(ACCEPT -> acceptMimeType)
+    val request = client.url(s"$baseUrl$path").addHttpHeaders(ACCEPT -> acceptMimeType)
     request.get()
   }
 
@@ -360,7 +382,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
                                                  acceptMimeType: String = "application/xml"): Future[WSResponse] = {
     val path = controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
     val request = client.url(s"$baseUrl$path")
-      .withHttpHeaders(ACCEPT -> acceptMimeType)
+      .addHttpHeaders(ACCEPT -> acceptMimeType)
     request.post(Source(
       FilePart("hello", "shouldNotMatter.txt", Option(contentType), FileIO.fromPath(file.toPath)) :: Nil
     ))
