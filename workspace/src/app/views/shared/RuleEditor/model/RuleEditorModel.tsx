@@ -1479,7 +1479,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
-        operatorSpec: Map<string, Map<string, IParameterSpecification>>
+        operatorSpec: Map<string, Map<string, IParameterSpecification>>,
     ): IOperatorCreateContext => ({
         operatorParameterSpecification: operatorSpec.get(operatorPluginId) ?? new Map(),
         t,
@@ -1489,6 +1489,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         nodePluginId,
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
+        readOnlyMode: ruleEditorContext.readOnlyMode ?? false
     });
 
     /** Auto-layout the rule nodes.

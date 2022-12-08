@@ -192,19 +192,15 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                 threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
                 weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
             };
-            if (
-                ruleOperatorNode.inputsCanBeSwitched &&
-                comparison.parameters[REVERSE_PARAMETER_ID] != null &&
-                ruleOperatorNode.inputs[0] != null
-            ) {
+            if (ruleOperatorNode.inputsCanBeSwitched && ruleOperatorNode.inputs[0] != null) {
                 // Set reverse parameter correctly. Either the first input has a target path or the second input has a source path.
                 const reverseNeeded = (inputIdx: 0 | 1): boolean => {
-                    const inputId = ruleOperatorNode.inputs[inputIdx]
-                    const input = inputId ? ruleOperatorNodes.get(inputId) : undefined
-                    const typeNeedingReversing = inputIdx === 0 ? "target" : "source"
+                    const inputId = ruleOperatorNode.inputs[inputIdx];
+                    const input = inputId ? ruleOperatorNodes.get(inputId) : undefined;
+                    const typeNeedingReversing = inputIdx === 0 ? "target" : "source";
                     return input ? fromType(input, ruleOperatorNodes) === typeNeedingReversing : false;
-                }
-                const reverse = reverseNeeded(0) || reverseNeeded(1)
+                };
+                const reverse = reverseNeeded(0) || reverseNeeded(1);
                 comparison.parameters[REVERSE_PARAMETER_ID] = `${reverse}`;
                 // Switch inputs if they have the order target-source. The reverse parameter is handling the correct order.
                 if (reverse) {

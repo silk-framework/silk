@@ -35,7 +35,7 @@ import org.silkframework.rule.plugins.transformer.normalize._
 import org.silkframework.rule.plugins.transformer.numeric._
 import org.silkframework.rule.plugins.transformer.replace.{MapTransformer, MapTransformerWithDefaultInput, RegexReplaceTransformer, ReplaceTransformer}
 import org.silkframework.rule.plugins.transformer.selection.{CoalesceTransformer, RegexSelectTransformer}
-import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTransformer, ValuesToIndexesTransformer}
+import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTransformer, SortTransformer, ValuesToIndexesTransformer}
 import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation._
@@ -134,6 +134,7 @@ class RulePlugins extends PluginModule {
         // Sequence
         classOf[GetValueByIndexTransformer] ::
         classOf[ValuesToIndexesTransformer] ::
+        classOf[SortTransformer] ::
         // Selection
         classOf[RegexSelectTransformer] ::
         classOf[CoalesceTransformer] ::

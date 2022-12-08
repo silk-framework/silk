@@ -535,7 +535,18 @@ const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathVali
                 const otherPort = targetPortIdx === 0 ? 1 : 0;
                 const inputs = node.inputs();
                 const otherInput = inputs[otherPort];
-                return otherInput == null ? undefined : fromType(otherInput) === "source" ? "target" : "source";
+                if (otherInput == null) {
+                    return undefined;
+                } else {
+                    switch (fromType(otherInput)) {
+                        case undefined:
+                            return undefined;
+                        case "source":
+                            return "target";
+                        case "target":
+                            return "source";
+                    }
+                }
             } else {
                 // Else it only depends on the requested target port
                 switch (targetPortIdx) {
@@ -550,6 +561,7 @@ const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathVali
                         );
                 }
             }
+            return undefined;
         case "TransformOperator":
             const targetNode = node.output();
             const targetNodePort = targetNode

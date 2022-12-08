@@ -115,10 +115,14 @@ case class Entity(
 
   /**
     * returns the all values for the column index of the row representing this entity
-    * @param pathIndex - the index in the value array
+    * @param pathIndex - the index in the value array or -1 to address the entity URI itself.
     */
   def evaluate(pathIndex: Int): Seq[String] = {
-    this.values(pathIndex)
+    if(pathIndex == -1) {
+      Seq(uri.uri)
+    } else {
+      this.values(pathIndex)
+    }
   }
 
   /**

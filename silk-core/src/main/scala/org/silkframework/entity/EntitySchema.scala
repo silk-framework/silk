@@ -63,10 +63,13 @@ case class EntitySchema(
     * Retrieves the index of a given path.
     *
     * @param path - the path to find
-    * @return - the index of the path in question
+    * @return - the index of the path in question or -1 if the path is empty (i.e., refers to the entity URI itself)
     * @throws NoSuchPathException If the path could not be found in the schema.
     */
   def indexOfTypedPath(path: TypedPath): Int = {
+    if(path.isEmpty) {
+      return -1
+    }
     //find the given path and, if provided, match the value type as well
     typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{
       case Some((_, ind)) => ind
@@ -78,10 +81,13 @@ case class EntitySchema(
     * Retrieves the index of a given path.
     * NOTE: there might be a chance that a given path exists twice with different value types, use [[indexOfTypedPath]] instead
  *
-    * @return - the index of the path in question
+    * @return - the index of the path in question or -1 if the path is empty (i.e., refers to the entity URI itself)
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
   def indexOfPath(path: UntypedPath): Int = {
+    if (path.isEmpty) {
+      return -1
+    }
     typedPaths.zipWithIndex.find(pi => path.operators == pi._1.operators) match{
       case Some((_, ind)) => ind
       case None =>
