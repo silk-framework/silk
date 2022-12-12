@@ -47,7 +47,13 @@ trait ActivityContext[T] {
     *
     * @param condition Evaluates the condition to wait for. Will be called frequently.
     */
-  def blockUntil(condition: () => Boolean)
+  def blockUntil(condition: () => Boolean): Unit
+
+  /**
+    * Possibly executes other activities that are blocked.
+    * Can be called to avoid deadlocks if child activities are run in the background.
+    */
+  def helpQuiesce(): Unit
 
   /**
     * The user that started the activity.

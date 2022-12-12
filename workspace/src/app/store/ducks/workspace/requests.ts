@@ -10,7 +10,7 @@ import {
     Keywords,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
-import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 export interface ISearchListRequest {
@@ -324,6 +324,13 @@ export const requestProjectTags = async (projectId: string): Promise<FetchRespon
 export const importExampleProjectRequest = async (): Promise<FetchResponse<void>> => {
     return fetch({
         url: legacyApiEndpoint("movies/importExample"),
-        method: "POST"
-    })
-}
+        method: "POST",
+    });
+};
+
+/** Fetch the project URI of a project. */
+export const requestProjectUri = async (projectId: string): Promise<FetchResponse<{ uri: string }>> => {
+    return fetch({
+        url: projectApi(`${projectId}/uri`),
+    });
+};

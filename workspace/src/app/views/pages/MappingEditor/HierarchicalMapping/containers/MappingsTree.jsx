@@ -7,7 +7,7 @@ import { Card, CardContent, Spinner } from "@eccenca/gui-elements";
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
 import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
-import { getHierarchyAsync, getRuleAsync } from "../store";
+import { getApiDetails, getHierarchyAsync, getRuleAsync } from "../store";
 import EventEmitter from "../utils/EventEmitter";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "../utils/constants";
 import { getHistory } from "../../../../../store/configureStore";
@@ -25,7 +25,7 @@ class MappingsTree extends React.Component {
 
     componentDidMount() {
         this.updateNavigationTree();
-        if(this.props.trackRuleInUrl) {
+        if (this.props.trackRuleInUrl) {
             // Ignore rule ID parameter in URL
             const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
             if (searchQuery) {
@@ -50,20 +50,29 @@ class MappingsTree extends React.Component {
     }
 
     getRuleById = (searchId) => {
+        if (!getApiDetails().transformTask) {
+            // API details not loaded, do not continue
+            return;
+        }
         this.setState({
             navigationLoading: true,
         });
-        getRuleAsync(searchId, true).subscribe(({ rule }) => {
-            const navigationExpanded = {
-                ...rule.breadcrumbs.reduce((exp, breadcrumb) => {
-                    exp[breadcrumb.id] = true;
-                    return exp;
-                }, {}),
-                [rule.id]: true,
-            };
-            this.props.handleRuleNavigation({ newRuleId: searchId });
-            this.setState({ navigationExpanded });
-        });
+        getRuleAsync(searchId, true).subscribe(
+            ({ rule }) => {
+                const navigationExpanded = {
+                    ...rule.breadcrumbs.reduce((exp, breadcrumb) => {
+                        exp[breadcrumb.id] = true;
+                        return exp;
+                    }, {}),
+                    [rule.id]: true,
+                };
+                this.props.handleRuleNavigation({ newRuleId: searchId });
+                this.setState({ navigationExpanded });
+            },
+            () => {
+                this.setState({ navigationLoading: false });
+            }
+        );
     };
 
     updateNavigationTree = (args = {}) => {
@@ -340,14 +349,14 @@ MappingsTree.propTypes = {
     showValueMappings: PropTypes.bool,
     // For each rule id, contains one of the following: "ok", "warning"
     ruleValidation: PropTypes.objectOf(PropTypes.oneOf(["ok", "warning"])),
-    trackRuleInUrl: PropTypes.bool
+    trackRuleInUrl: PropTypes.bool,
 };
 
 MappingsTree.defaultProps = {
     currentRuleId: undefined,
     ruleTree: undefined, // The mapping rule tree. Optional, because old components don't set this and rely on the message bus instead...
     handleRuleNavigation: () => {},
-    trackRuleInUrl: true
+    trackRuleInUrl: true,
 };
 
 export default MappingsTree;

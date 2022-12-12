@@ -5,13 +5,13 @@
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${elds.home}/var/log/dataintegration.log</file>
     <encoder>
-      <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
+      <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSX,UTC} %-5level %logger{15} - %message%n%xException</pattern>
     </encoder>
   </appender>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%date %highlight(%-5level) %logger{15} %message%n%xException</pattern>
+      <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSX,UTC} %-5level %logger{15} - %message%n%xException</pattern>
     </encoder>
   </appender>
 
@@ -26,7 +26,7 @@
       <fileNamePattern>/spark.%d{yyyyMMdd}.log.zip</fileNamePattern>
     </rollingPolicy>
     <encoder>
-      <pattern>%d{HH:mm:ss.SSS} %-5level %logger{100} - %msg%n</pattern>
+      <pattern>%d{yyyy-MM-dd'T'HH:mm:ss.SSSX,UTC} %-5level %logger{15} - %message%n%xException</pattern>
     </encoder>
   </appender>
 

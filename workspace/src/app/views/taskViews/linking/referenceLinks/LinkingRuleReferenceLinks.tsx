@@ -28,9 +28,10 @@ import { useTranslation } from "react-i18next";
 import { LabelProperties } from "./LinkingRuleReferenceLinks.typing";
 import {
     ActiveLearningReferenceLink,
-    ActiveLearningReferenceLinks, UnlabeledEntityLink,
+    ActiveLearningReferenceLinks,
+    UnlabeledEntityLink,
 } from "../activeLearning/LinkingRuleActiveLearning.typings";
-import {EntityLinkUrisModal} from "./EntityLinkUrisModal";
+import { EntityLinkUrisModal } from "./EntityLinkUrisModal";
 
 interface LinkingRuleReferenceLinksProps {
     /** Title that is shown in the header. */
@@ -72,7 +73,9 @@ export const LinkingRuleReferenceLinks = ({
     const [showUncertainLinks, setShowUncertainLinks] = React.useState(false);
     const [showConfirmedOnly, setShowConfirmedOnly] = React.useState(false);
     const [showDeclinedOnly, setShowDeclinedOnly] = React.useState(false);
-    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(undefined)
+    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(
+        undefined
+    );
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 10,
         pageSizes: [5, 10, 20, 50],
@@ -129,7 +132,9 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksHeader = () => {
         return (
             <CardHeader>
-                <CardTitle>{title}</CardTitle>
+                <CardTitle>
+                    {title} {referenceLinks?.links.length ? ` (${referenceLinks?.links.length})` : ""}
+                </CardTitle>
                 <CardOptions>
                     {showLinksList && (
                         <>
@@ -236,8 +241,8 @@ export const LinkingRuleReferenceLinks = ({
     };
 
     const openEntityUrisModal = (link: UnlabeledEntityLink) => {
-        setEntityUrisToOpenInModal(link)
-    }
+        setEntityUrisToOpenInModal(link);
+    };
 
     const ReferenceLinksTable = () => {
         return (
@@ -251,12 +256,8 @@ export const LinkingRuleReferenceLinks = ({
                             <TableHeader key={"warning-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
-                            <TableHeader>
-                                {t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}
-                            </TableHeader>
-                            <TableHeader>
-                                {t("ActiveLearning.config.entitiyPair.targetColumnTitle")}
-                            </TableHeader>
+                            <TableHeader>{t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}</TableHeader>
+                            <TableHeader>{t("ActiveLearning.config.entitiyPair.targetColumnTitle")}</TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
@@ -323,7 +324,10 @@ export const LinkingRuleReferenceLinks = ({
                                                           ) : null}
                                                           <ContextMenu
                                                               data-test-id={`reference-link-more-menu-${rowIdx}`}
-                                                              togglerText={t("common.action.moreOptions", "Show more options")}
+                                                              togglerText={t(
+                                                                  "common.action.moreOptions",
+                                                                  "Show more options"
+                                                              )}
                                                           >
                                                               <MenuItem
                                                                   data-test-id="show-entity-uris"
@@ -355,13 +359,12 @@ export const LinkingRuleReferenceLinks = ({
                     <CardContent>{loading ? <Spinner /> : <ReferenceLinksTable />}</CardContent>
                 </>
             )}
-            {entityUrisToOpenInModal ?
+            {entityUrisToOpenInModal ? (
                 <EntityLinkUrisModal
                     link={entityUrisToOpenInModal}
                     onClose={() => setEntityUrisToOpenInModal(undefined)}
-                /> :
-                null
-            }
+                />
+            ) : null}
         </Card>
     );
 };

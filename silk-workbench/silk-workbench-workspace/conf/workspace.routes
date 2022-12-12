@@ -108,7 +108,8 @@ GET           /projects/:project/tasks/:task/metadataExpanded                   
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
 POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
-GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskApi.downloadOutput(project: String, task: String)
+GET           /projects/:project/tasks/:task/downloadInfo                       controllers.workspace.TaskDownloadApi.downloadInfo(project: String, task: String)
+GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskDownloadApi.downloadOutput(project: String, task: String)
 
 # Global workspace activities
 GET           /globalWorkspaceActivities                                        controllers.workspace.ActivityApi.globalWorkspaceActivities()
