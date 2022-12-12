@@ -106,7 +106,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             {operatorNode.type === "Aggregation" ? operatorNode.aggregator : operatorNode.metric} (
                             {operatorNode.id})
                             <Spacing vertical size="tiny" />
-                            <ConfidenceValue value={operatorNode.weight} spaceUsage="minimal" />
+                            {getOperatorConfidence(operatorNode.id, idx)}
                         </span>
                     ),
                     childNodes: [],
@@ -169,7 +169,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 <span>
                                     {i.type}: {(i as IComparisonOperator).metric} ({i.id})
                                     <Spacing vertical size="tiny" />
-                                    <ConfidenceValue value={i.weight} spaceUsage="minimal" />
+                                    {getOperatorConfidence(operatorNode.id, idx)}
                                 </span>
                             ),
                             childNodes: [],
@@ -181,7 +181,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 return treeInfo;
             })
         );
-    }, [evaluationResults, linksToValueMap, pagination]);
+    }, [evaluationResults, linksToValueMap, pagination, treeValueQuery]);
 
     React.useEffect(() => {
         if (evaluationResults && evaluationResults.linkRule && evaluationResults.links && linksToValueMap.length) {
@@ -282,8 +282,21 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }, {} as TreeNodeInfo);
     };
 
+    const getOperatorConfidence = (id: string, index: number) => {
+        const linkToValueMap = linksToValueMap[index];
+        return linkToValueMap
+            .get(id)
+            ?.value.map((val, i) => (
+                <ConfidenceValue
+                    key={i}
+                    value={val.includes("Score") ? Number(val.replace("Score: ", "")) : Number(val)}
+                    spaceUsage="minimal"
+                />
+            ));
+    };
+
     const getLinkValues = React.useCallback(
-        (id: string, index: number, tagColor?: string, query = "") => {
+        (id: string, index: number, tagColor?: string) => {
             if (linksToValueMap.length) {
                 const linkToValueMap = linksToValueMap[index];
                 return (
@@ -296,7 +309,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     onMouseEnter={() => handleValueHover("tree", val, index)}
                                     onMouseLeave={() => handleValueHover("tree", "", index)}
                                 >
-                                    {addHighlighting(val, query)}
+                                    {addHighlighting(val, treeValueQuery.get(index))}
                                 </Tag>
                                 <Spacing vertical size="tiny" />
                             </React.Fragment>
@@ -305,7 +318,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 );
             }
         },
-        [linksToValueMap]
+        [linksToValueMap, treeValueQuery]
     );
 
     const handleValueHover = React.useCallback((on: "table" | "tree", value: string, index) => {
@@ -520,36 +533,85 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             className="linking-table__expanded-row-container"
                                                         >
                                                             <Grid>
-                                                                <GridRow>
-                                                                    <span>
-                                                                        <IconButton
-                                                                            onClick={() => {
-                                                                                setInputValuesExpansion(
-                                                                                    (prevInputExpansion) => {
-                                                                                        prevInputExpansion.set(
-                                                                                            i,
-                                                                                            !prevInputExpansion.get(i)
-                                                                                        );
-                                                                                        return new Map(
-                                                                                            prevInputExpansion
-                                                                                        );
-                                                                                    }
-                                                                                );
-                                                                            }}
-                                                                            name={
-                                                                                inputValuesExpansion.get(i)
-                                                                                    ? "toggler-moveright"
-                                                                                    : "toggler-showmore"
-                                                                            }
-                                                                        />
-                                                                    </span>
-                                                                    <GridColumn full>
-                                                                        <ComparisonDataContainer>
+                                                                {showInputValues && (
+                                                                    <GridRow>
+                                                                        <span>
+                                                                            <IconButton
+                                                                                onClick={() => {
+                                                                                    setInputValuesExpansion(
+                                                                                        (prevInputExpansion) => {
+                                                                                            prevInputExpansion.set(
+                                                                                                i,
+                                                                                                !prevInputExpansion.get(
+                                                                                                    i
+                                                                                                )
+                                                                                            );
+                                                                                            return new Map(
+                                                                                                prevInputExpansion
+                                                                                            );
+                                                                                        }
+                                                                                    );
+                                                                                }}
+                                                                                name={
+                                                                                    inputValuesExpansion.get(i)
+                                                                                        ? "toggler-moveright"
+                                                                                        : "toggler-showmore"
+                                                                                }
+                                                                            />
+                                                                        </span>
+                                                                        <GridColumn full>
+                                                                            <ComparisonDataContainer>
+                                                                                {/* <ComparisonDataHeader fullWidth>
+                                                                           {row.cells[0].value}
+                                                                       </ComparisonDataHeader> */}
+                                                                                {Object.entries(
+                                                                                    currentInputValue.source
+                                                                                ).map(([key, values]) => (
+                                                                                    <ComparisonDataCell
+                                                                                        fullWidth
+                                                                                        className={
+                                                                                            (inputValuesExpansion.get(
+                                                                                                i
+                                                                                            ) &&
+                                                                                                "shrink") ||
+                                                                                            ""
+                                                                                        }
+                                                                                    >
+                                                                                        <PropertyBox
+                                                                                            propertyName={key}
+                                                                                            exampleValues={
+                                                                                                <ActiveLearningValueExamples
+                                                                                                    interactive
+                                                                                                    valuesToHighlight={
+                                                                                                        new Set([
+                                                                                                            tableValueQuery.get(
+                                                                                                                i
+                                                                                                            ) ?? "",
+                                                                                                        ])
+                                                                                                    }
+                                                                                                    onHover={(val) =>
+                                                                                                        handleValueHover(
+                                                                                                            "table",
+                                                                                                            val,
+                                                                                                            i
+                                                                                                        )
+                                                                                                    }
+                                                                                                    exampleValues={
+                                                                                                        values ?? []
+                                                                                                    }
+                                                                                                />
+                                                                                            }
+                                                                                        />
+                                                                                    </ComparisonDataCell>
+                                                                                ))}
+                                                                            </ComparisonDataContainer>
+                                                                        </GridColumn>
+                                                                        <GridColumn full>
                                                                             {/* <ComparisonDataHeader fullWidth>
-                                                                                {row.cells[0].value}
-                                                                            </ComparisonDataHeader> */}
+                                                                       {row.cells[1].value}
+                                                                   </ComparisonDataHeader> */}
                                                                             {Object.entries(
-                                                                                currentInputValue.source
+                                                                                currentInputValue.target
                                                                             ).map(([key, values]) => (
                                                                                 <ComparisonDataCell
                                                                                     fullWidth
@@ -586,66 +648,25 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                     />
                                                                                 </ComparisonDataCell>
                                                                             ))}
-                                                                        </ComparisonDataContainer>
-                                                                    </GridColumn>
-                                                                    <GridColumn full>
-                                                                        {/* <ComparisonDataHeader fullWidth>
-                                                                            {row.cells[1].value}
-                                                                        </ComparisonDataHeader> */}
-                                                                        {Object.entries(currentInputValue.target).map(
-                                                                            ([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        (inputValuesExpansion.get(i) &&
-                                                                                            "shrink") ||
-                                                                                        ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={
-                                                                                                    new Set([
-                                                                                                        tableValueQuery.get(
-                                                                                                            i
-                                                                                                        ) ?? "",
-                                                                                                    ])
-                                                                                                }
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        val,
-                                                                                                        i
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
-                                                                                        }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            )
-                                                                        )}
-                                                                    </GridColumn>
-                                                                </GridRow>
+                                                                        </GridColumn>
+                                                                    </GridRow>
+                                                                )}
                                                                 <Spacing size="tiny" />
-                                                                <GridRow>
-                                                                    <Tree
-                                                                        contents={[nodes[i]]}
-                                                                        onNodeCollapse={(
-                                                                            _node: TreeNodeInfo,
-                                                                            nodePath: NodePath
-                                                                        ) => handleNodeExpand(i, false)}
-                                                                        onNodeExpand={(
-                                                                            _node: TreeNodeInfo,
-                                                                            nodePath: NodePath
-                                                                        ) => handleNodeExpand(i)}
-                                                                    />
-                                                                </GridRow>
+                                                                {showOperators && (
+                                                                    <GridRow>
+                                                                        <Tree
+                                                                            contents={[nodes[i]]}
+                                                                            onNodeCollapse={(
+                                                                                _node: TreeNodeInfo,
+                                                                                nodePath: NodePath
+                                                                            ) => handleNodeExpand(i, false)}
+                                                                            onNodeExpand={(
+                                                                                _node: TreeNodeInfo,
+                                                                                nodePath: NodePath
+                                                                            ) => handleNodeExpand(i)}
+                                                                        />
+                                                                    </GridRow>
+                                                                )}
                                                             </Grid>
                                                         </TableExpandedRow>
                                                     )}
