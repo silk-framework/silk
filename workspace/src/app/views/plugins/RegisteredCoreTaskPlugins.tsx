@@ -3,6 +3,7 @@ import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
 import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
 import LinkingEvaluationTabView from "../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabView";
+import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
 import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
 
 let registered = false;
