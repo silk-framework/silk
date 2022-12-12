@@ -26,6 +26,9 @@ import {
     TableContainer,
     Tag,
     Tree,
+    TagList,
+    IActivityStatus,
+    ConfidenceValue,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -44,6 +47,8 @@ import { PropertyBox } from "../../activeLearning/components/PropertyBox";
 import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
 import { TreeNodeInfo } from "@blueprintjs/core";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
+import { tagColor } from "../../../../../views/shared/RuleEditor/view/sidebar/RuleOperator";
+import { addHighlighting } from "../../../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -72,72 +77,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [nodes, setNodes] = React.useState<TreeNodeInfo[]>([]);
     const [linksToValueMap, setLinksToValueMap] = React.useState<Array<Map<string, EvaluationResultType[number]>>>([]);
     const [inputValuesExpansion, setInputValuesExpansion] = React.useState<Map<number, boolean>>(new Map());
+    const [tableValueQuery, setTableValueQuery] = React.useState<Map<number, string>>(new Map());
+    const [treeValueQuery, setTreeValueQuery] = React.useState<Map<number, string>>(new Map());
+    const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<IActivityStatus["statusName"] | undefined>();
 
     React.useEffect(() => {
         (async () => {
-            const results = (await getLinkingEvaluations(projectId, linkingTaskId, pagination))?.data;
-            setEvaluationResults(results);
-            setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
-            setInputValuesExpansion(() => new Map(results?.links.map((_, idx) => [idx, false])));
-        })();
-    }, [pagination]);
-
-    const buildInputTree = (input: any, tree: TreeNodeInfo, index: number): TreeNodeInfo => {
-        if (!input.inputs?.length) {
-            return {
-                ...tree,
-                childNodes: [
-                    ...(tree.childNodes ?? []),
-                    {
-                        id: input.id,
-                        hasCaret: false,
-                        isExpanded: true,
-                        label: (
-                            <p>
-                                {operatorInputMapping[input.type]}:{input.path}({input.id}){" "}
-                                {getLinkValues(input.id, index)}
-                            </p>
-                        ),
-                    },
-                ],
-            };
-        }
-
-        return input.inputs.reduce((acc, i) => {
-            acc = buildInputTree(
-                i,
-                {
-                    ...tree,
-                    childNodes: [
-                        ...(tree.childNodes ?? []),
-                        {
-                            id: input.id,
-                            hasCaret: false,
-                            isExpanded: true,
-                            label: (
-                                <p>
-                                    {operatorInputMapping[input.type]}:{input.function}({input.id}){" "}
-                                    {getLinkValues(input.id, index)}
-                                </p>
-                            ),
-                        },
-                    ],
-                },
-                index
-            );
-            return acc;
-        }, {} as TreeNodeInfo);
-    };
-
-    const getLinkValues = React.useCallback(
-        (id: string, index: number) => {
-            if (linksToValueMap.length) {
-                const linkToValueMap = linksToValueMap[index];
-                return linkToValueMap.get(id)?.value.map((val, i) => <Tag key={val + i}>{val}&nbsp;&nbsp;</Tag>);
+            if (taskEvaluationStatus === "Finished") {
+                const results = (await getLinkingEvaluations(projectId, linkingTaskId, pagination))?.data;
+                setEvaluationResults(results);
+                setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
+                setInputValuesExpansion(() => new Map(results?.links.map((_, idx) => [idx, false])));
             }
-        },
-        [linksToValueMap]
-    );
+        })();
+    }, [pagination, taskEvaluationStatus]);
 
     React.useEffect(() => {
         if (!evaluationResults || !linksToValueMap.length) return;
@@ -148,17 +101,24 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     id: operatorNode.id,
                     isExpanded: true,
                     label: (
-                        <p>
+                        <span>
                             {operatorNode.type}:
                             {operatorNode.type === "Aggregation" ? operatorNode.aggregator : operatorNode.metric} (
-                            {operatorNode.id}) <Tag>{operatorNode.weight}</Tag>
-                        </p>
+                            {operatorNode.id})
+                            <Spacing vertical size="tiny" />
+                            <ConfidenceValue value={operatorNode.weight} spaceUsage="minimal" />
+                        </span>
                     ),
                     childNodes: [],
                 };
 
                 const getSubTree = (node: any, parentTree?: TreeNodeInfo) => {
                     //Possibly comparison operators
+                    const inputPathCategory = {
+                        sourceInput: "Source path",
+                        targetInput: "Target path",
+                    };
+
                     ["sourceInput", "targetInput"].forEach((inputPath) => {
                         //is comparison operator
                         let inputNode: TreeNodeInfo = {
@@ -169,7 +129,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 <p>
                                     {operatorInputMapping[node[inputPath].type] ?? node[inputPath].type}:
                                     {node[inputPath].function ?? node[inputPath].path ?? ""} ({node[inputPath].id}){" "}
-                                    {getLinkValues(node[inputPath].id, idx)}
+                                    {getLinkValues(
+                                        node[inputPath].id,
+                                        idx,
+                                        tagColor(
+                                            node[inputPath].type === "pathInput"
+                                                ? inputPathCategory[inputPath]
+                                                : operatorInputMapping[node[inputPath].type]
+                                        ) as string
+                                    )}
                                 </p>
                             ),
                             childNodes: [],
@@ -177,7 +145,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
                         if (node[inputPath].inputs?.length) {
                             node[inputPath].inputs.forEach((i) => {
-                                inputNode = buildInputTree(i, inputNode, idx);
+                                inputNode = buildInputTree(i, inputNode, idx, inputPathCategory[inputPath]);
                             });
                         }
 
@@ -198,9 +166,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <p>
-                                    {i.type}: {(i as IComparisonOperator).metric} ({i.id}){getLinkValues(i.id, idx)}
-                                </p>
+                                <span>
+                                    {i.type}: {(i as IComparisonOperator).metric} ({i.id})
+                                    <Spacing vertical size="tiny" />
+                                    <ConfidenceValue value={i.weight} spaceUsage="minimal" />
+                                </span>
                             ),
                             childNodes: [],
                         });
@@ -260,6 +230,90 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [evaluationResults, linksToValueMap, pagination]);
 
+    const buildInputTree = (input: any, tree: TreeNodeInfo, index: number, tagInputTag: string): TreeNodeInfo => {
+        if (!input.inputs?.length) {
+            return {
+                ...tree,
+                childNodes: [
+                    ...(tree.childNodes ?? []),
+                    {
+                        id: input.id,
+                        hasCaret: false,
+                        isExpanded: true,
+                        label: (
+                            <p>
+                                {operatorInputMapping[input.type]}:{input.path}({input.id}){" "}
+                                {getLinkValues(input.id, index, tagColor(tagInputTag) as string)}
+                            </p>
+                        ),
+                    },
+                ],
+            };
+        }
+
+        return input.inputs.reduce((acc, i) => {
+            acc = buildInputTree(
+                i,
+                {
+                    ...tree,
+                    childNodes: [
+                        ...(tree.childNodes ?? []),
+                        {
+                            id: input.id,
+                            hasCaret: false,
+                            isExpanded: true,
+                            label: (
+                                <p>
+                                    {operatorInputMapping[input.type]}:{input.function}({input.id}){" "}
+                                    {getLinkValues(
+                                        input.id,
+                                        index,
+                                        tagColor(operatorInputMapping[input.type]) as string
+                                    )}
+                                </p>
+                            ),
+                        },
+                    ],
+                },
+                index,
+                tagInputTag
+            );
+            return acc;
+        }, {} as TreeNodeInfo);
+    };
+
+    const getLinkValues = React.useCallback(
+        (id: string, index: number, tagColor?: string, query = "") => {
+            if (linksToValueMap.length) {
+                const linkToValueMap = linksToValueMap[index];
+                return (
+                    <TagList>
+                        {linkToValueMap.get(id)?.value.map((val, i) => (
+                            <React.Fragment key={val + i}>
+                                <Tag
+                                    backgroundColor={tagColor}
+                                    interactive
+                                    onMouseEnter={() => handleValueHover("tree", val, index)}
+                                    onMouseLeave={() => handleValueHover("tree", "", index)}
+                                >
+                                    {addHighlighting(val, query)}
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </React.Fragment>
+                        ))}
+                    </TagList>
+                );
+            }
+        },
+        [linksToValueMap]
+    );
+
+    const handleValueHover = React.useCallback((on: "table" | "tree", value: string, index) => {
+        on === "table"
+            ? setTreeValueQuery((prev) => new Map([...prev, [index, value]]))
+            : setTableValueQuery((prev) => new Map([...prev, [index, value]]));
+    }, []);
+
     const handlePagination = React.useCallback((page: number, limit: number) => {
         setPagination({ current: 1, total: 25, limit });
     }, []);
@@ -272,10 +326,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         {
             key: "target",
             header: t("linkingEvaluationTabView.table.header.target"),
-        },
-        {
-            key: "confidence",
-            header: t("linkingEvaluationTabView.table.header.score"),
         },
     ];
 
@@ -300,15 +350,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     const handleNodeExpand = React.useCallback((nodeIdx: number, isExpanded = true) => {
         setNodes((prevTreeNodes) =>
-            prevTreeNodes.map((prevTreeNode, i) => {
-                if (i === nodeIdx) {
-                    return {
-                        ...prevTreeNode,
-                        isExpanded,
-                    };
-                }
-                return prevTreeNode;
-            })
+            prevTreeNodes.map((prevTreeNode, i) =>
+                i === nodeIdx
+                    ? {
+                          ...prevTreeNode,
+                          isExpanded,
+                      }
+                    : prevTreeNode
+            )
         );
     }, []);
 
@@ -347,6 +396,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                         taskId={linkingTaskId}
                                         label="Evaluate Linking"
                                         activityName="EvaluateLinking"
+                                        registerToReceiveUpdates={(status) =>
+                                            setTaskEvaluationStatus(status.statusName)
+                                        }
                                     />
                                 </OverviewItem>
                             </Card>
@@ -380,10 +432,16 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 />
                                             </TableHeader>
                                             {headers.map((header) => (
-                                                <TableHeader {...getHeaderProps({ header, isSortable: true })}>
+                                                <TableHeader
+                                                    key={header.key}
+                                                    {...getHeaderProps({ header, isSortable: true })}
+                                                >
                                                     {header.header}
                                                 </TableHeader>
                                             ))}
+                                            <TableHeader>
+                                                <p>{t("linkingEvaluationTabView.table.header.score")}</p>
+                                            </TableHeader>
                                             <TableHeader>
                                                 <OverviewItem>
                                                     <OverviewItemLine>
@@ -420,28 +478,47 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     <TableBody>
                                         {rows.map((row, i) => {
                                             const currentInputValue = inputValues[i];
+                                            const { decision, confidence } = evaluationResults?.links[i]!;
                                             return (
                                                 <>
                                                     <TableExpandRow
                                                         key={row.id}
                                                         isExpanded={expandedRows.has(row.id)}
                                                         onExpand={() => handleRowExpansion(row.id)}
+                                                        ariaLabel="Links expansion"
                                                     >
                                                         {row.cells.map((cell) => (
                                                             <TableCell key={cell.id}>{cell.value}</TableCell>
                                                         ))}
                                                         <TableCell>
+                                                            <ConfidenceValue value={confidence} />
+                                                        </TableCell>
+                                                        <TableCell>
                                                             <OverviewItem>
-                                                                <IconButton hasStateSuccess name="state-confirmed" />
+                                                                <IconButton
+                                                                    hasStateSuccess
+                                                                    name="state-confirmed"
+                                                                    active={decision === "positive"}
+                                                                />
                                                                 <Spacing vertical size="tiny" />
-                                                                <IconButton name="item-question" />
+                                                                <IconButton
+                                                                    name="item-question"
+                                                                    active={decision === "unlabeled"}
+                                                                />
                                                                 <Spacing vertical size="tiny" />
-                                                                <IconButton hasStateDanger name="state-declined" />
+                                                                <IconButton
+                                                                    hasStateDanger
+                                                                    name="state-declined"
+                                                                    active={decision === "negative"}
+                                                                />
                                                             </OverviewItem>
                                                         </TableCell>
                                                     </TableExpandRow>
                                                     {!!currentInputValue && (
-                                                        <TableExpandedRow colSpan={headers.length + 3}>
+                                                        <TableExpandedRow
+                                                            colSpan={headers.length + 3}
+                                                            className="linking-table__expanded-row-container"
+                                                        >
                                                             <Grid>
                                                                 <GridRow>
                                                                     <span>
@@ -461,16 +538,16 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                             }}
                                                                             name={
                                                                                 inputValuesExpansion.get(i)
-                                                                                    ? "toggler-showless"
+                                                                                    ? "toggler-moveright"
                                                                                     : "toggler-showmore"
                                                                             }
                                                                         />
                                                                     </span>
                                                                     <GridColumn full>
                                                                         <ComparisonDataContainer>
-                                                                            <ComparisonDataHeader fullWidth>
+                                                                            {/* <ComparisonDataHeader fullWidth>
                                                                                 {row.cells[0].value}
-                                                                            </ComparisonDataHeader>
+                                                                            </ComparisonDataHeader> */}
                                                                             {Object.entries(
                                                                                 currentInputValue.source
                                                                             ).map(([key, values]) => (
@@ -486,6 +563,21 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                         propertyName={key}
                                                                                         exampleValues={
                                                                                             <ActiveLearningValueExamples
+                                                                                                interactive
+                                                                                                valuesToHighlight={
+                                                                                                    new Set([
+                                                                                                        tableValueQuery.get(
+                                                                                                            i
+                                                                                                        ) ?? "",
+                                                                                                    ])
+                                                                                                }
+                                                                                                onHover={(val) =>
+                                                                                                    handleValueHover(
+                                                                                                        "table",
+                                                                                                        val,
+                                                                                                        i
+                                                                                                    )
+                                                                                                }
                                                                                                 exampleValues={
                                                                                                     values ?? []
                                                                                                 }
@@ -497,9 +589,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                         </ComparisonDataContainer>
                                                                     </GridColumn>
                                                                     <GridColumn full>
-                                                                        <ComparisonDataHeader fullWidth>
+                                                                        {/* <ComparisonDataHeader fullWidth>
                                                                             {row.cells[1].value}
-                                                                        </ComparisonDataHeader>
+                                                                        </ComparisonDataHeader> */}
                                                                         {Object.entries(currentInputValue.target).map(
                                                                             ([key, values]) => (
                                                                                 <ComparisonDataCell
@@ -514,6 +606,21 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                         propertyName={key}
                                                                                         exampleValues={
                                                                                             <ActiveLearningValueExamples
+                                                                                                interactive
+                                                                                                valuesToHighlight={
+                                                                                                    new Set([
+                                                                                                        tableValueQuery.get(
+                                                                                                            i
+                                                                                                        ) ?? "",
+                                                                                                    ])
+                                                                                                }
+                                                                                                onHover={(val) =>
+                                                                                                    handleValueHover(
+                                                                                                        "table",
+                                                                                                        val,
+                                                                                                        i
+                                                                                                    )
+                                                                                                }
                                                                                                 exampleValues={
                                                                                                     values ?? []
                                                                                                 }
@@ -527,19 +634,17 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 </GridRow>
                                                                 <Spacing size="tiny" />
                                                                 <GridRow>
-                                                                    <GridColumn full>
-                                                                        <Tree
-                                                                            contents={[nodes[i]]}
-                                                                            onNodeCollapse={(
-                                                                                _node: TreeNodeInfo,
-                                                                                nodePath: NodePath
-                                                                            ) => handleNodeExpand(i, false)}
-                                                                            onNodeExpand={(
-                                                                                _node: TreeNodeInfo,
-                                                                                nodePath: NodePath
-                                                                            ) => handleNodeExpand(i)}
-                                                                        />
-                                                                    </GridColumn>
+                                                                    <Tree
+                                                                        contents={[nodes[i]]}
+                                                                        onNodeCollapse={(
+                                                                            _node: TreeNodeInfo,
+                                                                            nodePath: NodePath
+                                                                        ) => handleNodeExpand(i, false)}
+                                                                        onNodeExpand={(
+                                                                            _node: TreeNodeInfo,
+                                                                            nodePath: NodePath
+                                                                        ) => handleNodeExpand(i)}
+                                                                    />
                                                                 </GridRow>
                                                             </Grid>
                                                         </TableExpandedRow>

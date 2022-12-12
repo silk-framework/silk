@@ -142,6 +142,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
             let operatorPlugins = Object.values((await requestRuleOperatorPluginDetails(false)).data);
+            console.log({ operatorPlugins });
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
             }
@@ -207,8 +208,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         description: t(
             "RuleEditor.sidebar.parameter.weightDesc",
             "The weight parameter can be used by the parent aggregation when combining " +
-            "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-            "aggregation, quadraticMean and geometricMean."
+                "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
+                "aggregation, quadraticMean and geometricMean."
         ),
         type: "int",
         advanced: true,

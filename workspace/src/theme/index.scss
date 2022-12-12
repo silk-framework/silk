@@ -6,7 +6,6 @@
 // Transformation editor
 @import "./../app/views/pages/MappingEditor/style/style.scss";
 
-
 /**
  * Current styles
  */
@@ -21,9 +20,9 @@
 // extensions for cmem context
 @import "~@eccenca/gui-elements/src/cmem";
 
-
 /**
  * Additional styles for modules
  */
 
 @import "./../app/views/taskViews/linking/activeLearning/LinkingRuleActiveLeraningConfig";
+@import "./../app/views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabview.scss";

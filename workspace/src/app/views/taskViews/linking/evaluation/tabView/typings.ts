@@ -16,6 +16,7 @@ export interface LinkingEvaluationResult {
     source: string;
     target: string;
     confidence: number;
+    decision: "positive" | "negative" | "unlabeled";
     ruleValues: {
         operatorId: string;
         score: number;

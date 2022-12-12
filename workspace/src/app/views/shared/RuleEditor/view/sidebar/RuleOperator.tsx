@@ -102,7 +102,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 };
 
 const tagColors = getColorConfiguration("react-flow-linking");
-const tagColor = (tag: string): Color | string | undefined => {
+export const tagColor = (tag: string): Color | string | undefined => {
     switch (tag) {
         case "Transform":
             return tagColors.transformationNodeBright;
