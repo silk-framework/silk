@@ -207,8 +207,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         description: t(
             "RuleEditor.sidebar.parameter.weightDesc",
             "The weight parameter can be used by the parent aggregation when combining " +
-            "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-            "aggregation, quadraticMean and geometricMean."
+                "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
+                "aggregation, quadraticMean and geometricMean."
         ),
         type: "int",
         advanced: true,
@@ -297,7 +297,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 ]}
                 showRuleOnly={!!optionalContext.showRuleOnly}
                 hideMinimap={!!optionalContext.hideMinimap}
-                zoomRange={optionalContext.zoomRange}
+                zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                 instanceId={instanceId}
             />
