@@ -1,6 +1,3 @@
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import fetch from "../../../services/fetch";
-import qs from "qs";
 import {
     IArbitraryPluginParameters,
     IAutocompleteDefaultResponse,
@@ -15,7 +12,11 @@ import {
     IResourceListPayload,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
+import qs from "qs";
+
+import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 
 /**
  * Default Endpoint to get autocompletion values

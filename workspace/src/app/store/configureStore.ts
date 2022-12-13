@@ -1,12 +1,13 @@
-import rootReducer from "./reducers";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
-import { createBrowserHistory } from "history";
 import { routerMiddleware } from "connected-react-router";
+import { createBrowserHistory } from "history";
+import React from "react";
 import { createLogger } from "redux-logger";
+
+import { isDevelopment } from "../constants/path";
 import monitorReducerEnhancer from "./enhancers/monitorPerformanceEnhancer";
 import storeDevEnhancer from "./enhancers/reduxDevEnhancer";
-import React from "react";
-import { isDevelopment } from "../constants/path";
+import rootReducer from "./reducers";
 
 let store;
 let history = createBrowserHistory();

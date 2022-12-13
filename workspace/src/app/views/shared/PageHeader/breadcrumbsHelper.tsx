@@ -1,12 +1,13 @@
-import React, { useDebugValue, useEffect, useState } from "react";
-import { matchPath, useLocation } from "react-router";
-import { useTranslation } from "react-i18next";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { BreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import BreadcrumbList from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbList";
-import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import React, { useDebugValue, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { matchPath, useLocation } from "react-router";
+
 import appRoutes from "../../../appRoutes";
-import { getFullRoutePath } from "../../../utils/routerUtils";
 import { SERVE_PATH } from "../../../constants/path";
+import { getFullRoutePath } from "../../../utils/routerUtils";
 
 export function fetchBreadcrumbs(WrappedComponent) {
     // Valid breadcrumb IDs

@@ -1,12 +1,13 @@
+import { Spinner } from "@eccenca/gui-elements";
+import { waitFor } from "@testing-library/react";
 import React from "react";
+
 import ErrorView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ErrorView";
 import ExampleView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
+import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
 import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
-import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import { clickElement, findAll, logPageHtml, logWrapperHtml, withMount } from "../../../utils/TestHelpers";
-import { waitFor } from "@testing-library/react";
-import { Spinner } from "@eccenca/gui-elements";
+import { clickElement, findAll, withMount } from "../../../utils/TestHelpers";
 
 const props = {
     id: "1",

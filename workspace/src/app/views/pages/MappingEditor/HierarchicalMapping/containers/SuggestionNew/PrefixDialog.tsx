@@ -1,13 +1,14 @@
-import {Button, SimpleDialog, FieldItem, TextField, Checkbox, Label} from "@eccenca/gui-elements";
-import PrefixList from "./PrefixList";
+import { Button, Checkbox, FieldItem, Label, SimpleDialog, TextField } from "@eccenca/gui-elements";
 import React, { useContext, useState } from "react";
-import { SuggestionListContext } from "./SuggestionContainer";
+
+import PrefixList from "./PrefixList";
 import { IPrefix } from "./suggestion.typings";
+import { SuggestionListContext } from "./SuggestionContainer";
 
 interface IProps {
     isOpen: boolean;
 
-    onAdd(e: any, prefix:string);
+    onAdd(e: any, prefix: string);
 
     onDismiss(e: any);
 
@@ -26,57 +27,66 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
 
     const handleInputPrefix = (value: string) => setInputPrefix(value);
 
-    const handleAdd = (e) => onAdd(e, withoutPrefix ? '' : inputPrefix);
+    const handleAdd = (e) => onAdd(e, withoutPrefix ? "" : inputPrefix);
 
     const handleNotIncludePrefix = () => {
         const toggledValue = !withoutPrefix;
         setWithoutPrefix(toggledValue);
-    }
+    };
 
-    return <SimpleDialog
-        isOpen={isOpen}
-        title="Set prefix for auto-generated properties"
-        hasBorder={true}
-        portalContainer={context.portalContainer}
-        actions={[
-            <Button data-test-id="suggest-mapping-prefix-ok-btn" key="confirm" onClick={handleAdd} affirmative={true}>
-                Add
-            </Button>,
-            <Button data-test-id="suggest-mapping-prefix-cancel-btn" key="cancel" onClick={onDismiss}>
-                Cancel
-            </Button>,
-        ]}
-    >
-        <FieldItem>
-            <Checkbox
-                onChange={handleNotIncludePrefix}
-                checked={withoutPrefix}
-                labelElement={
-                    <Label
-                        text={"Keep source properties unchanged"}
-                        info={"do not prefix them"}
-                        tooltip={"If checked, the source properties are transferred unchanged to the target properties."}
-                        tooltipProps={{portalContainer: context.portalContainer}}
-                        isLayoutForElement={"span"}
-                        style={{ display: "inline-block"}}
-                    />
-                }
-            />
-        </FieldItem>
-        <PrefixList
-            prefixes={prefixList}
-            selectedPrefix={withoutPrefix ? '' : inputPrefix}
-            onChange={handleInputPrefix}
-            disabled={withoutPrefix}
-        />
-        <FieldItem labelProps={{text: 'Selected URI prefix for auto-generated properties', htmlFor:"prefix"}}>
-            <TextField
-                name={'prefix'}
-                id="prefix"
-                onChange={(e) => handleInputPrefix(e.target.value)}
-                value={withoutPrefix ? '' : inputPrefix}
+    return (
+        <SimpleDialog
+            isOpen={isOpen}
+            title="Set prefix for auto-generated properties"
+            hasBorder={true}
+            portalContainer={context.portalContainer}
+            actions={[
+                <Button
+                    data-test-id="suggest-mapping-prefix-ok-btn"
+                    key="confirm"
+                    onClick={handleAdd}
+                    affirmative={true}
+                >
+                    Add
+                </Button>,
+                <Button data-test-id="suggest-mapping-prefix-cancel-btn" key="cancel" onClick={onDismiss}>
+                    Cancel
+                </Button>,
+            ]}
+        >
+            <FieldItem>
+                <Checkbox
+                    onChange={handleNotIncludePrefix}
+                    checked={withoutPrefix}
+                    labelElement={
+                        <Label
+                            text={"Keep source properties unchanged"}
+                            info={"do not prefix them"}
+                            tooltip={
+                                "If checked, the source properties are transferred unchanged to the target properties."
+                            }
+                            tooltipProps={{ portalContainer: context.portalContainer }}
+                            isLayoutForElement={"span"}
+                            style={{ display: "inline-block" }}
+                        />
+                    }
+                />
+            </FieldItem>
+            <PrefixList
+                prefixes={prefixList}
+                selectedPrefix={withoutPrefix ? "" : inputPrefix}
+                onChange={handleInputPrefix}
                 disabled={withoutPrefix}
             />
-        </FieldItem>
-    </SimpleDialog>
-};
+            <FieldItem labelProps={{ text: "Selected URI prefix for auto-generated properties", htmlFor: "prefix" }}>
+                <TextField
+                    name={"prefix"}
+                    id="prefix"
+                    onChange={(e) => handleInputPrefix(e.target.value)}
+                    value={withoutPrefix ? "" : inputPrefix}
+                    disabled={withoutPrefix}
+                />
+            </FieldItem>
+        </SimpleDialog>
+    );
+}

@@ -1,19 +1,20 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { DIErrorTypes } from "@ducks/error/typings";
 import {
-    IActivityStatus,
     ActivityAction,
-    useSilkActivityControl,
     IActivityControlLayoutProps,
+    IActivityStatus,
     Markdown,
     TimeUnits,
+    useSilkActivityControl,
 } from "@eccenca/gui-elements";
-import { DIErrorTypes } from "@ducks/error/typings";
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverviewRequests";
+import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";
 
 interface TaskActivityWidgetProps {
     projectId: string;

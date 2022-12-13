@@ -1,10 +1,9 @@
-import React from 'react';
-import { AutoCompleteBox } from 'gui-elements-deprecated';
-import { autocompleteAsync } from '../store';
+import { AutoCompleteBox } from "gui-elements-deprecated";
+import React from "react";
 
-const loadOptionsRaw = ({
-                            input, callback, ruleId, entity,
-                        }) => {
+import { autocompleteAsync } from "../store";
+
+const loadOptionsRaw = ({ input, callback, ruleId, entity }) => {
     autocompleteAsync({
         entity,
         input,
@@ -13,7 +12,7 @@ const loadOptionsRaw = ({
         callback(null, {
             options,
             complete: false,
-        }, );
+        });
     });
 };
 
@@ -25,12 +24,14 @@ const MultiAutoComplete = ({ entity, ruleId, ...otherProps }) => {
             filterOption={() => true}
             async
             multi
-            loadOptions={(input, callback) => loadOptionsRaw({
-                input,
-                callback,
-                entity,
-                ruleId,
-            })}
+            loadOptions={(input, callback) =>
+                loadOptionsRaw({
+                    input,
+                    callback,
+                    entity,
+                    ruleId,
+                })
+            }
         />
     );
 };

@@ -1,32 +1,33 @@
-import { IViewActions } from "../../../plugins/PluginRegistry";
-import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
+import { commonSel } from "@ducks/common";
+import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { DIErrorTypes } from "@ducks/error/typings";
+import { TaskPlugin } from "@ducks/shared/typings";
+import { ActivityAction, IActivityStatus, Spinner } from "@eccenca/gui-elements";
 import React from "react";
-import { LinkingRuleActiveLearningConfig } from "./LinkingRuleActiveLearningConfig";
-import { fetchLinkSpec } from "../LinkingRuleEditor.requests";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
-import { TaskPlugin } from "@ducks/shared/typings";
-import { ILinkingRule, ILinkingTaskParameters } from "../linking.types";
-import { ActivityAction, IActivityStatus, Spinner } from "@eccenca/gui-elements";
-import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
-import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
-import { LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
-import { activityActionCreator } from "../../../shared/TaskActivityOverview/taskActivityOverviewRequests";
-import { DIErrorTypes } from "@ducks/error/typings";
+
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { connectWebSocket } from "../../../../services/websocketUtils";
-import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
-import { LinkingRuleActiveLearningResetModal } from "./dialogs/LinkingRuleActiveLearningResetModal";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
-import utils from "../LinkingRuleEditor.utils";
-import { IRuleOperator, IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
-import ruleUtils from "../../shared/rules/rule.utils";
 import ruleEditorUtils from "../../../../views/shared/RuleEditor/RuleEditor.utils";
-import { useActiveLearningSessionInfo } from "./shared/ActiveLearningSessionInfoWidget";
 import { useInitFrontend } from "../../../pages/MappingEditor/api/silkRestApi.hooks";
+import { IViewActions } from "../../../plugins/PluginRegistry";
+import { IRuleOperator, IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
+import { activityActionCreator } from "../../../shared/TaskActivityOverview/taskActivityOverviewRequests";
+import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
+import ruleUtils from "../../shared/rules/rule.utils";
+import { ILinkingRule, ILinkingTaskParameters } from "../linking.types";
+import { fetchLinkSpec } from "../LinkingRuleEditor.requests";
+import utils from "../LinkingRuleEditor.utils";
+import { LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
+import { LinkingRuleActiveLearningResetModal } from "./dialogs/LinkingRuleActiveLearningResetModal";
 import { SessionRunningWarningModal } from "./dialogs/SessionRunningWarningModal";
+import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
+import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
+import { LinkingRuleActiveLearningConfig } from "./LinkingRuleActiveLearningConfig";
+import { useActiveLearningSessionInfo } from "./shared/ActiveLearningSessionInfoWidget";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */

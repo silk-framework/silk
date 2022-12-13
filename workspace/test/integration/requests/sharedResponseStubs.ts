@@ -1,5 +1,5 @@
-import { IProjectTask, TaskType } from "../../../src/app/store/ducks/shared/typings";
 import { IArtefactItemProperty, IPluginDetails } from "../../../src/app/store/ducks/common/typings";
+import { IProjectTask, TaskType } from "../../../src/app/store/ducks/shared/typings";
 
 /** A single task parameter and value. */
 

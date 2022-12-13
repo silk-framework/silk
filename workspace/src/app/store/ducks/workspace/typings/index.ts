@@ -1,10 +1,11 @@
+import { IItemLink } from "@ducks/shared/typings";
+import { IWidgetsState } from "@ducks/workspace/typings/IWorkspaceWidgets";
+
 import { IFiltersState } from "./IWorkspaceFilters";
 import { IPreviewState } from "./IWorkspacePreview";
-import { IWidgetsState } from "@ducks/workspace/typings/IWorkspaceWidgets";
-import { IItemLink } from "@ducks/shared/typings";
 
-export * from "./IWorkspacePreview";
 export * from "./IWorkspaceFilters";
+export * from "./IWorkspacePreview";
 export * from "./IWorkspaceWidgets";
 
 export interface IWorkspaceState {

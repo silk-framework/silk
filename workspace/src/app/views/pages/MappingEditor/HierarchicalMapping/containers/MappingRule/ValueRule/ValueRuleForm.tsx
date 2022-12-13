@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
+import { AutoSuggestion, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
 import {
     AffirmativeButton,
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { AutoSuggestion, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
+import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
 import _ from "lodash";
-import ExampleView from "../ExampleView";
-import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
-import ErrorView from "../../../components/ErrorView";
-import AutoComplete from "../../../components/AutoComplete";
-import { trimValue } from "../../../utils/trimValue";
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
-import EventEmitter from "../../../utils/EventEmitter";
-import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
-import TargetCardinality from "../../../components/TargetCardinality";
+import React, { useEffect, useState } from "react";
+
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import AutoComplete from "../../../components/AutoComplete";
+import ErrorView from "../../../components/ErrorView";
+import TargetCardinality from "../../../components/TargetCardinality";
+import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
+import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
+import { convertToUri } from "../../../utils/convertToUri";
+import EventEmitter from "../../../utils/EventEmitter";
+import { newValueIsIRI } from "../../../utils/newValueIsIRI";
+import { trimValue } from "../../../utils/trimValue";
+import { wasTouched } from "../../../utils/wasTouched";
+import ExampleView from "../ExampleView";
 
 const LANGUAGES_LIST = [
     "en",

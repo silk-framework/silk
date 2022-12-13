@@ -1,4 +1,5 @@
 import { IPreConfiguredRuleOperator } from "views/shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
+
 import {
     IRuleOperator,
     IRuleSidebarPreConfiguredOperatorsTabConfig,

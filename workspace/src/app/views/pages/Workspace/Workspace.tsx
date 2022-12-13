@@ -1,14 +1,14 @@
-import React, { useEffect } from "react";
-
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import WorkspaceSearch from "./WorkspaceSearch";
-import { routerSel } from "@ducks/router";
-import { Grid, GridColumn, GridRow } from "@eccenca/gui-elements";
-import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
-import useErrorHandler from "../../../hooks/useErrorHandler";
+import { routerSel } from "@ducks/router";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import { Grid, GridColumn, GridRow } from "@eccenca/gui-elements";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
+import WorkspaceSearch from "./WorkspaceSearch";
 
 export function Workspace() {
     const dispatch = useDispatch();

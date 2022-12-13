@@ -1,6 +1,6 @@
 import { IEntity, IEntitySchema } from "../../shared/rules/rule.typings";
-import { EntityLink } from "./LinkingRuleReferenceLinks.typing";
 import { IEntityLink } from "../linking.types";
+import { EntityLink } from "./LinkingRuleReferenceLinks.typing";
 
 /** Chooses a specific property value based on the path index or optionally based on the given entity schema. */
 const pickPropertyValue = (path: string, pathIdx: number, values: string[][], schema: IEntitySchema): string[] => {

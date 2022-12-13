@@ -1,5 +1,6 @@
 import { requestDatasetTypes } from "@ducks/shared/requests";
 import { IDatasetTypesRequest } from "@ducks/shared/typings";
+
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 
 /** Fetches the types of a dataset. */

@@ -1,12 +1,13 @@
+import React from "react";
+
+import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
+import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/RuleEditorModel.utils";
+import { RuleOperatorNodeParameters } from "../../RuleEditor.typings";
+import utils from "./ruleNode.utils";
+import { RuleNodeFormParameterModal } from "./RuleNodeFormParameterModal";
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import { RuleNodeParameterForm } from "./RuleNodeParameterForm";
-import React from "react";
-import { RuleOperatorNodeParameters } from "../../RuleEditor.typings";
-import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/RuleEditorModel.utils";
-import utils from "./ruleNode.utils";
-import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
-import { RuleNodeFormParameterModal } from "./RuleNodeFormParameterModal";
-import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 export interface RuleNodeContentProps {
     nodeId: string;

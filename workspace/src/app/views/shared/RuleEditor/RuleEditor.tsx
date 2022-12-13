@@ -1,8 +1,11 @@
-import { RuleEditorModel } from "./model/RuleEditorModel";
 import React from "react";
-import { RuleEditorView } from "./view/RuleEditorView";
-import { RuleEditorContext } from "./contexts/RuleEditorContext";
+import { ReactFlowProvider } from "react-flow-renderer";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
+
+import ErrorBoundary from "../../../ErrorBoundary";
 import { IViewActions } from "../../plugins/PluginRegistry";
+import { RuleEditorContext } from "./contexts/RuleEditorContext";
+import { RuleEditorModel } from "./model/RuleEditorModel";
 import {
     IParameterSpecification,
     IRuleOperator,
@@ -13,10 +16,8 @@ import {
     RuleOperatorPluginType,
     RuleSaveResult,
 } from "./RuleEditor.typings";
-import ErrorBoundary from "../../../ErrorBoundary";
-import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
+import { RuleEditorView } from "./view/RuleEditorView";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -252,7 +253,12 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} zoomRange={zoomRange} readOnlyMode={readOnlyMode} />
+                <RuleEditorView
+                    showRuleOnly={showRuleOnly}
+                    hideMinimap={hideMinimap}
+                    zoomRange={zoomRange}
+                    readOnlyMode={readOnlyMode}
+                />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

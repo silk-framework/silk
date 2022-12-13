@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { commonSel } from "@ducks/common";
+import { routerOp } from "@ducks/router";
+import { absolutePageUrl } from "@ducks/router/operations";
+import { IItemLink } from "@ducks/shared/typings";
+import { recentlyViewedItems } from "@ducks/workspace/requests";
+import { IRecentlyViewedItem } from "@ducks/workspace/typings";
 import {
     AutoCompleteField,
     Button,
@@ -12,25 +17,21 @@ import {
     SimpleDialog,
     Spacing,
 } from "@eccenca/gui-elements";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
 import { extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
-import useHotKey from "../HotKeyHandler/HotKeyHandler";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { recentlyViewedItems } from "@ducks/workspace/requests";
-import { IRecentlyViewedItem } from "@ducks/workspace/typings";
-import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
-import { Loading } from "../Loading/Loading";
-import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
-import { routerOp } from "@ducks/router";
 import { useLocation } from "react-router";
-import { commonSel } from "@ducks/common";
-import { absolutePageUrl } from "@ducks/router/operations";
-import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
-import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
-import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+
+import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import { uppercaseFirstChar } from "../../../utils/transformers";
+import useHotKey from "../HotKeyHandler/HotKeyHandler";
+import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
+import { Loading } from "../Loading/Loading";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
@@ -196,7 +197,11 @@ export function RecentlyViewedModal() {
             projectLabel: "",
             itemType: "",
             itemLinks: [
-                { id: "workspaceSearch", label: "Search workspace", path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)) },
+                {
+                    id: "workspaceSearch",
+                    label: "Search workspace",
+                    path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)),
+                },
             ],
         };
     };

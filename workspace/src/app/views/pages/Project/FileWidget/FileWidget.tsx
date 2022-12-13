@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
     Button,
@@ -21,15 +20,17 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import Loading from "../../../shared/Loading";
-import FileUploadModal from "../../../shared/modals/FileUploadModal";
-import { EmptyFileWidget } from "./EmptyFileWidget";
-import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
-import { commonSel } from "@ducks/common";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
+import { useDispatch, useSelector } from "react-redux";
+
 import { CONTEXT_PATH } from "../../../../constants/path";
+import Loading from "../../../shared/Loading";
+import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
+import FileUploadModal from "../../../shared/modals/FileUploadModal";
+import { SearchBar } from "../../../shared/SearchBar/SearchBar";
+import { EmptyFileWidget } from "./EmptyFileWidget";
 
 /** Project file management widget. */
 export const FileWidget = () => {

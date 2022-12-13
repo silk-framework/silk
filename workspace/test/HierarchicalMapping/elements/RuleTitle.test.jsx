@@ -1,69 +1,70 @@
+import { shallow } from "enzyme";
+import { NotAvailable } from "gui-elements-deprecated";
 import React from "react";
-import { shallow } from 'enzyme';
-import RuleTitle from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle';
-import { NotAvailable } from 'gui-elements-deprecated';
-import { ThingName } from '../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName';
 
-const getWrapper = (renderer = shallow, props = {}) => renderer(
-    <RuleTitle {...props} />
-);
+import { ThingName } from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ThingName";
+import RuleTitle from "../../../src/app/views/pages/MappingEditor/HierarchicalMapping/elements/RuleTitle";
+
+const getWrapper = (renderer = shallow, props = {}) => renderer(<RuleTitle {...props} />);
 
 describe("RuleTitle Component", () => {
     describe("on components mounted ", () => {
-        it('should return label, when `metadata.label` presented', () => {
+        it("should return label, when `metadata.label` presented", () => {
             const wrapper = getWrapper(shallow, {
                 rule: {
                     metadata: {
-                        label: 'Something'
-                    }
-                }
+                        label: "Something",
+                    },
+                },
             });
-            expect(wrapper.find('span').text()).toEqual('Something');
+            expect(wrapper.find("span").text()).toEqual("Something");
         });
 
-        describe('should return <ThingName />', () => {
+        describe("should return <ThingName />", () => {
             let wrapper;
 
             const rule = {
-                type: 'object',
+                type: "object",
                 mappingTarget: {
-                    uri: 'ANOTHER_URI'
-                }
+                    uri: "ANOTHER_URI",
+                },
             };
 
             beforeEach(() => {
                 wrapper = getWrapper(shallow, {
-                    rule
+                    rule,
                 });
             });
 
-            it('when `rule.type` equal to `root` and uri presented', () => {
+            it("when `rule.type` equal to `root` and uri presented", () => {
                 const wrapper = getWrapper(shallow, {
                     rule: {
-                        type: 'root',
+                        type: "root",
                         rules: {
-                            typeRules: [{
-                                typeUri: 'simple_uri'
-                            }]
-                        }
-                    }
+                            typeRules: [
+                                {
+                                    typeUri: "simple_uri",
+                                },
+                            ],
+                        },
+                    },
                 });
                 expect(wrapper.find(ThingName)).toHaveLength(1);
             });
 
-            it('when `rule.type` equal to `object` and uri presented', () => {
+            it("when `rule.type` equal to `object` and uri presented", () => {
                 expect(wrapper.find(ThingName)).toHaveLength(1);
             });
 
-            it('when `rule.type` equal to `direct` and uri presented', () => {
-                rule.type = 'direct';
-                wrapper.setProps({rule});
+            it("when `rule.type` equal to `direct` and uri presented", () => {
+                rule.type = "direct";
+                wrapper.setProps({ rule });
                 expect(wrapper.find(ThingName)).toHaveLength(1);
             });
 
-            it('when `rule.type` equal to `complex` and uri presented', () => {
-                rule.type = 'complex';
-                wrapper.setProps({rule});
+            it("when `rule.type` equal to `complex` and uri presented", () => {
+                rule.type = "complex";
+                wrapper.setProps({ rule });
                 expect(wrapper.find(ThingName)).toHaveLength(1);
             });
 
@@ -72,57 +73,59 @@ describe("RuleTitle Component", () => {
             });
         });
 
-        describe('should return <NotAvailable />', () => {
-            it('when `type` property missing in rule arg', () => {
+        describe("should return <NotAvailable />", () => {
+            it("when `type` property missing in rule arg", () => {
                 const wrapper = getWrapper(shallow, {
-                    rule: {}
+                    rule: {},
                 });
                 expect(wrapper.find(NotAvailable)).toHaveLength(1);
             });
 
-            it('when `rule.type` equal to `root` and uri NOT presented', () => {
+            it("when `rule.type` equal to `root` and uri NOT presented", () => {
                 const wrapper = getWrapper(shallow, {
                     rule: {
-                        type: 'root',
+                        type: "root",
                         rules: {
-                            typeRules: [{
-                                typeUri: ''
-                            }]
-                        }
-                    }
+                            typeRules: [
+                                {
+                                    typeUri: "",
+                                },
+                            ],
+                        },
+                    },
                 });
-                expect(wrapper.find('span').text()).toEqual('Mapping');
+                expect(wrapper.find("span").text()).toEqual("Mapping");
             });
 
-            describe('when uri not presented ', () => {
+            describe("when uri not presented ", () => {
                 let wrapper;
 
                 const rule = {
-                    type: 'object',
+                    type: "object",
                     mappingTarget: {
-                        uri: ''
-                    }
+                        uri: "",
+                    },
                 };
 
                 beforeEach(() => {
                     wrapper = getWrapper(shallow, {
-                        rule
+                        rule,
                     });
                 });
 
-                it('and `rule.type` equal to `object` ', () => {
+                it("and `rule.type` equal to `object` ", () => {
                     expect(wrapper.find(NotAvailable)).toHaveLength(1);
                 });
 
-                it('and `rule.type` equal to `direct`', () => {
-                    rule.type = 'direct';
-                    wrapper.setProps({rule});
+                it("and `rule.type` equal to `direct`", () => {
+                    rule.type = "direct";
+                    wrapper.setProps({ rule });
                     expect(wrapper.find(NotAvailable)).toHaveLength(1);
                 });
 
-                it('and `rule.type` equal to `complex` ', () => {
-                    rule.type = 'complex';
-                    wrapper.setProps({rule});
+                it("and `rule.type` equal to `complex` ", () => {
+                    rule.type = "complex";
+                    wrapper.setProps({ rule });
                     expect(wrapper.find(NotAvailable)).toHaveLength(1);
                 });
 

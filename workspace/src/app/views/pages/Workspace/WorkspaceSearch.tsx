@@ -1,6 +1,4 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
     Button,
     Divider,
@@ -15,10 +13,13 @@ import {
     WorkspaceMain,
     WorkspaceSide,
 } from "@eccenca/gui-elements";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import SearchList from "../../shared/SearchList";
-import SearchBar from "../../shared/SearchBar";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import SearchBar from "../../shared/SearchBar";
+import SearchList from "../../shared/SearchList";
 import Filterbar from "./Filterbar";
 
 const WorkspaceSearch = () => {

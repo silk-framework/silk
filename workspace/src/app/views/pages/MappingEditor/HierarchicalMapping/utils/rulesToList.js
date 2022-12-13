@@ -1,4 +1,4 @@
-import _ from 'lodash';
+import _ from "lodash";
 
 const rulesToList = (rawRules, parentId) => {
     return _.map(rawRules, (rule, i) => ({
@@ -11,10 +11,7 @@ const rulesToList = (rawRules, parentId) => {
             key: `MappingRule_${rule.id}`,
             ...rule,
         },
-        errorInfo:
-            _.get(rule, 'status[0].type', false) === 'error'
-                ? _.get(rule, 'status[0].message', false)
-                : false,
+        errorInfo: _.get(rule, "status[0].type", false) === "error" ? _.get(rule, "status[0].message", false) : false,
     }));
 };
 

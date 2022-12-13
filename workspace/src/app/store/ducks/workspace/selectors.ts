@@ -1,7 +1,8 @@
-import { createSelector } from "@reduxjs/toolkit";
-import { IFiltersState, IPreviewState, IWidgetsState } from "./typings";
-import { IStore } from "../../typings/IStore";
 import { ICommonState } from "@ducks/common/typings";
+import { createSelector } from "@reduxjs/toolkit";
+
+import { IStore } from "../../typings/IStore";
+import { IFiltersState, IPreviewState, IWidgetsState } from "./typings";
 
 const commonSelector = (state: IStore): ICommonState => state.common;
 const filtersSelector = (state: IStore): IFiltersState => state.workspace.filters;

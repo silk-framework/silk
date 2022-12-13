@@ -1,8 +1,9 @@
-import qs from "qs";
-import { getLocation, push, replace } from "connected-react-router";
-import { SERVE_PATH } from "../../../constants/path";
 import { IMetadata } from "@ducks/shared/typings";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { getLocation, push, replace } from "connected-react-router";
+import qs from "qs";
+
+import { SERVE_PATH } from "../../../constants/path";
 
 interface IQueryParams {
     [key: string]: any;

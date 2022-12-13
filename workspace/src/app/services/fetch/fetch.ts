@@ -1,7 +1,8 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
+
+import { isTestEnv } from "../../constants/path";
 import { requestInterceptor } from "./requestInterceptor";
 import { FetchResponse, responseInterceptorOnError, responseInterceptorOnSuccess } from "./responseInterceptor";
-import { isTestEnv } from "../../constants/path";
 
 interface IFetchOptions {
     url: string;

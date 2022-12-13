@@ -1,9 +1,10 @@
-import { Edge, Node } from "react-flow-renderer";
-import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
-import { XYPosition } from "react-flow-renderer/dist/types";
-import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
 import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { CSSProperties } from "react";
+import { Edge, Node } from "react-flow-renderer";
+import { XYPosition } from "react-flow-renderer/dist/types";
+
+import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
+import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];

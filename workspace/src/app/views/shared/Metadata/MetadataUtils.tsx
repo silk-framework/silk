@@ -1,15 +1,15 @@
-import React from "react";
-import qs from "qs";
-import { Tag, TagList } from "@eccenca/gui-elements";
-
-import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import fetch from "../../../services/fetch";
-import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { IMetadataExpanded } from "./Metadatatypings";
-import { ContentBlobToggler } from "@eccenca/gui-elements";
-import { SERVE_PATH } from "../../../constants/path";
-import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { IMetadata } from "@ducks/shared/typings";
+import { Keyword, Keywords } from "@ducks/workspace/typings";
+import { Tag, TagList } from "@eccenca/gui-elements";
+import { ContentBlobToggler } from "@eccenca/gui-elements";
+import qs from "qs";
+import React from "react";
+
+import { SERVE_PATH } from "../../../constants/path";
+import fetch from "../../../services/fetch";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
+import { IMetadataExpanded } from "./Metadatatypings";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks

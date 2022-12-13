@@ -1,0 +1,15 @@
+{
+    "extends": [
+        "react-app",
+        "plugin:prettier/recommended"
+    ],
+    "plugins": ["prettier", "simple-import-sort"],
+    "ignorePatterns": [],
+    "globals": {
+    },
+    "rules": {
+        "simple-import-sort/imports": "error",
+        "simple-import-sort/exports": "error",
+        "no-throw-literal": "off"
+    }
+}

@@ -1,11 +1,11 @@
-import { combineReducers } from "@reduxjs/toolkit";
-
-import workspace from "@ducks/workspace";
 import common from "@ducks/common";
-import routerReducers from "@ducks/router";
-import { Reducer, Action, CombinedState } from "redux";
-import { IStore } from "./typings/IStore";
 import error from "@ducks/error";
+import routerReducers from "@ducks/router";
+import workspace from "@ducks/workspace";
+import { combineReducers } from "@reduxjs/toolkit";
+import { Action, CombinedState, Reducer } from "redux";
+
+import { IStore } from "./typings/IStore";
 
 const reducers = (history): Reducer<CombinedState<IStore>, Action> => {
     return combineReducers({

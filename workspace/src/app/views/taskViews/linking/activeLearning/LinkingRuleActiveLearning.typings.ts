@@ -1,5 +1,5 @@
-import { LinkType, ReferenceLinksStats } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../linking.types";
+import { LinkType, ReferenceLinksStats } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 /** The steps of the active learning process. */
 export type ActiveLearningStep = "config" | "linkLearning";

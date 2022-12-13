@@ -1,11 +1,12 @@
-import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { ActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.typings";
+import { HtmlContentBlock, Notification, Spacing, Spinner } from "@eccenca/gui-elements";
 import React from "react";
-import { fetchActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.requests";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
-import { Notification, Spacing, Spinner, HtmlContentBlock } from "@eccenca/gui-elements";
+
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { ReferenceLinksStats } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { fetchActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.requests";
+import { ActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.typings";
 
 interface ActiveLearningSessionInfoWidgetProps {
     activeLearningSessionInfo?: ActiveLearningSessionInfo;
@@ -39,7 +40,7 @@ export const ActiveLearningSessionInfoWidget = ({
                     <Spacing />
                 </>
             ) : null}
-            {(sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks > 0) && (
+            {sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks > 0 && (
                 <>
                     <ReferenceLinksStatsWidget stats={sessionInfo.referenceLinks} />
                 </>

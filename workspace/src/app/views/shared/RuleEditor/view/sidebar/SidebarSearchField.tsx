@@ -1,4 +1,4 @@
-import { Icon, SearchField, AutoSuggestionList } from "@eccenca/gui-elements";
+import { AutoSuggestionList, Icon, SearchField } from "@eccenca/gui-elements";
 import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -58,7 +58,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                         name="operation-search"
                         tooltipText={t("RuleEditor.sidebar.searchTooltip")}
                         tooltipProps={{
-                            hoverOpenDelay: 500
+                            hoverOpenDelay: 500,
                         }}
                     />
                 }
@@ -71,7 +71,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                 onItemSelectionChange={(item) => {
                     setTextQuery(item.value + " ");
                 }}
-                style={{top: "auto"}}
+                style={{ top: "auto" }}
             />
         </>
     );

@@ -1,9 +1,16 @@
 /** Component that handles the linking rule (inline) evaluation. */
-import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import React, { ReactElement } from "react";
-import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
+import { IPluginDetails } from "@ducks/common/typings";
 import { TaskPlugin } from "@ducks/shared/typings";
+import React, { ReactElement } from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { FetchError } from "../../../../services/fetch/responseInterceptor";
+import { queryParameterValue } from "../../../../utils/basicUtils";
+import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
+import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import {
     IEntityLink,
     IEvaluatedReferenceLinks,
@@ -11,16 +18,10 @@ import {
     ILinkingRule,
     ILinkingTaskParameters,
 } from "../linking.types";
-import { IPluginDetails } from "@ducks/common/typings";
-import editorUtils from "../LinkingRuleEditor.utils";
 import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from "../LinkingRuleEditor.requests";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { useTranslation } from "react-i18next";
-import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
-import { queryParameterValue } from "../../../../utils/basicUtils";
+import editorUtils from "../LinkingRuleEditor.utils";
 import utils from "./LinkingRuleEvaluation.utils";
-import { FetchError } from "../../../../services/fetch/responseInterceptor";
-import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -63,13 +64,18 @@ export const LinkingRuleEvaluation = ({
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
+    const clearEntities = React.useCallback(
+        () => evaluationResultEntities.splice(0, evaluationResultEntities.length),
+        [evaluationResultEntities]
+    );
+
     React.useEffect(() => {
         setEvaluationResult([]);
         clearEntities();
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
         setReferenceLinksUrl(queryParameterValue(REFERENCE_LINK_URL_PARAMETER)[0]);
-    }, [projectId, linkingTaskId]);
+    }, [projectId, linkingTaskId, clearEntities, evaluationResultMap, nodeUpdateCallbacks]);
 
     React.useEffect(() => {
         clearEntities();
@@ -86,7 +92,7 @@ export const LinkingRuleEvaluation = ({
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
-    }, [evaluationResult]);
+    }, [evaluationResult, clearEntities, evaluationResultEntities, evaluationResultMap, nodeUpdateCallbacks]);
 
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {
@@ -100,8 +106,6 @@ export const LinkingRuleEvaluation = ({
         }
         setEvaluationResultsShown(show);
     };
-
-    const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
 
     const fetchReferenceLinksEvaluation: (
         linkageRule: ILinkingRule
@@ -203,13 +207,18 @@ export const LinkingRuleEvaluation = ({
     };
 
     /** Called by a rule operator node to register for evaluation updates. */
-    const registerForEvaluationResults = (
-        ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
-    ) => {
-        nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
-        evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
-    };
+    const registerForEvaluationResults = React.useCallback(
+        (ruleOperatorId: string, evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void) => {
+            nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
+            evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
+        },
+        [nodeUpdateCallbacks, evaluationResultMap]
+    );
+
+    const unregister = React.useCallback(
+        (ruleOperatorId: string) => nodeUpdateCallbacks.delete(ruleOperatorId),
+        [nodeUpdateCallbacks]
+    );
 
     /** Factory method used by the rule editor to create an evaluation element. */
     const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
@@ -217,7 +226,7 @@ export const LinkingRuleEvaluation = ({
             <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
-                unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
+                unregister={unregister}
                 referenceLinksUrl={referenceLinksUrl}
                 numberOfLinksToShow={numberOfLinkToShow}
             />

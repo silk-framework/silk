@@ -1,9 +1,10 @@
-import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
+import { IconButton, SimpleDialog } from "@eccenca/gui-elements";
 import React from "react";
-import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
-import { SimpleDialog, IconButton } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+
+import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
+import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 
 interface Props {
     rule: OptionallyLabelledParameter<ILinkingRule>;

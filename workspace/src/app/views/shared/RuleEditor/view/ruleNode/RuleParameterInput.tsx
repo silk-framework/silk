@@ -1,17 +1,18 @@
-import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
-import React, { MouseEvent } from "react";
-import { Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
-import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
+import { requestResourcesList } from "@ducks/shared/requests";
+import { IProjectResource } from "@ducks/shared/typings";
+import { CodeEditor, Switch, TextArea, TextField } from "@eccenca/gui-elements";
+import React, { MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
+
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
-import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
-import { IProjectResource } from "@ducks/shared/typings";
+import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
+import { ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -27,7 +28,7 @@ interface RuleParameterInputProps {
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 /** An input widget for a parameter value. */
@@ -38,7 +39,7 @@ export const RuleParameterInput = ({
     hasValidationError,
     dependentValue,
     large,
-    insideModal
+    insideModal,
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);

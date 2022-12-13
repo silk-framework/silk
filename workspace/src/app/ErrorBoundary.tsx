@@ -1,6 +1,3 @@
-import React, { Component } from "react";
-import { logError } from "./services/errorLogger";
-import { isDevelopment, PUBLIC_URL, SERVE_PATH } from "./constants/path";
 import {
     Button,
     Grid,
@@ -11,6 +8,10 @@ import {
     Notification,
     TitleMainsection,
 } from "@eccenca/gui-elements";
+import React, { Component } from "react";
+
+import { isDevelopment, PUBLIC_URL, SERVE_PATH } from "./constants/path";
+import { logError } from "./services/errorLogger";
 
 /**
  * Catch the children components errors

@@ -1,7 +1,8 @@
-import React from "react";
-import { FieldItem, AutoCompleteField, Notification, Button, AlertDialog } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { AlertDialog, AutoCompleteField, Button, FieldItem, Notification } from "@eccenca/gui-elements";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
 import { ProjectIdAndLabel } from "../CreateArtefactModal";
 
 interface ProjectSelectionProps {

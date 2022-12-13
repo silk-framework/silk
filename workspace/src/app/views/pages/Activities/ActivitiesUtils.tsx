@@ -1,8 +1,9 @@
-import { workspaceApi } from "../../../utils/getApiEndpoint";
+import { IMetadata } from "@ducks/shared/typings";
+import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
+
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { ISearchListRequest, ISearchListResponse } from "@ducks/workspace/requests";
-import { IMetadata } from "@ducks/shared/typings";
+import { workspaceApi } from "../../../utils/getApiEndpoint";
 
 const searchActivities = (searchPayload: ISearchListRequest): Promise<FetchResponse<ISearchListResponse>> =>
     fetch({ url: workspaceApi("/searchActivities"), method: "post", body: searchPayload });

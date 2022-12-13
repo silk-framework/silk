@@ -1,5 +1,5 @@
-import { IArtefactModal, ICommonState } from "./typings";
 import { fetchStoredLang } from "../../../../language";
+import { IArtefactModal, ICommonState } from "./typings";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
@@ -23,7 +23,7 @@ export function initialCommonState(): ICommonState {
         searchQuery: "",
         error: {},
         availableDataTypes: {},
-        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {}},
+        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {} },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),
     };

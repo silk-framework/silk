@@ -1,5 +1,6 @@
-import { ErrorInfo } from "react";
 import Dexie from "dexie";
+import { ErrorInfo } from "react";
+
 import { isDevelopment } from "../constants/path";
 import { FetchError } from "./fetch/responseInterceptor";
 
@@ -190,4 +191,4 @@ const sendError = async (logs) => {
     return true;
 };
 
-export { logError, onErrorHandler, generateNetworkError };
+export { generateNetworkError, logError, onErrorHandler };

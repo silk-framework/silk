@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
 import { FieldItem, FieldItemRow, RadioButton } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { IVocabularyInfo } from "./typings";
 import VocabularyMultiSelect from "./VocabularyMultiSelect";
-import { useTranslation } from "react-i18next";
 
 interface ITargetVocabularySelectionProps {
     id?: string;

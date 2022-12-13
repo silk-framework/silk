@@ -1,13 +1,13 @@
-import { Card, Grid, GridColumn, GridRow, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
-import { CONTEXT_PATH } from "../../../../constants/path";
-import React from "react";
-import { useTranslation } from "react-i18next";
-import LinkingExecutionReport from "../../../pages/MappingEditor/ExecutionReport/LinkingExecutionReport";
-import { TaskActivityWidget } from "../../../shared/TaskActivityWidget/TaskActivityWidget";
 import { checkIfTaskSupportsDownload } from "@ducks/common/requests";
-
 //styles
 import { ProjectTaskDownloadInfo } from "@ducks/common/typings";
+import { Card, Grid, GridColumn, GridRow, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import { CONTEXT_PATH } from "../../../../constants/path";
+import LinkingExecutionReport from "../../../pages/MappingEditor/ExecutionReport/LinkingExecutionReport";
+import { TaskActivityWidget } from "../../../shared/TaskActivityWidget/TaskActivityWidget";
 
 interface IProps {
     projectId: string;

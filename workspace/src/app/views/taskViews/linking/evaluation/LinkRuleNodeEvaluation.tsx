@@ -1,17 +1,18 @@
 import {
-    WhiteSpaceContainer,
+    Icon,
+    Link,
+    OverflowText,
+    OverviewItemLine,
     Spacing,
     Tag,
     Tooltip,
-    Icon,
-    OverflowText,
-    OverviewItemLine,
-    Link,
+    WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
-import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
+
 import { EvaluationResultType } from "./LinkingRuleEvaluation";
 
 const highlightedContainerClass = `${eccgui}-container--highlighted`;
@@ -23,7 +24,7 @@ interface LinkRuleNodeEvaluationProps {
         ruleOperatorId: string,
         evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
     ) => void;
-    unregister: () => void;
+    unregister: (ruleOperatorId: string) => void;
     /** A URL to link to when there is no result found. */
     referenceLinksUrl?: string;
     numberOfLinksToShow: number;
@@ -44,8 +45,8 @@ export const LinkRuleNodeEvaluation = ({
 
     React.useEffect(() => {
         registerForEvaluationResults(ruleOperatorId, setEvaluationResult);
-        return unregister;
-    }, []);
+        return () => unregister(ruleOperatorId);
+    }, [ruleOperatorId, registerForEvaluationResults, unregister]);
 
     const onMouseEnter = (lineIdx: number) => {
         const lines = document.querySelectorAll(`.evaluationLink${lineIdx}`);

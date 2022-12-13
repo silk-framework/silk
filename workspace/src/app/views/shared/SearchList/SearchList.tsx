@@ -1,21 +1,22 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { commonOp, commonSel } from "@ducks/common";
+import { routerOp } from "@ducks/router";
+import { IModalItem } from "@ducks/shared/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, Icon, Spacing, Notification } from "@eccenca/gui-elements";
-import Pagination from "../Pagination";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { Button, Icon, Notification, Spacing } from "@eccenca/gui-elements";
+import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
+import AppliedFacets from "../../pages/Workspace/AppliedFacets";
 import DataList from "../Datalist";
 import CloneModal from "../modals/CloneModal";
-import AppliedFacets from "../../pages/Workspace/AppliedFacets";
-import SearchItem from "./SearchItem";
-import EmptyList from "./EmptyList";
-import { commonOp, commonSel } from "@ducks/common";
-import { ItemDeleteModal } from "../modals/ItemDeleteModal";
-import { routerOp } from "@ducks/router";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
-import { useTranslation } from "react-i18next";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
-import { IModalItem } from "@ducks/shared/typings";
+import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
+import Pagination from "../Pagination";
+import EmptyList from "./EmptyList";
+import SearchItem from "./SearchItem";
 
 export function SearchList() {
     const dispatch = useDispatch();

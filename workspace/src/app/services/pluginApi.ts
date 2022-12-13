@@ -1,5 +1,5 @@
-import { isReactComponent } from "../utils/reactUtils";
 import { IPlugins } from "../../configs";
+import { isReactComponent } from "../utils/reactUtils";
 
 const createPlugin = (options: IPlugins): any => {
     const { entryPoint, name, menuName } = options;

@@ -1,12 +1,13 @@
-import DeleteModal, { IDeleteModalOptions } from "./DeleteModal";
-import React, { useEffect, useState } from "react";
-import { Loading } from "../Loading/Loading";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { useTranslation } from "react-i18next";
 import { IModalItem, ITaskMetadataResponse } from "@ducks/shared/typings";
-import { Spacing, Tooltip, Link } from "@eccenca/gui-elements";
+import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
+import { Link, Spacing, Tooltip } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { Loading } from "../Loading/Loading";
+import DeleteModal, { IDeleteModalOptions } from "./DeleteModal";
 
 interface IProps {
     item: IModalItem;

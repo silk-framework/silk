@@ -1,15 +1,16 @@
-import React from "react";
-import _ from "lodash";
 import className from "classnames";
 import { Card, CardTitle, NotAvailable } from "gui-elements-deprecated";
+import _ from "lodash";
+import React from "react";
+
+import { getHistory } from "../../../../../store/configureStore";
 import { ThingIcon } from "../components/ThingIcon";
+import ExpandButton from "../elements/buttons/ExpandButton";
 import RuleTitle from "../elements/RuleTitle";
 import RuleTypes from "../elements/RuleTypes";
-import ObjectRule from "./MappingRule/ObjectRule/ObjectRule";
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI, MESSAGES } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
-import ExpandButton from "../elements/buttons/ExpandButton";
-import { getHistory } from "../../../../../store/configureStore";
+import ObjectRule from "./MappingRule/ObjectRule/ObjectRule";
 
 class RootMappingRule extends React.Component {
     state = {

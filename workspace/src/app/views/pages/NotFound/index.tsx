@@ -1,16 +1,17 @@
-import React from "react";
 import {
+    Button,
     Grid,
-    GridRow,
     GridColumn,
+    GridRow,
+    HtmlContentBlock,
+    Icon,
     Notification,
     TitleMainsection,
-    HtmlContentBlock,
-    Button,
-    Icon,
 } from "@eccenca/gui-elements";
-import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
+import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
 
 export default function NotFound() {
     const [t] = useTranslation();

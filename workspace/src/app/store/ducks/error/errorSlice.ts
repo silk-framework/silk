@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+
 import { initialErrorState } from "./initialState";
 import { DIErrorFormat } from "./typings";
 
@@ -7,7 +8,7 @@ type RegisterErrorActionType = {
         /** The error that should be displayed. */
         newError: Pick<DIErrorFormat, "id" | "message" | "cause" | "alternativeIntent">;
         /** An optional error notification instance ID when this error should only be shown in a specific error notification widget. */
-        errorNotificationInstanceId?: string
+        errorNotificationInstanceId?: string;
     };
 };
 

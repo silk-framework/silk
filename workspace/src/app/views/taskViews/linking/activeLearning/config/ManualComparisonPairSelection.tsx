@@ -1,12 +1,3 @@
-import React from "react";
-import ConnectionAvailable from "./../components/ConnectionAvailable";
-import {
-    ComparisonDataBody,
-    ComparisonDataCell,
-    ComparisonDataConnection,
-    ComparisonDataContainer,
-    ComparisonDataRow,
-} from "./../components/ComparisionData";
 import {
     AutoSuggestion,
     Card,
@@ -21,14 +12,24 @@ import {
     Spacing,
     Spinner,
 } from "@eccenca/gui-elements";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
 import { partialAutoCompleteLinkingInputPaths } from "../../LinkingRuleEditor.requests";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
-import { useTranslation } from "react-i18next";
 import { fetchPathExampleValues } from "../LinkingRuleActiveLearning.requests";
+import { ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
 import { ActiveLearningValueExamples } from "../shared/ActiveLearningValueExamples";
+import {
+    ComparisonDataBody,
+    ComparisonDataCell,
+    ComparisonDataConnection,
+    ComparisonDataContainer,
+    ComparisonDataRow,
+} from "./../components/ComparisionData";
+import ConnectionAvailable from "./../components/ConnectionAvailable";
 
 interface Props {
     projectId: string;
@@ -219,11 +220,8 @@ const PathAutoCompletion = ({
         if (!!path.current) {
             if (isValid.current) {
                 if (fetchValues) {
-                    const currentPath = path.current
-                    setTimeout(
-                        () => fetchExampleValues(currentPath),
-                        1000
-                    )
+                    const currentPath = path.current;
+                    setTimeout(() => fetchExampleValues(currentPath), 1000);
                 }
                 changeManualPath(path.current, undefined, exampleValues.current ?? []);
             } else {
@@ -250,9 +248,9 @@ const PathAutoCompletion = ({
     }, []);
 
     const fetchExampleValues = async (forPath: string) => {
-        if(path.current !== forPath) {
+        if (path.current !== forPath) {
             // Path has changed in the meantime, do not fetch.
-            return
+            return;
         }
         const requestId = `${path.current}__${isValid.current}`;
         if (path.current && requestId !== exampleValuesRequestId.current) {

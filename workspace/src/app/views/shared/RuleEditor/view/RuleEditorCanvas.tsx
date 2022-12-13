@@ -1,3 +1,7 @@
+import { GridColumn } from "@eccenca/gui-elements";
+import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
+import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
+import React, { MouseEvent as ReactMouseEvent } from "react";
 import {
     Background,
     BackgroundVariant,
@@ -7,10 +11,14 @@ import {
     HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
-import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
-import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
-import { SelectionMenu } from "./ruleNode/SelectionMenu";
+
+import useHotKey from "../../HotKeyHandler/HotKeyHandler";
+import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
+import { RuleEditorNode } from "../model/RuleEditorModel.typings";
+import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
+import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import {
     IRuleEditorViewBaseEdgeConnectionState,
     IRuleEditorViewConnectState,
@@ -18,14 +26,7 @@ import {
     IRuleEditorViewEdgeUpdateState,
     IRuleEditorViewSelectionDragState,
 } from "./RuleEditorView.typings";
-import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { EdgeMenu } from "./ruleEdge/EdgeMenu";
-import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
-import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { GridColumn } from "@eccenca/gui-elements";
-import { RuleEditorNode } from "../model/RuleEditorModel.typings";
-import useHotKey from "../../HotKeyHandler/HotKeyHandler";
-import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
+import { SelectionMenu } from "./ruleNode/SelectionMenu";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];

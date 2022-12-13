@@ -1,8 +1,9 @@
-import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+
 import fetch from "../../../services/fetch";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { IComplexMappingRule, ITransformRule } from "./transform.types";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 /** Fetches a transform rule. */
 export const requestTransformRule = async (

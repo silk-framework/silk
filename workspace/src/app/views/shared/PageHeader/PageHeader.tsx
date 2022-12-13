@@ -1,7 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
-import ReactDOM from "react-dom";
-import { Helmet } from "react-helmet";
+import { routerOp } from "@ducks/router";
 import {
     BreadcrumbList,
     Icon,
@@ -14,7 +11,11 @@ import {
     TitlePage,
 } from "@eccenca/gui-elements";
 import { BreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
-import { routerOp } from "@ducks/router";
+import React, { useEffect, useState } from "react";
+import ReactDOM from "react-dom";
+import { Helmet } from "react-helmet";
+import { useDispatch } from "react-redux";
+
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 

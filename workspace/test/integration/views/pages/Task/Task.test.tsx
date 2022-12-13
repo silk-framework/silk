@@ -1,5 +1,18 @@
+import { IMetadata } from "@ducks/shared/typings";
+import { waitFor } from "@testing-library/react";
+import { ReactWrapper } from "enzyme";
+import { createBrowserHistory } from "history";
 import React from "react";
+
+import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
+import Task from "../../../../../src/app/views/pages/Task";
 import mockAxios from "../../../../__mocks__/axios";
+import {
+    ITaskParameter,
+    ParameterDescriptionGenerator,
+    requestArtefactPropertiesTestResponse,
+    requestTaskDataTestResponse,
+} from "../../../requests/sharedResponseStubs";
 import {
     apiUrl,
     byTestId,
@@ -13,18 +26,6 @@ import {
     withMount,
     workspacePath,
 } from "../../../TestHelper";
-import { createBrowserHistory } from "history";
-import Task from "../../../../../src/app/views/pages/Task";
-import {
-    ITaskParameter,
-    ParameterDescriptionGenerator,
-    requestArtefactPropertiesTestResponse,
-    requestTaskDataTestResponse,
-} from "../../../requests/sharedResponseStubs";
-import { waitFor } from "@testing-library/react";
-import { ReactWrapper } from "enzyme";
-import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
-import { IMetadata } from "@ducks/shared/typings";
 
 describe("Task page", () => {
     afterEach(() => {
@@ -35,8 +36,6 @@ describe("Task page", () => {
     const taskId = "taskId";
     const taskLabel = "A task";
     const taskDescription = "This is a task";
-    const createdBy = "unknown";
-    const lastModifiedBy = "unknown";
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
     const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);

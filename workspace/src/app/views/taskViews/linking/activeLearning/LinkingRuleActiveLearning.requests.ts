@@ -1,6 +1,7 @@
-import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
+import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import { learningApi } from "../../../../utils/getApiEndpoint";
+import { ReferenceLinks } from "../linking.types";
 import {
     ActiveLearningBestRule,
     ActiveLearningDecisions,
@@ -11,7 +12,6 @@ import {
     ComparisonPairs,
     LinkingValuePathExampleValues,
 } from "./LinkingRuleActiveLearning.typings";
-import { ReferenceLinks } from "../linking.types";
 
 /** Get the comparison pair configuration for the active learning session.
  *

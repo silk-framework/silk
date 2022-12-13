@@ -1,10 +1,11 @@
-import { SelectedVocabularyItem, StaticVocabularyEntry, TargetVocabularySelection } from "./TargetVocabularySelection";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { requestGlobalVocabularies } from "./requests";
-import { IVocabularyInfo } from "./typings";
+
 import Loading from "../Loading";
 import { IInputAttributes } from "../modals/CreateArtefactModal/ArtefactForms/InputMapper";
+import { requestGlobalVocabularies } from "./requests";
+import { SelectedVocabularyItem, StaticVocabularyEntry, TargetVocabularySelection } from "./TargetVocabularySelection";
+import { IVocabularyInfo } from "./typings";
 
 /** Target vocabulary selection component that has static entries 'all installed vocabularies' and 'none'.
  *  And alternatively allows to multi-select all available vocabularies (from the global vocabulary cache). */

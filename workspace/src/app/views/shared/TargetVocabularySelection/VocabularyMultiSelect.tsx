@@ -1,6 +1,7 @@
-import { Button, FieldItem, Highlighter, MenuItem, OverflowText, MultiSelect } from "@eccenca/gui-elements";
-import React, { useEffect, useState } from "react";
+import { Button, FieldItem, Highlighter, MenuItem, MultiSelect, OverflowText } from "@eccenca/gui-elements";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import React, { useEffect, useState } from "react";
+
 import { IVocabularyInfo } from "./typings";
 
 interface IProps {

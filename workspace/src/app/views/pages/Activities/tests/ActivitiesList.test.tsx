@@ -1,12 +1,14 @@
-import React from "react";
 import "@testing-library/jest-dom/extend-expect";
-import { render as rtlRender } from "@testing-library/react";
+
 import { configureStore } from "@reduxjs/toolkit";
+import { render as rtlRender } from "@testing-library/react";
+import React from "react";
 import { Provider } from "react-redux";
+
+import { bluePrintClassPrefix } from "../../../../../../test/HierarchicalMapping/utils/TestHelpers";
 import workspaceReducer from "../../../../store/ducks/workspace";
 import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
 import testData from "./test-data";
-import { bluePrintClassPrefix } from "../../../../../../test/HierarchicalMapping/utils/TestHelpers";
 
 const activityProperties: Record<
     string,

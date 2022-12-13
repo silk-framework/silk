@@ -1,13 +1,14 @@
-import utils from "../LinkingRuleEditor.utils";
+import { PluginType } from "@ducks/shared/typings";
+
 import {
     IPortSpecification,
     IRuleOperatorNode,
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { PluginType } from "@ducks/shared/typings";
-import { IComparisonOperator } from "../linking.types";
 import { ITransformOperator } from "../../shared/rules/rule.typings";
+import { IComparisonOperator } from "../linking.types";
+import utils from "../LinkingRuleEditor.utils";
 
 describe("Linking rule editor utils", () => {
     it("should convert rule operator nodes with symmetric comparison to the corresponding linking rule tree", () => {

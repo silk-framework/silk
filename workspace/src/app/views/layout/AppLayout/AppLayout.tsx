@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { Header } from "../Header/Header";
-import { RecentlyViewedModal } from "../../shared/modals/RecentlyViewedModal";
 import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
+import React, { useState } from "react";
+
+import { RecentlyViewedModal } from "../../shared/modals/RecentlyViewedModal";
+import { Header } from "../Header/Header";
 
 interface IProps {
     children: React.ReactNode;

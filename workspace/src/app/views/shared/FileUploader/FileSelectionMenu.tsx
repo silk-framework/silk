@@ -1,20 +1,21 @@
-import React from "react";
-import Uppy from "@uppy/core";
 import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
+import { requestIfResourceExists } from "@ducks/workspace/requests";
 import { Button, Divider, FieldItem, Icon, TextField } from "@eccenca/gui-elements";
 import { IAutoCompleteFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
-import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
-import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
-import { CreateNewFile } from "./cases/CreateNewFile";
-import i18next from "../../../../language";
-import { requestIfResourceExists } from "@ducks/workspace/requests";
-import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { withTranslation } from "react-i18next";
+import Uppy from "@uppy/core";
 import XHR from "@uppy/xhr-upload";
+import React from "react";
+import { withTranslation } from "react-i18next";
+
+import i18next from "../../../../language";
+import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { CreateNewFile } from "./cases/CreateNewFile";
+import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
+import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
+import { FileMenuItems, FileSelectionOptions } from "./FileSelectionOptions";
 
 interface IUploaderInstance {
     /**
@@ -96,7 +97,7 @@ export interface IUploaderOptions {
     t(key: string, options?: object | string): string;
 
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 interface IState {

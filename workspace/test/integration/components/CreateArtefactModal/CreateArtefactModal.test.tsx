@@ -1,10 +1,21 @@
-import React from "react";
 import "@testing-library/jest-dom";
-import mockAxios from "../../../__mocks__/axios";
-import { ReactWrapper } from "enzyme";
-import { SERVE_PATH } from "../../../../src/app/constants/path";
-import { createMemoryHistory } from "history";
 
+import { waitFor } from "@testing-library/react";
+import { ReactWrapper } from "enzyme";
+import { createMemoryHistory } from "history";
+import { MemoryHistory } from "history/createMemoryHistory";
+import React from "react";
+
+import { INPUT_TYPES } from "../../../../src/app/constants";
+import { SERVE_PATH } from "../../../../src/app/constants/path";
+import {
+    IOverviewArtefactItemList,
+    IPluginDetails,
+    IProjectTaskUpdatePayload,
+} from "../../../../src/app/store/ducks/common/typings";
+import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
+import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
+import mockAxios from "../../../__mocks__/axios";
 import {
     addDocumentCreateRangeMethod,
     apiUrl,
@@ -24,18 +35,7 @@ import {
     testWrapper,
     withMount,
 } from "../../TestHelper";
-import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { waitFor } from "@testing-library/react";
-import {
-    IOverviewArtefactItemList,
-    IPluginDetails,
-    IProjectTaskUpdatePayload,
-} from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
-import { INPUT_TYPES } from "../../../../src/app/constants";
-import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
-import { MemoryHistory } from "history/createMemoryHistory";
-import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -348,7 +348,6 @@ describe("Task creation widget", () => {
         // input must be focused in order to fire requests
         autoCompleteInput.simulate("focus");
         changeValue(autoCompleteInput, "abc");
-        const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
         });

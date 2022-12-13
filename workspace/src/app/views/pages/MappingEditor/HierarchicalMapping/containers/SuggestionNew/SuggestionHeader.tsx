@@ -1,10 +1,8 @@
-import React, {useState} from 'react';
-
-import {SearchField} from "@eccenca/gui-elements";
+import { SearchField } from "@eccenca/gui-elements";
+import React, { useState } from "react";
 
 /** Mapping suggestion header including search widget etc. */
 export default function SuggestionHeader({ onSearch }) {
-
     const [searchValue, setSearchValue] = useState("");
 
     const onClearanceHandler = () => {
@@ -28,14 +26,14 @@ export default function SuggestionHeader({ onSearch }) {
 
     return (
         <SearchField
-            data-test-id={'search_input'}
+            data-test-id={"search_input"}
             value={searchValue}
             emptySearchInputMessage={"Search in table"}
             autoFocus={false}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            onBlur={()=>{}}
+            onBlur={() => {}}
             onClearanceHandler={onClearanceHandler}
         />
-    )
+    );
 }

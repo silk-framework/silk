@@ -1,19 +1,20 @@
-import { createAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { initialCommonState } from "./initialState";
-import { LOCATION_CHANGE } from "connected-react-router";
-import appRoutes from "../../../appRoutes";
-import { matchPath } from "react-router";
-import { getFullRoutePath } from "../../../utils/routerUtils";
-import { getHistory } from "../../configureStore";
 import {
-    IPluginOverview,
     IAvailableDataType,
-    IPluginDetails,
     IExportTypes,
     IInitFrontend,
+    IPluginDetails,
+    IPluginOverview,
     IProjectTaskUpdatePayload,
 } from "@ducks/common/typings";
+import { createAction, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { LOCATION_CHANGE } from "connected-react-router";
+import { matchPath } from "react-router";
+
 import { setStoredLang } from "../../../../language";
+import appRoutes from "../../../appRoutes";
+import { getFullRoutePath } from "../../../utils/routerUtils";
+import { getHistory } from "../../configureStore";
+import { initialCommonState } from "./initialState";
 
 /**
  * @override connect-react-router location change action

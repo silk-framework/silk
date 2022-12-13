@@ -1,5 +1,5 @@
-import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
+import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 
 /** A linking rule. */
 export interface ILinkingRule {

@@ -1,4 +1,7 @@
-import React from "react";
+import { commonSel } from "@ducks/common";
+import { IExportTypes } from "@ducks/common/typings";
+import { routerOp } from "@ducks/router";
+import { IPageLabels } from "@ducks/router/operations";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
     Card,
@@ -16,22 +19,20 @@ import {
     Spacing,
     Tag,
 } from "@eccenca/gui-elements";
-import { routerOp } from "@ducks/router";
-import { useDispatch, useSelector } from "react-redux";
-import { ResourceLink } from "../ResourceLink/ResourceLink";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
-import { IPageLabels } from "@ducks/router/operations";
-import { DATA_TYPES } from "../../../constants";
-import { commonSel } from "@ducks/common";
-import { IExportTypes } from "@ducks/common/typings";
-import { downloadProject } from "../../../utils/downloadProject";
-import { useTranslation } from "react-i18next";
-import ItemDepiction from "../../shared/ItemDepiction";
-import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
-import { wrapTooltip } from "../../../utils/uiUtils";
 import { Markdown } from "@eccenca/gui-elements";
 import highlightSearchWordsPluginFactory from "@eccenca/gui-elements/src/cmem/markdown/highlightSearchWords";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
+import { DATA_TYPES } from "../../../constants";
+import { downloadProject } from "../../../utils/downloadProject";
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import { wrapTooltip } from "../../../utils/uiUtils";
+import ItemDepiction from "../../shared/ItemDepiction";
 import ProjectTags from "../ProjectTags/ProjectTags";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { ResourceLink } from "../ResourceLink/ResourceLink";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -70,7 +71,7 @@ export default function SearchItem({
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
     const { projectTabView, changeTab, menuItems } = useProjectTabsView({
-        srcLinks: menuItemLinks.map(link => ({...link, id: link.label})),
+        srcLinks: menuItemLinks.map((link) => ({ ...link, id: link.label })),
         pluginId: item.pluginId,
         projectId: item.projectId,
         taskId: item.id,

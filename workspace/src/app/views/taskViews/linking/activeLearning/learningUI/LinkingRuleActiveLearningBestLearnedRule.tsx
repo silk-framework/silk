@@ -13,14 +13,15 @@ import {
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
+
+import { ruleEditorNodeParameterLabel } from "../../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { IRuleOperatorNode } from "../../../../shared/RuleEditor/RuleEditor.typings";
+import ruleEditorUtils from "../../../../shared/RuleEditor/RuleEditor.utils";
+import linkingRuleUtils from "../../LinkingRuleEditor.utils";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningBestLearnedRuleModal } from "./LinkingRuleActiveLearningBestLearnedRuleModal";
 import { VisualBestLinkingRule } from "./VisualBestLinkingRule";
-import linkingRuleUtils from "../../LinkingRuleEditor.utils";
-import ruleEditorUtils from "../../../../shared/RuleEditor/RuleEditor.utils";
-import { IRuleOperatorNode } from "../../../../shared/RuleEditor/RuleEditor.typings";
-import { ruleEditorNodeParameterLabel } from "../../../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
     rule?: ActiveLearningBestRule;
@@ -109,10 +110,10 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                         {t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}
                         {rule && (
                             <>
-                            {" "}
-                            <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
-                                {`(${t("ActiveLearning.bestLearnedRule.scoreInfo", { score: scoreString })})`}
-                            </Tooltip>
+                                {" "}
+                                <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
+                                    {`(${t("ActiveLearning.bestLearnedRule.scoreInfo", { score: scoreString })})`}
+                                </Tooltip>
                             </>
                         )}
                     </h2>

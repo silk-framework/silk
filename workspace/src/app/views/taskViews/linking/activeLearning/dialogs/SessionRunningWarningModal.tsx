@@ -1,8 +1,9 @@
-import { ActiveLearningSessionInfoWidget } from "../shared/ActiveLearningSessionInfoWidget";
-import React from "react";
 import { Button, SimpleDialog, Spacing } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
 import { ActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.typings";
+import { ActiveLearningSessionInfoWidget } from "../shared/ActiveLearningSessionInfoWidget";
 
 interface Props {
     activeLearningSessionInfo?: ActiveLearningSessionInfo;

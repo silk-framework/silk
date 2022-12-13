@@ -1,15 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
-import { AutoSuggestion, Button, FieldItem, Notification, Spacing, TextField, Spinner } from "@eccenca/gui-elements";
+import { AutoSuggestion, Button, FieldItem, Notification, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
 import {
     AffirmativeButton,
     DismissiveButton,
     Radio,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
+import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
 import _ from "lodash";
-import ExampleView from "../ExampleView";
+import React, { useEffect, useState } from "react";
+
+import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import silkApi from "../../../../api/silkRestApi";
+import { IUriPattern } from "../../../../api/types";
+import AutoComplete from "../../../components/AutoComplete";
+import ErrorView from "../../../components/ErrorView";
+import MultiAutoComplete from "../../../components/MultiAutoComplete";
 import { ParentElement } from "../../../components/ParentElement";
+import TargetCardinality from "../../../components/TargetCardinality";
 import {
     checkUriPatternValidity,
     checkValuePathValidity,
@@ -19,20 +26,14 @@ import {
     updateVocabularyCacheEntry,
     useApiDetails,
 } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
-import ErrorView from "../../../components/ErrorView";
-import AutoComplete from "../../../components/AutoComplete";
 import { MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI, MESSAGES } from "../../../utils/constants";
+import { convertToUri } from "../../../utils/convertToUri";
 import EventEmitter from "../../../utils/EventEmitter";
+import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import { trimValue } from "../../../utils/trimValue";
 import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
-import TargetCardinality from "../../../components/TargetCardinality";
-import MultiAutoComplete from "../../../components/MultiAutoComplete";
-import silkApi from "../../../../api/silkRestApi";
-import { IUriPattern } from "../../../../api/types";
+import ExampleView from "../ExampleView";
 import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
-import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 
 interface IProps {
     id?: string;

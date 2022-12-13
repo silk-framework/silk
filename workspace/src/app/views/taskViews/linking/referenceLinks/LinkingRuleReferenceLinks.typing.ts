@@ -1,5 +1,5 @@
-import {IEntity} from "../../shared/rules/rule.typings";
-import {IEntityLink} from "../linking.types";
+import { IEntity } from "../../shared/rules/rule.typings";
+import { IEntityLink } from "../linking.types";
 
 /** The type of a reference link. */
 export type LinkType = "positive" | "negative" | "unlabeled";

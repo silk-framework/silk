@@ -1,19 +1,20 @@
+import { commonOp, commonSel } from "@ducks/common";
+import { IExportTypes } from "@ducks/common/typings";
+import { routerOp } from "@ducks/router";
+import { requestItemLinks } from "@ducks/shared/requests";
+import { IItemLink } from "@ducks/shared/typings";
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
-import { useTranslation } from "react-i18next";
-import { routerOp } from "@ducks/router";
-import { IItemLink } from "@ducks/shared/typings";
-import { commonOp, commonSel } from "@ducks/common";
-import { requestItemLinks } from "@ducks/shared/requests";
-import { IExportTypes } from "@ducks/common/typings";
-import { downloadProject } from "../../../utils/downloadProject";
+
 import { DATA_TYPES } from "../../../constants";
-import { ItemDeleteModal } from "../modals/ItemDeleteModal";
+import { downloadProject } from "../../../utils/downloadProject";
 import CloneModal from "../modals/CloneModal";
-import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
+import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
+import { ActionsMenu, IActionsMenuProps, TActionsMenuItem } from "./ActionsMenu";
 
 interface IProps {
     projectId: string;

@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Card,
     HelperClasses,
@@ -8,6 +7,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
 } from "@eccenca/gui-elements";
+import React from "react";
 
 function EmptyList({
     depiction, // use large icon here

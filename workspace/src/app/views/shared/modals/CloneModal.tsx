@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { Loading } from "../Loading/Loading";
-import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
+import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
+import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { Loading } from "../Loading/Loading";
 
 export interface ICloneOptions {
     item: IModalItem;

@@ -1,35 +1,36 @@
-import { useTranslation } from "react-i18next";
-import React from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
+import { commonOp } from "@ducks/common";
+import { routerSel } from "@ducks/router";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { previewSlice } from "@ducks/workspace/previewSlice";
 import {
-    WorkspaceContent,
-    WorkspaceMain,
+    Button,
+    Divider,
+    Grid,
+    GridColumn,
+    GridRow,
+    IconButton,
+    Notification,
     Section,
     SectionHeader,
-    Grid,
-    GridRow,
-    GridColumn,
     TitleMainsection,
-    Divider,
+    WorkspaceContent,
+    WorkspaceMain,
     WorkspaceSide,
-    Notification,
-    Button,
-    IconButton,
 } from "@eccenca/gui-elements";
-import SearchBar from "../../shared/SearchBar";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { batch, useDispatch, useSelector } from "react-redux";
+import { useHistory, useParams } from "react-router";
+import { ProjectTaskParams } from "views/shared/typings";
+
+import { SERVE_PATH } from "../../../constants/path";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import SearchBar from "../../shared/SearchBar";
 import NotFound from "../NotFound";
 import Filterbar from "../Workspace/Filterbar";
 import utils from "./ActivitiesUtils";
-import useErrorHandler from "../../../hooks/useErrorHandler";
-import { commonOp } from "@ducks/common";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { routerSel } from "@ducks/router";
 import ActivityList from "./ActivityList";
-import { useHistory, useParams } from "react-router";
-import { SERVE_PATH } from "../../../constants/path";
-import { ProjectTaskParams } from "views/shared/typings";
-import { previewSlice } from "@ducks/workspace/previewSlice";
 
 const Activities = () => {
     const dispatch = useDispatch();
@@ -191,8 +192,7 @@ const Activities = () => {
                     </Grid>
                 </Section>
             </WorkspaceMain>
-            <WorkspaceSide>
-            </WorkspaceSide>
+            <WorkspaceSide></WorkspaceSide>
         </WorkspaceContent>
     );
 };

@@ -1,8 +1,9 @@
 import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
-import React from "react";
-import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
-import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 import Color from "color";
+import React from "react";
+
+import { RuleEditorNodeParameterValue, ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
 
 /** Adds highlighting to the text if query is non-empty. */
 const addHighlighting = (text: string, query?: string): string | JSX.Element => {
@@ -23,7 +24,7 @@ const createOperatorTags = (
                 minimal={true}
                 small={true}
                 backgroundColor={color ? color(tag) : undefined}
-                emphasis={tag==="Recommended" ? "stronger" : "normal"}
+                emphasis={tag === "Recommended" ? "stronger" : "normal"}
             >
                 {addHighlighting(tag, query)}
             </Tag>

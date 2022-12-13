@@ -1,4 +1,21 @@
-import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
+import { IPluginDetails } from "@ducks/common/typings";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import {
+    Highlighter,
+    OverflowText,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+} from "@eccenca/gui-elements";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
+import React from "react";
+
+import {
+    RuleEditorNodeParameterValue,
+    ruleEditorNodeParameterValue,
+} from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import {
     IParameterSpecification,
     IParameterValidationResult,
@@ -11,24 +28,8 @@ import {
     RuleParameterType,
     RuleValidationError,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
-import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
-import { IPluginDetails } from "@ducks/common/typings";
-import {
-    RuleEditorNodeParameterValue,
-    ruleEditorNodeParameterValue,
-} from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import React from "react";
-import {
-    Highlighter,
-    OverflowText,
-    OverviewItem,
-    OverviewItemDescription,
-    OverviewItemLine,
-} from "@eccenca/gui-elements";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { optionallyLabelledParameterToValue } from "../../linking/linking.types";
+import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (

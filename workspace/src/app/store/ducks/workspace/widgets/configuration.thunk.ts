@@ -1,6 +1,6 @@
+import { requestChangePrefixes, requestProjectPrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { batch } from "react-redux";
-import { requestChangePrefixes, requestProjectPrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 
 const { setPrefixes, resetNewPrefix, toggleWidgetLoading, setWidgetError } = widgetsSlice.actions;
 

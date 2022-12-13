@@ -1,12 +1,12 @@
-import React from "react";
-import { mount, shallow } from "enzyme";
-import { ObjectRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm";
+import { waitFor } from "@testing-library/react";
+import { mount } from "enzyme";
 import { CardTitle } from "gui-elements-deprecated";
-import ExampleView from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ExampleView";
+import React from "react";
+
+import { ObjectRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm";
 import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
-import { byTestId, changeValue, findAll, findSingleElement, logWrapperHtml } from "../../../utils/TestHelpers";
-import { waitFor } from "@testing-library/react";
+import { byTestId, changeValue, findAll, findSingleElement } from "../../../utils/TestHelpers";
 
 const props = {
     id: "1",

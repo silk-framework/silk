@@ -1,23 +1,24 @@
-import React from "react";
+import { IconButton, Spinner } from "@eccenca/gui-elements";
 import { Card, CardActions, CardContent } from "gui-elements-deprecated";
 import _ from "lodash";
 import PropTypes from "prop-types";
-import { getEditorHref } from "../../../store";
-import ValueRuleForm from "./ValueRuleForm";
-import { MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
-import EventEmitter from "../../../utils/EventEmitter";
-import EditButton from "../../../elements/buttons/EditButton";
-import CopyButton from "../../../elements/buttons/CopyButton";
-import CloneButton from "../../../elements/buttons/CloneButton";
-import DeleteButton from "../../../elements/buttons/DeleteButton";
+import React from "react";
+
+import ExampleTarget from "../../../components/ExampleTarget";
+import MetadataDesc from "../../../components/Metadata/MetadataDesc";
+import MetadataLabel from "../../../components/Metadata/MetadataLabel";
+import ObjectSourcePath from "../../../components/ObjectMapping/ObjectSourcePath";
 import TargetProperty from "../../../components/TargetProperty";
 import ValueNodeType from "../../../components/ValueMapping/ValueNodeType";
-import ObjectSourcePath from "../../../components/ObjectMapping/ObjectSourcePath";
 import ValueSourcePaths from "../../../components/ValueMapping/ValueSourcePaths";
-import ExampleTarget from "../../../components/ExampleTarget";
-import MetadataLabel from "../../../components/Metadata/MetadataLabel";
-import MetadataDesc from "../../../components/Metadata/MetadataDesc";
-import { IconButton, Spinner } from "@eccenca/gui-elements";
+import CloneButton from "../../../elements/buttons/CloneButton";
+import CopyButton from "../../../elements/buttons/CopyButton";
+import DeleteButton from "../../../elements/buttons/DeleteButton";
+import EditButton from "../../../elements/buttons/EditButton";
+import { getEditorHref } from "../../../store";
+import { MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
+import EventEmitter from "../../../utils/EventEmitter";
+import ValueRuleForm from "./ValueRuleForm";
 
 class ValueRule extends React.Component {
     // define property types

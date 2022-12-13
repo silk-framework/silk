@@ -1,4 +1,5 @@
 import { createSelector } from "reselect";
+
 import { IStore } from "../../typings/IStore";
 
 const commonSelector = (state: IStore) => state.common;

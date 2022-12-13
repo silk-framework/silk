@@ -1,11 +1,12 @@
 import i18n from "i18next";
-import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+import { initReactI18next } from "react-i18next";
+import Store from "store";
+
+import { isDevelopment, isTestEnv } from "./app/constants/path";
 import de from "./locales/generated/de.json";
 import en from "./locales/generated/en.json";
 import fr from "./locales/generated/fr.json";
-import { isDevelopment, isTestEnv } from "./app/constants/path";
-import Store from "store";
 
 // Fetches the configured language from local storage
 export const fetchStoredLang: () => string = () => {

@@ -1,20 +1,19 @@
-import React from "react";
-import _ from "lodash";
 import { Spinner } from "@eccenca/gui-elements";
+import _ from "lodash";
 import PropTypes from "prop-types";
+import React from "react";
 
-import { ruleRemoveAsync, setApiDetails } from "./store";
-
-import MappingsTree from "./containers/MappingsTree";
-import MappingsWorkview from "./containers/MappingsWorkview";
-import MessageHandler from "./components/MessageHandler";
-import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";
-import RemoveMappingRuleDialog from "./elements/RemoveMappingRuleDialog";
-import EventEmitter from "./utils/EventEmitter";
-import { withHistoryHOC } from "./utils/withHistoryHOC";
-import MappingEditorModal from "./MappingEditorModal";
 import { getHistory } from "../../../../store/configureStore";
 import PromptModal from "../../../../views/shared/projectTaskTabView/PromptModal";
+import MessageHandler from "./components/MessageHandler";
+import MappingsTree from "./containers/MappingsTree";
+import MappingsWorkview from "./containers/MappingsWorkview";
+import RemoveMappingRuleDialog from "./elements/RemoveMappingRuleDialog";
+import MappingEditorModal from "./MappingEditorModal";
+import { ruleRemoveAsync, setApiDetails } from "./store";
+import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";
+import EventEmitter from "./utils/EventEmitter";
+import { withHistoryHOC } from "./utils/withHistoryHOC";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -227,14 +226,8 @@ class HierarchicalMapping extends React.Component {
 
     // template rendering
     render() {
-        const {
-            currentRuleId,
-            showMappingEditor,
-            showNavigation,
-            askForRemove,
-            elementToDelete,
-            askForDiscard,
-        } = this.state;
+        const { currentRuleId, showMappingEditor, showNavigation, askForRemove, elementToDelete, askForDiscard } =
+            this.state;
         const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
         // render mapping edit / create view of value and object

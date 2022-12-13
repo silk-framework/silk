@@ -1,14 +1,15 @@
+import { Button, Notification, Spacing } from "@eccenca/gui-elements";
+import Uppy, { UppyFile } from "@uppy/core";
 import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
-import Uppy, { UppyFile } from "@uppy/core";
-import { Button, Notification, Spacing } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+
+import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
+import { FileRemoveModal } from "../../../modals/FileRemoveModal";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
-import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
 import { RetryFileItem } from "./RetryFileItem";
 import { UploadedFileItem } from "./UploadedFileItem";
-import { FileRemoveModal } from "../../../modals/FileRemoveModal";
 
 interface IProps {
     // Uppy instance
@@ -39,15 +40,8 @@ interface IProps {
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const {
-        projectId,
-        uppy,
-        onAdded,
-        onUploadSuccess,
-        validateBeforeAdd,
-        uploadEndpoint,
-        attachFileNameToEndpoint,
-    } = props;
+    const { projectId, uppy, onAdded, onUploadSuccess, validateBeforeAdd, uploadEndpoint, attachFileNameToEndpoint } =
+        props;
 
     // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);

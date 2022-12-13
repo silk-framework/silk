@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import DeleteModal from "./DeleteModal";
+import { taskUrl } from "@ducks/router/operations";
 import { projectFileResourceDependents, requestRemoveProjectResource } from "@ducks/workspace/requests";
-import { useTranslation } from "react-i18next";
-import { UppyFile } from "@uppy/core";
 import { ITaskLink } from "@ducks/workspace/typings";
 import { Link } from "@eccenca/gui-elements";
-import { taskUrl } from "@ducks/router/operations";
+import { UppyFile } from "@uppy/core";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import DeleteModal from "./DeleteModal";
 
 type UppyFileOrResource = UppyFile | { name: string; id: string };
 

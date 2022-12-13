@@ -1,5 +1,6 @@
 import { IAutocompleteDefaultResponse, IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
 export interface IAvailableDataTypes {

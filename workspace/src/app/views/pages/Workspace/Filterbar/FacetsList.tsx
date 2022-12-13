@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { IFacetState } from "@ducks/workspace/typings";
-import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import FacetItem from "./FacetItem";
+import { IFacetState } from "@ducks/workspace/typings";
 import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
+
+import FacetItem from "./FacetItem";
 
 /** List of filter facets used to re-fine search results. */
 export default function FacetsList({ projectId }: { projectId?: string }) {

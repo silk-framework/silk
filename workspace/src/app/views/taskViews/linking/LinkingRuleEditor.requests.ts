@@ -1,10 +1,11 @@
-import fetch from "../../../services/fetch";
-import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
-import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { PathWithMetaData } from "../shared/rules/rule.typings";
-import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+
+import fetch from "../../../services/fetch";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
+import { PathWithMetaData } from "../shared/rules/rule.typings";
+import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 
 /** Fetches the cached paths from the linking paths cache.*/
 export const fetchLinkingCachedPaths = (

@@ -1,41 +1,41 @@
-import React from "react";
 import "@testing-library/jest-dom";
+
+import { waitFor } from "@testing-library/react";
+import { ReactWrapper } from "enzyme";
 import { createBrowserHistory, History, LocationState } from "history";
+import React from "react";
+
+import { SERVE_PATH } from "../../../../src/app/constants/path";
+import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import mockAxios from "../../../__mocks__/axios";
 import {
     checkRequestMade,
     findAll,
     findSingleElement,
-    logWrapperHtml,
     mockedAxiosResponse,
     testWrapper,
     withMount,
     workspacePath,
 } from "../../TestHelper";
-import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
-import { SERVE_PATH } from "../../../../src/app/constants/path";
-import { ReactWrapper } from "enzyme";
-import { waitFor } from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
     let history: History<LocationState> = null;
-    let wrapper: ReactWrapper<any, any>
+    let wrapper: ReactWrapper<any, any>;
     const nrOverallItems = 11;
     beforeEach(async () => {
-        console.log("before has started")
+        console.log("before has started");
         wrapper = loadRelatedItems();
-        console.log("items loaded")
+        console.log("items loaded");
         await checkRelatedItems(nrOverallItems, wrapper);
-        console.log("Finished beforeEach")
-    }, 120000)
+        console.log("Finished beforeEach");
+    }, 120000);
     afterEach(() => {
         mockAxios.reset();
     });
 
-    it("should display related items according to the project ID and task ID from the URL", async () => {
-    });
+    it("should display related items according to the project ID and task ID from the URL", async () => {});
 
     it("should display related items according to the project ID and task ID from the props", async () => {
         const wrapper = loadRelatedItems({ projectId: PROJECT_ID, taskId: TASK_ID }, `${SERVE_PATH}`);
@@ -76,9 +76,12 @@ describe("Related items", () => {
         );
 
         // Wait for render
-        await waitFor(() => {
-            expect(wrapper.text()).toContain(`(${nrItems})`);
-        }, {timeout: 50000});
+        await waitFor(
+            () => {
+                expect(wrapper.text()).toContain(`(${nrItems})`);
+            },
+            { timeout: 50000 }
+        );
         // Check items that are displayed in the list
         const shownRelatedItems = findAll(wrapper, "li .eccgui-overviewitem__item");
         expect(shownRelatedItems).toHaveLength(DEFAULT_PAGE_SIZE);

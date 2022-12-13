@@ -1,22 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
-import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, MultiSelect, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
-import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { errorMessage, ParameterWidget } from "./ParameterWidget";
-import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
-import { useTranslation } from "react-i18next";
-import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import Loading from "../../../Loading";
-import { SUPPORTED_PLUGINS, pluginRegistry } from "../../../../plugins/PluginRegistry";
-import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
-import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
-import { RegisterForExternalChangesFn } from "./InputMapper";
 import { Keyword } from "@ducks/workspace/typings";
+import { FieldItem, MultiSelect, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import utils from "../../../../../views/shared/Metadata/MetadataUtils";
+import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import Loading from "../../../Loading";
+import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
+import { RegisterForExternalChangesFn } from "./InputMapper";
+import { errorMessage, ParameterWidget } from "./ParameterWidget";
+import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
 
 export interface IProps {
     form: any;

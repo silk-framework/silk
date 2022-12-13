@@ -1,5 +1,10 @@
-import React from "react";
 import { waitFor } from "@testing-library/react";
+import { ReactWrapper } from "enzyme";
+import { createBrowserHistory, History, LocationState } from "history";
+import qs from "qs";
+import React from "react";
+
+import Project from "../../../src/app/views/pages/Project";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
@@ -10,19 +15,12 @@ import {
     findSingleElement,
     keyDown,
     legacyApiUrl,
-    logRequests,
     mockAxiosResponse,
     testWrapper,
     withMount,
     workspacePath,
     wrapperHtml,
 } from "../TestHelper";
-import { createBrowserHistory, History, LocationState } from "history";
-import Project from "../../../src/app/views/pages/Project";
-import qs from "qs";
-import { ReactWrapper } from "enzyme";
-
-//jest.setTimeout(50000);
 
 describe("Project page", () => {
     const testProjectId = "testproject";
@@ -58,8 +56,8 @@ describe("Project page", () => {
             },
         },
     };
-    let projectPageWrapper: ReactWrapper<any, any> = null;
-    let history: History<LocationState> = null;
+    let projectPageWrapper: ReactWrapper<any, any> | null = null;
+    let history: History<LocationState> | null = null;
     beforeEach(() => {
         history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);

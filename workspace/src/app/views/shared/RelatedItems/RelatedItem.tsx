@@ -1,3 +1,5 @@
+import { routerOp } from "@ducks/router";
+import { IRelatedItem } from "@ducks/shared/typings";
 import {
     ContextMenu,
     Highlighter,
@@ -10,16 +12,15 @@ import {
     Spacing,
     //Spacing,
 } from "@eccenca/gui-elements";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
-import { ResourceLink } from "../ResourceLink/ResourceLink";
 import React from "react";
-import { IRelatedItem } from "@ducks/shared/typings";
 import { useTranslation } from "react-i18next";
-import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
-import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import ProjectTags from "../ProjectTags/ProjectTags";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { ResourceLink } from "../ResourceLink/ResourceLink";
 
 interface IProps {
     // The related item to be shown

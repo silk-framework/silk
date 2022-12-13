@@ -1,6 +1,6 @@
-import React from "react";
 import { Tag, TagList } from "@eccenca/gui-elements";
 import { colorValue } from "@eccenca/gui-elements/src/common/utils/colorDecideContrastvalue";
+import React from "react";
 
 interface Props {
     exampleValues: string[];
@@ -8,7 +8,7 @@ interface Props {
     highlightColor?: colorValue;
 }
 
-export const highlightedTagColor = "#745a85"
+export const highlightedTagColor = "#745a85";
 
 /** Shows example values for a property. */
 export const ActiveLearningValueExamples = ({
@@ -18,7 +18,12 @@ export const ActiveLearningValueExamples = ({
 }: Props) => {
     const exampleTitle = exampleValues.join(" | ");
     return (
-        <TagList className={"diapp-linking-learningdata__examples diapp-linking-learningdata__examples--count-"+(exampleValues.length > 3 ? "more" : exampleValues.length)}>
+        <TagList
+            className={
+                "diapp-linking-learningdata__examples diapp-linking-learningdata__examples--count-" +
+                (exampleValues.length > 3 ? "more" : exampleValues.length)
+            }
+        >
             {exampleValues.map((example, idx) => {
                 const highlightValue: boolean = !!valuesToHighlight?.has(example);
                 return (

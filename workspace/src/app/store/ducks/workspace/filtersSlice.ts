@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IAppliedSorterState, SortModifierType } from "./typings";
+
+import i18n from "../../../../language";
 import { initialPaginationState } from "../../typings";
 import { initialAppliedFiltersState, initialFiltersState, initialSortersState } from "./initialState";
-import i18n from "../../../../language";
+import { IAppliedSorterState, SortModifierType } from "./typings";
 
 const DEFAULT_SORTER = {
     id: "",

@@ -9,9 +9,10 @@ import {
     ITaskLink,
     Keywords,
 } from "@ducks/workspace/typings";
+
 import fetch from "../../../services/fetch";
-import {legacyApiEndpoint, projectApi, workspaceApi} from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -324,13 +325,13 @@ export const requestProjectTags = async (projectId: string): Promise<FetchRespon
 export const importExampleProjectRequest = async (): Promise<FetchResponse<void>> => {
     return fetch({
         url: legacyApiEndpoint("movies/importExample"),
-        method: "POST"
-    })
-}
+        method: "POST",
+    });
+};
 
 /** Fetch the project URI of a project. */
-export const requestProjectUri = async (projectId: string): Promise<FetchResponse<{uri: string}>> => {
+export const requestProjectUri = async (projectId: string): Promise<FetchResponse<{ uri: string }>> => {
     return fetch({
-        url: projectApi(`${projectId}/uri`)
-    })
-}
+        url: projectApi(`${projectId}/uri`),
+    });
+};

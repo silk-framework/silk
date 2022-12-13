@@ -1,5 +1,6 @@
-import { ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
 import { Edge, Node, XYPosition } from "react-flow-renderer/dist/types";
+
+import { ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
 
 describe("Rule editor model utils", () => {
     const utils = ruleEditorModelUtilsFactory();

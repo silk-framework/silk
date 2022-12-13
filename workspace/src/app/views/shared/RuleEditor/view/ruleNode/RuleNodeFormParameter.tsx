@@ -1,11 +1,12 @@
-import { RuleParameterInput } from "./RuleParameterInput";
-import React from "react";
 import { FieldItem } from "@eccenca/gui-elements";
-import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
-import ruleNodeUtils from "./ruleNode.utils";
-import { IParameterValidationResult } from "../../RuleEditor.typings";
+import React from "react";
 import { useTranslation } from "react-i18next";
+
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IParameterValidationResult } from "../../RuleEditor.typings";
+import ruleNodeUtils from "./ruleNode.utils";
+import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
+import { RuleParameterInput } from "./RuleParameterInput";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -16,7 +17,7 @@ interface RuleNodeFormParameterProps {
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
@@ -26,7 +27,7 @@ export const RuleNodeFormParameter = ({
     parameter,
     dependentValue,
     large,
-    insideModal
+    insideModal,
 }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });

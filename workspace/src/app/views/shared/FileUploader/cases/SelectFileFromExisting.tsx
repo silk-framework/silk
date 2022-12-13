@@ -1,3 +1,4 @@
+import { IProjectResource } from "@ducks/shared/typings";
 import { FieldItem } from "@eccenca/gui-elements";
 import {
     AutoCompleteField,
@@ -5,7 +6,6 @@ import {
 } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { IProjectResource } from "@ducks/shared/typings";
 
 interface IProps {
     autocomplete: IAutoCompleteFieldProps<IProjectResource, string>;
@@ -31,14 +31,21 @@ interface IProps {
     required: boolean;
 
     /** When used inside a modal, the behavior of the auto-complete component will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 /**
  * The widget for "select from existing" option
  * @constructor
  */
-export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, labelAttributes, required, insideModal }: IProps) {
+export function SelectFileFromExisting({
+    autocomplete,
+    onChange,
+    defaultValue,
+    labelAttributes,
+    required,
+    insideModal,
+}: IProps) {
     const selectedValueState = useState(defaultValue);
     const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);
@@ -83,7 +90,7 @@ interface ProjectResourceAutoCompleteProps {
     /** If true the value cannot be edited. */
     readonly?: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 const ProjectResourceAutoComplete = ({
@@ -91,7 +98,7 @@ const ProjectResourceAutoComplete = ({
     handleChange,
     initialValue,
     resettable,
-    insideModal
+    insideModal,
 }: ProjectResourceAutoCompleteProps) => {
     const [t] = useTranslation();
 

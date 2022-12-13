@@ -1,46 +1,41 @@
-import silkApi from './silkRestApi';
+import silkApi from "./silkRestApi";
 
 /** Business logic layer over the DataIntegration REST API. */
 const silkStore = {
-
     /**
      * Retrieves a transform task execution report.
      */
     getTransformExecutionReport: (projectId, taskId) => {
-        return silkApi.activityResult(projectId, taskId, "ExecuteTransform")
-            .then(({data}) => {
-              return data;
-            });
+        return silkApi.activityResult(projectId, taskId, "ExecuteTransform").then(({ data }) => {
+            return data;
+        });
     },
 
     /**
      * Retrieves a linking task execution report.
      */
     getLinkingExecutionReport: (projectId, taskId) => {
-        return silkApi.activityResult(projectId, taskId, "ExecuteLinking")
-            .then(({data}) => {
-                return data;
-            });
+        return silkApi.activityResult(projectId, taskId, "ExecuteLinking").then(({ data }) => {
+            return data;
+        });
     },
 
     /**
      * Retrieves execution reports for a single workflow node.
      */
     getWorkflowNodeExecutionReports: (projectId, taskId, nodeId) => {
-        return silkApi.retrieveWorkflowNodeExecutionReports(projectId, taskId, nodeId)
-            .then(({data}) => {
-                return data;
-            });
+        return silkApi.retrieveWorkflowNodeExecutionReports(projectId, taskId, nodeId).then(({ data }) => {
+            return data;
+        });
     },
 
     /**
      * Retrieves the current script code.
      */
     getScript: (projectId, scriptTaskId) => {
-        return silkApi.getTask(projectId, scriptTaskId)
-            .then(({data}) => {
-                return data.data.parameters.script;
-            });
+        return silkApi.getTask(projectId, scriptTaskId).then(({ data }) => {
+            return data.data.parameters.script;
+        });
     },
 
     /**
@@ -48,31 +43,29 @@ const silkStore = {
      */
     getCompletions: (projectId, scriptTaskId, line, column) => {
         const requestJson = {
-            "line": line,
-            "column": column
+            line: line,
+            column: column,
         };
 
-        return silkApi.completions(projectId, scriptTaskId, requestJson)
+        return silkApi.completions(projectId, scriptTaskId, requestJson);
     },
 
     /**
      * Retrieves a list of all available reports.
      */
     listExecutionReports: (projectId, taskId) => {
-        return silkApi.listReports(projectId, taskId)
-            .then(({data}) => {
-                return data;
-            });
+        return silkApi.listReports(projectId, taskId).then(({ data }) => {
+            return data;
+        });
     },
 
     /**
      * Retrieves a single report.
      */
     retrieveExecutionReport: (projectId, taskId, time) => {
-        return silkApi.retrieveReport(projectId, taskId, time)
-            .then(({data}) => {
-                return data;
-            });
+        return silkApi.retrieveReport(projectId, taskId, time).then(({ data }) => {
+            return data;
+        });
     },
 
     /**
@@ -86,21 +79,26 @@ const silkStore = {
      *
      **/
     evaluateScript: (projectId, scriptTaskId, workflowId, workflowOperatorId, scriptCode) => {
-        const patchJson = {"data": {
-            "parameters": {
-                "script": scriptCode
-            }
-        }};
+        const patchJson = {
+            data: {
+                parameters: {
+                    script: scriptCode,
+                },
+            },
+        };
         const executeSparkOperatorActivity = "ExecuteSparkOperator";
         // Save script task with modified script, FIXME: Have separate 'Save' step, execute activity without the need of saving the script task
-        return silkApi.patchTask(projectId, scriptTaskId, patchJson)
+        return silkApi
+            .patchTask(projectId, scriptTaskId, patchJson)
             .then(() => {
-                return silkApi.executeTaskActivityBlocking(projectId, workflowId, executeSparkOperatorActivity, {"operator": workflowOperatorId});
+                return silkApi.executeTaskActivityBlocking(projectId, workflowId, executeSparkOperatorActivity, {
+                    operator: workflowOperatorId,
+                });
             })
             .then(() => {
                 return silkApi.activityResult(projectId, workflowId, executeSparkOperatorActivity);
-            })
-    }
+            });
+    },
 };
 
 export default silkStore;

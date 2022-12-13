@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { ContextOverlay, Icon, IconButton, Spacing, Notification } from "@eccenca/gui-elements";
+import { ContextOverlay, Icon, IconButton, Notification, Spacing } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+
 import { useNotificationsQueue } from "../../ApplicationNotifications/NotificationsMenu";
 import { RuleSaveNodeError } from "../RuleEditor.typings";
-import { useTranslation } from "react-i18next";
 
 interface RuleEditorNotificationsProps {
     integratedView?: boolean;
@@ -18,10 +19,10 @@ export const RuleEditorNotifications = ({
     nodeJumpToHandler,
 }: RuleEditorNotificationsProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const initTimestamp = React.useRef(Date.now())
-    const {messages, notifications} = useNotificationsQueue();
+    const initTimestamp = React.useRef(Date.now());
+    const { messages, notifications } = useNotificationsQueue();
     const [t] = useTranslation();
-    const diErrorMessages = messages.filter(diError => diError.timestamp > initTimestamp.current)
+    const diErrorMessages = messages.filter((diError) => diError.timestamp > initTimestamp.current);
 
     useEffect(() => {
         setIsOpen(!!integratedView);

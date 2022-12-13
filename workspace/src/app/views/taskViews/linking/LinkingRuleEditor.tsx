@@ -1,32 +1,33 @@
-import React from "react";
-import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
-import { useTranslation } from "react-i18next";
-import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor from "../../shared/RuleEditor/RuleEditor";
+import { commonSel } from "@ducks/common";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import utils from "./LinkingRuleEditor.utils";
-import ruleUtils from "../shared/rules/rule.utils";
+import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { IViewActions } from "../../plugins/PluginRegistry";
+import RuleEditor from "../../shared/RuleEditor/RuleEditor";
 import {
     IRuleOperatorNode,
     RuleSaveNodeError,
     RuleSaveResult,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
-import { useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
+import { PathWithMetaData } from "../shared/rules/rule.typings";
+import ruleUtils from "../shared/rules/rule.utils";
+import { IStickyNote } from "../shared/task.typings";
+import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
+import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
+import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
 import linkingRuleRequests, {
     autoCompleteLinkingInputPaths,
     fetchLinkSpec,
     updateLinkageRule,
 } from "./LinkingRuleEditor.requests";
-import { PathWithMetaData } from "../shared/rules/rule.typings";
-import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
-import { FetchError } from "../../../services/fetch/responseInterceptor";
-import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
-import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import { IStickyNote } from "../shared/task.typings";
+import utils from "./LinkingRuleEditor.utils";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -207,8 +208,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         description: t(
             "RuleEditor.sidebar.parameter.weightDesc",
             "The weight parameter can be used by the parent aggregation when combining " +
-            "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-            "aggregation, quadraticMean and geometricMean."
+                "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
+                "aggregation, quadraticMean and geometricMean."
         ),
         type: "int",
         advanced: true,

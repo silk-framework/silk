@@ -1,4 +1,3 @@
-import React from "react";
 import {
     Button,
     IActivityStatus,
@@ -10,11 +9,18 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
-import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
-import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { FetchError } from "../../../../../services/fetch/responseInterceptor";
+import { connectWebSocket } from "../../../../../services/websocketUtils";
+import { legacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
+import { activityQueryString } from "../../../../shared/TaskActivityOverview/taskActivityUtils";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
+import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
+import { activeLearningActivities } from "../LinkingRuleActiveLearning";
 import {
     bestLearnedLinkageRule,
     fetchActiveLearningReferenceLinks,
@@ -28,15 +34,10 @@ import {
     ActiveLearningReferenceLink,
     ActiveLearningReferenceLinks,
 } from "../LinkingRuleActiveLearning.typings";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { useTranslation } from "react-i18next";
-import { activityQueryString } from "../../../../shared/TaskActivityOverview/taskActivityUtils";
-import { connectWebSocket } from "../../../../../services/websocketUtils";
-import { legacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
-import { activeLearningActivities } from "../LinkingRuleActiveLearning";
+import { useActiveLearningSessionInfo } from "../shared/ActiveLearningSessionInfoWidget";
+import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
+import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
 import { LinkingRuleActiveLearningSaveModal } from "./LinkingRuleActiveLearningSaveModal";
-import {useActiveLearningSessionInfo} from "../shared/ActiveLearningSessionInfoWidget";
-import {FetchError} from "../../../../../services/fetch/responseInterceptor";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -60,10 +61,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const [referenceLinksInitiallyLoaded, setReferenceLinksInitiallyLoaded] = React.useState(false);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
     const [bestRule, setBestRule] = React.useState<ActiveLearningBestRule | undefined>(undefined);
-    const [unsavedStateExists, setUnsavedStateExists] = React.useState(false)
+    const [unsavedStateExists, setUnsavedStateExists] = React.useState(false);
     const [showSaveDialog, setShowSaveDialog] = React.useState(false);
     const linkTypeToShow = React.useRef<"labeled" | "unlabeled">("labeled");
-    const {sessionInfo} = useActiveLearningSessionInfo(projectId, linkingTaskId)
+    const { sessionInfo } = useActiveLearningSessionInfo(projectId, linkingTaskId);
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
@@ -86,13 +87,12 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
 
     React.useEffect(() => {
         if (sessionInfo) {
-            const changes = sessionInfo.referenceLinks
-            if (changes.addedLinks ||
-                changes.removedLinks) {
-                setUnsavedStateExists(true)
+            const changes = sessionInfo.referenceLinks;
+            if (changes.addedLinks || changes.removedLinks) {
+                setUnsavedStateExists(true);
             }
         }
-    }, [sessionInfo])
+    }, [sessionInfo]);
 
     const onActiveLearningUpdate = (activityStatus: IActivityStatus) => {
         if (activityStatus.statusName === "Finished") {
@@ -106,10 +106,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             const rule = (await bestLearnedLinkageRule(projectId, linkingTaskId)).data;
             setBestRule(rule);
         } catch (err) {
-            if(err.isHttpError && (err as FetchError).httpStatus !== 404) {
-                registerError("activeLearning-updateBestLearnedRule", "Currently best learned rule could not be fetched from the backend.", err)
+            if (err.isHttpError && (err as FetchError).httpStatus !== 404) {
+                registerError(
+                    "activeLearning-updateBestLearnedRule",
+                    "Currently best learned rule could not be fetched from the backend.",
+                    err
+                );
             }
-
         }
     };
 
@@ -161,7 +164,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             );
             setSelectedEntityLink(undefined);
         } catch (ex) {
-            registerError("activeLearning-updateReferenceLink", "Updating reference links has failed.", ex)
+            registerError("activeLearning-updateReferenceLink", "Updating reference links has failed.", ex);
         }
     };
 
@@ -221,8 +224,8 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const onClose = (saved: boolean, ruleSaved: boolean, saveReferenceLinks: boolean) => {
         setShowSaveDialog(false);
         if (!saved) return;
-        if(saveReferenceLinks) {
-            setUnsavedStateExists(false)
+        if (saveReferenceLinks) {
+            setUnsavedStateExists(false);
         }
         if (ruleSaved) {
             activeLearningContext.navigateTo("linkingEditor");
@@ -243,9 +246,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             <Section>
                 <Title />
                 <Spacing />
-                <LinkingRuleActiveLearningFeedbackComponent
-                    setUnsavedStateExists={() => setUnsavedStateExists(true)}
-                />
+                <LinkingRuleActiveLearningFeedbackComponent setUnsavedStateExists={() => setUnsavedStateExists(true)} />
                 <Spacing />
                 <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} />
                 <Spacing />

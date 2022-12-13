@@ -1,16 +1,17 @@
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
 import React, { useState } from "react";
 import { useParams } from "react-router";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@eccenca/gui-elements";
+
 import { DATA_TYPES } from "../../../constants";
-import Metadata from "../../shared/Metadata";
-import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
-import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
-import NotFound from "../NotFound";
+import Metadata from "../../shared/Metadata";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
+import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
+import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { ProjectTaskParams } from "../../shared/typings";
+import NotFound from "../NotFound";
 
 export default function TransformPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();

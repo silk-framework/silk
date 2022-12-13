@@ -1,10 +1,11 @@
-import { Button, FieldItem, TextField, SimpleDialog } from "@eccenca/gui-elements";
-import useCopyButton from "../../../hooks/useCopyButton";
+import { requestProjectUri } from "@ducks/workspace/requests";
+import { Button, FieldItem, SimpleDialog, TextField } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useInitFrontend } from "../../pages/MappingEditor/api/silkRestApi.hooks";
-import { requestProjectUri } from "@ducks/workspace/requests";
+
+import useCopyButton from "../../../hooks/useCopyButton";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import { useInitFrontend } from "../../pages/MappingEditor/api/silkRestApi.hooks";
 
 interface ShowIdentifierProps {
     /**close the modal**/

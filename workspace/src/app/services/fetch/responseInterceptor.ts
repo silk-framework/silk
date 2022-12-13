@@ -1,7 +1,8 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { logError } from "../errorLogger";
-import { isDevelopment } from "../../constants/path";
+
 import i18n from "../../../language";
+import { isDevelopment } from "../../constants/path";
+import { logError } from "../errorLogger";
 
 /** Successful response. */
 export class FetchResponse<T = any> {

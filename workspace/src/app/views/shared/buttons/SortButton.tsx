@@ -1,7 +1,6 @@
-import React from "react";
 import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typings";
-
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 interface IProps {

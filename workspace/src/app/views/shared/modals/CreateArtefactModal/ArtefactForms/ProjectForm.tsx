@@ -1,13 +1,14 @@
-import React from "react";
-import { FieldItem, TextField, TextArea, MultiSelect } from "@eccenca/gui-elements";
-import { errorMessage } from "./ParameterWidget";
-import { useTranslation } from "react-i18next";
-import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Keyword } from "@ducks/workspace/typings";
+import { FieldItem, MultiSelect, TextArea, TextField } from "@eccenca/gui-elements";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
+import { errorMessage } from "./ParameterWidget";
 
 interface IProps {
     form: any;

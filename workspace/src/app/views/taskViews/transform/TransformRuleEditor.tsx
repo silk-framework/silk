@@ -1,25 +1,26 @@
-import React from "react";
-import useErrorHandler from "../../../hooks/useErrorHandler";
-import { IComplexMappingRule } from "./transform.types";
-import { useTranslation } from "react-i18next";
-import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { IViewActions } from "../../plugins/PluginRegistry";
+import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import {
     IRuleOperatorNode,
     RuleSaveNodeError,
     RuleSaveResult,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
+import { optionallyLabelledParameterToValue } from "../linking/linking.types";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IStickyNote } from "../shared/task.typings";
-import { optionallyLabelledParameterToValue } from "../linking/linking.types";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { inputPathTab } from "./transformEditor.utils";
-import { FetchError } from "../../../services/fetch/responseInterceptor";
 import TransformRuleEvaluation from "./evalution/TransformRuleEvaluation";
+import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
+import { IComplexMappingRule } from "./transform.types";
+import { inputPathTab } from "./transformEditor.utils";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */

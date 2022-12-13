@@ -1,9 +1,10 @@
-import React from "react";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { ILinkingRule, ILinkingTaskParameters } from "../../linking.types";
-import { ActiveLearningStep, ComparisonPairWithId } from "../LinkingRuleActiveLearning.typings";
-import { LabelProperties } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import React from "react";
+
 import { IRuleOperatorNode } from "../../../../shared/RuleEditor/RuleEditor.typings";
+import { ILinkingRule, ILinkingTaskParameters } from "../../linking.types";
+import { LabelProperties } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { ActiveLearningStep, ComparisonPairWithId } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningContextProps {
     projectId: string;

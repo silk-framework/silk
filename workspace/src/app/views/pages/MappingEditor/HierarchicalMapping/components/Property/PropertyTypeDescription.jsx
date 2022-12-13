@@ -1,6 +1,5 @@
-import { PropertyTypeInfo } from './PropertyTypeInfo';
-import React from 'react';
+import React from "react";
 
-export const PropertyTypeDescription = ({name}) => (
-    <PropertyTypeInfo name={name} option="description"/>
-);
+import { PropertyTypeInfo } from "./PropertyTypeInfo";
+
+export const PropertyTypeDescription = ({ name }) => <PropertyTypeInfo name={name} option="description" />;

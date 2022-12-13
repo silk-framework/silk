@@ -1,5 +1,5 @@
-import React from "react";
 import { Checkbox } from "@eccenca/gui-elements";
+import React from "react";
 
 interface IProps {
     isChecked?: boolean;

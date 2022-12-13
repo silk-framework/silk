@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { Prompt, useLocation } from "react-router";
-import { useTranslation, Trans } from "react-i18next";
+import { commonSel } from "@ducks/common";
+import { routerOp } from "@ducks/router";
+import { sharedOp } from "@ducks/shared";
+import { IMetadataUpdatePayload } from "@ducks/shared/typings";
+import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "@eccenca/gui-elements";
 import {
     Button,
@@ -13,31 +14,31 @@ import {
     CardTitle,
     Divider,
     FieldItem,
+    HtmlContentBlock,
     IconButton,
     Label,
+    Link,
     MultiSelect,
     PropertyName,
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
-    Link,
     TextArea,
     TextField,
-    HtmlContentBlock,
 } from "@eccenca/gui-elements";
-import { IMetadataUpdatePayload } from "@ducks/shared/typings";
-import { commonSel } from "@ducks/common";
-import { routerOp } from "@ducks/router";
-import { sharedOp } from "@ducks/shared";
-import { Loading } from "../Loading/Loading";
 import { StringPreviewContentBlobToggler } from "@eccenca/gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
-import useErrorHandler from "../../../hooks/useErrorHandler";
-import * as H from "history";
-import utils from "./MetadataUtils";
-import { IMetadataExpanded } from "./Metadatatypings";
-import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import * as H from "history";
+import React, { useEffect, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+import { Prompt, useLocation } from "react-router";
+
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { Loading } from "../Loading/Loading";
+import { IMetadataExpanded } from "./Metadatatypings";
+import utils from "./MetadataUtils";
 
 export const getDateData = (dateTime: number | string) => {
     const then = new Date(dateTime);

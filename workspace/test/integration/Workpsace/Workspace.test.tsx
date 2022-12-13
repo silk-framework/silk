@@ -1,10 +1,11 @@
-import React from "react";
-import qs from "qs";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
+import qs from "qs";
+import React from "react";
+
+import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 import mockAxios from "../../__mocks__/axios";
 import { byTestId, findAll, mockedAxiosResponse, testWrapper, withMount, workspacePath } from "../TestHelper";
-import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
-import { fireEvent, screen, waitFor } from "@testing-library/react";
 
 describe("Search Items", () => {
     let hostPath = process.env.HOST;

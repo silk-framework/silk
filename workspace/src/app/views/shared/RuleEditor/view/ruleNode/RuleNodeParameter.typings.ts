@@ -1,5 +1,5 @@
-import { IParameterSpecification } from "../../RuleEditor.typings";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IParameterSpecification } from "../../RuleEditor.typings";
 
 export interface IRuleNodeParameter {
     /** The ID of the parameter. */

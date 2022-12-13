@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
 import { Button, FieldItem, SimpleDialog, TextField } from "@eccenca/gui-elements";
+import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+
 import { LinkageRuleConfigItem } from "./LinkageRuleConfig";
 
 interface IProps {

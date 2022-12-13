@@ -1,6 +1,8 @@
-import React, { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next";
+import { commonOp, commonSel } from "@ducks/common";
+import { diErrorMessage } from "@ducks/error/typings";
+import { routerSel } from "@ducks/router";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { previewSlice } from "@ducks/workspace/previewSlice";
 import {
     Button,
     Divider,
@@ -16,24 +18,23 @@ import {
     WorkspaceMain,
     WorkspaceSide,
 } from "@eccenca/gui-elements";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { routerSel } from "@ducks/router";
-import { commonOp, commonSel } from "@ducks/common";
-import Metadata from "../../shared/Metadata";
-import SearchList from "../../shared/SearchList";
-import Loading from "../../shared/Loading";
-import { SearchBar } from "../../shared/SearchBar/SearchBar";
+import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { useDispatch, useSelector } from "react-redux";
+
 import { DATA_TYPES } from "../../../constants";
-import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import Loading from "../../shared/Loading";
+import Metadata from "../../shared/Metadata";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { SearchBar } from "../../shared/SearchBar/SearchBar";
+import SearchList from "../../shared/SearchList";
+import NotFound from "../NotFound";
 import Filterbar from "../Workspace/Filterbar";
+import ActivityInfoWidget from "./ActivityInfoWidget";
+import FileWidget from "./FileWidget";
 import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
 import WarningWidget from "./WarningWidget";
-import FileWidget from "./FileWidget";
-import NotFound from "../NotFound";
-import { diErrorMessage } from "@ducks/error/typings";
-import ActivityInfoWidget from "./ActivityInfoWidget";
-import { previewSlice } from "@ducks/workspace/previewSlice";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -51,8 +52,10 @@ const Project = () => {
      * Get available Datatypes
      */
     useEffect(() => {
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
-    }, []);
+        if (projectId) {
+            dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
+        }
+    }, [projectId]);
 
     useEffect(() => {
         // Reset the filters, due to redirecting
