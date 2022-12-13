@@ -1,12 +1,12 @@
 import {
     Icon,
+    Link,
     OverflowText,
     OverviewItemLine,
     Spacing,
     Tag,
     Tooltip,
     WhiteSpaceContainer,
-    Link,
 } from "@eccenca/gui-elements";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
