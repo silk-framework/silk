@@ -6,10 +6,10 @@ import {
     Tag,
     Tooltip,
     WhiteSpaceContainer,
+    Link,
 } from "@eccenca/gui-elements";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
-import { Link } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

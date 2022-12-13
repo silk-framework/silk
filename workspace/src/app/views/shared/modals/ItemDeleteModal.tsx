@@ -1,8 +1,7 @@
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { IModalItem, ITaskMetadataResponse } from "@ducks/shared/typings";
 import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
-import { Spacing, Tooltip } from "@eccenca/gui-elements";
-import { Link } from "carbon-components-react";
+import { Spacing, Tooltip, Link } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
