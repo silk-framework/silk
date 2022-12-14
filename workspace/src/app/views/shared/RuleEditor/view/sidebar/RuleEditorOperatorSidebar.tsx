@@ -129,8 +129,6 @@ export const RuleEditorOperatorSidebar = () => {
                 setOperatorList(editorContext.operatorList);
                 extractOperatorCategories(editorContext.operatorList);
             }
-            // Reset text query on tab change
-            setTextQuery("");
         }
     }, [editorContext.operatorList, activeTabId]);
 
