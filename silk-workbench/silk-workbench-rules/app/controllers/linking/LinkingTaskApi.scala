@@ -30,7 +30,7 @@ import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
-import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
+import org.silkframework.util.{CollectLogs, DPair, Identifier, StringUtils, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
@@ -990,18 +990,35 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         val linkingRule = linkTask.data.rule
         val linkJsonFormat = new LinkJsonFormat(Some(linkingRule))
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
-        val links: Seq[JsObject] = evaluationResult.links.slice(offset, offset + limit)
-          .map(link => {
-            val decision = linkDecision(referenceLinks, link)
-            linkJsonFormat.write(link) + ("decision", JsString(decision.getId))
+        var links: Seq[Link] = evaluationResult.links
+        val searchTerms = StringUtils.extractSearchTerms(query)
+        if(searchTerms.nonEmpty) {
+          links = links.filter(link => {
+            val searchText = searchStringFromLink(link)
+            StringUtils.matchesSearchTerm(searchTerms, searchText)
           })
+        }
+        links = links.slice(offset, offset + limit)
+        val linkJson = links.map(link => {
+          val decision = linkDecision(referenceLinks, link)
+          linkJsonFormat.write(link) + ("decision", JsString(decision.getId))
+        })
         Ok(Json.obj(
-          "links" -> links,
+          "links" -> linkJson,
           "linkRule" -> JsonSerialization.toJson(linkingRule)
         ))
       case None =>
         throw NotFoundException("No evaluation results available.")
     }
+  }
+
+  private def searchStringFromLink(link: Link): String = {
+    val valueString = link.entities.map(e => s" ${searchStringFromEntity(e.source)} ${searchStringFromEntity(e.target)}").getOrElse("")
+    s"${link.source} ${link.target} $valueString".toLowerCase
+  }
+
+  private def searchStringFromEntity(entity: Entity): String = {
+    entity.values.flatten.mkString(" ")
   }
 
   private def linkDecision(referenceLinks: ReferenceLinks, link: Link) = {

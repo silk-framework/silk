@@ -104,14 +104,19 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "Return evaluated links for the current linking rule" in {
-    val jsonBody: JsValue = linkEvaluationResult
+    val jsonBody: JsValue = linkEvaluationResult()
     (jsonBody \ "links").as[JsArray].value must have size 2
     (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
   }
 
-  private def linkEvaluationResult = {
+  "Return evaluated links for the current linking rule matching the search query" in {
+    (linkEvaluationResult("simplecsv entry") \ "links").as[JsArray].value must have size 2
+    (linkEvaluationResult("simplecsv entry 1") \ "links").as[JsArray].value must have size 1
+  }
+
+  private def linkEvaluationResult(query: String = ""): JsValue = {
     workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
-    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate")
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate?query=$query")
     val response = request.
       get()
     val jsonBody = checkResponse(response).json
