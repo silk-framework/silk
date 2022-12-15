@@ -63,9 +63,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const prefLang = useSelector(commonSel.localeSelector);
-    // Label for source paths
-    const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
-    const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
+    // Label for input paths
+    const sourcePathLabels = React.useRef<Map<string, string>>(new Map());
+    const targetPathLabels = React.useRef<Map<string, string>>(new Map());
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -86,13 +86,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             true,
             prefLang
         );
-        let labelMap = sourcePathLabels;
-        if (sourceOrTarget === "source") {
-            sourcePathLabels.clear();
-        } else {
-            targetPathLabels.clear();
-            labelMap = targetPathLabels;
-        }
+        const labelMap = sourceOrTarget === "source" ? sourcePathLabels.current : targetPathLabels.current;
+        labelMap.clear()
+
         paths.data.forEach((path) => {
             if ((path as PathWithMetaData)?.label) {
                 const pathWithMetaData = path as PathWithMetaData;
@@ -123,7 +119,15 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             try {
                 const response = await autoCompleteLinkingInputPaths(projectId, linkingTaskId, inputType, term, limit);
-                const results = response.data;
+                const labelMap = inputType === "source" ? sourcePathLabels.current : targetPathLabels.current
+                const results = response.data.map(autoCompleteEntry => {
+                    return labelMap.has(autoCompleteEntry.value) ?
+                        {
+                            ...autoCompleteEntry,
+                            label: labelMap.get(autoCompleteEntry.value)
+                        } :
+                        autoCompleteEntry
+                });
                 if (term.trim() === "") {
                     results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
                 }
