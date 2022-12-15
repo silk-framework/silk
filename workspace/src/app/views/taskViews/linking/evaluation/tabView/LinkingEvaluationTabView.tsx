@@ -34,21 +34,24 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
 import Pagination from "../../../../../views/shared/Pagination";
-import { getLinkingEvaluations, getLinkRuleInputPaths } from "./LinkingEvaluationViewUtils";
+import {
+    getLinkingEvaluations,
+    getLinkRuleInputPaths,
+    getOperatorLabel,
+    getParentNodes,
+} from "./LinkingEvaluationViewUtils";
 import { EvaluationLinkInputValue, LinkingEvaluationResult, NodePath } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
-import {
-    ComparisonDataCell,
-    ComparisonDataContainer,
-    ComparisonDataHeader,
-} from "../../activeLearning/components/ComparisionData";
+import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
 import { PropertyBox } from "../../activeLearning/components/PropertyBox";
 import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
 import { TreeNodeInfo } from "@blueprintjs/core";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
 import { tagColor } from "../../../../../views/shared/RuleEditor/view/sidebar/RuleOperator";
-import { addHighlighting } from "../../../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
+import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { IPluginDetails } from "@ducks/common/typings";
+import { debounce } from "lodash";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -80,31 +83,41 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [tableValueQuery, setTableValueQuery] = React.useState<Map<number, string>>(new Map());
     const [treeValueQuery, setTreeValueQuery] = React.useState<Map<number, string>>(new Map());
     const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<IActivityStatus["statusName"] | undefined>();
-
+    const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
+    const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
+    const [searchQuery, setSearchQuery] = React.useState<string>("");
+    //fetch operator plugins
     React.useEffect(() => {
         (async () => {
+            setOperatorPlugins(Object.values((await requestRuleOperatorPluginDetails(false)).data));
+        })();
+    }, []);
+
+    //initial loads of links
+    React.useEffect(() => {
+        debounce(async () => {
             if (taskEvaluationStatus === "Finished") {
-                const results = (await getLinkingEvaluations(projectId, linkingTaskId, pagination))?.data;
+                const results = (await getLinkingEvaluations(projectId, linkingTaskId, pagination, searchQuery))?.data;
                 setEvaluationResults(results);
                 setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
                 setInputValuesExpansion(() => new Map(results?.links.map((_, idx) => [idx, false])));
             }
-        })();
-    }, [pagination, taskEvaluationStatus]);
+        }, 500)();
+    }, [pagination, taskEvaluationStatus, searchQuery]);
 
     React.useEffect(() => {
         if (!evaluationResults || !linksToValueMap.length) return;
         const operatorNode = evaluationResults?.linkRule.operator as any;
-        setNodes(
+        setNodes(() =>
             new Array(evaluationResults?.links.length).fill(1).map((_, idx) => {
                 const treeInfo: TreeNodeInfo = {
                     id: operatorNode.id,
                     isExpanded: true,
                     label: (
                         <span>
-                            {operatorNode.type}:
-                            {operatorNode.type === "Aggregation" ? operatorNode.aggregator : operatorNode.metric} (
-                            {operatorNode.id})
+                            <Tag backgroundColor={tagColor(operatorNode.type)}>
+                                {getOperatorLabel(operatorNode, operatorPlugins)}
+                            </Tag>
                             <Spacing vertical size="tiny" />
                             {getOperatorConfidence(operatorNode.id, idx)}
                         </span>
@@ -127,17 +140,19 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             hasCaret: false,
                             label: (
                                 <p>
-                                    {operatorInputMapping[node[inputPath].type] ?? node[inputPath].type}:
-                                    {node[inputPath].function ?? node[inputPath].path ?? ""} ({node[inputPath].id}){" "}
-                                    {getLinkValues(
-                                        node[inputPath].id,
-                                        idx,
-                                        tagColor(
-                                            node[inputPath].type === "pathInput"
-                                                ? inputPathCategory[inputPath]
-                                                : operatorInputMapping[node[inputPath].type]
-                                        ) as string
-                                    )}
+                                    <Tag
+                                        backgroundColor={
+                                            tagColor(
+                                                node[inputPath].type === "pathInput"
+                                                    ? inputPathCategory[inputPath]
+                                                    : operatorInputMapping[node[inputPath].type]
+                                            ) as string
+                                        }
+                                    >
+                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
+                                    </Tag>
+                                    <Spacing vertical size="tiny" />
+                                    {getLinkValues(node[inputPath].id, idx, treeInfo)}
                                 </p>
                             ),
                             childNodes: [],
@@ -145,7 +160,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
                         if (node[inputPath].inputs?.length) {
                             node[inputPath].inputs.forEach((i) => {
-                                inputNode = buildInputTree(i, inputNode, idx, inputPathCategory[inputPath]);
+                                inputNode = buildInputTree(i, inputNode, idx, inputPathCategory[inputPath], treeInfo);
                             });
                         }
 
@@ -167,9 +182,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             hasCaret: false,
                             label: (
                                 <span>
-                                    {i.type}: {(i as IComparisonOperator).metric} ({i.id})
+                                    <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
                                     <Spacing vertical size="tiny" />
-                                    {getOperatorConfidence(operatorNode.id, idx)}
+                                    {getOperatorConfidence(i.id, idx)}
                                 </span>
                             ),
                             childNodes: [],
@@ -181,56 +196,57 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 return treeInfo;
             })
         );
-    }, [evaluationResults, linksToValueMap, pagination, treeValueQuery]);
+    }, [evaluationResults, linksToValueMap, pagination, treeValueQuery, operatorPlugins, nodeParentHighlightedIds]);
 
     React.useEffect(() => {
         if (evaluationResults && evaluationResults.linkRule && evaluationResults.links && linksToValueMap.length) {
             const ruleOperator = evaluationResults.linkRule.operator;
             if (ruleOperator) {
-                const linkInputValues: Array<EvaluationLinkInputValue> = [];
-
                 const inputPaths = (ruleOperator as IComparisonOperator)?.sourceInput
                     ? getLinkRuleInputPaths(ruleOperator)
                     : ((ruleOperator as IAggregationOperator)?.inputs ?? []).reduce(
-                          (inputPaths, input) => {
+                          (acc, input) => {
                               const linkRuleInputPaths = getLinkRuleInputPaths(input);
-                              inputPaths = {
+                              acc = {
                                   source: {
-                                      ...inputPaths.source,
+                                      ...acc.source,
                                       ...linkRuleInputPaths.source,
                                   },
                                   target: {
-                                      ...inputPaths.target,
+                                      ...acc.target,
                                       ...linkRuleInputPaths.target,
                                   },
                               };
-                              return inputPaths;
+                              return acc;
                           },
-                          { source: {}, target: {} } as EvaluationLinkInputValue
+                          { source: {}, target: {} } as EvaluationLinkInputValue<string>
                       );
 
-                linksToValueMap.forEach((linkToValueMap) => {
-                    const matchingInputValue: EvaluationLinkInputValue = { source: {}, target: {} };
-                    Object.entries(inputPaths.source).forEach(([uri, operatorIds]) => {
-                        matchingInputValue.source[uri] = operatorIds
-                            .map((id) => linkToValueMap.get(id)?.value ?? [])
-                            .flat();
-                    });
-
-                    Object.entries(inputPaths.target).forEach(([uri, operatorIds]) => {
-                        matchingInputValue.target[uri] = operatorIds
-                            .map((id) => linkToValueMap.get(id)?.value ?? [])
-                            .flat();
-                    });
-
-                    linkInputValues.push(matchingInputValue);
-                });
-                setInputValues(linkInputValues);
+                setInputValues(() =>
+                    linksToValueMap.map((linkToValueMap) =>
+                        ["source", "target"].reduce(
+                            (matchingInputValue, inputPathType: "source" | "target") => {
+                                Object.entries(inputPaths[inputPathType]).forEach(([uri, operatorId]) => {
+                                    matchingInputValue[inputPathType][uri] =
+                                        linkToValueMap.get(operatorId)?.value ?? [];
+                                });
+                                return matchingInputValue;
+                            },
+                            { source: {}, target: {} } as EvaluationLinkInputValue
+                        )
+                    )
+                );
             }
         }
     }, [evaluationResults, linksToValueMap, pagination]);
 
-    const buildInputTree = (input: any, tree: TreeNodeInfo, index: number, tagInputTag: string): TreeNodeInfo => {
+    const buildInputTree = (
+        input: any,
+        tree: TreeNodeInfo,
+        index: number,
+        tagInputTag: string,
+        parentTree: TreeNodeInfo
+    ): TreeNodeInfo => {
         if (!input.inputs?.length) {
             return {
                 ...tree,
@@ -242,8 +258,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         isExpanded: true,
                         label: (
                             <p>
-                                {operatorInputMapping[input.type]}:{input.path}({input.id}){" "}
-                                {getLinkValues(input.id, index, tagColor(tagInputTag) as string)}
+                                <Tag backgroundColor={tagColor(tagInputTag) as string}>
+                                    {getOperatorLabel(input, operatorPlugins)}
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                                {getLinkValues(input.id, index, parentTree)}
                             </p>
                         ),
                     },
@@ -264,52 +283,71 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             isExpanded: true,
                             label: (
                                 <p>
-                                    {operatorInputMapping[input.type]}:{input.function}({input.id}){" "}
-                                    {getLinkValues(
-                                        input.id,
-                                        index,
-                                        tagColor(operatorInputMapping[input.type]) as string
-                                    )}
+                                    <Tag backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
+                                        {getOperatorLabel(input, operatorPlugins)}
+                                    </Tag>
+                                    <Spacing vertical size="tiny" />
+                                    {getLinkValues(input.id, index, parentTree)}
                                 </p>
                             ),
                         },
                     ],
                 },
                 index,
-                tagInputTag
+                tagInputTag,
+                parentTree
             );
             return acc;
         }, {} as TreeNodeInfo);
     };
 
-    const getOperatorConfidence = (id: string, index: number) => {
-        const linkToValueMap = linksToValueMap[index];
-        return linkToValueMap
-            .get(id)
-            ?.value.map((val, i) => (
+    const getOperatorConfidence = React.useCallback(
+        (id: string, index: number) => {
+            const linkToValueMap = linksToValueMap[index];
+            if (!linksToValueMap.length || !linkToValueMap) return <></>;
+            return linkToValueMap.get(id)?.value.map((val, i) => (
                 <ConfidenceValue
                     key={i}
                     value={val.includes("Score") ? Number(val.replace("Score: ", "")) : Number(val)}
                     spaceUsage="minimal"
+                    tagProps={{
+                        backgroundColor: nodeParentHighlightedIds.get(index)?.includes(id) ? "#0097a7" : undefined,
+                    }}
                 />
             ));
-    };
+        },
+        [linksToValueMap, nodeParentHighlightedIds, pagination]
+    );
 
     const getLinkValues = React.useCallback(
-        (id: string, index: number, tagColor?: string) => {
-            if (linksToValueMap.length) {
-                const linkToValueMap = linksToValueMap[index];
+        (id: string, index: number, tree: TreeNodeInfo) => {
+            const linkToValueMap = linksToValueMap[index];
+            if (linksToValueMap.length && linkToValueMap) {
                 return (
                     <TagList>
                         {linkToValueMap.get(id)?.value.map((val, i) => (
                             <React.Fragment key={val + i}>
                                 <Tag
-                                    backgroundColor={tagColor}
+                                    round
+                                    emphasis="stronger"
                                     interactive
-                                    onMouseEnter={() => handleValueHover("tree", val, index)}
-                                    onMouseLeave={() => handleValueHover("tree", "", index)}
+                                    backgroundColor={
+                                        val === treeValueQuery.get(index)
+                                            ? "#746a85"
+                                            : nodeParentHighlightedIds.get(index)?.includes(id)
+                                            ? "#0097a7"
+                                            : undefined
+                                    }
+                                    onMouseEnter={() => {
+                                        handleValueHover("tree", val, index);
+                                        handleParentNodeHighlights(tree, id, index);
+                                    }}
+                                    onMouseLeave={() => {
+                                        handleValueHover("tree", "", index);
+                                        handleParentNodeHighlights(tree, id, index, true);
+                                    }}
                                 >
-                                    {addHighlighting(val, treeValueQuery.get(index))}
+                                    {val}
                                 </Tag>
                                 <Spacing vertical size="tiny" />
                             </React.Fragment>
@@ -318,8 +356,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 );
             }
         },
-        [linksToValueMap, treeValueQuery]
+        [linksToValueMap, treeValueQuery, nodeParentHighlightedIds]
     );
+
+    const handleParentNodeHighlights = React.useCallback((tree, id: string, index: number, reset = false) => {
+        setNodeParentHighlightedIds((prev) => new Map([...prev, [index, reset ? [] : getParentNodes(tree, id)]]));
+    }, []);
 
     const handleValueHover = React.useCallback((on: "table" | "tree", value: string, index) => {
         on === "table"
@@ -328,7 +370,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     }, []);
 
     const handlePagination = React.useCallback((page: number, limit: number) => {
-        setPagination({ current: 1, total: 25, limit });
+        setPagination({ current: page, total: 25, limit });
     }, []);
 
     const headerData = [
@@ -373,16 +415,23 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )
         );
     }, []);
-
     return (
         <Grid>
             <GridRow>
                 <GridColumn full>
                     <OverviewItem>
                         <OverviewItemLine>
-                            <Switch checked={showInputValues} onChange={setShowInputValues} label="Show input values" />
+                            <Switch
+                                checked={showInputValues}
+                                onChange={setShowInputValues}
+                                label="always expand input values"
+                            />
                             <Spacing vertical size="large" />
-                            <Switch checked={showOperators} onChange={setShowOperators} label="Show operators" />
+                            <Switch
+                                checked={showOperators}
+                                onChange={setShowOperators}
+                                label="always expand operators"
+                            />
                         </OverviewItemLine>
                         <Spacing vertical size="large" />
                         <OverviewItem>
@@ -422,150 +471,201 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing />
             <GridRow>
                 <GridColumn full>
-                    <SearchField />
+                    <SearchField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                 </GridColumn>
             </GridRow>
             <Spacing />
             <GridRow>
                 <GridColumn full>
-                    <DataTable rows={rowData} headers={headerData}>
-                        {({ rows, headers, getHeaderProps, getTableProps }) => (
-                            <TableContainer>
-                                <Table {...getTableProps()}>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableHeader>
-                                                <IconButton
-                                                    onClick={() => handleRowExpansion()}
-                                                    name={
-                                                        expandedRows.size === rowData.length
-                                                            ? "toggler-showless"
-                                                            : "toggler-showmore"
-                                                    }
-                                                />
-                                            </TableHeader>
-                                            {headers.map((header) => (
-                                                <TableHeader
-                                                    key={header.key}
-                                                    {...getHeaderProps({ header, isSortable: true })}
-                                                >
-                                                    {header.header}
+                    {evaluationResults && evaluationResults.links.length && (
+                        <DataTable rows={rowData} headers={headerData}>
+                            {({ rows, headers, getHeaderProps, getTableProps }) => (
+                                <TableContainer>
+                                    <Table {...getTableProps()}>
+                                        <TableHead>
+                                            <TableRow>
+                                                <TableHeader>
+                                                    <IconButton
+                                                        onClick={() => handleRowExpansion()}
+                                                        name={
+                                                            expandedRows.size === rowData.length
+                                                                ? "toggler-showless"
+                                                                : "toggler-showmore"
+                                                        }
+                                                    />
                                                 </TableHeader>
-                                            ))}
-                                            <TableHeader>
-                                                <p>{t("linkingEvaluationTabView.table.header.score")}</p>
-                                            </TableHeader>
-                                            <TableHeader>
-                                                <OverviewItem>
-                                                    <OverviewItemLine>
-                                                        <p>{t("linkingEvaluationTabView.table.header.linkState")}</p>
-                                                        <Spacing vertical size="tiny" />
-                                                        <ContextMenu togglerElement="operation-filter">
-                                                            <MenuItem
-                                                                data-test-id="search-item-copy-btn"
-                                                                key="copy"
-                                                                icon="state-confirmed"
-                                                                onClick={() => {}}
-                                                                text="Confirmed"
-                                                            />
-                                                            <MenuItem
-                                                                data-test-id="search-item-copy-btn"
-                                                                key="copy"
-                                                                icon="item-question"
-                                                                onClick={() => {}}
-                                                                text="Uncertain"
-                                                            />
-                                                            <MenuItem
-                                                                data-test-id="search-item-copy-btn"
-                                                                key="copy"
-                                                                icon="state-declined"
-                                                                onClick={() => {}}
-                                                                text="Declined"
-                                                            />
-                                                        </ContextMenu>
-                                                    </OverviewItemLine>
-                                                </OverviewItem>
-                                            </TableHeader>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {rows.map((row, i) => {
-                                            const currentInputValue = inputValues[i];
-                                            const { decision, confidence } = evaluationResults?.links[i]!;
-                                            return (
-                                                <>
-                                                    <TableExpandRow
-                                                        key={row.id}
-                                                        isExpanded={expandedRows.has(row.id)}
-                                                        onExpand={() => handleRowExpansion(row.id)}
-                                                        ariaLabel="Links expansion"
+                                                {headers.map((header) => (
+                                                    <TableHeader
+                                                        key={header.key}
+                                                        {...getHeaderProps({ header, isSortable: true })}
                                                     >
-                                                        {row.cells.map((cell) => (
-                                                            <TableCell key={cell.id}>{cell.value}</TableCell>
-                                                        ))}
-                                                        <TableCell>
-                                                            <ConfidenceValue value={confidence} />
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <OverviewItem>
-                                                                <IconButton
-                                                                    hasStateSuccess
-                                                                    name="state-confirmed"
-                                                                    active={decision === "positive"}
+                                                        {header.header}
+                                                    </TableHeader>
+                                                ))}
+                                                <TableHeader>
+                                                    <p>{t("linkingEvaluationTabView.table.header.score")}</p>
+                                                </TableHeader>
+                                                <TableHeader>
+                                                    <OverviewItem>
+                                                        <OverviewItemLine>
+                                                            <p>
+                                                                {t("linkingEvaluationTabView.table.header.linkState")}
+                                                            </p>
+                                                            <Spacing vertical size="tiny" />
+                                                            <ContextMenu togglerElement="operation-filter">
+                                                                <MenuItem
+                                                                    data-test-id="search-item-copy-btn"
+                                                                    key="copy"
+                                                                    icon="state-confirmed"
+                                                                    onClick={() => {}}
+                                                                    text="Confirmed"
                                                                 />
-                                                                <Spacing vertical size="tiny" />
-                                                                <IconButton
-                                                                    name="item-question"
-                                                                    active={decision === "unlabeled"}
+                                                                <MenuItem
+                                                                    data-test-id="search-item-copy-btn"
+                                                                    key="copy"
+                                                                    icon="item-question"
+                                                                    onClick={() => {}}
+                                                                    text="Uncertain"
                                                                 />
-                                                                <Spacing vertical size="tiny" />
-                                                                <IconButton
-                                                                    hasStateDanger
-                                                                    name="state-declined"
-                                                                    active={decision === "negative"}
+                                                                <MenuItem
+                                                                    data-test-id="search-item-copy-btn"
+                                                                    key="copy"
+                                                                    icon="state-declined"
+                                                                    onClick={() => {}}
+                                                                    text="Declined"
                                                                 />
-                                                            </OverviewItem>
-                                                        </TableCell>
-                                                    </TableExpandRow>
-                                                    {!!currentInputValue && (
-                                                        <TableExpandedRow
-                                                            colSpan={headers.length + 3}
-                                                            className="linking-table__expanded-row-container"
-                                                        >
-                                                            <Grid>
-                                                                {showInputValues && (
-                                                                    <GridRow>
-                                                                        <span>
-                                                                            <IconButton
-                                                                                onClick={() => {
-                                                                                    setInputValuesExpansion(
-                                                                                        (prevInputExpansion) => {
-                                                                                            prevInputExpansion.set(
-                                                                                                i,
-                                                                                                !prevInputExpansion.get(
+                                                            </ContextMenu>
+                                                        </OverviewItemLine>
+                                                    </OverviewItem>
+                                                </TableHeader>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {rows.map((row, i) => {
+                                                const currentInputValue = inputValues[i];
+                                                const currentLink = evaluationResults?.links[i]!;
+
+                                                return (
+                                                    <>
+                                                        {currentLink && (
+                                                            <TableExpandRow
+                                                                key={row.id}
+                                                                isExpanded={expandedRows.has(row.id)}
+                                                                onExpand={() => handleRowExpansion(row.id)}
+                                                                ariaLabel="Links expansion"
+                                                            >
+                                                                {row.cells.map((cell) => (
+                                                                    <TableCell key={cell.id}>{cell.value}</TableCell>
+                                                                ))}
+                                                                <TableCell>
+                                                                    <ConfidenceValue value={currentLink.confidence} />
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    <OverviewItem>
+                                                                        <IconButton
+                                                                            hasStateSuccess
+                                                                            name="state-confirmed"
+                                                                            active={currentLink.decision === "positive"}
+                                                                        />
+                                                                        <Spacing vertical size="tiny" />
+                                                                        <IconButton
+                                                                            name="item-question"
+                                                                            active={
+                                                                                currentLink.decision === "unlabeled"
+                                                                            }
+                                                                        />
+                                                                        <Spacing vertical size="tiny" />
+                                                                        <IconButton
+                                                                            hasStateDanger
+                                                                            name="state-declined"
+                                                                            active={currentLink.decision === "negative"}
+                                                                        />
+                                                                    </OverviewItem>
+                                                                </TableCell>
+                                                            </TableExpandRow>
+                                                        )}
+
+                                                        {!!currentInputValue && (
+                                                            <TableExpandedRow
+                                                                colSpan={headers.length + 3}
+                                                                className="linking-table__expanded-row-container"
+                                                            >
+                                                                <Grid>
+                                                                    {showInputValues && (
+                                                                        <GridRow>
+                                                                            <span>
+                                                                                <IconButton
+                                                                                    onClick={() => {
+                                                                                        setInputValuesExpansion(
+                                                                                            (prevInputExpansion) => {
+                                                                                                prevInputExpansion.set(
+                                                                                                    i,
+                                                                                                    !prevInputExpansion.get(
+                                                                                                        i
+                                                                                                    )
+                                                                                                );
+                                                                                                return new Map(
+                                                                                                    prevInputExpansion
+                                                                                                );
+                                                                                            }
+                                                                                        );
+                                                                                    }}
+                                                                                    name={
+                                                                                        inputValuesExpansion.get(i)
+                                                                                            ? "toggler-moveright"
+                                                                                            : "toggler-showmore"
+                                                                                    }
+                                                                                />
+                                                                            </span>
+                                                                            <GridColumn full>
+                                                                                <ComparisonDataContainer>
+                                                                                    {Object.entries(
+                                                                                        currentInputValue.source
+                                                                                    ).map(([key, values]) => (
+                                                                                        <ComparisonDataCell
+                                                                                            fullWidth
+                                                                                            className={
+                                                                                                (inputValuesExpansion.get(
                                                                                                     i
-                                                                                                )
-                                                                                            );
-                                                                                            return new Map(
-                                                                                                prevInputExpansion
-                                                                                            );
-                                                                                        }
-                                                                                    );
-                                                                                }}
-                                                                                name={
-                                                                                    inputValuesExpansion.get(i)
-                                                                                        ? "toggler-moveright"
-                                                                                        : "toggler-showmore"
-                                                                                }
-                                                                            />
-                                                                        </span>
-                                                                        <GridColumn full>
-                                                                            <ComparisonDataContainer>
-                                                                                {/* <ComparisonDataHeader fullWidth>
-                                                                           {row.cells[0].value}
-                                                                       </ComparisonDataHeader> */}
+                                                                                                ) &&
+                                                                                                    "shrink") ||
+                                                                                                ""
+                                                                                            }
+                                                                                        >
+                                                                                            <PropertyBox
+                                                                                                propertyName={key}
+                                                                                                exampleValues={
+                                                                                                    <ActiveLearningValueExamples
+                                                                                                        interactive
+                                                                                                        valuesToHighlight={
+                                                                                                            new Set([
+                                                                                                                tableValueQuery.get(
+                                                                                                                    i
+                                                                                                                ) ?? "",
+                                                                                                            ])
+                                                                                                        }
+                                                                                                        onHover={(
+                                                                                                            val
+                                                                                                        ) =>
+                                                                                                            handleValueHover(
+                                                                                                                "table",
+                                                                                                                val,
+                                                                                                                i
+                                                                                                            )
+                                                                                                        }
+                                                                                                        exampleValues={
+                                                                                                            values ?? []
+                                                                                                        }
+                                                                                                    />
+                                                                                                }
+                                                                                            />
+                                                                                        </ComparisonDataCell>
+                                                                                    ))}
+                                                                                </ComparisonDataContainer>
+                                                                            </GridColumn>
+                                                                            <GridColumn full>
                                                                                 {Object.entries(
-                                                                                    currentInputValue.source
+                                                                                    currentInputValue.target
                                                                                 ).map(([key, values]) => (
                                                                                     <ComparisonDataCell
                                                                                         fullWidth
@@ -604,80 +704,37 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                         />
                                                                                     </ComparisonDataCell>
                                                                                 ))}
-                                                                            </ComparisonDataContainer>
-                                                                        </GridColumn>
-                                                                        <GridColumn full>
-                                                                            {/* <ComparisonDataHeader fullWidth>
-                                                                       {row.cells[1].value}
-                                                                   </ComparisonDataHeader> */}
-                                                                            {Object.entries(
-                                                                                currentInputValue.target
-                                                                            ).map(([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        (inputValuesExpansion.get(i) &&
-                                                                                            "shrink") ||
-                                                                                        ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={
-                                                                                                    new Set([
-                                                                                                        tableValueQuery.get(
-                                                                                                            i
-                                                                                                        ) ?? "",
-                                                                                                    ])
-                                                                                                }
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        val,
-                                                                                                        i
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
-                                                                                        }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            ))}
-                                                                        </GridColumn>
-                                                                    </GridRow>
-                                                                )}
-                                                                <Spacing size="tiny" />
-                                                                {showOperators && (
-                                                                    <GridRow>
-                                                                        <Tree
-                                                                            contents={[nodes[i]]}
-                                                                            onNodeCollapse={(
-                                                                                _node: TreeNodeInfo,
-                                                                                nodePath: NodePath
-                                                                            ) => handleNodeExpand(i, false)}
-                                                                            onNodeExpand={(
-                                                                                _node: TreeNodeInfo,
-                                                                                nodePath: NodePath
-                                                                            ) => handleNodeExpand(i)}
-                                                                        />
-                                                                    </GridRow>
-                                                                )}
-                                                            </Grid>
-                                                        </TableExpandedRow>
-                                                    )}
-                                                </>
-                                            );
-                                        })}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        )}
-                    </DataTable>
+                                                                            </GridColumn>
+                                                                        </GridRow>
+                                                                    )}
+                                                                    <Spacing size="tiny" />
+                                                                    {showOperators && (
+                                                                        <GridRow>
+                                                                            <Tree
+                                                                                contents={[nodes[i]]}
+                                                                                onNodeCollapse={(
+                                                                                    _node: TreeNodeInfo,
+                                                                                    nodePath: NodePath
+                                                                                ) => handleNodeExpand(i, false)}
+                                                                                onNodeExpand={(
+                                                                                    _node: TreeNodeInfo,
+                                                                                    nodePath: NodePath
+                                                                                ) => handleNodeExpand(i)}
+                                                                            />
+                                                                        </GridRow>
+                                                                    )}
+                                                                </Grid>
+                                                            </TableExpandedRow>
+                                                        )}
+                                                    </>
+                                                );
+                                            })}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+                        </DataTable>
+                    )}
                 </GridColumn>
             </GridRow>
             <Spacing />

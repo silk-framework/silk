@@ -2,70 +2,87 @@ import fetch from "../../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../../../services/fetch/responseInterceptor";
 import { EvaluationLinkInputValue, LinkingEvaluationResult } from "./typings";
-import { ILinkingRule } from "../../linking.types";
+import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
+import { IPluginDetails } from "@ducks/common/typings";
+import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
+import { TreeNodeInfo } from "@blueprintjs/core";
 
 ///linking/tasks/:project/:linkingTaskId/evaluate
 export const getLinkingEvaluations = async (
     projectId: string,
     taskId: string,
-    pagination: { current: number; total: number; limit: number }
+    pagination: { current: number; total: number; limit: number },
+    searchQuery?: string
 ): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule }> | undefined> =>
     fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate`),
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate?query=${searchQuery}`),
         query: { page: pagination.current, limit: pagination.limit },
     });
 
 /**
- *
- * get all preceding ids
  * get path
  */
-export const getOperatorPath = (
-    operatorInput: any,
-    precedingIds: string[]
-): { precedingIds: string[]; path: string } => {
+export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: string }> => {
     if (operatorInput.path) {
-        return {
-            precedingIds: [...precedingIds, operatorInput.id],
-            path: operatorInput.path,
-        };
+        return [{ path: operatorInput.path, id: operatorInput.id }];
     }
 
     return operatorInput.inputs.reduce((acc, val) => {
-        acc = getOperatorPath(val, [...precedingIds, val.id]);
+        acc = [...acc, ...getOperatorPath(val)];
         return acc;
-    }, {} as { precedingIds: string[]; path: string });
+    }, [] as Array<{ id: string; path: string }>);
 };
 
-export const getLinkRuleInputPaths = (operatorInput: any) => {
-    const linkRuleInputPaths = { source: {}, target: {} } as EvaluationLinkInputValue;
-    //no intermittent inputs but are direct paths
-    if (!operatorInput.sourceInput?.inputs) {
-        const sourceInputPath = operatorInput.sourceInput.path;
-        linkRuleInputPaths.source[sourceInputPath] = [operatorInput.sourceInput.id];
-    } else {
-        operatorInput.sourceInput.inputs.forEach((i) => {
-            const { path, precedingIds } = getOperatorPath(i, [operatorInput.sourceInput.id]);
-            if (linkRuleInputPaths.source[path]) {
-                linkRuleInputPaths.source[path].push(...precedingIds);
+export const getLinkRuleInputPaths = (operatorInput: any) =>
+    ["sourceInput", "targetInput"].reduce(
+        (linkRuleInputPaths, inputPathType) => {
+            const label = inputPathType.replace("Input", "");
+            //no intermittent inputs but are direct paths
+            if (!operatorInput[inputPathType]?.inputs) {
+                linkRuleInputPaths[label][operatorInput[inputPathType].path] = operatorInput[inputPathType].id;
             } else {
-                linkRuleInputPaths.source[path] = precedingIds;
+                operatorInput[inputPathType].inputs.forEach((i) => {
+                    getOperatorPath(i).forEach(({ path, id }) => {
+                        linkRuleInputPaths[label][path] = id;
+                    });
+                });
             }
-        });
-    }
+            return linkRuleInputPaths;
+        },
+        { source: {}, target: {} } as EvaluationLinkInputValue<string>
+    );
 
-    if (!operatorInput.targetInput?.inputs) {
-        const targetInputPath = operatorInput.targetInput.path;
-        linkRuleInputPaths.target[targetInputPath] = [operatorInput.targetInput.id];
-    } else {
-        operatorInput.targetInput.inputs.forEach((i) => {
-            const { path, precedingIds } = getOperatorPath(i, [operatorInput.targetInput.id]);
-            if (linkRuleInputPaths.target[path]) {
-                linkRuleInputPaths.target[path].push(...precedingIds);
-            } else {
-                linkRuleInputPaths.target[path] = precedingIds;
-            }
-        });
+export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[]): string | undefined => {
+    switch (operator.type) {
+        case "Aggregation":
+            return operatorPlugins.find((plugin) => plugin.pluginId === (operator as IAggregationOperator).aggregator)
+                ?.title;
+        case "Comparison":
+            return operatorPlugins.find((plugin) => plugin.pluginId === (operator as IComparisonOperator).metric)
+                ?.title;
+        case "transformInput":
+            return operatorPlugins.find((plugin) => plugin.pluginId === (operator as ITransformOperator).function)
+                ?.title;
+        case "pathInput":
+            return (operator as IPathInput).path;
+        default:
+            return undefined;
     }
-    return linkRuleInputPaths;
+};
+
+export const getParentNodes = (tree: TreeNodeInfo, nodeId: string, ancestors = [] as string[]): Array<string> => {
+    let match = [] as string[];
+    const traverse = (tree: TreeNodeInfo, nodeId: string, ancestors = [] as string[]) => {
+        if (tree.id === nodeId) {
+            match = ancestors;
+        }
+
+        if (!tree.childNodes?.length) return [];
+
+        tree.childNodes.forEach((subTree) => {
+            traverse(subTree, nodeId, [...ancestors, tree.id as string]);
+        });
+    };
+    traverse(tree, nodeId);
+    return match;
 };

@@ -24,9 +24,9 @@ export interface LinkingEvaluationResult {
     };
 }
 
-export interface EvaluationLinkInputValue {
-    source: Record<string, string[]>;
-    target: Record<string, string[]>;
+export interface EvaluationLinkInputValue<T = string[]> {
+    source: Record<string, T>;
+    target: Record<string, T>;
 }
 
 export type NodePath = number[];
