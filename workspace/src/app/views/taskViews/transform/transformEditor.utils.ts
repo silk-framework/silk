@@ -15,6 +15,7 @@ export const inputPathTab = (
     baseOperator: IRuleOperator,
     errorHandler: (err) => any
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
+    const category = "Source path";
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
         id: `sourcePaths`,
         icon: "data-sourcepath",
@@ -37,7 +38,7 @@ export const inputPathTab = (
                 icon,
                 label: path.label ?? path.value,
                 description: path.label !== path.value ? path.value : undefined,
-                categories: ["Source path"],
+                categories: [category],
                 parameterOverwrites: {
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
@@ -46,10 +47,12 @@ export const inputPathTab = (
             };
         },
         isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
-        itemSearchText: (listItem: PathWithMetaData) =>
-            `${listItem.label ?? ""} ${listItem.value} ${listItem.valueType}`.toLowerCase(),
+        itemSearchText: (listItem: PathWithMetaData, mergedWithOtherOperators: boolean) =>
+            `${listItem.label ?? ""} ${listItem.value} ${listItem.valueType} ${
+                mergedWithOtherOperators ? category : ""
+            }`.toLowerCase(),
         itemLabel: (listItem: PathWithMetaData) => listItem.label ?? listItem.value,
-        itemId: (listItem: PathWithMetaData) => listItem.value,
+        itemId: (listItem: PathWithMetaData) => `input path: ${listItem.value}`,
     };
     return inputPathTabConfig;
 };

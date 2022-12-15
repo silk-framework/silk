@@ -87,7 +87,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             prefLang
         );
         const labelMap = sourceOrTarget === "source" ? sourcePathLabels.current : targetPathLabels.current;
-        labelMap.clear()
+        labelMap.clear();
 
         paths.data.forEach((path) => {
             if ((path as PathWithMetaData)?.label) {
@@ -119,14 +119,14 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             try {
                 const response = await autoCompleteLinkingInputPaths(projectId, linkingTaskId, inputType, term, limit);
-                const labelMap = inputType === "source" ? sourcePathLabels.current : targetPathLabels.current
-                const results = response.data.map(autoCompleteEntry => {
-                    return labelMap.has(autoCompleteEntry.value) ?
-                        {
-                            ...autoCompleteEntry,
-                            label: labelMap.get(autoCompleteEntry.value)
-                        } :
-                        autoCompleteEntry
+                const labelMap = inputType === "source" ? sourcePathLabels.current : targetPathLabels.current;
+                const results = response.data.map((autoCompleteEntry) => {
+                    return labelMap.has(autoCompleteEntry.value)
+                        ? {
+                              ...autoCompleteEntry,
+                              label: labelMap.get(autoCompleteEntry.value),
+                          }
+                        : autoCompleteEntry;
                 });
                 if (term.trim() === "") {
                     results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
@@ -297,7 +297,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     ruleUtils.sidebarTabs.aggregation,
                 ]}
                 additionalToolBarComponents={() => [
-                    <LinkingRuleCacheInfo projectId={projectId} taskId={linkingTaskId} />,
+                    <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />,
                 ]}
                 showRuleOnly={!!optionalContext.showRuleOnly}
                 hideMinimap={!!optionalContext.hideMinimap}

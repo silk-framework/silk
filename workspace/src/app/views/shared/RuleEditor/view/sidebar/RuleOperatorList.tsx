@@ -12,7 +12,9 @@ interface RuleOperatorListProps<T> {
     /** The text search query. */
     textQuery: string;
     /** Pre-configured operators. The operators must be of an existing plugin type and ID, but can have pre-configured parameters. */
-    preConfiguredOperators?: IPreConfiguredOperators<T>;
+    preConfiguredOperators?: IPreConfiguredOperators<T>[];
+    /** If set to true, pre-configured operators are only shown when a filter query has been entered. */
+    showPreconfiguredOperatorsOnlyWithQuery: boolean;
 }
 
 export interface IPreConfiguredOperators<T> {
@@ -29,14 +31,22 @@ export interface IPreConfiguredOperators<T> {
 }
 
 /** The list of rule operators that is shown in the sidebar of the rule editor. */
-export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfiguredOperators }: RuleOperatorListProps<T>) {
+export function RuleOperatorList<T>({
+    ruleOperatorList,
+    textQuery,
+    preConfiguredOperators,
+    showPreconfiguredOperatorsOnlyWithQuery,
+}: RuleOperatorListProps<T>) {
     const { t } = useTranslation();
     const searchWords = extractSearchWords(textQuery, true);
     const [currentlyCycledTaskId] = React.useState<string | undefined>(undefined);
     const [taskCycleIndex] = React.useState<number>(0);
     const totalMatches = 0; // FIXME: Node cycle logic
 
-    const overAllRuleList = mergeOperators(ruleOperatorList, preConfiguredOperators);
+    const overAllRuleList =
+        !showPreconfiguredOperatorsOnlyWithQuery || textQuery
+            ? mergeOperators(ruleOperatorList, preConfiguredOperators)
+            : ruleOperatorList;
 
     const resetCycleTask = () => {
         // FIXME: Node cycle logic
@@ -102,16 +112,18 @@ export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfigured
 
     /** Converts the original version of a pre-configured operator into a IPreConfiguredRuleOperator. */
     const listItemRenderer = (listItem: IRuleOperator | T) => {
-        if (preConfiguredOperators && preConfiguredOperators.isOriginalOperator(listItem)) {
-            return itemRenderer(preConfiguredOperators.toPreConfiguredRuleOperator(listItem));
+        if (preConfiguredOperators && preConfiguredOperators.find((c) => c.isOriginalOperator(listItem))) {
+            const preConfiguredOperatorConfig = preConfiguredOperators.find((c) => c.isOriginalOperator(listItem));
+            return itemRenderer(preConfiguredOperatorConfig!!.toPreConfiguredRuleOperator(listItem));
         } else {
             return itemRenderer(listItem as IRuleOperator);
         }
     };
 
     const itemId = (listItem: IRuleOperator | T) => {
-        if (preConfiguredOperators && preConfiguredOperators.isOriginalOperator(listItem)) {
-            return preConfiguredOperators.itemId(listItem as T);
+        if (preConfiguredOperators && preConfiguredOperators.find((c) => c.isOriginalOperator(listItem))) {
+            const preConfiguredOperatorConfig = preConfiguredOperators.find((c) => c.isOriginalOperator(listItem));
+            return preConfiguredOperatorConfig!!.itemId(listItem as T);
         } else {
             return `${(listItem as IRuleOperator).pluginType}_${(listItem as IRuleOperator).pluginId}`;
         }
@@ -129,17 +141,31 @@ export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfigured
     );
 }
 
+function mergePreConfiguredOperators<T>(preConfiguredOperators: IPreConfiguredOperators<T>[]): T[] {
+    const result: T[] = [];
+    preConfiguredOperators.forEach((c) => result.push(...c.originalOperators));
+    return result;
+}
+
 /** Merges the list of "normal" and pre-configured operators. */
-function mergeOperators<T>(ruleOperatorList: IRuleOperator[], preConfiguredOperators?: IPreConfiguredOperators<T>) {
+function mergeOperators<T>(
+    ruleOperatorList: IRuleOperator[],
+    preConfiguredOperators?: IPreConfiguredOperators<T | IRuleOperator>[]
+) {
     if (preConfiguredOperators) {
         if (ruleOperatorList.length === 0) {
-            return preConfiguredOperators.originalOperators;
-        } else if (preConfiguredOperators.originalOperators.length === 0) {
+            return mergePreConfiguredOperators(preConfiguredOperators);
+        } else if (preConfiguredOperators.every((c) => c.originalOperators.length === 0)) {
             return ruleOperatorList;
         } else {
-            return preConfiguredOperators.position === "top"
-                ? [...preConfiguredOperators.originalOperators, ...ruleOperatorList]
-                : [...ruleOperatorList, ...preConfiguredOperators.originalOperators];
+            const topPreConfiguredOperators = preConfiguredOperators.filter((c) => c.position === "top");
+            const bottomPreConfiguredOperators = preConfiguredOperators.filter((c) => c.position === "bottom");
+            const result: (T | IRuleOperator)[] = [
+                topPreConfiguredOperators.map((c) => c.originalOperators),
+                ruleOperatorList,
+                bottomPreConfiguredOperators.map((c) => c.originalOperators),
+            ].flat(2);
+            return result;
         }
     } else {
         return ruleOperatorList;
