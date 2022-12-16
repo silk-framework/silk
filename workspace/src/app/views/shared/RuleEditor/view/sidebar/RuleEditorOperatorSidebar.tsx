@@ -162,7 +162,7 @@ export const RuleEditorOperatorSidebar = () => {
                 extractOperatorCategories(editorContext.operatorList);
             }
         }
-    }, [editorContext.operatorList, activeTabId]);
+    }, [editorContext.operatorList, activeTabId, prefLang]);
 
     // Load external operators
     const loadExternalOperators = async (
