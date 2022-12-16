@@ -2,7 +2,7 @@
   "name": "silk-workbench",
   "description": "A docker-based deployment of silk on heroku with container-deploy",
   "repository": "https://github.com/silk-framework/silk",
-  "image": "silkframework/silk-workbench:develop",
+  "image": "silkworkbench/silk-framework:develop",
   "keywords": ["docker", "silkframework"],
   "stack": "container"
 }
