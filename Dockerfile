@@ -11,6 +11,7 @@ RUN \
 FROM openjdk:11-jre
 ENV \
   SILK_HOME="/opt/silk" \
+  ELDS_HOME="/opt/silk" \
   WORKDIR="/opt/silk/workspace" \
   # set JAVA OPTIONS
   # provide a random env better suited for headless work such as docker images \

@@ -5022,10 +5022,10 @@
     "@types/react" "*"
     flatpickr "4.6.1"
 
-"@types/carbon-components-react@7.49.0":
-  version "7.49.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/carbon-components-react/-/carbon-components-react-7.49.0.tgz#8019a5e80a256264d7f052f9519c09f8ce15e026"
-  integrity sha1-gBml6AolYmTX8FL5UZwJ+M4V4CY=
+"@types/carbon-components-react@^7.55.2":
+  version "7.55.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/carbon-components-react/-/carbon-components-react-7.55.2.tgz#d5cab229cee78a25c58c3d0ab2e34e64b69116b0"
+  integrity sha1-1cqyKc7niiXFjD0KsuNOZLaRFrA=
   dependencies:
     "@types/react" "*"
     flatpickr "4.6.9"
