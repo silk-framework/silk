@@ -145,5 +145,8 @@ function copyPublicFolder() {
 }
 
 function copyAssetsToPublicFolder() {
-    fs.copySync(path.join(diBuildPath, "assets"), path.join(diAssetsPath, "assets"));
+    const from = path.join(diBuildPath, "assets")
+    const to = path.join(diAssetsPath, "assets")
+    console.log(`Copying assets from '${from}' to '${to}'.`)
+    fs.copySync(from, to);
 }
