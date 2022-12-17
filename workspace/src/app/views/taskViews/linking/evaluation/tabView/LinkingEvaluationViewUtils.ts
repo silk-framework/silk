@@ -1,27 +1,42 @@
 import fetch from "../../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../../../services/fetch/responseInterceptor";
-import { EvaluationLinkInputValue, LinkingEvaluationResult } from "./typings";
+import { EvaluationLinkInputValue, LinkingEvaluationResult, ReferenceLinkType } from "./typings";
 import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@blueprintjs/core";
 
-///linking/tasks/:project/:linkingTaskId/evaluate
-export const getLinkingEvaluations = async (
+//Get reference links
+export const getReferenceLinks = async (
     projectId: string,
     taskId: string,
     pagination: { current: number; total: number; limit: number },
-    searchQuery?: string
+    query?: string
 ): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule }> | undefined> =>
     fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate?query=${searchQuery}`),
-        query: { page: pagination.current, limit: pagination.limit },
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate`),
+        query: { query, page: pagination.current, limit: pagination.limit },
     });
 
-/**
- * get path
- */
+//update reference link state to either positive, negative or unlabelled
+export const updateReferenceLink = async (
+    projectId: string,
+    taskId: string,
+    source: string,
+    target: string,
+    linkType: ReferenceLinkType
+): Promise<FetchResponse<any>> =>
+    fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/referenceLink`),
+        method: linkType === "unlabeled" ? "DELETE" : "PUT",
+        query: {
+            linkType: linkType === "unlabeled" ? undefined : linkType,
+            source,
+            target,
+        },
+    });
+
 export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: string }> => {
     if (operatorInput.path) {
         return [{ path: operatorInput.path, id: operatorInput.id }];

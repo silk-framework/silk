@@ -35,12 +35,13 @@ import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
 import Pagination from "../../../../../views/shared/Pagination";
 import {
-    getLinkingEvaluations,
+    getReferenceLinks,
     getLinkRuleInputPaths,
     getOperatorLabel,
     getParentNodes,
+    updateReferenceLink,
 } from "./LinkingEvaluationViewUtils";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, NodePath } from "./typings";
+import { EvaluationLinkInputValue, LinkingEvaluationResult, NodePath, ReferenceLinkType } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
@@ -62,6 +63,12 @@ const operatorInputMapping = {
     transformInput: "Transform",
     pathInput: "Input",
 };
+
+const linkStateButtons = [
+    { icon: "state-confirmed", hasStateSuccess: true, name: "positive" },
+    { icon: "item-question", name: "unlabeled" },
+    { icon: "state-declined", hasStateDanger: true, name: "negative" },
+] as const;
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
@@ -86,6 +93,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
     const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
     const [searchQuery, setSearchQuery] = React.useState<string>("");
+    const [updateCounter, setUpdateCounter] = React.useState<number>(0);
     //fetch operator plugins
     React.useEffect(() => {
         (async () => {
@@ -97,13 +105,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     React.useEffect(() => {
         debounce(async () => {
             if (taskEvaluationStatus === "Finished") {
-                const results = (await getLinkingEvaluations(projectId, linkingTaskId, pagination, searchQuery))?.data;
+                const results = (await getReferenceLinks(projectId, linkingTaskId, pagination, searchQuery))?.data;
                 setEvaluationResults(results);
                 setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
                 setInputValuesExpansion(() => new Map(results?.links.map((_, idx) => [idx, false])));
             }
         }, 500)();
-    }, [pagination, taskEvaluationStatus, searchQuery]);
+    }, [pagination, taskEvaluationStatus, searchQuery, updateCounter]);
 
     React.useEffect(() => {
         if (!evaluationResults || !linksToValueMap.length) return;
@@ -415,6 +423,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )
         );
     }, []);
+
+    const handleReferenceLinkTypeUpdate = React.useCallback(
+        async (currentLinkType: ReferenceLinkType, linkType: ReferenceLinkType, source: string, target: string) => {
+            if (currentLinkType === linkType) return;
+            try {
+                const updateResp = await updateReferenceLink(projectId, linkingTaskId, source, target, linkType);
+                if (updateResp.axiosResponse.status === 200) {
+                    setUpdateCounter((u) => ++u);
+                }
+            } catch (err) {}
+        },
+        []
+    );
+
     return (
         <Grid>
             <GridRow>
@@ -562,24 +584,32 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     <OverviewItem>
-                                                                        <IconButton
-                                                                            hasStateSuccess
-                                                                            name="state-confirmed"
-                                                                            active={currentLink.decision === "positive"}
-                                                                        />
-                                                                        <Spacing vertical size="tiny" />
-                                                                        <IconButton
-                                                                            name="item-question"
-                                                                            active={
-                                                                                currentLink.decision === "unlabeled"
-                                                                            }
-                                                                        />
-                                                                        <Spacing vertical size="tiny" />
-                                                                        <IconButton
-                                                                            hasStateDanger
-                                                                            name="state-declined"
-                                                                            active={currentLink.decision === "negative"}
-                                                                        />
+                                                                        {linkStateButtons.map(
+                                                                            ({ name, icon, ...otherProps }, i) => (
+                                                                                <React.Fragment key={icon}>
+                                                                                    <IconButton
+                                                                                        name={icon}
+                                                                                        active={
+                                                                                            currentLink.decision ===
+                                                                                            name
+                                                                                        }
+                                                                                        onClick={() =>
+                                                                                            handleReferenceLinkTypeUpdate(
+                                                                                                currentLink.decision,
+                                                                                                name,
+                                                                                                currentLink.source,
+                                                                                                currentLink.target
+                                                                                            )
+                                                                                        }
+                                                                                        {...otherProps}
+                                                                                    />
+                                                                                    {i ===
+                                                                                        linkStateButtons.length - 1 && (
+                                                                                        <Spacing vertical size="tiny" />
+                                                                                    )}
+                                                                                </React.Fragment>
+                                                                            )
+                                                                        )}
                                                                     </OverviewItem>
                                                                 </TableCell>
                                                             </TableExpandRow>

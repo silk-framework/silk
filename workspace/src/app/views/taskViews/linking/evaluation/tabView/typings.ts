@@ -30,3 +30,5 @@ export interface EvaluationLinkInputValue<T = string[]> {
 }
 
 export type NodePath = number[];
+
+export type ReferenceLinkType = "positive" | "negative" | "unlabeled";
