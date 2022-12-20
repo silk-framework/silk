@@ -112,14 +112,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
                 inputType === "source" ? sourcePathLabels.current : targetPathLabels.current;
-            const searchWords = extractSearchWords(term);
+            const searchWords = extractSearchWords(term, true);
             if (searchWords.length) {
                 results = results.filter((path) => {
                     const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
                     return matchesAllWords(searchText, searchWords);
                 });
-            }
-            if (term.trim() === "") {
+            } else if (results[0]?.value !== "") {
                 results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
             }
             return results.slice(0, limit);
