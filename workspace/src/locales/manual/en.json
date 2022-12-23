@@ -221,7 +221,7 @@
             "abort": "Abort",
             "add": "Add",
             "cancel": "Cancel",
-            "proceed":"Proceed",
+            "proceed": "Proceed",
             "copy": "Copy",
             "clone": "Clone",
             "close": "Close",
@@ -374,6 +374,7 @@
         }
     },
     "linkingEvaluationTabView": {
+        "empty": "No Links available, try running evaluation",
         "table": {
             "header": {
                 "source": "Source",
