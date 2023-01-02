@@ -40,5 +40,5 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     setCurrentRuleNodeDescription: () => {},
     showRuleOnly: false,
     hideMinimap: false,
-    zoomRange: [0.5, 1.5],
+    zoomRange: [0.25, 1.5],
 });

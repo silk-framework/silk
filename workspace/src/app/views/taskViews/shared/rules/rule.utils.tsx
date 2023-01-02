@@ -625,24 +625,28 @@ const sidebarTabs: Record<TabIdType, IRuleSideBarFilterTabConfig | IRuleSidebarP
         label: "All", // TODO: i18n
         // set no icon for "All"
         filterAndSort: (ops) => ops,
+        showOperatorsFromPreConfiguredOperatorTabsForQuery: true,
     },
     transform: {
         id: "transform",
         label: "Transform",
         icon: "operation-transform",
         filterAndSort: (ops) => ops.filter((op) => op.pluginType === "TransformOperator").sort(sortAlphabetically),
+        showOperatorsFromPreConfiguredOperatorTabsForQuery: false,
     },
     comparison: {
         id: "comparison",
         label: "Comparison",
         icon: "operation-comparison",
         filterAndSort: (ops) => ops.filter((op) => op.pluginType === "ComparisonOperator").sort(sortAlphabetically),
+        showOperatorsFromPreConfiguredOperatorTabsForQuery: false,
     },
     aggregation: {
         id: "aggregation",
         label: "Aggregation",
         icon: "operation-aggregation",
         filterAndSort: (ops) => ops.filter((op) => op.pluginType === "AggregationOperator").sort(sortAlphabetically),
+        showOperatorsFromPreConfiguredOperatorTabsForQuery: false,
     },
 };
 
