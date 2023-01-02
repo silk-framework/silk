@@ -1,11 +1,16 @@
-div.bp4-tree-node-content:hover {
+/** 
+  CSS OVERWRITES
+  contains different component overwrites that couldn't have been done 
+**/
+
+// Tree
+// Remove background highlight when tree node is hovered
+.linking-evaluation div.bp4-tree-node-content:hover {
     background-color: transparent !important;
 }
 
-.linking-table__expanded-row-container > td {
-    padding-left: 2rem !important;
+//Carbon table component overwrites
+//Expanded Table row style overwrites
+.linking-evaluation tr.cds--parent-row.cds--expandable-row + tr[data-child-row] td {
+    padding-left: 1.85rem;
 }
-
-// .eccgui-card__content.diapp-iframewindow--jscontent {
-//     overflow-x: hidden !important;
-// }

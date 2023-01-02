@@ -30,6 +30,7 @@ import {
     IActivityStatus,
     ConfidenceValue,
     Notification,
+    TableExpandHeader,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -125,8 +126,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }, 500)();
     }, [pagination, taskEvaluationStatus, searchQuery, updateCounter]);
 
-    console.log({ inputValuesExpansion, operatorsExpansion });
-
     const handleAlwaysExpandSwitch = React.useCallback(
         (inputSwitch: "operator" | "inputValue") => {
             if (evaluationResults?.links.length) {
@@ -158,6 +157,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 const treeInfo: TreeNodeInfo = {
                     id: operatorNode.id,
                     isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
+
                     label: (
                         <span>
                             <Tag backgroundColor={tagColor(operatorNode.type)}>
@@ -490,9 +490,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     );
 
     return (
-        <Grid>
+        <Grid
+            className="linking-evaluation"
+            verticalStretchable={true}
+            useAbsoluteSpace={true}
+            style={{ backgroundColor: "white" }}
+        >
             <GridRow>
-                <GridColumn full>
+                <GridColumn>
                     <OverviewItem>
                         <OverviewItemLine>
                             <Switch
@@ -556,24 +561,19 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             </GridRow>
             <Spacing />
             <GridRow>
-                <GridColumn full>
+                <GridColumn>
                     {evaluationResults && evaluationResults.links.length ? (
                         <DataTable rows={rowData} headers={headerData}>
-                            {({ rows, headers, getHeaderProps, getTableProps }) => (
+                            {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
                                 <TableContainer>
                                     <Table {...getTableProps()}>
                                         <TableHead>
                                             <TableRow>
-                                                <TableHeader>
-                                                    <IconButton
-                                                        onClick={() => handleRowExpansion()}
-                                                        name={
-                                                            expandedRows.size === rowData.length
-                                                                ? "toggler-showless"
-                                                                : "toggler-showmore"
-                                                        }
-                                                    />
-                                                </TableHeader>
+                                                <TableExpandHeader
+                                                    enableToggle
+                                                    isExpanded={expandedRows.size === rowData.length}
+                                                    onExpand={() => handleRowExpansion()}
+                                                />
                                                 {headers.map((header) => (
                                                     <TableHeader
                                                         key={header.key}
@@ -624,11 +624,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             {rows.map((row, i) => {
                                                 const currentInputValue = inputValues[i];
                                                 const currentLink = evaluationResults?.links[i]!;
-
                                                 return (
                                                     <>
                                                         {currentLink && (
                                                             <TableExpandRow
+                                                                {...getRowProps({ row })}
                                                                 key={row.id}
                                                                 isExpanded={expandedRows.has(row.id)}
                                                                 onExpand={() => handleRowExpansion(row.id)}
@@ -682,6 +682,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     <GridRow>
                                                                         <span>
                                                                             <IconButton
+                                                                                small
                                                                                 onClick={() => {
                                                                                     setInputValuesExpansion(
                                                                                         (prevInputExpansion) => {
@@ -706,7 +707,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                 }
                                                                             />
                                                                         </span>
-                                                                        <GridColumn full>
+                                                                        <GridColumn medium>
                                                                             <ComparisonDataContainer>
                                                                                 {Object.entries(
                                                                                     currentInputValue.source
@@ -750,46 +751,49 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                 ))}
                                                                             </ComparisonDataContainer>
                                                                         </GridColumn>
-                                                                        <GridColumn full>
-                                                                            {Object.entries(
-                                                                                currentInputValue.target
-                                                                            ).map(([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        (!inputValuesExpansion.get(i)
-                                                                                            ?.expanded &&
-                                                                                            "shrink") ||
-                                                                                        ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={
-                                                                                                    new Set([
-                                                                                                        tableValueQuery.get(
-                                                                                                            i
-                                                                                                        ) ?? "",
-                                                                                                    ])
-                                                                                                }
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        val,
-                                                                                                        i
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
+                                                                        <GridColumn medium>
+                                                                            <ComparisonDataContainer>
+                                                                                {Object.entries(
+                                                                                    currentInputValue.target
+                                                                                ).map(([key, values]) => (
+                                                                                    <ComparisonDataCell
+                                                                                        fullWidth
+                                                                                        className={
+                                                                                            (!inputValuesExpansion.get(
+                                                                                                i
+                                                                                            )?.expanded &&
+                                                                                                "shrink") ||
+                                                                                            ""
                                                                                         }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            ))}
+                                                                                    >
+                                                                                        <PropertyBox
+                                                                                            propertyName={key}
+                                                                                            exampleValues={
+                                                                                                <ActiveLearningValueExamples
+                                                                                                    interactive
+                                                                                                    valuesToHighlight={
+                                                                                                        new Set([
+                                                                                                            tableValueQuery.get(
+                                                                                                                i
+                                                                                                            ) ?? "",
+                                                                                                        ])
+                                                                                                    }
+                                                                                                    onHover={(val) =>
+                                                                                                        handleValueHover(
+                                                                                                            "table",
+                                                                                                            val,
+                                                                                                            i
+                                                                                                        )
+                                                                                                    }
+                                                                                                    exampleValues={
+                                                                                                        values ?? []
+                                                                                                    }
+                                                                                                />
+                                                                                            }
+                                                                                        />
+                                                                                    </ComparisonDataCell>
+                                                                                ))}
+                                                                            </ComparisonDataContainer>
                                                                         </GridColumn>
                                                                     </GridRow>
                                                                     <Spacing size="tiny" />
@@ -825,11 +829,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing />
             <GridRow>
                 <GridColumn>
-                    <Pagination
-                        pagination={pagination}
-                        pageSizes={[10, 25, 50, 100]}
-                        onChangeSelect={handlePagination}
-                    />
+                    {!!evaluationResults?.links.length && (
+                        <Pagination
+                            pagination={pagination}
+                            pageSizes={[10, 25, 50, 100]}
+                            onChangeSelect={handlePagination}
+                        />
+                    )}
                 </GridColumn>
             </GridRow>
         </Grid>
