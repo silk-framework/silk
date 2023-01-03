@@ -15,9 +15,15 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
     const [suggestions, setSuggestions] = React.useState<ISuggestionWithReplacementInfo[]>([]);
     const [hasFocus, setHasFocus] = React.useState(false);
     const [t] = useTranslation();
+    const inputRef = React.useRef<HTMLInputElement>(null);
 
     React.useEffect(() => {
-        setTextQuery("");
+        // Select search text on tab change
+        const input = inputRef.current
+        if(input && textQuery) {
+            input.select()
+            input.focus()
+        }
     }, [activeTabId]);
 
     React.useEffect(() => {
@@ -45,6 +51,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
         <>
             <SearchField
                 key={"search"}
+                inputRef={inputRef}
                 data-test-id={"rule-editor-operator-search"}
                 onChange={(e) => setTextQuery(e.target.value)}
                 value={textQuery}

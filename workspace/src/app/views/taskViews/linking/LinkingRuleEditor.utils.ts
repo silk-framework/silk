@@ -245,6 +245,7 @@ const inputPathTab = (
     sourceOrTarget: "source" | "target",
     errorHandler: (err) => any
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
+    const category = sourceOrTarget === "source" ? "Source path" : "Target path";
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
         id: `${sourceOrTarget}Paths`,
         icon: sourceOrTarget === "source" ? "data-sourcepath" : "data-targetpath",
@@ -252,14 +253,20 @@ const inputPathTab = (
         fetchOperators: async (langPref: string) => {
             try {
                 return (
-                    await linkingRuleRequests.fetchLinkingCachedPaths(
-                        projectId,
-                        linkingTaskId,
-                        sourceOrTarget,
-                        true,
-                        langPref
+                    (
+                        (
+                            await linkingRuleRequests.fetchLinkingCachedPaths(
+                                projectId,
+                                linkingTaskId,
+                                sourceOrTarget,
+                                true,
+                                langPref
+                            )
+                        ).data as PathWithMetaData[]
                     )
-                ).data as PathWithMetaData[];
+                        // We need to make the IDs unique because values are not sufficient enough
+                        .map((p) => ({ ...p, _idPrefix: sourceOrTarget }))
+                );
             } catch (ex) {
                 errorHandler(ex);
             }
@@ -272,7 +279,7 @@ const inputPathTab = (
                 icon,
                 label: path.label ?? path.value,
                 description: path.label ? path.value : undefined,
-                categories: [sourceOrTarget === "source" ? "Source path" : "Target path"],
+                categories: [category],
                 parameterOverwrites: {
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
@@ -280,11 +287,15 @@ const inputPathTab = (
                 inputsCanBeSwitched: false,
             };
         },
-        isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
-        itemSearchText: (listItem: PathWithMetaData) =>
-            `${listItem.label ?? ""} ${listItem.value} ${listItem.valueType}`.toLowerCase(),
+        isOriginalOperator: (listItem) => (listItem as PathWithMetaData)._idPrefix === sourceOrTarget,
+        itemSearchText: (listItem: PathWithMetaData, mergedWithOtherOperators: boolean) =>
+            `${listItem.label ?? ""} ${listItem.value} ${listItem.valueType} ${
+                mergedWithOtherOperators ? category : ""
+            }`.toLowerCase(),
         itemLabel: (listItem: PathWithMetaData) => listItem.label ?? listItem.value,
-        itemId: (listItem: PathWithMetaData) => listItem.value,
+        itemId: (listItem: PathWithMetaData) => {
+            return `${sourceOrTarget}_${listItem.value}`;
+        },
     };
     return inputPathTabConfig;
 };
