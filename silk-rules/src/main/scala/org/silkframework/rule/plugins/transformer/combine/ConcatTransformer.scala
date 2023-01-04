@@ -68,13 +68,58 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExa
     input2 = Array(),
     input3 = Array("Second"),
     output = Array("First--Second")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "\\n"),
+    input1 = Array("First"),
+    input2 = Array("Second"),
+    output = Array("First\nSecond")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "\\t\\\\\\a"),
+    input1 = Array("First"),
+    input2 = Array("Second"),
+    output = Array("First\t\\\\aSecond")
   )
 ))
 case class ConcatTransformer(
-  @Param("Separator to be inserted between two concatenated strings.")
+  @Param("Separator to be inserted between two concatenated strings. The text can contain escaped characters \\n, \\t and" +
+    " \\\\ that are replaced by a newline, tab or backslash respectively.")
   glue: String = "",
   @Param("Handle missing values as empty strings.")
   missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
+
+  // glue with escaped char sequences (\\, \n, \t) converted to actual character.
+  lazy val parsedGlue: String = {
+    if(glue.contains("\\")) {
+      var lastCharEscapingBackSlash = false
+      val sb = new StringBuilder()
+      glue.foreach(c => {
+        if(lastCharEscapingBackSlash) {
+          c match {
+            case '\\' =>
+              sb.append('\\')
+            case 'n' =>
+              sb.append('\n')
+            case 't' =>
+              sb.append('\t')
+            case other: Char =>
+              sb.append('\\').append(other)
+          }
+          lastCharEscapingBackSlash = false
+        } else {
+          if(c == '\\') {
+            lastCharEscapingBackSlash = true
+          } else {
+            sb.append(c)
+          }
+        }
+      })
+      sb.toString()
+    } else {
+      glue
+    }
+  }
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
 
@@ -109,6 +154,6 @@ case class ConcatTransformer(
   }
 
   private def evaluate(strings: Seq[String]) = {
-    strings.mkString(glue)
+    strings.mkString(parsedGlue)
   }
 }
