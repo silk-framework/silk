@@ -633,6 +633,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 isExpanded={expandedRows.has(row.id)}
                                                                 onExpand={() => handleRowExpansion(row.id)}
                                                                 ariaLabel="Links expansion"
+                                                                className="linking-evaluation__row-item"
                                                             >
                                                                 {row.cells.map((cell) => (
                                                                     <TableCell key={cell.id}>{cell.value}</TableCell>
@@ -822,7 +823,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             )}
                         </DataTable>
                     ) : (
-                        <Notification>{t("linkingEvaluationTabView.empty")}</Notification>
+                        <Notification data-test-id="empty-links-banner">
+                            {t("linkingEvaluationTabView.empty")}
+                        </Notification>
                     )}
                 </GridColumn>
             </GridRow>
