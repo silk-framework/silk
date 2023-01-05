@@ -1,4 +1,4 @@
-import { Card, Grid, GridColumn, GridRow, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
+import { Card, Grid, GridColumn, GridRow, IconButton, Toolbar, ToolbarSection, Spacing } from "@eccenca/gui-elements";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -36,25 +36,33 @@ const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
     return (
         <Grid fullWidth>
             <GridRow>
-                <OverviewItem hasSpacing>
-                    <Spacing size="small" vertical />
-                    <Card>
-                        <TaskActivityWidget
-                            projectId={projectId}
-                            taskId={taskId}
-                            activityName="ExecuteTransform"
-                            registerToReceiveUpdates={handleReceivedUpdates}
-                            label="Execute Transform"
-                        />
-                    </Card>
-                    <Spacing size="tiny" vertical />
-                    <IconButton
-                        name="item-download"
-                        text={taskDownloadInfo?.info || t("common.action.download")}
-                        disabled={!taskDownloadInfo?.downloadSupported}
-                        href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
-                    />
-                </OverviewItem>
+                <GridColumn>
+                    <Toolbar noWrap>
+                        <ToolbarSection canShrink>
+                            <div style={{ maxWidth: "100%" }}>
+                                <Card>
+                                    <TaskActivityWidget
+                                        projectId={projectId}
+                                        taskId={taskId}
+                                        activityName="ExecuteTransform"
+                                        registerToReceiveUpdates={handleReceivedUpdates}
+                                        label="Execute Transform"
+                                    />
+                                </Card>
+                            </div>
+                        </ToolbarSection>
+                        <ToolbarSection>
+                            <Spacing size="tiny" vertical />
+                            <IconButton
+                                name="item-download"
+                                text={taskDownloadInfo?.info || t("common.action.download")}
+                                disabled={!taskDownloadInfo?.downloadSupported}
+                                href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
+                            />
+                        </ToolbarSection>
+                    </Toolbar>
+                    <Spacing hasDivider={true} />
+                </GridColumn>
             </GridRow>
             <Spacing size="tiny" vertical />
             <GridRow>
