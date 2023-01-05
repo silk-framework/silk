@@ -12,17 +12,19 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.serialization.json.LinkingSerializers.ValueJsonFormat
+import org.silkframework.serialization.json.LinkingSerializers.{DetailedEntityJsonFormat, ValueJsonFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsValue}
+import play.api.libs.json.{JsArray, JsNull, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
+import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
+import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 
 import javax.inject.Inject
 
@@ -103,14 +105,118 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     }
   }
 
+  @Operation(
+    summary = "Evaluate transform rule by ID",
+    description = "Evaluates a transform rule with the given ID.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(EvaluateTransformApiDoc.evaluateRuleResponseExampleTODO))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  def evaluateSpecificRule(@Parameter(
+                             name = "project",
+                             description = "The project identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectName: String,
+                           @Parameter(
+                             name = "task",
+                             description = "The task identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           taskName: String,
+                           @Parameter(
+                             name = "rule",
+                             description = "The identifier of the rule that should be evaluated.",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String], example = "root")
+                           )
+                           ruleId: String,
+                           @Parameter(
+                             name = "limit",
+                             description = "The maximum number of results to be returned",
+                             required = false,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[Int], defaultValue = "3")
+                           )
+                           limit: Int,
+                           @Parameter(
+                             name = "showOnlyEntitiesWithUris",
+                             description = "The maximum number of results to be returned",
+                             required = false,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[Int], defaultValue = "3")
+                           )
+                           showOnlyEntitiesWithUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val ruleSchema = ruleSchemaById(task, ruleId)
+
+    // Create execution task
+    val evaluateTransform = new EvaluateTransformTask(
+        source = task.dataSource,
+        entitySchema = ruleSchema.inputSchema,
+        rules = ruleSchema.transformRule.rules,
+        maxEntities = limit
+      )
+    val entities = evaluateTransform.execute()
+    val jsonEntities = entities.map(DetailedEntityJsonFormat.write)
+    val rules: Seq[JsValue] = ruleSchema.transformRule.rules.allRules
+      .map(r => {
+        val rule = r match {
+          case om: ObjectMapping =>
+            val uriRule = om.rules.uriRule.orElse(om.uriRule()).map(_.asComplexMapping)
+            // Return only the URI rule as complex rule for the object mapping
+            om.copy(rules = om.rules.copy(
+              uriRule = None,
+              typeRules = Seq.empty,
+              propertyRules = uriRule.toSeq)
+            )
+          case vr: ValueTransformRule => vr.asComplexMapping
+          case or: TransformRule => or
+        }
+        TransformRuleJsonFormat.write(rule)
+      })
+
+    Ok(Json.obj(
+      "rules" -> rules,
+      "evaluatedEntities" -> JsArray(jsonEntities),
+    ))
+  }
+
+  private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String): TransformSpec.RuleSchemata = {
+    task.data.ruleSchemataWithoutEmptyObjectRules
+      .find(_.transformRule.id == ruleId)
+      .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is either an empty object rule, i.e. it has at most a URI rule,  or is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
+        s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
+  }
+
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
                           (implicit userContext: UserContext): Traversable[Value] = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
 
-    val ruleSchema = task.data.ruleSchemataWithoutEmptyObjectRules
-      .find(_.transformRule.id == parentRuleId)
-      .getOrElse(throw new NotFoundException(s"Mapping rule '$parentRuleId' is either an empty object rule or is not part of task '${task.id}' in project '${task.project.id}'. " +
-        s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
+    val ruleSchema = ruleSchemaById(task, parentRuleId)
 
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
 

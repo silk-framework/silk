@@ -67,4 +67,6 @@ object EvaluateTransformApiDoc {
      ]
     """
 
+  final val evaluateRuleResponseExampleTODO =
+    """[]"""
 }
