@@ -21,7 +21,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsNull, JsValue, Json}
+import play.api.libs.json.{JsArray, JsNull, JsObject, JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
@@ -115,7 +115,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject(EvaluateTransformApiDoc.evaluateRuleResponseExampleTODO))
+            examples = Array(new ExampleObject(EvaluateTransformApiDoc.evaluatedRuleResponseExample))
           )
         )
       ),
@@ -154,15 +154,15 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
                              description = "The maximum number of results to be returned",
                              required = false,
                              in = ParameterIn.PATH,
-                             schema = new Schema(implementation = classOf[Int], defaultValue = "3")
+                             schema = new Schema(implementation = classOf[Int], defaultValue = "50")
                            )
                            limit: Int,
                            @Parameter(
                              name = "showOnlyEntitiesWithUris",
-                             description = "The maximum number of results to be returned",
+                             description = "If true, only entities are returned that generated a valid entity URI.",
                              required = false,
                              in = ParameterIn.PATH,
-                             schema = new Schema(implementation = classOf[Int], defaultValue = "3")
+                             schema = new Schema(implementation = classOf[Int], defaultValue = "false")
                            )
                            showOnlyEntitiesWithUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -181,8 +181,20 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         maxEntities = limit
       )
     val entities = evaluateTransform.execute()
-    val jsonEntities = entities.map(DetailedEntityJsonFormat.write)
-    val rules: Seq[JsValue] = ruleSchema.transformRule.rules.allRules
+    // FIXME: This only filters the limit# entities. Unclear how to do this in a performant way to fetch entities until the limit is met.
+    val filteredEntities = if(showOnlyEntitiesWithUris) entities.filter(_.uris.nonEmpty) else entities
+    val jsonEntities = filteredEntities.map(DetailedEntityJsonFormat.write)
+    val rules: Seq[JsValue] = evaluatedRulesJson(ruleSchema)
+
+    Ok(Json.obj(
+      "rules" -> rules,
+      "evaluatedEntities" -> JsArray(jsonEntities),
+    ))
+  }
+
+  private def evaluatedRulesJson(ruleSchema: TransformSpec.RuleSchemata)
+                                (implicit writeContext: WriteContext[JsValue]): Seq[JsValue] = {
+    ruleSchema.transformRule.rules.allRules
       .map(r => {
         val rule = r match {
           case om: ObjectMapping =>
@@ -198,16 +210,11 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
         }
         TransformRuleJsonFormat.write(rule)
       })
-
-    Ok(Json.obj(
-      "rules" -> rules,
-      "evaluatedEntities" -> JsArray(jsonEntities),
-    ))
   }
 
   private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String): TransformSpec.RuleSchemata = {
     task.data.ruleSchemataWithoutEmptyObjectRules
-      .find(_.transformRule.id == ruleId)
+      .find(_.transformRule.id.toString == ruleId)
       .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is either an empty object rule, i.e. it has at most a URI rule,  or is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
         s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
   }
