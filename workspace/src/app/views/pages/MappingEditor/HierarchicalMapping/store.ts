@@ -15,7 +15,7 @@ import {
 import EventEmitter from "./utils/EventEmitter";
 import React, { useState } from "react";
 import silkApi, { HttpResponsePromise } from "../api/silkRestApi";
-import {ITransformedSuggestion, SuggestionIssues} from "./containers/SuggestionNew/suggestion.typings";
+import { ITransformedSuggestion, SuggestionIssues } from "./containers/SuggestionNew/suggestion.typings";
 import {
     IPartialAutoCompleteResult,
     IValidationResult,
@@ -224,7 +224,7 @@ const prepareValueMappingPayload = (data: IProps) => {
 
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty ? handleCreatedSelectBoxValue(data, "sourceProperty") : "";
-        payload.type = MAPPING_RULE_TYPE_DIRECT
+        payload.type = MAPPING_RULE_TYPE_DIRECT;
     }
 
     if (!data.id) {
@@ -466,20 +466,22 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps, executeVocabularyM
         fetchValueSourcePaths(data),
         (vocabDatasetsResponse, sourcePaths) => {
             const suggestions: ITransformedSuggestion[] = [];
-            let suggestionIssues: SuggestionIssues | undefined = undefined
+            let suggestionIssues: SuggestionIssues | undefined = undefined;
             if (vocabDatasetsResponse.data) {
-                const {matches, issues} = vocabDatasetsResponse.data
-                suggestionIssues = issues
-                matches.map((match) => {
-                    const { uri: sourceUri, description, label, candidates, graph } = match;
-                    return suggestions.push({
-                        uri: sourceUri,
-                        candidates,
-                        description,
-                        label,
-                        graph,
+                const { matches, issues } = vocabDatasetsResponse.data;
+                suggestionIssues = issues;
+                if (matches) {
+                    matches.map((match) => {
+                        const { uri: sourceUri, description, label, candidates, graph } = match;
+                        return suggestions.push({
+                            uri: sourceUri,
+                            candidates,
+                            description,
+                            label,
+                            graph,
+                        });
                     });
-                });
+                }
             }
 
             if (data.matchFromDataset && sourcePaths.data) {
