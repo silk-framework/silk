@@ -3,7 +3,7 @@ package controllers.linking
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
-import controllers.linking.evaluation.LinkageRuleEvaluationResult
+import controllers.linking.evaluation.{LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
@@ -20,7 +20,7 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.evaluation.{ReferenceEntities, ReferenceLinks}
-import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
+import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
@@ -941,7 +941,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           new Content(
             mediaType = "application/json",
             schema = new Schema(`type` = "object"),
-            examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleResponseExample))
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateCurrentLinkageRuleExample))
           )
         )
       ),
@@ -1005,11 +1005,20 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         })
         Ok(Json.obj(
           "links" -> linkJson,
-          "linkRule" -> JsonSerialization.toJson(linkingRule)
+          "linkRule" -> JsonSerialization.toJson(linkingRule),
+          "stats" -> linkEvaluationStats(evaluationResult)
         ))
       case None =>
         throw NotFoundException("No evaluation results available.")
     }
+  }
+
+  private def linkEvaluationStats(evaluationResult: Linking): JsValue = {
+    Json.toJson(LinkRuleEvaluationStats(
+      evaluationResult.statistics.entityCount.source,
+      evaluationResult.statistics.entityCount.target,
+      evaluationResult.links.size
+    ))
   }
 
   private def searchStringFromLink(link: Link): String = {

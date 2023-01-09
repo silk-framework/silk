@@ -1,5 +1,7 @@
 package controllers.transform
 
+import controllers.linking.evaluation.LinkRuleEvaluationStats
+
 import java.time.Instant
 import controllers.util.SerializationUtils
 import helper.IntegrationTestTrait
@@ -107,6 +109,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     val jsonBody: JsValue = linkEvaluationResult()
     (jsonBody \ "links").as[JsArray].value must have size 2
     (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
+    (jsonBody \ "stats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
   }
 
   "Return evaluated links for the current linking rule matching the search query" in {

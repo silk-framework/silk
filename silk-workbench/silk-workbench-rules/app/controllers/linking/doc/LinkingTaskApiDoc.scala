@@ -160,4 +160,62 @@ object LinkingTaskApiDoc {
       ]
     """
 
+  final val evaluateCurrentLinkageRuleExample =
+    """
+{
+    "linkRule": {
+        "operator": {
+            "id": "equality",
+            "type": "Comparison",
+            "weight": 1,
+            "threshold": 0,
+            "indexing": true,
+            "metric": "equality",
+            "parameters": {},
+            "sourceInput": {
+                "type": "pathInput",
+                "id": "sourcePathInput_2",
+                "path": "foaf:name"
+            },
+            "targetInput": {
+                "type": "pathInput",
+                "id": "targetPathInput",
+                "path": "rdfs:label"
+            }
+        }
+    },
+    "stats": {
+        "nrSourceEntities": 195,
+        "nrTargetEntities": 174,
+        "nrLinks": 124
+    },
+    "links": [
+        {
+            "source": "http://dbpedia.org/resource/The_Score_%28film%29",
+            "target": "http://data.linkedmdb.org/resource/film/746",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "equality",
+                "score": 1,
+                "sourceValue": {
+                    "operatorId": "sourcePathInput_2",
+                    "values": [
+                        "The Score"
+                    ],
+                    "error": null
+                },
+                "targetValue": {
+                    "operatorId": "targetPathInput",
+                    "values": [
+                        "The Score"
+                    ],
+                    "error": null
+                }
+            },
+            "decision": "unlabeled"
+        }
+        ...
+    ]
+}
+      """
 }
