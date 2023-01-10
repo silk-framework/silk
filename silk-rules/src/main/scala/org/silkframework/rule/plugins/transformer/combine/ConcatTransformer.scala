@@ -90,36 +90,7 @@ case class ConcatTransformer(
   missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
 
   // glue with escaped char sequences (\\, \n, \t) converted to actual character.
-  lazy val parsedGlue: String = {
-    if(glue.contains("\\")) {
-      var lastCharEscapingBackSlash = false
-      val sb = new StringBuilder()
-      glue.foreach(c => {
-        if(lastCharEscapingBackSlash) {
-          c match {
-            case '\\' =>
-              sb.append('\\')
-            case 'n' =>
-              sb.append('\n')
-            case 't' =>
-              sb.append('\t')
-            case other: Char =>
-              sb.append('\\').append(other)
-          }
-          lastCharEscapingBackSlash = false
-        } else {
-          if(c == '\\') {
-            lastCharEscapingBackSlash = true
-          } else {
-            sb.append(c)
-          }
-        }
-      })
-      sb.toString()
-    } else {
-      glue
-    }
-  }
+  lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
 
@@ -155,5 +126,39 @@ case class ConcatTransformer(
 
   private def evaluate(strings: Seq[String]) = {
     strings.mkString(parsedGlue)
+  }
+}
+
+object ConcatTransformer {
+  /** Converts escape sequences into their actual character. Supports: "\\", "\n" nad "\t" */
+  def parseGlue(glue: String): String = {
+    if(glue.contains("\\")) {
+      var lastCharEscapingBackSlash = false
+      val sb = new StringBuilder()
+      glue.foreach(c => {
+        if(lastCharEscapingBackSlash) {
+          c match {
+            case '\\' =>
+              sb.append('\\')
+            case 'n' =>
+              sb.append('\n')
+            case 't' =>
+              sb.append('\t')
+            case other: Char =>
+              sb.append('\\').append(other)
+          }
+          lastCharEscapingBackSlash = false
+        } else {
+          if(c == '\\') {
+            lastCharEscapingBackSlash = true
+          } else {
+            sb.append(c)
+          }
+        }
+      })
+      sb.toString()
+    } else {
+      glue
+    }
   }
 }
