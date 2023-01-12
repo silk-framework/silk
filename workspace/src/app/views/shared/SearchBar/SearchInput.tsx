@@ -12,6 +12,11 @@ export interface ISearchInputProps {
     emptySearchInputMessage?: string;
     // Gives the search input the focus if true
     focusOnCreation?: boolean;
+    /**
+     * If set, the function is called if any invisible, hard to spot characters in the string value are detected.
+     */
+    invisibleCharacterWarningCallback?: (detectedCodePoints: Set<number>) => any;
+    leftElement?: JSX.Element;
 }
 
 const SearchInput = ({
@@ -46,5 +51,6 @@ const SearchInput = ({
     );
 };
 
-const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => (p.filterValue === n.filterValue) && (p.emptySearchInputMessage === n.emptySearchInputMessage);
+const areEqual = (p: ISearchInputProps, n: ISearchInputProps) =>
+    p.filterValue === n.filterValue && p.emptySearchInputMessage === n.emptySearchInputMessage;
 export default memo<ISearchInputProps>(SearchInput, areEqual);
