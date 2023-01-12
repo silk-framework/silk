@@ -1,28 +1,31 @@
 import { useTranslation } from "react-i18next";
-import React from "react";
+import React, { useState } from "react";
 import { Button, IconButton, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import chars from "@eccenca/gui-elements/src/common/utils/characters";
+import { InvisibleCharacterWarningProps } from "@eccenca/gui-elements/src/components/TextField/useTextValidation";
 
 interface Props {
-    inputString: string;
+    /** The code points of the invisible characters that were detected. */
     detectedCodePoints: Set<number>;
+    /** The string that was input into the input field.*/
+    inputString: string;
+    /** Optional title for the clean up modal. */
     title?: string;
+    /** Callback for the cleaned string if the 'Clean text' action was triggered. */
     setString: (cleanedString: string) => any;
+    /** Function to call when the modal should be cloesd. */
     onClose: () => any;
-    /** Function that should be called after the clear action has been executed. */
-    onClear: () => any;
-    /** If the modal should be closed after executing the clear operation. */
+    /** If the modal should be closed after executing the clear operation. Default: true */
     closeAfterClear?: boolean;
 }
 
 /** Modal that offers the user to clean up the given input string. Use the hook instead of the component directly. */
 export const InvisibleCharacterCleanUpModal = ({
     inputString,
-    detectedCodePoints,
     title,
     setString,
     onClose,
-    onClear,
+    detectedCodePoints,
     closeAfterClear = true,
 }: Props) => {
     const [t] = useTranslation();
@@ -31,7 +34,6 @@ export const InvisibleCharacterCleanUpModal = ({
     const detectedChars = [...detectedCodePoints].map((cp) => charMap.get(cp)).filter((cp) => cp != null);
     const onClean = () => {
         setString(chars.invisibleZeroWidthCharacters.clearString(inputString));
-        onClear();
         if (closeAfterClear) {
             onClose();
         }
@@ -67,19 +69,36 @@ export const InvisibleCharacterCleanUpModal = ({
     );
 };
 
+interface HookProps extends Omit<Props, "onClose" | "detectedCodePoints"> {
+    /** The delay before an input value is checked for invisible characters. Only the most recent value will be checked. */
+    callbackDelay?: number;
+}
+
 export const useInvisibleCharacterCleanUpModal = ({
     inputString,
-    detectedCodePoints,
     title,
-    onClear,
     setString,
-}: Omit<Props, "onClose">): HookResult => {
+    callbackDelay,
+}: HookProps): HookResult => {
     const [isOpen, setIsOpen] = React.useState(false);
+    const [detectedCodePoints, setDetectedCodePoints] = useState<Set<number>>(new Set());
     const [t] = useTranslation();
+
+    const invisibleCharacterWarningCallback = React.useCallback((detectedCodePoints: Set<number>) => {
+        setDetectedCodePoints((old) => (old.size === 0 && detectedCodePoints.size === 0 ? old : detectedCodePoints));
+    }, []);
+
+    const invisibleCharacterWarning: InvisibleCharacterWarningProps = React.useMemo(() => {
+        return {
+            callback: invisibleCharacterWarningCallback,
+            callbackDelay,
+        };
+    }, [invisibleCharacterWarningCallback, callbackDelay]);
 
     const openModal = React.useCallback(() => setIsOpen(true), []);
 
     return {
+        invisibleCharacterWarning,
         openModal,
         modalElement:
             isOpen && detectedCodePoints.size ? (
@@ -88,7 +107,6 @@ export const useInvisibleCharacterCleanUpModal = ({
                     inputString={inputString}
                     detectedCodePoints={detectedCodePoints}
                     setString={setString}
-                    onClear={onClear}
                     onClose={() => setIsOpen(false)}
                 />
             ) : null,
@@ -110,4 +128,6 @@ interface HookResult {
     iconButton?: JSX.Element;
     /** The modal that should be displayed. */
     modalElement: JSX.Element | null;
+    /** The object that should be forwarded to the input element. */
+    invisibleCharacterWarning?: InvisibleCharacterWarningProps;
 }

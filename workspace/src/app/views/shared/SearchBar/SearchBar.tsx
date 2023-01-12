@@ -35,7 +35,6 @@ export function SearchBar({
     ...otherProps
 }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
-    const [detectedCodePoints, setDetectedCodePoints] = useState<Set<number>>(new Set());
     const [t] = useTranslation();
 
     useEffect(() => {
@@ -48,7 +47,6 @@ export function SearchBar({
 
     const handleSearchChange = (e) => {
         const value = e.target.value;
-        setDetectedCodePoints(new Set());
         // when input is empty then apply filter
         if (value === "" && searchInput) {
             setSearchInput("");
@@ -59,7 +57,6 @@ export function SearchBar({
     };
 
     const onClearanceHandler = () => {
-        setDetectedCodePoints(new Set());
         setSearchInput("");
         onSearch("");
     };
@@ -68,17 +65,10 @@ export function SearchBar({
         onSearch(searchInput);
     };
 
-    const invisibleCharacterWarningCallback = React.useCallback((detectedCodePoints: Set<number>) => {
-        setDetectedCodePoints(detectedCodePoints);
-    }, []);
-
-    const onClear = React.useCallback(() => setDetectedCodePoints(new Set()), []);
-
-    const { iconButton, modalElement } = useInvisibleCharacterCleanUpModal({
+    const { iconButton, modalElement, invisibleCharacterWarning } = useInvisibleCharacterCleanUpModal({
         inputString: searchInput,
         setString: setSearchInput,
-        detectedCodePoints,
-        onClear,
+        callbackDelay: 200,
     });
 
     return (
@@ -94,7 +84,7 @@ export function SearchBar({
                     filterValue={searchInput}
                     onClearanceHandler={onClearanceHandler}
                     emptySearchInputMessage={emptySearchMessage}
-                    invisibleCharacterWarningCallback={invisibleCharacterWarningCallback}
+                    invisibleCharacterWarning={invisibleCharacterWarning}
                     {...otherProps}
                 />
             </ToolbarSection>
