@@ -97,8 +97,11 @@ export const useInvisibleCharacterCleanUpModal = ({
 
     const openModal = React.useCallback(() => setIsOpen(true), []);
 
+    const resetCleanUpModalComponent = React.useCallback(() => setDetectedCodePoints(new Set()), []);
+
     return {
         invisibleCharacterWarning,
+        resetCleanUpModalComponent,
         openModal,
         modalElement:
             isOpen && detectedCodePoints.size ? (
@@ -130,4 +133,6 @@ interface HookResult {
     modalElement: JSX.Element | null;
     /** The object that should be forwarded to the input element. */
     invisibleCharacterWarning?: InvisibleCharacterWarningProps;
+    /** Allows to reset this component, i.e. resetting the detected characters. */
+    resetCleanUpModalComponent: () => any;
 }

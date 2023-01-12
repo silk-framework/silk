@@ -70,10 +70,15 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
             isOpen={isOpen}
             title="Value formula editor"
             size="fullscreen"
-            canEscapeKeyClose={unsavedChanges}
+            preventSimpleClosing={unsavedChanges}
             onClose={onClose}
             headerOptions={
-                <IconButton name="navigation-close" text={t("common.action.close")} onClick={closeEditorModal} data-test-id="transform-mapping-editor-close-btn" />
+                <IconButton
+                    name="navigation-close"
+                    text={t("common.action.close")}
+                    onClick={closeEditorModal}
+                    data-test-id="transform-mapping-editor-close-btn"
+                />
             }
         >
             <>

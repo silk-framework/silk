@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
+import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 
 interface IProps {
     projectId: string;
@@ -175,6 +176,6 @@ export function InputMapper({
         case INPUT_TYPES.OPTION_INT:
         case INPUT_TYPES.STRING:
         default:
-            return <TextField {...inputAttributes} />;
+            return <TextFieldWithCharacterWarnings {...inputAttributes} />;
     }
 }
