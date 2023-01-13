@@ -76,6 +76,8 @@ interface HookProps extends Omit<Props, "onClose" | "detectedCodePoints"> {
     callbackDelay?: number;
 }
 
+/** Creates the invisibleCharacterWarning object for the input components, e.g. TextField, the warning (action) icon and clean up modal.
+ * Also handles the clean up modal logic. */
 export const useInvisibleCharacterCleanUpModal = ({
     inputString,
     title,
@@ -104,7 +106,6 @@ export const useInvisibleCharacterCleanUpModal = ({
     return {
         invisibleCharacterWarning,
         resetCleanUpModalComponent,
-        openModal,
         modalElement:
             isOpen && detectedCodePoints.size ? (
                 <InvisibleCharacterCleanUpModal
@@ -128,8 +129,6 @@ export const useInvisibleCharacterCleanUpModal = ({
 };
 
 interface HookResult {
-    /** If defined, there were characters found that can be cleaned via the modal. */
-    openModal?: () => any;
     /** Standard IconButton element that can be clicked to open the modal. */
     iconButton?: JSX.Element;
     /** The modal that should be displayed. */
