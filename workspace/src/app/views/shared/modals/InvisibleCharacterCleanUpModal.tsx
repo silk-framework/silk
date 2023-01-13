@@ -41,12 +41,14 @@ export const InvisibleCharacterCleanUpModal = ({
 
     return (
         <SimpleDialog
+            data-test-id={"invisible-character-cleanup-modal"}
             title={title ?? t("InvisibleCharacterHandling.modal.title")}
             onClose={onClose}
             isOpen={true}
             actions={[
                 <Button
                     key="clean"
+                    data-test-id={"clean-invisible-characters"}
                     disruptive
                     onClick={onClean}
                     tooltip={t("InvisibleCharacterHandling.modal.cleanActionTooltip")}
@@ -115,6 +117,7 @@ export const useInvisibleCharacterCleanUpModal = ({
             ) : null,
         iconButton: detectedCodePoints.size ? (
             <IconButton
+                data-test-id={"invisible-character-warning"}
                 hasStateWarning={true}
                 onClick={openModal}
                 name={"state-warning"}
