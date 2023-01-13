@@ -1,6 +1,6 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
+import { CodeEditor, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,7 @@ import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/Art
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 import { IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
+import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -76,27 +77,14 @@ export const RuleParameterInput = ({
             if (large) {
                 // FIXME: CodeEditor looks buggy in the modal
                 // return <CodeEditor {...inputAttributes} />;
-                return (
-                    <TextArea
-                        {...inputAttributes}
-                        fill={true}
-                        large={true}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                            onChange(e.target.value);
-                        }}
-                        rows={10}
-                    />
-                );
+                return <TextAreaWithCharacterWarnings {...inputAttributes} fill={true} large={true} rows={10} />;
             } else {
                 return (
-                    <TextArea
+                    <TextAreaWithCharacterWarnings
                         {...inputAttributes}
                         fill={false}
                         small={true}
                         growVertically={false}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                            onChange(e.target.value);
-                        }}
                         rows={2}
                         {...preventEventsFromBubblingToReactFlow}
                     />
