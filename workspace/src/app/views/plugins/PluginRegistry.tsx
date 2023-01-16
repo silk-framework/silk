@@ -98,7 +98,7 @@ class PluginRegistry {
     }
 
     /** Fetches an arbitrary plugin. The type parameter is just for documentation and type checking on the caller-side. */
-    public pluginComponent<I = never>(pluginId: string): I {
+    public pluginComponent<I = never>(pluginId: string): I | undefined {
         return this.pluginComponents.get(pluginId);
     }
 }
@@ -111,6 +111,7 @@ export const SUPPORTED_PLUGINS = {
     DI_USER_MENU_FOOTER: "di:userMenuFooter",
     DI_LANGUAGE_SWITCHER: "di:languageSwitcher",
     DI_BRANDING: "di:branding",
+    DI_PARAMETER_EXTENSIONS: "di:parameterExtensions"
 };
 
 registerCorePlugins();
