@@ -14,25 +14,24 @@ export const useSearch = (onSearch: (query: string) => void, delay = 500): Searc
     const [query, setQuery] = React.useState<string>("");
     const [isSearching, setIsSearching] = React.useState<boolean>(false);
 
-    const debouncedSearchFunction = debounce(onSearch, delay);
-
-    React.useEffect(() => {
-        let shouldCancel = false;
-
-        async function fetchResults() {
+    const debouncedSearch = React.useCallback(
+        debounce(async (query) => {
             setIsSearching(true);
             try {
-                if (!shouldCancel) {
-                    await debouncedSearchFunction(query);
-                }
+                await onSearch(query);
             } catch (err) {
             } finally {
                 setIsSearching(false);
             }
-        }
+        }, delay),
+        []
+    );
 
-        if (query) {
-            fetchResults();
+    React.useEffect(() => {
+        let shouldCancel = false;
+
+        if (!shouldCancel && query) {
+            debouncedSearch(query);
         }
 
         return () => {
