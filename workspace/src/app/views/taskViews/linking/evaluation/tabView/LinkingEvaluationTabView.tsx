@@ -44,7 +44,7 @@ import {
     getParentNodes,
     updateReferenceLink,
 } from "./LinkingEvaluationViewUtils";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, NodePath, ReferenceLinkType } from "./typings";
+import { EvaluationLinkInputValue, LinkingEvaluationResult, LinkStats, NodePath, ReferenceLinkType } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
@@ -56,6 +56,8 @@ import { tagColor } from "../../../../../views/shared/RuleEditor/view/sidebar/Ru
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { debounce } from "lodash";
+import { workspaceSel } from "@ducks/workspace";
+import { useSelector } from "react-redux";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -75,8 +77,9 @@ const linkStateButtons = [
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
+    const commonSel = useSelector(workspaceSel.commonSelector);
     const [evaluationResults, setEvaluationResults] = React.useState<
-        { links: Array<LinkingEvaluationResult>; linkRule: ILinkingRule } | undefined
+        { links: Array<LinkingEvaluationResult>; linkRule: ILinkingRule; stats: LinkStats } | undefined
     >();
     const [pagination, setPagination] = React.useState<{ current: number; total: number; limit: number }>({
         current: 1,
@@ -111,9 +114,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         })();
     }, []);
 
-    //initial loads of links
-    React.useEffect(() => {
-        debounce(async () => {
+    const debouncedInit = React.useCallback(
+        debounce(async (pagination, searchQuery, taskEvaluationStatus) => {
             try {
                 setLoading(true);
                 if (taskEvaluationStatus === "Finished") {
@@ -135,7 +137,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             } finally {
                 setLoading(false);
             }
-        }, 500)();
+        }, 500),
+        []
+    );
+
+    //initial loads of links
+    React.useEffect(() => {
+        let shouldCancel = false;
+
+        if (!shouldCancel) {
+            debouncedInit(pagination, searchQuery, taskEvaluationStatus);
+        }
+        return () => {
+            shouldCancel = true;
+        };
     }, [pagination, taskEvaluationStatus, searchQuery, updateCounter]);
 
     const handleAlwaysExpandSwitch = React.useCallback(
@@ -500,6 +515,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         },
         []
     );
+    const { nrSourceEntities, nrTargetEntities, nrLinks } = evaluationResults?.stats ?? {
+        nrSourceEntities: 0,
+        nrTargetEntities: 0,
+        nrLinks: 0,
+    };
 
     return (
         <Grid
@@ -539,7 +559,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             <p>Sources/Targets/Links</p>
                                         </OverviewItemLine>
                                         <OverviewItemLine>
-                                            <p>14,234/13,222/5,674</p>
+                                            <p>
+                                                {nrSourceEntities.toLocaleString(commonSel.locale)}/
+                                                {nrTargetEntities.toLocaleString(commonSel.locale)}/
+                                                {nrLinks.toLocaleString(commonSel.locale)}
+                                            </p>
                                         </OverviewItemLine>
                                     </OverviewItemDescription>
                                     <OverviewItemActions>
@@ -814,7 +838,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     <Spacing size="tiny" />
                                                                     <GridRow>
                                                                         <Tree
-                                                                            contents={[nodes[i]]}
+                                                                            contents={[nodes[i] ?? []]}
                                                                             onNodeCollapse={(
                                                                                 _node: TreeNodeInfo,
                                                                                 nodePath: NodePath

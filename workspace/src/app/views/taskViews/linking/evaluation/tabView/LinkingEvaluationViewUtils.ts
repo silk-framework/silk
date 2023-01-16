@@ -1,7 +1,7 @@
 import fetch from "../../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../../../services/fetch/responseInterceptor";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, ReferenceLinkType } from "./typings";
+import { EvaluationLinkInputValue, LinkingEvaluationResult, LinkStats, ReferenceLinkType } from "./typings";
 import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
@@ -13,7 +13,7 @@ export const getReferenceLinks = async (
     taskId: string,
     pagination: { current: number; total: number; limit: number },
     query?: string
-): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule }> | undefined> =>
+): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule; stats: LinkStats }> | undefined> =>
     fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate`),
         query: { query, page: pagination.current, limit: pagination.limit },

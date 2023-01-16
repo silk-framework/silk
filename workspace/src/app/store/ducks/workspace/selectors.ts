@@ -59,6 +59,7 @@ const workspaceSelectors = {
     filesListSelector,
     isEmptyPageSelector,
     widgetsSelector,
+    commonSelector,
 };
 
 export default workspaceSelectors;

@@ -24,6 +24,12 @@ export interface LinkingEvaluationResult {
     };
 }
 
+export interface LinkStats {
+    nrLinks: number;
+    nrSourceEntities: number;
+    nrTargetEntities: number;
+}
+
 export interface EvaluationLinkInputValue<T = string[]> {
     source: Record<string, T>;
     target: Record<string, T>;
