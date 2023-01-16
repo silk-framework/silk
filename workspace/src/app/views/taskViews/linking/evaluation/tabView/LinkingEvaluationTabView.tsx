@@ -31,6 +31,7 @@ import {
     ConfidenceValue,
     Notification,
     TableExpandHeader,
+    Spinner,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -82,6 +83,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         total: 25,
         limit: 10,
     });
+    const [loading, setLoading] = React.useState<boolean>(false);
     const [showInputValues, setShowInputValues] = React.useState<boolean>(true);
     const [showOperators, setShowOperators] = React.useState<boolean>(true);
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
@@ -112,16 +114,26 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     //initial loads of links
     React.useEffect(() => {
         debounce(async () => {
-            if (taskEvaluationStatus === "Finished") {
-                const results = (await getReferenceLinks(projectId, linkingTaskId, pagination, searchQuery))?.data;
-                setEvaluationResults(results);
-                setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
-                setInputValuesExpansion(
-                    () => new Map(results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }]))
-                );
-                setOperatorsExpansion(
-                    () => new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
-                );
+            try {
+                setLoading(true);
+                if (taskEvaluationStatus === "Finished") {
+                    const results = (await getReferenceLinks(projectId, linkingTaskId, pagination, searchQuery))?.data;
+                    setEvaluationResults(results);
+                    setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
+                    setInputValuesExpansion(
+                        () =>
+                            new Map(
+                                results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }])
+                            )
+                    );
+                    setOperatorsExpansion(
+                        () =>
+                            new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
+                    );
+                }
+            } catch (err) {
+            } finally {
+                setLoading(false);
             }
         }, 500)();
     }, [pagination, taskEvaluationStatus, searchQuery, updateCounter]);
@@ -624,6 +636,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             {rows.map((row, i) => {
                                                 const currentInputValue = inputValues[i];
                                                 const currentLink = evaluationResults?.links[i]!;
+                                                const inputTableIsExpanded = inputValuesExpansion.get(i)?.expanded;
                                                 return (
                                                     <>
                                                         {currentLink && (
@@ -673,7 +686,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 </TableCell>
                                                             </TableExpandRow>
                                                         )}
-
                                                         {!!currentInputValue && (
                                                             <TableExpandedRow
                                                                 colSpan={headers.length + 3}
@@ -707,6 +719,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                         : "toggler-showmore"
                                                                                 }
                                                                             />
+                                                                            <Spacing vertical size="tiny" />
+                                                                            {!inputTableIsExpanded ? (
+                                                                                <span className="">
+                                                                                    Input values collapsed
+                                                                                </span>
+                                                                            ) : null}
                                                                         </span>
                                                                         <GridColumn medium>
                                                                             <ComparisonDataContainer>
@@ -716,11 +734,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                     <ComparisonDataCell
                                                                                         fullWidth
                                                                                         className={
-                                                                                            (!inputValuesExpansion.get(
-                                                                                                i
-                                                                                            )?.expanded &&
-                                                                                                "shrink") ||
-                                                                                            ""
+                                                                                            !inputTableIsExpanded
+                                                                                                ? "shrink"
+                                                                                                : ""
                                                                                         }
                                                                                     >
                                                                                         <PropertyBox
@@ -760,11 +776,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                     <ComparisonDataCell
                                                                                         fullWidth
                                                                                         className={
-                                                                                            (!inputValuesExpansion.get(
-                                                                                                i
-                                                                                            )?.expanded &&
-                                                                                                "shrink") ||
-                                                                                            ""
+                                                                                            !inputTableIsExpanded
+                                                                                                ? "shrink"
+                                                                                                : ""
                                                                                         }
                                                                                     >
                                                                                         <PropertyBox
@@ -823,9 +837,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             )}
                         </DataTable>
                     ) : (
-                        <Notification data-test-id="empty-links-banner">
-                            {t("linkingEvaluationTabView.empty")}
-                        </Notification>
+                        (loading && <Spinner size="medium" />) || (
+                            <Notification data-test-id="empty-links-banner">
+                                {t("linkingEvaluationTabView.empty")}
+                            </Notification>
+                        )
                     )}
                 </GridColumn>
             </GridRow>
