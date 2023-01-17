@@ -10,14 +10,19 @@ interface SearchHandlerReturnType {
     onEnter: () => void;
 }
 
-export const useSearch = (onSearch: (query: string) => void, delay = 500): SearchHandlerReturnType => {
-    const [query, setQuery] = React.useState<string>("");
+export const useSearch = (onSearch: (query: string) => void, searchQuery, delay = 500): SearchHandlerReturnType => {
+    const [query, setQuery] = React.useState<string>(searchQuery);
     const [isSearching, setIsSearching] = React.useState<boolean>(false);
+
+    React.useEffect(() => {
+        setQuery(searchQuery);
+    }, [searchQuery]);
 
     const debouncedSearch = React.useCallback(
         debounce(async (query) => {
             setIsSearching(true);
             try {
+                console.log("IS THIS THE INSTIGATOR!!");
                 await onSearch(query);
             } catch (err) {
             } finally {
@@ -41,12 +46,8 @@ export const useSearch = (onSearch: (query: string) => void, delay = 500): Searc
 
     const onChange = React.useCallback((e) => {
         const inputValue = e.target.value;
-        if (inputValue.length) {
-            setQuery(inputValue);
-        } else {
-            setQuery("");
-            onSearch("");
-        }
+        setQuery(inputValue);
+        !inputValue.length && debouncedSearch("");
     }, []);
 
     const onClear = React.useCallback(() => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import SearchInput, { ISearchInputProps } from "./SearchInput";
@@ -36,7 +36,7 @@ export function SearchBar({
         ? otherProps.emptySearchInputMessage
         : t("form.field.searchField", "Enter search term");
 
-    const { query, onChange, onEnter, onClear } = useSearch(onSearch);
+    const { query, onChange, onEnter, onClear } = useSearch(onSearch, textQuery);
 
     return (
         <Toolbar>
@@ -46,7 +46,7 @@ export function SearchBar({
                     focusOnCreation={focusOnCreation}
                     onFilterChange={onChange}
                     onEnter={onEnter}
-                    filterValue={query || textQuery}
+                    filterValue={query}
                     onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
                     {...otherProps}
