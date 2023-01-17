@@ -10,8 +10,9 @@ import {
     Keywords,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
-import {legacyApiEndpoint, projectApi, workspaceApi} from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -324,13 +325,27 @@ export const requestProjectTags = async (projectId: string): Promise<FetchRespon
 export const importExampleProjectRequest = async (): Promise<FetchResponse<void>> => {
     return fetch({
         url: legacyApiEndpoint("movies/importExample"),
-        method: "POST"
-    })
-}
+        method: "POST",
+    });
+};
 
 /** Fetch the project URI of a project. */
-export const requestProjectUri = async (projectId: string): Promise<FetchResponse<{uri: string}>> => {
+export const requestProjectUri = async (projectId: string): Promise<FetchResponse<{ uri: string }>> => {
     return fetch({
-        url: projectApi(`${projectId}/uri`)
-    })
-}
+        url: projectApi(`${projectId}/uri`),
+    });
+};
+
+/** Searches for properties in the global vocabulary cache. */
+export const requestSearchForGlobalVocabularyProperties = async (
+    textQuery: string,
+    limit: number
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: workspaceApi("vocabularies/property/search"),
+        query: {
+            textQuery,
+            limit,
+        },
+    });
+};

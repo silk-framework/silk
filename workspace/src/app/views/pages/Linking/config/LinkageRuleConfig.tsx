@@ -20,6 +20,9 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { fetchLinkSpec, updateLinkageRule } from "../../../taskViews/linking/LinkingRuleEditor.requests";
 import { ILinkingRule, LabelledParameterValue } from "../../../taskViews/linking/linking.types";
 import { invalidUriChars } from "../../Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { requestSearchForGlobalVocabularyProperties } from "@ducks/workspace/requests";
+import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 
 interface IProps {
     linkingTaskId: string;
@@ -41,6 +44,8 @@ export interface LinkageRuleConfigItem {
     validation: (value: string) => true | string;
     /** placeholder for empty values. */
     placeholder?: string;
+    /** Auto-complete search function. The parameter will be rendered as auto-complete field. */
+    onSearch?: (textQuery: string, limit: number) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>;
 }
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
@@ -96,6 +101,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                         }
                         return true;
                     },
+                    onSearch: requestSearchForGlobalVocabularyProperties,
                 },
                 {
                     id: "limit",

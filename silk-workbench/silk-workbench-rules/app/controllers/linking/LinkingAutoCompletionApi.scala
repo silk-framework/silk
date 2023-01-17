@@ -1,11 +1,13 @@
 package controllers.linking
 
+import controllers.autoCompletion
+import controllers.autoCompletion.Completions
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.shared.autoCompletion.AutoCompletionApiUtils
 import controllers.transform.AutoCompletionApi
-import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionResponse, Completions, OpFilter, PartialSourcePathAutoCompletionRequest, PartialSourcePathAutocompletionHelper}
+import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionResponse, OpFilter, PartialSourcePathAutoCompletionRequest, PartialSourcePathAutocompletionHelper}
 import controllers.transform.doc.AutoCompletionApiDoc
 import controllers.transform.transformTask.TransformUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -216,7 +218,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
     )
     val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath = false)
     // Add known paths
-    val completions = Completions(relativePaths ++ dataSourceSpecialPathCompletions)
+    val completions = autoCompletion.Completions(relativePaths ++ dataSourceSpecialPathCompletions)
     // Return filtered result
     val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
     val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
