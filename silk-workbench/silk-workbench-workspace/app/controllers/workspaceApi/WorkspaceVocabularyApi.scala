@@ -52,6 +52,7 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "An array of properties that match the text query.",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(WorkspaceApiDoc.globalVocabularyFindPropertyExample))
