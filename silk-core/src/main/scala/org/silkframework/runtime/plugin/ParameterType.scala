@@ -180,7 +180,8 @@ object StringParameterType {
     */
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
-      WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
+      WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
+      SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
   }
 
@@ -563,6 +564,14 @@ object StringParameterType {
     override def name: String = "multiline string"
 
     override def fromString(str: String)(implicit context: PluginContext): MultilineStringParameter = MultilineStringParameter(str)
+  }
+
+  object GraphUriParameterType extends StringParameterType[GraphUriParameter] {
+    override def name: String = "graph uri"
+
+    override def description: String = "A graph URI."
+
+    override def fromString(str: String)(implicit context: PluginContext): GraphUriParameter = GraphUriParameter(str)
   }
 
   object PasswordParameterType extends StringParameterType[PasswordParameter] {

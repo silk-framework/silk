@@ -1,6 +1,6 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React from "react";
-import { AutoCompleteField } from "@eccenca/gui-elements";
+import { AutoCompleteField, Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,8 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 
 interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -167,4 +169,36 @@ const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
     } else {
         return label;
     }
+};
+
+/** An item renderer for the auto-completion component that will render the label (if available) and value.
+ * If the label and value are the same except for case then only the value is displayed. */
+export const labelAndOrValueItemRenderer = (autoCompleteResponse: IAutocompleteDefaultResponse,
+                                            query: string,
+                                            modifiers: IRenderModifiers,
+                                            handleSelectClick: () => any): JSX.Element | string => {
+    const labelValueKindOfSame = (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase()
+    const showLabel = autoCompleteResponse.label && !labelValueKindOfSame
+    return <OverviewItem
+        key={autoCompleteResponse.value}
+        onClick={handleSelectClick}
+        hasSpacing={true}
+        className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+    >
+        <OverviewItemDescription style={{maxWidth: "50vw"}}>
+            <OverviewItemLine>
+                <OverflowText inline={true} style={{width: "100vw"}}>
+                    <Highlighter label={showLabel ? autoCompleteResponse.label : autoCompleteResponse.value}
+                                 searchValue={query}/>
+                </OverflowText>
+            </OverviewItemLine>
+            {showLabel ?
+                <OverviewItemLine small={true}>
+                    <OverflowText inline={true} style={{width: "100vw"}}>
+                        <Highlighter label={autoCompleteResponse.value} searchValue={query}/>
+                    </OverflowText>
+                </OverviewItemLine> :
+                null}
+        </OverviewItemDescription>
+    </OverviewItem>
 };
