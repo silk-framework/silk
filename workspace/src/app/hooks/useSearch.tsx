@@ -22,7 +22,6 @@ export const useSearch = (onSearch: (query: string) => void, searchQuery, delay 
         debounce(async (query) => {
             setIsSearching(true);
             try {
-                console.log("IS THIS THE INSTIGATOR!!");
                 await onSearch(query);
             } catch (err) {
             } finally {
