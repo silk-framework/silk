@@ -339,13 +339,15 @@ export const requestProjectUri = async (projectId: string): Promise<FetchRespons
 /** Searches for properties in the global vocabulary cache. */
 export const requestSearchForGlobalVocabularyProperties = async (
     textQuery: string,
-    limit: number
+    limit: number,
+    projectId?: string
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: workspaceApi("vocabularies/property/search"),
         query: {
             textQuery,
             limit,
+            projectId,
         },
     });
 };

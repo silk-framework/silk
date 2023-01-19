@@ -101,7 +101,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                         }
                         return true;
                     },
-                    onSearch: requestSearchForGlobalVocabularyProperties,
+                    onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
                 },
                 {
                     id: "limit",

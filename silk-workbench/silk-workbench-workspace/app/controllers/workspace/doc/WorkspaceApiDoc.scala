@@ -133,7 +133,7 @@ object WorkspaceApiDoc {
           "description: "Description of property A"
         },
         {
-          "value": "http://domain.com/propertyUriOnly"
+          "value": "owl:sameAs"
         }
       ]
     """

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.vocab.VocabularyProperty
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.StringUtils
@@ -69,6 +70,14 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
                                           )
                                           textQuery: String,
                                           @Parameter(
+                                            name = "projectId",
+                                            description = "Optional project ID in order to prefix properties with project prefixes.",
+                                            required = false,
+                                            in = ParameterIn.QUERY,
+                                            schema = new Schema(implementation = classOf[String])
+                                          )
+                                          projectId: String,
+                                          @Parameter(
                                             name = "limit",
                                             description = "The max. number of results.",
                                             required = true,
@@ -77,15 +86,17 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
                                           )
                                           limit: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val cache = workspace.activity[GlobalVocabularyCache]
+    implicit val prefixes: Prefixes = if(projectId.nonEmpty) getProject(projectId).config.prefixes else Prefixes.default
+
     cache.value.get match {
       case Some(gvc) =>
         val matches = findProperties(gvc, textQuery, limit)
         val sorted = matches.sortBy(_.info.labelValue)
         val completions = sorted.map(p => {
           val label = p.info.labelValue
-          val uri = p.info.uri
+          val uri = prefixes.shorten(p.info.uri)
           CompletionBase(
-            value = p.info.uri,
+            value = uri,
             label = if(label != uri) Some(label) else None
           )
         })
@@ -97,13 +108,14 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
 
   private def findProperties(gvc: VocabularyCacheValue,
                              textQuery: String,
-                             limit: Int): Seq[VocabularyProperty] = {
+                             limit: Int)
+                            (implicit prefixes: Prefixes): Seq[VocabularyProperty] = {
     val results = ArrayBuffer[VocabularyProperty]()
     val searchWords = StringUtils.extractSearchTerms(textQuery).map(_.toLowerCase)
     for (vocabulary <- gvc.vocabularies;
          property <- vocabulary.properties) {
       val info = property.info
-      val searchContent = s"${info.uri} ${info.labelValue}"
+      val searchContent = s"${prefixes.shorten(info.uri)} ${info.labelValue}"
       if(StringUtils.matchesSearchTerm(searchWords, searchContent)) {
         results.append(property)
       }
