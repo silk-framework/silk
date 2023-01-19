@@ -4,7 +4,7 @@ import {
     HelperClasses,
     OverviewItem,
     OverviewItemActions,
-    OverviewItemDepiction,
+    Depiction,
     OverviewItemDescription,
     OverviewItemLine,
 } from "@eccenca/gui-elements";
@@ -18,7 +18,7 @@ function EmptyList({
     return (
         <Card isOnlyLayout className={HelperClasses.Intent.INFO}>
             <OverviewItem hasSpacing>
-                {depiction && <OverviewItemDepiction>{depiction}</OverviewItemDepiction>}
+                {depiction && <Depiction image={depiction} ratio="1:1" backgroundColor="dark" padding="medium" />}
                 <OverviewItemDescription>
                     {textInfo && <OverviewItemLine>{textInfo}</OverviewItemLine>}
                     {textCallout && <OverviewItemLine>{textCallout}</OverviewItemLine>}
