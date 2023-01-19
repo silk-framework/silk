@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
+import org.mozilla.universalchardet.UniversalDetector
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -11,7 +12,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
-import java.io.{BufferedReader, InputStreamReader}
+import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.net.{URI, URLEncoder}
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
@@ -30,8 +31,7 @@ class CsvSource(file: Resource,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
                 specificTypeName: Option[String] = None,    // if the csv file represents a specific type which is not or can not be written as the file name
-                // If the text file fails to be read because of a MalformedInputException, try other codecs
-                fallbackCodecs: List[Codec] = List(),
+                autoDetectCodec: Boolean =false,
                 maxLinesToDetectCodec: Option[Int] = None,
                 ignoreMalformedInputExceptionInPropertyList: Boolean = false)
     extends DataSource
@@ -335,34 +335,26 @@ class CsvSource(file: Resource,
   }
 
   lazy val codecToUse: Codec = {
-    if (fallbackCodecs.isEmpty) {
-      settings.codec
+    if (autoDetectCodec) {
+      detectWorkingCodec
     } else {
-      pickWorkingCodec
+      settings.codec
     }
   }
 
-  private def pickWorkingCodec: Codec = {
-    val tryCodecs = settings.codec :: fallbackCodecs
-    for (c <- tryCodecs) {
-      val reader = getBufferedReaderForCsvFile(c)
-      // Test read
-      try {
-        var line = reader.readLine()
-        var lineCount = 0
-        while (line != null && maxLinesToDetectCodec.forall(max => lineCount < max)) {
-          line = reader.readLine()
-          lineCount += 1
-        }
-        return c
-      } catch {
-        case e: MalformedInputException =>
-          logger.fine(s"Codec $c failed for input file ${file.name}")
-      } finally {
-        reader.close()
+  private def detectWorkingCodec: Codec = {
+    try {
+      val detectedCharset = UniversalDetector.detectCharset(file.inputStream)
+      if(Option(detectedCharset).nonEmpty) {
+        Codec.string2codec(detectedCharset)
+      } else {
+        settings.codec
       }
+    } catch {
+      case ex: IOException =>
+        logger.log(Level.WARNING, s"Could not detect encoding of CSV file '${file.name}'.", ex)
+        settings.codec
     }
-    settings.codec
   }
 
   override def retrieveTypes(limit: Option[Int] = None)
@@ -389,7 +381,7 @@ class CsvSource(file: Resource,
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
     val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter,
-      detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
+      detectSeparator = true, detectSkipLinesBeginning = true, autoDetectCodec = true, maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
     // Skip one more line if header was detected and property list set
