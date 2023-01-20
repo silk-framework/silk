@@ -37,17 +37,25 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
     input1 = Array("a", "b"),
     input2 = Array("1", "2"),
     output = Array("ab", "12")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "\\n\\t\\\\"),
+    input1 = Array("a\n\t\\b", "c"),
+    output = Array("a\n\t\\b\n\t\\c")
   )
 ))
 case class ConcatMultipleValuesTransformer(glue: String = "", removeDuplicates:Boolean = false) extends Transformer {
+  // glue with escaped char sequences (\\, \n, \t) converted to actual character.
+  lazy val parsedGlue: String = ConcatTransformer.parseGlue(glue)
+
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     for (strings <- values; if strings.nonEmpty) yield {
       if (removeDuplicates) {
         //glue, split, remove duplicates and glue again to remove more subtle duplicates.
         //e.g. "Albert", "Einstein", "Albert Einstein" -> "Albert Einstein" instead of "Albert Einstein Albert Einstein"
-        strings.reduce(_ + glue + _).split(Pattern.quote(glue)).reduce(_ + glue + _)
+        strings.reduce(_ + parsedGlue + _).split(Pattern.quote(parsedGlue)).reduce(_ + parsedGlue + _)
       } else {
-        strings.reduce(_ + glue + _)
+        strings.reduce(_ + parsedGlue + _)
       }
     }
   }

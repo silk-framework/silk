@@ -73,7 +73,7 @@ export const LinkRuleNodeEvaluation = ({
                                     style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
                                     <Tooltip
-                                        content={error ?? value.join(" | ")}
+                                        content={error ?? <pre>{value.join(" | ")}</pre>}
                                         placement="top"
                                         rootBoundary="viewport"
                                         targetTagName="div"
