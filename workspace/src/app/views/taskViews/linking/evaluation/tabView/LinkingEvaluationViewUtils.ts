@@ -7,17 +7,45 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@blueprintjs/core";
 
-//Get reference links
-export const getReferenceLinks = async (
+/**
+ * Get evaluated links.
+ * @param projectId  Project ID
+ * @param taskId     Linking Task ID
+ * @param pagination Pagination object
+ * @param query
+ * @param filters
+ * @param sortBy
+ */
+export const getEvaluatedLinks = async (
     projectId: string,
     taskId: string,
     pagination: { current: number; total: number; limit: number },
-    query?: string
+    query: string = "",
+    filters: LinkEvaluationFilters[] = [],
+    sortBy: LinkEvaluationSortBy[] = [],
+    includeReferenceLinks: boolean = false
 ): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule; stats: LinkStats }> | undefined> =>
     fetch({
+        method: "POST",
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate`),
-        query: { query, page: pagination.current, limit: pagination.limit },
+        body: {
+            query,
+            offset: (pagination.current - 1) * pagination.limit,
+            limit: pagination.limit,
+            filters,
+            sortBy,
+            includeReferenceLinks,
+        },
     });
+
+type LinkEvaluationFilters = "positiveLinks" | "negativeLinks";
+type LinkEvaluationSortBy =
+    | "scoreAsc"
+    | "scoreDesc"
+    | "sourceEntityAsc"
+    | "sourceEntityDesc"
+    | "targetEntityAsc"
+    | "targetEntityDesc";
 
 //update reference link state to either positive, negative or unlabelled
 export const updateReferenceLink = async (

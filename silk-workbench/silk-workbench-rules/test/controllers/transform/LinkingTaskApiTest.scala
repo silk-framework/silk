@@ -1,6 +1,6 @@
 package controllers.transform
 
-import controllers.linking.evaluation.LinkRuleEvaluationStats
+import controllers.linking.evaluation.{EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats}
 
 import java.time.Instant
 import controllers.util.SerializationUtils
@@ -17,7 +17,7 @@ import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonForma
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
-import play.api.libs.json.{JsArray, JsValue}
+import play.api.libs.json.{JsArray, JsValue, Json}
 
 class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
@@ -121,7 +121,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate?query=$query")
     val response = request.
-      get()
+      post(Json.toJson(EvaluateCurrentLinkageRuleRequest(query = Some(query))))
     val jsonBody = checkResponse(response).json
     jsonBody
   }

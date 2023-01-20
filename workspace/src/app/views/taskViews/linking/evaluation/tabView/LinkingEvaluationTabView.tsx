@@ -38,7 +38,7 @@ import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
 import Pagination from "../../../../../views/shared/Pagination";
 import {
-    getReferenceLinks,
+    getEvaluatedLinks,
     getLinkRuleInputPaths,
     getOperatorLabel,
     getParentNodes,
@@ -119,7 +119,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             try {
                 setLoading(true);
                 if (taskEvaluationStatus === "Finished") {
-                    const results = (await getReferenceLinks(projectId, linkingTaskId, pagination, searchQuery))?.data;
+                    const results = (await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery))?.data;
                     setEvaluationResults(results);
                     setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
                     setInputValuesExpansion(

@@ -92,33 +92,33 @@ object LinkingTaskApiDoc {
 
   final val evaluateLinkageRuleRequestJsonExample =
     """
-      {
-        "filter": {
-          "limit": null,
-          "unambiguous": null
+    {
+      "filter": {
+        "limit": null,
+        "unambiguous": null
+      },
+      "linkType": "http://www.w3.org/2002/07/owl#sameAs",
+      "operator": {
+        "id": "unnamed_3",
+        "indexing": true,
+        "metric": "equality",
+        "parameters": {},
+        "required": false,
+        "sourceInput": {
+          "id": "unnamed_1",
+          "path": "group",
+          "type": "pathInput"
         },
-        "linkType": "http://www.w3.org/2002/07/owl#sameAs",
-        "operator": {
-          "id": "unnamed_3",
-          "indexing": true,
-          "metric": "equality",
-          "parameters": {},
-          "required": false,
-          "sourceInput": {
-            "id": "unnamed_1",
-            "path": "group",
-            "type": "pathInput"
-          },
-          "targetInput": {
-            "id": "unnamed_2",
-            "path": "group",
-            "type": "pathInput"
-          },
-          "threshold": 0,
-          "type": "Comparison",
-          "weight": 1
-        }
+        "targetInput": {
+          "id": "unnamed_2",
+          "path": "group",
+          "type": "pathInput"
+        },
+        "threshold": 0,
+        "type": "Comparison",
+        "weight": 1
       }
+    }
     """
 
   final val evaluateLinkageRuleRequestXmlExample =
@@ -158,6 +158,22 @@ object LinkingTaskApiDoc {
           "target": "urn:instance:simplecsv#1"
         }
       ]
+    """
+
+  final val evaluateCurrentLinkageRuleRequest =
+    """
+  {
+    "filters" : [
+      "positiveLinks"
+    ],
+    "limit" : 10,
+    "offset" : 0,
+    "query" : "multi word search query",
+    "sortBy" : [
+      "scoreAsc"
+    ],
+    "includeReferenceLinks": true
+  }
     """
 
   final val evaluateCurrentLinkageRuleExample =
