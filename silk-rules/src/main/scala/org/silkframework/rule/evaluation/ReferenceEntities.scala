@@ -111,6 +111,16 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
   }
 
+  def linkDecision(link: Link): LinkDecision = {
+    if(negativeLinks.contains(link)) {
+      LinkDecision.NEGATIVE
+    } else if(positiveLinks.contains(link)) {
+      LinkDecision.POSITIVE
+    } else {
+      LinkDecision.UNLABELED
+    }
+  }
+
   private def asReferenceLinks(links: Seq[Link], linkDecision: LinkDecision): Seq[ReferenceLink] = {
     for (link <- links) yield {
       new ReferenceLink(

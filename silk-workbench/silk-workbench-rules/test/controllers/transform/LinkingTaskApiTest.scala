@@ -117,6 +117,16 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     (linkEvaluationResult("simplecsv entry 1") \ "links").as[JsArray].value must have size 1
   }
 
+  "Changing the decision of a link should be reflected in the result" in {
+    // Change one link to positive
+    val response = client
+      .url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/referenceLink?source=urn%3Ainstance%3Asimplecsv%232&target=urn%3Ainstance%3Asimplecsv%232&linkType=positive")
+      .put("")
+    checkResponse(response)
+    val jsonBody: JsValue = linkEvaluationResult()
+    (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("positive", "unlabeled")
+  }
+
   private def linkEvaluationResult(query: String = ""): JsValue = {
     workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate?query=$query")

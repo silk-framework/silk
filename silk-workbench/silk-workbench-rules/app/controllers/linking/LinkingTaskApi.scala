@@ -1072,7 +1072,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           links = sortLinks(links, sortBy)
         }
         links = links.slice(offset, offset + limit)
-        linkEvaluationJsonResult(evaluationResult, linkingRule, links)
+        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache)
       case None =>
         throw NotFoundException("No evaluation results available.")
     }
@@ -1080,11 +1080,15 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   private def linkEvaluationJsonResult(evaluationResult: EvaluateLinkingActivity#ValueType,
                                        linkingRule: LinkageRule,
-                                       links: Seq[Link])
+                                       links: Seq[Link],
+                                       referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType])
                                       (implicit writeContext: WriteContext[JsValue]) = {
+    def linkDecisionFromReferenceEntities(link: Link): LinkDecision = {
+      referenceEntitiesCache.map(_.linkDecision(link)).getOrElse(LinkDecision.UNLABELED)
+    }
     val linkJsonFormat = new LinkJsonFormat(Some(linkingRule))
     val linkJson = links.map(link => {
-      val decision = linkDecision(link)
+      val decision = linkDecision(link, linkDecisionFromReferenceEntities)
       linkJsonFormat.write(link) + ("decision", JsString(decision.getId))
     })
     Ok(Json.obj(
@@ -1111,12 +1115,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     entity.values.flatten.mkString(" ")
   }
 
-  private def linkDecision(link: Link) = {
+  private def linkDecision(link: Link,
+                           linkDecisionFromReferenceEntities: Link => LinkDecision): LinkDecision = {
     link match {
       case rl: ReferenceLink =>
         rl.decision
       case _ =>
-        LinkDecision.UNLABELED
+        linkDecisionFromReferenceEntities(link)
     }
   }
 }
