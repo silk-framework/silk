@@ -38,6 +38,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   lazy val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
   lazy val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
   lazy val iso8859 = CsvDataset(ReadOnlyResource(resources.get("iso8859.csv")))
+  lazy val windows1255 = CsvDataset(ReadOnlyResource(resources.get("windows-1255.csv")))
   lazy val nonStandard = CsvDataset(ReadOnlyResource(resources.get("nonStandard.csv")))
   lazy val cmem4065withProperties = new CsvSource(resources.get("cmem-4065.csv"), settings, properties = "A/B,urn:prop:propA,https://test.com/some/valid?uri=true")
   lazy val cmem4065 = new CsvSource(resources.get("cmem-4065.csv"), settings)
@@ -176,6 +177,11 @@ class CsvSourceTest extends FlatSpec with Matchers {
     // The detection library assumes windows-1252 even though iso-8859-1 would also be correct.
     val autoConfigured = iso8859.autoConfigured
     autoConfigured.charset shouldBe "windows-1252"
+  }
+
+  it should "detect windows-1255 encoding" in {
+    val autoConfigured = windows1255.autoConfigured
+    autoConfigured.charset shouldBe "windows-1255"
   }
 
   it should "auto-configure random example correctly" in {
