@@ -1,13 +1,22 @@
 import React from "react";
-import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
+import {
+    FieldItem,
+    FieldSet,
+    Label,
+    Markdown,
+    StringPreviewContentBlobToggler,
+    TitleSubsection,
+    WhiteSpaceContainer,
+} from "@eccenca/gui-elements";
 import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
-import { FieldItem, FieldSet, Label, TitleSubsection, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import { Intent } from "@eccenca/gui-elements/blueprint/constants";
-import {InputMapper, RegisterForExternalChangesFn} from "./InputMapper";
+import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
 import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { ParameterExtensions } from "../../../../plugins/plugin.types";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -40,7 +49,7 @@ interface IProps {
         [key: string]: string;
     };
     /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn
+    registerForExternalChanges: RegisterForExternalChangesFn;
 }
 
 /** Renders the errors message based on the error type. */
@@ -70,10 +79,13 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
-        registerForExternalChanges
+        registerForExternalChanges,
     } = props;
+    const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
+        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS
+    );
     const errors = formHooks.errors[taskParameter.paramId];
-    const propertyDetails = taskParameter.param;
+    const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
     const [t] = useTranslation();
 
@@ -107,7 +119,7 @@ export const ParameterWidget = (props: IProps) => {
     }
 
     if (propertyDetails.type === "object") {
-        const requiredNestedParams = taskParameter.param.required ? taskParameter.param.required : [];
+        const requiredNestedParams = propertyDetails.required ? propertyDetails.required : [];
         return (
             <FieldSet
                 boxed

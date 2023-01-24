@@ -1,7 +1,9 @@
 package controllers.shared.autoCompletion
 
+import controllers.autoCompletion
+import controllers.autoCompletion.{Completion, Completions}
 import controllers.transform.AutoCompletionApi.Categories
-import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, Completion, Completions, OpFilter, PathToReplace, ReplacementInterval, ReplacementResults}
+import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, OpFilter, PathToReplace, ReplacementInterval, ReplacementResults}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, PathOperator, TypedPath, UntypedPath}
 import org.silkframework.plugins.path.PathMetaData
@@ -58,7 +60,7 @@ object AutoCompletionApiUtils {
           isCompletion = true
         )
       }
-      Completions(completions)
+      autoCompletion.Completions(completions)
     } else {
       Completions()
     }

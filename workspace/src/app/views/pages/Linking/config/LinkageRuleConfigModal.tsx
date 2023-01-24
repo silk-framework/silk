@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, SimpleDialog, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, IconButton, Notification, SimpleDialog, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { LinkageRuleConfigItem } from "./LinkageRuleConfig";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { DefaultAutoCompleteField } from "../../../shared/autoCompletion/DefaultAutoCompleteField";
+import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 
 interface IProps {
     onClose: () => any;
@@ -14,6 +17,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
     const [t] = useTranslation();
     const [parameterDiff] = useState<Map<string, string>>(new Map());
     const [changed, setChanged] = useState(false);
+    const [requestError, setRequestError] = useState<JSX.Element | undefined>(undefined);
     const [errorCount, setErrorCount] = useState(0);
     const initialParameters = new Map(parameters.map((p) => [p.id, p]));
     const [errors] = useState(new Map<string, string>());
@@ -26,8 +30,39 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
         }
     }, [errorCount]);
 
-    const changeParameter = (parameterId: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
+    const changeParameterFromEvent = (parameterId: string) => {
+        const changeParameterValue = changeParameter(parameterId);
+        return (event: React.ChangeEvent<HTMLInputElement>) => {
+            const value = event.target.value;
+            changeParameterValue(value);
+        };
+    };
+
+    const wrapAutoCompleteRequest =
+        (
+            forParameter: string,
+            autoCompleteRequest: (
+                textQuery: string,
+                limit: number
+            ) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>
+        ) =>
+        async (textQuery: string) => {
+            try {
+                return (await autoCompleteRequest(textQuery, 50)).data;
+            } catch (err) {
+                setRequestError(
+                    <Notification
+                        actions={<IconButton onClick={() => setRequestError(undefined)} name={"navigation-close"} />}
+                        warning
+                    >
+                        Auto-completion request has failed. Cannot suggest values for '${forParameter}' parameter.
+                    </Notification>
+                );
+                return [];
+            }
+        };
+
+    const changeParameter = (parameterId: string) => (value: string) => {
         const hasChanges = parameterDiff.size > 0;
         const validation = initialParameters.get(parameterId)?.validation(value);
         // Validation
@@ -79,6 +114,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
             title={t("widget.LinkingRuleConfigWidget.modal.title")}
             isOpen={true}
             onClose={onClose}
+            notifications={requestError}
             actions={[
                 <Button
                     key="submit"
@@ -108,11 +144,21 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                         messageText={errorMessage ? errorMessage : undefined}
                         helperText={p.description}
                     >
-                        <TextField
-                            onChange={changeParameter(p.id)}
-                            defaultValue={p.value}
-                            placeholder={p.placeholder}
-                        />
+                        {p.onSearch ? (
+                            <DefaultAutoCompleteField
+                                id={"parameter-" + p.id}
+                                initialValue={{ value: p.value ?? "" }}
+                                onChange={changeParameter(p.id)}
+                                onSearch={wrapAutoCompleteRequest(p.label, p.onSearch)}
+                            />
+                        ) : (
+                            <TextField
+                                data-test-id={"parameter-" + p.id}
+                                onChange={changeParameterFromEvent(p.id)}
+                                defaultValue={p.value}
+                                placeholder={p.placeholder}
+                            />
+                        )}
                     </FieldItem>
                 );
             })}
