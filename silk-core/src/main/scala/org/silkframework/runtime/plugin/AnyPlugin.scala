@@ -31,6 +31,9 @@ trait AnyPlugin {
    */
   @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
 
+  @volatile
+  var originalValues: Map[String, String] = Map.empty
+
   /**
     * Creates a new instance of this plugin with updated properties.
     *
@@ -41,9 +44,5 @@ trait AnyPlugin {
   def withParameters(updatedProperties: Map[String, String])(implicit context: PluginContext): this.type = {
     val updatedParameters = parameters ++ updatedProperties
     pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
-  }
-
-  override def toString: String = {
-    getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
   }
 }
