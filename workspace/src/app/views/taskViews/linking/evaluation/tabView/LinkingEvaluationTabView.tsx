@@ -184,7 +184,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 const treeInfo: TreeNodeInfo = {
                     id: operatorNode.id,
                     isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
-
                     label: (
                         <span>
                             <Tag backgroundColor={tagColor(operatorNode.type)}>
@@ -351,32 +350,23 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
 
         return input.inputs.reduce((acc, i) => {
-            acc = buildInputTree(
-                i,
-                {
-                    ...tree,
-                    childNodes: [
-                        ...(tree.childNodes ?? []),
-                        {
-                            id: input.id,
-                            hasCaret: false,
-                            isExpanded: true,
-                            label: (
-                                <p>
-                                    <Tag backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
-                                        {getOperatorLabel(input, operatorPlugins)}
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
-                                    {getLinkValues(input.id, index, parentTree)}
-                                </p>
-                            ),
-                        },
-                    ],
-                },
-                index,
-                tagInputTag,
-                parentTree
-            );
+            const newChildTree = {
+                id: input.id,
+                hasCaret: false,
+                isExpanded: true,
+                label: (
+                    <p>
+                        <Tag backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
+                            {getOperatorLabel(input, operatorPlugins)}
+                        </Tag>
+                        <Spacing vertical size="tiny" />
+                        {getLinkValues(input.id, index, parentTree)}
+                    </p>
+                ),
+            };
+            tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
+
+            acc = buildInputTree(i, newChildTree, index, tagInputTag, parentTree);
             return acc;
         }, {} as TreeNodeInfo);
     };
