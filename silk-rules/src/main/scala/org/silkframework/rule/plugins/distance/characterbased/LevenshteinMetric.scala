@@ -26,12 +26,14 @@ import scala.math.max
   label = "Normalized Levenshtein distance",
   description = "Normalized Levenshtein distance.")
 case class LevenshteinMetric(
+  @Param(label = "Q-grams size", value = "The size of the q-grams to be indexed. Setting this to zero will disable indexing.", advanced = true)
+  qGramsSize: Int = 2,
   @Param(value = "The minimum character that is used for indexing", advanced = true)
   minChar: Char = '0',
   @Param(value = "The maximum character that is used for indexing", advanced = true)
   maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
-  private val levenshtein = new LevenshteinDistance(minChar, maxChar)
+  private val levenshtein = new LevenshteinDistance(qGramsSize, minChar, maxChar)
 
   override def evaluate(str1: String, str2: String, limit: Double) = {
     val scale = max(str1.length, str2.length)

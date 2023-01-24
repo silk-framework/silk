@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.autoCompletion.{Completion, Completions}
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.shared.autoCompletion.AutoCompletionApiUtils
