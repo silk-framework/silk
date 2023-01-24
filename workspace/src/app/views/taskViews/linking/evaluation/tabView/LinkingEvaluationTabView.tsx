@@ -231,7 +231,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
                         if (node[inputPath].inputs?.length) {
                             node[inputPath].inputs.forEach((i) => {
-                                inputNode = buildInputTree(i, inputNode, idx, inputPathCategory[inputPath], treeInfo);
+                                buildInputTree(i, inputNode, idx, inputPathCategory[inputPath], treeInfo);
                             });
                         }
 
@@ -327,26 +327,22 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         parentTree: TreeNodeInfo
     ): TreeNodeInfo => {
         if (!input.inputs?.length) {
-            return {
-                ...tree,
-                childNodes: [
-                    ...(tree.childNodes ?? []),
-                    {
-                        id: input.id,
-                        hasCaret: false,
-                        isExpanded: true,
-                        label: (
-                            <p>
-                                <Tag backgroundColor={tagColor(tagInputTag) as string}>
-                                    {getOperatorLabel(input, operatorPlugins)}
-                                </Tag>
-                                <Spacing vertical size="tiny" />
-                                {getLinkValues(input.id, index, parentTree)}
-                            </p>
-                        ),
-                    },
-                ],
+            const newChild = {
+                id: input.id,
+                hasCaret: false,
+                isExpanded: true,
+                label: (
+                    <p>
+                        <Tag backgroundColor={tagColor(tagInputTag) as string}>
+                            {getOperatorLabel(input, operatorPlugins)}
+                        </Tag>
+                        <Spacing vertical size="tiny" />
+                        {getLinkValues(input.id, index, parentTree)}
+                    </p>
+                ),
             };
+            tree.childNodes = [...(tree?.childNodes ?? []), newChild];
+            return tree;
         }
 
         return input.inputs.reduce((acc, i) => {
