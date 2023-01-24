@@ -55,7 +55,7 @@ object PluginRegistry {
   }
 
   // Returns an error message string if the object type is invalid.
-  def checkInvalidObjectPluginParameterType(parameterType: Class[_],
+  def checkInvalidObjectPluginParameterType(parameterType: Class[_ <: AnyPlugin],
                                             usageInParams: Seq[PluginParameter]): Option[String] = {
     var errorMessage = ""
     val needsCheck = usageInParams.exists(_.visibleInDialog)
@@ -127,7 +127,7 @@ object PluginRegistry {
   /**
    * Given a plugin instance, extracts its plugin description and parameters.
    */
-  def reflect(pluginInstance: AnyRef)(implicit prefixes: Prefixes): (PluginDescription[_], Map[String, String]) = {
+  def reflect(pluginInstance: AnyPlugin)(implicit prefixes: Prefixes): (PluginDescription[_], Map[String, String]) = {
     val desc = ClassPluginDescription(pluginInstance.getClass)
     val parameters =
       for(param <- desc.parameters if param(pluginInstance) != null) yield
@@ -269,7 +269,7 @@ object PluginRegistry {
   /**
    * Registers a single plugin.
    */
-  def registerPlugin(implementingClass: Class[_]): Unit = {
+  def registerPlugin(implementingClass: Class[_ <: AnyPlugin]): Unit = {
     val pluginDesc = ClassPluginDescription.create(implementingClass)
     registerPlugin(pluginDesc)
     log.fine(s"Loaded plugin " + pluginDesc.id)
@@ -300,7 +300,7 @@ object PluginRegistry {
   /**
     * Removes a plugin from the registry.
     */
-  def unregisterPlugin(implementingClass: Class[_]): Unit = {
+  def unregisterPlugin(implementingClass: Class[_ <: AnyPlugin]): Unit = {
     unregisterPlugin(ClassPluginDescription.create(implementingClass))
   }
 
@@ -415,8 +415,8 @@ object PluginRegistry {
 /**
   * Function that creates a plugin description from a Java class.
   */
-private object PluginDescriptionFactory extends (Class[_] => PluginDescription[_]) {
-  override def apply(v1: Class[_]): PluginDescription[_] = {
+private object PluginDescriptionFactory extends (Class[_ <: AnyPlugin] => PluginDescription[_]) {
+  override def apply(v1: Class[_ <: AnyPlugin]): PluginDescription[_] = {
     ClassPluginDescription.create(v1)
   }
 }

@@ -1,7 +1,7 @@
 package org.silkframework.rule.test
 
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.{ClassPluginDescription, DistanceMeasureExampleValue, PluginContext}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, DistanceMeasureExampleValue, PluginContext}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger
@@ -43,7 +43,7 @@ abstract class DistanceMeasureTest[T <: DistanceMeasure : ClassTag] extends Plug
   distanceMeasureTests.foreach(_.addTest())
 
   // Forward one distance measure for general plugin testing.
-  override protected lazy val pluginObject: AnyRef = {
+  override protected lazy val pluginObject: AnyPlugin = {
     require(distanceMeasureTests.nonEmpty, s"$pluginClass does not define any DistanceMeasureExample annotation.")
     distanceMeasureTests.head.distanceMeasure
   }

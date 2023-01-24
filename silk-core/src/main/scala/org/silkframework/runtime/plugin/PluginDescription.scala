@@ -59,7 +59,7 @@ object PluginDescription {
     task.data match {
       case plugin: AnyPlugin => plugin.pluginSpec
       case DatasetSpec(plugin, _) => plugin.pluginSpec
-      case plugin: TaskSpec => ClassPluginDescription(plugin.getClass)
+      case _ => throw new IllegalArgumentException(s"Provided task $task is not a plugin.")
     }
   }
 

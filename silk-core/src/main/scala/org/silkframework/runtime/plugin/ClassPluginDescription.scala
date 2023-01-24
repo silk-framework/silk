@@ -26,8 +26,6 @@ import scala.io.{Codec, Source}
 import scala.language.existentials
 import scala.util.control.NonFatal
 
-
-
 /**
   * Describes a plugin that is based on a Scala class.
   *
@@ -40,8 +38,8 @@ import scala.util.control.NonFatal
   * @param constructor The constructor for creating a new instance of this plugin.
   * @tparam T The class that implements this plugin.
   */
-class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
-                                 val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T]) extends PluginDescription[T] {
+class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
+                                              val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -117,14 +115,14 @@ object ClassPluginDescription {
     * Returns a plugin description for a given class.
     * If available, returns an already registered plugin description.
     */
-  def apply[T](pluginClass: Class[T]): PluginDescription[T] = {
+  def apply[T <: AnyPlugin](pluginClass: Class[T]): PluginDescription[T] = {
     PluginRegistry.pluginDescription(pluginClass).getOrElse(create(pluginClass))
   }
 
   /**
     * Creates a new plugin description from a class.
     */
-  def create[T](pluginClass: Class[T]): ClassPluginDescription[T] = {
+  def create[T <: AnyPlugin](pluginClass: Class[T]): ClassPluginDescription[T] = {
     getAnnotation(pluginClass) match {
       case Some(annotation) => createFromAnnotation(pluginClass, annotation)
       case None => createFromClass(pluginClass)
@@ -135,7 +133,7 @@ object ClassPluginDescription {
     Option(pluginClass.getAnnotation(classOf[Plugin]))
   }
 
-  private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
+  private def createFromAnnotation[T <: AnyPlugin](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
     val markdownDocString = loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
     new ClassPluginDescription(
       id = annotation.id,
@@ -148,7 +146,7 @@ object ClassPluginDescription {
     )
   }
 
-  private def createFromClass[T](pluginClass: Class[T]): ClassPluginDescription[T] = {
+  private def createFromClass[T <: AnyPlugin](pluginClass: Class[T]): ClassPluginDescription[T] = {
     new ClassPluginDescription(
       id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,

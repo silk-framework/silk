@@ -12,7 +12,7 @@ import org.silkframework.workspace.WorkspaceReadTrait
   *
   * Implementations of this plugin must not have any parameters.
   */
-trait PluginParameterAutoCompletionProvider {
+trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   /** Auto-completion based on a text based search query */
   def autoComplete(searchQuery: String,
                    projectId: String,

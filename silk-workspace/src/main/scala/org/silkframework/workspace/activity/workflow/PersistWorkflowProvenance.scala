@@ -1,15 +1,15 @@
 package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
-
 import org.silkframework.runtime.activity.{ActivityExecutionResult, UserContext}
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.ProjectTask
 
 /**
   * Persists provenance data about a workflow execution, e.g. in an RDF store.
   */
-trait PersistWorkflowProvenance {
+trait PersistWorkflowProvenance extends AnyPlugin {
   /**
     * Persists provenance data about a workflow execution, e.g. in an RDF store.
     * @param workflowTask   The executed workflow task

@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.runtime.plugin.PluginModule
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.serialization.json.EntitySerializers.{EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
 import org.silkframework.serialization.json.ExecutionReportSerializers._
 import org.silkframework.serialization.json.InputJsonSerializer.{CachedEntitySchemataJsonFormat, InputJsonFormat}
@@ -11,7 +11,7 @@ import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDataset
 
 class JsonPluginModule extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_]] =
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] =
       StringJsonFormat.getClass ::
       PluginListJsonFormat.getClass ::
       TaskSpecJsonFormat.getClass ::

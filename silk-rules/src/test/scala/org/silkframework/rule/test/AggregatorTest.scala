@@ -3,7 +3,7 @@ package org.silkframework.rule.test
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.similarity.{Aggregator, SimilarityOperator}
-import org.silkframework.runtime.plugin.{AggregatorExampleValue, ClassPluginDescription, PluginContext}
+import org.silkframework.runtime.plugin.{AggregatorExampleValue, AnyPlugin, ClassPluginDescription, PluginContext}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.{DPair, Identifier}
 
@@ -42,7 +42,7 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
   aggregatorTests.foreach(_.addTest())
 
   // Forward one aggregator for general plugin testing.
-  override protected lazy val pluginObject: AnyRef = {
+  override protected lazy val pluginObject: AnyPlugin = {
     require(aggregatorTests.nonEmpty, s"$pluginClass does not define any AggregatorExample annotation.")
     aggregatorTests.head.aggregator
   }

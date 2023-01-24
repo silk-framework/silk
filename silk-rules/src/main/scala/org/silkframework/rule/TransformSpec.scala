@@ -61,7 +61,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                          @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
                                 "If false, the execution will continue, adding a validation error to the execution report.")
                          abortIfErrorsOccur: Boolean = false
-                        ) extends TaskSpec {
+                        ) extends TaskSpec with AnyPlugin {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
