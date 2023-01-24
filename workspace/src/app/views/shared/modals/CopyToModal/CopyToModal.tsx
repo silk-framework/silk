@@ -131,10 +131,11 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
         try {
             const payload = {
-                limit: 10,
+                limit: 50,
                 offset: 0,
                 itemType: "project",
                 textQuery,
+                sortBy: "label",
             };
             const results = (await requestSearchList(payload)).results;
             return removeFromList(results);
@@ -198,6 +199,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 }}
             >
                 <AutoCompleteField
+                    autoFocus={true}
                     onSearch={handleSearch}
                     onChange={async (value) => {
                         setTargetProject(value);
@@ -237,38 +239,40 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open
                         >
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
-                                <OverviewItem key={t.id} className="copy-modal-item">
-                                    <Depiction
-                                        image={
-                                            <ItemDepiction
-                                                itemType={t.taskType}
-                                                pluginId={t.pluginId}
-                                                size={{ large: true }}
-                                            />
-                                        }
-                                        ratio="1:1"
-                                        padding="medium"
-                                        backgroundColor="dark"
-                                    />
-                                    <OverviewItemDescription>
-                                        <OverviewItemLine>
-                                            <Tooltip content={`open ${t.taskType} "${t.label}" in a new window`}>
-                                                <Link href={t.originalTaskLink} target="_blank">
-                                                    {t.label}
-                                                </Link>
-                                            </Tooltip>
-                                        </OverviewItemLine>
-                                        <OverviewItemLine>
-                                            <Tooltip
-                                                content={`open replaced ${t.taskType} "${t.label}" in a new window`}
-                                            >
-                                                <Link href={t.overwrittenTaskLink} target="_blank">
-                                                    [overwritten task]
-                                                </Link>
-                                            </Tooltip>
-                                        </OverviewItemLine>
-                                    </OverviewItemDescription>
-                                </OverviewItem>
+                                <>
+                                    <OverviewItem key={t.id} className="copy-modal-item" hasSpacing={true}>
+                                        <Depiction
+                                            image={
+                                                <ItemDepiction
+                                                    itemType={t.taskType}
+                                                    pluginId={t.pluginId}
+                                                    size={{ large: true }}
+                                                />
+                                            }
+                                            ratio="1:1"
+                                            padding="medium"
+                                            backgroundColor="dark"
+                                        />
+                                        <OverviewItemDescription>
+                                            <OverviewItemLine>
+                                                <Tooltip content={`Open ${t.taskType} "${t.label}" in a new window`}>
+                                                    <Link href={t.originalTaskLink} target="_blank">
+                                                        {t.label}
+                                                    </Link>
+                                                </Tooltip>
+                                            </OverviewItemLine>
+                                            <OverviewItemLine>
+                                                <Tooltip
+                                                    content={`Open to-be-replaced ${t.taskType} "${t.label}" in a new window`}
+                                                >
+                                                    <Link href={t.overwrittenTaskLink} target="_blank">
+                                                        To be overwritten: {t.label}
+                                                    </Link>
+                                                </Tooltip>
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                    </OverviewItem>
+                                </>
                             ))}
                         </AccordionItem>
                         <AccordionItem
@@ -285,7 +289,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open={false}
                         >
                             {orderTasksByLabel(info.copiedTasks)?.map((item) => (
-                                <OverviewItem key={item.id} className="copy-modal-item">
+                                <OverviewItem key={item.id} className="copy-modal-item" hasSpacing={true}>
                                     <Depiction
                                         image={
                                             <ItemDepiction
