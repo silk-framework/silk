@@ -15,6 +15,7 @@ DELETE        /projectImport/:projectImportId                                   
 POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false, newProjectId: Option[String] ?= None)
 GET           /projectImport/:projectImportId/status                            controllers.workspaceApi.ProjectImportApi.projectImportExecutionStatus(projectImportId: String, timeout: Int ?= 20000)
 GET           /vocabularies                                                     controllers.workspaceApi.WorkspaceVocabularyApi.vocabularies()
+GET           /vocabularies/property/search                                     controllers.workspaceApi.WorkspaceVocabularyApi.findPropertyInGlobalVocabularyCache(textQuery: String, projectId: String ?= "", limit: Int)
 POST          /uriPatterns                                                      controllers.workspaceApi.WorkspaceUriPatternApi.uriPatterns()
 
 # Execution Report API

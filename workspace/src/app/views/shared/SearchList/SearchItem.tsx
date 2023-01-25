@@ -10,7 +10,7 @@ import {
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    OverviewItemDepiction,
+    Depiction,
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
@@ -70,7 +70,7 @@ export default function SearchItem({
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
     const { projectTabView, changeTab, menuItems } = useProjectTabsView({
-        srcLinks: menuItemLinks.map(link => ({...link, id: link.label})),
+        srcLinks: menuItemLinks.map((link) => ({ ...link, id: link.label })),
         pluginId: item.pluginId,
         projectId: item.projectId,
         taskId: item.id,
@@ -132,9 +132,12 @@ export default function SearchItem({
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
-                <OverviewItemDepiction>
-                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
-                </OverviewItemDepiction>
+                <Depiction
+                    image={<ItemDepiction itemType={item.type} pluginId={item.pluginId} />}
+                    ratio="1:1"
+                    backgroundColor="dark"
+                    padding="medium"
+                />
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <h4>

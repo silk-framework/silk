@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.autoCompletion.CompletionBase
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
