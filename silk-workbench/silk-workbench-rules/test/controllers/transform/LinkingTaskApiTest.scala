@@ -124,7 +124,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
       .put("")
     checkResponse(response)
     val jsonBody: JsValue = linkEvaluationResult()
-    (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("positive", "unlabeled")
+    (jsonBody \\ "decision").map(_.as[String]).sorted mustBe Seq("positive", "unlabeled")
   }
 
   private def linkEvaluationResult(query: String = ""): JsValue = {
