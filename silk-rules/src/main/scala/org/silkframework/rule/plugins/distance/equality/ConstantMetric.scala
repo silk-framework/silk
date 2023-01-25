@@ -20,7 +20,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "constantDistance",
   categories = Array("Equality"),
-  label = "Constant",
+  label = "Constant similarity value",
   description = "Always returns a constant similarity value."
 )
 case class ConstantMetric(value: Double = 1.0) extends DistanceMeasure {
