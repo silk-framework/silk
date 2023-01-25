@@ -1,6 +1,13 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React from "react";
-import { AutoCompleteField, Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "@eccenca/gui-elements";
+import {
+    AutoCompleteField,
+    Highlighter,
+    OverflowText,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+} from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
@@ -37,7 +44,7 @@ interface ParameterAutoCompletionProps {
      * This is needed if other components on the same page are swallowing events, e.g. the react-flow canvas.
      * hasBackDrop should then be set to true in these cases otherwise the popover won't close when clicking those other components.
      **/
-    hasBackDrop?: boolean
+    hasBackDrop?: boolean;
 }
 
 /** Component for parameter auto-completion. */
@@ -54,7 +61,7 @@ export const ParameterAutoCompletion = ({
     onChange,
     showErrorsInline = false,
     readOnly,
-    hasBackDrop = false
+    hasBackDrop = false,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -173,32 +180,39 @@ const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
 
 /** An item renderer for the auto-completion component that will render the label (if available) and value.
  * If the label and value are the same except for case then only the value is displayed. */
-export const labelAndOrValueItemRenderer = (autoCompleteResponse: IAutocompleteDefaultResponse,
-                                            query: string,
-                                            modifiers: IRenderModifiers,
-                                            handleSelectClick: () => any): JSX.Element | string => {
-    const labelValueKindOfSame = (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase()
-    const showLabel = autoCompleteResponse.label && !labelValueKindOfSame
-    return <OverviewItem
-        key={autoCompleteResponse.value}
-        onClick={handleSelectClick}
-        hasSpacing={true}
-        className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
-    >
-        <OverviewItemDescription style={{maxWidth: "50vw"}}>
-            <OverviewItemLine>
-                <OverflowText inline={true} style={{width: "100vw"}}>
-                    <Highlighter label={showLabel ? autoCompleteResponse.label : autoCompleteResponse.value}
-                                 searchValue={query}/>
-                </OverflowText>
-            </OverviewItemLine>
-            {showLabel ?
-                <OverviewItemLine small={true}>
-                    <OverflowText inline={true} style={{width: "100vw"}}>
-                        <Highlighter label={autoCompleteResponse.value} searchValue={query}/>
+export const labelAndOrValueItemRenderer = (
+    autoCompleteResponse: IAutocompleteDefaultResponse,
+    query: string,
+    modifiers: IRenderModifiers,
+    handleSelectClick: () => any
+): JSX.Element | string => {
+    const labelValueKindOfSame =
+        (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase();
+    const showLabel = autoCompleteResponse.label && !labelValueKindOfSame;
+    return (
+        <OverviewItem
+            key={autoCompleteResponse.value}
+            onClick={handleSelectClick}
+            hasSpacing={true}
+            className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+        >
+            <OverviewItemDescription style={{ maxWidth: "50vw" }}>
+                <OverviewItemLine>
+                    <OverflowText inline={true} style={{ width: "100vw" }}>
+                        <Highlighter
+                            label={showLabel ? autoCompleteResponse.label : autoCompleteResponse.value}
+                            searchValue={query}
+                        />
                     </OverflowText>
-                </OverviewItemLine> :
-                null}
-        </OverviewItemDescription>
-    </OverviewItem>
+                </OverviewItemLine>
+                {showLabel ? (
+                    <OverviewItemLine small={true}>
+                        <OverflowText inline={true} style={{ width: "100vw" }}>
+                            <Highlighter label={autoCompleteResponse.value} searchValue={query} />
+                        </OverflowText>
+                    </OverviewItemLine>
+                ) : null}
+            </OverviewItemDescription>
+        </OverviewItem>
+    );
 };
