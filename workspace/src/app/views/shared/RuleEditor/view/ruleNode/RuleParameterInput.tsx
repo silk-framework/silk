@@ -11,7 +11,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
-import { IProjectResource } from "@ducks/shared/typings";
+import { fileValue, IProjectResource } from "@ducks/shared/typings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -27,7 +27,7 @@ interface RuleParameterInputProps {
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 /** An input widget for a parameter value. */
@@ -38,7 +38,7 @@ export const RuleParameterInput = ({
     hasValidationError,
     dependentValue,
     large,
-    insideModal
+    insideModal,
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -125,7 +125,7 @@ export const RuleParameterInput = ({
                 />
             );
         case "resource":
-            const resourceNameFn = (item: IProjectResource) => item.name;
+            const resourceNameFn = (item: IProjectResource) => fileValue(item);
             return (
                 <SelectFileFromExisting
                     autocomplete={{

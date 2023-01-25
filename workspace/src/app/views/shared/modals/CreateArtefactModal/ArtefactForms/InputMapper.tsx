@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
+import { fileValue } from "@ducks/shared/typings";
 
 interface IProps {
     projectId: string;
@@ -146,7 +147,7 @@ export function InputMapper({
         case INPUT_TYPES.TARGET_VOCABULARY:
             return <DefaultTargetVocabularySelection {...inputAttributes} />;
         case INPUT_TYPES.RESOURCE:
-            const resourceNameFn = (item) => item.name;
+            const resourceNameFn = (item) => fileValue(item);
             return (
                 <FileSelectionMenu
                     projectId={projectId}
