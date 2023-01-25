@@ -38,3 +38,9 @@ export interface EvaluationLinkInputValue<T = string[]> {
 export type NodePath = number[];
 
 export type ReferenceLinkType = "positive" | "negative" | "unlabeled";
+
+export interface HoveredValuedType {
+    path: string;
+    isSourceEntity: boolean;
+    value: string;
+}

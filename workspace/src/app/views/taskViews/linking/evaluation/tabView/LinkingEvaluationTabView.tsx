@@ -32,6 +32,7 @@ import {
     Notification,
     TableExpandHeader,
     Spinner,
+    Highlighter,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -44,7 +45,14 @@ import {
     getParentNodes,
     updateReferenceLink,
 } from "./LinkingEvaluationViewUtils";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, LinkStats, NodePath, ReferenceLinkType } from "./typings";
+import {
+    EvaluationLinkInputValue,
+    HoveredValuedType,
+    LinkingEvaluationResult,
+    LinkStats,
+    NodePath,
+    ReferenceLinkType,
+} from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
@@ -99,8 +107,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [operatorsExpansion, setOperatorsExpansion] = React.useState<
         Map<number, { expanded: boolean; precinct: boolean }>
     >(new Map());
-    const [tableValueQuery, setTableValueQuery] = React.useState<Map<number, string>>(new Map());
-    const [treeValueQuery, setTreeValueQuery] = React.useState<Map<number, string>>(new Map());
+    const [tableValueQuery, setTableValueQuery] = React.useState<Map<number, HoveredValuedType>>(new Map());
+    const [treeValueQuery, setTreeValueQuery] = React.useState<Map<number, HoveredValuedType>>(new Map());
     const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<IActivityStatus["statusName"] | undefined>();
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
     const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
@@ -204,6 +212,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     };
 
                     ["sourceInput", "targetInput"].forEach((inputPath) => {
+                        const isSourceEntity = inputPath === "sourceInput";
                         //is comparison operator
                         let inputNode: TreeNodeInfo = {
                             id: node[inputPath].id,
@@ -223,7 +232,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                         {getOperatorLabel(node[inputPath], operatorPlugins)}
                                     </Tag>
                                     <Spacing vertical size="tiny" />
-                                    {getLinkValues(node[inputPath].id, idx, treeInfo)}
+                                    {getLinkValues(node[inputPath].id, idx, treeInfo, {
+                                        path: node[inputPath].path ?? "",
+                                        isSourceEntity,
+                                    })}
                                 </p>
                             ),
                             childNodes: [],
@@ -231,7 +243,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
                         if (node[inputPath].inputs?.length) {
                             node[inputPath].inputs.forEach((i) => {
-                                buildInputTree(i, inputNode, idx, inputPathCategory[inputPath], treeInfo);
+                                buildInputTree(
+                                    i,
+                                    inputNode,
+                                    idx,
+                                    inputPathCategory[inputPath],
+                                    treeInfo,
+                                    isSourceEntity
+                                );
                             });
                         }
 
@@ -324,7 +343,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         tree: TreeNodeInfo,
         index: number,
         tagInputTag: string,
-        parentTree: TreeNodeInfo
+        parentTree: TreeNodeInfo,
+        isSourceEntity = false
     ): TreeNodeInfo => {
         if (!input.inputs?.length) {
             const newChild = {
@@ -337,7 +357,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             {getOperatorLabel(input, operatorPlugins)}
                         </Tag>
                         <Spacing vertical size="tiny" />
-                        {getLinkValues(input.id, index, parentTree)}
+                        {getLinkValues(input.id, index, parentTree, {
+                            path: input.path ?? "",
+                            isSourceEntity,
+                        })}
                     </p>
                 ),
             };
@@ -356,13 +379,16 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             {getOperatorLabel(input, operatorPlugins)}
                         </Tag>
                         <Spacing vertical size="tiny" />
-                        {getLinkValues(input.id, index, parentTree)}
+                        {getLinkValues(input.id, index, parentTree, {
+                            path: input.path ?? "",
+                            isSourceEntity,
+                        })}
                     </p>
                 ),
             };
             tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
 
-            acc = buildInputTree(i, newChildTree, index, tagInputTag, parentTree);
+            acc = buildInputTree(i, newChildTree, index, tagInputTag, parentTree, isSourceEntity);
             return acc;
         }, {} as TreeNodeInfo);
     };
@@ -386,9 +412,19 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     );
 
     const getLinkValues = React.useCallback(
-        (id: string, index: number, tree: TreeNodeInfo) => {
+        (id: string, index: number, tree: TreeNodeInfo, nodeData: Omit<HoveredValuedType, "value">) => {
             const linkToValueMap = linksToValueMap[index];
-            if (linksToValueMap.length && linkToValueMap) {
+            if (linksToValueMap.length && linkToValueMap && nodeData) {
+                //if path === path from state and is sourceEntity matches and value matches
+                const currentHighlightedValue = treeValueQuery.get(index);
+                const isHighlightMatch = (val: string) =>
+                    nodeData &&
+                    currentHighlightedValue &&
+                    currentHighlightedValue.value === val &&
+                    Object.entries(nodeData).reduce((acc, [key, val]) => {
+                        acc = acc && currentHighlightedValue[key] === val;
+                        return acc;
+                    }, true);
                 return (
                     <TagList>
                         {linkToValueMap.get(id)?.value.map((val, i) => (
@@ -398,18 +434,21 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     emphasis="stronger"
                                     interactive
                                     backgroundColor={
-                                        val === treeValueQuery.get(index)
+                                        isHighlightMatch(val)
                                             ? "#746a85"
                                             : nodeParentHighlightedIds.get(index)?.includes(id)
                                             ? "#0097a7"
                                             : undefined
                                     }
                                     onMouseEnter={() => {
-                                        handleValueHover("tree", val, index);
+                                        handleValueHover("tree", index, {
+                                            value: val,
+                                            ...nodeData,
+                                        });
                                         handleParentNodeHighlights(tree, id, index);
                                     }}
                                     onMouseLeave={() => {
-                                        handleValueHover("tree", "", index);
+                                        handleValueHover("tree", index, { value: "", path: "", isSourceEntity: false });
                                         handleParentNodeHighlights(tree, id, index, true);
                                     }}
                                 >
@@ -429,11 +468,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setNodeParentHighlightedIds((prev) => new Map([...prev, [index, reset ? [] : getParentNodes(tree, id)]]));
     }, []);
 
-    const handleValueHover = React.useCallback((on: "table" | "tree", value: string, index) => {
-        on === "table"
-            ? setTreeValueQuery((prev) => new Map([...prev, [index, value]]))
-            : setTableValueQuery((prev) => new Map([...prev, [index, value]]));
-    }, []);
+    const handleValueHover = React.useCallback(
+        (on: "table" | "tree", rowIndex: number, hoveredTagProps: HoveredValuedType) => {
+            on === "table"
+                ? setTreeValueQuery((prev) => new Map([...prev, [rowIndex, hoveredTagProps]]))
+                : setTableValueQuery((prev) => new Map([...prev, [rowIndex, hoveredTagProps]]));
+        },
+        []
+    );
 
     const handlePagination = React.useCallback((page: number, limit: number) => {
         setPagination({ current: page, total: 25, limit });
@@ -584,7 +626,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing />
             <GridRow>
                 <GridColumn>
-                    {evaluationResults && evaluationResults.links.length ? (
+                    {evaluationResults && evaluationResults.links.length && !loading ? (
                         <DataTable rows={rowData} headers={headerData}>
                             {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
                                 <TableContainer>
@@ -647,6 +689,16 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 const currentInputValue = inputValues[i];
                                                 const currentLink = evaluationResults?.links[i]!;
                                                 const inputTableIsExpanded = inputValuesExpansion.get(i)?.expanded;
+                                                const tableValueToHighlight = tableValueQuery.get(i);
+                                                const highlightSourceTableValue = (
+                                                    currentPath: string,
+                                                    isSourceEntity: boolean
+                                                ) =>
+                                                    tableValueToHighlight &&
+                                                    tableValueToHighlight.isSourceEntity === isSourceEntity &&
+                                                    currentPath === tableValueToHighlight.path
+                                                        ? new Set([tableValueToHighlight.value])
+                                                        : undefined;
                                                 return (
                                                     <>
                                                         {currentLink && (
@@ -659,7 +711,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 className="linking-evaluation__row-item"
                                                             >
                                                                 {row.cells.map((cell) => (
-                                                                    <TableCell key={cell.id}>{cell.value}</TableCell>
+                                                                    <TableCell key={cell.id}>
+                                                                        <Highlighter
+                                                                            label={cell.value}
+                                                                            searchValue={searchQuery}
+                                                                        />
+                                                                    </TableCell>
                                                                 ))}
                                                                 <TableCell>
                                                                     <ConfidenceValue value={currentLink.confidence} />
@@ -754,18 +811,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                             exampleValues={
                                                                                                 <ActiveLearningValueExamples
                                                                                                     interactive
-                                                                                                    valuesToHighlight={
-                                                                                                        new Set([
-                                                                                                            tableValueQuery.get(
-                                                                                                                i
-                                                                                                            ) ?? "",
-                                                                                                        ])
-                                                                                                    }
+                                                                                                    valuesToHighlight={highlightSourceTableValue(
+                                                                                                        key,
+                                                                                                        true
+                                                                                                    )}
                                                                                                     onHover={(val) =>
                                                                                                         handleValueHover(
                                                                                                             "table",
-                                                                                                            val,
-                                                                                                            i
+                                                                                                            i,
+                                                                                                            {
+                                                                                                                path: key,
+                                                                                                                isSourceEntity:
+                                                                                                                    true,
+                                                                                                                value: val,
+                                                                                                            }
                                                                                                         )
                                                                                                     }
                                                                                                     exampleValues={
@@ -796,18 +855,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                             exampleValues={
                                                                                                 <ActiveLearningValueExamples
                                                                                                     interactive
-                                                                                                    valuesToHighlight={
-                                                                                                        new Set([
-                                                                                                            tableValueQuery.get(
-                                                                                                                i
-                                                                                                            ) ?? "",
-                                                                                                        ])
-                                                                                                    }
+                                                                                                    valuesToHighlight={highlightSourceTableValue(
+                                                                                                        key,
+                                                                                                        false
+                                                                                                    )}
                                                                                                     onHover={(val) =>
                                                                                                         handleValueHover(
                                                                                                             "table",
-                                                                                                            val,
-                                                                                                            i
+                                                                                                            i,
+                                                                                                            {
+                                                                                                                path: key,
+                                                                                                                isSourceEntity:
+                                                                                                                    false,
+                                                                                                                value: val,
+                                                                                                            }
                                                                                                         )
                                                                                                     }
                                                                                                     exampleValues={
