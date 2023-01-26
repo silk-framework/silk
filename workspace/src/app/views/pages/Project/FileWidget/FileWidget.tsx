@@ -20,6 +20,7 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
+    HelperClasses,
 } from "@eccenca/gui-elements";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
@@ -144,7 +145,14 @@ export const FileWidget = () => {
                                                                     ? file[property.mainKey]
                                                                     : file[property.key];
                                                             return (
-                                                                <TableCell key={property.key}>
+                                                                <TableCell
+                                                                    key={property.key}
+                                                                    className={
+                                                                        property.key === "name"
+                                                                            ? HelperClasses.Typography.FORCELINEBREAK
+                                                                            : ""
+                                                                    }
+                                                                >
                                                                     {property.highlighted ? (
                                                                         <Highlighter
                                                                             label={value}
