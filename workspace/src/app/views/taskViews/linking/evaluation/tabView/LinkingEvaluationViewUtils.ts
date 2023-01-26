@@ -1,7 +1,14 @@
 import fetch from "../../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../../../services/fetch/responseInterceptor";
-import { EvaluationLinkInputValue, LinkingEvaluationResult, LinkStats, ReferenceLinkType } from "./typings";
+import {
+    EvaluationLinkInputValue,
+    LinkEvaluationFilters,
+    LinkEvaluationSortBy,
+    LinkingEvaluationResult,
+    LinkStats,
+    ReferenceLinkType,
+} from "./typings";
 import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
@@ -37,15 +44,6 @@ export const getEvaluatedLinks = async (
             includeReferenceLinks,
         },
     });
-
-type LinkEvaluationFilters = "positiveLinks" | "negativeLinks";
-type LinkEvaluationSortBy =
-    | "scoreAsc"
-    | "scoreDesc"
-    | "sourceEntityAsc"
-    | "sourceEntityDesc"
-    | "targetEntityAsc"
-    | "targetEntityDesc";
 
 //update reference link state to either positive, negative or unlabelled
 export const updateReferenceLink = async (

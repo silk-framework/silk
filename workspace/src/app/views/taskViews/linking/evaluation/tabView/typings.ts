@@ -44,3 +44,27 @@ export interface HoveredValuedType {
     isSourceEntity: boolean;
     value: string;
 }
+
+export enum LinkEvaluationFilters {
+    positive = "positiveLinks",
+    negative = "negativeLinks",
+}
+
+export const LinkEvaluationSortByObj = {
+    DESC: {
+        source: "sourceEntityDesc",
+        confidence: "scoreDesc",
+        target: "targetEntityDesc",
+    },
+    ASC: {
+        source: "sourceEntityAsc",
+        confidence: "scoreAsc",
+        target: "targetEntityAsc",
+    },
+} as const;
+
+type linkSortByOrderType = keyof typeof LinkEvaluationSortByObj;
+
+type linkSortByKeyType = keyof typeof LinkEvaluationSortByObj[linkSortByOrderType];
+
+export type LinkEvaluationSortBy = typeof LinkEvaluationSortByObj[linkSortByOrderType][linkSortByKeyType];

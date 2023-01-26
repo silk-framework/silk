@@ -19,7 +19,7 @@ import {
     OverviewItemActions,
     Switch,
     ContextMenu,
-    MenuItem,
+    OverviewItemList,
     DataTable,
     TableExpandRow,
     TableExpandedRow,
@@ -33,6 +33,7 @@ import {
     TableExpandHeader,
     Spinner,
     Highlighter,
+    Checkbox,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -48,6 +49,9 @@ import {
 import {
     EvaluationLinkInputValue,
     HoveredValuedType,
+    LinkEvaluationFilters,
+    LinkEvaluationSortBy,
+    LinkEvaluationSortByObj,
     LinkingEvaluationResult,
     LinkStats,
     NodePath,
@@ -66,6 +70,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { debounce } from "lodash";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
+import { SortRowData } from "carbon-components-react";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -113,6 +118,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
     const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
     const [searchQuery, setSearchQuery] = React.useState<string>("");
+    const [linkStateFilters, setLinkStateFilters] = React.useState<Map<LinkEvaluationFilters, boolean>>(new Map());
+    const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
     const [updateCounter, setUpdateCounter] = React.useState<number>(0);
 
     //fetch operator plugins
@@ -123,11 +130,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     }, []);
 
     const debouncedInit = React.useCallback(
-        debounce(async (pagination, searchQuery, taskEvaluationStatus) => {
+        debounce(async (pagination, searchQuery, taskEvaluationStatus, filters, linkSortBy) => {
             try {
                 setLoading(true);
                 if (taskEvaluationStatus === "Finished") {
-                    const results = (await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery))?.data;
+                    const results = (
+                        await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
+                    )?.data;
                     setEvaluationResults(results);
                     setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
                     setInputValuesExpansion(
@@ -154,12 +163,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         let shouldCancel = false;
 
         if (!shouldCancel) {
-            debouncedInit(pagination, searchQuery, taskEvaluationStatus);
+            debouncedInit(pagination, searchQuery, taskEvaluationStatus, [...linkStateFilters.keys()], linkSortBy);
         }
         return () => {
             shouldCancel = true;
         };
-    }, [pagination, taskEvaluationStatus, searchQuery, updateCounter]);
+    }, [pagination, taskEvaluationStatus, searchQuery, linkStateFilters.size, linkSortBy, updateCounter]);
 
     const handleAlwaysExpandSwitch = React.useCallback(
         (inputSwitch: "operator" | "inputValue") => {
@@ -415,8 +424,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         (id: string, index: number, tree: TreeNodeInfo, nodeData: Omit<HoveredValuedType, "value">) => {
             const linkToValueMap = linksToValueMap[index];
             if (linksToValueMap.length && linkToValueMap && nodeData) {
-                //if path === path from state and is sourceEntity matches and value matches
                 const currentHighlightedValue = treeValueQuery.get(index);
+                //if path === path from state and is sourceEntity matches and value matches
                 const isHighlightMatch = (val: string) =>
                     nodeData &&
                     currentHighlightedValue &&
@@ -490,6 +499,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             key: "target",
             header: t("linkingEvaluationTabView.table.header.target"),
         },
+        {
+            key: "confidence",
+            header: t("linkingEvaluationTabView.table.header.score"),
+        },
     ];
 
     const rowData = evaluationResults?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
@@ -548,6 +561,25 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         nrTargetEntities: 0,
         nrLinks: 0,
     };
+
+    const handleLinkFilterStateChange = React.useCallback(
+        (linkState: LinkEvaluationFilters, checked: boolean) =>
+            setLinkStateFilters((prev) => {
+                if (checked && !prev.has(linkState)) {
+                    return new Map([...prev, [linkState, true]]);
+                } else if (!checked && prev.has(linkState)) {
+                    prev.delete(linkState);
+                    return new Map([...prev]);
+                }
+                return prev;
+            }),
+        []
+    );
+
+    const handleRowSorting = React.useCallback((cellA, cellB, { sortDirection, sortStates, key }: SortRowData) => {
+        setLinkSortBy([LinkEvaluationSortByObj[sortDirection][key]]);
+        return 0;
+    }, []);
 
     return (
         <Grid
@@ -627,7 +659,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <GridRow>
                 <GridColumn>
                     {evaluationResults && evaluationResults.links.length && !loading ? (
-                        <DataTable rows={rowData} headers={headerData}>
+                        <DataTable rows={rowData} headers={headerData} sortRow={handleRowSorting}>
                             {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
                                 <TableContainer>
                                     <Table {...getTableProps()}>
@@ -647,9 +679,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     </TableHeader>
                                                 ))}
                                                 <TableHeader>
-                                                    <p>{t("linkingEvaluationTabView.table.header.score")}</p>
-                                                </TableHeader>
-                                                <TableHeader>
                                                     <OverviewItem>
                                                         <OverviewItemLine>
                                                             <p>
@@ -657,27 +686,39 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             </p>
                                                             <Spacing vertical size="tiny" />
                                                             <ContextMenu togglerElement="operation-filter">
-                                                                <MenuItem
-                                                                    data-test-id="search-item-copy-btn"
-                                                                    key="copy"
-                                                                    icon="state-confirmed"
-                                                                    onClick={() => {}}
-                                                                    text="Confirmed"
-                                                                />
-                                                                <MenuItem
-                                                                    data-test-id="search-item-copy-btn"
-                                                                    key="copy"
-                                                                    icon="item-question"
-                                                                    onClick={() => {}}
-                                                                    text="Uncertain"
-                                                                />
-                                                                <MenuItem
-                                                                    data-test-id="search-item-copy-btn"
-                                                                    key="copy"
-                                                                    icon="state-declined"
-                                                                    onClick={() => {}}
-                                                                    text="Declined"
-                                                                />
+                                                                <Spacing size="tiny" />
+                                                                <OverviewItemList hasSpacing densityHigh>
+                                                                    <OverviewItemLine>
+                                                                        <Spacing size="tiny" vertical />
+                                                                        <Checkbox
+                                                                            label="Confirmed"
+                                                                            checked={linkStateFilters.has(
+                                                                                LinkEvaluationFilters.positive
+                                                                            )}
+                                                                            onChange={(checked) =>
+                                                                                handleLinkFilterStateChange(
+                                                                                    LinkEvaluationFilters.positive,
+                                                                                    checked.currentTarget.checked
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </OverviewItemLine>
+                                                                    <OverviewItemLine>
+                                                                        <Spacing size="tiny" vertical />
+                                                                        <Checkbox
+                                                                            label="Declined"
+                                                                            checked={linkStateFilters.has(
+                                                                                LinkEvaluationFilters.negative
+                                                                            )}
+                                                                            onChange={(checked) =>
+                                                                                handleLinkFilterStateChange(
+                                                                                    LinkEvaluationFilters.negative,
+                                                                                    checked.currentTarget.checked
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </OverviewItemLine>
+                                                                </OverviewItemList>
                                                             </ContextMenu>
                                                         </OverviewItemLine>
                                                     </OverviewItem>
@@ -710,17 +751,23 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 ariaLabel="Links expansion"
                                                                 className="linking-evaluation__row-item"
                                                             >
-                                                                {row.cells.map((cell) => (
-                                                                    <TableCell key={cell.id}>
-                                                                        <Highlighter
-                                                                            label={cell.value}
-                                                                            searchValue={searchQuery}
-                                                                        />
-                                                                    </TableCell>
-                                                                ))}
-                                                                <TableCell>
-                                                                    <ConfidenceValue value={currentLink.confidence} />
-                                                                </TableCell>
+                                                                {row.cells.map((cell) => {
+                                                                    const [, rowKey] = cell.id.split(":");
+                                                                    return rowKey === "confidence" ? (
+                                                                        <TableCell>
+                                                                            <ConfidenceValue
+                                                                                value={currentLink.confidence}
+                                                                            />
+                                                                        </TableCell>
+                                                                    ) : (
+                                                                        <TableCell key={rowKey}>
+                                                                            <Highlighter
+                                                                                label={cell.value}
+                                                                                searchValue={searchQuery}
+                                                                            />
+                                                                        </TableCell>
+                                                                    );
+                                                                })}
                                                                 <TableCell>
                                                                     <OverviewItem>
                                                                         {linkStateButtons.map(
