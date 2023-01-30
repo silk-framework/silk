@@ -11,10 +11,9 @@ import {
     Highlighter,
     IActivityStatus,
     IconButton,
+    MenuItem,
     Notification,
     OverviewItem,
-    OverviewItemLine,
-    OverviewItemList,
     SearchField,
     Spacing,
     Spinner,
@@ -669,47 +668,38 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             </TableHeader>
                                         ))}
                                         <TableHeader>
-                                            <OverviewItem>
-                                                <OverviewItemLine>
-                                                    <p>{t("linkingEvaluationTabView.table.header.linkState")}</p>
-                                                    <Spacing vertical size="tiny" />
-                                                    <ContextMenu togglerElement="operation-filter">
-                                                        <Spacing size="tiny" />
-                                                        <OverviewItemList hasSpacing densityHigh>
-                                                            <OverviewItemLine>
-                                                                <Spacing size="tiny" vertical />
-                                                                <Checkbox
-                                                                    label="Confirmed"
-                                                                    checked={linkStateFilters.has(
-                                                                        LinkEvaluationFilters.positive
-                                                                    )}
-                                                                    onChange={(checked) =>
-                                                                        handleLinkFilterStateChange(
-                                                                            LinkEvaluationFilters.positive,
-                                                                            checked.currentTarget.checked
-                                                                        )
-                                                                    }
-                                                                />
-                                                            </OverviewItemLine>
-                                                            <OverviewItemLine>
-                                                                <Spacing size="tiny" vertical />
-                                                                <Checkbox
-                                                                    label="Declined"
-                                                                    checked={linkStateFilters.has(
-                                                                        LinkEvaluationFilters.negative
-                                                                    )}
-                                                                    onChange={(checked) =>
-                                                                        handleLinkFilterStateChange(
-                                                                            LinkEvaluationFilters.negative,
-                                                                            checked.currentTarget.checked
-                                                                        )
-                                                                    }
-                                                                />
-                                                            </OverviewItemLine>
-                                                        </OverviewItemList>
-                                                    </ContextMenu>
-                                                </OverviewItemLine>
-                                            </OverviewItem>
+                                            {t("linkingEvaluationTabView.table.header.linkState")}
+                                            <Spacing vertical size="tiny" />
+                                            <ContextMenu togglerElement="operation-filter">
+                                                <MenuItem
+                                                    text={"Confirmed"}
+                                                    icon={
+                                                        linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                            ? "state-checked"
+                                                            : "state-unchecked"
+                                                    }
+                                                    onClick={() => {
+                                                        handleLinkFilterStateChange(
+                                                            LinkEvaluationFilters.positive,
+                                                            !linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                        );
+                                                    }}
+                                                />
+                                                <MenuItem
+                                                    text={"Declined"}
+                                                    icon={
+                                                        linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                            ? "state-checked"
+                                                            : "state-unchecked"
+                                                    }
+                                                    onClick={() => {
+                                                        handleLinkFilterStateChange(
+                                                            LinkEvaluationFilters.negative,
+                                                            !linkStateFilters.has(LinkEvaluationFilters.negative)
+                                                        );
+                                                    }}
+                                                />
+                                            </ContextMenu>
                                         </TableHeader>
                                     </TableRow>
                                 </TableHead>
