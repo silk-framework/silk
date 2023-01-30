@@ -1,6 +1,5 @@
 import {
     ActivityControlWidget,
-    Checkbox,
     ConfidenceValue,
     ContextMenu,
     DataTable,
@@ -13,7 +12,6 @@ import {
     IconButton,
     MenuItem,
     Notification,
-    OverviewItem,
     SearchField,
     Spacing,
     Spinner,
@@ -82,9 +80,9 @@ const operatorInputMapping = {
 };
 
 const linkStateButtons = [
-    { icon: "state-confirmed", hasStateSuccess: true, name: "positive" },
-    { icon: "item-question", name: "unlabeled" },
-    { icon: "state-declined", hasStateDanger: true, name: "negative" },
+    { icon: "state-confirmed", hasStateSuccess: true, linkType: "positive", tooltip: "Confirm" },
+    { icon: "item-question", linkType: "unlabeled", tooltip: "Uncertain" },
+    { icon: "state-declined", hasStateDanger: true, linkType: "negative", tooltip: "Decline" },
 ] as const;
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
@@ -688,7 +686,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 <MenuItem
                                                     text={"Declined"}
                                                     icon={
-                                                        linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                        linkStateFilters.has(LinkEvaluationFilters.negative)
                                                             ? "state-checked"
                                                             : "state-unchecked"
                                                     }
@@ -745,30 +743,30 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             );
                                                         })}
                                                         <TableCell>
-                                                            <OverviewItem>
-                                                                {linkStateButtons.map(
-                                                                    ({ name, icon, ...otherProps }, i) => (
-                                                                        <React.Fragment key={icon}>
-                                                                            <IconButton
-                                                                                name={icon}
-                                                                                active={currentLink.decision === name}
-                                                                                onClick={() =>
-                                                                                    handleReferenceLinkTypeUpdate(
-                                                                                        currentLink.decision,
-                                                                                        name,
-                                                                                        currentLink.source,
-                                                                                        currentLink.target
-                                                                                    )
-                                                                                }
-                                                                                {...otherProps}
-                                                                            />
-                                                                            {i === linkStateButtons.length - 1 && (
-                                                                                <Spacing vertical size="tiny" />
-                                                                            )}
-                                                                        </React.Fragment>
-                                                                    )
-                                                                )}
-                                                            </OverviewItem>
+                                                            {linkStateButtons.map(
+                                                                ({ linkType, icon, ...otherProps }, i) => (
+                                                                    <React.Fragment key={icon}>
+                                                                        <IconButton
+                                                                            name={icon}
+                                                                            //active={currentLink.decision === name}
+                                                                            onClick={() =>
+                                                                                handleReferenceLinkTypeUpdate(
+                                                                                    currentLink.decision,
+                                                                                    linkType,
+                                                                                    currentLink.source,
+                                                                                    currentLink.target
+                                                                                )
+                                                                            }
+                                                                            {...otherProps}
+                                                                            outlined={currentLink.decision !== linkType}
+                                                                            minimal={false}
+                                                                        />
+                                                                        {i !== linkStateButtons.length - 1 && (
+                                                                            <Spacing vertical size="tiny" />
+                                                                        )}
+                                                                    </React.Fragment>
+                                                                )
+                                                            )}
                                                         </TableCell>
                                                     </TableExpandRow>
                                                 )}
