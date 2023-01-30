@@ -36,7 +36,7 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[CustomTask], resources: ResourceManager): Unit = {
+  override def writeTask(task: Task[CustomTask], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     val taskXml = XmlSerialization.toXml(task)
     resources.get(task.id.toString + ".xml").write() { os =>
       val out = new OutputStreamWriter(os, "UTF-8")

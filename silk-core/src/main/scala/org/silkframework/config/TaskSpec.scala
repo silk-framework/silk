@@ -54,7 +54,7 @@ trait TaskSpec {
     * Retrieves a list of properties to be displayed to the user.
     * @return Properties as key-value pairs.
     */
-  def properties(implicit prefixes: Prefixes): Seq[(String, String)] = Seq.empty
+  def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = Seq.empty
 
   /**
     * Creates a new instance of this task with updated properties.

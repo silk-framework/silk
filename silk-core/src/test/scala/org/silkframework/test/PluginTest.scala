@@ -1,10 +1,9 @@
 package org.silkframework.test
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
-
 import org.scalatest.{FlatSpec, _}
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 
 /**
   * Can be mixed in into a test to check for basic properties of a plugin.
@@ -29,7 +28,7 @@ abstract class PluginTest extends FlatSpec with Matchers {
 
   it should "be a valid plugin" in {
     // Will throw an exception if the plugin is invalid
-    PluginRegistry.reflect(obj)(Prefixes.empty)
+    PluginRegistry.reflect(obj)(PluginContext.empty)
   }
 
   private def serialize(obj: Any) = {

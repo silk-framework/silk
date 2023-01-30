@@ -109,9 +109,9 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     plugins.values.toSeq.flatMap(plugin => plugin.loadTasks(resources.child(project).child(plugin.prefix), projectResources).asInstanceOf[Seq[LoadedTask[_ <: TaskSpec]]])
   }
 
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResourceManager: ResourceManager)
                                                 (implicit userContext: UserContext): Unit = {
-    plugin[T].writeTask(task, resources.child(project).child(plugin[T].prefix))
+    plugin[T].writeTask(task, resources.child(project).child(plugin[T].prefix), projectResourceManager)
   }
 
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
@@ -164,7 +164,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   }
 
   private def updateTags(project: Identifier, tags: Iterable[Tag]): Unit = {
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node]()
+    implicit val writeContext: WriteContext[Node] = WriteContext.empty[Node]
     val tagXml =
       <Tags>
         { tags.map(TagXmlFormat.write) }

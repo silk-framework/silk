@@ -356,7 +356,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                         )
                         activityInstance: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val (activity, activityLabel) = activityControl(projectName, taskName, activityName, activityInstance)
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
 
     Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activityLabel, activity.startTime).write(activity.status()))
   }
@@ -497,7 +497,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                  schema = new Schema(implementation = classOf[String])
                                )
                                timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
     val activities = allActivities(projectName, taskName, activityName)
     val startTime = System.currentTimeMillis()
 
@@ -567,7 +567,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                  schema = new Schema(implementation = classOf[String])
                                )
                                timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
     val activities = allActivities(projectName, taskName, activityName)
     val startTime = System.currentTimeMillis()
 
@@ -633,7 +633,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      activityInstance: String): WebSocket = {
 
     implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
 
     val activities = allActivities(projectName, taskName, activityName)
     val sources =
@@ -702,7 +702,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      minIntervalMs: Int): WebSocket = {
 
     implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
 
     val activities = allActivities(projectName, taskName, activityName)
     val sources =

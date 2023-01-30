@@ -132,7 +132,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
              withLabels: Boolean): Action[AnyContent] = Action { implicit request =>
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
-        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+        implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
         var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
           taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
         val autoConfigurable = classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(pluginDesc.pluginClass)
@@ -277,7 +277,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)
     }
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
       val withTaskType = PluginApiCache.taskType(pluginId) match {

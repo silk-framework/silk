@@ -26,7 +26,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(data: Task[TransformSpec], resources: ResourceManager): Unit = {
+  override def writeTask(data: Task[TransformSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     val taskResources = resources.child(data.id)
 
     //Don't use any prefixes

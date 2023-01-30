@@ -102,7 +102,7 @@ object JsonSerializer {
 
 
   def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
     new ExtendedStatusJsonFormat(activity).write(activity.status())
   }
 

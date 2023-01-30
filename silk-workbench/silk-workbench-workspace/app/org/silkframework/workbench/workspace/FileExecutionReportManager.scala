@@ -63,7 +63,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
   }
 
   override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit = synchronized {
-    implicit val wc = WriteContext[JsValue]()
+    implicit val wc = WriteContext.empty[JsValue]
     val reportJson = reportJsonFormat.write(report)
 
     removeOldReports(retentionTime)

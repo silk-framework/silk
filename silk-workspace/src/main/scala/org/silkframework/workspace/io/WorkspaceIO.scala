@@ -42,8 +42,9 @@ object WorkspaceIO {
     outputWorkspace.putProject(updatedProjectConfig)
     val tags = inputWorkspace.readTags(updatedProjectConfig.id)
     outputWorkspace.putTags(updatedProjectConfig.id, tags)
-    for(input <- inputResources; output <- outputResources)
+    for(input <- inputResources; output <- outputResources) {
       copyResources(input, output)
+    }
     val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager()))
     copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
@@ -76,7 +77,7 @@ object WorkspaceIO {
     for(taskTry <- inputWorkspace.readTasks[T](projectName, resources)) {
       taskTry.taskOrError match {
         case Right(task) =>
-          outputWorkspace.putTask(projectName, task)
+          outputWorkspace.putTask(projectName, task, resources)
         case Left(taskLoadingError) =>
           outputWorkspace.retainExternalTaskLoadingError(projectName, taskLoadingError)
           log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + taskLoadingError.throwable.getMessage)

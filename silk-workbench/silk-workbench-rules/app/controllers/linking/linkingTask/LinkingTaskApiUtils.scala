@@ -24,7 +24,7 @@ object LinkingTaskApiUtils {
                                                   sourcePathLabels: Map[String, String],
                                                   targetPathLabels: Map[String, String])
                                                  (implicit userContext: UserContext): JsObject = {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = linkingTask.project.config.prefixes, projectId = Some(linkingTask.project.config.id))
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.forProject[JsValue](linkingTask.project)
     implicit val workspace: Workspace = WorkspaceFactory().workspace
     implicit val project: Project = linkingTask.project
     // JSON only

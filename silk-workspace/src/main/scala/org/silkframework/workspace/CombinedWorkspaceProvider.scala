@@ -105,8 +105,8 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit = {
-    executeOnBackends(_.putTask(project, task), s"Adding/Updating task $task in project $project")
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResourceManager: ResourceManager)(implicit user: UserContext): Unit = {
+    executeOnBackends(_.putTask(project, task, projectResourceManager), s"Adding/Updating task $task in project $project")
   }
 
   /**

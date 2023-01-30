@@ -12,6 +12,9 @@ import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.Results.Ok
 import play.api.mvc._
 import Serialization.defaultMimeTypes
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.EmptyResourceManager
+
 import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
 
@@ -45,9 +48,11 @@ object SerializationUtils {
   private def createWriteContext(project: Option[Project]): WriteContext[Any] = {
     project match {
       case Some(proj) =>
-        WriteContext[Any](prefixes = proj.config.prefixes, projectId = Some(proj.config.id))
+        WriteContext[Any](prefixes = proj.config.prefixes, projectId = Some(proj.config.id), projectUri = proj.config.projectResourceUriOpt,
+          resources = proj.resources, user = UserContext.Empty
+        )
       case None =>
-        WriteContext[Any](prefixes = Prefixes.default, projectId = None)
+        WriteContext[Any](prefixes = Prefixes.default, projectId = None, resources = EmptyResourceManager(), user = UserContext.Empty)
     }
   }
 

@@ -187,7 +187,9 @@ object WorkflowOutput {
     }
   }
 
-  private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {
+  private def sinkToResourceMapping(sinks: Map[String, Dataset],
+                                    variableSinks: Seq[String])
+                                   (implicit pluginContext: PluginContext): Map[String, String] = {
     variableSinks.map(s =>
       s -> sinks.get(s).flatMap(_.parameters.get("file")).getOrElse(s + "_file_resource")
     ).toMap

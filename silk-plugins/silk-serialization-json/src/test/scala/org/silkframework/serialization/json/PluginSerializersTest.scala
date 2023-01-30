@@ -51,7 +51,7 @@ class PluginSerializersTest extends FlatSpec with MustMatchers {
 
   private def serialize(pluginClass: Class[_], markdown: Boolean = false, overviewOnly: Boolean = false, taskType: Option[String] = None): (JsObject, PluginDescription[_]) = {
     val pluginDescription = ClassPluginDescription(pluginClass)
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     val json = PluginSerializers.PluginListJsonFormat.serializePlugin(pluginDescription, markdown, overviewOnly, taskType, withLabels = false)
     (json, pluginDescription)
   }

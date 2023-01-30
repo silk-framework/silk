@@ -15,6 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.resource.{EmptyResourceManager, FallbackResourceManager, ResourceManager}
 
 /**
  * Plugin interface.
@@ -26,11 +27,16 @@ trait AnyPlugin {
    */
   @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = ClassPluginDescription(getClass)
 
+  def computeParameters(implicit pluginContext: PluginContext): Map[String, String] = {
+    pluginSpec.parameterValues(this)
+  }
+
   /**
    * The parameters for this plugin as Map.
    */
-  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
-
+    // TODO: Get rid of this?
+//  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(PluginContext.empty)
+    def parameters(implicit pluginContext: PluginContext): Map[String, String] = pluginSpec.parameterValues(this)
   /**
     * Creates a new instance of this plugin with updated properties.
     *
@@ -44,6 +50,12 @@ trait AnyPlugin {
   }
 
   override def toString: String = {
+    // FIXME: The toString method won't return correct paths
+    implicit val pluginContext: PluginContext = PluginContext(resources = AnyPlugin.dummyEmptyResourceManager)
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
   }
+}
+
+object AnyPlugin {
+  val dummyEmptyResourceManager: ResourceManager = FallbackResourceManager(EmptyResourceManager(), EmptyResourceManager(), writeIntoFallbackLoader = false)
 }

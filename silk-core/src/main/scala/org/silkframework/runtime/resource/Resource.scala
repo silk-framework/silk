@@ -2,6 +2,7 @@ package org.silkframework.runtime.resource
 
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
 import java.io.{ByteArrayOutputStream, File, InputStream}
@@ -203,4 +204,18 @@ object Resource {
     }
   }
 
+  private lazy val emptyResourceManagerSingleton = EmptyResourceManager()
+
+  /** The resource value. If the resource is part of a resource repository, the value is the path inside the repository, else the name. */
+  def serializeResourceValue(resource: Resource)(implicit pluginContext: PluginContext): String = {
+    val basePath = pluginContext.resources.basePath
+    if(pluginContext.resources == emptyResourceManagerSingleton) {
+      throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
+    }
+    if(resource.path.startsWith(basePath)) {
+      resource.path.stripPrefix(basePath).stripPrefix("/")
+    } else {
+      resource.name
+    }
+  }
 }

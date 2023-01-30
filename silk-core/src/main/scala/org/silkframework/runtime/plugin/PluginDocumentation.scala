@@ -85,7 +85,7 @@ object PluginDocumentation {
     parameter.defaultValue match {
       case Some(v) if v == null => "*null*"
       case Some(v) if v == "" => "*empty string*"
-      case Some(v) => paramType.toString(v)(Prefixes.empty)
+      case Some(v) => paramType.toString(v)(PluginContext.empty)
       case None => "*no default*"
     }
   }

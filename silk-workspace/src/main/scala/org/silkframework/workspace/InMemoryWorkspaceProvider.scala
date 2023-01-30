@@ -64,7 +64,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResourceManager: ResourceManager)
                                                 (implicit userContext: UserContext): Unit = {
     projects(project).tasks += ((task.id, LoadedTask.success(task)))
   }

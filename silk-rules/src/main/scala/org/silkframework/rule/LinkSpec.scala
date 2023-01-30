@@ -15,7 +15,6 @@
 package org.silkframework.rule
 
 import java.util.logging.Logger
-
 import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -25,7 +24,7 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.{IdentifierOptionParameter, PluginContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -133,7 +132,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   override def outputTasks: Set[Identifier] = output.value.toSet
 
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
     Seq(
       ("Source dataset", dataSelections.source.inputId.toString),
       ("Target dataset", dataSelections.target.inputId.toString),

@@ -7,6 +7,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{EntitySchema, Restriction}
+import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
@@ -36,11 +37,13 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   val CUSTOM_TASK_ID = "custom1"
   val NEW_PREFIX = "newPrefix"
   val DUMMY_DATASET = "dummy"
+  val hierarchicalFileDatasetId = "hierarchicalFileDataset"
 
   // Assume that tested workspace provider have no enabled authentication
   val emptyUserContext: UserContext = UserContext.Empty
 
-  val dummyDataset = MockDataset()
+  private val dummyDataset = MockDataset()
+  private lazy val fileBasedDatasetWithHierarchicalFilePath = CsvDataset(project(emptyUserContext).resources.getInPath("some/nested/file.csv"))
 
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
 
@@ -310,17 +313,24 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     PluginRegistry.registerPlugin(classOf[MockDataset])
     project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
-    workspaceProvider.putTask(PROJECT_NAME, dataset)
+    project.addTask[GenericDatasetSpec](hierarchicalFileDatasetId, DatasetSpec(fileBasedDatasetWithHierarchicalFilePath))
+    val projectFileManager = project.resources
+    workspaceProvider.putTask(PROJECT_NAME, dataset, projectFileManager)
     refreshTest {
       val tasks = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).map(_.task)
-      val ds = tasks.find(_.id.toString == DATASET_ID).get
-      ds shouldBe dataset
+      val das = tasks.find(_.id.toString == DATASET_ID).get
+      das shouldBe dataset
+      val ds = tasks.find(_.id.toString == DUMMY_DATASET).get
+      ds.data.plugin shouldBe dummyDataset
+      val hs = tasks.find(_.id.toString == hierarchicalFileDatasetId).get
+      val hsCsvDataset = hs.data.plugin.asInstanceOf[CsvDataset]
+      hsCsvDataset.file.path shouldBe fileBasedDatasetWithHierarchicalFilePath.file.path
     }
   }
 
   it should "update dataset tasks" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, datasetUpdated, projectResources)
     refreshTest {
       val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).find(_.task.id.toString == DATASET_ID).get.task
       ds shouldBe datasetUpdated
@@ -353,7 +363,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   it should "read and write transformation tasks" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, transformTask)
+    workspaceProvider.putTask(PROJECT_NAME, transformTask, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(transformTask)
     }
@@ -361,7 +371,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   it should "update transformation tasks" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(transformTaskUpdated)
     }
@@ -382,7 +392,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   it should "update hierarchical transformation tasks" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, transformTaskHierarchical)
+    workspaceProvider.putTask(PROJECT_NAME, transformTaskHierarchical, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(transformTaskHierarchical)
     }
@@ -391,7 +401,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   it should "read and write workflows" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, miniWorkflow)
+    workspaceProvider.putTask(PROJECT_NAME, miniWorkflow, projectResources)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(miniWorkflow)
     }
@@ -399,7 +409,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   it should "update workflow task correctly" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, miniWorkflowUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, miniWorkflowUpdated, projectResources)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(miniWorkflowUpdated)
     }
@@ -407,7 +417,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   it should "read and write Custom tasks" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.putTask(PROJECT_NAME, customTask)
+    workspaceProvider.putTask(PROJECT_NAME, customTask, projectResources)
     refreshTest {
       workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(customTask)
     }
@@ -474,7 +484,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[GenericDatasetSpec](PROJECT_NAME, DATASET_ID)
     refreshTest {
-      workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).map(_.task.id.toString) shouldBe Seq(DUMMY_DATASET)
+      workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).map(_.task.id.toString) shouldBe Seq(DUMMY_DATASET, hierarchicalFileDatasetId)
     }
   }
 
@@ -566,7 +576,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
           tags = Set("urn:tag2", "urn:tag1")
         )
     )
-    workspaceProvider.putTask(PROJECT_NAME, taskWithTag)
+    workspaceProvider.putTask(PROJECT_NAME, taskWithTag, projectResources)
     refreshTest {
       workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(taskWithTag)
     }

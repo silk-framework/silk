@@ -72,7 +72,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   def serializeThrowable(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializer
     try {
-      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext())
+      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext.empty)
       val res = serializer.read(nde)(ReadContext())
       res
     }
@@ -89,7 +89,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   def serializeThrowableJson(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializerJson
     try {
-      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext())
+      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext.empty)
       val res = serializer.read(nde)(ReadContext())
       res
     }

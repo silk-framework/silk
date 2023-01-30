@@ -139,20 +139,21 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     for(outputResources <- exportToResources) {
       copyResources(resources, outputResources)
     }
+    val serializationResourceManager = exportToResources.getOrElse(resources)
     for(dataset <- project.tasks[DatasetSpec[Dataset]]) {
-      outputWorkspaceProvider.putTask(projectId, dataset)
+      outputWorkspaceProvider.putTask(projectId, dataset, serializationResourceManager)
     }
     for(transformTask <- project.tasks[TransformSpec]) {
-      outputWorkspaceProvider.putTask(projectId, transformTask)
+      outputWorkspaceProvider.putTask(projectId, transformTask, serializationResourceManager)
     }
     for(task <- project.tasks[LinkSpec]) {
-      outputWorkspaceProvider.putTask(projectId, task)
+      outputWorkspaceProvider.putTask(projectId, task, serializationResourceManager)
     }
     for(task <- project.tasks[Workflow]) {
-      outputWorkspaceProvider.putTask(projectId, task)
+      outputWorkspaceProvider.putTask(projectId, task, serializationResourceManager)
     }
     for(task <- project.tasks[CustomTask]) {
-      outputWorkspaceProvider.putTask(projectId, task)
+      outputWorkspaceProvider.putTask(projectId, task, serializationResourceManager)
     }
   }
 }

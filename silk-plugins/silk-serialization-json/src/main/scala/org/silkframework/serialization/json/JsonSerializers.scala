@@ -1160,7 +1160,7 @@ object JsonSerializers {
 
     private def writeTaskProperties(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsArray(
-        for((key, value) <- task.data.properties(writeContext.prefixes)) yield {
+        for((key, value) <- task.data.properties) yield {
           Json.obj(KEY -> key, VALUE -> value)
         }
       )
@@ -1418,7 +1418,7 @@ object JsonSerializers {
     }
   }
 
-  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = None)): JsValue = {
+  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]): JsValue = {
     format.write(value)
   }
 

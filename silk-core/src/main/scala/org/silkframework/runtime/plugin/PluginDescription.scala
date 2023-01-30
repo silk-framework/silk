@@ -46,7 +46,7 @@ trait PluginDescription[+T] {
   /**
     * Retrieves the parameters values of a given plugin instance.
     */
-  def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String] = {
+  def parameterValues(plugin: AnyRef)(implicit pluginContext: PluginContext): Map[String, String] = {
     parameters.map(param => (param.name, param.stringValue(plugin))).toMap
   }
 

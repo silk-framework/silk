@@ -59,8 +59,13 @@ trait WorkspaceProvider {
 
   /**
    * Adds/Updates a task in a project.
+    *
+    * @param projectResourceManager The resource manager that is used to serialize the path of project resources correctly.
    */
-  def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit
+  def putTask[T <: TaskSpec : ClassTag](project: Identifier,
+                                        task: Task[T],
+                                        projectResourceManager: ResourceManager)
+                                       (implicit user: UserContext): Unit
 
   /**
    * Deletes a task from a project.

@@ -61,7 +61,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   /**
    * Writes an updated task.
    */
-  def writeTask(data: Task[LinkSpec], resources: ResourceManager): Unit = {
+  def writeTask(data: Task[LinkSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     //Don't use any prefixes
     implicit val prefixes = Prefixes.empty
 

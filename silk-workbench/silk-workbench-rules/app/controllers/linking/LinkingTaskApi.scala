@@ -626,8 +626,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
   private def serializeLinks(entities: Traversable[DPair[Entity]],
                              linkageRule: LinkageRule,
-                             withEntitiesAndSchema: Boolean = false): JsValue = {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+                             withEntitiesAndSchema: Boolean = false)
+                            (implicit writeContext: WriteContext[JsValue]): JsValue = {
     JsArray(
       for(entities <- entities.toSeq) yield {
         val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
@@ -687,6 +687,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
     val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
 
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.forProject[JsValue](project)
     val result =
       Json.obj(
         "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, withEntitiesAndSchema),
@@ -735,6 +736,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
+      implicit val writeContext: WriteContext[JsValue] = WriteContext.forProject[JsValue](project)
       def serialize(links: Traversable[DPair[Entity]]): JsValue = {
         serializeLinks(links.take(linkLimit), linkageRule)
       }
@@ -918,7 +920,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       control.value.get match {
         case Some(linking) =>
           val linkJsonFormat = new LinkJsonFormat(Some(linking.rule))
-          implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+          implicit val writeContext: WriteContext[JsValue] = WriteContext.forProject[JsValue](project)
           Ok(JsArray(
             for(link <- linking.links) yield {
               linkJsonFormat.write(link)
@@ -987,7 +989,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     evaluationActivity.value.get match {
       case Some(evaluationResult) =>
         val linkJsonFormat = new LinkJsonFormat(Some(task.data.rule))
-        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
+        implicit val writeContext: WriteContext[JsValue] = WriteContext.forProject[JsValue](project)
         val links = evaluationResult.links.slice(offset, offset + limit)
           .map(link => linkJsonFormat.write(link))
         Ok(Json.obj(
