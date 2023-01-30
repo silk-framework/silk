@@ -1,5 +1,7 @@
 package controllers.transform.autoCompletion
 
+import controllers.autoCompletion
+import controllers.autoCompletion.{Completion, CompletionBase, Completions}
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetCharacteristics
@@ -129,7 +131,7 @@ object PartialSourcePathAutocompletionHelper {
     }
   }
 
-  private implicit def createCompletion(completions: Seq[Completion]): Completions = Completions(completions)
+  private implicit def createCompletion(completions: Seq[Completion]): Completions = autoCompletion.Completions(completions)
 
   /** Returns completions for path operators. */
   def operatorCompletions(dataSourceCharacteristicsOpt: Option[DatasetCharacteristics],

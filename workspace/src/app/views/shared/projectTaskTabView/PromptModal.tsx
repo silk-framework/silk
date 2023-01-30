@@ -19,10 +19,10 @@ const PromptModal: React.FC<PromptModalProps> = ({ onClose, isOpen, proceed }) =
             onClose={onClose}
             intent="warning"
             actions={[
-                <Button disruptive={true} onClick={proceed}>
+                <Button key="proceed" disruptive={true} onClick={proceed}>
                     {t("common.action.proceed")}
                 </Button>,
-                <Button onClick={onClose} id="prompt-cancel">
+                <Button key="cancel" onClick={onClose} id="prompt-cancel">
                     {t("common.action.cancel")}
                 </Button>,
             ]}

@@ -16,17 +16,14 @@ import {
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests, {
-    autoCompleteLinkingInputPaths,
-    fetchLinkSpec,
-    updateLinkageRule,
-} from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
 import { IStickyNote } from "../shared/task.typings";
+import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -63,9 +60,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const prefLang = useSelector(commonSel.localeSelector);
-    // Label for source paths
-    const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
-    const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
+    // Label for input paths
+    const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
+    const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -73,12 +70,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const optionalContext = React.useContext(LinkingRuleEditorOptionalContext);
 
     React.useEffect(() => {
-        fetchLabels("source");
-        fetchLabels("target");
+        fetchPaths("source");
+        fetchPaths("target");
     }, [projectId, linkingTaskId, prefLang]);
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
-    const fetchLabels = async (sourceOrTarget: "source" | "target") => {
+    const fetchPaths = async (sourceOrTarget: "source" | "target") => {
         const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
             projectId,
             linkingTaskId,
@@ -86,19 +83,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             true,
             prefLang
         );
-        let labelMap = sourcePathLabels;
         if (sourceOrTarget === "source") {
-            sourcePathLabels.clear();
+            sourcePathLabels.current = paths.data as PathWithMetaData[];
         } else {
-            targetPathLabels.clear();
-            labelMap = targetPathLabels;
+            targetPathLabels.current = paths.data as PathWithMetaData[];
         }
-        paths.data.forEach((path) => {
-            if ((path as PathWithMetaData)?.label) {
-                const pathWithMetaData = path as PathWithMetaData;
-                labelMap.set(pathWithMetaData.value, pathWithMetaData.label!!);
-            }
-        });
     };
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
@@ -121,21 +110,18 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const inputPathAutoCompletion =
         (inputType: "source" | "target") =>
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
-            try {
-                const response = await autoCompleteLinkingInputPaths(projectId, linkingTaskId, inputType, term, limit);
-                const results = response.data;
-                if (term.trim() === "") {
-                    results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
-                }
-                return results;
-            } catch (err) {
-                registerError(
-                    "LinkingRuleEditor_inputPathAutoCompletion",
-                    t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
-                    err
-                );
-                return [];
+            let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
+                inputType === "source" ? sourcePathLabels.current : targetPathLabels.current;
+            const searchWords = extractSearchWords(term, true);
+            if (searchWords.length) {
+                results = results.filter((path) => {
+                    const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
+                    return matchesAllWords(searchText, searchWords);
+                });
+            } else if (results[0]?.value !== "") {
+                results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
             }
+            return results.slice(0, limit);
         };
 
     /** Fetches the list of operators that can be used in a linking task. */
@@ -294,11 +280,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     ruleUtils.sidebarTabs.aggregation,
                 ]}
                 additionalToolBarComponents={() => [
-                    <LinkingRuleCacheInfo projectId={projectId} taskId={linkingTaskId} />,
+                    <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />,
                 ]}
                 showRuleOnly={!!optionalContext.showRuleOnly}
                 hideMinimap={!!optionalContext.hideMinimap}
-                zoomRange={optionalContext.zoomRange}
+                zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                 instanceId={instanceId}
             />

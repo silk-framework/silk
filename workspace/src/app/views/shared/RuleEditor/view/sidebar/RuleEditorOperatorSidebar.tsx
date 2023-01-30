@@ -19,6 +19,11 @@ import { commonSel } from "@ducks/common";
 import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import ruleEditorUtils from "../../RuleEditor.utils";
 
+type PreConfiguredOperatorConfig = IPreConfiguredOperators<any> & {
+    itemSearchText: (listItem: any) => string;
+    itemLabel: (listItem: any) => string;
+};
+
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
     const editorContext = React.useContext(RuleEditorContext);
@@ -39,34 +44,38 @@ export const RuleEditorOperatorSidebar = () => {
     /** Pre-configured operators */
     const [preConfiguredOperatorListLoading, setPreConfiguredOperatorListLoading] = React.useState(false);
     const [preConfiguredOperators, setPreconfiguredOperators] = React.useState<
-        | (IPreConfiguredOperators<any> & {
-              itemSearchText: (listItem: any) => string;
-              itemLabel: (listItem: any) => string;
-          })
-        | undefined
+        PreConfiguredOperatorConfig[] | undefined
     >(undefined);
     const [filteredPreConfiguredOperators, setFilteredPreConfiguredOperators] = React.useState<
-        IPreConfiguredOperators<any> | undefined
+        IPreConfiguredOperators<any>[] | undefined
     >(undefined);
+    /** Show pre-configured operators together with the operator list, but only when a search query is entered. */
+    const [showPreConfiguredOperatorsOnlyWithQuery, setShowPreConfiguredOperatorsOnlyWithQuery] = React.useState(false);
+
+    // All pre-configured tab configs
+    const preConfiguredOperatorTabs = (editorContext.tabs ?? []).filter(
+        (tabConfig) => !(tabConfig as IRuleSideBarFilterTabConfig).filterAndSort
+    ) as IRuleSidebarPreConfiguredOperatorsTabConfig[];
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
         const searchWords = extractSearchWords(textQuery);
-        if (preConfiguredOperators && !operatorList) {
-            if (searchWords.length > 0) {
-                const filteredOps = filterAndSortOperators(
-                    preConfiguredOperators.originalOperators,
-                    preConfiguredOperators.itemSearchText,
-                    preConfiguredOperators.itemLabel,
+        const filterPreConfiguredOperatorsBasedOnTextQuery = (
+            preConfiguredOperators: PreConfiguredOperatorConfig[]
+        ) => {
+            const filteredOps = preConfiguredOperators.map((preConfigured) => {
+                const filtered = filterAndSortOperators(
+                    preConfigured.originalOperators,
+                    preConfigured.itemSearchText,
+                    preConfigured.itemLabel,
                     () => [],
                     searchWords
                 );
-                setFilteredPreConfiguredOperators({ ...preConfiguredOperators, originalOperators: filteredOps });
-            } else {
-                setFilteredPreConfiguredOperators(preConfiguredOperators);
-            }
-            setFilteredOperators([]);
-        } else if (operatorList && !preConfiguredOperators) {
+                return { ...preConfigured, originalOperators: filtered };
+            });
+            setFilteredPreConfiguredOperators(filteredOps);
+        };
+        const filterOperatorList = (operatorList: IRuleOperator[]) => {
             if (searchWords.length > 0) {
                 setFilteredOperators(
                     filterAndSortOperators<IRuleOperator>(
@@ -84,9 +93,25 @@ export const RuleEditorOperatorSidebar = () => {
                 );
                 setFilteredOperators([...recommended, ...others]);
             }
+        };
+        if (preConfiguredOperators && !operatorList) {
+            if (searchWords.length > 0) {
+                filterPreConfiguredOperatorsBasedOnTextQuery(preConfiguredOperators);
+            } else {
+                setFilteredPreConfiguredOperators(preConfiguredOperators);
+            }
+            setFilteredOperators([]);
+        } else if (operatorList && !preConfiguredOperators) {
+            filterOperatorList(operatorList);
             setFilteredPreConfiguredOperators(undefined);
+        } else if (operatorList && preConfiguredOperators && showPreConfiguredOperatorsOnlyWithQuery) {
+            if (searchWords.length > 0) {
+                // Only show operators when a search query exists
+                filterPreConfiguredOperatorsBasedOnTextQuery(preConfiguredOperators);
+            }
+            filterOperatorList(operatorList);
         }
-    }, [textQuery, operatorList, preConfiguredOperators]);
+    }, [textQuery, operatorList, preConfiguredOperators, showPreConfiguredOperatorsOnlyWithQuery]);
 
     // Set active tab initially
     React.useEffect(() => {
@@ -120,41 +145,60 @@ export const RuleEditorOperatorSidebar = () => {
                         setOperatorList(filteredOperators);
                         extractOperatorCategories(filteredOperators);
                         setPreconfiguredOperators(undefined);
+                        if (filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery) {
+                            loadExternalOperators(preConfiguredOperatorTabs, true);
+                        }
+                        setShowPreConfiguredOperatorsOnlyWithQuery(
+                            filterTabConfig.showOperatorsFromPreConfiguredOperatorTabsForQuery
+                        );
                     } else {
                         const customTabConfig = tabConfig as IRuleSidebarPreConfiguredOperatorsTabConfig;
-                        loadExternalOperators(customTabConfig);
+                        loadExternalOperators([customTabConfig], false);
+                        setShowPreConfiguredOperatorsOnlyWithQuery(false);
                     }
                 }
             } else {
                 setOperatorList(editorContext.operatorList);
                 extractOperatorCategories(editorContext.operatorList);
             }
-            // Reset text query on tab change
-            setTextQuery("");
         }
-    }, [editorContext.operatorList, activeTabId]);
+    }, [editorContext.operatorList, activeTabId, prefLang]);
 
     // Load external operators
-    const loadExternalOperators = async (config: IRuleSidebarPreConfiguredOperatorsTabConfig) => {
+    const loadExternalOperators = async (
+        configs: IRuleSidebarPreConfiguredOperatorsTabConfig[],
+        mergeWithOperatorList: boolean
+    ) => {
         setPreConfiguredOperatorListLoading(true);
         try {
-            const originalOperators = await config.fetchOperators(prefLang);
-            setPreconfiguredOperators({
-                originalOperators: originalOperators ?? [],
-                isOriginalOperator: config.isOriginalOperator,
-                toPreConfiguredRuleOperator: config.convertToOperator,
-                // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
-                position: "top",
-                itemSearchText: config.itemSearchText,
-                itemLabel: config.itemLabel,
-                itemId: config.itemId,
+            const originalOperatorsPerConfig = await Promise.all(
+                configs.map((config) => config.fetchOperators(prefLang))
+            );
+            const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((originalOperators, idx) => {
+                const config = configs[idx];
+                const preConfiguredOperatorConfig: PreConfiguredOperatorConfig = {
+                    originalOperators: originalOperators ?? [],
+                    isOriginalOperator: config.isOriginalOperator,
+                    toPreConfiguredRuleOperator: config.convertToOperator,
+                    // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
+                    position: "bottom",
+                    itemSearchText: (item: any) => config.itemSearchText(item, mergeWithOperatorList),
+                    itemLabel: config.itemLabel,
+                    itemId: config.itemId,
+                };
+                return preConfiguredOperatorConfig;
             });
-            setOperatorList(undefined);
+            setPreconfiguredOperators(preConfiguredOperatorConfigs);
+            if (!mergeWithOperatorList) {
+                setOperatorList(undefined);
+            }
             operatorCategories.splice(0, operatorCategories.length);
         } catch (ex) {
             registerError(
                 "RuleEditorOperatorSidebar.loadExternalOperators",
-                t("taskViews.ruleEditor.errors.loadExternalOperators", { tabName: config.label }),
+                t("taskViews.ruleEditor.errors.loadExternalOperators", {
+                    tabName: configs.map((c) => c.label).join(", "),
+                }),
                 ex
             );
         } finally {
@@ -168,9 +212,9 @@ export const RuleEditorOperatorSidebar = () => {
         id: tab.id,
         title: (
             <TabTitle
-                text={tab.icon ? null : t("RuleEditor.sidebar.tab."+tab.id, tab.label)}
+                text={tab.icon ? null : t("RuleEditor.sidebar.tab." + tab.id, tab.label)}
                 titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
-                tooltip={tab.icon ? t("RuleEditor.sidebar.tab."+tab.id, tab.label) : undefined}
+                tooltip={tab.icon ? t("RuleEditor.sidebar.tab." + tab.id, tab.label) : undefined}
                 small
             />
         ),
@@ -219,6 +263,7 @@ export const RuleEditorOperatorSidebar = () => {
                             ruleOperatorList={filteredOperators}
                             textQuery={textQuery}
                             preConfiguredOperators={filteredPreConfiguredOperators}
+                            showPreconfiguredOperatorsOnlyWithQuery={showPreConfiguredOperatorsOnlyWithQuery}
                         />
                     </GridColumn>
                 </GridRow>

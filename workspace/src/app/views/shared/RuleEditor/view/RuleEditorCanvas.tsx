@@ -534,6 +534,10 @@ export const RuleEditorCanvas = () => {
                     minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
                     multiSelectionKeyCode={18} // ALT
+                    scrollOnDrag={{
+                        scrollStepSize: 0.1,
+                        scrollInterval: 50,
+                    }}
                 >
                     {!ruleEditorUiContext.hideMinimap && (
                         <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />

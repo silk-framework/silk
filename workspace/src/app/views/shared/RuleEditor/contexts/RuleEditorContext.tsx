@@ -89,7 +89,7 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     stickyNotes: [],
     showRuleOnly: false,
     hideMinimap: false,
-    zoomRange: [0.5, 1.5],
+    zoomRange: [0.25, 1.5],
     initialFitToViewZoomLevel: 0.75,
     instanceId: "uniqueId",
 });

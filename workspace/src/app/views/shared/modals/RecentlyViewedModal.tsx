@@ -6,7 +6,7 @@ import {
     Notification,
     OverflowText,
     OverviewItem,
-    OverviewItemDepiction,
+    Depiction,
     OverviewItemDescription,
     OverviewItemLine,
     SimpleDialog,
@@ -130,9 +130,12 @@ export function RecentlyViewedModal() {
                 hasSpacing
                 onClick={handleSelectClick}
             >
-                <OverviewItemDepiction>
-                    <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
-                </OverviewItemDepiction>
+                <Depiction
+                    image={<ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />}
+                    ratio="1:1"
+                    backgroundColor="dark"
+                    padding="medium"
+                />
                 <OverviewItemDescription style={{ maxWidth: "50vw" }}>
                     <OverviewItemLine>
                         <h4>
@@ -196,7 +199,11 @@ export function RecentlyViewedModal() {
             projectLabel: "",
             itemType: "",
             itemLinks: [
-                { id: "workspaceSearch", label: "Search workspace", path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)) },
+                {
+                    id: "workspaceSearch",
+                    label: "Search workspace",
+                    path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)),
+                },
             ],
         };
     };

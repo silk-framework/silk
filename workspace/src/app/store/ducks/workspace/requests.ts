@@ -12,6 +12,7 @@ import {
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -332,5 +333,21 @@ export const importExampleProjectRequest = async (): Promise<FetchResponse<void>
 export const requestProjectUri = async (projectId: string): Promise<FetchResponse<{ uri: string }>> => {
     return fetch({
         url: projectApi(`${projectId}/uri`),
+    });
+};
+
+/** Searches for properties in the global vocabulary cache. */
+export const requestSearchForGlobalVocabularyProperties = async (
+    textQuery: string,
+    limit: number,
+    projectId?: string
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: workspaceApi("vocabularies/property/search"),
+        query: {
+            textQuery,
+            limit,
+            projectId,
+        },
     });
 };

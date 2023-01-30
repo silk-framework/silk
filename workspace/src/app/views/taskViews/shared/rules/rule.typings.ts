@@ -54,6 +54,8 @@ export interface PathWithMetaData {
     label?: string;
     /** A human-readable type of the value of the path. */
     valueType: string;
+    /** Optional prefix to generate unique IDs for lists. */
+    _idPrefix?: string;
 }
 
 /** An entity. The basic item that is being processed and produced by most tasks. */

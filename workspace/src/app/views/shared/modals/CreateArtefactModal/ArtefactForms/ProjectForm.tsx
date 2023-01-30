@@ -1,13 +1,13 @@
 import React from "react";
-import { FieldItem, TextField, TextArea, MultiSelect } from "@eccenca/gui-elements";
+import { FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Keyword } from "@ducks/workspace/typings";
-import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { MultiTagSelect } from "../../../MultiTagSelect";
 
 interface IProps {
     form: any;
@@ -87,25 +87,7 @@ export function ProjectForm({ form }: IProps) {
                     htmlFor: TAGS,
                 }}
             >
-                <MultiSelect<Keyword>
-                    openOnKeyDown
-                    itemId={(keyword) => keyword.uri}
-                    itemLabel={(keyword) => keyword.label}
-                    items={[]}
-                    onSelection={handleTagSelectionChange}
-                    newItemCreationText={t("Metadata.addNewTag")}
-                    newItemPostfix={t("Metadata.newTagPostfix")}
-                    inputProps={{
-                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
-                    }}
-                    tagInputProps={{
-                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
-                    }}
-                    createNewItemFromQuery={(query) => ({
-                        uri: removeExtraSpaces(query),
-                        label: removeExtraSpaces(query),
-                    })}
-                />
+                <MultiTagSelect handleTagSelectionChange={handleTagSelectionChange} />
             </FieldItem>
             <AdvancedOptionsArea>
                 <CustomIdentifierInput form={form} onValueChange={onValueChange} />
