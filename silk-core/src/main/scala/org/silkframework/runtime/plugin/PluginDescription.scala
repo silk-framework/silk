@@ -39,7 +39,9 @@ trait PluginDescription[+T] {
     * @param ignoreNonExistingParameters If true, parameter values for parameters that do not exist are ignored.
     *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
     */
-  def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
+  def apply(parameterValues: Map[String, String] = Map.empty,
+            parameterTemplates: Map[String, String] = Map.empty,
+            ignoreNonExistingParameters: Boolean = true)
            (implicit context: PluginContext): T
 
 

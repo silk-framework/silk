@@ -32,7 +32,7 @@ trait AnyPlugin {
   @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
 
   @volatile
-  var originalValues: Map[String, String] = Map.empty
+  var templateValues: Map[String, String] = Map.empty
 
   /**
     * Creates a new instance of this plugin with updated properties.

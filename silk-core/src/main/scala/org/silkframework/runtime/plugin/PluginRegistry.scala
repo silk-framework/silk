@@ -79,9 +79,9 @@ object PluginRegistry {
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty)
+  def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty, templates: Map[String, String] = Map.empty)
                          (implicit context: PluginContext): T = {
-    pluginType[T].create[T](id, params)
+    pluginType[T].create[T](id, params, templates)
   }
 
   /**
@@ -335,11 +335,11 @@ object PluginRegistry {
      * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: Map[String, String])
+    def create[T: ClassTag](id: String, params: Map[String, String], templates: Map[String, String])
                            (implicit context: PluginContext): T = {
       val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
       val pluginDesc = plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
-      pluginDesc(params).asInstanceOf[T]
+      pluginDesc(params, templates).asInstanceOf[T]
     }
 
     /**

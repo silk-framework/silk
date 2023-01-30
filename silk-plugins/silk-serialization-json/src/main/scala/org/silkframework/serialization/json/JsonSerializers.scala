@@ -14,7 +14,6 @@ import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
@@ -41,6 +40,7 @@ object JsonSerializers {
   final val DATA = "data"
   final val GENERIC_INFO = "genericInfo"
   final val PARAMETERS = "parameters"
+  final val TEMPLATES = "templates"
   final val URI = "uri"
   final val METADATA = "metadata"
   final val OPERATOR = "operator"
@@ -189,17 +189,21 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(TASK_TYPE_CUSTOM_TASK)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
-      CustomTask(
-        id = (value \ TYPE).as[JsString].value,
-        params = taskParameters(value)
-      )
+      val task =
+        CustomTask(
+          id = (value \ TYPE).as[JsString].value,
+          params = taskParameters(value)
+        )
+      task.templateValues = (value \ PARAMETERS).as[Map[String, String]]
+      task
     }
 
     override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TASKTYPE -> JsString(TASK_TYPE_CUSTOM_TASK),
         TYPE -> JsString(value.pluginSpec.id.toString),
-        PARAMETERS -> Json.toJson(value.parameters)
+        PARAMETERS -> Json.toJson(value.parameters),
+        TEMPLATES -> Json.toJson(value.templateValues)
       )
     }
   }

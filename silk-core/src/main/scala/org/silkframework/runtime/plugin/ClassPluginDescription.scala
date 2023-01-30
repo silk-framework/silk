@@ -17,6 +17,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.ResourceNotFoundException
+import org.silkframework.runtime.templating.GlobalTemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
@@ -52,17 +53,23 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
    * Creates a new instance of this plugin.
    *
    * @param parameterValues The parameter values to be used for instantiation. Will override any default.
+   * @param parameterTemplates Additional parameter values that are provided as templates.
    * @param ignoreNonExistingParameters If true, parameter values for parameters that do not exist are ignored.
     *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
    */
-  def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
+  def apply(parameterValues: Map[String, String] = Map.empty,
+            parameterTemplates: Map[String, String] = Map.empty,
+            ignoreNonExistingParameters: Boolean = true)
            (implicit context: PluginContext): T = {
+    val resolvedParameterValues = parameterValues ++ GlobalTemplateVariables.resolveParameters(parameterTemplates)
     if(!ignoreNonExistingParameters) {
-      validateParameters(parameterValues)
+      validateParameters(resolvedParameterValues)
     }
-    val parsedParameters = parseParameters(parameterValues)
+    val parsedParameters = parseParameters(resolvedParameterValues)
     try {
-      constructor.newInstance(parsedParameters: _*)
+      val plugin = constructor.newInstance(parsedParameters: _*)
+      plugin.templateValues = parameterTemplates
+      plugin
     } catch {
       case ex: InvocationTargetException => throw ex.getCause
     }

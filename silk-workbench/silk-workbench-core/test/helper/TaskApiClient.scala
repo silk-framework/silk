@@ -8,8 +8,8 @@ import play.api.libs.ws.WSResponse
 
 trait TaskApiClient extends ApiClient {
 
-  def getTask(projectId: String, taskId: String): WSResponse = {
-    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
+  def getTask(projectId: String, taskId: String, accept: String = "application/xml"): WSResponse = {
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId").withHttpHeaders("accept" -> accept)
     val response = request.get()
     checkResponse(response)
   }
