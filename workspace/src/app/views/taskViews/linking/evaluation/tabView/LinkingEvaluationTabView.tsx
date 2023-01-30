@@ -605,7 +605,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canGrow>
                     <Spacing vertical />
                 </ToolbarSection>
-                <ToolbarSection>
+                <ToolbarSection canShrink>
                     <ActivityControlWidget
                         border
                         small
@@ -625,7 +625,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         ]}
                     />
                 </ToolbarSection>
-                <ToolbarSection>
+                <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <TaskActivityWidget
                         projectId={projectId}
