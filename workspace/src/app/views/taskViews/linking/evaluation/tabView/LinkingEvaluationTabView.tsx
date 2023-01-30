@@ -649,7 +649,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <DataTable rows={rowData} headers={headerData} sortRow={handleRowSorting}>
                     {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
                         <TableContainer>
-                            <Table {...getTableProps()}>
+                            <Table {...getTableProps()} useZebraStyles>
                                 <TableHead>
                                     <TableRow>
                                         <TableExpandHeader
@@ -772,7 +772,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 )}
                                                 {!!currentInputValue && (
                                                     <TableExpandedRow
-                                                        colSpan={headers.length + 3}
+                                                        colSpan={headers.length + 2}
                                                         className="linking-table__expanded-row-container"
                                                     >
                                                         <Grid>
