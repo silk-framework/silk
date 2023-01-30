@@ -3,14 +3,14 @@ package org.silkframework.workspace.xml
 import org.silkframework.config._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.LoadedTask
 import org.silkframework.workspace.activity.workflow.Workflow
 
-import scala.xml.{Attribute, Null, Text, XML}
+import scala.xml.{Attribute, Node, Null, Text, XML}
 
 private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
 
@@ -39,6 +39,8 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
    * Writes an updated task.
    */
   override def writeTask(task: Task[Workflow], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
+    // Only serialize file paths correctly, paths should not be prefixed
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
     val workflowXml = toXml(task)
     resources.get(task.id.toString + ".xml").write() { os => workflowXml.write(os) }
   }
