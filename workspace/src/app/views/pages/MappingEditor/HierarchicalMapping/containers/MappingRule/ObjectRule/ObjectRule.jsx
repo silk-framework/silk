@@ -23,6 +23,7 @@ import MetadataLabel from "../../../components/Metadata/MetadataLabel";
 import MetadataDesc from "../../../components/Metadata/MetadataDesc";
 import { SourcePath } from "../../../components/SourcePath";
 import TargetCardinality from "../../../components/TargetCardinality";
+import { defaultUriPattern } from "./ObjectRule.utils";
 
 class ObjectRule extends React.Component {
     static propTypes = {
@@ -89,7 +90,7 @@ class ObjectRule extends React.Component {
             const rule = _.cloneDeep(this.props.ruleData);
             rule.rules.uriRule = {
                 type: "uri",
-                pattern: `{}/${rule.id}`,
+                pattern: defaultUriPattern(rule.id),
             };
             updateObjectMappingAsync(rule).subscribe(
                 (data) => {
