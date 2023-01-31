@@ -66,7 +66,7 @@ object CachedEntitySchemata {
         {
           for(params <- value.datasetParameters.toSeq) yield {
             <Dataset>{
-              XmlSerialization.serializeParameter(params)
+              XmlSerialization.serializeParameters(params)
             }</Dataset>
           }
         }

@@ -16,11 +16,10 @@ object XmlSerialization {
     format.read(node)
   }
 
-  def serializeParameter(parameters: Map[String, String]): NodeSeq = {
+  def serializeParameters(parameters: Map[String, String]): NodeSeq = {
     NodeSeq.fromSeq(parameters.toSeq.map {
       case (name, v) =>
-        val vPCdata = PCData(v)
-        <Param name={name} xml:space="preserve">{vPCdata}</Param>
+        <Param name={name} xml:space="preserve">{PCData(v)}</Param>
     })
   }
 
@@ -34,6 +33,19 @@ object XmlSerialization {
         valueAttr.text
       }
       (name, value)
+    }.toMap
+  }
+
+  def serializeTemplates(templates: Map[String, String]): NodeSeq = {
+    NodeSeq.fromSeq(templates.toSeq.map {
+      case (name, v) =>
+        <Template name={name} xml:space="preserve">{PCData(v)}</Template>
+    })
+  }
+
+  def deserializeTemplates(node: Node): Map[String, String] = {
+    (node \ "Template").map { p =>
+      ((p \ "@name").text, p.text)
     }.toMap
   }
 }

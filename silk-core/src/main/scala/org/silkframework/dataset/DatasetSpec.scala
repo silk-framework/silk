@@ -339,7 +339,7 @@ object DatasetSpec {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
-            {XmlSerialization.serializeParameter(params)}
+            {XmlSerialization.serializeParameters(params)}
           </Dataset>
       }
     }

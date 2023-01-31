@@ -32,14 +32,16 @@ object CustomTask extends PluginFactory[CustomTask] {
     def read(node: Node)(implicit readContext: ReadContext): CustomTask = {
       val pluginType = (node \ "@type").text
       val params = XmlSerialization.deserializeParameters(node)
-      val taskPlugin = PluginRegistry.create[CustomTask](pluginType, params)
+      val templates = XmlSerialization.deserializeTemplates(node)
+      val taskPlugin = PluginRegistry.create[CustomTask](pluginType, params, templates)
 
       taskPlugin
     }
 
     def write(value: CustomTask)(implicit writeContext: WriteContext[Node]): Node = {
       <CustomTask type={value.pluginSpec.id.toString}>{
-        {XmlSerialization.serializeParameter(value.parameters)}
+        {XmlSerialization.serializeParameters(value.parameters)}
+        {XmlSerialization.serializeTemplates(value.templateValues)}
       }</CustomTask>
     }
   }
