@@ -2,7 +2,6 @@ import {
     ActivityControlWidget,
     ConfidenceValue,
     ContextMenu,
-    DataTable,
     Divider,
     Grid,
     GridColumn,
@@ -646,278 +645,266 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <SearchField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             <Spacing size="small" />
             {evaluationResults && evaluationResults.links.length && !loading ? (
-                <DataTable rows={rowData} headers={headerData} sortRow={handleRowSorting}>
+                <TableContainer rows={rowData} headers={headerData} sortRow={handleRowSorting}>
                     {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
-                        <TableContainer>
-                            <Table {...getTableProps()} useZebraStyles>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableExpandHeader
-                                            enableToggle
-                                            isExpanded={expandedRows.size === rowData.length}
-                                            onExpand={() => handleRowExpansion()}
-                                        />
-                                        {headers.map((header) => (
-                                            <TableHeader
-                                                key={header.key}
-                                                {...getHeaderProps({ header, isSortable: true })}
-                                            >
-                                                {header.header}
-                                            </TableHeader>
-                                        ))}
-                                        <TableHeader>
-                                            {t("linkingEvaluationTabView.table.header.linkState")}
-                                            <Spacing vertical size="tiny" />
-                                            <ContextMenu togglerElement="operation-filter">
-                                                <MenuItem
-                                                    text={"Confirmed"}
-                                                    icon={
-                                                        linkStateFilters.has(LinkEvaluationFilters.positive)
-                                                            ? "state-checked"
-                                                            : "state-unchecked"
-                                                    }
-                                                    onClick={() => {
-                                                        handleLinkFilterStateChange(
-                                                            LinkEvaluationFilters.positive,
-                                                            !linkStateFilters.has(LinkEvaluationFilters.positive)
-                                                        );
-                                                    }}
-                                                />
-                                                <MenuItem
-                                                    text={"Declined"}
-                                                    icon={
-                                                        linkStateFilters.has(LinkEvaluationFilters.negative)
-                                                            ? "state-checked"
-                                                            : "state-unchecked"
-                                                    }
-                                                    onClick={() => {
-                                                        handleLinkFilterStateChange(
-                                                            LinkEvaluationFilters.negative,
-                                                            !linkStateFilters.has(LinkEvaluationFilters.negative)
-                                                        );
-                                                    }}
-                                                />
-                                            </ContextMenu>
+                        <Table {...getTableProps()} useZebraStyles>
+                            <TableHead>
+                                <TableRow>
+                                    <TableExpandHeader
+                                        enableToggle
+                                        isExpanded={expandedRows.size === rowData.length}
+                                        onExpand={() => handleRowExpansion()}
+                                    />
+                                    {headers.map((header) => (
+                                        <TableHeader key={header.key} {...getHeaderProps({ header, isSortable: true })}>
+                                            {header.header}
                                         </TableHeader>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {rows.map((row, i) => {
-                                        const currentInputValue = inputValues[i];
-                                        const currentLink = evaluationResults?.links[i]!;
-                                        const inputTableIsExpanded = inputValuesExpansion.get(i)?.expanded;
-                                        const tableValueToHighlight = tableValueQuery.get(i);
-                                        const highlightSourceTableValue = (
-                                            currentPath: string,
-                                            isSourceEntity: boolean
-                                        ) =>
-                                            tableValueToHighlight &&
-                                            tableValueToHighlight.isSourceEntity === isSourceEntity &&
-                                            currentPath === tableValueToHighlight.path
-                                                ? new Set([tableValueToHighlight.value])
-                                                : undefined;
-                                        return (
-                                            <>
-                                                {currentLink && (
-                                                    <TableExpandRow
-                                                        {...getRowProps({ row })}
-                                                        key={row.id}
-                                                        isExpanded={expandedRows.has(row.id)}
-                                                        onExpand={() => handleRowExpansion(row.id)}
-                                                        ariaLabel="Links expansion"
-                                                        className="linking-evaluation__row-item"
-                                                    >
-                                                        {row.cells.map((cell) => {
-                                                            const [, rowKey] = cell.id.split(":");
-                                                            return rowKey === "confidence" ? (
-                                                                <TableCell>
-                                                                    <ConfidenceValue value={currentLink.confidence} />
-                                                                </TableCell>
-                                                            ) : (
-                                                                <TableCell key={rowKey}>
-                                                                    <Highlighter
-                                                                        label={cell.value}
-                                                                        searchValue={searchQuery}
-                                                                    />
-                                                                </TableCell>
-                                                            );
-                                                        })}
-                                                        <TableCell>
-                                                            {linkStateButtons.map(
-                                                                ({ linkType, icon, ...otherProps }, i) => (
-                                                                    <React.Fragment key={icon}>
-                                                                        <IconButton
-                                                                            name={icon}
-                                                                            //active={currentLink.decision === name}
-                                                                            onClick={() =>
-                                                                                handleReferenceLinkTypeUpdate(
-                                                                                    currentLink.decision,
-                                                                                    linkType,
-                                                                                    currentLink.source,
-                                                                                    currentLink.target
-                                                                                )
-                                                                            }
-                                                                            {...otherProps}
-                                                                            outlined={currentLink.decision !== linkType}
-                                                                            minimal={false}
-                                                                        />
-                                                                        {i !== linkStateButtons.length - 1 && (
-                                                                            <Spacing vertical size="tiny" />
-                                                                        )}
-                                                                    </React.Fragment>
-                                                                )
-                                                            )}
-                                                        </TableCell>
-                                                    </TableExpandRow>
-                                                )}
-                                                {!!currentInputValue && (
-                                                    <TableExpandedRow
-                                                        colSpan={headers.length + 2}
-                                                        className="linking-table__expanded-row-container"
-                                                    >
-                                                        <Grid>
-                                                            <GridRow>
-                                                                <span>
-                                                                    <IconButton
-                                                                        small
-                                                                        onClick={() => {
-                                                                            setInputValuesExpansion(
-                                                                                (prevInputExpansion) => {
-                                                                                    prevInputExpansion.set(i, {
-                                                                                        expanded:
-                                                                                            !prevInputExpansion.get(i)
-                                                                                                ?.expanded,
-                                                                                        precinct: false,
-                                                                                    });
-                                                                                    return new Map(prevInputExpansion);
-                                                                                }
-                                                                            );
-                                                                        }}
-                                                                        name={
-                                                                            !inputValuesExpansion.get(i)?.expanded
-                                                                                ? "toggler-moveright"
-                                                                                : "toggler-showmore"
-                                                                        }
-                                                                    />
-                                                                    <Spacing vertical size="tiny" />
-                                                                    {!inputTableIsExpanded ? (
-                                                                        <span className="">Input values collapsed</span>
-                                                                    ) : null}
-                                                                </span>
-                                                                <GridColumn medium>
-                                                                    <ComparisonDataContainer>
-                                                                        {Object.entries(currentInputValue.source).map(
-                                                                            ([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        !inputTableIsExpanded
-                                                                                            ? "shrink"
-                                                                                            : ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={highlightSourceTableValue(
-                                                                                                    key,
-                                                                                                    true
-                                                                                                )}
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        i,
-                                                                                                        {
-                                                                                                            path: key,
-                                                                                                            isSourceEntity:
-                                                                                                                true,
-                                                                                                            value: val,
-                                                                                                        }
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
-                                                                                        }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            )
-                                                                        )}
-                                                                    </ComparisonDataContainer>
-                                                                </GridColumn>
-                                                                <GridColumn medium>
-                                                                    <ComparisonDataContainer>
-                                                                        {Object.entries(currentInputValue.target).map(
-                                                                            ([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        !inputTableIsExpanded
-                                                                                            ? "shrink"
-                                                                                            : ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={highlightSourceTableValue(
-                                                                                                    key,
-                                                                                                    false
-                                                                                                )}
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        i,
-                                                                                                        {
-                                                                                                            path: key,
-                                                                                                            isSourceEntity:
-                                                                                                                false,
-                                                                                                            value: val,
-                                                                                                        }
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
-                                                                                        }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            )
-                                                                        )}
-                                                                    </ComparisonDataContainer>
-                                                                </GridColumn>
-                                                            </GridRow>
-                                                            <Spacing size="tiny" />
-                                                            <GridRow>
-                                                                <Tree
-                                                                    contents={[nodes[i] ?? []]}
-                                                                    onNodeCollapse={(
-                                                                        _node: TreeNodeInfo,
-                                                                        nodePath: NodePath
-                                                                    ) => handleNodeExpand(i, false)}
-                                                                    onNodeExpand={(
-                                                                        _node: TreeNodeInfo,
-                                                                        nodePath: NodePath
-                                                                    ) => handleNodeExpand(i)}
+                                    ))}
+                                    <TableHeader>
+                                        {t("linkingEvaluationTabView.table.header.linkState")}
+                                        <Spacing vertical size="tiny" />
+                                        <ContextMenu togglerElement="operation-filter">
+                                            <MenuItem
+                                                text={"Confirmed"}
+                                                icon={
+                                                    linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                        ? "state-checked"
+                                                        : "state-unchecked"
+                                                }
+                                                onClick={() => {
+                                                    handleLinkFilterStateChange(
+                                                        LinkEvaluationFilters.positive,
+                                                        !linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                    );
+                                                }}
+                                            />
+                                            <MenuItem
+                                                text={"Declined"}
+                                                icon={
+                                                    linkStateFilters.has(LinkEvaluationFilters.negative)
+                                                        ? "state-checked"
+                                                        : "state-unchecked"
+                                                }
+                                                onClick={() => {
+                                                    handleLinkFilterStateChange(
+                                                        LinkEvaluationFilters.negative,
+                                                        !linkStateFilters.has(LinkEvaluationFilters.negative)
+                                                    );
+                                                }}
+                                            />
+                                        </ContextMenu>
+                                    </TableHeader>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {rows.map((row, i) => {
+                                    const currentInputValue = inputValues[i];
+                                    const currentLink = evaluationResults?.links[i]!;
+                                    const inputTableIsExpanded = inputValuesExpansion.get(i)?.expanded;
+                                    const tableValueToHighlight = tableValueQuery.get(i);
+                                    const highlightSourceTableValue = (currentPath: string, isSourceEntity: boolean) =>
+                                        tableValueToHighlight &&
+                                        tableValueToHighlight.isSourceEntity === isSourceEntity &&
+                                        currentPath === tableValueToHighlight.path
+                                            ? new Set([tableValueToHighlight.value])
+                                            : undefined;
+                                    return (
+                                        <>
+                                            {currentLink && (
+                                                <TableExpandRow
+                                                    {...getRowProps({ row })}
+                                                    key={row.id}
+                                                    isExpanded={expandedRows.has(row.id)}
+                                                    onExpand={() => handleRowExpansion(row.id)}
+                                                    ariaLabel="Links expansion"
+                                                    className="linking-evaluation__row-item"
+                                                >
+                                                    {row.cells.map((cell) => {
+                                                        const [, rowKey] = cell.id.split(":");
+                                                        return rowKey === "confidence" ? (
+                                                            <TableCell>
+                                                                <ConfidenceValue value={currentLink.confidence} />
+                                                            </TableCell>
+                                                        ) : (
+                                                            <TableCell key={rowKey}>
+                                                                <Highlighter
+                                                                    label={cell.value}
+                                                                    searchValue={searchQuery}
                                                                 />
-                                                            </GridRow>
-                                                        </Grid>
-                                                    </TableExpandedRow>
-                                                )}
-                                            </>
-                                        );
-                                    })}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                                            </TableCell>
+                                                        );
+                                                    })}
+                                                    <TableCell>
+                                                        {linkStateButtons.map(
+                                                            ({ linkType, icon, ...otherProps }, i) => (
+                                                                <React.Fragment key={icon}>
+                                                                    <IconButton
+                                                                        name={icon}
+                                                                        //active={currentLink.decision === name}
+                                                                        onClick={() =>
+                                                                            handleReferenceLinkTypeUpdate(
+                                                                                currentLink.decision,
+                                                                                linkType,
+                                                                                currentLink.source,
+                                                                                currentLink.target
+                                                                            )
+                                                                        }
+                                                                        {...otherProps}
+                                                                        outlined={currentLink.decision !== linkType}
+                                                                        minimal={false}
+                                                                    />
+                                                                    {i !== linkStateButtons.length - 1 && (
+                                                                        <Spacing vertical size="tiny" />
+                                                                    )}
+                                                                </React.Fragment>
+                                                            )
+                                                        )}
+                                                    </TableCell>
+                                                </TableExpandRow>
+                                            )}
+                                            {!!currentInputValue && (
+                                                <TableExpandedRow
+                                                    colSpan={headers.length + 2}
+                                                    className="linking-table__expanded-row-container"
+                                                >
+                                                    <Grid>
+                                                        <GridRow>
+                                                            <span>
+                                                                <IconButton
+                                                                    small
+                                                                    onClick={() => {
+                                                                        setInputValuesExpansion(
+                                                                            (prevInputExpansion) => {
+                                                                                prevInputExpansion.set(i, {
+                                                                                    expanded:
+                                                                                        !prevInputExpansion.get(i)
+                                                                                            ?.expanded,
+                                                                                    precinct: false,
+                                                                                });
+                                                                                return new Map(prevInputExpansion);
+                                                                            }
+                                                                        );
+                                                                    }}
+                                                                    name={
+                                                                        !inputValuesExpansion.get(i)?.expanded
+                                                                            ? "toggler-moveright"
+                                                                            : "toggler-showmore"
+                                                                    }
+                                                                />
+                                                                <Spacing vertical size="tiny" />
+                                                                {!inputTableIsExpanded ? (
+                                                                    <span className="">Input values collapsed</span>
+                                                                ) : null}
+                                                            </span>
+                                                            <GridColumn medium>
+                                                                <ComparisonDataContainer>
+                                                                    {Object.entries(currentInputValue.source).map(
+                                                                        ([key, values]) => (
+                                                                            <ComparisonDataCell
+                                                                                fullWidth
+                                                                                className={
+                                                                                    !inputTableIsExpanded
+                                                                                        ? "shrink"
+                                                                                        : ""
+                                                                                }
+                                                                            >
+                                                                                <PropertyBox
+                                                                                    propertyName={key}
+                                                                                    exampleValues={
+                                                                                        <ActiveLearningValueExamples
+                                                                                            interactive
+                                                                                            valuesToHighlight={highlightSourceTableValue(
+                                                                                                key,
+                                                                                                true
+                                                                                            )}
+                                                                                            onHover={(val) =>
+                                                                                                handleValueHover(
+                                                                                                    "table",
+                                                                                                    i,
+                                                                                                    {
+                                                                                                        path: key,
+                                                                                                        isSourceEntity:
+                                                                                                            true,
+                                                                                                        value: val,
+                                                                                                    }
+                                                                                                )
+                                                                                            }
+                                                                                            exampleValues={values ?? []}
+                                                                                        />
+                                                                                    }
+                                                                                />
+                                                                            </ComparisonDataCell>
+                                                                        )
+                                                                    )}
+                                                                </ComparisonDataContainer>
+                                                            </GridColumn>
+                                                            <GridColumn medium>
+                                                                <ComparisonDataContainer>
+                                                                    {Object.entries(currentInputValue.target).map(
+                                                                        ([key, values]) => (
+                                                                            <ComparisonDataCell
+                                                                                fullWidth
+                                                                                className={
+                                                                                    !inputTableIsExpanded
+                                                                                        ? "shrink"
+                                                                                        : ""
+                                                                                }
+                                                                            >
+                                                                                <PropertyBox
+                                                                                    propertyName={key}
+                                                                                    exampleValues={
+                                                                                        <ActiveLearningValueExamples
+                                                                                            interactive
+                                                                                            valuesToHighlight={highlightSourceTableValue(
+                                                                                                key,
+                                                                                                false
+                                                                                            )}
+                                                                                            onHover={(val) =>
+                                                                                                handleValueHover(
+                                                                                                    "table",
+                                                                                                    i,
+                                                                                                    {
+                                                                                                        path: key,
+                                                                                                        isSourceEntity:
+                                                                                                            false,
+                                                                                                        value: val,
+                                                                                                    }
+                                                                                                )
+                                                                                            }
+                                                                                            exampleValues={values ?? []}
+                                                                                        />
+                                                                                    }
+                                                                                />
+                                                                            </ComparisonDataCell>
+                                                                        )
+                                                                    )}
+                                                                </ComparisonDataContainer>
+                                                            </GridColumn>
+                                                        </GridRow>
+                                                        <Spacing size="tiny" />
+                                                        <GridRow>
+                                                            <Tree
+                                                                contents={[nodes[i] ?? []]}
+                                                                onNodeCollapse={(
+                                                                    _node: TreeNodeInfo,
+                                                                    nodePath: NodePath
+                                                                ) => handleNodeExpand(i, false)}
+                                                                onNodeExpand={(
+                                                                    _node: TreeNodeInfo,
+                                                                    nodePath: NodePath
+                                                                ) => handleNodeExpand(i)}
+                                                            />
+                                                        </GridRow>
+                                                    </Grid>
+                                                </TableExpandedRow>
+                                            )}
+                                        </>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
                     )}
-                </DataTable>
+                </TableContainer>
             ) : (
                 (loading && <Spinner size="medium" />) || (
                     <Notification data-test-id="empty-links-banner">{t("linkingEvaluationTabView.empty")}</Notification>
