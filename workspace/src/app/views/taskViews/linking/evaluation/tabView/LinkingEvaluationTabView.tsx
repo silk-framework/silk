@@ -780,7 +780,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     colSpan={headers.length + 2}
                                                     className="linking-table__expanded-row-container"
                                                 >
-                                                    <Table size="medium" style={{ tableLayout: "fixed" }}>
+                                                    <Table
+                                                        size="medium"
+                                                        style={{ tableLayout: "fixed" }}
+                                                        hasDivider={false}
+                                                    >
                                                         <colgroup>
                                                             <col style={{ width: "30px" }} />
                                                             <col style={{ width: "40%" }} />
