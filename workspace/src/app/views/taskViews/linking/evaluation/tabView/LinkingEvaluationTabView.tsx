@@ -61,7 +61,6 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { debounce } from "lodash";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
-import { SortRowData } from "carbon-components-react";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 
 interface LinkingEvaluationTabViewProps {
@@ -79,6 +78,12 @@ const linkStateButtons = [
     { icon: "item-question", linkType: "unlabeled", tooltip: "Uncertain" },
     { icon: "state-declined", hasStateDanger: true, linkType: "negative", tooltip: "Decline" },
 ] as const;
+
+const sortDirectionMapping = {
+    NONE: "DESC",
+    DESC: "ASC",
+    ASC: "NONE",
+} as const;
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
@@ -109,6 +114,16 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     const [linkStateFilters, setLinkStateFilters] = React.useState<Map<LinkEvaluationFilters, boolean>>(new Map());
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
+    const [tableSortDirection, setTableSortDirection] = React.useState<
+        Map<typeof headerData[number]["key"], "ASC" | "DESC" | "NONE">
+    >(
+        () =>
+            new Map([
+                ["source", "NONE"],
+                ["target", "NONE"],
+                ["confidence", "NONE"],
+            ])
+    );
     const [updateCounter, setUpdateCounter] = React.useState<number>(0);
 
     //fetch operator plugins
@@ -576,10 +591,21 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         []
     );
 
-    const handleRowSorting = React.useCallback((cellA, cellB, { sortDirection, sortStates, key }: SortRowData) => {
-        setLinkSortBy([LinkEvaluationSortByObj[sortDirection][key]]);
-        return 0;
-    }, []);
+    const handleRowSorting = React.useCallback(
+        (key: typeof headerData[number]["key"]) => {
+            const sortDirection = tableSortDirection.get(key)!;
+            setLinkSortBy(() =>
+                sortDirectionMapping[sortDirection] === "NONE"
+                    ? []
+                    : [LinkEvaluationSortByObj[sortDirectionMapping[sortDirection]][key]]
+            );
+            setTableSortDirection((prev) => {
+                prev.set(key, sortDirectionMapping[sortDirection]);
+                return new Map([...prev]);
+            });
+        },
+        [tableSortDirection]
+    );
 
     return (
         <section className="linking-evaluation">
@@ -648,65 +674,73 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Divider addSpacing="medium" />
             <SearchField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             <Spacing size="small" />
-            {evaluationResults && evaluationResults.links.length && !loading ? (
-                <TableContainer rows={rowData} headers={headerData} sortRow={handleRowSorting}>
-                    {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
-                        <Table {...getTableProps()} size="medium" style={{ tableLayout: "fixed" }}>
-                            <colgroup>
-                                <col style={{ width: "30px" }} />
-                                <col style={{ width: "40%" }} />
-                                <col style={{ width: "40%" }} />
-                                <col style={{ width: "7rem", textAlign: "center" }} />
-                                <col style={{ width: "9rem", textAlign: "center" }} />
-                            </colgroup>
-                            <TableHead>
-                                <TableRow>
-                                    <TableExpandHeader
-                                        enableToggle
-                                        isExpanded={expandedRows.size === rowData.length}
-                                        onExpand={() => handleRowExpansion()}
-                                    />
-                                    {headers.map((header) => (
-                                        <TableHeader key={header.key} {...getHeaderProps({ header, isSortable: true })}>
-                                            {header.header}
-                                        </TableHeader>
-                                    ))}
-                                    <TableHeader>
-                                        {t("linkingEvaluationTabView.table.header.linkState")}
-                                        <Spacing vertical size="tiny" />
-                                        <ContextMenu togglerElement="operation-filter">
-                                            <MenuItem
-                                                text={"Confirmed"}
-                                                icon={
-                                                    linkStateFilters.has(LinkEvaluationFilters.positive)
-                                                        ? "state-checked"
-                                                        : "state-unchecked"
-                                                }
-                                                onClick={() => {
-                                                    handleLinkFilterStateChange(
-                                                        LinkEvaluationFilters.positive,
-                                                        !linkStateFilters.has(LinkEvaluationFilters.positive)
-                                                    );
-                                                }}
-                                            />
-                                            <MenuItem
-                                                text={"Declined"}
-                                                icon={
-                                                    linkStateFilters.has(LinkEvaluationFilters.negative)
-                                                        ? "state-checked"
-                                                        : "state-unchecked"
-                                                }
-                                                onClick={() => {
-                                                    handleLinkFilterStateChange(
-                                                        LinkEvaluationFilters.negative,
-                                                        !linkStateFilters.has(LinkEvaluationFilters.negative)
-                                                    );
-                                                }}
-                                            />
-                                        </ContextMenu>
+            <TableContainer rows={rowData} headers={headerData}>
+                {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
+                    <Table {...getTableProps()} size="medium" style={{ tableLayout: "fixed" }}>
+                        <colgroup>
+                            <col style={{ width: "30px" }} />
+                            <col style={{ width: "40%" }} />
+                            <col style={{ width: "40%" }} />
+                            <col style={{ width: "7rem", textAlign: "center" }} />
+                            <col style={{ width: "9rem", textAlign: "center" }} />
+                        </colgroup>
+                        <TableHead>
+                            <TableRow>
+                                <TableExpandHeader
+                                    enableToggle
+                                    isExpanded={expandedRows.size === rowData.length}
+                                    onExpand={() => handleRowExpansion()}
+                                />
+                                {headers.map((header) => (
+                                    <TableHeader
+                                        key={header.key}
+                                        {...getHeaderProps({ header, isSortable: true })}
+                                        isSortHeader={true}
+                                        onClick={() => {
+                                            handleRowSorting(header.key);
+                                        }}
+                                        sortDirection={tableSortDirection.get(header.key)}
+                                    >
+                                        {header.header}
                                     </TableHeader>
-                                </TableRow>
-                            </TableHead>
+                                ))}
+                                <TableHeader>
+                                    {t("linkingEvaluationTabView.table.header.linkState")}
+                                    <Spacing vertical size="tiny" />
+                                    <ContextMenu togglerElement="operation-filter">
+                                        <MenuItem
+                                            text={"Confirmed"}
+                                            icon={
+                                                linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                    ? "state-checked"
+                                                    : "state-unchecked"
+                                            }
+                                            onClick={() => {
+                                                handleLinkFilterStateChange(
+                                                    LinkEvaluationFilters.positive,
+                                                    !linkStateFilters.has(LinkEvaluationFilters.positive)
+                                                );
+                                            }}
+                                        />
+                                        <MenuItem
+                                            text={"Declined"}
+                                            icon={
+                                                linkStateFilters.has(LinkEvaluationFilters.negative)
+                                                    ? "state-checked"
+                                                    : "state-unchecked"
+                                            }
+                                            onClick={() => {
+                                                handleLinkFilterStateChange(
+                                                    LinkEvaluationFilters.negative,
+                                                    !linkStateFilters.has(LinkEvaluationFilters.negative)
+                                                );
+                                            }}
+                                        />
+                                    </ContextMenu>
+                                </TableHeader>
+                            </TableRow>
+                        </TableHead>
+                        {(evaluationResults && evaluationResults.links.length && !loading && (
                             <TableBody>
                                 {rows.map((row, i) => {
                                     const currentInputValue = inputValues[i];
@@ -935,15 +969,16 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     );
                                 })}
                             </TableBody>
-                        </Table>
-                    )}
-                </TableContainer>
-            ) : (
-                (loading && <Spinner size="medium" />) || (
-                    <Notification data-test-id="empty-links-banner">{t("linkingEvaluationTabView.empty")}</Notification>
-                )
-            )}
+                        )) ||
+                            null}
+                    </Table>
+                )}
+            </TableContainer>
             <Spacing size="small" />
+            {(loading && <Spinner size="medium" />) ||
+                (!evaluationResults?.links?.length && (
+                    <Notification data-test-id="empty-links-banner">{t("linkingEvaluationTabView.empty")}</Notification>
+                ))}
             {!!evaluationResults?.links.length && paginationElement}
         </section>
     );
