@@ -83,6 +83,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const lastEmittedEvent = React.useRef<string>("");
     const { project, transformTask } = useApiDetails();
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
+    const [uriPatternInputHasFocus, setUriPatternInputHasFocus] = useState<boolean>(false);
     const { id, parentId, parent } = props;
 
     const autoCompleteRuleId = id || parentId;
@@ -409,6 +410,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             modifiedValues().sourceProperty
                         )
                     }
+                    onFocusChange={setUriPatternInputHasFocus}
                     checkInput={checkUriPattern}
                     rightElement={
                         distinctUriPatterns.length > 0 ? (
@@ -438,10 +440,10 @@ export const ObjectRuleForm = (props: IProps) => {
     const noUriRule = !modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI;
     const noUriPattern = !modifiedValues().pattern;
 
-    if (modifiedValues().sourceProperty && valuePathInputHasFocus) {
+    if (valuePathInputHasFocus || uriPatternInputHasFocus) {
         previewExamples = (
             <Notification data-test-id={"object-rule-form-preview-path-has-focus"}>
-                No preview is shown while value path is being edited.
+                No preview is shown while {valuePathInputHasFocus ? "value path" : "URI pattern"} is being edited.
             </Notification>
         );
     } else if (noUriPattern && noUriRule && !modifiedValues().sourceProperty) {
@@ -471,7 +473,7 @@ export const ObjectRuleForm = (props: IProps) => {
                               type: MAPPING_RULE_TYPE_URI,
                               pattern: modifiedValues().pattern
                                   ? modifiedValues().pattern
-                                  : defaultUriPattern("yetUnknownRuleId"),
+                                  : defaultUriPattern(id ?? "yetUnknownRuleId"),
                           }
                         : modifiedValues().uriRule
                 }
