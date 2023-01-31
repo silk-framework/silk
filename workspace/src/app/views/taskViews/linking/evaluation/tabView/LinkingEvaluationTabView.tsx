@@ -647,7 +647,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             {evaluationResults && evaluationResults.links.length && !loading ? (
                 <TableContainer rows={rowData} headers={headerData} sortRow={handleRowSorting}>
                     {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
-                        <Table {...getTableProps()} useZebraStyles>
+                        <Table {...getTableProps()} useZebraStyles size="medium">
                             <TableHead>
                                 <TableRow>
                                     <TableExpandHeader
