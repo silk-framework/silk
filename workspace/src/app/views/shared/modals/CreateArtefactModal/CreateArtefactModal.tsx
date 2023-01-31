@@ -447,12 +447,12 @@ export function CreateArtefactModal() {
         );
     }
 
-    const registerForExternalChanges = (
-        paramId: string,
-        handleUpdates: (value: { value: string; label?: string }) => any
-    ) => {
-        externalParameterUpdateMap.current.set(paramId, handleUpdates);
-    };
+    const registerForExternalChanges = React.useCallback(
+        (paramId: string, handleUpdates: (value: { value: string; label?: string }) => any) => {
+            externalParameterUpdateMap.current.set(paramId, handleUpdates);
+        },
+        []
+    );
 
     if (updateExistingTask) {
         // Task update

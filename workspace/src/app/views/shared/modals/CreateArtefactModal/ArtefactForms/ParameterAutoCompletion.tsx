@@ -1,5 +1,5 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import React from "react";
+import React, { useEffect } from "react";
 import {
     AutoCompleteField,
     Highlighter,
@@ -7,6 +7,7 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
+    Spinner
 } from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
@@ -17,6 +18,7 @@ import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
+import { RegisterForExternalChangesFn } from "./InputMapper";
 
 interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -45,6 +47,8 @@ interface ParameterAutoCompletionProps {
      * hasBackDrop should then be set to true in these cases otherwise the popover won't close when clicking those other components.
      **/
     hasBackDrop?: boolean;
+    /** Register for getting external updates for values. */
+    registerForExternalChanges?: RegisterForExternalChangesFn;
 }
 
 /** Component for parameter auto-completion. */
@@ -62,9 +66,42 @@ export const ParameterAutoCompletion = ({
     showErrorsInline = false,
     readOnly,
     hasBackDrop = false,
+    registerForExternalChanges,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
+    const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const { registerError } = useErrorHandler();
+    const initialOrExternalValue = externalValue ? externalValue : initialValue;
+    const [highlightInput, setHighlightInput] = React.useState(false);
+    const [show, setShow] = React.useState(true);
+
+    let onChangeUsed = onChange;
+    if (highlightInput) {
+        onChangeUsed = (value: any) => {
+            onChange(value);
+            setHighlightInput(false);
+        };
+    }
+
+    useEffect(() => {
+        if (registerForExternalChanges) {
+            const handleUpdates = (externalValue: { value: string; label?: string }) => {
+                setExternalValue(externalValue);
+                setHighlightInput(true);
+                onChange(externalValue);
+            };
+            registerForExternalChanges(paramId, handleUpdates);
+        }
+    }, [registerForExternalChanges]);
+
+    // Re-init element when value is set from outside
+    useEffect(() => {
+        if (externalValue) {
+            setShow(false);
+            setTimeout(() => setShow(true), 0);
+        }
+    }, [externalValue]);
+
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
@@ -118,18 +155,22 @@ export const ParameterAutoCompletion = ({
     const itemValue = (value: IAutocompleteDefaultResponse | string) =>
         typeof value === "string" ? value : value.value;
 
+    if (!show) {
+        return <Spinner position={"inline"} />;
+    }
+
     return (
         <AutoCompleteField<IAutocompleteDefaultResponse | string, IAutocompleteDefaultResponse>
             onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
-            onChange={onChange}
-            initialValue={initialValue}
+            onChange={onChangeUsed}
+            initialValue={initialOrExternalValue}
             disabled={
                 selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
             }
             inputProps={{
                 name: formParamId,
                 id: formParamId,
-                intent: intent,
+                intent: highlightInput ? "success" : intent,
                 readOnly: !!readOnly,
             }}
             reset={

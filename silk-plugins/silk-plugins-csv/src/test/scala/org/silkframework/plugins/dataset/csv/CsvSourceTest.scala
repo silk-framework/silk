@@ -172,9 +172,10 @@ class CsvSourceTest extends FlatSpec with Matchers {
     multilineEntity.values.drop(1).head.head shouldBe expectedValue
   }
 
-  it should "detect ISO8859 encoding" in {
+  it should "detect windows-1252 (similar to ISO-8859-1) encoding" in {
+    // The detection library assumes windows-1252 even though iso-8859-1 would also be correct.
     val autoConfigured = iso8859.autoConfigured
-    autoConfigured.charset shouldBe "ISO-8859-1"
+    autoConfigured.charset shouldBe "windows-1252"
   }
 
   it should "auto-configure random example correctly" in {
