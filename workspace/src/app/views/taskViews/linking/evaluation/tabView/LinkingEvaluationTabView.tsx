@@ -234,7 +234,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <p>
+                                <>
                                     <Tag
                                         backgroundColor={
                                             tagColor(
@@ -251,7 +251,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                         path: node[inputPath].path ?? "",
                                         isSourceEntity,
                                     })}
-                                </p>
+                                </>
                             ),
                             childNodes: [],
                         };
@@ -367,7 +367,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 hasCaret: false,
                 isExpanded: true,
                 label: (
-                    <p>
+                    <>
                         <Tag backgroundColor={tagColor(tagInputTag) as string}>
                             {getOperatorLabel(input, operatorPlugins)}
                         </Tag>
@@ -376,7 +376,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             path: input.path ?? "",
                             isSourceEntity,
                         })}
-                    </p>
+                    </>
                 ),
             };
             tree.childNodes = [...(tree?.childNodes ?? []), newChild];
@@ -389,7 +389,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 hasCaret: false,
                 isExpanded: true,
                 label: (
-                    <p>
+                    <>
                         <Tag backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
                             {getOperatorLabel(input, operatorPlugins)}
                         </Tag>
@@ -398,7 +398,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             path: input.path ?? "",
                             isSourceEntity,
                         })}
-                    </p>
+                    </>
                 ),
             };
             tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
@@ -715,7 +715,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             ? new Set([tableValueToHighlight.value])
                                             : undefined;
                                     return (
-                                        <>
+                                        <React.Fragment key={i}>
                                             {currentLink && (
                                                 <TableExpandRow
                                                     {...getRowProps({ row })}
@@ -728,7 +728,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     {row.cells.map((cell) => {
                                                         const [, rowKey] = cell.id.split(":");
                                                         return rowKey === "confidence" ? (
-                                                            <TableCell>
+                                                            <TableCell key="confidence">
                                                                 <ConfidenceValue value={currentLink.confidence} />
                                                             </TableCell>
                                                         ) : (
@@ -740,32 +740,28 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             </TableCell>
                                                         );
                                                     })}
-                                                    <TableCell>
-                                                        {linkStateButtons.map(
-                                                            ({ linkType, icon, ...otherProps }, i) => (
-                                                                <React.Fragment key={icon}>
-                                                                    <IconButton
-                                                                        name={icon}
-                                                                        //active={currentLink.decision === name}
-                                                                        onClick={() =>
-                                                                            handleReferenceLinkTypeUpdate(
-                                                                                currentLink.decision,
-                                                                                linkType,
-                                                                                currentLink.source,
-                                                                                currentLink.target
-                                                                            )
-                                                                        }
-                                                                        {...otherProps}
-                                                                        outlined={currentLink.decision !== linkType}
-                                                                        minimal={false}
-                                                                    />
-                                                                    {i !== linkStateButtons.length - 1 && (
-                                                                        <Spacing vertical size="tiny" />
-                                                                    )}
-                                                                </React.Fragment>
-                                                            )
-                                                        )}
-                                                    </TableCell>
+                                                    {linkStateButtons.map(({ linkType, icon, ...otherProps }, i) => (
+                                                        <TableCell key={icon}>
+                                                            <IconButton
+                                                                name={icon}
+                                                                //active={currentLink.decision === name}
+                                                                onClick={() =>
+                                                                    handleReferenceLinkTypeUpdate(
+                                                                        currentLink.decision,
+                                                                        linkType,
+                                                                        currentLink.source,
+                                                                        currentLink.target
+                                                                    )
+                                                                }
+                                                                {...otherProps}
+                                                                outlined={currentLink.decision !== linkType}
+                                                                minimal={false}
+                                                            />
+                                                            {i !== linkStateButtons.length - 1 && (
+                                                                <Spacing vertical size="tiny" />
+                                                            )}
+                                                        </TableCell>
+                                                    ))}
                                                 </TableExpandRow>
                                             )}
                                             {!!currentInputValue && (
@@ -807,6 +803,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     {Object.entries(currentInputValue.source).map(
                                                                         ([key, values]) => (
                                                                             <ComparisonDataCell
+                                                                                key={key}
                                                                                 fullWidth
                                                                                 className={
                                                                                     !inputTableIsExpanded
@@ -849,6 +846,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     {Object.entries(currentInputValue.target).map(
                                                                         ([key, values]) => (
                                                                             <ComparisonDataCell
+                                                                                key={key}
                                                                                 fullWidth
                                                                                 className={
                                                                                     !inputTableIsExpanded
@@ -904,7 +902,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     </Grid>
                                                 </TableExpandedRow>
                                             )}
-                                        </>
+                                        </React.Fragment>
                                     );
                                 })}
                             </TableBody>
