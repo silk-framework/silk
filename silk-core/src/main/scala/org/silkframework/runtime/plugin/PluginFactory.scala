@@ -26,9 +26,11 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Creates a new instance of a specific plugin.
    */
-  def apply(id: String, params: Map[String, String] = Map.empty)
+  def apply(id: String,
+            params: Map[String, String] = Map.empty,
+            templates: Map[String, String] = Map.empty)
            (implicit context: PluginContext): T = {
-    PluginRegistry.create(id, params)
+    PluginRegistry.create(id, params, templates)
   }
 
   /**

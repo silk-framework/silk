@@ -9,8 +9,14 @@ import play.api.libs.ws.WSResponse
 trait TaskApiClient extends ApiClient {
 
   def getTask(projectId: String, taskId: String, accept: String = "application/xml"): WSResponse = {
-    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId").withHttpHeaders("accept" -> accept)
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId").withHttpHeaders("Accept" -> accept)
     val response = request.get()
+    checkResponse(response)
+  }
+
+  def putTask(projectId: String, taskId: String, body: String, mimeType: String): WSResponse = {
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId").withHttpHeaders("Content-Type" -> mimeType)
+    val response = request.put(body)
     checkResponse(response)
   }
 
