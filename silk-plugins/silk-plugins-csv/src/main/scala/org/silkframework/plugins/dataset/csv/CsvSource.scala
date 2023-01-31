@@ -381,7 +381,8 @@ class CsvSource(file: Resource,
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
     val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter,
-      detectSeparator = true, detectSkipLinesBeginning = true, autoDetectCodec = true, maxLinesToDetectCodec = Some(1000))
+      detectSeparator = true, detectSkipLinesBeginning = true, autoDetectCodec = true, maxLinesToDetectCodec = Some(1000),
+      ignoreMalformedInputExceptionInPropertyList = true)
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
     // Skip one more line if header was detected and property list set
