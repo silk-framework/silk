@@ -194,7 +194,7 @@ object JsonSerializers {
           id = (value \ TYPE).as[JsString].value,
           params = taskParameters(value)
         )
-      task.templateValues = (value \ PARAMETERS).as[Map[String, String]]
+      task.templateValues = (value \ TEMPLATES).as[Map[String, String]]
       task
     }
 
