@@ -36,7 +36,7 @@ import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsString, JsValue, Json}
+import play.api.libs.json.{Format, JsArray, JsString, JsValue, Json}
 import play.api.mvc._
 
 import java.util.logging.{Level, LogRecord, Logger}
@@ -985,13 +985,25 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def filterLinks(referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType],
-                          filter: EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.Value): Seq[Link] = {
-    filter match {
-      case EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.negativeLinks =>
-        referenceEntitiesCache.map(_.negativeReferenceLinks).getOrElse(Seq.empty)
-      case EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.positiveLinks =>
-        referenceEntitiesCache.map(_.positiveReferenceLinks).getOrElse(Seq.empty)
+  private def filterLinks(links: Seq[Link],
+                          referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType],
+                          filters: Seq[EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.Value]): Seq[Link] = {
+    referenceEntitiesCache match {
+      case Some(referenceEntities) =>
+        val validLinkDecisions = filters.map {
+          case EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.negativeLinks =>
+            LinkDecision.NEGATIVE
+          case EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.positiveLinks =>
+            LinkDecision.POSITIVE
+          case EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.undecidedLinks =>
+            LinkDecision.UNLABELED
+        }.toSet
+        def filterLink(link: Link): Boolean = {
+          validLinkDecisions.contains(referenceEntities.linkDecision(link))
+        }
+        links.filter(filterLink)
+      case None =>
+        links
     }
   }
 
@@ -1054,8 +1066,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         val linkingRule = linkTask.data.rule
         var links: Seq[Link] = evaluationResult.links
         if(includeReferenceLinks) {
-          links = (links ++ referenceEntitiesCache.map(_.toReferenceLinks).getOrElse(Seq.empty)).distinct
+          links = (referenceEntitiesCache.map(_.toReferenceLinks).getOrElse(Seq.empty) ++ links).distinct
         }
+        val overallLinkCount = links.size
         val searchTerms = StringUtils.extractSearchTerms(query)
         if (searchTerms.nonEmpty) {
           links = links.filter(link => {
@@ -1063,25 +1076,36 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
             StringUtils.matchesSearchTerm(searchTerms, searchText)
           })
         }
-        if(filters.nonEmpty) {
-          for(filter <- filters) {
-            links = filterLinks(referenceEntitiesCache, filter)
-          }
+        if (filters.nonEmpty) {
+          links = filterLinks(links, referenceEntitiesCache, filters)
         }
         if(sortBy.nonEmpty) {
           links = sortLinks(links, sortBy)
         }
+        val resultStats = ResultStats(overallLinkCount, links.size)
         links = links.slice(offset, offset + limit)
-        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache)
+        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache, resultStats)
       case None =>
         throw NotFoundException("No evaluation results available.")
     }
   }
 
+  /**
+    * Result statistics.
+    * @param overallLinkCount The overall link count for the requested links before any filters are applied.
+    * @param filteredLinkCount The link count after all filters (text, link decision etc.) have been applied.
+    */
+  private case class ResultStats(overallLinkCount: Int, filteredLinkCount: Int)
+
+  private object ResultStats {
+    implicit val resultStatsFormat: Format[ResultStats] = Json.format[ResultStats]
+  }
+
   private def linkEvaluationJsonResult(evaluationResult: EvaluateLinkingActivity#ValueType,
                                        linkingRule: LinkageRule,
                                        links: Seq[Link],
-                                       referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType])
+                                       referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType],
+                                       resultStats: ResultStats)
                                       (implicit writeContext: WriteContext[JsValue]) = {
     def linkDecisionFromReferenceEntities(link: Link): LinkDecision = {
       referenceEntitiesCache.map(_.linkDecision(link)).getOrElse(LinkDecision.UNLABELED)
@@ -1094,7 +1118,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     Ok(Json.obj(
       "links" -> linkJson,
       "linkRule" -> JsonSerialization.toJson(linkingRule),
-      "stats" -> linkEvaluationStats(evaluationResult)
+      "resultStats" -> Json.toJson(resultStats),
+      "evaluationActivityStats" -> linkEvaluationStats(evaluationResult)
     ))
   }
 

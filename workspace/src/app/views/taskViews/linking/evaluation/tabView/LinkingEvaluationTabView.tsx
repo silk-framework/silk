@@ -34,7 +34,6 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
-import Pagination from "../../../../../views/shared/Pagination";
 import {
     getEvaluatedLinks,
     getLinkRuleInputPaths,
@@ -48,8 +47,7 @@ import {
     LinkEvaluationFilters,
     LinkEvaluationSortBy,
     LinkEvaluationSortByObj,
-    LinkingEvaluationResult,
-    LinkStats,
+    LinkRuleEvaluationResult,
     NodePath,
     ReferenceLinkType,
 } from "./typings";
@@ -57,7 +55,7 @@ import utils from "../LinkingRuleEvaluation.utils";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
 import { PropertyBox } from "../../activeLearning/components/PropertyBox";
-import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
+import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
 import { TreeNodeInfo } from "@blueprintjs/core";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
 import { tagColor } from "../../../../../views/shared/RuleEditor/view/sidebar/RuleOperator";
@@ -67,6 +65,7 @@ import { debounce } from "lodash";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
 import { SortRowData } from "carbon-components-react";
+import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -87,13 +86,10 @@ const linkStateButtons = [
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
     const commonSel = useSelector(workspaceSel.commonSelector);
-    const [evaluationResults, setEvaluationResults] = React.useState<
-        { links: Array<LinkingEvaluationResult>; linkRule: ILinkingRule; stats: LinkStats } | undefined
-    >();
-    const [pagination, setPagination] = React.useState<{ current: number; total: number; limit: number }>({
-        current: 1,
-        total: 25,
-        limit: 10,
+    const [evaluationResults, setEvaluationResults] = React.useState<LinkRuleEvaluationResult | undefined>();
+    const [pagination, paginationElement, onTotalChange] = usePagination({
+        pageSizes: [10, 25, 50, 100],
+        initialPageSize: 25,
     });
     const [loading, setLoading] = React.useState<boolean>(false);
     const [showInputValues, setShowInputValues] = React.useState<boolean>(true);
@@ -125,11 +121,17 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         })();
     }, []);
 
+    React.useEffect(() => {
+        if (evaluationResults) {
+            onTotalChange(evaluationResults.resultStats.filteredLinkCount);
+        }
+    }, [evaluationResults]);
+
     const debouncedInit = React.useCallback(
         debounce(async (pagination, searchQuery, taskEvaluationStatus, filters, linkSortBy) => {
             try {
-                setLoading(true);
                 if (taskEvaluationStatus === "Finished") {
+                    setLoading(true);
                     const results = (
                         await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
                     )?.data;
@@ -164,7 +166,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         return () => {
             shouldCancel = true;
         };
-    }, [pagination, taskEvaluationStatus, searchQuery, linkStateFilters.size, linkSortBy, updateCounter]);
+    }, [
+        pagination.current,
+        pagination.limit,
+        taskEvaluationStatus,
+        searchQuery,
+        linkStateFilters.size,
+        linkSortBy,
+        updateCounter,
+    ]);
 
     const handleAlwaysExpandSwitch = React.useCallback(
         (inputSwitch: "operator" | "inputValue") => {
@@ -482,10 +492,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         []
     );
 
-    const handlePagination = React.useCallback((page: number, limit: number) => {
-        setPagination({ current: page, total: 25, limit });
-    }, []);
-
     const headerData = [
         {
             key: "source",
@@ -552,7 +558,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         },
         []
     );
-    const { nrSourceEntities, nrTargetEntities, nrLinks } = evaluationResults?.stats ?? {
+    const { nrSourceEntities, nrTargetEntities, nrLinks } = evaluationResults?.evaluationActivityStats ?? {
         nrSourceEntities: 0,
         nrTargetEntities: 0,
         nrLinks: 0,
@@ -911,9 +917,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 )
             )}
             <Spacing size="small" />
-            {!!evaluationResults?.links.length && (
-                <Pagination pagination={pagination} pageSizes={[10, 25, 50, 100]} onChangeSelect={handlePagination} />
-            )}
+            {!!evaluationResults?.links.length && paginationElement}
         </section>
     );
 };

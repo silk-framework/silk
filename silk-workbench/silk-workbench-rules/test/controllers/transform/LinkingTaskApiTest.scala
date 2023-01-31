@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.linking.evaluation.EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum
 import controllers.linking.evaluation.{EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats}
 
 import java.time.Instant
@@ -109,7 +110,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     val jsonBody: JsValue = linkEvaluationResult()
     (jsonBody \ "links").as[JsArray].value must have size 2
     (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
-    (jsonBody \ "stats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
+    (jsonBody \ "evaluationActivityStats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
   }
 
   "Return evaluated links for the current linking rule matching the search query" in {
@@ -127,11 +128,27 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     (jsonBody \\ "decision").map(_.as[String]).sorted mustBe Seq("positive", "unlabeled")
   }
 
-  private def linkEvaluationResult(query: String = ""): JsValue = {
+  "Link filters should be disjunctive" in {
+    // Test 1 filter
+    (linkEvaluationResult(filters = Some(Seq(
+      EvaluationLinkFilterEnum.positiveLinks
+    ))) \\ "decision").map(_.as[String]) mustBe Seq("positive")
+    // Test 2 filters
+    (linkEvaluationResult(filters = Some(Seq(
+      EvaluationLinkFilterEnum.positiveLinks,
+      EvaluationLinkFilterEnum.undecidedLinks
+    ))) \\ "decision").map(_.as[String]).sorted mustBe Seq("positive", "unlabeled")
+  }
+
+  private def linkEvaluationResult(query: String = "",
+                                   filters: Option[Seq[EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.Value]] = None): JsValue = {
     workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate?query=$query")
     val response = request.
-      post(Json.toJson(EvaluateCurrentLinkageRuleRequest(query = Some(query))))
+      post(Json.toJson(EvaluateCurrentLinkageRuleRequest(
+        query = Some(query),
+        filters = filters
+      )))
     val jsonBody = checkResponse(response).json
     jsonBody
   }

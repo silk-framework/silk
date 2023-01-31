@@ -5,11 +5,10 @@ import {
     EvaluationLinkInputValue,
     LinkEvaluationFilters,
     LinkEvaluationSortBy,
-    LinkingEvaluationResult,
-    LinkStats,
+    LinkRuleEvaluationResult,
     ReferenceLinkType,
 } from "./typings";
-import { IAggregationOperator, IComparisonOperator, ILinkingRule } from "../../linking.types";
+import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@blueprintjs/core";
@@ -19,9 +18,11 @@ import { TreeNodeInfo } from "@blueprintjs/core";
  * @param projectId  Project ID
  * @param taskId     Linking Task ID
  * @param pagination Pagination object
- * @param query
- * @param filters
- * @param sortBy
+ * @param query      Text query to filter links by.
+ * @param filters    Filters that are applied to the links.
+ * @param sortBy     Sort criteria that are applied hierarchically.
+ * @param includeReferenceLinks If all reference links should be included in the result. Some reference links may still be included
+ *                              even if this is set to false.
  */
 export const getEvaluatedLinks = async (
     projectId: string,
@@ -31,7 +32,7 @@ export const getEvaluatedLinks = async (
     filters: LinkEvaluationFilters[] = [],
     sortBy: LinkEvaluationSortBy[] = [],
     includeReferenceLinks: boolean = false
-): Promise<FetchResponse<{ links: LinkingEvaluationResult[]; linkRule: ILinkingRule; stats: LinkStats }> | undefined> =>
+): Promise<FetchResponse<LinkRuleEvaluationResult>> =>
     fetch({
         method: "POST",
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/evaluate`),

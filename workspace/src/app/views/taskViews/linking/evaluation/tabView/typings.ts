@@ -1,3 +1,5 @@
+import { ILinkingRule } from "../../linking.types";
+
 type EvaluationChildValue = {
     operatorId: string;
     values: string[];
@@ -24,9 +26,13 @@ export interface LinkingEvaluationResult {
     };
 }
 
-export interface LinkStats {
+/** The statistics from the evaluation activity. */
+export interface EvaluationActivityStats {
+    // Number of generated/cached links in the activity
     nrLinks: number;
+    // Number of source entities considered
     nrSourceEntities: number;
+    // Number of target entities considered
     nrTargetEntities: number;
 }
 
@@ -68,3 +74,20 @@ type linkSortByOrderType = keyof typeof LinkEvaluationSortByObj;
 type linkSortByKeyType = keyof typeof LinkEvaluationSortByObj[linkSortByOrderType];
 
 export type LinkEvaluationSortBy = typeof LinkEvaluationSortByObj[linkSortByOrderType][linkSortByKeyType];
+
+export interface LinkRuleEvaluationResult {
+    links: LinkingEvaluationResult[];
+    linkRule: ILinkingRule;
+    evaluationActivityStats: EvaluationActivityStats;
+    resultStats: LinkRuleEvaluationResultStats;
+}
+
+/**
+ * Evaluation result statistics.
+ */
+interface LinkRuleEvaluationResultStats {
+    /** The overall link count for the requested links before any filters are applied. */
+    overallLinkCount: number;
+    /** The link count after all filters (text, link decision etc.) have been applied. */
+    filteredLinkCount: number;
+}

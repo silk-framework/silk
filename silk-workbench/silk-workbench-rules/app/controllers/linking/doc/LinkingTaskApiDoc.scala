@@ -200,10 +200,14 @@ object LinkingTaskApiDoc {
             }
         }
     },
-    "stats": {
+    "evaluationActivityStats": {
         "nrSourceEntities": 195,
         "nrTargetEntities": 174,
         "nrLinks": 124
+    },
+    "resultStats": {
+        "overallLinkCount": 100,
+        "filteredLinkCount": 42
     },
     "links": [
         {

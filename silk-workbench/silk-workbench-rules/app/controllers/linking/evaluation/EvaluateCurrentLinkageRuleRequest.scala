@@ -29,7 +29,7 @@ object EvaluateCurrentLinkageRuleRequest {
 
     type EvaluationLinkFilterEnum = Value
 
-    val positiveLinks, negativeLinks = Value
+    val positiveLinks, negativeLinks, undecidedLinks = Value
 
     implicit val evaluationLinkFilterEnumFormat = Json.formatEnum(this)
   }
