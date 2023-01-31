@@ -211,6 +211,14 @@ object SerializationUtils {
               case AnyContentAsXml(xml) => Serialization.formatForType[T, Node].read(xml.head)
               case AnyContentAsJson(json) => Serialization.formatForType[T, JsValue].read(json)
               case AnyContentAsText(str) => Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
+              case AnyContentAsRaw(raw) =>
+                raw.asBytes() match {
+                  case Some(bytes) =>
+                    val str = new String(bytes.toArrayUnsafe(), request.charset.getOrElse("UTF8"))
+                    Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
+                  case None =>
+                    return ErrorResult(BAD_REQUEST, title = "Body too large", detail = "The raw body is too large to be loaded into memory.")
+                }
               case _ => return ErrorResult(UNSUPPORTED_MEDIA_TYPE, title = "Unsupported Media Type", detail = "Unsupported content type")
             }
           // Call the user provided function and return its result
