@@ -740,28 +740,32 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             </TableCell>
                                                         );
                                                     })}
-                                                    {linkStateButtons.map(({ linkType, icon, ...otherProps }, i) => (
-                                                        <TableCell key={icon}>
-                                                            <IconButton
-                                                                name={icon}
-                                                                //active={currentLink.decision === name}
-                                                                onClick={() =>
-                                                                    handleReferenceLinkTypeUpdate(
-                                                                        currentLink.decision,
-                                                                        linkType,
-                                                                        currentLink.source,
-                                                                        currentLink.target
-                                                                    )
-                                                                }
-                                                                {...otherProps}
-                                                                outlined={currentLink.decision !== linkType}
-                                                                minimal={false}
-                                                            />
-                                                            {i !== linkStateButtons.length - 1 && (
-                                                                <Spacing vertical size="tiny" />
-                                                            )}
-                                                        </TableCell>
-                                                    ))}
+                                                    <TableCell key="linkstate">
+                                                        {linkStateButtons.map(
+                                                            ({ linkType, icon, ...otherProps }, i) => (
+                                                                <React.Fragment key={icon}>
+                                                                    <IconButton
+                                                                        name={icon}
+                                                                        //active={currentLink.decision === name}
+                                                                        onClick={() =>
+                                                                            handleReferenceLinkTypeUpdate(
+                                                                                currentLink.decision,
+                                                                                linkType,
+                                                                                currentLink.source,
+                                                                                currentLink.target
+                                                                            )
+                                                                        }
+                                                                        {...otherProps}
+                                                                        outlined={currentLink.decision !== linkType}
+                                                                        minimal={false}
+                                                                    />
+                                                                    {i !== linkStateButtons.length - 1 && (
+                                                                        <Spacing vertical size="tiny" />
+                                                                    )}
+                                                                </React.Fragment>
+                                                            )
+                                                        )}
+                                                    </TableCell>
                                                 </TableExpandRow>
                                             )}
                                             {!!currentInputValue && (
