@@ -153,7 +153,7 @@ object JsonSerializers {
           Dataset(
             id = (value \ TYPE).as[JsString].value,
             params = taskParameters(value),
-            templates = (value \ TEMPLATES).as[Map[String, String]]
+            templates = (value \ TEMPLATES).toOption.map(_.as[Map[String, String]]).getOrElse(Map.empty)
           ),
         uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
@@ -194,7 +194,7 @@ object JsonSerializers {
       CustomTask(
         id = (value \ TYPE).as[JsString].value,
         params = taskParameters(value),
-        templates = (value \ TEMPLATES).as[Map[String, String]]
+        templates = (value \ TEMPLATES).toOption.map(_.as[Map[String, String]]).getOrElse(Map.empty)
       )
     }
 

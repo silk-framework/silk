@@ -12,11 +12,12 @@ import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TYPE}
+import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TEMPLATES, TYPE}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
+
 import scala.concurrent.duration._
 import scala.concurrent.Await
 
@@ -118,7 +119,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
       TYPE -> "internal",
       PARAMETERS -> Json.obj(
         "graphUri" -> "urn:dataset1"
-      )
+      ),
+      TEMPLATES -> Json.obj()
     )
   }
 
