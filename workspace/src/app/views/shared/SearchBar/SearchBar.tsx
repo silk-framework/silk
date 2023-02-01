@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import SearchInput, { ISearchInputProps } from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
+import { useSearch } from "../../../hooks/useSearch";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<
@@ -29,34 +30,13 @@ export function SearchBar({
     focusOnCreation = false,
     ...otherProps
 }: IProps) {
-    const [searchInput, setSearchInput] = useState(textQuery);
     const [t] = useTranslation();
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
         : t("form.field.searchField", "Enter search term");
-    useEffect(() => {
-        setSearchInput(textQuery);
-    }, [textQuery]);
 
-    const handleSearchChange = (e) => {
-        // when input is empty then apply filter
-        if (e.target.value === "" && searchInput) {
-            setSearchInput("");
-            onSearch("");
-        } else {
-            setSearchInput(e.target.value);
-        }
-    };
-
-    const onClearanceHandler = () => {
-        setSearchInput("");
-        onSearch("");
-    };
-
-    const handleSearchEnter = () => {
-        onSearch(searchInput);
-    };
+    const { query, onChange, onEnter, onClear } = useSearch(onSearch, textQuery);
 
     return (
         <Toolbar>
@@ -64,10 +44,10 @@ export function SearchBar({
                 <SearchInput
                     data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
-                    onFilterChange={handleSearchChange}
-                    onEnter={handleSearchEnter}
-                    filterValue={searchInput}
-                    onClearanceHandler={onClearanceHandler}
+                    onFilterChange={onChange}
+                    onEnter={onEnter}
+                    filterValue={query}
+                    onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
                     {...otherProps}
                 />
