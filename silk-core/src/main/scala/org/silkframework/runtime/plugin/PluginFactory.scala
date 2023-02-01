@@ -36,8 +36,8 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
-  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], Map[String, String])] = {
-    Some(t.pluginSpec, t.parameters)
+  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], Map[String, String], Map[String, String])] = {
+    Some(t.pluginSpec, t.parameters, t.templateValues)
   }
 
   /**

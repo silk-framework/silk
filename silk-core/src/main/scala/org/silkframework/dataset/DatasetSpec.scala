@@ -82,7 +82,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     var properties =
       plugin match {
-        case Dataset(p, params) =>
+        case Dataset(p, params, templates) =>
           Seq(("type", p.label)) ++ params
       }
     for(uriProperty <- uriAttribute) {
@@ -328,8 +328,10 @@ object DatasetSpec {
         val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.nonEmpty).map(Uri(_))
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
+        val parameters = XmlSerialization.deserializeParameters(sourceNode)
+        val templates = XmlSerialization.deserializeTemplates(sourceNode)
         new DatasetSpec(
-          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
+          plugin = Dataset((sourceNode \ "@type").text, parameters, templates),
           uriAttribute = uriProperty
         )
       }
@@ -337,9 +339,10 @@ object DatasetSpec {
 
     def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
-        case Dataset(pluginDesc, params) =>
+        case Dataset(pluginDesc, params, templates) =>
           <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
             {XmlSerialization.serializeParameters(params)}
+            {XmlSerialization.serializeTemplates(templates)}
           </Dataset>
       }
     }

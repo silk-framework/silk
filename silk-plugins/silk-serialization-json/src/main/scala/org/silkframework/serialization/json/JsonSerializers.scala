@@ -152,7 +152,8 @@ object JsonSerializers {
         plugin =
           Dataset(
             id = (value \ TYPE).as[JsString].value,
-            params = taskParameters(value)
+            params = taskParameters(value),
+            templates = (value \ TEMPLATES).as[Map[String, String]]
           ),
         uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
@@ -163,7 +164,8 @@ object JsonSerializers {
         Json.obj(
           TASKTYPE -> JsString(JsonSerializers.TASK_TYPE_DATASET),
           TYPE -> JsString(value.plugin.pluginSpec.id.toString),
-          PARAMETERS -> Json.toJson(value.plugin.parameters)
+          PARAMETERS -> Json.toJson(value.plugin.parameters),
+          TEMPLATES -> Json.toJson(value.plugin.templateValues)
         )
       for(property <- value.uriAttribute) {
         json += (URI_PROPERTY -> JsString(property.uri))
@@ -189,13 +191,11 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(TASK_TYPE_CUSTOM_TASK)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
-      val task =
-        CustomTask(
-          id = (value \ TYPE).as[JsString].value,
-          params = taskParameters(value)
-        )
-      task.templateValues = (value \ TEMPLATES).as[Map[String, String]]
-      task
+      CustomTask(
+        id = (value \ TYPE).as[JsString].value,
+        params = taskParameters(value),
+        templates = (value \ TEMPLATES).as[Map[String, String]]
+      )
     }
 
     override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
