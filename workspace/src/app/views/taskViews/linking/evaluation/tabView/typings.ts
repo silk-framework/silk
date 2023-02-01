@@ -54,6 +54,7 @@ export interface HoveredValuedType {
 export enum LinkEvaluationFilters {
     positive = "positiveLinks",
     negative = "negativeLinks",
+    undecided = "undecidedLinks",
 }
 
 export const LinkEvaluationSortByObj = {

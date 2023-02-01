@@ -80,9 +80,9 @@ const linkStateButtons = [
 ] as const;
 
 const sortDirectionMapping = {
-    NONE: "DESC",
-    DESC: "ASC",
-    ASC: "NONE",
+    NONE: "ASC",
+    ASC: "DESC",
+    DESC: "NONE",
 } as const;
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
@@ -733,6 +733,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 handleLinkFilterStateChange(
                                                     LinkEvaluationFilters.negative,
                                                     !linkStateFilters.has(LinkEvaluationFilters.negative)
+                                                );
+                                            }}
+                                        />
+                                        <MenuItem
+                                            text={"Uncertain"}
+                                            icon={
+                                                linkStateFilters.has(LinkEvaluationFilters.undecided)
+                                                    ? "state-checked"
+                                                    : "state-unchecked"
+                                            }
+                                            onClick={() => {
+                                                handleLinkFilterStateChange(
+                                                    LinkEvaluationFilters.undecided,
+                                                    !linkStateFilters.has(LinkEvaluationFilters.undecided)
                                                 );
                                             }}
                                         />
