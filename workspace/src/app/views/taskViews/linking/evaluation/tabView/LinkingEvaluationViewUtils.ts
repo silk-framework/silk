@@ -29,7 +29,7 @@ export const getEvaluatedLinks = async (
     taskId: string,
     pagination: { current: number; total: number; limit: number },
     query: string = "",
-    filters: LinkEvaluationFilters[] = [],
+    filters: Array<keyof typeof LinkEvaluationFilters> = [],
     sortBy: LinkEvaluationSortBy[] = [],
     includeReferenceLinks: boolean = false
 ): Promise<FetchResponse<LinkRuleEvaluationResult>> =>
