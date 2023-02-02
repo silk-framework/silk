@@ -672,7 +672,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 </ToolbarSection>
             </Toolbar>
             <Divider addSpacing="medium" />
-            <SearchField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            <SearchField
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onClearanceHandler={() => setSearchQuery("")}
+            />
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
                 {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
