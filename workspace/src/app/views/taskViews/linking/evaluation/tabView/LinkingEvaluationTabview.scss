@@ -8,3 +8,12 @@
 .linking-evaluation div.bp4-tree-node-content:hover {
     background-color: transparent !important;
 }
+
+.linking-evaluation {
+    .diapp-linking-learningdata__cell {
+        border: none;
+        background-color: transparent;
+        padding-left: 0;
+        padding-top: 0;
+    }
+}
