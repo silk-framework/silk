@@ -676,14 +676,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
                 {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
-                    <Table {...getTableProps()} size="medium" style={{ tableLayout: "fixed" }}>
-                        <colgroup>
-                            <col style={{ width: "30px" }} />
-                            <col style={{ width: "40%" }} />
-                            <col style={{ width: "40%" }} />
-                            <col style={{ width: "7rem", textAlign: "center" }} />
-                            <col style={{ width: "9rem", textAlign: "center" }} />
-                        </colgroup>
+                    <Table
+                        {...getTableProps()}
+                        size="medium"
+                        columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
+                        useZebraStyles
+                    >
                         <TableHead>
                             <TableRow>
                                 <TableExpandHeader
@@ -830,16 +828,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 >
                                                     <Table
                                                         size="medium"
-                                                        style={{ tableLayout: "fixed" }}
+                                                        columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
                                                         hasDivider={false}
+                                                        colorless
                                                     >
-                                                        <colgroup>
-                                                            <col style={{ width: "30px" }} />
-                                                            <col style={{ width: "40%" }} />
-                                                            <col style={{ width: "40%" }} />
-                                                            <col style={{ width: "7rem" }} />
-                                                            <col style={{ width: "9rem" }} />
-                                                        </colgroup>
                                                         <TableBody>
                                                             <TableRow>
                                                                 <TableCell
