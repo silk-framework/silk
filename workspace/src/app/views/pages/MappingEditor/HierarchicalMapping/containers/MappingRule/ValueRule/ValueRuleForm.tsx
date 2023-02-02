@@ -433,6 +433,7 @@ export function ValueRuleForm(props: IProps) {
                             value={{ value: valueType.nodeType, label: valueType.label }}
                             clearable={false}
                             onChange={handleChangePropertyType}
+                            showValueWhenLabelExists={false}
                         />
                         {valueType.nodeType === "LanguageValueType" && (
                             <AutoComplete
