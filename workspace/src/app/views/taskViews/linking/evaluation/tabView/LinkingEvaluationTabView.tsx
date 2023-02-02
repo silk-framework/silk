@@ -112,7 +112,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
     const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
     const [searchQuery, setSearchQuery] = React.useState<string>("");
-    const [linkStateFilters, setLinkStateFilters] = React.useState<Map<LinkEvaluationFilters, boolean>>(new Map());
+    const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
     const [tableSortDirection, setTableSortDirection] = React.useState<
         Map<typeof headerData[number]["key"], "ASC" | "DESC" | "NONE">
@@ -173,7 +173,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         let shouldCancel = false;
 
         if (!shouldCancel) {
-            debouncedInit(pagination, searchQuery, taskEvaluationStatus, [...linkStateFilters.keys()], linkSortBy);
+            debouncedInit(
+                pagination,
+                searchQuery,
+                taskEvaluationStatus,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy
+            );
         }
         return () => {
             shouldCancel = true;
@@ -183,7 +189,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         pagination.limit,
         taskEvaluationStatus,
         searchQuery,
-        linkStateFilters.size,
+        linkStateFilter,
         linkSortBy,
         updateCounter,
     ]);
@@ -578,16 +584,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     };
 
     const handleLinkFilterStateChange = React.useCallback(
-        (linkState: LinkEvaluationFilters, checked: boolean) =>
-            setLinkStateFilters((prev) => {
-                if (checked && !prev.has(linkState)) {
-                    return new Map([...prev, [linkState, true]]);
-                } else if (!checked && prev.has(linkState)) {
-                    prev.delete(linkState);
-                    return new Map([...prev]);
-                }
-                return prev;
-            }),
+        (linkState: keyof typeof LinkEvaluationFilters) =>
+            setLinkStateFilter((prev) => (prev === linkState ? undefined : linkState)),
         []
     );
 
@@ -674,6 +672,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Divider addSpacing="medium" />
             <SearchField value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             <Spacing size="small" />
+            {linkStateFilter && (
+                <TagList label="Link State">
+                    <Tag onRemove={() => handleLinkFilterStateChange(linkStateFilter)}>
+                        {LinkEvaluationFilters[linkStateFilter].label}
+                    </Tag>
+                </TagList>
+            )}
+            <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
                 {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
                     <Table
@@ -707,45 +713,24 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     <Spacing vertical size="tiny" />
                                     <ContextMenu togglerElement="operation-filter">
                                         <MenuItem
-                                            text={"Confirmed"}
-                                            icon={
-                                                linkStateFilters.has(LinkEvaluationFilters.positive)
-                                                    ? "state-checked"
-                                                    : "state-unchecked"
-                                            }
+                                            text="Confirmed"
+                                            active={linkStateFilter === LinkEvaluationFilters.positiveLinks.key}
                                             onClick={() => {
-                                                handleLinkFilterStateChange(
-                                                    LinkEvaluationFilters.positive,
-                                                    !linkStateFilters.has(LinkEvaluationFilters.positive)
-                                                );
+                                                handleLinkFilterStateChange(LinkEvaluationFilters.positiveLinks.key);
                                             }}
                                         />
                                         <MenuItem
                                             text={"Declined"}
-                                            icon={
-                                                linkStateFilters.has(LinkEvaluationFilters.negative)
-                                                    ? "state-checked"
-                                                    : "state-unchecked"
-                                            }
+                                            active={linkStateFilter === LinkEvaluationFilters.negativeLinks.key}
                                             onClick={() => {
-                                                handleLinkFilterStateChange(
-                                                    LinkEvaluationFilters.negative,
-                                                    !linkStateFilters.has(LinkEvaluationFilters.negative)
-                                                );
+                                                handleLinkFilterStateChange(LinkEvaluationFilters.negativeLinks.key);
                                             }}
                                         />
                                         <MenuItem
                                             text={"Uncertain"}
-                                            icon={
-                                                linkStateFilters.has(LinkEvaluationFilters.undecided)
-                                                    ? "state-checked"
-                                                    : "state-unchecked"
-                                            }
+                                            active={linkStateFilter === LinkEvaluationFilters.undecidedLinks.key}
                                             onClick={() => {
-                                                handleLinkFilterStateChange(
-                                                    LinkEvaluationFilters.undecided,
-                                                    !linkStateFilters.has(LinkEvaluationFilters.undecided)
-                                                );
+                                                handleLinkFilterStateChange(LinkEvaluationFilters.undecidedLinks.key);
                                             }}
                                         />
                                     </ContextMenu>
