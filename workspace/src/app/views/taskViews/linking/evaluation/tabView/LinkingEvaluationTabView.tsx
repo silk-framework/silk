@@ -225,6 +225,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 const treeInfo: TreeNodeInfo = {
                     id: operatorNode.id,
                     isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
+                    hasCaret: false,
                     label: (
                         <span>
                             <Tag backgroundColor={tagColor(operatorNode.type)}>
@@ -819,7 +820,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     className="linking-table__expanded-row-container"
                                                 >
                                                     <Table
-                                                        size="medium"
+                                                        size="small"
                                                         columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
                                                         hasDivider={false}
                                                         colorless
@@ -845,14 +846,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                         }}
                                                                         name={
                                                                             !inputValuesExpansion.get(i)?.expanded
-                                                                                ? "toggler-moveright"
-                                                                                : "toggler-showmore"
+                                                                                ? "toggler-caretright"
+                                                                                : "toggler-caretdown"
                                                                         }
                                                                     />
                                                                 </TableCell>
-                                                                <TableCell>
+                                                                <TableCell style={{ verticalAlign: "middle" }}>
                                                                     {!inputTableIsExpanded && (
-                                                                        <span className="">Input values collapsed</span>
+                                                                        <span>Input values available</span> // TODO i18n
                                                                     )}
                                                                     {!!inputTableIsExpanded && (
                                                                         <ComparisonDataContainer>
@@ -950,17 +951,38 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             </TableRow>
                                                         </TableBody>
                                                     </Table>
-                                                    <Spacing size="tiny" />
-                                                    <Tree
-                                                        contents={[nodes[i] ?? []]}
-                                                        onNodeCollapse={(_node: TreeNodeInfo, nodePath: NodePath) =>
-                                                            handleNodeExpand(i, false)
-                                                        }
-                                                        onNodeExpand={(_node: TreeNodeInfo, nodePath: NodePath) =>
-                                                            handleNodeExpand(i)
-                                                        }
-                                                    />
-                                                    <Spacing size="tiny" />
+                                                    <Table
+                                                        size="small"
+                                                        columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
+                                                        hasDivider={false}
+                                                        colorless
+                                                    >
+                                                        <TableBody>
+                                                            <TableRow>
+                                                                <TableCell
+                                                                    style={{ paddingLeft: "0", paddingRight: "0" }}
+                                                                >
+                                                                    <IconButton
+                                                                        onClick={() => {
+                                                                            if (!operatorsExpansion.get(i)?.expanded) {
+                                                                                handleNodeExpand(i);
+                                                                            } else {
+                                                                                handleNodeExpand(i, false);
+                                                                            }
+                                                                        }}
+                                                                        name={
+                                                                            !operatorsExpansion.get(i)?.expanded
+                                                                                ? "toggler-caretright"
+                                                                                : "toggler-caretdown"
+                                                                        }
+                                                                    />
+                                                                </TableCell>
+                                                                <TableCell colSpan={headers.length + 1}>
+                                                                    <Tree contents={[nodes[i] ?? []]} />
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        </TableBody>
+                                                    </Table>
                                                 </TableExpandedRow>
                                             )}
                                         </React.Fragment>

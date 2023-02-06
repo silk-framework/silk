@@ -4,12 +4,21 @@
 **/
 
 // Tree
-// Remove background highlight when tree node is hovered
-.linking-evaluation div.bp4-tree-node-content:hover {
-    background-color: transparent !important;
-}
 
 .linking-evaluation {
+    // adjust values tree^
+
+    .bp4-tree-node-content:hover {
+        // Remove background highlight when tree node is hovered
+        background-color: transparent;
+    }
+
+    .bp4-tree-node-caret-none {
+        min-width: 0;
+    }
+
+    // adjust display of widget containig the example values
+
     .diapp-linking-learningdata__cell {
         border: none;
         background-color: transparent;
