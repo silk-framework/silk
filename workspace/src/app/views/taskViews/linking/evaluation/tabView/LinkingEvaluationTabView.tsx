@@ -45,7 +45,6 @@ import {
     LinkEvaluationSortBy,
     LinkEvaluationSortByObj,
     LinkRuleEvaluationResult,
-    NodePath,
     ReferenceLinkType,
 } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
@@ -97,7 +96,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [showInputValues, setShowInputValues] = React.useState<boolean>(true);
     const [showOperators, setShowOperators] = React.useState<boolean>(true);
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
-    const [expandedRows, setExpandedRows] = React.useState<Map<string, string>>(new Map());
+    const [expandedRows, setExpandedRows] = React.useState<Map<number, number>>(new Map());
     const [nodes, setNodes] = React.useState<TreeNodeInfo[]>([]);
     const [linksToValueMap, setLinksToValueMap] = React.useState<Array<Map<string, EvaluationResultType[number]>>>([]);
     const [inputValuesExpansion, setInputValuesExpansion] = React.useState<
@@ -530,37 +529,36 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const rowData = evaluationResults?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
 
     const handleRowExpansion = React.useCallback(
-        (rowId?: string) => {
+        (rowId?: number) => {
             setExpandedRows((prevExpandedRows) => {
-                if (rowId && prevExpandedRows.has(rowId)) {
+                if (typeof rowId !== "undefined" && prevExpandedRows.has(rowId)) {
                     prevExpandedRows.delete(rowId);
+                    handleNodeExpand(rowId, showOperators, true);
+                    setInputValuesExpansion((prevInputExpansion) => {
+                        prevInputExpansion.set(rowId, {
+                            expanded: showInputValues,
+                            precinct: true,
+                        });
+                        return new Map(prevInputExpansion);
+                    });
+
                     return new Map([...prevExpandedRows]);
-                } else if (rowId) {
+                } else if (typeof rowId !== "undefined") {
                     return new Map([...prevExpandedRows, [rowId, rowId]]);
                 } else {
                     if (prevExpandedRows.size === rowData.length) return new Map();
-                    return new Map(rowData.map((row) => [row.id, row.id]));
+                    return new Map(rowData.map((_row: any, i: number) => [i, i]));
                 }
             });
         },
         [rowData]
     );
 
-    const handleNodeExpand = React.useCallback((nodeIdx: number, isExpanded = true) => {
-        setNodes((prevTreeNodes) =>
-            prevTreeNodes.map((prevTreeNode, i) =>
-                i === nodeIdx
-                    ? {
-                          ...prevTreeNode,
-                          isExpanded,
-                      }
-                    : prevTreeNode
-            )
-        );
+    const handleNodeExpand = React.useCallback((nodeIdx: number, isExpanded = true, precinct = false) => {
         setOperatorsExpansion((prev) => {
             prev.set(nodeIdx, {
                 expanded: isExpanded,
-                precinct: false,
+                precinct: precinct,
             });
             return new Map([...prev]);
         });
@@ -616,7 +614,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             setShowInputValues(val);
                             handleAlwaysExpandSwitch("inputValue");
                         }}
-                        label="always expand input values"
+                        label="input values by default" // TODO i18n
                     />
                 </ToolbarSection>
                 <ToolbarSection>
@@ -627,7 +625,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             setShowOperators(val);
                             handleAlwaysExpandSwitch("operator");
                         }}
-                        label="always expand operators"
+                        label="operator tree by default" // TODO i18n
                     />
                 </ToolbarSection>
                 <ToolbarSection canGrow>
@@ -764,8 +762,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                 <TableExpandRow
                                                     {...getRowProps({ row })}
                                                     key={row.id}
-                                                    isExpanded={expandedRows.has(row.id)}
-                                                    onExpand={() => handleRowExpansion(row.id)}
+                                                    isExpanded={expandedRows.has(i)}
+                                                    onExpand={() => handleRowExpansion(i)}
                                                     ariaLabel="Links expansion"
                                                     className="linking-evaluation__row-item"
                                                 >
