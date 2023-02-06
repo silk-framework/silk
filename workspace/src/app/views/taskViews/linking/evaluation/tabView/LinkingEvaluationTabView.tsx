@@ -698,6 +698,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     enableToggle
                                     isExpanded={expandedRows.size === rowData.length}
                                     onExpand={() => handleRowExpansion()}
+                                    togglerText={
+                                        expandedRows.size === rowData.length ? "Collapse all rows" : "Expand all rows"
+                                    } // TODO i18n
                                 />
                                 {headers.map((header) => (
                                     <TableHeader
