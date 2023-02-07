@@ -5,15 +5,15 @@
 
 // Tree
 
-.linking-evaluation {
+.diapp-linking-evaluation {
     // adjust values tree^
 
-    .bp4-tree-node-content:hover {
+    .#{$ns}-tree-node-content:hover {
         // Remove background highlight when tree node is hovered
         background-color: transparent;
     }
 
-    .bp4-tree-node-caret-none {
+    .#{$ns}-tree-node-caret-none {
         min-width: 0;
     }
 
@@ -24,5 +24,34 @@
         background-color: transparent;
         padding-left: 0;
         padding-top: 0;
+    }
+
+    // optimze display of example values
+
+    .#{$ns}-tree-node-label {
+        .#{$eccgui}-tag__list {
+            display: inline-flex;
+            max-width: 100%;
+        }
+        .#{$eccgui}-tag__list-item {
+            flex-shrink: 0.5;
+            min-width: 0;
+
+            &:nth-child(n + 1) {
+                flex-shrink: 0;
+            }
+            &:nth-child(n + 2) {
+                flex-shrink: 0.7;
+            }
+            &:nth-child(n + 3) {
+                flex-shrink: 0.8;
+            }
+            &:nth-child(n + 4) {
+                flex-shrink: 0.9;
+            }
+            &:nth-child(n + 5) {
+                flex-shrink: 1;
+            }
+        }
     }
 }

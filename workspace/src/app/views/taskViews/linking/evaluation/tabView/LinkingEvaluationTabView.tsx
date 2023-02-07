@@ -255,8 +255,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <>
+                                <TagList>
                                     <Tag
+                                        key="pathinput"
                                         backgroundColor={
                                             tagColor(
                                                 node[inputPath].type === "pathInput"
@@ -267,12 +268,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     >
                                         {getOperatorLabel(node[inputPath], operatorPlugins)}
                                     </Tag>
-                                    <Spacing vertical size="tiny" />
                                     {getLinkValues(node[inputPath].id, idx, treeInfo, {
                                         path: node[inputPath].path ?? "",
                                         isSourceEntity,
                                     })}
-                                </>
+                                </TagList>
                             ),
                             childNodes: [],
                         };
@@ -388,16 +388,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 hasCaret: false,
                 isExpanded: true,
                 label: (
-                    <>
-                        <Tag backgroundColor={tagColor(tagInputTag) as string}>
+                    <TagList>
+                        <Tag key="input" backgroundColor={tagColor(tagInputTag) as string}>
                             {getOperatorLabel(input, operatorPlugins)}
                         </Tag>
-                        <Spacing vertical size="tiny" />
                         {getLinkValues(input.id, index, parentTree, {
                             path: input.path ?? "",
                             isSourceEntity,
                         })}
-                    </>
+                    </TagList>
                 ),
             };
             tree.childNodes = [...(tree?.childNodes ?? []), newChild];
@@ -410,16 +409,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 hasCaret: false,
                 isExpanded: true,
                 label: (
-                    <>
-                        <Tag backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
+                    <TagList>
+                        <Tag key="operator" backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
                             {getOperatorLabel(input, operatorPlugins)}
                         </Tag>
-                        <Spacing vertical size="tiny" />
                         {getLinkValues(input.id, index, parentTree, {
                             path: input.path ?? "",
                             isSourceEntity,
                         })}
-                    </>
+                    </TagList>
                 ),
             };
             tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
@@ -450,6 +448,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     const getLinkValues = React.useCallback(
         (id: string, index: number, tree: TreeNodeInfo, nodeData: Omit<HoveredValuedType, "value">) => {
+            const cutAfter = 14;
             const linkToValueMap = linksToValueMap[index];
             if (linksToValueMap.length && linkToValueMap && nodeData) {
                 const currentHighlightedValue = treeValueQuery.get(index);
@@ -462,40 +461,46 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         acc = acc && currentHighlightedValue[key] === val;
                         return acc;
                     }, true);
-                return (
-                    <TagList>
-                        {linkToValueMap.get(id)?.value.map((val, i) => (
-                            <React.Fragment key={val + i}>
-                                <Tag
-                                    round
-                                    emphasis="stronger"
-                                    interactive
-                                    backgroundColor={
-                                        isHighlightMatch(val)
-                                            ? "#746a85" // TODO: get color from CSS config
-                                            : nodeParentHighlightedIds.get(index)?.includes(id)
-                                            ? "#0097a7" // TODO: get color from CSS config
-                                            : undefined
-                                    }
-                                    onMouseEnter={() => {
-                                        handleValueHover("tree", index, {
-                                            value: val,
-                                            ...nodeData,
-                                        });
-                                        handleParentNodeHighlights(tree, id, index);
-                                    }}
-                                    onMouseLeave={() => {
-                                        handleValueHover("tree", index, { value: "", path: "", isSourceEntity: false });
-                                        handleParentNodeHighlights(tree, id, index, true);
-                                    }}
-                                >
-                                    {val}
-                                </Tag>
-                                <Spacing vertical size="tiny" />
-                            </React.Fragment>
-                        ))}
-                    </TagList>
-                );
+                const otherCount =
+                    (linkToValueMap.get(id)?.value || []).length > cutAfter ? (
+                        <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
+                            +{(linkToValueMap.get(id)?.value || []).length - cutAfter}
+                        </Tag>
+                    ) : (
+                        <></>
+                    );
+                const exampleValues = linkToValueMap
+                    .get(id)
+                    ?.value.slice(0, cutAfter)
+                    .map((val, i) => (
+                        <Tag
+                            key={val + i}
+                            round
+                            emphasis="stronger"
+                            interactive
+                            backgroundColor={
+                                isHighlightMatch(val)
+                                    ? "#746a85" // TODO: get color from CSS config
+                                    : nodeParentHighlightedIds.get(index)?.includes(id)
+                                    ? "#0097a7" // TODO: get color from CSS config
+                                    : undefined
+                            }
+                            onMouseEnter={() => {
+                                handleValueHover("tree", index, {
+                                    value: val,
+                                    ...nodeData,
+                                });
+                                handleParentNodeHighlights(tree, id, index);
+                            }}
+                            onMouseLeave={() => {
+                                handleValueHover("tree", index, { value: "", path: "", isSourceEntity: false });
+                                handleParentNodeHighlights(tree, id, index, true);
+                            }}
+                        >
+                            {val}
+                        </Tag>
+                    ));
+                return [exampleValues, [otherCount]];
             }
         },
         [linksToValueMap, treeValueQuery, nodeParentHighlightedIds]
@@ -657,7 +662,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     };
 
     return (
-        <section className="linking-evaluation">
+        <section className="diapp-linking-evaluation">
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
@@ -837,7 +842,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             ? t("linkingEvaluationTabView.table.collapseRow")
                                                             : t("linkingEvaluationTabView.table.expandRow")
                                                     }
-                                                    className="linking-evaluation__row-item"
+                                                    className="diapp-linking-evaluation__row-item"
                                                 >
                                                     {row.cells.map((cell) => {
                                                         const [, rowKey] = cell.id.split(":");
