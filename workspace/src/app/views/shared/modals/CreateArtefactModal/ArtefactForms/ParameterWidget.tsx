@@ -1,28 +1,36 @@
 import React from "react";
 import {
-    FieldItem,
     FieldSet,
     Label,
     Markdown,
     StringPreviewContentBlobToggler,
     TitleSubsection,
-    WhiteSpaceContainer
+    WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
-import {IArtefactItemProperty, ITaskParameter} from "@ducks/common/typings";
-import {Intent} from "@eccenca/gui-elements/blueprint/constants";
-import {InputMapper, RegisterForExternalChangesFn} from "./InputMapper";
-import {defaultValueAsJs} from "../../../../../utils/transformers";
-import {INPUT_TYPES} from "../../../../../constants";
-import {useTranslation} from "react-i18next";
-import {ParameterAutoCompletion} from "./ParameterAutoCompletion";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../../plugins/PluginRegistry";
-import {ParameterExtensions} from "../../../../plugins/plugin.types";
+import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
+import { Intent } from "@eccenca/gui-elements/blueprint/constants";
+import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
+import { defaultValueAsJs } from "../../../../../utils/transformers";
+import { INPUT_TYPES } from "../../../../../constants";
+import { useTranslation } from "react-i18next";
+import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { ParameterExtensions } from "../../../../plugins/plugin.types";
+import { ArtefactFormParameter } from "./ArtefactFormParameter";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
 
 interface IHookFormParam {
     errors: any;
+}
+
+/** Parameter related callbacks. */
+export interface ParameterCallbacks {
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn;
+    /** Set the template flag of a parameter. If set to true the parameter value will be handled as a variable template. */
+    setTemplateFlag: (parameterId: string, isTemplate: boolean) => any;
 }
 
 interface IProps {
@@ -48,8 +56,7 @@ interface IProps {
     dependentValues: {
         [key: string]: string;
     };
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn
+    parameterCallbacks: ParameterCallbacks;
 }
 
 /** Renders the errors message based on the error type. */
@@ -79,9 +86,11 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
-        registerForExternalChanges
+        parameterCallbacks,
     } = props;
-    const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS);
+    const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
+        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS
+    );
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
@@ -146,7 +155,7 @@ export const ParameterWidget = (props: IProps) => {
                                 changeHandlers={changeHandlers}
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
-                                registerForExternalChanges={registerForExternalChanges}
+                                parameterCallbacks={parameterCallbacks}
                             />
                         );
                     }
@@ -176,22 +185,30 @@ export const ParameterWidget = (props: IProps) => {
                     onChange={changeHandlers[formParamId]}
                     initialValues={initialValues}
                     required={required}
-                    registerForExternalChanges={registerForExternalChanges}
+                    parameterCallbacks={parameterCallbacks}
                 />
             </FieldSet>
         );
     } else {
         return (
-            <FieldItem
-                labelProps={{
-                    text: title,
-                    info: required ? t("common.words.required") : "",
-                    htmlFor: formParamId,
-                    tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
-                }}
+            <ArtefactFormParameter
+                label={title}
+                parameterId={formParamId}
+                required={required}
+                tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : undefined}
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
-                messageText={errorMessage(title, errors)}
+                errorMessage={errorMessage(title, errors)}
+                supportVariableTemplateElement={{
+                    onChange: changeHandlers[formParamId],
+                    startWithTemplateView: false, // TODO: Set if template
+                    switchButtonPosition: "rightElement",
+                    parameterCallbacks,
+                    initialValue: autoCompletion
+                        ? initialValues[formParamId]
+                            ? initialValues[formParamId]
+                            : defaultValueAsJs(propertyDetails, true)
+                        : initialValues[formParamId]?.value,
+                }}
             >
                 {autoCompletion ? (
                     <ParameterAutoCompletion
@@ -218,10 +235,10 @@ export const ParameterWidget = (props: IProps) => {
                         onChange={changeHandlers[formParamId]}
                         initialValues={initialValues}
                         required={required}
-                        registerForExternalChanges={registerForExternalChanges}
+                        parameterCallbacks={parameterCallbacks}
                     />
                 )}
-            </FieldItem>
+            </ArtefactFormParameter>
         );
     }
 };

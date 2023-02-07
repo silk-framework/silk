@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
+import { ParameterCallbacks } from "./ParameterWidget";
 
 interface IProps {
     projectId: string;
@@ -28,8 +29,7 @@ interface IProps {
     };
     /** This is a required parameter. */
     required: boolean;
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
+    parameterCallbacks: ParameterCallbacks;
 }
 
 export type RegisterForExternalChangesFn = (
@@ -57,7 +57,7 @@ export function InputMapper({
     onChange,
     initialValues,
     required,
-    registerForExternalChanges,
+    parameterCallbacks,
 }: IProps) {
     const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
@@ -85,7 +85,7 @@ export function InputMapper({
             setHighlightInput(true);
             onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value));
         };
-        registerForExternalChanges(paramId, handleUpdates);
+        parameterCallbacks.registerForExternalChanges(paramId, handleUpdates);
     }, []);
 
     // Re-init element when value is set from outside

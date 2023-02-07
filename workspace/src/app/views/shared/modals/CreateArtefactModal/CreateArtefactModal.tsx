@@ -118,6 +118,7 @@ export function CreateArtefactModal() {
     const externalParameterUpdateMap = React.useRef(
         new Map<string, (value: { value: string; label?: string }) => any>()
     );
+    const templateParameters = React.useRef(new Set<string>());
     const NOTIFICATION_ID = "create-update-dialog";
 
     React.useEffect(() => {
@@ -143,6 +144,15 @@ export function CreateArtefactModal() {
         };
         dispatch(commonOp.setModalError(newError));
     };
+
+    // Function to set template parameter flag for a parameter
+    const setTemplateFlag = React.useCallback((parameterId: string, isTemplate: boolean) => {
+        if (isTemplate) {
+            templateParameters.current.add(parameterId);
+        } else {
+            templateParameters.current.delete(parameterId);
+        }
+    }, []);
 
     /** set the current Project when opening modal from a project
      * i.e project id already exists **/
@@ -285,12 +295,15 @@ export function CreateArtefactModal() {
                             updateExistingTask.projectId,
                             updateExistingTask.taskId,
                             formValues,
-                            dataParameters
+                            dataParameters,
+                            templateParameters.current
                         )
                     );
                 } else {
                     !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
-                    await dispatch(commonOp.createArtefactAsync(formValues, type, dataParameters));
+                    await dispatch(
+                        commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current)
+                    );
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -320,6 +333,7 @@ export function CreateArtefactModal() {
     };
 
     const resetModal = (closeModal?: boolean) => {
+        templateParameters.current = new Set<string>();
         setIsProjectImport(false);
         setToBeAdded(undefined);
         setCurrentProject(undefined);
@@ -467,7 +481,10 @@ export function CreateArtefactModal() {
                     parameterValues: updateExistingTask.currentParameterValues,
                     dataParameters: updateExistingTask.dataParameters,
                 }}
-                registerForExternalChanges={registerForExternalChanges}
+                parameterCallbacks={{
+                    setTemplateFlag,
+                    registerForExternalChanges,
+                }}
             />
         );
     } else {
@@ -485,7 +502,10 @@ export function CreateArtefactModal() {
                             form={form}
                             artefact={detailedArtefact}
                             projectId={activeProjectId}
-                            registerForExternalChanges={registerForExternalChanges}
+                            parameterCallbacks={{
+                                setTemplateFlag,
+                                registerForExternalChanges,
+                            }}
                         />
                     );
                 }

@@ -1,22 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, MultiSelect, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
+import { MultiSelect, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { errorMessage, ParameterWidget } from "./ParameterWidget";
+import { errorMessage, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
-import { SUPPORTED_PLUGINS, pluginRegistry } from "../../../../plugins/PluginRegistry";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
 import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
-import { RegisterForExternalChangesFn } from "./InputMapper";
 import { Keyword } from "@ducks/workspace/typings";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import utils from "../../../../../views/shared/Metadata/MetadataUtils";
+import { ArtefactFormParameter } from "./ArtefactFormParameter";
 
 export interface IProps {
     form: any;
@@ -40,8 +40,7 @@ export interface IProps {
         };
     };
 
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
+    parameterCallbacks: ParameterCallbacks;
 }
 
 const LABEL = "label";
@@ -64,15 +63,7 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({
-    form,
-    projectId,
-    artefact,
-    updateTask,
-    taskId,
-    detectChange,
-    registerForExternalChanges,
-}: IProps) {
+export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange, parameterCallbacks }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
@@ -199,7 +190,7 @@ export function TaskForm({
 
     /** Change handler for a specific parameter. */
     const handleChange = useCallback(
-        (key) => async (e) => {
+        (key: string) => async (e) => {
             const { triggerValidation } = form;
             const value = e.target ? e.target.value : e;
 
@@ -260,22 +251,19 @@ export function TaskForm({
             <form>
                 {updateTask ? null : (
                     <>
-                        <FieldItem
+                        <ArtefactFormParameter
                             key={LABEL}
-                            labelProps={{
-                                text: t("form.field.label"),
-                                info: t("common.words.required"),
-                                htmlFor: LABEL,
-                            }}
-                            hasStateDanger={!!errorMessage("Label", errors.label)}
-                            messageText={errorMessage("Label", errors.label)}
+                            parameterId={LABEL}
+                            label={t("form.field.label")}
+                            required={true}
+                            errorMessage={errorMessage("Label", errors.label)}
                         >
                             <TextField
                                 id={LABEL}
                                 name={LABEL}
                                 value={label ?? ""}
                                 onChange={handleChange(LABEL)}
-                                hasStateDanger={errors.label ? true : false}
+                                hasStateDanger={!!errors.label}
                                 onKeyDown={(e) => {
                                     if (e.keyCode === 13) {
                                         e.preventDefault();
@@ -283,13 +271,11 @@ export function TaskForm({
                                     }
                                 }}
                             />
-                        </FieldItem>
-                        <FieldItem
+                        </ArtefactFormParameter>
+                        <ArtefactFormParameter
                             key={DESCRIPTION}
-                            labelProps={{
-                                text: t("form.field.description"),
-                                htmlFor: DESCRIPTION,
-                            }}
+                            parameterId={DESCRIPTION}
+                            label={t("form.field.description")}
                         >
                             <TextArea
                                 id={DESCRIPTION}
@@ -297,14 +283,8 @@ export function TaskForm({
                                 value={description ?? ""}
                                 onChange={handleChange(DESCRIPTION)}
                             />
-                        </FieldItem>
-                        <FieldItem
-                            key={TAGS}
-                            labelProps={{
-                                text: t("form.field.tags"),
-                                htmlFor: TAGS,
-                            }}
-                        >
+                        </ArtefactFormParameter>
+                        <ArtefactFormParameter key={TAGS} parameterId={TAGS} label={t("form.field.tags")}>
                             <MultiSelect<Keyword>
                                 openOnKeyDown
                                 itemId={(keyword) => keyword.uri}
@@ -325,7 +305,7 @@ export function TaskForm({
                                     label: removeExtraSpaces(query),
                                 })}
                             />
-                        </FieldItem>
+                        </ArtefactFormParameter>
                     </>
                 )}
                 {normalParams.map(([key, param]) => (
@@ -343,7 +323,7 @@ export function TaskForm({
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
                         dependentValues={dependentValues}
-                        registerForExternalChanges={registerForExternalChanges}
+                        parameterCallbacks={parameterCallbacks}
                     />
                 ))}
 
@@ -375,7 +355,7 @@ export function TaskForm({
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
                             dependentValues={dependentValues}
-                            registerForExternalChanges={registerForExternalChanges}
+                            parameterCallbacks={parameterCallbacks}
                         />
                     ))}
                 </AdvancedOptionsArea>
