@@ -374,6 +374,14 @@
         }
     },
     "linkingEvaluationTabView": {
+        "toolbar": {
+            "toggleExampleValues": "input values by default",
+            "toggleOperatorsTree": "operator tree by default",
+            "statsHeadSources": "Sources",
+            "statsHeadTargets": "Targets",
+            "statsHeadLinkCount": "Links",
+            "statsShowInfo": "Show statistical information"
+        },
         "messages": {
             "missingExecution": "Linking evaluation action need to run first to get evaluation resuts.",
             "emptyWithoutFilters": "No evaluation results available.",
@@ -386,8 +394,13 @@
                 "source": "Source",
                 "target": "Target",
                 "score": "Score",
-                "linkState": "Link state"
-            }
+                "linkState": "Link state",
+                "expandRows": "Expand all rows",
+                "collapseRows": "Collapse all rows"
+            },
+            "infoCollapsedInputValue": "Input values available",
+            "expandRow": "Expand row",
+            "collapseRow": "Collapse row"
         }
     },
     "navigation": {

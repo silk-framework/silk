@@ -8,6 +8,7 @@ import {
     IconButton,
     MenuItem,
     Notification,
+    OverflowText,
     SearchField,
     Spacing,
     Spinner,
@@ -658,17 +659,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     return (
         <section className="linking-evaluation">
             <Toolbar noWrap>
-                <ToolbarSection>
+                <ToolbarSection canShrink>
                     <Switch
                         checked={showInputValues}
                         onChange={(val) => {
                             setShowInputValues(val);
                             handleAlwaysExpandSwitch("inputValue");
                         }}
-                        label="input values by default" // TODO i18n
-                    />
+                    >
+                        <OverflowText inline>{t("linkingEvaluationTabView.toolbar.toggleExampleValues")}</OverflowText>
+                    </Switch>
                 </ToolbarSection>
-                <ToolbarSection>
+                <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <Switch
                         checked={showOperators}
@@ -676,19 +678,28 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             setShowOperators(val);
                             handleAlwaysExpandSwitch("operator");
                         }}
-                        label="operator tree by default" // TODO i18n
-                    />
+                    >
+                        <OverflowText inline>{t("linkingEvaluationTabView.toolbar.toggleOperatorsTree")}</OverflowText>
+                    </Switch>
                 </ToolbarSection>
                 <ToolbarSection canGrow>
                     <Spacing vertical />
                 </ToolbarSection>
                 {taskEvaluationStatus === "Successful" && (
-                    <ToolbarSection canShrink>
+                    <ToolbarSection canShrink style={{ maxWidth: "25%" }}>
                         <ActivityControlWidget
                             border
                             small
                             canShrink
-                            label={<strong>Sources / Targets / Links</strong>} // TODO i18n
+                            label={
+                                <strong>
+                                    {t("linkingEvaluationTabView.toolbar.statsHeadSources")}
+                                    {" / "}
+                                    {t("linkingEvaluationTabView.toolbar.statsHeadTargets")}
+                                    {" / "}
+                                    {t("linkingEvaluationTabView.toolbar.statsHeadLinkCount")}
+                                </strong>
+                            }
                             statusMessage={`${nrSourceEntities.toLocaleString(
                                 commonSel.locale
                             )} / ${nrTargetEntities.toLocaleString(commonSel.locale)} / ${nrLinks.toLocaleString(
@@ -698,7 +709,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 {
                                     icon: "item-info",
                                     action: () => {}, // TODO
-                                    tooltip: "evaluation statistics",
+                                    tooltip: t("linkingEvaluationTabView.toolbar.statsShowInfo"),
                                 },
                             ]}
                         />
@@ -753,8 +764,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     isExpanded={expandedRows.size === rowData.length}
                                     onExpand={() => handleRowExpansion()}
                                     togglerText={
-                                        expandedRows.size === rowData.length ? "Collapse all rows" : "Expand all rows"
-                                    } // TODO i18n
+                                        expandedRows.size === rowData.length
+                                            ? t("linkingEvaluationTabView.table.header.collapseRows")
+                                            : t("linkingEvaluationTabView.table.header.expandRows")
+                                    }
                                 />
                                 {headers.map((header) => (
                                     <TableHeader
@@ -774,24 +787,24 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     <Spacing vertical size="tiny" />
                                     <ContextMenu togglerElement="operation-filter">
                                         <MenuItem
-                                            text="Confirmed"
+                                            text={t("ReferenceLinks.confirmed")}
                                             active={linkStateFilter === LinkEvaluationFilters.positiveLinks.key}
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.positiveLinks.key);
                                             }}
                                         />
                                         <MenuItem
-                                            text={"Declined"}
-                                            active={linkStateFilter === LinkEvaluationFilters.negativeLinks.key}
-                                            onClick={() => {
-                                                handleLinkFilterStateChange(LinkEvaluationFilters.negativeLinks.key);
-                                            }}
-                                        />
-                                        <MenuItem
-                                            text={"Uncertain"}
+                                            text={t("ReferenceLinks.uncertainOnly")}
                                             active={linkStateFilter === LinkEvaluationFilters.undecidedLinks.key}
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.undecidedLinks.key);
+                                            }}
+                                        />
+                                        <MenuItem
+                                            text={t("ReferenceLinks.declined")}
+                                            active={linkStateFilter === LinkEvaluationFilters.negativeLinks.key}
+                                            onClick={() => {
+                                                handleLinkFilterStateChange(LinkEvaluationFilters.negativeLinks.key);
                                             }}
                                         />
                                     </ContextMenu>
@@ -819,7 +832,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     key={row.id}
                                                     isExpanded={expandedRows.has(i)}
                                                     onExpand={() => handleRowExpansion(i)}
-                                                    ariaLabel="Links expansion"
+                                                    togglerText={
+                                                        expandedRows.has(i)
+                                                            ? t("linkingEvaluationTabView.table.collapseRow")
+                                                            : t("linkingEvaluationTabView.table.expandRow")
+                                                    }
                                                     className="linking-evaluation__row-item"
                                                 >
                                                     {row.cells.map((cell) => {
@@ -844,7 +861,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     <React.Fragment key={icon}>
                                                                         <IconButton
                                                                             name={icon}
-                                                                            //active={currentLink.decision === name}
                                                                             onClick={() =>
                                                                                 handleReferenceLinkTypeUpdate(
                                                                                     currentLink.decision,
@@ -906,7 +922,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                 </TableCell>
                                                                 <TableCell style={{ verticalAlign: "middle" }}>
                                                                     {!inputTableIsExpanded && (
-                                                                        <span>Input values available</span> // TODO i18n
+                                                                        <OverflowText>
+                                                                            {t(
+                                                                                "linkingEvaluationTabView.table.infoCollapsedInputValue"
+                                                                            )}
+                                                                        </OverflowText>
                                                                     )}
                                                                     {!!inputTableIsExpanded && (
                                                                         <ComparisonDataContainer>
