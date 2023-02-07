@@ -247,15 +247,11 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksTable = () => {
         return (
             <>
-                <Table>
+                <Table columnWidths={["30px", "30px", "40%", "40%", "100px"]}>
                     <TableHead>
                         <TableRow>
-                            <TableHeader key={"marker-column"} style={{ width: "1px" }}>
-                                &nbsp;
-                            </TableHeader>
-                            <TableHeader key={"warning-column"} style={{ width: "1px" }}>
-                                &nbsp;
-                            </TableHeader>
+                            <TableHeader key={"marker-column"}>&nbsp;</TableHeader>
+                            <TableHeader key={"warning-column"}>&nbsp;</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.targetColumnTitle")}</TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
