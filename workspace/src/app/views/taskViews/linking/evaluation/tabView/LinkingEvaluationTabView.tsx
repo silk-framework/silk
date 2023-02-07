@@ -607,7 +607,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     );
 
     const createUserNotification = () => {
-        console.log(taskEvaluationStatus);
         if (
             taskEvaluationStatus === "Not executed" ||
             taskEvaluationStatus === "Cancelled" ||
