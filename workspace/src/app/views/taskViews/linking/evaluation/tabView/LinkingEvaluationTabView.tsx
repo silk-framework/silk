@@ -107,7 +107,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     >(new Map());
     const [tableValueQuery, setTableValueQuery] = React.useState<Map<number, HoveredValuedType>>(new Map());
     const [treeValueQuery, setTreeValueQuery] = React.useState<Map<number, HoveredValuedType>>(new Map());
-    const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<IActivityStatus["statusName"] | undefined>();
+    const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<
+        IActivityStatus["concreteStatus"] | undefined
+    >();
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
     const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
     const [searchQuery, setSearchQuery] = React.useState<string>("");
@@ -141,7 +143,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const debouncedInit = React.useCallback(
         debounce(async (pagination, searchQuery, taskEvaluationStatus, filters, linkSortBy) => {
             try {
-                if (taskEvaluationStatus === "Finished") {
+                if (taskEvaluationStatus === "Successful") {
                     setLoading(true);
                     const results = (
                         await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
@@ -604,6 +606,56 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         [tableSortDirection]
     );
 
+    const createUserNotification = () => {
+        console.log(taskEvaluationStatus);
+        if (
+            taskEvaluationStatus === "Not executed" ||
+            taskEvaluationStatus === "Cancelled" ||
+            typeof taskEvaluationStatus === "undefined"
+        ) {
+            // evalution action did not run
+            return (
+                <Notification data-test-id="notification-missing-execution">
+                    {t("linkingEvaluationTabView.messages.missingExecution")}
+                </Notification>
+            );
+        }
+
+        if (taskEvaluationStatus === "Failed") {
+            // evalution action did run with errors
+            return (
+                <Notification warning data-test-id="notification-unsuccessful-evaluation">
+                    {t("linkingEvaluationTabView.messages.unsuccessfulEvaluation")}
+                </Notification>
+            );
+        }
+
+        if (taskEvaluationStatus === "Successful" && !searchQuery && !linkStateFilter) {
+            // evalution action done, no filters, no results
+            return (
+                <Notification data-test-id="empty-links-banner">
+                    {t("linkingEvaluationTabView.messages.emptyWithoutFilters")}
+                </Notification>
+            );
+        }
+
+        if (taskEvaluationStatus === "Successful" && (!!searchQuery || !!linkStateFilter)) {
+            // evalution action done, filters for link state or search query active
+            return (
+                <Notification data-test-id="notification-empty-with-filters">
+                    {t("linkingEvaluationTabView.messages.emptyWithFilters")}
+                </Notification>
+            );
+        }
+
+        // Fallback
+        return (
+            <Notification warning data-test-id="notification-unknown-problem">
+                {t("linkingEvaluationTabView.messages.unknownProblem")}
+            </Notification>
+        );
+    };
+
     return (
         <section className="linking-evaluation">
             <Toolbar noWrap>
@@ -631,26 +683,28 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canGrow>
                     <Spacing vertical />
                 </ToolbarSection>
-                <ToolbarSection canShrink>
-                    <ActivityControlWidget
-                        border
-                        small
-                        canShrink
-                        label={<strong>Sources / Targets / Links</strong>}
-                        statusMessage={`${nrSourceEntities.toLocaleString(
-                            commonSel.locale
-                        )} / ${nrTargetEntities.toLocaleString(commonSel.locale)} / ${nrLinks.toLocaleString(
-                            commonSel.locale
-                        )}`}
-                        activityActions={[
-                            {
-                                icon: "item-info",
-                                action: () => {}, // TODO
-                                tooltip: "evaluation statistics",
-                            },
-                        ]}
-                    />
-                </ToolbarSection>
+                {taskEvaluationStatus === "Successful" && (
+                    <ToolbarSection canShrink>
+                        <ActivityControlWidget
+                            border
+                            small
+                            canShrink
+                            label={<strong>Sources / Targets / Links</strong>} // TODO i18n
+                            statusMessage={`${nrSourceEntities.toLocaleString(
+                                commonSel.locale
+                            )} / ${nrTargetEntities.toLocaleString(commonSel.locale)} / ${nrLinks.toLocaleString(
+                                commonSel.locale
+                            )}`}
+                            activityActions={[
+                                {
+                                    icon: "item-info",
+                                    action: () => {}, // TODO
+                                    tooltip: "evaluation statistics",
+                                },
+                            ]}
+                        />
+                    </ToolbarSection>
+                )}
                 <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <TaskActivityWidget
@@ -658,7 +712,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         taskId={linkingTaskId}
                         label="Evaluate Linking"
                         activityName="EvaluateLinking"
-                        registerToReceiveUpdates={(status) => setTaskEvaluationStatus(status.statusName)}
+                        registerToReceiveUpdates={(status) => {
+                            setTaskEvaluationStatus(status.concreteStatus);
+                        }}
                         layoutConfig={{
                             small: true,
                             border: true,
@@ -993,10 +1049,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 )}
             </TableContainer>
             <Spacing size="small" />
-            {(loading && <Spinner size="medium" />) ||
-                (!evaluationResults?.links?.length && (
-                    <Notification data-test-id="empty-links-banner">{t("linkingEvaluationTabView.empty")}</Notification>
-                ))}
+            {(loading && <Spinner size="medium" />) || (!evaluationResults?.links?.length && createUserNotification())}
             {!!evaluationResults?.links.length && paginationElement}
         </section>
     );

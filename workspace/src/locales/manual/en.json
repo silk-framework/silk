@@ -374,7 +374,13 @@
         }
     },
     "linkingEvaluationTabView": {
-        "empty": "No Links available, try running evaluation",
+        "messages": {
+            "missingExecution": "Linking evaluation action need to run first to get evaluation resuts.",
+            "emptyWithoutFilters": "No evaluation results available.",
+            "emptyWithFilters": "No evaluation results available for the filters you set. Adjust or clear them first.",
+            "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
+            "unknownProblem": "No results available because of unexpected behaviour."
+        },
         "table": {
             "header": {
                 "source": "Source",
