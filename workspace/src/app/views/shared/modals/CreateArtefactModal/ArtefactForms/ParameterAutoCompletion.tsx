@@ -7,7 +7,7 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
-    Spinner
+    Spinner,
 } from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";

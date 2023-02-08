@@ -1,13 +1,13 @@
 import React from "react";
-import {FieldItem, TextArea, TextField} from "@eccenca/gui-elements";
-import {errorMessage} from "./ParameterWidget";
-import {useTranslation} from "react-i18next";
-import {AdvancedOptionsArea} from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import CustomIdentifierInput, {handleCustomIdValidation} from "./CustomIdentifierInput";
+import { FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
+import { errorMessage } from "./ParameterWidget";
+import { useTranslation } from "react-i18next";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import {Keyword} from "@ducks/workspace/typings";
-import {SelectedParamsType} from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
-import {MultiTagSelect} from "../../../MultiTagSelect";
+import { Keyword } from "@ducks/workspace/typings";
+import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { MultiTagSelect } from "../../../MultiTagSelect";
 
 interface IProps {
     form: any;
@@ -87,9 +87,7 @@ export function ProjectForm({ form }: IProps) {
                     htmlFor: TAGS,
                 }}
             >
-                <MultiTagSelect
-                    handleTagSelectionChange={handleTagSelectionChange}
-                />
+                <MultiTagSelect handleTagSelectionChange={handleTagSelectionChange} />
             </FieldItem>
             <AdvancedOptionsArea>
                 <CustomIdentifierInput form={form} onValueChange={onValueChange} />
