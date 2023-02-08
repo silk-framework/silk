@@ -247,78 +247,99 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         targetInput: "Target path",
                     };
 
-                    ["sourceInput", "targetInput"].forEach((inputPath) => {
-                        const isSourceEntity = inputPath === "sourceInput";
-                        //is comparison operator
-                        let inputNode: TreeNodeInfo = {
-                            id: node[inputPath].id,
-                            isExpanded: true,
-                            hasCaret: false,
-                            label: (
-                                <TagList>
-                                    <Tag
-                                        key="pathinput"
-                                        backgroundColor={
-                                            tagColor(
-                                                node[inputPath].type === "pathInput"
-                                                    ? inputPathCategory[inputPath]
-                                                    : operatorInputMapping[node[inputPath].type]
-                                            ) as string
-                                        }
-                                    >
-                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
-                                    </Tag>
-                                    {getLinkValues(node[inputPath].id, idx, treeInfo, {
-                                        path: node[inputPath].path ?? "",
-                                        isSourceEntity,
-                                    })}
-                                </TagList>
-                            ),
-                            childNodes: [],
-                        };
-
-                        if (node[inputPath].inputs?.length) {
-                            node[inputPath].inputs.forEach((i) => {
-                                buildInputTree(
-                                    i,
-                                    inputNode,
-                                    idx,
-                                    inputPathCategory[inputPath],
-                                    treeInfo,
-                                    isSourceEntity
-                                );
+                    if (node?.inputs?.length) {
+                        node.inputs.forEach((nodeInput) => {
+                            getSubTree(nodeInput, {
+                                id: nodeInput.id,
+                                isExpanded: true,
+                                hasCaret: false,
+                                label: (
+                                    <span>
+                                        <Tag backgroundColor={tagColor(nodeInput.type)}>
+                                            {getOperatorLabel(nodeInput, operatorPlugins)}
+                                        </Tag>
+                                        <Spacing vertical size="tiny" />
+                                        {getOperatorConfidence(nodeInput.id, idx)}
+                                    </span>
+                                ),
+                                childNodes: [],
                             });
-                        }
+                        });
+                    } else {
+                        ["sourceInput", "targetInput"].forEach((inputPath) => {
+                            const isSourceEntity = inputPath === "sourceInput";
+                            //is comparison operator
+                            let inputNode: TreeNodeInfo = {
+                                id: node[inputPath].id,
+                                isExpanded: true,
+                                hasCaret: false,
+                                label: (
+                                    <TagList>
+                                        <Tag
+                                            key="pathinput"
+                                            backgroundColor={
+                                                tagColor(
+                                                    node[inputPath].type === "pathInput"
+                                                        ? inputPathCategory[inputPath]
+                                                        : operatorInputMapping[node[inputPath].type]
+                                                ) as string
+                                            }
+                                        >
+                                            {getOperatorLabel(node[inputPath], operatorPlugins)}
+                                        </Tag>
+                                        {getLinkValues(node[inputPath].id, idx, treeInfo, {
+                                            path: node[inputPath].path ?? "",
+                                            isSourceEntity,
+                                        })}
+                                    </TagList>
+                                ),
+                                childNodes: [],
+                            };
 
-                        if (parentTree) {
-                            parentTree.childNodes!.push(inputNode);
-                        } else {
-                            treeInfo.childNodes!.push(inputNode);
-                        }
-                    });
+                            if (node[inputPath].inputs?.length) {
+                                node[inputPath].inputs.forEach((i) => {
+                                    buildInputTree(
+                                        i,
+                                        inputNode,
+                                        idx,
+                                        inputPathCategory[inputPath],
+                                        treeInfo,
+                                        isSourceEntity
+                                    );
+                                });
+                            }
+
+                            if (parentTree) {
+                                parentTree.childNodes!.push(inputNode);
+                            } else {
+                                treeInfo.childNodes!.push(inputNode);
+                            }
+                        });
+                    }
                     parentTree && treeInfo.childNodes!.push(parentTree);
                 };
 
-                if (operatorNode.inputs?.length) {
-                    //Aggregation operator
-                    (operatorNode as IAggregationOperator).inputs.forEach((i: any) => {
-                        getSubTree(i, {
-                            id: i.id,
-                            isExpanded: true,
-                            hasCaret: false,
-                            label: (
-                                <span>
-                                    <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
-                                    <Spacing vertical size="tiny" />
-                                    {getOperatorConfidence(i.id, idx)}
-                                </span>
-                            ),
-                            childNodes: [],
-                        });
-                    });
-                } else {
-                    getSubTree(operatorNode);
-                }
+                operatorNode.inputs?.length
+                    ? //Aggregation operator
+                      (operatorNode as IAggregationOperator).inputs.forEach((i: any) => {
+                          getSubTree(i, {
+                              id: i.id,
+                              isExpanded: true,
+                              hasCaret: false,
+                              label: (
+                                  <span>
+                                      <Tag backgroundColor={tagColor(i.type)}>
+                                          {getOperatorLabel(i, operatorPlugins)}
+                                      </Tag>
+                                      <Spacing vertical size="tiny" />
+                                      {getOperatorConfidence(i.id, idx)}
+                                  </span>
+                              ),
+                              childNodes: [],
+                          });
+                      })
+                    : getSubTree(operatorNode);
+
                 return treeInfo;
             })
         );
@@ -336,25 +357,44 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         if (evaluationResults && evaluationResults.linkRule && evaluationResults.links && linksToValueMap.length) {
             const ruleOperator = evaluationResults.linkRule.operator;
             if (ruleOperator) {
+                const recursivelyGetInputPath = (operator: any): EvaluationLinkInputValue<string> => {
+                    return ((operator as IAggregationOperator)?.inputs ?? []).reduce(
+                        (acc, input) => {
+                            if (!(input as any)?.inputs?.length) {
+                                const linkRuleInputPaths = getLinkRuleInputPaths(input);
+                                acc = {
+                                    source: {
+                                        ...acc.source,
+                                        ...linkRuleInputPaths.source,
+                                    },
+                                    target: {
+                                        ...acc.target,
+                                        ...linkRuleInputPaths.target,
+                                    },
+                                };
+                            } else {
+                                const recursedAggregate = recursivelyGetInputPath(input);
+                                acc = {
+                                    source: {
+                                        ...acc.source,
+                                        ...recursedAggregate.source,
+                                    },
+                                    target: {
+                                        ...acc.target,
+                                        ...recursedAggregate.target,
+                                    },
+                                };
+                            }
+
+                            return acc;
+                        },
+                        { source: {}, target: {} } as EvaluationLinkInputValue<string>
+                    );
+                };
+
                 const inputPaths = (ruleOperator as IComparisonOperator)?.sourceInput
                     ? getLinkRuleInputPaths(ruleOperator)
-                    : ((ruleOperator as IAggregationOperator)?.inputs ?? []).reduce(
-                          (acc, input) => {
-                              const linkRuleInputPaths = getLinkRuleInputPaths(input);
-                              acc = {
-                                  source: {
-                                      ...acc.source,
-                                      ...linkRuleInputPaths.source,
-                                  },
-                                  target: {
-                                      ...acc.target,
-                                      ...linkRuleInputPaths.target,
-                                  },
-                              };
-                              return acc;
-                          },
-                          { source: {}, target: {} } as EvaluationLinkInputValue<string>
-                      );
+                    : recursivelyGetInputPath(ruleOperator);
 
                 setInputValues(() =>
                     linksToValueMap.map((linkToValueMap) =>
