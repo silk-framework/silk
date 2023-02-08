@@ -41,7 +41,7 @@ import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
-import { uppercaseFirstChar } from "../../../../utils/transformers";
+import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
@@ -143,6 +143,10 @@ export function CreateArtefactModal() {
             cause: error,
         };
         dispatch(commonOp.setModalError(newError));
+    };
+
+    const resetModalError = () => {
+        dispatch(commonOp.setModalError({}));
     };
 
     // Function to set template parameter flag for a parameter
@@ -482,7 +486,7 @@ export function CreateArtefactModal() {
                 updateTask={{
                     parameterValues: updateExistingTask.currentParameterValues,
                     dataParameters: updateExistingTask.dataParameters,
-                    variableTemplateValues: updateExistingTask.currentTemplateValues,
+                    variableTemplateValues: objectToFlatRecord(updateExistingTask.currentTemplateValues, {}),
                 }}
                 parameterCallbacks={{
                     setTemplateFlag,
@@ -578,13 +582,18 @@ export function CreateArtefactModal() {
         }
         try {
             setAutoConfigPending(true);
-            const parameters = commonOp.buildTaskObject(form.getValues());
+            resetModalError();
+            const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
+                form.getValues(),
+                templateParameters.current
+            );
+            const parameterData = commonOp.buildTaskObject(parameters);
+            const variableTemplateData = commonOp.buildTaskObject(variableTemplateParameters);
             const requestBody: DatasetTaskPlugin<any> = {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,
-                parameters,
-                // TODO: How to handle auto-configure with templates?
-                templates: {},
+                parameters: parameterData,
+                templates: variableTemplateData as Record<string, string>,
             };
             const parameterChanges: Record<string, string> = (
                 await requestAutoConfiguredDataset(projectId, requestBody)

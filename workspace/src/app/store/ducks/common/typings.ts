@@ -1,4 +1,10 @@
-import { IAutocompleteDefaultResponse, IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
+import {
+    IAutocompleteDefaultResponse,
+    IMetadata,
+    PluginType,
+    TaskType,
+    TemplateValueType,
+} from "@ducks/shared/typings";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
@@ -117,7 +123,7 @@ export interface IProjectTaskUpdatePayload {
     currentParameterValues: {
         [key: string]: string | object;
     };
-    currentTemplateValues: Record<string, string>;
+    currentTemplateValues: TemplateValueType;
     dataParameters?: {
         [key: string]: string;
     };

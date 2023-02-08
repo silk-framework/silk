@@ -40,7 +40,7 @@ export interface UpdateTaskProps {
     parameterValues: {
         [key: string]: string | object;
     };
-    variableTemplateValues: Record<string, string>;
+    variableTemplateValues: Record<string, any>;
     dataParameters?: {
         [key: string]: string;
     };

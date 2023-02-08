@@ -432,6 +432,7 @@ const commonOps = {
     resetArtefactModal,
     fetchExportTypesAsync,
     extractDataAttributes,
+    splitParameterAndVariableTemplateParameters,
 };
 
 export default commonOps;

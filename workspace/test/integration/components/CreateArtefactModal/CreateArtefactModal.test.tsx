@@ -14,6 +14,7 @@ import {
     checkRequestMade,
     cleanUpDOM,
     clickWrapperElement,
+    elementHtmlToContain,
     findAll,
     findSingleElement,
     legacyApiUrl,
@@ -242,6 +243,8 @@ describe("Task creation widget", () => {
         expect(findAll(wrapper, "legend")).toHaveLength(2);
         // restriction and multi-line use code mirror widget
         expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
+        // Default values should be set
+        await elementHtmlToContain(wrapper, "#stringParam", "default string4");
     });
 
     // Click the create button in the create dialog
@@ -437,6 +440,9 @@ describe("Task creation widget", () => {
             },
         });
         await waitFor(() => findSingleElement(wrapper, byTestId("stringParam-template-switch-back-btn")));
+        await waitFor(() =>
+            expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value")
+        );
         const updateRequest = await updateTask(wrapper);
         // Build expected request parameter object
         const expectedObject: any = {};

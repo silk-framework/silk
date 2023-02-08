@@ -218,7 +218,7 @@ export const ParameterWidget = (props: IProps) => {
                         ? initialValues[formParamId]
                             ? initialValues[formParamId]
                             : defaultValueAsJs(propertyDetails, true)
-                        : initialValues[formParamId]?.value,
+                        : initialValues[formParamId]?.value ?? propertyDetails.value,
                 }}
                 inputElementFactory={(initialValueReplace, onChange) => {
                     if (autoCompletion) {

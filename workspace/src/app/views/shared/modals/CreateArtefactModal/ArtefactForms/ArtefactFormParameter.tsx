@@ -59,10 +59,14 @@ export const ArtefactFormParameter = ({
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
-    const initialValue = supportVariableTemplateElement?.initialValue ?? "";
-    const valueState = React.useRef({
-        inputValue: startWithTemplateView ? "" : initialValue,
-        templateValue: startWithTemplateView ? initialValue : "",
+    const initialValue = supportVariableTemplateElement?.initialValue;
+    const valueState = React.useRef<{
+        inputValue?: string;
+        templateValue: string;
+    }>({
+        // Input value needs to be undefined, so it gets set to the default value
+        inputValue: startWithTemplateView ? undefined : initialValue,
+        templateValue: startWithTemplateView ? initialValue ?? "" : "",
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
     const switchShowVariableTemplateInput = React.useCallback(() => {
@@ -70,7 +74,7 @@ export const ArtefactFormParameter = ({
             const becomesTemplate = !old;
             supportVariableTemplateElement!.parameterCallbacks.setTemplateFlag(parameterId, becomesTemplate);
             supportVariableTemplateElement!.onChange(
-                becomesTemplate ? valueState.current.templateValue : valueState.current.inputValue
+                becomesTemplate ? valueState.current.templateValue : valueState.current.inputValue ?? ""
             );
             return becomesTemplate;
         });
