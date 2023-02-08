@@ -1,5 +1,13 @@
 import React, { ReactElement, useState } from "react";
-import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@eccenca/gui-elements";
+import {
+    AlertDialog,
+    Button,
+    Checkbox,
+    FieldItem,
+    HtmlContentBlock,
+    Notification,
+    Spacing,
+} from "@eccenca/gui-elements";
 import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { TestableComponent } from "@eccenca/gui-elements/src/components/interfaces";
@@ -46,6 +54,7 @@ export default function DeleteModal({
             danger
             title={title}
             isOpen={isOpen}
+            canEscapeKeyClose={true}
             onClose={onDiscard}
             data-test-id={otherProps["data-test-id"]}
             actions={

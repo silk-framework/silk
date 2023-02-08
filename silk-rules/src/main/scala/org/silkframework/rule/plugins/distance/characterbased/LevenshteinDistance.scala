@@ -29,34 +29,48 @@ import scala.math.{abs, max, min}
   description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
 )
 case class LevenshteinDistance(
+  @Param(label = "Q-grams size", value = "The size of the q-grams to be indexed. Setting this to zero will disable indexing.", advanced = true)
+  qGramsSize: Int = 2,
   @Param(value = "The minimum character that is used for indexing", advanced = true)
   minChar: Char = '0',
   @Param(value = "The maximum character that is used for indexing", advanced = true)
   maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
-  /**The size of the q-Grams to be indexed */
-  private val q = 2
+  assert(qGramsSize >= 0, "Q-grams size cannot be negative")
+  assert(qGramsSize <= 4, "Q-grams size is not allowed to be larger than 4")
 
-  private val indexSize = BigInt(maxChar - minChar + 1).pow(q).toInt
+  private val indexingEnabled = qGramsSize != 0
 
-  override def evaluate(str1: String, str2: String, limit: Double) = {
-    if (abs(str1.length - str2.length) > limit)
+  private val indexSize = BigInt(maxChar - minChar + 1).pow(qGramsSize).toInt
+
+  override def evaluate(str1: String, str2: String, limit: Double): Double = {
+    if (abs(str1.length - str2.length) > limit) {
       Double.PositiveInfinity
-    else
+    } else {
       evaluateDistance(str1, str2)
+    }
   }
 
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
-    val qGrams = str.qGrams(q)
-    val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
+    if(indexingEnabled) {
+      val qGrams = str.qGrams(qGramsSize)
+      val qGramsReordered = qGrams.drop(qGramsSize - 1) ++ qGrams.take(qGramsSize - 1)
 
-    val indices = qGramsReordered.take(limit.toInt * q + 1).map(indexQGram).toSet
+      val numberOfIndices = limit.toInt * qGramsSize + 1
+      val indices = qGramsReordered.take(numberOfIndices).map(indexQGram).toSet
 
-    Index.oneDim(indices, indexSize)
+      Index.oneDim(indices, indexSize)
+    } else {
+      Index.default
+    }
   }
 
   override def emptyIndex(limit: Double): Index = {
-    Index.oneDim(Set.empty, indexSize)
+    if(indexingEnabled) {
+      Index.oneDim(Set.empty, indexSize)
+    } else {
+      Index.empty
+    }
   }
 
   private def indexQGram(qGram: String): Int = {

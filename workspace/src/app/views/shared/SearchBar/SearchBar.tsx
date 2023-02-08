@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import SearchInput, { ISearchInputProps } from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
 import { useInvisibleCharacterCleanUpModal } from "../modals/InvisibleCharacterCleanUpModal";
+import { useSearch } from "../../../hooks/useSearch";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<
@@ -34,40 +35,16 @@ export function SearchBar({
     warnOfInvisibleCharacters = true,
     ...otherProps
 }: IProps) {
-    const [searchInput, setSearchInput] = useState(textQuery);
     const [t] = useTranslation();
-
-    useEffect(() => {
-        setSearchInput(textQuery);
-    }, [textQuery]);
+    const { query, setQuery, onChange, onEnter, onClear } = useSearch(onSearch, textQuery);
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
         : t("form.field.searchField", "Enter search term");
 
-    const handleSearchChange = (e) => {
-        const value = e.target.value;
-        // when input is empty then apply filter
-        if (value === "" && searchInput) {
-            setSearchInput("");
-            onSearch("");
-        } else {
-            setSearchInput(value);
-        }
-    };
-
-    const onClearanceHandler = () => {
-        setSearchInput("");
-        onSearch("");
-    };
-
-    const handleSearchEnter = () => {
-        onSearch(searchInput);
-    };
-
     const { iconButton, modalElement, invisibleCharacterWarning } = useInvisibleCharacterCleanUpModal({
-        inputString: searchInput,
-        setString: setSearchInput,
+        inputString: query,
+        setString: setQuery,
         callbackDelay: 200,
     });
 
@@ -79,10 +56,10 @@ export function SearchBar({
                 <SearchInput
                     data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
-                    onFilterChange={handleSearchChange}
-                    onEnter={handleSearchEnter}
-                    filterValue={searchInput}
-                    onClearanceHandler={onClearanceHandler}
+                    onFilterChange={onChange}
+                    onEnter={onEnter}
+                    filterValue={query}
+                    onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
                     invisibleCharacterWarning={invisibleCharacterWarning}
                     {...otherProps}
