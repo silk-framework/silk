@@ -81,7 +81,7 @@ export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     // current parameter values
     parameters: PLUGIN_PARAMETERS;
     // Template parameter values
-    templates: TemplateValueType;
+    templates?: TemplateValueType;
     // Optional task type, e.g. Dataset, Transform etc.
     taskType?: TaskType;
     // Dataset may have a URI property set

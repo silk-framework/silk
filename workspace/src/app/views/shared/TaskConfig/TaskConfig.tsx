@@ -66,7 +66,7 @@ export function TaskConfig(props: IProps) {
                                   uriProperty: taskData.data.uriProperty,
                               }
                             : undefined,
-                    currentTemplateValues: taskData.data.templates,
+                    currentTemplateValues: taskData.data.templates ?? {},
                 })
             );
         } catch (e) {
