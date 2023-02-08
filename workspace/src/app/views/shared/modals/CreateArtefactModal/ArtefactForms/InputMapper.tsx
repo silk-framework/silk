@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Spinner, Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
+import { CodeEditor, Spinner, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
-import { ParameterCallbacks } from "./ParameterWidget";
+import { ExtendedParameterCallbacks } from "./ParameterWidget";
 
 interface IProps {
     projectId: string;
@@ -21,15 +21,10 @@ interface IProps {
     onChange: (value) => void;
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
-    initialValues: {
-        [key: string]: {
-            label: string;
-            value: string;
-        };
-    };
+    initialParameterValue?: string;
     /** This is a required parameter. */
     required: boolean;
-    parameterCallbacks: ParameterCallbacks;
+    parameterCallbacks: ExtendedParameterCallbacks;
 }
 
 export type RegisterForExternalChangesFn = (
@@ -55,7 +50,7 @@ export function InputMapper({
     parameter,
     intent,
     onChange,
-    initialValues,
+    initialParameterValue,
     required,
     parameterCallbacks,
 }: IProps) {
@@ -65,7 +60,11 @@ export function InputMapper({
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const [show, setShow] = React.useState(true);
     const [highlightInput, setHighlightInput] = React.useState(false);
-    const initialOrExternalValue = externalValue ? externalValue.value : initialValues[paramId]?.value;
+    const initialOrExternalValue = externalValue
+        ? externalValue.value
+        : parameterCallbacks.initialTemplateFlag(paramId)
+        ? undefined
+        : initialParameterValue;
     const initialValue =
         initialOrExternalValue != null
             ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)

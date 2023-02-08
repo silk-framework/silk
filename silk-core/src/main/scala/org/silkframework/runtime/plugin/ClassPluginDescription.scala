@@ -90,7 +90,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
             }
           } catch {
             case NonFatal(ex) =>
-              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.parameterType + ". Issue: " + ex.getMessage, ex)
+              throw new InvalidPluginParameterValueException(s"$label has an invalid value for parameter '${parameter.name}'. Value must be a valid " + parameter.parameterType + ". Issue: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get

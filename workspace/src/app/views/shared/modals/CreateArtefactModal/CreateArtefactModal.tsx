@@ -154,6 +154,8 @@ export function CreateArtefactModal() {
         }
     }, []);
 
+    const templateFlag = React.useCallback((parameterId: string) => templateParameters.current.has(parameterId), []);
+
     /** set the current Project when opening modal from a project
      * i.e project id already exists **/
     React.useEffect(() => {
@@ -480,10 +482,12 @@ export function CreateArtefactModal() {
                 updateTask={{
                     parameterValues: updateExistingTask.currentParameterValues,
                     dataParameters: updateExistingTask.dataParameters,
+                    variableTemplateValues: updateExistingTask.currentTemplateValues,
                 }}
                 parameterCallbacks={{
                     setTemplateFlag,
                     registerForExternalChanges,
+                    templateFlag,
                 }}
             />
         );
@@ -505,6 +509,7 @@ export function CreateArtefactModal() {
                             parameterCallbacks={{
                                 setTemplateFlag,
                                 registerForExternalChanges,
+                                templateFlag,
                             }}
                         />
                     );
@@ -578,6 +583,8 @@ export function CreateArtefactModal() {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,
                 parameters,
+                // TODO: How to handle auto-configure with templates?
+                templates: {},
             };
             const parameterChanges: Record<string, string> = (
                 await requestAutoConfiguredDataset(projectId, requestBody)
@@ -639,6 +646,7 @@ export function CreateArtefactModal() {
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(
             <IconButton
+                key={"show-enhanced-description-btn"}
                 name="item-question"
                 onClick={(e) =>
                     handleShowEnhancedDescription(e, {

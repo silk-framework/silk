@@ -117,6 +117,7 @@ export interface IProjectTaskUpdatePayload {
     currentParameterValues: {
         [key: string]: string | object;
     };
+    currentTemplateValues: Record<string, string>;
     dataParameters?: {
         [key: string]: string;
     };

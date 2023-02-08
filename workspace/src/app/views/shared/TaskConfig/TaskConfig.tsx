@@ -60,9 +60,13 @@ export function TaskConfig(props: IProps) {
                     metaData: taskData.metadata,
                     taskPluginDetails: taskPluginDetails,
                     currentParameterValues: taskData.data.parameters,
-                    dataParameters: taskPluginDetails.taskType === "Dataset" && taskData.data.uriProperty ? {
-                        uriProperty: taskData.data.uriProperty
-                    } : undefined
+                    dataParameters:
+                        taskPluginDetails.taskType === "Dataset" && taskData.data.uriProperty
+                            ? {
+                                  uriProperty: taskData.data.uriProperty,
+                              }
+                            : undefined,
+                    currentTemplateValues: taskData.data.templates,
                 })
             );
         } catch (e) {
@@ -96,7 +100,10 @@ export function TaskConfig(props: IProps) {
 
     let titlePostfix = "";
     if (labelledTaskData) {
-        titlePostfix = `: ${t("common.dataTypes."+labelledTaskData.taskDescription.title.toLowerCase(), labelledTaskData.taskDescription.title)}`;
+        titlePostfix = `: ${t(
+            "common.dataTypes." + labelledTaskData.taskDescription.title.toLowerCase(),
+            labelledTaskData.taskDescription.title
+        )}`;
     }
 
     // FIXME: CMEM-3742: only return CardContent when it has items, so we need check content before rendering

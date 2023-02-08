@@ -76,15 +76,18 @@ export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     type: string;
     // current parameter values
     parameters: PLUGIN_PARAMETERS;
+    // Template parameter values
+    templates: Record<string, string>;
     // Optional task type, e.g. Dataset, Transform etc.
     taskType?: TaskType;
     // Dataset may have a URI property set
-    uriProperty?: string
+    uriProperty?: string;
 }
 
-export interface DatasetTaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> extends TaskPlugin<PLUGIN_PARAMETERS> {
+export interface DatasetTaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters>
+    extends TaskPlugin<PLUGIN_PARAMETERS> {
     /** The attribute/property (URI) that the entity URI should be written to. */
-    uriProperty?: string
+    uriProperty?: string;
 }
 
 export interface ITaskMetadataResponse {

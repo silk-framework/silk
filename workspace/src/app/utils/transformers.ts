@@ -5,6 +5,7 @@ import {
     optionallyLabelledParameterToLabel,
     optionallyLabelledParameterToValue,
 } from "../views/taskViews/linking/linking.types";
+import { UpdateTaskProps } from "../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 
 /** Converts the default value to a JS value */
 export const defaultValueAsJs = (property: IArtefactItemProperty, withLabel: boolean): any => {
@@ -33,11 +34,12 @@ export const stringValueAsJs = (valueType: string, value: OptionallyLabelledPara
 /** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"].
  *  If the original values are reified values with optional labels, this reified structure is kept in the flat object.
  **/
-export const existingTaskValuesToFlatParameters = (updateTask: any) => {
+export const existingTaskValuesToFlatParameters = (updateTask: UpdateTaskProps | undefined) => {
     if (updateTask) {
         const result: any = {};
         const objToFlatRec = (obj: object, prefix: string) => {
             Object.entries(obj).forEach(([paramName, paramLabelAndValue]) => {
+                const fullParameterId = `${prefix}${paramName}`;
                 let paramValue = paramLabelAndValue;
                 if (
                     paramLabelAndValue !== null &&
@@ -50,7 +52,10 @@ export const existingTaskValuesToFlatParameters = (updateTask: any) => {
                 if (typeof paramValue === "object" && paramValue !== null) {
                     objToFlatRec(paramValue, paramName + ".");
                 } else {
-                    result[prefix + paramName] = paramLabelAndValue;
+                    result[prefix + paramName] =
+                        updateTask.variableTemplateValues[fullParameterId] != null
+                            ? { value: updateTask.variableTemplateValues[fullParameterId] }
+                            : paramLabelAndValue;
                 }
             });
         };

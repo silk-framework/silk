@@ -34,14 +34,15 @@ export const UriAttributeParameterInput = ({ onValueChange, initialValue }: Prop
             label={t("DatasetUriPropertyParameter.label")}
             helperText={t("DatasetUriPropertyParameter.description")}
             errorMessage={validationFailed ? t("DatasetUriPropertyParameter.invalid") : undefined}
-        >
-            <TextField
-                id={URI_PROPERTY_PARAMETER_ID}
-                name={URI_PROPERTY_PARAMETER_ID}
-                onChange={onChange}
-                hasStateDanger={validationFailed}
-                defaultValue={initialValue}
-            />
-        </ArtefactFormParameter>
+            inputElementFactory={() => (
+                <TextField
+                    id={URI_PROPERTY_PARAMETER_ID}
+                    name={URI_PROPERTY_PARAMETER_ID}
+                    onChange={onChange}
+                    hasStateDanger={validationFailed}
+                    defaultValue={initialValue}
+                />
+            )}
+        />
     );
 };

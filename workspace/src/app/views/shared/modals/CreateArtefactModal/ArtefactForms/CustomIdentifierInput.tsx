@@ -75,23 +75,24 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
             }
             helperText={t("CreateModal.CustomIdentifierInput.helperDescription")}
             errorMessage={errorMessage(IDENTIFIER, errors.id)}
-        >
-            <TextField
-                id={IDENTIFIER}
-                name={IDENTIFIER}
-                onChange={onValueChange(IDENTIFIER)}
-                hasStateDanger={errors.id ? true : false}
-                onKeyDown={(e) => {
-                    if (e.keyCode === 13) {
-                        e.preventDefault();
-                        return false;
-                    }
-                }}
-                disabled={!!taskId}
-                rightElement={taskId ? copyButton : undefined}
-                {...otherProps}
-            />
-        </ArtefactFormParameter>
+            inputElementFactory={() => (
+                <TextField
+                    id={IDENTIFIER}
+                    name={IDENTIFIER}
+                    onChange={onValueChange(IDENTIFIER)}
+                    hasStateDanger={errors.id ? true : false}
+                    onKeyDown={(e) => {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }}
+                    disabled={!!taskId}
+                    rightElement={taskId ? copyButton : undefined}
+                    {...otherProps}
+                />
+            )}
+        />
     );
 };
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { FieldItem, Icon, IconButton, Spacing, TextField, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { ParameterCallbacks } from "./ParameterWidget";
+import { ExtendedParameterCallbacks } from "./ParameterWidget";
 
 interface Props {
     // ID of the parameter
@@ -12,8 +12,13 @@ interface Props {
     required?: boolean;
     // Error message that will be displayed below the input component
     errorMessage?: string;
-    // The input element
-    children: JSX.Element;
+    /** Factory to create the input element
+     *
+     * @param initialValueReplace If defined, the value the element should be initialized with instead of the starting initial value.
+     * @param onChange     onChange function from supportVariableTemplateElement.onChange
+     *                     NOTE: Do not use this when not using supportVariableTemplateElement at the same time!
+     */
+    inputElementFactory: (initialValueReplace?: string, onChange?: (value: string) => any) => JSX.Element;
     // If the parameter is disabled
     disabled?: boolean;
     // Is displayed between label and input element.
@@ -27,7 +32,7 @@ interface Props {
         onChange: (value: string) => any;
         switchButtonPosition: "rightElement";
         startWithTemplateView: boolean;
-        parameterCallbacks: ParameterCallbacks;
+        parameterCallbacks: ExtendedParameterCallbacks;
         // The initial value. An undefined value means, it is unknown.
         initialValue: string;
     };
@@ -39,15 +44,15 @@ export const ArtefactFormParameter = ({
     label,
     required = false,
     errorMessage,
-    children,
+    inputElementFactory,
     helperText,
     disabled = false,
     tooltip,
     supportVariableTemplateElement,
 }: Props) => {
     const [t] = useTranslation();
-    const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState(false);
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
+    const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState(startWithTemplateView);
     const initialValue = supportVariableTemplateElement?.initialValue ?? "";
     const valueState = React.useRef({
         inputValue: startWithTemplateView ? "" : initialValue,
@@ -63,6 +68,24 @@ export const ArtefactFormParameter = ({
             return becomesTemplate;
         });
     }, []);
+
+    const onTemplateValueChange = React.useCallback(
+        (e) => {
+            const value = e.target.value;
+            valueState.current.templateValue = value;
+            supportVariableTemplateElement!.onChange(value);
+        },
+        [supportVariableTemplateElement?.onChange]
+    );
+
+    const onElementValueChange = React.useCallback(
+        (valueOrEvent: any) => {
+            const value = valueOrEvent.target ? valueOrEvent.target.value : `${valueOrEvent}`;
+            valueState.current.inputValue = value;
+            supportVariableTemplateElement?.onChange(value);
+        },
+        [supportVariableTemplateElement?.onChange]
+    );
 
     return (
         <FieldItem
@@ -84,10 +107,11 @@ export const ArtefactFormParameter = ({
                         <TextField
                             // TODO Better distinguish template input field
                             leftElement={<Icon name={"item-edit"} />}
-                            onChange={(e) => supportVariableTemplateElement!.onChange(e.target.value)}
+                            defaultValue={valueState.current.templateValue}
+                            onChange={onTemplateValueChange}
                         />
                     ) : (
-                        children
+                        inputElementFactory(valueState.current.inputValue, onElementValueChange)
                     )}
                 </ToolbarSection>
                 {supportVariableTemplateElement && !disabled && (

@@ -30,17 +30,20 @@ export interface IProps {
     taskId?: string;
 
     // This is set if this is an update form instead of a create form.
-    updateTask?: {
-        // The existing parameter values
-        parameterValues: {
-            [key: string]: string | object;
-        };
-        dataParameters?: {
-            [key: string]: string;
-        };
-    };
+    updateTask?: UpdateTaskProps;
 
     parameterCallbacks: ParameterCallbacks;
+}
+
+export interface UpdateTaskProps {
+    // The existing parameter values
+    parameterValues: {
+        [key: string]: string | object;
+    };
+    variableTemplateValues: Record<string, string>;
+    dataParameters?: {
+        [key: string]: string;
+    };
 }
 
 const LABEL = "label";
@@ -62,6 +65,11 @@ const datasetConfigPreview = (
     };
 };
 
+const intRegex = /^[0-9]*$/;
+const isInt = (value) => {
+    return intRegex.test(`${value}`);
+};
+
 /** The task creation/update form. */
 export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange, parameterCallbacks }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
@@ -77,13 +85,41 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
-    // addition restriction for the hook form parameter values
-    const valueRestrictions = (param: IArtefactItemProperty) => {
+    const initialTemplateFlag = React.useCallback(
+        (fullParameterId: string) => {
+            return updateTask?.variableTemplateValues[fullParameterId] != null;
+        },
+        [updateTask]
+    );
+
+    const extendedCallbacks = React.useMemo(() => {
+        return {
+            ...parameterCallbacks,
+            initialTemplateFlag,
+        };
+    }, [initialTemplateFlag]);
+
+    /** Additional restrictions/validation for the form parameter values
+     *  The returned error messages must be defined in such a way that the parameter label can be prefixed in front of it.
+     **/
+    const valueRestrictions = (fullParameterId: string, param: IArtefactItemProperty) => {
+        const wrapTemplateValidation = (validationFunction: (value) => true | string): ((value) => true | string) => {
+            return (value): true | string => {
+                if (parameterCallbacks.templateFlag(fullParameterId)) {
+                    return true; // TODO: Validate template here or via auto-completion later?
+                } else {
+                    return validationFunction(value);
+                }
+            };
+        };
         if (param.parameterType === INPUT_TYPES.INTEGER) {
             return {
-                pattern: {
-                    value: /^[0-9]*$/,
-                    message: t("form.validations.integer", "must be an integer number"),
+                validate: {
+                    isInt: wrapTemplateValidation((value) => {
+                        return isInt(value)
+                            ? true
+                            : (t("form.validations.integer", "must be an integer number") as string);
+                    }),
                 },
             };
         } else {
@@ -120,14 +156,14 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                     (propertyDetails.autoCompletion as IPropertyAutocomplete).autoCompletionDependsOnParameters
             );
             params.forEach(([paramId, param]) => {
-                const key = prefix + paramId;
+                const fullParameterId = prefix + paramId;
                 if (param.type === "object") {
                     // Nested type, only register nested atomic values
                     if (param.properties) {
                         // nested object
                         const nestedParams = Object.entries(param.properties);
                         registerParameters(
-                            key + ".",
+                            fullParameterId + ".",
                             nestedParams,
                             parameterValues && parameterValues[paramId] !== undefined
                                 ? parameterValues[paramId].value
@@ -135,30 +171,37 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             param.required ? param.required : []
                         );
                     } else {
-                        console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
+                        console.warn(
+                            `Parameter '${fullParameterId}' is of type "object", but has no parameters object defined!`
+                        );
                     }
                 } else {
                     let value = defaultValueAsJs(param, false);
-                    returnKeys.push(key);
+                    returnKeys.push(fullParameterId);
                     register(
                         {
-                            name: key,
+                            name: fullParameterId,
                         },
                         {
                             required: requiredParameters.includes(paramId),
-                            ...valueRestrictions(param),
+                            ...valueRestrictions(fullParameterId, param),
                         }
                     );
                     // Set default value
                     let currentValue = value;
                     if (updateTask && parameterValues[paramId] !== undefined) {
-                        // Set existing value
-                        currentValue = parameterValues[paramId].value;
+                        // Set existing value, either parameter value or variable template value
+                        if (updateTask.variableTemplateValues[fullParameterId] != null) {
+                            parameterCallbacks.setTemplateFlag(fullParameterId, true);
+                            currentValue = updateTask.variableTemplateValues[fullParameterId];
+                        } else {
+                            currentValue = parameterValues[paramId].value;
+                        }
                     }
-                    setValue(key, currentValue);
+                    setValue(fullParameterId, currentValue);
                     // Add dependent values, the object state needs to be mutably changed, see comments in handleChange()
                     if (dependsOnParameters.includes(paramId)) {
-                        dependentValues[key] = currentValue;
+                        dependentValues[fullParameterId] = currentValue;
                     }
                 }
             });
@@ -257,55 +300,62 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             label={t("form.field.label")}
                             required={true}
                             errorMessage={errorMessage("Label", errors.label)}
-                        >
-                            <TextField
-                                id={LABEL}
-                                name={LABEL}
-                                value={label ?? ""}
-                                onChange={handleChange(LABEL)}
-                                hasStateDanger={!!errors.label}
-                                onKeyDown={(e) => {
-                                    if (e.keyCode === 13) {
-                                        e.preventDefault();
-                                        return false;
-                                    }
-                                }}
-                            />
-                        </ArtefactFormParameter>
+                            inputElementFactory={() => (
+                                <TextField
+                                    id={LABEL}
+                                    name={LABEL}
+                                    value={label ?? ""}
+                                    onChange={handleChange(LABEL)}
+                                    hasStateDanger={!!errors.label}
+                                    onKeyDown={(e) => {
+                                        if (e.keyCode === 13) {
+                                            e.preventDefault();
+                                            return false;
+                                        }
+                                    }}
+                                />
+                            )}
+                        />
                         <ArtefactFormParameter
                             key={DESCRIPTION}
                             parameterId={DESCRIPTION}
                             label={t("form.field.description")}
-                        >
-                            <TextArea
-                                id={DESCRIPTION}
-                                name={DESCRIPTION}
-                                value={description ?? ""}
-                                onChange={handleChange(DESCRIPTION)}
-                            />
-                        </ArtefactFormParameter>
-                        <ArtefactFormParameter key={TAGS} parameterId={TAGS} label={t("form.field.tags")}>
-                            <MultiSelect<Keyword>
-                                openOnKeyDown
-                                itemId={(keyword) => keyword.uri}
-                                itemLabel={(keyword) => keyword.label}
-                                items={[]}
-                                onSelection={handleTagSelectionChange}
-                                runOnQueryChange={handleTagQueryChange}
-                                newItemCreationText={t("Metadata.addNewTag")}
-                                newItemPostfix={t("Metadata.newTagPostfix")}
-                                inputProps={{
-                                    placeholder: `${t("form.field.searchOrEnterTags")}...`,
-                                }}
-                                tagInputProps={{
-                                    placeholder: `${t("form.field.searchOrEnterTags")}...`,
-                                }}
-                                createNewItemFromQuery={(query) => ({
-                                    uri: removeExtraSpaces(query),
-                                    label: removeExtraSpaces(query),
-                                })}
-                            />
-                        </ArtefactFormParameter>
+                            inputElementFactory={() => (
+                                <TextArea
+                                    id={DESCRIPTION}
+                                    name={DESCRIPTION}
+                                    value={description ?? ""}
+                                    onChange={handleChange(DESCRIPTION)}
+                                />
+                            )}
+                        />
+                        <ArtefactFormParameter
+                            key={TAGS}
+                            parameterId={TAGS}
+                            label={t("form.field.tags")}
+                            inputElementFactory={() => (
+                                <MultiSelect<Keyword>
+                                    openOnKeyDown
+                                    itemId={(keyword) => keyword.uri}
+                                    itemLabel={(keyword) => keyword.label}
+                                    items={[]}
+                                    onSelection={handleTagSelectionChange}
+                                    runOnQueryChange={handleTagQueryChange}
+                                    newItemCreationText={t("Metadata.addNewTag")}
+                                    newItemPostfix={t("Metadata.newTagPostfix")}
+                                    inputProps={{
+                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                                    }}
+                                    tagInputProps={{
+                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                                    }}
+                                    createNewItemFromQuery={(query) => ({
+                                        uri: removeExtraSpaces(query),
+                                        label: removeExtraSpaces(query),
+                                    })}
+                                />
+                            )}
+                        />
                     </>
                 )}
                 {normalParams.map(([key, param]) => (
@@ -323,7 +373,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
                         dependentValues={dependentValues}
-                        parameterCallbacks={parameterCallbacks}
+                        parameterCallbacks={extendedCallbacks}
                     />
                 ))}
 
@@ -355,7 +405,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
                             dependentValues={dependentValues}
-                            parameterCallbacks={parameterCallbacks}
+                            parameterCallbacks={extendedCallbacks}
                         />
                     ))}
                 </AdvancedOptionsArea>
