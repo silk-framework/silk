@@ -1,4 +1,4 @@
-import React from "react";
+import React, { MouseEventHandler } from "react";
 import { FieldItem, Icon, IconButton, Spacing, TextField, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
@@ -17,8 +17,13 @@ interface Props {
      * @param initialValueReplace If defined, the value the element should be initialized with instead of the starting initial value.
      * @param onChange     onChange function from supportVariableTemplateElement.onChange
      *                     NOTE: Do not use this when not using supportVariableTemplateElement at the same time!
+     * @param showRareActions Callback when "rare" actions should be shown, e.g. the variable template switch button. TODO
      */
-    inputElementFactory: (initialValueReplace?: string, onChange?: (value: string) => any) => JSX.Element;
+    inputElementFactory: (
+        initialValueReplace?: string,
+        onChange?: (value: string) => any,
+        showRareActions?: (show: boolean) => any
+    ) => JSX.Element;
     // If the parameter is disabled
     disabled?: boolean;
     // Is displayed between label and input element.
@@ -53,11 +58,13 @@ export const ArtefactFormParameter = ({
     const [t] = useTranslation();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState(startWithTemplateView);
+    const [showRareActions, setShowRareActions] = React.useState(false);
     const initialValue = supportVariableTemplateElement?.initialValue ?? "";
     const valueState = React.useRef({
         inputValue: startWithTemplateView ? "" : initialValue,
         templateValue: startWithTemplateView ? initialValue : "",
     });
+    const showRareElementState = React.useRef<{ timeout?: number }>({});
     const switchShowVariableTemplateInput = React.useCallback(() => {
         setShowVariableTemplateInput((old) => {
             const becomesTemplate = !old;
@@ -86,6 +93,15 @@ export const ArtefactFormParameter = ({
         },
         [supportVariableTemplateElement?.onChange]
     );
+    const onMouseOver: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
+        if (showRareElementState.current.timeout != null) {
+            clearTimeout(showRareElementState.current.timeout);
+        }
+        setShowRareActions(true);
+    }, []);
+    const onMouseOut: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
+        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(false), 50);
+    }, []);
 
     return (
         <FieldItem
@@ -101,10 +117,11 @@ export const ArtefactFormParameter = ({
             disabled={disabled}
             helperText={helperText}
         >
-            <Toolbar>
+            <Toolbar onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
                 <ToolbarSection canGrow={true}>
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TextField
+                            id={"parameterId"}
                             // TODO Better distinguish template input field
                             leftElement={<Icon name={"item-edit"} />}
                             defaultValue={valueState.current.templateValue}
@@ -114,13 +131,24 @@ export const ArtefactFormParameter = ({
                         inputElementFactory(valueState.current.inputValue, onElementValueChange)
                     )}
                 </ToolbarSection>
-                {supportVariableTemplateElement && !disabled && (
+                {supportVariableTemplateElement && !disabled && (showRareActions || showVariableTemplateInput) && (
                     <ToolbarSection>
                         <Spacing vertical={true} size={"small"} />
                         <IconButton
                             fill={false}
+                            tooltipProps={{
+                                hoverOpenDelay: 50,
+                                placement: "top",
+                            }}
+                            text={
+                                showVariableTemplateInput
+                                    ? t("ArtefactFormParameter.switchToValue")
+                                    : t("ArtefactFormParameter.switchToTemplate")
+                            }
                             name={showVariableTemplateInput ? "navigation-back" : "navigation-next"} // TODO: Find good icon
-                            data-test-id={`${parameterId}-template-switch-btn`}
+                            data-test-id={`${parameterId}-template-switch-${
+                                showVariableTemplateInput ? "back" : "to"
+                            }-btn`}
                             onClick={switchShowVariableTemplateInput}
                         />
                     </ToolbarSection>

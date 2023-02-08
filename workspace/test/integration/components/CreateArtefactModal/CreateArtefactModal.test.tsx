@@ -394,25 +394,55 @@ describe("Task creation widget", () => {
         },
     };
 
-    it("should use existing values to set the initial parameter values on update", async () => {
-        const { wrapper } = await pluginCreationDialogWrapper(true, {
-            projectId: PROJECT_ID,
-            taskId: TASK_ID,
-            taskPluginDetails: mockPluginDescription,
-            metaData: {
-                label: "Task label",
-            },
-            currentParameterValues: expectedParams,
-        });
+    const existingTask = {
+        projectId: PROJECT_ID,
+        taskId: TASK_ID,
+        taskPluginDetails: mockPluginDescription,
+        metaData: {
+            label: "Task label",
+        },
+        currentParameterValues: expectedParams,
+        currentTemplateValues: {},
+    };
+
+    // Updates a task via update button and returns the request data
+    const updateTask = async (wrapper) => {
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
-        const updateRequest = mockAxios.getReqMatching({
+        return mockAxios.getReqMatching({
             url: legacyApiUrl("workspace/projects/projectId/tasks/taskId"),
             method: "PATCH",
         }).data;
+    };
+
+    it("should use existing values to set the initial parameter values on update", async () => {
+        const { wrapper } = await pluginCreationDialogWrapper(true, existingTask);
+        const updateRequest = await updateTask(wrapper);
         // Build expected request parameter object
         const expectedObject: any = {};
         Object.entries(expectedParams).forEach(([key, value]) => (expectedObject[key] = value.value));
+        const objectParameterObject: any = {};
+        Object.entries(expectedParams.objectParameter.value).forEach(
+            ([key, value]) => (objectParameterObject[key] = value.value)
+        );
+        expectedObject.objectParameter = objectParameterObject;
+        expect(updateRequest.data.parameters).toEqual(expectedObject);
+    });
+
+    it("should use existing template values on initialization and update", async () => {
+        const { wrapper } = await pluginCreationDialogWrapper(true, {
+            ...existingTask,
+            currentTemplateValues: {
+                stringParam: "{{globalVariable}}",
+            },
+        });
+        await waitFor(() => findSingleElement(wrapper, byTestId("stringParam-template-switch-back-btn")));
+        const updateRequest = await updateTask(wrapper);
+        // Build expected request parameter object
+        const expectedObject: any = {};
+        Object.entries(expectedParams).forEach(
+            ([key, value]) => key !== "stringParam" && (expectedObject[key] = value.value)
+        );
         const objectParameterObject: any = {};
         Object.entries(expectedParams.objectParameter.value).forEach(
             ([key, value]) => (objectParameterObject[key] = value.value)

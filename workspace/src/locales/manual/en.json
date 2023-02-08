@@ -907,5 +907,9 @@
             "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
             "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
         }
+    },
+    "ArtefactFormParameter": {
+        "switchToTemplate": "Switch to variable template that allows to use global variables. The template follows the Jinja syntax.",
+        "switchToValue": "Switch back to direct value input"
     }
 }
