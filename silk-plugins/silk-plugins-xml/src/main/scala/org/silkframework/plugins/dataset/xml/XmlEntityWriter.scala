@@ -166,7 +166,7 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
   @inline
   private def isValidLocalName(name: String): Boolean = {
     // As Saxon is already part of the dependencies we use their name checker.
-    !NameChecker.isValidNCName(name)
+    NameChecker.isValidNCName(name)
   }
 
   /**
