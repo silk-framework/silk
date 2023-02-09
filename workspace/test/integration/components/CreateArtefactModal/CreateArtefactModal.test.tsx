@@ -244,7 +244,7 @@ describe("Task creation widget", () => {
         // restriction and multi-line use code mirror widget
         expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
         // Default values should be set
-        await elementHtmlToContain(wrapper, "#stringParam", "default string4");
+        await elementHtmlToContain(wrapper, "#stringParam", "default string");
     });
 
     // Click the create button in the create dialog
