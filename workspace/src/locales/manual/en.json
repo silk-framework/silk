@@ -754,7 +754,8 @@
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
-            "title": "Configuration"
+            "title": "Configuration",
+            "templateValueInfo": "The parameter value is derived from the following variable template: "
         },
         "WarningWidget": {
             "loading": "Loading log messages.",
