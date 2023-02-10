@@ -106,7 +106,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         const wrapTemplateValidation = (validationFunction: (value) => true | string): ((value) => true | string) => {
             return (value): true | string => {
                 if (parameterCallbacks.templateFlag(fullParameterId)) {
-                    return true; // TODO: Validate template here or via auto-completion later?
+                    return true; // Templates are validated via auto-completion
                 } else {
                     return validationFunction(value);
                 }

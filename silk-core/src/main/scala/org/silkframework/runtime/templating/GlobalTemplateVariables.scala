@@ -34,12 +34,19 @@ object GlobalTemplateVariables {
     }
   }
 
+  /** Resolves the variable template parameters. */
   def resolveParameters(parameterTemplates: Map[String, String]): Map[String, String] = {
     parameterTemplates.mapValues { value =>
-      val writer = new StringWriter()
-      engine().compile(value).evaluate(variables().map, writer)
-      writer.toString
+     resolveTemplateValue(value)
     }
   }
 
+  /** Resolves a variable template string.
+    * @throws TemplateEvaluationException If the template evaluation failed.
+    **/
+  def resolveTemplateValue(value: String): String = {
+    val writer = new StringWriter()
+    engine().compile(value).evaluate(variables().map, writer)
+    writer.toString
+  }
 }

@@ -1,7 +1,9 @@
-import React, { MouseEventHandler } from "react";
-import { FieldItem, Icon, IconButton, Spacing, TextField, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import React, { memo, MouseEventHandler } from "react";
+import { AutoSuggestion, FieldItem, Icon, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
+import { requestValidateTemplateString, ValidateTemplateResponse } from "../CreateArtefactModal.requests";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 
 interface Props {
     // ID of the parameter
@@ -57,24 +59,37 @@ export const ArtefactFormParameter = ({
 }: Props) => {
     const [t] = useTranslation();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
-    const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState(startWithTemplateView);
+    const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
+    const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
     const initialValue = supportVariableTemplateElement?.initialValue;
     const valueState = React.useRef<{
-        inputValue?: string;
-        templateValue: string;
+        // The most recent value of the input component
+        currentInputValue?: string;
+        // The last input value before the switch happened from input -> template
+        inputValueBeforeSwitch?: string;
+        // The most recent template value
+        currentTemplateValue: string;
+        // The last template value before the switch happened from template -> input
+        templateValueBeforeSwitch?: string;
     }>({
         // Input value needs to be undefined, so it gets set to the default value
-        inputValue: startWithTemplateView ? undefined : initialValue,
-        templateValue: startWithTemplateView ? initialValue ?? "" : "",
+        currentInputValue: startWithTemplateView ? undefined : initialValue,
+        currentTemplateValue: startWithTemplateView ? initialValue ?? "" : "",
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
     const switchShowVariableTemplateInput = React.useCallback(() => {
         setShowVariableTemplateInput((old) => {
             const becomesTemplate = !old;
+            if (becomesTemplate) {
+                valueState.current.inputValueBeforeSwitch = valueState.current.currentInputValue;
+            } else {
+                valueState.current.templateValueBeforeSwitch = valueState.current.currentTemplateValue;
+            }
+            setValidationError(undefined);
             supportVariableTemplateElement!.parameterCallbacks.setTemplateFlag(parameterId, becomesTemplate);
             supportVariableTemplateElement!.onChange(
-                becomesTemplate ? valueState.current.templateValue : valueState.current.inputValue ?? ""
+                becomesTemplate ? valueState.current.currentTemplateValue : valueState.current.currentInputValue ?? ""
             );
             return becomesTemplate;
         });
@@ -82,8 +97,8 @@ export const ArtefactFormParameter = ({
 
     const onTemplateValueChange = React.useCallback(
         (e) => {
-            const value = e.target.value;
-            valueState.current.templateValue = value;
+            const value = e.target ? e.target.value : e;
+            valueState.current.currentTemplateValue = value;
             supportVariableTemplateElement!.onChange(value);
         },
         [supportVariableTemplateElement?.onChange]
@@ -92,7 +107,7 @@ export const ArtefactFormParameter = ({
     const onElementValueChange = React.useCallback(
         (valueOrEvent: any) => {
             const value = valueOrEvent.target ? valueOrEvent.target.value : `${valueOrEvent}`;
-            valueState.current.inputValue = value;
+            valueState.current.currentInputValue = value;
             supportVariableTemplateElement?.onChange(value);
         },
         [supportVariableTemplateElement?.onChange]
@@ -107,6 +122,8 @@ export const ArtefactFormParameter = ({
         showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(false), 50);
     }, []);
 
+    const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
+
     return (
         <FieldItem
             key={parameterId}
@@ -116,26 +133,28 @@ export const ArtefactFormParameter = ({
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            hasStateDanger={!!errorMessage}
-            messageText={errorMessage}
+            hasStateDanger={!!errorMessage || !!validationError}
+            messageText={errorMessage || validationError}
             disabled={disabled}
             helperText={helperText}
         >
-            <Toolbar onMouseOver={onMouseOver} onMouseOut={onMouseOut}>
+            <Toolbar
+                onMouseOver={showVariableTemplateInput ? undefined : onMouseOver}
+                onMouseOut={showVariableTemplateInput ? undefined : onMouseOut}
+            >
                 <ToolbarSection canGrow={true}>
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
-                        <TextField
-                            id={"parameterId"}
-                            // TODO Better distinguish template input field
-                            leftElement={<Icon name={"item-edit"} />}
-                            defaultValue={valueState.current.templateValue}
-                            onChange={onTemplateValueChange}
+                        <TemplateInputComponent
+                            parameterId={parameterId}
+                            initialValue={valueState.current.templateValueBeforeSwitch ?? ""}
+                            onTemplateValueChange={onTemplateValueChange}
+                            setValidationError={setValidationError}
                         />
                     ) : (
-                        inputElementFactory(valueState.current.inputValue, onElementValueChange)
+                        inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
                     )}
                 </ToolbarSection>
-                {supportVariableTemplateElement && !disabled && (showRareActions || showVariableTemplateInput) && (
+                {supportVariableTemplateElement && !disabled && showSwitchButton && (
                     <ToolbarSection>
                         <Spacing vertical={true} size={"small"} />
                         <IconButton
@@ -161,3 +180,44 @@ export const ArtefactFormParameter = ({
         </FieldItem>
     );
 };
+
+interface TemplateInputComponentProps {
+    parameterId: string;
+    initialValue: string;
+    onTemplateValueChange: (any) => any;
+    setValidationError: (error?: string) => any;
+}
+
+const TemplateInputComponent = memo(
+    ({ parameterId, initialValue, onTemplateValueChange, setValidationError }: TemplateInputComponentProps) => {
+        const { registerError } = useErrorHandler();
+        // TODO: implement
+        const autoComplete = React.useCallback(() => undefined, []);
+        const templateIcon = React.useMemo(() => <Icon name={"item-edit"} />, []);
+
+        const checkTemplate = React.useCallback(
+            async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
+                try {
+                    const validationResponse = (await requestValidateTemplateString(inputString)).data;
+                    setValidationError(validationResponse.parseError?.message);
+                    return validationResponse;
+                } catch (error) {
+                    registerError("ArtefactFormParameter.checkTemplate", "Validating template has failed.", error);
+                }
+            },
+            []
+        );
+
+        return (
+            <AutoSuggestion
+                id={parameterId}
+                // TODO Better distinguish template input field
+                leftElement={templateIcon}
+                initialValue={initialValue}
+                onChange={onTemplateValueChange}
+                fetchSuggestions={autoComplete}
+                checkInput={checkTemplate}
+            />
+        );
+    }
+);
