@@ -17,7 +17,7 @@ import {
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    OverviewItemDepiction,
+    Depiction,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
@@ -467,12 +467,12 @@ export function CreateArtefactModal() {
         );
     }
 
-    const registerForExternalChanges = (
-        paramId: string,
-        handleUpdates: (value: { value: string; label?: string }) => any
-    ) => {
-        externalParameterUpdateMap.current.set(paramId, handleUpdates);
-    };
+    const registerForExternalChanges = React.useCallback(
+        (paramId: string, handleUpdates: (value: { value: string; label?: string }) => any) => {
+            externalParameterUpdateMap.current.set(paramId, handleUpdates);
+        },
+        []
+    );
 
     if (updateExistingTask) {
         // Task update
@@ -808,12 +808,17 @@ export function CreateArtefactModal() {
                                                             onClick={() => handleArtefactSelect(artefact)}
                                                             onKeyDown={handleEnter}
                                                         >
-                                                            <OverviewItemDepiction>
-                                                                <ItemDepiction
-                                                                    itemType={artefact.taskType}
-                                                                    pluginId={artefact.key}
-                                                                />
-                                                            </OverviewItemDepiction>
+                                                            <Depiction
+                                                                image={
+                                                                    <ItemDepiction
+                                                                        itemType={artefact.taskType}
+                                                                        pluginId={artefact.key}
+                                                                    />
+                                                                }
+                                                                ratio="1:1"
+                                                                backgroundColor="dark"
+                                                                padding="medium"
+                                                            />
                                                             <OverviewItemDescription>
                                                                 <OverviewItemLine>
                                                                     <strong>

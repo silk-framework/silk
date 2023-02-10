@@ -63,6 +63,8 @@ interface IProps {
     dependentValues: {
         [key: string]: string;
     };
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn;
     parameterCallbacks: ExtendedParameterCallbacks;
 }
 
@@ -96,6 +98,7 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
+        registerForExternalChanges,
         parameterCallbacks,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
@@ -166,6 +169,7 @@ export const ParameterWidget = (props: IProps) => {
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
                                 parameterCallbacks={parameterCallbacks}
+                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     }
@@ -185,7 +189,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
+                hasStateDanger={!!errorMessage(title, errors)}
                 messageText={errorMessage(title, errors)}
             >
                 <InputMapper
@@ -242,6 +246,7 @@ export const ParameterWidget = (props: IProps) => {
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
                                 required={required}
+                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     } else {
@@ -254,6 +259,7 @@ export const ParameterWidget = (props: IProps) => {
                                 initialParameterValue={initialValueReplace ?? initialValues[formParamId]?.value}
                                 required={required}
                                 parameterCallbacks={parameterCallbacks}
+                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     }
