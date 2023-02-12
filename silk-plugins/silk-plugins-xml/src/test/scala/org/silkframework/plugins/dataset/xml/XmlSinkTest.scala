@@ -298,6 +298,29 @@ class XmlSinkTest extends FlatSpec with Matchers {
     }
   }
 
+  it should "not write invalid XML, if the last segment of a path URI starts with a number" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("http://example.com/a"), ValueType.STRING, isAttribute = false),
+            TypedPath(UntypedPath("http://example.com/1"), ValueType.STRING, isAttribute = false)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
+
+    an[ValidationException] shouldBe thrownBy {
+      test(
+        template = "<Root><?Element?></Root>",
+        entityTables = Seq(entities),
+        expected =
+          <Root></Root>
+      )
+    }
+  }
+
   private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
