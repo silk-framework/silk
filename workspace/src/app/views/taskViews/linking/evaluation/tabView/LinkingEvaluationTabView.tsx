@@ -62,6 +62,7 @@ import { debounce } from "lodash";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { useFirstRender } from "../../../../../hooks/useFirstRender";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -88,7 +89,7 @@ const sortDirectionMapping = {
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
     const commonSel = useSelector(workspaceSel.commonSelector);
-    const [evaluationResults, setEvaluationResults] = React.useState<LinkRuleEvaluationResult | undefined>();
+    const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [10, 25, 50, 100],
         initialPageSize: 25,
@@ -116,6 +117,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
+    const hasRenderedBefore = useFirstRender();
     const [tableSortDirection, setTableSortDirection] = React.useState<
         Map<typeof headerData[number]["key"], "ASC" | "DESC" | "NONE">
     >(
@@ -126,83 +128,81 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 ["confidence", "NONE"],
             ])
     );
-    const [updateCounter, setUpdateCounter] = React.useState<number>(0);
+
+    console.log("Called how many times");
 
     //fetch operator plugins
     React.useEffect(() => {
         (async () => {
+            // console.log("Operator plugins");
             setOperatorPlugins(Object.values((await requestRuleOperatorPluginDetails(false)).data));
         })();
     }, []);
 
     React.useEffect(() => {
-        if (evaluationResults) {
-            onTotalChange(evaluationResults.resultStats.filteredLinkCount);
+        if (evaluationResults.current) {
+            // console.log("Pagination ish ==> called");
+            onTotalChange(evaluationResults.current.resultStats.filteredLinkCount);
         }
     }, [evaluationResults]);
 
-    const debouncedInit = React.useCallback(
-        debounce(async (pagination, searchQuery, taskEvaluationStatus, filters, linkSortBy) => {
-            try {
-                if (taskEvaluationStatus === "Successful") {
-                    setLoading(true);
-                    const results = (
-                        await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
-                    )?.data;
-                    setEvaluationResults(results);
-                    setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
-                    setInputValuesExpansion(
-                        () =>
-                            new Map(
-                                results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }])
-                            )
-                    );
-                    setOperatorsExpansion(
-                        () =>
-                            new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
-                    );
-                }
-            } catch (err) {
-            } finally {
-                setLoading(false);
-            }
+    const getEvaluatedLinksUtil = React.useCallback(async (pagination, searchQuery = "", filters, linkSortBy) => {
+        try {
+            setLoading(true);
+            const results = (
+                await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
+            )?.data;
+            evaluationResults.current = results;
+            setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
+            setInputValuesExpansion(
+                () => new Map(results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }]))
+            );
+            setOperatorsExpansion(
+                () => new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
+            );
+        } catch (err) {
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const debouncedSearchUtil = React.useCallback(
+        debounce(async (searchQuery: string) => {
+            await getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
         }, 500),
         []
     );
 
+    React.useEffect(() => {
+        let shouldCancel = false;
+        if (!shouldCancel && hasRenderedBefore) {
+            debouncedSearchUtil(searchQuery);
+        }
+
+        return () => {
+            shouldCancel = true;
+        };
+    }, [searchQuery]);
+
     //initial loads of links
     React.useEffect(() => {
         let shouldCancel = false;
-
-        if (!shouldCancel) {
-            debouncedInit(
-                pagination,
-                searchQuery,
-                taskEvaluationStatus,
-                linkStateFilter ? [linkStateFilter] : [],
-                linkSortBy
-            );
+        if (!shouldCancel && taskEvaluationStatus === "Successful") {
+            // console.log("Initial Request ==> called");
+            getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
         }
         return () => {
             shouldCancel = true;
         };
-    }, [
-        pagination.current,
-        pagination.limit,
-        taskEvaluationStatus,
-        searchQuery,
-        linkStateFilter,
-        linkSortBy,
-        updateCounter,
-    ]);
+    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, linkSortBy.length]);
 
     const handleAlwaysExpandSwitch = React.useCallback(
         (inputSwitch: "operator" | "inputValue") => {
-            if (evaluationResults?.links.length) {
+            if (evaluationResults.current?.links.length) {
                 //if expansion buttons have been triggered by user, maintain user's update while changing the default of the rest.
                 const newUpdate = (prev) =>
                     new Map(
-                        evaluationResults?.links.map((_: any, idx: number) => {
+                        evaluationResults.current?.links.map((_: any, idx: number) => {
                             const { precinct, expanded } = prev.get(idx);
                             return [
                                 idx,
@@ -220,10 +220,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     );
 
     React.useEffect(() => {
-        if (!evaluationResults || !linksToValueMap.length) return;
-        const operatorNode = evaluationResults?.linkRule.operator as any;
-        setNodes(() =>
-            new Array(evaluationResults?.links.length).fill(1).map((_, idx) => {
+        if (!evaluationResults.current) return;
+        const operatorNode = evaluationResults.current.linkRule.operator as any;
+        setNodes(() => {
+            // console.log("Set tree nodes ==> called");
+            return new Array(evaluationResults.current?.links.length).fill(1).map((_, idx) => {
                 const treeInfo: TreeNodeInfo = {
                     id: operatorNode.id,
                     isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
@@ -341,21 +342,19 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     : getSubTree(operatorNode);
 
                 return treeInfo;
-            })
-        );
-    }, [
-        evaluationResults,
-        linksToValueMap,
-        pagination,
-        treeValueQuery,
-        operatorPlugins,
-        nodeParentHighlightedIds,
-        operatorsExpansion,
-    ]);
+            });
+        });
+    }, [treeValueQuery.size, operatorPlugins.length, nodeParentHighlightedIds, operatorsExpansion]);
 
     React.useEffect(() => {
-        if (evaluationResults && evaluationResults.linkRule && evaluationResults.links && linksToValueMap.length) {
-            const ruleOperator = evaluationResults.linkRule.operator;
+        if (
+            evaluationResults.current &&
+            evaluationResults.current.linkRule &&
+            evaluationResults.current.links &&
+            linksToValueMap.length
+        ) {
+            const ruleOperator = evaluationResults.current.linkRule.operator;
+            // console.log("Link value to Map ==> called");
             if (ruleOperator) {
                 const recursivelyGetInputPath = (operator: any): EvaluationLinkInputValue<string> => {
                     return ((operator as IAggregationOperator)?.inputs ?? []).reduce(
@@ -412,7 +411,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 );
             }
         }
-    }, [evaluationResults, linksToValueMap, pagination]);
+    }, [linksToValueMap]);
 
     const buildInputTree = (
         input: any,
@@ -574,7 +573,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         },
     ];
 
-    const rowData = evaluationResults?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
+    const rowData = evaluationResults.current?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
 
     const handleRowExpansion = React.useCallback(
         (rowId?: number) => {
@@ -613,18 +612,30 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     }, []);
 
     const handleReferenceLinkTypeUpdate = React.useCallback(
-        async (currentLinkType: ReferenceLinkType, linkType: ReferenceLinkType, source: string, target: string) => {
+        async (
+            currentLinkType: ReferenceLinkType,
+            linkType: ReferenceLinkType,
+            source: string,
+            target: string,
+            index: number
+        ) => {
             if (currentLinkType === linkType) return;
+            setLoading(true);
+
             try {
                 const updateResp = await updateReferenceLink(projectId, linkingTaskId, source, target, linkType);
-                if (updateResp.axiosResponse.status === 200) {
-                    setUpdateCounter((u) => ++u);
+                if (updateResp.axiosResponse.status === 200 && evaluationResults.current) {
+                    //update one
+                    evaluationResults.current.links[index].decision = linkType;
                 }
-            } catch (err) {}
+            } catch (err) {
+            } finally {
+                setLoading(false);
+            }
         },
         []
     );
-    const { nrSourceEntities, nrTargetEntities, nrLinks } = evaluationResults?.evaluationActivityStats ?? {
+    const { nrSourceEntities, nrTargetEntities, nrLinks } = evaluationResults.current?.evaluationActivityStats ?? {
         nrSourceEntities: 0,
         nrTargetEntities: 0,
         nrLinks: 0,
@@ -652,7 +663,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         [tableSortDirection]
     );
 
-    const createUserNotification = () => {
+    const createUserNotification = React.useCallback(() => {
         if (
             taskEvaluationStatus === "Not executed" ||
             taskEvaluationStatus === "Cancelled" ||
@@ -699,18 +710,40 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 {t("linkingEvaluationTabView.messages.unknownProblem")}
             </Notification>
         );
-    };
+    }, [taskEvaluationStatus, searchQuery, linkStateFilter]);
+
+    const handleSwitchChange = React.useCallback((switchType: "inputValue" | "operator") => {
+        return (val: boolean) => {
+            switchType === "inputValue" ? setShowInputValues(val) : setShowOperators(val);
+            handleAlwaysExpandSwitch(switchType);
+        };
+    }, []);
+
+    const registerForTaskUpdates = React.useCallback((status: any) => {
+        setTaskEvaluationStatus(status.concreteStatus);
+    }, []);
+
+    const handleInputTableExpansion = React.useCallback((i: number) => {
+        return () => {
+            setInputValuesExpansion((prevInputExpansion) => {
+                prevInputExpansion.set(i, {
+                    expanded: !prevInputExpansion.get(i)?.expanded,
+                    precinct: false,
+                });
+                return new Map(prevInputExpansion);
+            });
+        };
+    }, []);
 
     return (
         <section className="diapp-linking-evaluation">
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
+                        id={`input-value-${showInputValues ? "checked" : "unchecked"}`}
+                        data-test-id="input-value-switch"
                         checked={showInputValues}
-                        onChange={(val) => {
-                            setShowInputValues(val);
-                            handleAlwaysExpandSwitch("inputValue");
-                        }}
+                        onChange={handleSwitchChange("inputValue")}
                     >
                         <OverflowText inline>{t("linkingEvaluationTabView.toolbar.toggleExampleValues")}</OverflowText>
                     </Switch>
@@ -718,11 +751,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <Switch
+                        id={`operator-${showInputValues ? "checked" : "unchecked"}`}
+                        data-test-id="operator-switch"
                         checked={showOperators}
-                        onChange={(val) => {
-                            setShowOperators(val);
-                            handleAlwaysExpandSwitch("operator");
-                        }}
+                        onChange={handleSwitchChange("operator")}
                     >
                         <OverflowText inline>{t("linkingEvaluationTabView.toolbar.toggleOperatorsTree")}</OverflowText>
                     </Switch>
@@ -767,9 +799,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         taskId={linkingTaskId}
                         label="Evaluate Linking"
                         activityName="EvaluateLinking"
-                        registerToReceiveUpdates={(status) => {
-                            setTaskEvaluationStatus(status.concreteStatus);
-                        }}
+                        registerToReceiveUpdates={registerForTaskUpdates}
                         layoutConfig={{
                             small: true,
                             border: true,
@@ -817,6 +847,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 {headers.map((header) => (
                                     <TableHeader
                                         key={header.key}
+                                        data-test-id={header.key}
+                                        className={tableSortDirection.get(header.key)}
                                         {...getHeaderProps({ header, isSortable: true })}
                                         isSortHeader={true}
                                         onClick={() => {
@@ -856,11 +888,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 </TableHeader>
                             </TableRow>
                         </TableHead>
-                        {(evaluationResults && evaluationResults.links.length && !loading && (
+                        {(evaluationResults.current && evaluationResults.current.links.length && !loading && (
                             <TableBody>
                                 {rows.map((row, i) => {
                                     const currentInputValue = inputValues[i];
-                                    const currentLink = evaluationResults?.links[i]!;
+                                    const currentLink = evaluationResults.current?.links[i]!;
                                     const inputTableIsExpanded = inputValuesExpansion.get(i)?.expanded;
                                     const tableValueToHighlight = tableValueQuery.get(i);
                                     const highlightSourceTableValue = (currentPath: string, isSourceEntity: boolean) =>
@@ -902,7 +934,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     <TableCell key="linkstate">
                                                         <div style={{ whiteSpace: "nowrap" }}>
                                                             {linkStateButtons.map(
-                                                                ({ linkType, icon, ...otherProps }, i) => (
+                                                                ({ linkType, icon, ...otherProps }, btnIndex) => (
                                                                     <React.Fragment key={icon}>
                                                                         <IconButton
                                                                             name={icon}
@@ -911,14 +943,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                                     currentLink.decision,
                                                                                     linkType,
                                                                                     currentLink.source,
-                                                                                    currentLink.target
+                                                                                    currentLink.target,
+                                                                                    i
                                                                                 )
                                                                             }
                                                                             {...otherProps}
                                                                             outlined={currentLink.decision !== linkType}
                                                                             minimal={false}
                                                                         />
-                                                                        {i !== linkStateButtons.length - 1 && (
+                                                                        {btnIndex !== linkStateButtons.length - 1 && (
                                                                             <Spacing vertical size="tiny" />
                                                                         )}
                                                                     </React.Fragment>
@@ -945,19 +978,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     style={{ paddingLeft: "0", paddingRight: "0" }}
                                                                 >
                                                                     <IconButton
-                                                                        onClick={() => {
-                                                                            setInputValuesExpansion(
-                                                                                (prevInputExpansion) => {
-                                                                                    prevInputExpansion.set(i, {
-                                                                                        expanded:
-                                                                                            !prevInputExpansion.get(i)
-                                                                                                ?.expanded,
-                                                                                        precinct: false,
-                                                                                    });
-                                                                                    return new Map(prevInputExpansion);
-                                                                                }
-                                                                            );
-                                                                        }}
+                                                                        data-test-id="input-table-expand-btn"
+                                                                        id={`input-table-${
+                                                                            inputValuesExpansion.get(i)?.expanded
+                                                                                ? "expanded"
+                                                                                : "collapsed"
+                                                                        }`}
+                                                                        onClick={handleInputTableExpansion(i)}
                                                                         name={
                                                                             !inputValuesExpansion.get(i)?.expanded
                                                                                 ? "toggler-caretright"
@@ -1081,6 +1108,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                                     style={{ paddingLeft: "0", paddingRight: "0" }}
                                                                 >
                                                                     <IconButton
+                                                                        data-test-id="tree-expand-item-btn"
+                                                                        id={`tree-btn-${
+                                                                            operatorsExpansion.get(i)?.expanded
+                                                                                ? "expanded"
+                                                                                : "collapsed"
+                                                                        }`}
                                                                         onClick={() => {
                                                                             if (!operatorsExpansion.get(i)?.expanded) {
                                                                                 handleNodeExpand(i);
@@ -1113,8 +1146,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 )}
             </TableContainer>
             <Spacing size="small" />
-            {(loading && <Spinner size="medium" />) || (!evaluationResults?.links?.length && createUserNotification())}
-            {!!evaluationResults?.links.length && paginationElement}
+            {(loading && <Spinner size="medium" />) ||
+                (!evaluationResults.current?.links?.length && createUserNotification())}
+            {!!evaluationResults.current?.links.length && paginationElement}
         </section>
     );
 };
