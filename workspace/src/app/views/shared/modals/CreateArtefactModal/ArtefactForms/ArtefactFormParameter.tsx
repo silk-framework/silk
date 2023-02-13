@@ -151,8 +151,9 @@ export const ArtefactFormParameter = ({
             <Toolbar
                 onMouseOver={showVariableTemplateInput ? undefined : onMouseOver}
                 onMouseOut={showVariableTemplateInput ? undefined : onMouseOut}
+                style={{ alignItems: "flex-start" }}
             >
-                <ToolbarSection canGrow={true}>
+                <ToolbarSection canGrow={true} style={{ alignSelf: "center" }}>
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             parameterId={parameterId}
@@ -164,8 +165,8 @@ export const ArtefactFormParameter = ({
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
                     )}
                 </ToolbarSection>
-                {supportVariableTemplateElement && !disabled && showSwitchButton && (
-                    <ToolbarSection>
+                {supportVariableTemplateElement && !disabled && (
+                    <ToolbarSection hideOverflow style={!showSwitchButton ? { width: "0px" } : {}}>
                         <Spacing vertical={true} size={"tiny"} />
                         <IconButton
                             fill={false}
