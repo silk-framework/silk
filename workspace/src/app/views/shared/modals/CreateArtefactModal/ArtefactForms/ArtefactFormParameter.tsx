@@ -1,5 +1,15 @@
 import React, { memo, MouseEventHandler } from "react";
-import { AutoSuggestion, FieldItem, Icon, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import { Parameter } from "@carbon/icons-react";
+import {
+    AutoSuggestion,
+    FieldItem,
+    Icon,
+    IconButton,
+    TestIcon,
+    Spacing,
+    Toolbar,
+    ToolbarSection,
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { requestValidateTemplateString, ValidateTemplateResponse } from "../CreateArtefactModal.requests";
@@ -156,7 +166,7 @@ export const ArtefactFormParameter = ({
                 </ToolbarSection>
                 {supportVariableTemplateElement && !disabled && showSwitchButton && (
                     <ToolbarSection>
-                        <Spacing vertical={true} size={"small"} />
+                        <Spacing vertical={true} size={"tiny"} />
                         <IconButton
                             fill={false}
                             tooltipProps={{
@@ -168,11 +178,15 @@ export const ArtefactFormParameter = ({
                                     ? t("ArtefactFormParameter.switchToValue")
                                     : t("ArtefactFormParameter.switchToTemplate")
                             }
-                            name={showVariableTemplateInput ? "navigation-back" : "navigation-next"} // TODO: Find good icon
+                            name={<TestIcon tryout={Parameter} />}
                             data-test-id={`${parameterId}-template-switch-${
                                 showVariableTemplateInput ? "back" : "to"
                             }-btn`}
                             onClick={switchShowVariableTemplateInput}
+                            minimal={false}
+                            outlined
+                            hasStatePrimary={showVariableTemplateInput}
+                            active={showVariableTemplateInput}
                         />
                     </ToolbarSection>
                 )}
@@ -193,7 +207,6 @@ const TemplateInputComponent = memo(
         const { registerError } = useErrorHandler();
         // TODO: implement
         const autoComplete = React.useCallback(() => undefined, []);
-        const templateIcon = React.useMemo(() => <Icon name={"item-edit"} />, []);
 
         const checkTemplate = React.useCallback(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
@@ -211,8 +224,6 @@ const TemplateInputComponent = memo(
         return (
             <AutoSuggestion
                 id={parameterId}
-                // TODO Better distinguish template input field
-                leftElement={templateIcon}
                 initialValue={initialValue}
                 onChange={onTemplateValueChange}
                 fetchSuggestions={autoComplete}

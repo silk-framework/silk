@@ -911,6 +911,6 @@
     },
     "ArtefactFormParameter": {
         "switchToTemplate": "Switch to variable template that allows to use global variables. The template follows the Jinja syntax.",
-        "switchToValue": "Switch back to direct value input"
+        "switchToValue": "Variable template usage is active. Switch back to direct value input."
     }
 }
