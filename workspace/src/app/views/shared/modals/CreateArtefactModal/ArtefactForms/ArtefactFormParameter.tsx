@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { requestValidateTemplateString, ValidateTemplateResponse } from "../CreateArtefactModal.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { OptionallyLabelledParameter } from "../../../../taskViews/linking/linking.types";
 
 interface Props {
     // ID of the parameter
@@ -41,7 +42,7 @@ interface Props {
         startWithTemplateView: boolean;
         parameterCallbacks: ExtendedParameterCallbacks;
         // The initial value. An undefined value means, it is unknown.
-        initialValue: string;
+        initialValue: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
 }
 
@@ -62,7 +63,11 @@ export const ArtefactFormParameter = ({
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
     const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
-    const initialValue = supportVariableTemplateElement?.initialValue;
+    let initialValue: any = supportVariableTemplateElement?.initialValue;
+    // Initial value might be a labelled value, safe-guard
+    if (initialValue != null && (initialValue as OptionallyLabelledParameter<any>)?.value != null) {
+        initialValue = `${(initialValue as OptionallyLabelledParameter<any>).value}`;
+    }
     const valueState = React.useRef<{
         // The most recent value of the input component
         currentInputValue?: string;
@@ -116,10 +121,13 @@ export const ArtefactFormParameter = ({
         if (showRareElementState.current.timeout != null) {
             clearTimeout(showRareElementState.current.timeout);
         }
-        setShowRareActions(true);
+        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 50);
     }, []);
     const onMouseOut: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(false), 50);
+        if (showRareElementState.current.timeout != null) {
+            clearTimeout(showRareElementState.current.timeout);
+        }
+        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(false), 250);
     }, []);
 
     const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
@@ -146,7 +154,7 @@ export const ArtefactFormParameter = ({
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             parameterId={parameterId}
-                            initialValue={valueState.current.templateValueBeforeSwitch ?? ""}
+                            initialValue={valueState.current.templateValueBeforeSwitch ?? initialValue ?? ""}
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                         />

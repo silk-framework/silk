@@ -17,6 +17,7 @@ import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
+import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -63,8 +64,6 @@ interface IProps {
     dependentValues: {
         [key: string]: string;
     };
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
     parameterCallbacks: ExtendedParameterCallbacks;
 }
 
@@ -98,7 +97,6 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
-        registerForExternalChanges,
         parameterCallbacks,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
@@ -169,7 +167,6 @@ export const ParameterWidget = (props: IProps) => {
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
                                 parameterCallbacks={parameterCallbacks}
-                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     }
@@ -220,9 +217,10 @@ export const ParameterWidget = (props: IProps) => {
                     parameterCallbacks,
                     initialValue: autoCompletion
                         ? initialValues[formParamId]
-                            ? initialValues[formParamId]
+                            ? initialValues[formParamId].value
                             : defaultValueAsJs(propertyDetails, true)
-                        : initialValues[formParamId]?.value ?? propertyDetails.value,
+                        : initialValues[formParamId]?.value ??
+                          optionallyLabelledParameterToValue(propertyDetails.value),
                 }}
                 inputElementFactory={(initialValueReplace, onChange) => {
                     if (autoCompletion) {
@@ -237,6 +235,7 @@ export const ParameterWidget = (props: IProps) => {
                                 }
                                 initialValue={
                                     initialValue ||
+                                    // Only set initial value when this was not a template value
                                     (initialValues[formParamId] && !isTemplateParameter
                                         ? initialValues[formParamId]
                                         : defaultValueAsJs(propertyDetails, true))
@@ -246,7 +245,6 @@ export const ParameterWidget = (props: IProps) => {
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
                                 required={required}
-                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     } else {
@@ -256,10 +254,13 @@ export const ParameterWidget = (props: IProps) => {
                                 parameter={{ paramId: formParamId, param: propertyDetails }}
                                 intent={errors ? Intent.DANGER : Intent.NONE}
                                 onChange={onChange ?? changeHandlers[formParamId]}
-                                initialParameterValue={initialValueReplace ?? initialValues[formParamId]?.value}
+                                initialParameterValue={
+                                    initialValueReplace ??
+                                    // Only set initial value when this was not template value
+                                    (!isTemplateParameter ? initialValues[formParamId]?.value : undefined)
+                                }
                                 required={required}
                                 parameterCallbacks={parameterCallbacks}
-                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     }

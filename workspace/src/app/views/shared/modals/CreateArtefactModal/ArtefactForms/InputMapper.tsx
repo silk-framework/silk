@@ -62,11 +62,7 @@ export function InputMapper({
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const [show, setShow] = React.useState(true);
     const [highlightInput, setHighlightInput] = React.useState(false);
-    const initialOrExternalValue = externalValue
-        ? externalValue.value
-        : parameterCallbacks.initialTemplateFlag(paramId)
-        ? undefined
-        : initialParameterValue;
+    const initialOrExternalValue = externalValue ? externalValue.value : initialParameterValue;
     const initialValue =
         initialOrExternalValue != null
             ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)

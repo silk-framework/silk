@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
+import { Spacing, TextArea, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -14,7 +14,6 @@ import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plu
 import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
-import utils from "../../../../../views/shared/Metadata/MetadataUtils";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 
@@ -33,9 +32,6 @@ export interface IProps {
     updateTask?: UpdateTaskProps;
 
     parameterCallbacks: ParameterCallbacks;
-
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
 }
 
 export interface UpdateTaskProps {
@@ -325,7 +321,10 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             parameterId={TAGS}
                             label={t("form.field.tags")}
                             inputElementFactory={() => (
-                                <MultiTagSelect projectId={projectId} handleTagSelectionChange={handleTagSelectionChange} />
+                                <MultiTagSelect
+                                    projectId={projectId}
+                                    handleTagSelectionChange={handleTagSelectionChange}
+                                />
                             )}
                         />
                     </>
@@ -346,7 +345,6 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         initialValues={initialValues}
                         dependentValues={dependentValues}
                         parameterCallbacks={extendedCallbacks}
-                        registerForExternalChanges={registerForExternalChanges}
                     />
                 ))}
 
