@@ -17,7 +17,10 @@ import {
     ValidateTemplateResponse,
 } from "../CreateArtefactModal.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { OptionallyLabelledParameter } from "../../../../taskViews/linking/linking.types";
+import {
+    OptionallyLabelledParameter,
+    optionallyLabelledParameterToValue,
+} from "../../../../taskViews/linking/linking.types";
 
 interface Props {
     // ID of the parameter
@@ -56,6 +59,8 @@ interface Props {
         parameterCallbacks: ExtendedParameterCallbacks;
         // The initial value. An undefined value means, it is unknown.
         initialValue: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
+        // The default value of the normal input
+        defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
 }
 
@@ -92,7 +97,7 @@ export const ArtefactFormParameter = ({
         templateValueBeforeSwitch?: string;
     }>({
         // Input value needs to be undefined, so it gets set to the default value
-        currentInputValue: startWithTemplateView ? undefined : initialValue,
+        currentInputValue: startWithTemplateView ? supportVariableTemplateElement?.defaultValue : initialValue,
         currentTemplateValue: startWithTemplateView ? initialValue ?? "" : "",
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
@@ -107,7 +112,9 @@ export const ArtefactFormParameter = ({
             setValidationError(undefined);
             supportVariableTemplateElement!.parameterCallbacks.setTemplateFlag(parameterId, becomesTemplate);
             supportVariableTemplateElement!.onChange(
-                becomesTemplate ? valueState.current.currentTemplateValue : valueState.current.currentInputValue ?? ""
+                becomesTemplate
+                    ? valueState.current.currentTemplateValue
+                    : optionallyLabelledParameterToValue(valueState.current.currentInputValue) ?? ""
             );
             return becomesTemplate;
         });

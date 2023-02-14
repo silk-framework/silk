@@ -221,6 +221,7 @@ export const ParameterWidget = (props: IProps) => {
                             : defaultValueAsJs(propertyDetails, true)
                         : initialValues[formParamId]?.value ??
                           optionallyLabelledParameterToValue(propertyDetails.value),
+                    defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
                 inputElementFactory={(initialValueReplace, onChange) => {
                     if (autoCompletion) {
@@ -256,7 +257,7 @@ export const ParameterWidget = (props: IProps) => {
                                 onChange={onChange ?? changeHandlers[formParamId]}
                                 initialParameterValue={
                                     initialValueReplace ??
-                                    // Only set initial value when this was not template value
+                                    // Only set initial value when this was not a template value
                                     (!isTemplateParameter ? initialValues[formParamId]?.value : undefined)
                                 }
                                 required={required}
