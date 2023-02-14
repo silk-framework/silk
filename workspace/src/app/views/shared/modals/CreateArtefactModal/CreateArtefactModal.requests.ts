@@ -2,7 +2,10 @@ import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import { DatasetTaskPlugin } from "@ducks/shared/typings";
 import fetch from "../../../../services/fetch";
 import { coreApi, projectApi } from "../../../../utils/getApiEndpoint";
-import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import {
+    IPartialAutoCompleteResult,
+    IValidationResult,
+} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Send dataset configuration and get an auto-configured version back. */
 export const requestAutoConfiguredDataset = async (
@@ -30,6 +33,21 @@ export const requestValidateTemplateString = async (
         method: "POST",
         body: {
             templateString,
+        },
+    });
+};
+
+/** Auto-complete a variable template. */
+export const requestAutoCompleteTemplateString = async (
+    inputString: string,
+    cursorPosition: number
+): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
+    return fetch({
+        url: coreApi("/variableTemplate/completion"),
+        method: "POST",
+        body: {
+            inputString,
+            cursorPosition,
         },
     });
 };

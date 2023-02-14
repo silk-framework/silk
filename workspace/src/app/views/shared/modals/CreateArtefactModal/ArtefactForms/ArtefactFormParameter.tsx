@@ -3,16 +3,19 @@ import { Parameter } from "@carbon/icons-react";
 import {
     AutoSuggestion,
     FieldItem,
-    Icon,
     IconButton,
-    TestIcon,
     Spacing,
+    TestIcon,
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
-import { requestValidateTemplateString, ValidateTemplateResponse } from "../CreateArtefactModal.requests";
+import {
+    requestAutoCompleteTemplateString,
+    requestValidateTemplateString,
+    ValidateTemplateResponse,
+} from "../CreateArtefactModal.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { OptionallyLabelledParameter } from "../../../../taskViews/linking/linking.types";
 
@@ -214,8 +217,14 @@ interface TemplateInputComponentProps {
 const TemplateInputComponent = memo(
     ({ parameterId, initialValue, onTemplateValueChange, setValidationError }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
-        // TODO: implement
-        const autoComplete = React.useCallback(() => undefined, []);
+
+        const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
+            try {
+                return (await requestAutoCompleteTemplateString(inputString, cursorPosition)).data;
+            } catch (error) {
+                registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
+            }
+        }, []);
 
         const checkTemplate = React.useCallback(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
@@ -237,6 +246,7 @@ const TemplateInputComponent = memo(
                 onChange={onTemplateValueChange}
                 fetchSuggestions={autoComplete}
                 checkInput={checkTemplate}
+                autoCompletionRequestDelay={200}
             />
         );
     }

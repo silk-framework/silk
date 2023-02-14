@@ -3,5 +3,6 @@ GET        /ruleOperatorPlugins          controllers.workspaceApi.coreApi.Plugin
 GET        /plugins/:pluginId            controllers.workspaceApi.coreApi.PluginApi.plugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false, withLabels: Boolean ?= false)
 GET        /usages/plugins/:pluginId     controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
 POST       /variableTemplate/validation  controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
+POST       /variableTemplate/completion  controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
 
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()

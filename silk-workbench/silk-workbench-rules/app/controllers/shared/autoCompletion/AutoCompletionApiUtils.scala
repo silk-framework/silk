@@ -1,11 +1,11 @@
 package controllers.shared.autoCompletion
 
 import controllers.autoCompletion
-import controllers.autoCompletion.{Completion, Completions}
+import controllers.autoCompletion._
 import controllers.transform.AutoCompletionApi.Categories
-import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, OpFilter, PathToReplace, ReplacementInterval, ReplacementResults}
+import controllers.transform.autoCompletion.{OpFilter, PathToReplace}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, PathOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths._
 import org.silkframework.plugins.path.PathMetaData
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.UserContext

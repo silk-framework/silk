@@ -21,7 +21,7 @@ object GlobalTemplateVariables {
     }
   }
 
-  private val variables: ConfigValue[TemplateVariables] = (config: Config) => {
+  private val templateVariables: ConfigValue[TemplateVariables] = (config: Config) => {
     val variablesConfigVar = configNamespace + ".global"
     if(config.hasPath(variablesConfigVar)) {
       val map =
@@ -46,7 +46,9 @@ object GlobalTemplateVariables {
     **/
   def resolveTemplateValue(value: String): String = {
     val writer = new StringWriter()
-    engine().compile(value).evaluate(variables().map, writer)
+    engine().compile(value).evaluate(templateVariables().map, writer)
     writer.toString
   }
+
+  def variableNames: Seq[String] = templateVariables().map.keys.toSeq.sorted
 }

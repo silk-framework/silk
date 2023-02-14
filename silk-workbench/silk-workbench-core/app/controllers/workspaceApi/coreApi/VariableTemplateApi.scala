@@ -1,9 +1,10 @@
 package controllers.workspaceApi.coreApi
 
+import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
-import controllers.workspaceApi.coreApi.variableTemplate.{ValidateVariableTemplateRequest, VariableTemplateValidationError, VariableTemplateValidationResponse}
+import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationError, VariableTemplateValidationResponse}
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -30,7 +31,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
           new Content(
             mediaType = "application/json",
             schema = new Schema(`type` = "object"),
-            examples = Array(new ExampleObject("TODO")) // TODO
+            examples = Array(new ExampleObject(VariableTemplateApiDoc.validateVariableTemplateResponse)) // TODO
           )
         )
       )
@@ -63,6 +64,41 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         )),
         evaluatedTemplate = resultOrError.left.toOption
       )
+      Ok(Json.toJson(response))
+    }
+  }
+
+  @Operation(
+    summary = "Auto-complete variable template",
+    description = "Returns auto=completion suggestions for the variable template.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(`type` = "object"),
+            examples = Array(new ExampleObject(VariableTemplateApiDoc.autoCompleteVariableTemplateResponse))
+          )
+        )
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
+        examples = Array(new ExampleObject(VariableTemplateApiDoc.autoCompleteVariableTemplateRequest))
+      )
+    )
+  )
+  def autoCompleteTemplate(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit uc =>
+    validateJson[AutoCompleteVariableTemplateRequest] { autoCompleteRequest =>
+      GlobalTemplateVariables.variableNames
+      val response = autoCompleteRequest.execute()
       Ok(Json.toJson(response))
     }
   }
