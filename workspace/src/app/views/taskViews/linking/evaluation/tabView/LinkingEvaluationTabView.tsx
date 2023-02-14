@@ -100,7 +100,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
     const [expandedRows, setExpandedRows] = React.useState<Map<number, number>>(new Map());
     const [nodes, setNodes] = React.useState<TreeNodeInfo[]>([]);
-    const [linksToValueMap, setLinksToValueMap] = React.useState<Array<Map<string, EvaluationResultType[number]>>>([]);
+    const linksToValueMap = React.useRef<Array<Map<string, EvaluationResultType[number]>>>([]);
     const [inputValuesExpansion, setInputValuesExpansion] = React.useState<
         Map<number, { expanded: boolean; precinct: boolean }>
     >(new Map());
@@ -129,19 +129,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             ])
     );
 
-    console.log("Called how many times");
-
     //fetch operator plugins
     React.useEffect(() => {
         (async () => {
-            // console.log("Operator plugins");
             setOperatorPlugins(Object.values((await requestRuleOperatorPluginDetails(false)).data));
         })();
     }, []);
 
     React.useEffect(() => {
         if (evaluationResults.current) {
-            // console.log("Pagination ish ==> called");
             onTotalChange(evaluationResults.current.resultStats.filteredLinkCount);
         }
     }, [evaluationResults]);
@@ -153,7 +149,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
             )?.data;
             evaluationResults.current = results;
-            setLinksToValueMap(results?.links.map((link) => utils.linkToValueMap(link as any)) ?? []);
+            linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
             setInputValuesExpansion(
                 () => new Map(results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }]))
             );
@@ -188,7 +184,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     React.useEffect(() => {
         let shouldCancel = false;
         if (!shouldCancel && taskEvaluationStatus === "Successful") {
-            // console.log("Initial Request ==> called");
             getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
         }
         return () => {
@@ -219,142 +214,164 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         [showOperators, showInputValues, evaluationResults]
     );
 
-    React.useEffect(() => {
-        if (!evaluationResults.current) return;
-        const operatorNode = evaluationResults.current.linkRule.operator as any;
-        setNodes(() => {
-            // console.log("Set tree nodes ==> called");
-            return new Array(evaluationResults.current?.links.length).fill(1).map((_, idx) => {
-                const treeInfo: TreeNodeInfo = {
-                    id: operatorNode.id,
-                    isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
-                    hasCaret: false,
-                    label: (
-                        <span>
-                            <Tag backgroundColor={tagColor(operatorNode.type)}>
-                                {getOperatorLabel(operatorNode, operatorPlugins)}
-                            </Tag>
-                            <Spacing vertical size="tiny" />
-                            {getOperatorConfidence(operatorNode.id, idx)}
-                        </span>
-                    ),
-                    childNodes: [],
+    const updateTreeNodes = React.useCallback(
+        (idx: number) => {
+            const operatorNode = evaluationResults.current?.linkRule.operator as any;
+            if (!operatorNode) return;
+            const treeInfo: TreeNodeInfo = {
+                id: operatorNode.id,
+                isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
+                hasCaret: false,
+                label: (
+                    <span>
+                        <Tag backgroundColor={tagColor(operatorNode.type)}>
+                            {getOperatorLabel(operatorNode, operatorPlugins)}
+                        </Tag>
+                        <Spacing vertical size="tiny" />
+                        {getOperatorConfidence(operatorNode.id, idx)}
+                    </span>
+                ),
+                childNodes: [],
+            };
+
+            const getSubTree = (node: any, parentTree?: TreeNodeInfo) => {
+                //Possibly comparison operators
+                const inputPathCategory = {
+                    sourceInput: "Source path",
+                    targetInput: "Target path",
                 };
 
-                const getSubTree = (node: any, parentTree?: TreeNodeInfo) => {
-                    //Possibly comparison operators
-                    const inputPathCategory = {
-                        sourceInput: "Source path",
-                        targetInput: "Target path",
-                    };
+                if (node?.inputs?.length) {
+                    node.inputs.forEach((nodeInput) => {
+                        getSubTree(nodeInput, {
+                            id: nodeInput.id,
+                            isExpanded: true,
+                            hasCaret: false,
+                            label: (
+                                <span>
+                                    <Tag backgroundColor={tagColor(nodeInput.type)}>
+                                        {getOperatorLabel(nodeInput, operatorPlugins)}
+                                    </Tag>
+                                    <Spacing vertical size="tiny" />
+                                    {getOperatorConfidence(nodeInput.id, idx)}
+                                </span>
+                            ),
+                            childNodes: [],
+                        });
+                    });
+                } else {
+                    ["sourceInput", "targetInput"].forEach((inputPath) => {
+                        const isSourceEntity = inputPath === "sourceInput";
+                        //is comparison operator
+                        let inputNode: TreeNodeInfo = {
+                            id: node[inputPath].id,
+                            isExpanded: true,
+                            hasCaret: false,
+                            label: (
+                                <TagList>
+                                    <Tag
+                                        key="pathinput"
+                                        backgroundColor={
+                                            tagColor(
+                                                node[inputPath].type === "pathInput"
+                                                    ? inputPathCategory[inputPath]
+                                                    : operatorInputMapping[node[inputPath].type]
+                                            ) as string
+                                        }
+                                    >
+                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
+                                    </Tag>
+                                    {getLinkValues(node[inputPath].id, idx, treeInfo, {
+                                        path: node[inputPath].path ?? "",
+                                        isSourceEntity,
+                                    })}
+                                </TagList>
+                            ),
+                            childNodes: [],
+                        };
 
-                    if (node?.inputs?.length) {
-                        node.inputs.forEach((nodeInput) => {
-                            getSubTree(nodeInput, {
-                                id: nodeInput.id,
-                                isExpanded: true,
-                                hasCaret: false,
-                                label: (
-                                    <span>
-                                        <Tag backgroundColor={tagColor(nodeInput.type)}>
-                                            {getOperatorLabel(nodeInput, operatorPlugins)}
-                                        </Tag>
-                                        <Spacing vertical size="tiny" />
-                                        {getOperatorConfidence(nodeInput.id, idx)}
-                                    </span>
-                                ),
-                                childNodes: [],
+                        if (node[inputPath].inputs?.length) {
+                            node[inputPath].inputs.forEach((i) => {
+                                buildInputTree(
+                                    i,
+                                    inputNode,
+                                    idx,
+                                    inputPathCategory[inputPath],
+                                    treeInfo,
+                                    isSourceEntity
+                                );
                             });
-                        });
-                    } else {
-                        ["sourceInput", "targetInput"].forEach((inputPath) => {
-                            const isSourceEntity = inputPath === "sourceInput";
-                            //is comparison operator
-                            let inputNode: TreeNodeInfo = {
-                                id: node[inputPath].id,
-                                isExpanded: true,
-                                hasCaret: false,
-                                label: (
-                                    <TagList>
-                                        <Tag
-                                            key="pathinput"
-                                            backgroundColor={
-                                                tagColor(
-                                                    node[inputPath].type === "pathInput"
-                                                        ? inputPathCategory[inputPath]
-                                                        : operatorInputMapping[node[inputPath].type]
-                                                ) as string
-                                            }
-                                        >
-                                            {getOperatorLabel(node[inputPath], operatorPlugins)}
-                                        </Tag>
-                                        {getLinkValues(node[inputPath].id, idx, treeInfo, {
-                                            path: node[inputPath].path ?? "",
-                                            isSourceEntity,
-                                        })}
-                                    </TagList>
-                                ),
-                                childNodes: [],
-                            };
+                        }
 
-                            if (node[inputPath].inputs?.length) {
-                                node[inputPath].inputs.forEach((i) => {
-                                    buildInputTree(
-                                        i,
-                                        inputNode,
-                                        idx,
-                                        inputPathCategory[inputPath],
-                                        treeInfo,
-                                        isSourceEntity
-                                    );
-                                });
-                            }
+                        if (parentTree) {
+                            parentTree.childNodes!.push(inputNode);
+                        } else {
+                            treeInfo.childNodes!.push(inputNode);
+                        }
+                    });
+                }
+                parentTree && treeInfo.childNodes!.push(parentTree);
+            };
 
-                            if (parentTree) {
-                                parentTree.childNodes!.push(inputNode);
-                            } else {
-                                treeInfo.childNodes!.push(inputNode);
-                            }
-                        });
-                    }
-                    parentTree && treeInfo.childNodes!.push(parentTree);
-                };
+            operatorNode.inputs?.length
+                ? //Aggregation operator
+                  (operatorNode as IAggregationOperator).inputs.forEach((i: any) => {
+                      getSubTree(i, {
+                          id: i.id,
+                          isExpanded: true,
+                          hasCaret: false,
+                          label: (
+                              <span>
+                                  <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
+                                  <Spacing vertical size="tiny" />
+                                  {getOperatorConfidence(i.id, idx)}
+                              </span>
+                          ),
+                          childNodes: [],
+                      });
+                  })
+                : getSubTree(operatorNode);
 
-                operatorNode.inputs?.length
-                    ? //Aggregation operator
-                      (operatorNode as IAggregationOperator).inputs.forEach((i: any) => {
-                          getSubTree(i, {
-                              id: i.id,
-                              isExpanded: true,
-                              hasCaret: false,
-                              label: (
-                                  <span>
-                                      <Tag backgroundColor={tagColor(i.type)}>
-                                          {getOperatorLabel(i, operatorPlugins)}
-                                      </Tag>
-                                      <Spacing vertical size="tiny" />
-                                      {getOperatorConfidence(i.id, idx)}
-                                  </span>
-                              ),
-                              childNodes: [],
-                          });
-                      })
-                    : getSubTree(operatorNode);
+            return treeInfo;
+        },
+        [
+            evaluationResults.current,
+            operatorPlugins.length,
+            treeValueQuery,
+            nodeParentHighlightedIds,
+            operatorsExpansion,
+        ]
+    );
 
-                return treeInfo;
-            });
-        });
-    }, [treeValueQuery.size, operatorPlugins.length, nodeParentHighlightedIds, operatorsExpansion]);
+    React.useEffect(() => {
+        const [changedRowIndex] = Array.from(treeValueQuery.keys());
+        setNodes((prevNodes) =>
+            prevNodes.map((prevNode, i) => (changedRowIndex === i ? { ...updateTreeNodes(i)! } : prevNode))
+        );
+    }, [treeValueQuery]);
+
+    React.useEffect(() => {
+        const [changedRowIndex] = Array.from(nodeParentHighlightedIds.keys());
+        setNodes((prevNodes) =>
+            prevNodes.map((prevNode, i) => (changedRowIndex === i ? { ...updateTreeNodes(i)! } : prevNode))
+        );
+    }, [nodeParentHighlightedIds]);
+
+    React.useEffect(() => {
+        if ((!evaluationResults.current || !operatorsExpansion.size) && hasRenderedBefore) return;
+        setNodes(() =>
+            new Array(evaluationResults.current?.links.length).fill(1).map((_, idx) => updateTreeNodes(idx)!)
+        );
+    }, [evaluationResults.current, operatorPlugins.length, operatorsExpansion]);
 
     React.useEffect(() => {
         if (
             evaluationResults.current &&
             evaluationResults.current.linkRule &&
             evaluationResults.current.links &&
-            linksToValueMap.length
+            linksToValueMap.current.length
         ) {
             const ruleOperator = evaluationResults.current.linkRule.operator;
-            // console.log("Link value to Map ==> called");
             if (ruleOperator) {
                 const recursivelyGetInputPath = (operator: any): EvaluationLinkInputValue<string> => {
                     return ((operator as IAggregationOperator)?.inputs ?? []).reduce(
@@ -396,7 +413,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     : recursivelyGetInputPath(ruleOperator);
 
                 setInputValues(() =>
-                    linksToValueMap.map((linkToValueMap) =>
+                    linksToValueMap.current.map((linkToValueMap) =>
                         ["source", "target"].reduce(
                             (matchingInputValue, inputPathType: "source" | "target") => {
                                 Object.entries(inputPaths[inputPathType]).forEach(([uri, operatorId]) => {
@@ -411,7 +428,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 );
             }
         }
-    }, [linksToValueMap]);
+    }, [linksToValueMap.current]);
 
     const buildInputTree = (
         input: any,
@@ -468,8 +485,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     const getOperatorConfidence = React.useCallback(
         (id: string, index: number) => {
-            const linkToValueMap = linksToValueMap[index];
-            if (!linksToValueMap.length || !linkToValueMap) return <></>;
+            const linkToValueMap = linksToValueMap.current[index];
+            if (!linksToValueMap.current.length || !linkToValueMap) return <></>;
             return linkToValueMap.get(id)?.value.map((val, i) => (
                 <ConfidenceValue
                     key={i}
@@ -482,14 +499,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 />
             ));
         },
-        [linksToValueMap, nodeParentHighlightedIds, pagination]
+        [linksToValueMap.current, nodeParentHighlightedIds, pagination]
     );
 
     const getLinkValues = React.useCallback(
         (id: string, index: number, tree: TreeNodeInfo, nodeData: Omit<HoveredValuedType, "value">) => {
             const cutAfter = 14;
-            const linkToValueMap = linksToValueMap[index];
-            if (linksToValueMap.length && linkToValueMap && nodeData) {
+            const linkToValueMap = linksToValueMap.current[index];
+            if (linksToValueMap.current.length && linkToValueMap && nodeData) {
                 const currentHighlightedValue = treeValueQuery.get(index);
                 //if path === path from state and is sourceEntity matches and value matches
                 const isHighlightMatch = (val: string) =>
@@ -542,18 +559,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 return [exampleValues, [otherCount]];
             }
         },
-        [linksToValueMap, treeValueQuery, nodeParentHighlightedIds]
+        [linksToValueMap.current, treeValueQuery, nodeParentHighlightedIds]
     );
 
     const handleParentNodeHighlights = React.useCallback((tree, id: string, index: number, reset = false) => {
-        setNodeParentHighlightedIds((prev) => new Map([...prev, [index, reset ? [] : getParentNodes(tree, id)]]));
+        setNodeParentHighlightedIds((prev) => new Map([[index, reset ? [] : getParentNodes(tree, id)]]));
     }, []);
 
     const handleValueHover = React.useCallback(
         (on: "table" | "tree", rowIndex: number, hoveredTagProps: HoveredValuedType) => {
             on === "table"
-                ? setTreeValueQuery((prev) => new Map([...prev, [rowIndex, hoveredTagProps]]))
-                : setTableValueQuery((prev) => new Map([...prev, [rowIndex, hoveredTagProps]]));
+                ? setTreeValueQuery(() => new Map([[rowIndex, hoveredTagProps]]))
+                : setTableValueQuery(() => new Map([[rowIndex, hoveredTagProps]]));
         },
         []
     );
@@ -609,6 +626,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             });
             return new Map([...prev]);
         });
+        setNodes((prevNodes) =>
+            prevNodes.map((prevNode, i) => {
+                return i === nodeIdx ? { ...updateTreeNodes(i)! } : prevNode;
+            })
+        );
     }, []);
 
     const handleReferenceLinkTypeUpdate = React.useCallback(
