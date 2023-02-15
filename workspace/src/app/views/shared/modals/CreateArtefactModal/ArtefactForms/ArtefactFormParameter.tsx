@@ -21,6 +21,7 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
+import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 interface Props {
     // ID of the parameter
@@ -224,6 +225,29 @@ interface TemplateInputComponentProps {
 const TemplateInputComponent = memo(
     ({ parameterId, initialValue, onTemplateValueChange, setValidationError }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
+        const [t] = useTranslation();
+
+        const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
+            let errorMessage = validationResult.parseError?.message;
+            const adaptedValidationResult = { ...validationResult };
+            if (errorMessage) {
+                if (errorMessage.includes("error at position")) {
+                    // Parse position from error message
+                    const result = /error at position (\d+)/.exec(errorMessage);
+                    if (result && Number.isInteger(Number.parseInt(result[1]))) {
+                        const errorPosition = Number.parseInt(result[1]);
+                        adaptedValidationResult.parseError = {
+                            start: errorPosition,
+                            end: errorPosition + 2,
+                            message: validationResult.parseError!.message,
+                        };
+                        errorMessage = t("ArtefactFormParameter.invalidTemplate");
+                    }
+                }
+            }
+            setValidationError(errorMessage);
+            return adaptedValidationResult;
+        }, []);
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
@@ -237,13 +261,12 @@ const TemplateInputComponent = memo(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
                     const validationResponse = (await requestValidateTemplateString(inputString)).data;
-                    setValidationError(validationResponse.parseError?.message);
-                    return validationResponse;
+                    return processValidationError(validationResponse);
                 } catch (error) {
                     registerError("ArtefactFormParameter.checkTemplate", "Validating template has failed.", error);
                 }
             },
-            []
+            [processValidationError]
         );
 
         return (
