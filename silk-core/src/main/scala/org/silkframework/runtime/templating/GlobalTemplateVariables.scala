@@ -51,4 +51,5 @@ object GlobalTemplateVariables {
   }
 
   def variableNames: Seq[String] = templateVariables().map.keys.toSeq.sorted
+  def variableMap: Map[String, String] = templateVariables().map
 }
