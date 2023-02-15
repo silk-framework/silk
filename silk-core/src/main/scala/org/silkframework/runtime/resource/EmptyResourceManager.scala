@@ -12,7 +12,7 @@ object EmptyResourceManager {
   /** Retrieves the empty resource manager */
   def apply(): ResourceManager = rootInstance
 
-  private class EmptyResourceManagerImpl(val name: String, val parent: Option[ResourceManager]) extends ResourceManager {
+  private case class EmptyResourceManagerImpl(name: String, parent: Option[ResourceManager]) extends ResourceManager {
 
     def basePath: String = parent.map(_.basePath).getOrElse("") + "/" + name
 
