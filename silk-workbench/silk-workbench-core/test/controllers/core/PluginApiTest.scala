@@ -6,9 +6,8 @@ import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ClassPluginDescription, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.plugin._
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -99,14 +98,14 @@ case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletion
 case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   val values = Seq("val1" -> "First value", "val2" -> "Second value", "val3" -> "Third value")
 
-  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
-                                     (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue], workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
     val multiWordQuery = extractSearchTerms(searchQuery)
     values.filter(v => matchesSearchTerm(multiWordQuery, v._2)).map{ case (value, label) => AutoCompletionResult(value, Some(label))}
   }
 
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = {
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue], workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Option[String] = {
     values.find(_._1 == value).map(_._2)
   }
 }

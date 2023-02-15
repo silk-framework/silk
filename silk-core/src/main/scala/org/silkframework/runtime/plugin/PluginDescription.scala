@@ -2,6 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 
 /**
@@ -48,6 +49,20 @@ trait PluginDescription[+T] {
     */
   def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String] = {
     parameters.map(param => (param.name, param.stringValue(plugin))).toMap
+  }
+
+  /**
+    * Retrieves a parameter by its name.
+    *
+    * @throws NotFoundException If the no parameter with the given name has been found.
+    */
+  def findParameter(name: String): PluginParameter = {
+    parameters.find(_.name == name) match {
+      case Some(parameter) =>
+        parameter
+      case None =>
+        throw new NotFoundException(s"Plugin '${id}' does not have a parameter '${name}'.")
+    }
   }
 
 }
