@@ -55,8 +55,9 @@ interface Props {
      */
     supportVariableTemplateElement?: {
         onChange: (value: string) => any;
-        switchButtonPosition: "rightElement";
         startWithTemplateView: boolean;
+        // If the evaluated template should be shown below the template input
+        showTemplatePreview: boolean;
         parameterCallbacks: ExtendedParameterCallbacks;
         // The initial value. An undefined value means, it is unknown.
         initialValue: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
@@ -82,6 +83,7 @@ export const ArtefactFormParameter = ({
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
     const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
+    const [infoMessage, setInfoMessage] = React.useState<string | undefined>(undefined);
     let initialValue: any = supportVariableTemplateElement?.initialValue;
     // Initial value might be a labelled value, safe-guard
     if (initialValue != null && (initialValue as OptionallyLabelledParameter<any>)?.value != null) {
@@ -163,7 +165,7 @@ export const ArtefactFormParameter = ({
                 tooltip: tooltip,
             }}
             hasStateDanger={!!errorMessage || !!validationError}
-            messageText={errorMessage || validationError}
+            messageText={errorMessage || validationError || infoMessage}
             disabled={disabled}
             helperText={helperText}
         >
@@ -179,6 +181,9 @@ export const ArtefactFormParameter = ({
                             initialValue={valueState.current.templateValueBeforeSwitch ?? initialValue ?? ""}
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
+                            evaluatedValueMessage={
+                                supportVariableTemplateElement.showTemplatePreview ? setInfoMessage : undefined
+                            }
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -220,10 +225,18 @@ interface TemplateInputComponentProps {
     initialValue: string;
     onTemplateValueChange: (any) => any;
     setValidationError: (error?: string) => any;
+    /** Called with a message that contains the currently evaluated template. */
+    evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
 }
 
 const TemplateInputComponent = memo(
-    ({ parameterId, initialValue, onTemplateValueChange, setValidationError }: TemplateInputComponentProps) => {
+    ({
+        parameterId,
+        initialValue,
+        onTemplateValueChange,
+        setValidationError,
+        evaluatedValueMessage,
+    }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
         const [t] = useTranslation();
 
@@ -261,23 +274,31 @@ const TemplateInputComponent = memo(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
                     const validationResponse = (await requestValidateTemplateString(inputString)).data;
+                    evaluatedValueMessage?.(
+                        validationResponse.evaluatedTemplate
+                            ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })
+                            : undefined
+                    );
                     return processValidationError(validationResponse);
                 } catch (error) {
                     registerError("ArtefactFormParameter.checkTemplate", "Validating template has failed.", error);
+                    evaluatedValueMessage?.(undefined);
                 }
             },
             [processValidationError]
         );
 
         return (
-            <AutoSuggestion
-                id={parameterId}
-                initialValue={initialValue}
-                onChange={onTemplateValueChange}
-                fetchSuggestions={autoComplete}
-                checkInput={checkTemplate}
-                autoCompletionRequestDelay={200}
-            />
+            <>
+                <AutoSuggestion
+                    id={parameterId}
+                    initialValue={initialValue}
+                    onChange={onTemplateValueChange}
+                    fetchSuggestions={autoComplete}
+                    checkInput={checkTemplate}
+                    autoCompletionRequestDelay={200}
+                />
+            </>
         );
     }
 );

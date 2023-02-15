@@ -213,7 +213,7 @@ export const ParameterWidget = (props: IProps) => {
                 supportVariableTemplateElement={{
                     onChange: changeHandlers[formParamId],
                     startWithTemplateView: isTemplateParameter,
-                    switchButtonPosition: "rightElement",
+                    showTemplatePreview: taskParameter.param.parameterType !== INPUT_TYPES.PASSWORD,
                     parameterCallbacks,
                     initialValue: autoCompletion
                         ? initialValues[formParamId]
