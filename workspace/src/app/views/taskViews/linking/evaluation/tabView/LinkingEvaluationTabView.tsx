@@ -27,7 +27,6 @@ import {
     TagList,
     Toolbar,
     ToolbarSection,
-    Tree,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -63,6 +62,7 @@ import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { useFirstRender } from "../../../../../hooks/useFirstRender";
+import TableTree from "./shared/TableTreeView";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -597,6 +597,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             setExpandedRows((prevExpandedRows) => {
                 if (typeof rowId !== "undefined" && prevExpandedRows.has(rowId)) {
                     prevExpandedRows.delete(rowId);
+                    //when universal expansion btn is pressed,
+                    //modify input and operator list behavior
                     handleNodeExpand(rowId, showOperators, true);
                     setInputValuesExpansion((prevInputExpansion) => {
                         prevInputExpansion.set(rowId, {
@@ -605,11 +607,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         });
                         return new Map(prevInputExpansion);
                     });
-
                     return new Map([...prevExpandedRows]);
                 } else if (typeof rowId !== "undefined") {
+                    //provided row id doesn't exist in record
                     return new Map([...prevExpandedRows, [rowId, rowId]]);
                 } else {
+                    //should either collapse all or expand all.
                     if (prevExpandedRows.size === rowData.length) return new Map();
                     return new Map(rowData.map((_row: any, i: number) => [i, i]));
                 }
@@ -626,11 +629,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             });
             return new Map([...prev]);
         });
-        setNodes((prevNodes) =>
-            prevNodes.map((prevNode, i) => {
-                return i === nodeIdx ? { ...updateTreeNodes(i)! } : prevNode;
-            })
-        );
     }, []);
 
     const handleReferenceLinkTypeUpdate = React.useCallback(
@@ -1118,44 +1116,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                             </TableRow>
                                                         </TableBody>
                                                     </Table>
-                                                    <Table
-                                                        size="small"
-                                                        columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
-                                                        hasDivider={false}
-                                                        colorless
-                                                    >
-                                                        <TableBody>
-                                                            <TableRow>
-                                                                <TableCell
-                                                                    style={{ paddingLeft: "0", paddingRight: "0" }}
-                                                                >
-                                                                    <IconButton
-                                                                        data-test-id="tree-expand-item-btn"
-                                                                        id={`tree-btn-${
-                                                                            operatorsExpansion.get(i)?.expanded
-                                                                                ? "expanded"
-                                                                                : "collapsed"
-                                                                        }`}
-                                                                        onClick={() => {
-                                                                            if (!operatorsExpansion.get(i)?.expanded) {
-                                                                                handleNodeExpand(i);
-                                                                            } else {
-                                                                                handleNodeExpand(i, false);
-                                                                            }
-                                                                        }}
-                                                                        name={
-                                                                            !operatorsExpansion.get(i)?.expanded
-                                                                                ? "toggler-caretright"
-                                                                                : "toggler-caretdown"
-                                                                        }
-                                                                    />
-                                                                </TableCell>
-                                                                <TableCell colSpan={headers.length + 1}>
-                                                                    <Tree contents={[nodes[i] ?? []]} />
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        </TableBody>
-                                                    </Table>
+                                                    <TableTree
+                                                        treeIsExpanded={!!operatorsExpansion.get(i)?.expanded}
+                                                        nodes={[nodes[i]]}
+                                                        handleTableExpansion={(shouldExpand) =>
+                                                            handleNodeExpand(i, shouldExpand)
+                                                        }
+                                                    />
                                                 </TableExpandedRow>
                                             )}
                                         </React.Fragment>
