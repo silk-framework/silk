@@ -227,19 +227,13 @@ class HierarchicalMapping extends React.Component {
 
     // template rendering
     render() {
-        const {
-            currentRuleId,
-            showMappingEditor,
-            showNavigation,
-            askForRemove,
-            elementToDelete,
-            askForDiscard,
-        } = this.state;
+        const { currentRuleId, showMappingEditor, showNavigation, askForRemove, elementToDelete, askForDiscard } =
+            this.state;
         const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
         // render mapping edit / create view of value and object
         return (
-            <section className="ecc-silk-mapping">
+            <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
                 {showMappingEditor && this.state.mappingEditorRuleId ? (
                     <MappingEditorModal
                         projectId={this.props.project}
