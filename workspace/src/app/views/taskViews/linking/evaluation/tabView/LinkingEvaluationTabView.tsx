@@ -981,7 +981,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                                     </TableCell>
                                                 </TableExpandRow>
                                             )}
-                                            {!!currentInputValue && (
+                                            {!!currentInputValue && expandedRows.has(i) && (
                                                 <TableExpandedRow
                                                     colSpan={headers.length + 2}
                                                     className="linking-table__expanded-row-container"
