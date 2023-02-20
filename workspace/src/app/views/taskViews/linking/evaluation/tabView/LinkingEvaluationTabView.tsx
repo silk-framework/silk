@@ -90,12 +90,14 @@ const sortDirectionMapping = {
 
 type LinkingEvaluationResultWithId = LinkingEvaluationResult & {id: string}
 
+const pageSizes = [10, 20, 50]
+
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
     const commonSel = useSelector(workspaceSel.commonSelector);
     const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
     const [pagination, paginationElement, onTotalChange] = usePagination({
-        pageSizes: [10, 20, 50],
+        pageSizes,
         initialPageSize: 20,
     });
     const [loading, setLoading] = React.useState<boolean>(true);
@@ -134,7 +136,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         if (evaluationResults.current) {
             onTotalChange(evaluationResults.current.resultStats.filteredLinkCount);
         }
-    }, [evaluationResults]);
+    }, [evaluationResults.current]);
 
     const getEvaluatedLinksUtil = React.useCallback(async (pagination, searchQuery = "", filters, linkSortBy) => {
         try {
