@@ -5,6 +5,7 @@ import {
     Divider,
     Highlighter,
     IActivityStatus,
+    InteractionGate,
     IconButton,
     MenuItem,
     Notification,
@@ -336,9 +337,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             source: string,
             target: string,
             index: number
-        ) => {
-            if (currentLinkType === linkType) return;
-            setLoading(true);
+        ): Promise<boolean> => {
+            if (currentLinkType === linkType) return false;
 
             try {
                 const updateResp = await updateReferenceLink(projectId, linkingTaskId, source, target, linkType);
@@ -346,9 +346,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     //update one
                     evaluationResults.current.links[index].decision = linkType;
                 }
+                return true
             } catch (err) {
-            } finally {
-                setLoading(false);
+                return false
             }
         },
         []
@@ -641,7 +641,7 @@ interface ExpandedEvaluationRowProps {
         source: string,
         target: string,
         index: number
-    ) => any
+    ) => Promise<boolean>
     searchQuery: string
     handleRowExpansion: (rowId?: number) => any
     linkRuleOperatorTree?: ISimilarityOperator
@@ -671,6 +671,9 @@ const LinkingEvaluationRow = React.memo(({
     const [inputValueTableExpanded, setInputValueTableExpanded] = React.useState<boolean>(inputValuesExpandedByDefault)
     const [operatorTreeExpansion, setOperatorTreeExpansion] = React.useState<{expanded: boolean, precinct: boolean}>({expanded: operatorTreeExpandedByDefault, precinct: false})
     const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
+    const [updateOperationPending, setUpdateOperationPending] = React.useState(false)
+    // Keeps track of the current link type when it gets updated via the state buttons
+    const [currentLinkType, setCurrentLinkType] = React.useState<ReferenceLinkType>(linkingEvaluationResult?.decision ?? "unlabeled")
     const [t] = useTranslation()
 
     const handleInputTableExpansion = React.useCallback(() => {
@@ -981,6 +984,22 @@ const LinkingEvaluationRow = React.memo(({
             : undefined,
         [valueToHighlight]
     );
+    const onLinkStateUpdate = async (linkType: ReferenceLinkType) => {
+        if(linkingEvaluationResult) {
+            setUpdateOperationPending(true)
+            const success = await handleReferenceLinkTypeUpdate(
+                currentLinkType,
+                linkType,
+                linkingEvaluationResult.source,
+                linkingEvaluationResult.target,
+                rowIdx
+            )
+            if(success) {
+                setCurrentLinkType(linkType)
+            }
+            setUpdateOperationPending(false)
+        }
+    }
     const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), [])
     return <React.Fragment key={rowIdx}>
         {linkingEvaluationResult && (
@@ -1011,31 +1030,30 @@ const LinkingEvaluationRow = React.memo(({
                     <ConfidenceValue value={linkingEvaluationResult.confidence} />
                 </TableCell>
                 <TableCell key="linkstate">
-                    <div style={{ whiteSpace: "nowrap" }}>
-                        {linkStateButtons.map(
-                            ({ linkType, icon, ...otherProps }, btnIndex) => (
-                                <React.Fragment key={icon}>
-                                    <IconButton
-                                        name={icon}
-                                        onClick={() =>
-                                            handleReferenceLinkTypeUpdate(
-                                                linkingEvaluationResult.decision,
-                                                linkType,
-                                                linkingEvaluationResult.source,
-                                                linkingEvaluationResult.target,
-                                                rowIdx
-                                            )
-                                        }
-                                        {...otherProps}
-                                        outlined={linkingEvaluationResult.decision !== linkType}
-                                        minimal={false}
-                                    />
-                                    {btnIndex !== linkStateButtons.length - 1 && (
-                                        <Spacing vertical size="tiny" />
-                                    )}
-                                </React.Fragment>
-                            )
-                        )}
+                    <div style={{whiteSpace: "nowrap"}}>
+                        <InteractionGate
+                            showSpinner={updateOperationPending}
+                            spinnerProps={{size: "tiny", position: "inline", delay: 500}}
+                        >
+                            {linkStateButtons.map(
+                                ({linkType, icon, ...otherProps}, btnIndex) => (
+                                    <React.Fragment key={icon}>
+                                        <IconButton
+                                            name={icon}
+                                            onClick={() =>
+                                                onLinkStateUpdate(linkType)
+                                            }
+                                            {...otherProps}
+                                            outlined={currentLinkType !== linkType}
+                                            minimal={false}
+                                        />
+                                        {btnIndex !== linkStateButtons.length - 1 && (
+                                            <Spacing vertical size="tiny"/>
+                                        )}
+                                    </React.Fragment>
+                                )
+                            )}
+                        </InteractionGate>
                     </div>
                 </TableCell>
             </TableExpandRow>
