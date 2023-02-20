@@ -1,6 +1,6 @@
 package controllers.transform
 
-import controllers.autoCompletion.CompletionBase
+import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, CompletionBase, ReplacementInterval, ReplacementResults}
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
