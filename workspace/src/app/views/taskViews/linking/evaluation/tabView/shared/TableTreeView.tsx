@@ -8,7 +8,7 @@ interface TableTreeProps {
     treeIsExpanded: boolean;
 }
 
-const TableTree: React.FC<TableTreeProps> = React.memo(({ nodes = [], handleTableExpansion, treeIsExpanded }) => {
+const TableTree: React.FC<TableTreeProps> = React.memo(({ nodes = [], handleTableExpansion, treeIsExpanded }: TableTreeProps) => {
     return (
         <Table size="small" columnWidths={["30px", "40%", "40%", "7rem", "9rem"]} hasDivider={false} colorless>
             <TableBody>

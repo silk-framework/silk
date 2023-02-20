@@ -29,8 +29,8 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import React from "react";
-import { useTranslation } from "react-i18next";
-import { TaskActivityWidget } from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
+import {useTranslation} from "react-i18next";
+import {TaskActivityWidget} from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
 import {
     getEvaluatedLinks,
     getLinkRuleInputPaths,
@@ -44,25 +44,27 @@ import {
     LinkEvaluationFilters,
     LinkEvaluationSortBy,
     LinkEvaluationSortByObj,
+    LinkingEvaluationResult,
     LinkRuleEvaluationResult,
     ReferenceLinkType,
 } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
-import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
-import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
-import { PropertyBox } from "../../activeLearning/components/PropertyBox";
-import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
-import { TreeNodeInfo } from "@blueprintjs/core";
-import { EvaluationResultType } from "../LinkingRuleEvaluation";
-import { tagColor } from "../../../../../views/shared/RuleEditor/view/sidebar/RuleOperator";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
-import { IPluginDetails } from "@ducks/common/typings";
-import { debounce } from "lodash";
-import { workspaceSel } from "@ducks/workspace";
-import { useSelector } from "react-redux";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
-import { useFirstRender } from "../../../../../hooks/useFirstRender";
+import {ComparisonDataCell, ComparisonDataContainer} from "../../activeLearning/components/ComparisionData";
+import {ActiveLearningValueExamples} from "../../activeLearning/shared/ActiveLearningValueExamples";
+import {PropertyBox} from "../../activeLearning/components/PropertyBox";
+import {IAggregationOperator, IComparisonOperator, ISimilarityOperator} from "../../linking.types";
+import {TreeNodeInfo} from "@blueprintjs/core";
+import {EvaluationResultType} from "../LinkingRuleEvaluation";
+import {tagColor} from "../../../../../views/shared/RuleEditor/view/sidebar/RuleOperator";
+import {requestRuleOperatorPluginDetails} from "@ducks/common/requests";
+import {IPluginDetails} from "@ducks/common/typings";
+import {debounce} from "lodash";
+import {workspaceSel} from "@ducks/workspace";
+import {useSelector} from "react-redux";
+import {usePagination} from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import {useFirstRender} from "../../../../../hooks/useFirstRender";
 import TableTree from "./shared/TableTreeView";
+import {DataTableCustomRenderProps} from "carbon-components-react";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -86,34 +88,26 @@ const sortDirectionMapping = {
     DESC: "NONE",
 } as const;
 
+type LinkingEvaluationResultWithId = LinkingEvaluationResult & {id: string}
+
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
     const commonSel = useSelector(workspaceSel.commonSelector);
     const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
     const [pagination, paginationElement, onTotalChange] = usePagination({
-        pageSizes: [10, 25, 50, 100],
-        initialPageSize: 25,
+        pageSizes: [10, 20, 50],
+        initialPageSize: 20,
     });
-    const [loading, setLoading] = React.useState<boolean>(false);
+    const [loading, setLoading] = React.useState<boolean>(true);
     const [showInputValues, setShowInputValues] = React.useState<boolean>(true);
     const [showOperators, setShowOperators] = React.useState<boolean>(true);
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
     const [expandedRows, setExpandedRows] = React.useState<Map<number, number>>(new Map());
-    const [nodes, setNodes] = React.useState<TreeNodeInfo[]>([]);
     const linksToValueMap = React.useRef<Array<Map<string, EvaluationResultType[number]>>>([]);
-    const [inputValuesExpansion, setInputValuesExpansion] = React.useState<
-        Map<number, { expanded: boolean; precinct: boolean }>
-    >(new Map());
-    const [operatorsExpansion, setOperatorsExpansion] = React.useState<
-        Map<number, { expanded: boolean; precinct: boolean }>
-    >(new Map());
-    const [tableValueQuery, setTableValueQuery] = React.useState<Map<number, HoveredValuedType>>(new Map());
-    const [treeValueQuery, setTreeValueQuery] = React.useState<Map<number, HoveredValuedType>>(new Map());
     const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<
         IActivityStatus["concreteStatus"] | undefined
     >();
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
-    const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
@@ -150,12 +144,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )?.data;
             evaluationResults.current = results;
             linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
-            setInputValuesExpansion(
-                () => new Map(results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }]))
-            );
-            setOperatorsExpansion(
-                () => new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
-            );
+            // TODO: Is this really needed anymore?
+            // setInputValuesExpansion(
+            //     () => new Map(results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }]))
+            // );
+            // setOperatorsExpansion(
+            //     () => new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
+            // );
         } catch (err) {
         } finally {
             setLoading(false);
@@ -191,178 +186,29 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         };
     }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, linkSortBy.length]);
 
-    const handleAlwaysExpandSwitch = React.useCallback(
-        (inputSwitch: "operator" | "inputValue") => {
-            if (evaluationResults.current?.links.length) {
-                //if expansion buttons have been triggered by user, maintain user's update while changing the default of the rest.
-                const newUpdate = (prev) =>
-                    new Map(
-                        evaluationResults.current?.links.map((_: any, idx: number) => {
-                            const { precinct, expanded } = prev.get(idx);
-                            return [
-                                idx,
-                                {
-                                    expanded: precinct ? !expanded : expanded,
-                                    precinct: precinct ?? true,
-                                },
-                            ];
-                        })
-                    );
-                inputSwitch === "inputValue" ? setInputValuesExpansion(newUpdate) : setOperatorsExpansion(newUpdate);
-            }
-        },
-        [showOperators, showInputValues, evaluationResults]
-    );
-
-    const updateTreeNodes = React.useCallback(
-        (idx: number) => {
-            const operatorNode = evaluationResults.current?.linkRule.operator as any;
-            if (!operatorNode) return;
-            const treeInfo: TreeNodeInfo = {
-                id: operatorNode.id,
-                isExpanded: operatorsExpansion.get(idx)?.expanded ?? false,
-                hasCaret: false,
-                label: (
-                    <span>
-                        <Tag backgroundColor={tagColor(operatorNode.type)}>
-                            {getOperatorLabel(operatorNode, operatorPlugins)}
-                        </Tag>
-                        <Spacing vertical size="tiny" />
-                        {getOperatorConfidence(operatorNode.id, idx)}
-                    </span>
-                ),
-                childNodes: [],
-            };
-
-            const getSubTree = (node: any, parentTree?: TreeNodeInfo) => {
-                //Possibly comparison operators
-                const inputPathCategory = {
-                    sourceInput: "Source path",
-                    targetInput: "Target path",
-                };
-
-                if (node?.inputs?.length) {
-                    node.inputs.forEach((nodeInput) => {
-                        getSubTree(nodeInput, {
-                            id: nodeInput.id,
-                            isExpanded: true,
-                            hasCaret: false,
-                            label: (
-                                <span>
-                                    <Tag backgroundColor={tagColor(nodeInput.type)}>
-                                        {getOperatorLabel(nodeInput, operatorPlugins)}
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
-                                    {getOperatorConfidence(nodeInput.id, idx)}
-                                </span>
-                            ),
-                            childNodes: [],
-                        });
-                    });
-                } else {
-                    ["sourceInput", "targetInput"].forEach((inputPath) => {
-                        const isSourceEntity = inputPath === "sourceInput";
-                        //is comparison operator
-                        let inputNode: TreeNodeInfo = {
-                            id: node[inputPath].id,
-                            isExpanded: true,
-                            hasCaret: false,
-                            label: (
-                                <TagList>
-                                    <Tag
-                                        key="pathinput"
-                                        backgroundColor={
-                                            tagColor(
-                                                node[inputPath].type === "pathInput"
-                                                    ? inputPathCategory[inputPath]
-                                                    : operatorInputMapping[node[inputPath].type]
-                                            ) as string
-                                        }
-                                    >
-                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
-                                    </Tag>
-                                    {getLinkValues(node[inputPath].id, idx, treeInfo, {
-                                        path: node[inputPath].path ?? "",
-                                        isSourceEntity,
-                                    })}
-                                </TagList>
-                            ),
-                            childNodes: [],
-                        };
-
-                        if (node[inputPath].inputs?.length) {
-                            node[inputPath].inputs.forEach((i) => {
-                                buildInputTree(
-                                    i,
-                                    inputNode,
-                                    idx,
-                                    inputPathCategory[inputPath],
-                                    treeInfo,
-                                    isSourceEntity
-                                );
-                            });
-                        }
-
-                        if (parentTree) {
-                            parentTree.childNodes!.push(inputNode);
-                        } else {
-                            treeInfo.childNodes!.push(inputNode);
-                        }
-                    });
-                }
-                parentTree && treeInfo.childNodes!.push(parentTree);
-            };
-
-            operatorNode.inputs?.length
-                ? //Aggregation operator
-                  (operatorNode as IAggregationOperator).inputs.forEach((i: any) => {
-                      getSubTree(i, {
-                          id: i.id,
-                          isExpanded: true,
-                          hasCaret: false,
-                          label: (
-                              <span>
-                                  <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
-                                  <Spacing vertical size="tiny" />
-                                  {getOperatorConfidence(i.id, idx)}
-                              </span>
-                          ),
-                          childNodes: [],
-                      });
-                  })
-                : getSubTree(operatorNode);
-
-            return treeInfo;
-        },
-        [
-            evaluationResults.current,
-            operatorPlugins.length,
-            treeValueQuery,
-            nodeParentHighlightedIds,
-            operatorsExpansion,
-        ]
-    );
-
-    React.useEffect(() => {
-        const [changedRowIndex] = Array.from(treeValueQuery.keys());
-        setNodes((prevNodes) =>
-            prevNodes.map((prevNode, i) => (changedRowIndex === i ? { ...updateTreeNodes(i)! } : prevNode))
-        );
-    }, [treeValueQuery]);
-
-    React.useEffect(() => {
-        const [changedRowIndex] = Array.from(nodeParentHighlightedIds.keys());
-        setNodes((prevNodes) =>
-            prevNodes.map((prevNode, i) => (changedRowIndex === i ? { ...updateTreeNodes(i)! } : prevNode))
-        );
-    }, [nodeParentHighlightedIds]);
-
-    React.useEffect(() => {
-        if ((!evaluationResults.current || !operatorsExpansion.size) && hasRenderedBefore) return;
-        setNodes(() =>
-            new Array(evaluationResults.current?.links.length).fill(1).map((_, idx) => updateTreeNodes(idx)!)
-        );
-    }, [evaluationResults.current, operatorPlugins.length, operatorsExpansion]);
+    // TODO: Do we need this behavior?
+    // const handleAlwaysExpandSwitch = React.useCallback(
+    //     (inputSwitch: "operator" | "inputValue") => {
+    //         if (evaluationResults.current?.links.length) {
+    //             //if expansion buttons have been triggered by user, maintain user's update while changing the default of the rest.
+    //             const newUpdate = (prev) =>
+    //                 new Map(
+    //                     evaluationResults.current?.links.map((_: any, idx: number) => {
+    //                         const { precinct, expanded } = prev.get(idx);
+    //                         return [
+    //                             idx,
+    //                             {
+    //                                 expanded: precinct ? !expanded : expanded,
+    //                                 precinct: precinct ?? true,
+    //                             },
+    //                         ];
+    //                     })
+    //                 );
+    //             inputSwitch === "inputValue" ? setInputValuesExpansion(newUpdate) : setOperatorsExpansion(newUpdate);
+    //         }
+    //     },
+    //     [showOperators, showInputValues, evaluationResults]
+    // );
 
     React.useEffect(() => {
         if (
@@ -430,151 +276,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [linksToValueMap.current]);
 
-    const buildInputTree = (
-        input: any,
-        tree: TreeNodeInfo,
-        index: number,
-        tagInputTag: string,
-        parentTree: TreeNodeInfo,
-        isSourceEntity = false
-    ): TreeNodeInfo => {
-        if (!input.inputs?.length) {
-            const newChild = {
-                id: input.id,
-                hasCaret: false,
-                isExpanded: true,
-                label: (
-                    <TagList>
-                        <Tag key="input" backgroundColor={tagColor(tagInputTag) as string}>
-                            {getOperatorLabel(input, operatorPlugins)}
-                        </Tag>
-                        {getLinkValues(input.id, index, parentTree, {
-                            path: input.path ?? "",
-                            isSourceEntity,
-                        })}
-                    </TagList>
-                ),
-            };
-            tree.childNodes = [...(tree?.childNodes ?? []), newChild];
-            return tree;
-        }
-
-        return input.inputs.reduce((acc, i) => {
-            const newChildTree = {
-                id: input.id,
-                hasCaret: false,
-                isExpanded: true,
-                label: (
-                    <TagList>
-                        <Tag key="operator" backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
-                            {getOperatorLabel(input, operatorPlugins)}
-                        </Tag>
-                        {getLinkValues(input.id, index, parentTree, {
-                            path: input.path ?? "",
-                            isSourceEntity,
-                        })}
-                    </TagList>
-                ),
-            };
-            tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
-
-            acc = buildInputTree(i, newChildTree, index, tagInputTag, parentTree, isSourceEntity);
-            return acc;
-        }, {} as TreeNodeInfo);
-    };
-
-    const getOperatorConfidence = React.useCallback(
-        (id: string, index: number) => {
-            const linkToValueMap = linksToValueMap.current[index];
-            if (!linksToValueMap.current.length || !linkToValueMap) return <></>;
-            return linkToValueMap.get(id)?.value.map((val, i) => (
-                <ConfidenceValue
-                    key={i}
-                    value={val.includes("Score") ? Number(val.replace("Score: ", "")) : Number(val)}
-                    spaceUsage="minimal"
-                    tagProps={{
-                        // TODO: get color from CSS config
-                        backgroundColor: nodeParentHighlightedIds.get(index)?.includes(id) ? "#0097a7" : undefined,
-                    }}
-                />
-            ));
-        },
-        [linksToValueMap.current, nodeParentHighlightedIds, pagination]
-    );
-
-    const getLinkValues = React.useCallback(
-        (id: string, index: number, tree: TreeNodeInfo, nodeData: Omit<HoveredValuedType, "value">) => {
-            const cutAfter = 14;
-            const linkToValueMap = linksToValueMap.current[index];
-            if (linksToValueMap.current.length && linkToValueMap && nodeData) {
-                const currentHighlightedValue = treeValueQuery.get(index);
-                //if path === path from state and is sourceEntity matches and value matches
-                const isHighlightMatch = (val: string) =>
-                    nodeData &&
-                    currentHighlightedValue &&
-                    currentHighlightedValue.value === val &&
-                    Object.entries(nodeData).reduce((acc, [key, val]) => {
-                        acc = acc && currentHighlightedValue[key] === val;
-                        return acc;
-                    }, true);
-                const otherCount =
-                    (linkToValueMap.get(id)?.value || []).length > cutAfter ? (
-                        <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
-                            +{(linkToValueMap.get(id)?.value || []).length - cutAfter}
-                        </Tag>
-                    ) : (
-                        <></>
-                    );
-                const exampleValues = linkToValueMap
-                    .get(id)
-                    ?.value.slice(0, cutAfter)
-                    .map((val, i) => (
-                        <Tag
-                            key={val + i}
-                            round
-                            emphasis="stronger"
-                            interactive
-                            backgroundColor={
-                                isHighlightMatch(val)
-                                    ? "#746a85" // TODO: get color from CSS config
-                                    : nodeParentHighlightedIds.get(index)?.includes(id)
-                                    ? "#0097a7" // TODO: get color from CSS config
-                                    : undefined
-                            }
-                            onMouseEnter={() => {
-                                handleValueHover("tree", index, {
-                                    value: val,
-                                    ...nodeData,
-                                });
-                                handleParentNodeHighlights(tree, id, index);
-                            }}
-                            onMouseLeave={() => {
-                                handleValueHover("tree", index, { value: "", path: "", isSourceEntity: false });
-                                handleParentNodeHighlights(tree, id, index, true);
-                            }}
-                        >
-                            {val}
-                        </Tag>
-                    ));
-                return [exampleValues, [otherCount]];
-            }
-        },
-        [linksToValueMap.current, treeValueQuery, nodeParentHighlightedIds]
-    );
-
-    const handleParentNodeHighlights = React.useCallback((tree, id: string, index: number, reset = false) => {
-        setNodeParentHighlightedIds((prev) => new Map([[index, reset ? [] : getParentNodes(tree, id)]]));
-    }, []);
-
-    const handleValueHover = React.useCallback(
-        (on: "table" | "tree", rowIndex: number, hoveredTagProps: HoveredValuedType) => {
-            on === "table"
-                ? setTreeValueQuery(() => new Map([[rowIndex, hoveredTagProps]]))
-                : setTableValueQuery(() => new Map([[rowIndex, hoveredTagProps]]));
-        },
-        []
-    );
-
     const headerData = [
         {
             key: "source",
@@ -590,7 +291,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         },
     ];
 
-    const rowData = evaluationResults.current?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
+    const rowData: LinkingEvaluationResultWithId[] = React.useMemo(() => {
+            return evaluationResults.current?.links.map((evaluation, i) => ({...evaluation, id: `${i}`})) ?? []
+        },
+        [evaluationResults.current]
+    );
 
     const handleRowExpansion = React.useCallback(
         (rowId?: number) => {
@@ -599,14 +304,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     prevExpandedRows.delete(rowId);
                     //when universal expansion btn is pressed,
                     //modify input and operator list behavior
-                    handleNodeExpand(rowId, showOperators, true);
-                    setInputValuesExpansion((prevInputExpansion) => {
-                        prevInputExpansion.set(rowId, {
-                            expanded: showInputValues,
-                            precinct: true,
-                        });
-                        return new Map(prevInputExpansion);
-                    });
+                    // TODO: Is this really needed?
+                    // handleNodeExpand(rowId, showOperators, true);
+                    // setInputValuesExpansion((prevInputExpansion) => {
+                    //     prevInputExpansion.set(rowId, {
+                    //         expanded: showInputValues,
+                    //         precinct: true,
+                    //     });
+                    //     return new Map(prevInputExpansion);
+                    // });
                     return new Map([...prevExpandedRows]);
                 } else if (typeof rowId !== "undefined") {
                     //provided row id doesn't exist in record
@@ -620,16 +326,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         },
         [rowData]
     );
-
-    const handleNodeExpand = React.useCallback((nodeIdx: number, isExpanded = true, precinct = false) => {
-        setOperatorsExpansion((prev) => {
-            prev.set(nodeIdx, {
-                expanded: isExpanded,
-                precinct: precinct,
-            });
-            return new Map([...prev]);
-        });
-    }, []);
 
     const handleReferenceLinkTypeUpdate = React.useCallback(
         async (
@@ -735,24 +431,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const handleSwitchChange = React.useCallback((switchType: "inputValue" | "operator") => {
         return (val: boolean) => {
             switchType === "inputValue" ? setShowInputValues(val) : setShowOperators(val);
-            handleAlwaysExpandSwitch(switchType);
         };
     }, []);
 
     const registerForTaskUpdates = React.useCallback((status: any) => {
         setTaskEvaluationStatus(status.concreteStatus);
-    }, []);
-
-    const handleInputTableExpansion = React.useCallback((i: number) => {
-        return () => {
-            setInputValuesExpansion((prevInputExpansion) => {
-                prevInputExpansion.set(i, {
-                    expanded: !prevInputExpansion.get(i)?.expanded,
-                    precinct: false,
-                });
-                return new Map(prevInputExpansion);
-            });
-        };
     }, []);
 
     return (
@@ -845,7 +528,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )}
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
-                {({ rows, headers, getHeaderProps, getTableProps, getRowProps }) => (
+                {({ headers, getHeaderProps, getTableProps, getRowProps }: DataTableCustomRenderProps) => (
                     <Table
                         {...getTableProps()}
                         size="medium"
@@ -866,7 +549,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 />
                                 {headers.map((header) => (
                                     <TableHeader
-                                        key={header.key}
                                         data-test-id={header.key}
                                         className={tableSortDirection.get(header.key)}
                                         {...getHeaderProps({ header, isSortable: true })}
@@ -910,223 +592,23 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         </TableHead>
                         {(evaluationResults.current && evaluationResults.current.links.length && !loading && (
                             <TableBody>
-                                {rows.map((row, i) => {
-                                    const currentInputValue = inputValues[i];
-                                    const currentLink = evaluationResults.current?.links[i]!;
-                                    const inputTableIsExpanded = inputValuesExpansion.get(i)?.expanded;
-                                    const tableValueToHighlight = tableValueQuery.get(i);
-                                    const highlightSourceTableValue = (currentPath: string, isSourceEntity: boolean) =>
-                                        tableValueToHighlight &&
-                                        tableValueToHighlight.isSourceEntity === isSourceEntity &&
-                                        currentPath === tableValueToHighlight.path
-                                            ? new Set([tableValueToHighlight.value])
-                                            : undefined;
-                                    return (
-                                        <React.Fragment key={i}>
-                                            {currentLink && (
-                                                <TableExpandRow
-                                                    {...getRowProps({ row })}
-                                                    key={row.id}
-                                                    isExpanded={expandedRows.has(i)}
-                                                    onExpand={() => handleRowExpansion(i)}
-                                                    togglerText={
-                                                        expandedRows.has(i)
-                                                            ? t("linkingEvaluationTabView.table.collapseRow")
-                                                            : t("linkingEvaluationTabView.table.expandRow")
-                                                    }
-                                                    className="diapp-linking-evaluation__row-item"
-                                                >
-                                                    {row.cells.map((cell) => {
-                                                        const [, rowKey] = cell.id.split(":");
-                                                        return rowKey === "confidence" ? (
-                                                            <TableCell key="confidence">
-                                                                <ConfidenceValue value={currentLink.confidence} />
-                                                            </TableCell>
-                                                        ) : (
-                                                            <TableCell key={rowKey}>
-                                                                <Highlighter
-                                                                    label={cell.value}
-                                                                    searchValue={searchQuery}
-                                                                />
-                                                            </TableCell>
-                                                        );
-                                                    })}
-                                                    <TableCell key="linkstate">
-                                                        <div style={{ whiteSpace: "nowrap" }}>
-                                                            {linkStateButtons.map(
-                                                                ({ linkType, icon, ...otherProps }, btnIndex) => (
-                                                                    <React.Fragment key={icon}>
-                                                                        <IconButton
-                                                                            name={icon}
-                                                                            onClick={() =>
-                                                                                handleReferenceLinkTypeUpdate(
-                                                                                    currentLink.decision,
-                                                                                    linkType,
-                                                                                    currentLink.source,
-                                                                                    currentLink.target,
-                                                                                    i
-                                                                                )
-                                                                            }
-                                                                            {...otherProps}
-                                                                            outlined={currentLink.decision !== linkType}
-                                                                            minimal={false}
-                                                                        />
-                                                                        {btnIndex !== linkStateButtons.length - 1 && (
-                                                                            <Spacing vertical size="tiny" />
-                                                                        )}
-                                                                    </React.Fragment>
-                                                                )
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                </TableExpandRow>
-                                            )}
-                                            {!!currentInputValue && expandedRows.has(i) && (
-                                                <TableExpandedRow
-                                                    colSpan={headers.length + 2}
-                                                    className="linking-table__expanded-row-container"
-                                                >
-                                                    <Table
-                                                        size="small"
-                                                        columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
-                                                        hasDivider={false}
-                                                        colorless
-                                                    >
-                                                        <TableBody>
-                                                            <TableRow>
-                                                                <TableCell
-                                                                    style={{ paddingLeft: "0", paddingRight: "0" }}
-                                                                >
-                                                                    <IconButton
-                                                                        data-test-id="input-table-expand-btn"
-                                                                        id={`input-table-${
-                                                                            inputValuesExpansion.get(i)?.expanded
-                                                                                ? "expanded"
-                                                                                : "collapsed"
-                                                                        }`}
-                                                                        onClick={handleInputTableExpansion(i)}
-                                                                        name={
-                                                                            !inputValuesExpansion.get(i)?.expanded
-                                                                                ? "toggler-caretright"
-                                                                                : "toggler-caretdown"
-                                                                        }
-                                                                    />
-                                                                </TableCell>
-                                                                <TableCell style={{ verticalAlign: "middle" }}>
-                                                                    {!inputTableIsExpanded && (
-                                                                        <OverflowText>
-                                                                            {t(
-                                                                                "linkingEvaluationTabView.table.infoCollapsedInputValue"
-                                                                            )}
-                                                                        </OverflowText>
-                                                                    )}
-                                                                    {!!inputTableIsExpanded && (
-                                                                        <ComparisonDataContainer>
-                                                                            {Object.entries(
-                                                                                currentInputValue.source
-                                                                            ).map(([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    key={key}
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        !inputTableIsExpanded
-                                                                                            ? "shrink"
-                                                                                            : ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={highlightSourceTableValue(
-                                                                                                    key,
-                                                                                                    true
-                                                                                                )}
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        i,
-                                                                                                        {
-                                                                                                            path: key,
-                                                                                                            isSourceEntity:
-                                                                                                                true,
-                                                                                                            value: val,
-                                                                                                        }
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
-                                                                                        }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            ))}
-                                                                        </ComparisonDataContainer>
-                                                                    )}
-                                                                </TableCell>
-                                                                <TableCell>
-                                                                    {!!inputTableIsExpanded && (
-                                                                        <ComparisonDataContainer>
-                                                                            {Object.entries(
-                                                                                currentInputValue.target
-                                                                            ).map(([key, values]) => (
-                                                                                <ComparisonDataCell
-                                                                                    key={key}
-                                                                                    fullWidth
-                                                                                    className={
-                                                                                        !inputTableIsExpanded
-                                                                                            ? "shrink"
-                                                                                            : ""
-                                                                                    }
-                                                                                >
-                                                                                    <PropertyBox
-                                                                                        propertyName={key}
-                                                                                        exampleValues={
-                                                                                            <ActiveLearningValueExamples
-                                                                                                interactive
-                                                                                                valuesToHighlight={highlightSourceTableValue(
-                                                                                                    key,
-                                                                                                    false
-                                                                                                )}
-                                                                                                onHover={(val) =>
-                                                                                                    handleValueHover(
-                                                                                                        "table",
-                                                                                                        i,
-                                                                                                        {
-                                                                                                            path: key,
-                                                                                                            isSourceEntity:
-                                                                                                                false,
-                                                                                                            value: val,
-                                                                                                        }
-                                                                                                    )
-                                                                                                }
-                                                                                                exampleValues={
-                                                                                                    values ?? []
-                                                                                                }
-                                                                                            />
-                                                                                        }
-                                                                                    />
-                                                                                </ComparisonDataCell>
-                                                                            ))}
-                                                                        </ComparisonDataContainer>
-                                                                    )}
-                                                                </TableCell>
-                                                            </TableRow>
-                                                        </TableBody>
-                                                    </Table>
-                                                    <TableTree
-                                                        treeIsExpanded={!!operatorsExpansion.get(i)?.expanded}
-                                                        nodes={[nodes[i]]}
-                                                        handleTableExpansion={(shouldExpand) =>
-                                                            handleNodeExpand(i, shouldExpand)
-                                                        }
-                                                    />
-                                                </TableExpandedRow>
-                                            )}
-                                        </React.Fragment>
-                                    );
+                                {rowData.map((row, rowIdx) => {
+                                    return <LinkingEvaluationRow
+                                        colSpan={headers.length + 2}
+                                        rowIdx={rowIdx}
+                                        inputValues={inputValues[rowIdx]}
+                                        linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
+                                        rowIsExpanded={expandedRows.has(rowIdx)}
+                                        handleReferenceLinkTypeUpdate={handleReferenceLinkTypeUpdate}
+                                        searchQuery={searchQuery}
+                                        // carbonRowProps={getRowProps({ row })} // TODO: What is this needed for? This leads to unnecessary re-renders even though it didn't change
+                                        handleRowExpansion={handleRowExpansion}
+                                        linkRuleOperatorTree={evaluationResults.current?.linkRule.operator}
+                                        inputValuesExpandedByDefault={showInputValues}
+                                        operatorTreeExpandedByDefault={showOperators}
+                                        evaluationMap={linksToValueMap.current[rowIdx]}
+                                        operatorPlugins={operatorPlugins}
+                                    />;
                                 })}
                             </TableBody>
                         )) ||
@@ -1141,5 +623,548 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         </section>
     );
 };
+
+interface ExpandedEvaluationRowProps {
+    rowIdx: number
+    colSpan: number
+    inputValues: EvaluationLinkInputValue
+    rowIsExpanded: boolean
+    linkingEvaluationResult?: LinkingEvaluationResult
+    handleReferenceLinkTypeUpdate: (
+        currentLinkType: ReferenceLinkType,
+        linkType: ReferenceLinkType,
+        source: string,
+        target: string,
+        index: number
+    ) => any
+    searchQuery: string
+    handleRowExpansion: (rowId?: number) => any
+    linkRuleOperatorTree?: ISimilarityOperator
+    operatorTreeExpandedByDefault: boolean
+    inputValuesExpandedByDefault: boolean
+    operatorPlugins: Array<IPluginDetails>
+    evaluationMap?: Map<string, EvaluationResultType[number]>
+}
+
+const LinkingEvaluationRow = React.memo(({
+                                             rowIdx,
+                                             colSpan,
+                                             inputValues,
+                                             rowIsExpanded,
+                                             linkingEvaluationResult,
+                                             handleReferenceLinkTypeUpdate,
+                                             searchQuery,
+                                             handleRowExpansion,
+                                             linkRuleOperatorTree,
+                                             operatorTreeExpandedByDefault,
+                                             inputValuesExpandedByDefault,
+                                             operatorPlugins,
+                                             evaluationMap
+                                         }: ExpandedEvaluationRowProps) => {
+    const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo | undefined>(undefined)
+    const [valueToHighlight, setValueToHighlight] = React.useState<HoveredValuedType | undefined>(undefined)
+    const [inputValueTableExpanded, setInputValueTableExpanded] = React.useState<boolean>(inputValuesExpandedByDefault)
+    const [operatorTreeExpansion, setOperatorTreeExpansion] = React.useState<{expanded: boolean, precinct: boolean}>({expanded: operatorTreeExpandedByDefault, precinct: false})
+    const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(new Map());
+    const [t] = useTranslation()
+
+    const handleInputTableExpansion = React.useCallback(() => {
+        setInputValueTableExpanded(prev => !prev)
+    }, [])
+
+    const handleNodeExpand = React.useCallback((isExpanded = true, precinct = false) => {
+        setOperatorTreeExpansion({
+            expanded: isExpanded,
+            precinct: precinct,
+        });
+    }, []);
+
+    const getOperatorConfidence = React.useCallback(
+        (id: string) => {
+            if (!evaluationMap) {
+                return <></>;
+            } else {
+                return evaluationMap.get(id)?.value.map((val, i) => (
+                    <ConfidenceValue
+                        key={i}
+                        value={val.includes("Score") ? Number(val.replace("Score: ", "")) : Number(val)}
+                        spaceUsage="minimal"
+                        tagProps={{
+                            // TODO: get color from CSS config
+                            backgroundColor: nodeParentHighlightedIds.get(rowIdx)?.includes(id) ? "#0097a7" : undefined,
+                        }}
+                    />
+                ));
+            }
+        },
+        [evaluationMap, nodeParentHighlightedIds]
+    );
+
+    const updateTreeNode = React.useCallback(
+        () => {
+            const operatorNode = linkRuleOperatorTree;
+            if (!operatorNode) return;
+            const treeInfo: TreeNodeInfo = {
+                id: operatorNode.id,
+                isExpanded: operatorTreeExpansion.expanded,
+                hasCaret: false,
+                label: (
+                    <span>
+                        <Tag backgroundColor={tagColor(operatorNode.type)}>
+                            {getOperatorLabel(operatorNode, operatorPlugins)}
+                        </Tag>
+                        <Spacing vertical size="tiny" />
+                        {getOperatorConfidence(operatorNode.id)}
+                    </span>
+                ),
+                childNodes: [],
+            };
+
+            const getSubTree = (node: any, parentTree?: TreeNodeInfo) => {
+                //Possibly comparison operators
+                const inputPathCategory = {
+                    sourceInput: "Source path",
+                    targetInput: "Target path",
+                };
+
+                if (node?.inputs?.length) {
+                    node.inputs.forEach((nodeInput) => {
+                        getSubTree(nodeInput, {
+                            id: nodeInput.id,
+                            isExpanded: true,
+                            hasCaret: false,
+                            label: (
+                                <span>
+                                    <Tag backgroundColor={tagColor(nodeInput.type)}>
+                                        {getOperatorLabel(nodeInput, operatorPlugins)}
+                                    </Tag>
+                                    <Spacing vertical size="tiny" />
+                                    {getOperatorConfidence(nodeInput.id)}
+                                </span>
+                            ),
+                            childNodes: [],
+                        });
+                    });
+                } else {
+                    ["sourceInput", "targetInput"].forEach((inputPath) => {
+                        const isSourceEntity = inputPath === "sourceInput";
+                        //is comparison operator
+                        let inputNode: TreeNodeInfo = {
+                            id: node[inputPath].id,
+                            isExpanded: true,
+                            hasCaret: false,
+                            label: (
+                                <TagList>
+                                    <Tag
+                                        key="pathinput"
+                                        backgroundColor={
+                                            tagColor(
+                                                node[inputPath].type === "pathInput"
+                                                    ? inputPathCategory[inputPath]
+                                                    : operatorInputMapping[node[inputPath].type]
+                                            ) as string
+                                        }
+                                    >
+                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
+                                    </Tag>
+                                    {getLinkValues(node[inputPath].id, rowIdx, treeInfo, {
+                                        path: node[inputPath].path ?? "",
+                                        isSourceEntity,
+                                    })}
+                                </TagList>
+                            ),
+                            childNodes: [],
+                        };
+
+                        if (node[inputPath].inputs?.length) {
+                            node[inputPath].inputs.forEach((i) => {
+                                buildInputTree(
+                                    i,
+                                    inputNode,
+                                    rowIdx,
+                                    inputPathCategory[inputPath],
+                                    treeInfo,
+                                    isSourceEntity
+                                );
+                            });
+                        }
+
+                        if (parentTree) {
+                            parentTree.childNodes!.push(inputNode);
+                        } else {
+                            treeInfo.childNodes!.push(inputNode);
+                        }
+                    });
+                }
+                parentTree && treeInfo.childNodes!.push(parentTree);
+            };
+
+            operatorNode.type === "Aggregation" ?
+                (operatorNode as IAggregationOperator).inputs.forEach((i: any) => {
+                    getSubTree(i, {
+                        id: i.id,
+                        isExpanded: true,
+                        hasCaret: false,
+                        label: (
+                            <span>
+                                  <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
+                                  <Spacing vertical size="tiny"/>
+                                {getOperatorConfidence(i.id)}
+                              </span>
+                        ),
+                        childNodes: [],
+                    });
+                })
+                : getSubTree(operatorNode);
+
+            return treeInfo;
+        },
+        [
+            operatorPlugins.length,
+            valueToHighlight,
+            nodeParentHighlightedIds,
+            operatorTreeExpansion
+        ]
+    );
+
+    const buildInputTree = (
+        input: any,
+        tree: TreeNodeInfo,
+        index: number,
+        tagInputTag: string,
+        parentTree: TreeNodeInfo,
+        isSourceEntity = false
+    ): TreeNodeInfo => {
+        if (!input.inputs?.length) {
+            const newChild = {
+                id: input.id,
+                hasCaret: false,
+                isExpanded: true,
+                label: (
+                    <TagList>
+                        <Tag key="input" backgroundColor={tagColor(tagInputTag) as string}>
+                            {getOperatorLabel(input, operatorPlugins)}
+                        </Tag>
+                        {getLinkValues(input.id, index, parentTree, {
+                            path: input.path ?? "",
+                            isSourceEntity,
+                        })}
+                    </TagList>
+                ),
+            };
+            tree.childNodes = [...(tree?.childNodes ?? []), newChild];
+            return tree;
+        }
+
+        return input.inputs.reduce((acc, i) => {
+            const newChildTree = {
+                id: input.id,
+                hasCaret: false,
+                isExpanded: true,
+                label: (
+                    <TagList>
+                        <Tag key="operator" backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
+                            {getOperatorLabel(input, operatorPlugins)}
+                        </Tag>
+                        {getLinkValues(input.id, index, parentTree, {
+                            path: input.path ?? "",
+                            isSourceEntity,
+                        })}
+                    </TagList>
+                ),
+            };
+            tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
+
+            acc = buildInputTree(i, newChildTree, index, tagInputTag, parentTree, isSourceEntity);
+            return acc;
+        }, {} as TreeNodeInfo);
+    };
+
+    const getLinkValues = React.useCallback(
+        (id: string, index: number, tree: TreeNodeInfo, nodeData: Omit<HoveredValuedType, "value">) => {
+            const cutAfter = 14;
+            if (evaluationMap && nodeData) {
+                const currentHighlightedValue = valueToHighlight;
+                //if path === path from state and is sourceEntity matches and value matches
+                const isHighlightMatch = (val: string) =>
+                    nodeData &&
+                    currentHighlightedValue &&
+                    currentHighlightedValue.value === val &&
+                    Object.entries(nodeData).reduce((acc, [key, val]) => {
+                        acc = acc && currentHighlightedValue[key] === val;
+                        return acc;
+                    }, true);
+                const otherCount =
+                    (evaluationMap.get(id)?.value || []).length > cutAfter ? (
+                        <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
+                            +{(evaluationMap.get(id)?.value || []).length - cutAfter}
+                        </Tag>
+                    ) : (
+                        <></>
+                    );
+                const exampleValues = evaluationMap
+                    .get(id)
+                    ?.value.slice(0, cutAfter)
+                    .map((val, i) => (
+                        <Tag
+                            key={val + i}
+                            round
+                            emphasis="stronger"
+                            interactive
+                            backgroundColor={
+                                isHighlightMatch(val)
+                                    ? "#746a85" // TODO: get color from CSS config
+                                    : nodeParentHighlightedIds.get(index)?.includes(id)
+                                        ? "#0097a7" // TODO: get color from CSS config
+                                        : undefined
+                            }
+                            onMouseEnter={() => {
+                                handleValueHover({
+                                    value: val,
+                                    ...nodeData,
+                                });
+                                handleParentNodeHighlights(tree, id, index);
+                            }}
+                            onMouseLeave={() => {
+                                handleValueHover({ value: "", path: "", isSourceEntity: false });
+                                handleParentNodeHighlights(tree, id, index, true);
+                            }}
+                        >
+                            {val}
+                        </Tag>
+                    ));
+                return [exampleValues, [otherCount]];
+            }
+        },
+        [evaluationMap, valueToHighlight, nodeParentHighlightedIds]
+    );
+
+    const handleParentNodeHighlights = React.useCallback((tree, id: string, index: number, reset = false) => {
+        setNodeParentHighlightedIds((prev) => new Map([[index, reset ? [] : getParentNodes(tree, id)]]));
+    }, []);
+
+    const handleValueHover = React.useCallback(
+        (hoveredTagProps: HoveredValuedType) => {
+            setValueToHighlight(hoveredTagProps)
+        },
+        []
+    );
+
+    React.useEffect(() => {
+        if(operatorPlugins.length) {
+            setTreeNodes(updateTreeNode())
+        }
+    }, [valueToHighlight, nodeParentHighlightedIds, operatorPlugins.length, operatorTreeExpansion]);
+
+    const highlightSourceTableValue = React.useCallback(
+        (currentPath: string, isSourceEntity: boolean): Set<string> | undefined =>
+        valueToHighlight &&
+        valueToHighlight.isSourceEntity === isSourceEntity &&
+        currentPath === valueToHighlight.path
+            ? new Set([valueToHighlight.value])
+            : undefined,
+        [valueToHighlight]
+    );
+    const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), [])
+    return <React.Fragment key={rowIdx}>
+        {linkingEvaluationResult && (
+            <TableExpandRow
+                key={rowIdx}
+                isExpanded={rowIsExpanded}
+                onExpand={onExpandRow}
+                togglerText={
+                    rowIsExpanded
+                        ? t("linkingEvaluationTabView.table.collapseRow")
+                        : t("linkingEvaluationTabView.table.expandRow")
+                }
+                className="diapp-linking-evaluation__row-item"
+            >
+                <TableCell key={"sourceEntity"}>
+                    <Highlighter
+                        label={linkingEvaluationResult.source}
+                        searchValue={searchQuery}
+                    />
+                </TableCell>
+                <TableCell key={"targetEntity"}>
+                    <Highlighter
+                        label={linkingEvaluationResult.target}
+                        searchValue={searchQuery}
+                    />
+                </TableCell>
+                <TableCell key="confidence">
+                    <ConfidenceValue value={linkingEvaluationResult.confidence} />
+                </TableCell>
+                <TableCell key="linkstate">
+                    <div style={{ whiteSpace: "nowrap" }}>
+                        {linkStateButtons.map(
+                            ({ linkType, icon, ...otherProps }, btnIndex) => (
+                                <React.Fragment key={icon}>
+                                    <IconButton
+                                        name={icon}
+                                        onClick={() =>
+                                            handleReferenceLinkTypeUpdate(
+                                                linkingEvaluationResult.decision,
+                                                linkType,
+                                                linkingEvaluationResult.source,
+                                                linkingEvaluationResult.target,
+                                                rowIdx
+                                            )
+                                        }
+                                        {...otherProps}
+                                        outlined={linkingEvaluationResult.decision !== linkType}
+                                        minimal={false}
+                                    />
+                                    {btnIndex !== linkStateButtons.length - 1 && (
+                                        <Spacing vertical size="tiny" />
+                                    )}
+                                </React.Fragment>
+                            )
+                        )}
+                    </div>
+                </TableCell>
+            </TableExpandRow>
+        )}
+        {!!inputValues && rowIsExpanded && (
+            <TableExpandedRow
+                colSpan={colSpan}
+                className="linking-table__expanded-row-container"
+            >
+                <Table
+                    size="small"
+                    columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
+                    hasDivider={false}
+                    colorless
+                >
+                    <TableBody>
+                        <TableRow>
+                            <TableCell
+                                style={{ paddingLeft: "0", paddingRight: "0" }}
+                            >
+                                <IconButton
+                                    data-test-id="input-table-expand-btn"
+                                    id={`input-table-${
+                                        inputValueTableExpanded
+                                            ? "expanded"
+                                            : "collapsed"
+                                    }`}
+                                    onClick={handleInputTableExpansion}
+                                    name={
+                                        !inputValueTableExpanded
+                                            ? "toggler-caretright"
+                                            : "toggler-caretdown"
+                                    }
+                                />
+                            </TableCell>
+                            <TableCell style={{ verticalAlign: "middle" }}>
+                                {!inputValueTableExpanded && (
+                                    <OverflowText>
+                                        {t(
+                                            "linkingEvaluationTabView.table.infoCollapsedInputValue"
+                                        )}
+                                    </OverflowText>
+                                )}
+                                {!!inputValueTableExpanded && (
+                                    <ComparisonDataContainer>
+                                        {Object.entries(
+                                            inputValues.source
+                                        ).map(([key, values]) => (
+                                            <ComparisonDataCell
+                                                key={key}
+                                                fullWidth
+                                                className={
+                                                    !inputValueTableExpanded
+                                                        ? "shrink"
+                                                        : ""
+                                                }
+                                            >
+                                                <PropertyBox
+                                                    propertyName={key}
+                                                    exampleValues={
+                                                        <ActiveLearningValueExamples
+                                                            interactive
+                                                            valuesToHighlight={highlightSourceTableValue(
+                                                                key,
+                                                                true
+                                                            )}
+                                                            onHover={(val) =>
+                                                                handleValueHover(
+                                                                    {
+                                                                        path: key,
+                                                                        isSourceEntity:
+                                                                            true,
+                                                                        value: val,
+                                                                    }
+                                                                )
+                                                            }
+                                                            exampleValues={
+                                                                values ?? []
+                                                            }
+                                                        />
+                                                    }
+                                                />
+                                            </ComparisonDataCell>
+                                        ))}
+                                    </ComparisonDataContainer>
+                                )}
+                            </TableCell>
+                            <TableCell>
+                                {!!inputValueTableExpanded && (
+                                    <ComparisonDataContainer>
+                                        {Object.entries(
+                                            inputValues.target
+                                        ).map(([key, values]) => (
+                                            <ComparisonDataCell
+                                                key={key}
+                                                fullWidth
+                                                className={
+                                                    !inputValueTableExpanded
+                                                        ? "shrink"
+                                                        : ""
+                                                }
+                                            >
+                                                <PropertyBox
+                                                    propertyName={key}
+                                                    exampleValues={
+                                                        <ActiveLearningValueExamples
+                                                            interactive
+                                                            valuesToHighlight={highlightSourceTableValue(
+                                                                key,
+                                                                false
+                                                            )}
+                                                            onHover={(val) =>
+                                                                handleValueHover(
+                                                                    {
+                                                                        path: key,
+                                                                        isSourceEntity:
+                                                                            false,
+                                                                        value: val,
+                                                                    }
+                                                                )
+                                                            }
+                                                            exampleValues={
+                                                                values ?? []
+                                                            }
+                                                        />
+                                                    }
+                                                />
+                                            </ComparisonDataCell>
+                                        ))}
+                                    </ComparisonDataContainer>
+                                )}
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+                <TableTree
+                    treeIsExpanded={!!operatorTreeExpansion}
+                    nodes={treeNodes ? [treeNodes] : []}
+                    handleTableExpansion={(shouldExpand) =>
+                        handleNodeExpand(rowIdx, shouldExpand)
+                    }
+                />
+            </TableExpandedRow>
+        )}
+    </React.Fragment>
+})
 
 export default LinkingEvaluationTabView;
