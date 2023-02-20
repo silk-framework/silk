@@ -387,7 +387,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             taskEvaluationStatus === "Cancelled" ||
             typeof taskEvaluationStatus === "undefined"
         ) {
-            // evalution action did not run
+            // evaluation action did not run
             return (
                 <Notification data-test-id="notification-missing-execution">
                     {t("linkingEvaluationTabView.messages.missingExecution")}
@@ -396,7 +396,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
 
         if (taskEvaluationStatus === "Failed") {
-            // evalution action did run with errors
+            // evaluation action did run with errors
             return (
                 <Notification warning data-test-id="notification-unsuccessful-evaluation">
                     {t("linkingEvaluationTabView.messages.unsuccessfulEvaluation")}
@@ -405,7 +405,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
 
         if (taskEvaluationStatus === "Successful" && !searchQuery && !linkStateFilter) {
-            // evalution action done, no filters, no results
+            // evaluation action done, no filters, no results
             return (
                 <Notification data-test-id="empty-links-banner">
                     {t("linkingEvaluationTabView.messages.emptyWithoutFilters")}
@@ -414,7 +414,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
 
         if (taskEvaluationStatus === "Successful" && (!!searchQuery || !!linkStateFilter)) {
-            // evalution action done, filters for link state or search query active
+            // evaluation action done, filters for link state or search query active
             return (
                 <Notification data-test-id="notification-empty-with-filters">
                     {t("linkingEvaluationTabView.messages.emptyWithFilters")}
@@ -436,7 +436,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         };
     }, []);
 
-    const registerForTaskUpdates = React.useCallback((status: any) => {
+    const registerForTaskUpdates = React.useCallback((status: IActivityStatus) => {
+        if(status.concreteStatus !== "Successful") {
+            setLoading(false)
+        }
         setTaskEvaluationStatus(status.concreteStatus);
     }, []);
 

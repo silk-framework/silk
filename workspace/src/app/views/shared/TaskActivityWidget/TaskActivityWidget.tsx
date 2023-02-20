@@ -35,7 +35,7 @@ interface TaskActivityWidgetProps {
     /**
      * callback executed when an update is received.
      */
-    registerToReceiveUpdates?: (IActivityStatus) => void;
+    registerToReceiveUpdates?: (status: IActivityStatus) => void;
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
