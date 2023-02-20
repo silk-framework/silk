@@ -321,7 +321,32 @@ class XmlSinkTest extends FlatSpec with Matchers {
     }
   }
 
-  private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
+  it should "support URNs in paths" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("urn:schema:name"), ValueType.STRING, isAttribute = false)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1")), schema))
+
+    test(
+      template = "<Root><?Element?></Root>",
+      entityTables = Seq(entities),
+      expected =
+        <Root>
+          <Element xmlns:ns0="urn:schema:">
+            <ns0:name>1</ns0:name>
+          </Element>
+        </Root>,
+      compareRawText = true
+    )
+  }
+
+  private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node, compareRawText: Boolean = false): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
     // Create in-memory XML sink
@@ -342,10 +367,14 @@ class XmlSinkTest extends FlatSpec with Matchers {
 
     // We need to reformat the expected XML to normalize the formatting.
     val prettyPrinter = new PrettyPrinter(Int.MaxValue, 2)
-    val formattedXml = prettyPrinter.format(expected)
-    val formattedExpected = XML.loadString(formattedXml)
+    val xmlExpected = prettyPrinter.format(expected)
 
-    resource.read(XML.load) shouldBe formattedExpected
+    if(compareRawText) {
+      val xmlActual = prettyPrinter.format(resource.read(XML.load))
+      xmlActual shouldBe xmlExpected
+    } else {
+      resource.read(XML.load) shouldBe XML.loadString(xmlExpected)
+    }
   }
 
 }

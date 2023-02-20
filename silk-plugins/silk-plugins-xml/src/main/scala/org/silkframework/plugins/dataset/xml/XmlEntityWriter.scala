@@ -143,7 +143,7 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
     * Splits a path URI into a namespace and local name.
     */
   private def splitPathUri(uri: String): (Option[String], String) = {
-    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
+    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#' || c == ':')
     if(separatorIndex == -1) {
       if (!isValidLocalName(uri)) {
         throw new ValidationException(s"Path '$uri' is not a valid XML NCName. The reason could be that the local name starts with a number.")
