@@ -672,6 +672,17 @@ const LinkingEvaluationRow = React.memo(({
         setInputValueTableExpanded(prev => !prev)
     }, [])
 
+    React.useEffect(() => {
+        if(rowIsExpanded) {
+            if(inputValuesExpandedByDefault !== inputValueTableExpanded) {
+                setInputValueTableExpanded(inputValuesExpandedByDefault)
+            }
+            if(operatorTreeExpandedByDefault !== operatorTreeExpansion.expanded) {
+                setOperatorTreeExpansion({...operatorTreeExpansion, expanded: operatorTreeExpandedByDefault})
+            }
+        }
+    }, [rowIsExpanded])
+
     const handleNodeExpand = React.useCallback((isExpanded = true, precinct = false) => {
         setOperatorTreeExpansion({
             expanded: isExpanded,
