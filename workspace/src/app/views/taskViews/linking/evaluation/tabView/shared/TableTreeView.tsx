@@ -3,12 +3,12 @@ import { IconButton, Table, TableBody, TableCell, TableRow, Tree } from "@eccenc
 import React from "react";
 
 interface TableTreeProps {
-    handleTableExpansion: (collapse: boolean) => void;
+    toggleTableExpansion: () => void;
     nodes: Array<TreeNodeInfo>;
     treeIsExpanded: boolean;
 }
 
-const TableTree: React.FC<TableTreeProps> = React.memo(({ nodes = [], handleTableExpansion, treeIsExpanded }: TableTreeProps) => {
+const TableTree: React.FC<TableTreeProps> = React.memo(({ nodes = [], toggleTableExpansion, treeIsExpanded }: TableTreeProps) => {
     return (
         <Table size="small" columnWidths={["30px", "40%", "40%", "7rem", "9rem"]} hasDivider={false} colorless>
             <TableBody>
@@ -17,7 +17,7 @@ const TableTree: React.FC<TableTreeProps> = React.memo(({ nodes = [], handleTabl
                         <IconButton
                             data-test-id="tree-expand-item-btn"
                             id={`tree-btn-${treeIsExpanded ? "expanded" : "collapsed"}`}
-                            onClick={() => handleTableExpansion(!treeIsExpanded)}
+                            onClick={() => toggleTableExpansion()}
                             name={!treeIsExpanded ? "toggler-caretright" : "toggler-caretdown"}
                         />
                     </TableCell>
