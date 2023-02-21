@@ -8,7 +8,6 @@ import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -529,18 +528,16 @@ object TransformSpec {
       AutoCompletionResult(value.id(), Some(value.displayName()))
     }
     override def autoComplete(searchQuery: String,
-                              projectId: String,
-                              dependOnParameterValues: Seq[String],
+                              dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
       filterResults(searchQuery, potentialResults)
     }
 
-    override def valueToLabel(projectId: String,
-                              value: String,
-                              dependOnParameterValues: Seq[String],
+    override def valueToLabel(value: String,
+                              dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit userContext: UserContext): Option[String] = {
+                             (implicit context: PluginContext): Option[String] = {
       potentialResults.find(_.value == value).flatMap(_.label)
     }
   }

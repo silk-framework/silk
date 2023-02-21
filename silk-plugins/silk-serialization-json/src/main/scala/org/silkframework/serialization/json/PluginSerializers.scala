@@ -116,7 +116,7 @@ object PluginSerializers {
               val label: Option[String] = if(autoCompletion.autoCompleteValueWithLabels) {
                 // No project ID/workspace available, only add label for parameters that do not need project/workspace information
                 try {
-                  autoCompletion.autoCompletionProvider.valueToLabel(writeContext.projectId.getOrElse("dummy"), value, Seq.empty, DummyWorkspaceRead)(UserContext.Empty)
+                  autoCompletion.autoCompletionProvider.valueToLabel(value, Seq.empty, DummyWorkspaceRead)
                 } catch {
                   case NonFatal(ex) =>
                     log.log(Level.WARNING, s"Could not retrieve label for default parameter value '$value'", ex)

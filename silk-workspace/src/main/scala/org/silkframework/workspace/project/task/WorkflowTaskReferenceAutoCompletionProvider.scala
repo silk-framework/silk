@@ -1,7 +1,7 @@
 package org.silkframework.workspace.project.task
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
 import org.silkframework.workspace.WorkspaceReadTrait
 import org.silkframework.workspace.activity.workflow.Workflow
 
@@ -13,10 +13,11 @@ case class WorkflowTaskReferenceAutoCompletionProvider() extends PluginParameter
     * @param dependOnParameterValues If at least one value is specified, this will use the first parameter as project ID
     *                                instead of the projectId parameter.
     */
-  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
-                                      workspace: WorkspaceReadTrait)
-                                     (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
-    val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+    implicit val userContext: UserContext = context.user
+    val taskProject = getProject(dependOnParameterValues)
     val allWorkflows = workspace.project(taskProject).tasks[Workflow].map(w => AutoCompletionResult(w.id, w.metaData.label))
     filterResults(searchQuery, allWorkflows)
   }
@@ -25,10 +26,11 @@ case class WorkflowTaskReferenceAutoCompletionProvider() extends PluginParameter
     * @param dependOnParameterValues If at least one value is specified, this will use the first parameter as project ID
     *                                instead of the projectId parameter.
     */
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String],
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = {
-    val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
+                           (implicit context: PluginContext): Option[String] = {
+    implicit val userContext: UserContext = context.user
+    val taskProject = getProject(dependOnParameterValues)
     workspace.project(taskProject).taskOption[Workflow](value).flatMap(_.metaData.label)
   }
 }

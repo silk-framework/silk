@@ -2,16 +2,17 @@ import React from "react";
 import _ from "lodash";
 import { NotAvailable } from "gui-elements-deprecated";
 import { ThingName } from "../components/ThingName";
-import dataTypeUtils from "../utils/dataTypeUtils";
 
 import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
 import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from "../utils/constants";
+import {GlobalMappingEditorContext} from "../../contexts/GlobalMappingEditorContext";
 
 const RuleTypes = ({ rule, ...otherProps }) => {
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext)
     switch (rule.type) {
         case MAPPING_RULE_TYPE_ROOT:
         case MAPPING_RULE_TYPE_OBJECT:
-            let types = _.get(rule, "rules.typeRules", []);
+            let types: any = _.get(rule, "rules.typeRules", []);
             types = _.isEmpty(types) ? (
                 <NotAvailable />
             ) : (
@@ -27,10 +28,15 @@ const RuleTypes = ({ rule, ...otherProps }) => {
                 // add language tag if available
                 appendText = ` (${appendText})`;
             }
-            const dataTypeLabel = dataTypeUtils.valueTypeLabel(
-                _.get(rule, "mappingTarget.valueType.nodeType", <NotAvailable />)
-            );
-            return <span {...otherProps}>{dataTypeLabel + appendText}</span>;
+            let dataTypeLabel: string | JSX.Element = _.get(rule, "mappingTarget.valueType.nodeType", <NotAvailable />)
+            if(typeof dataTypeLabel === "string") {
+                const label = mappingEditorContext.valueTypeLabels.get(dataTypeLabel);
+                if(label) {
+                    dataTypeLabel = label
+                }
+                dataTypeLabel = dataTypeLabel + appendText
+            }
+            return <span {...otherProps}>{dataTypeLabel}</span>;
         default:
     }
 };
