@@ -148,6 +148,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         };
     }, [searchQuery]);
 
+    const sortString = linkSortBy.join(",")
+
     //initial loads of links
     React.useEffect(() => {
         let shouldCancel = false;
@@ -157,7 +159,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         return () => {
             shouldCancel = true;
         };
-    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, linkSortBy.length]);
+    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, sortString]);
 
     // TODO: Do we need this behavior?
     // const handleAlwaysExpandSwitch = React.useCallback(
@@ -338,14 +340,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const handleRowSorting = React.useCallback(
         (key: typeof headerData[number]["key"]) => {
             const sortDirection = tableSortDirection.get(key)!;
-            setLinkSortBy(() =>
-                sortDirectionMapping[sortDirection] === "NONE"
-                    ? []
-                    : [LinkEvaluationSortByObj[sortDirectionMapping[sortDirection]][key]]
-            );
+            const sortBy = sortDirectionMapping[sortDirection] === "NONE"
+                ? []
+                : [LinkEvaluationSortByObj[sortDirectionMapping[sortDirection]][key]]
+            setLinkSortBy(sortBy);
             setTableSortDirection((prev) => {
-                prev.set(key, sortDirectionMapping[sortDirection]);
-                return new Map([...prev]);
+                const newMap = new Map<string, "ASC" | "DESC" | "NONE">([...prev])
+                newMap.set(key, sortDirectionMapping[sortDirection]);
+                return newMap;
             });
         },
         [tableSortDirection]
