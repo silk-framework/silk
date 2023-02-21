@@ -64,6 +64,9 @@ trait ActivityControl[T] {
    */
   def startBlockingAndGetValue(initialValue: Option[T] = None)(implicit user: UserContext): T
 
+  //TODO doc
+  def startPrioritized()(implicit user: UserContext): Unit
+
   /**
    * Requests to stop the execution of this activity.
    * There is no guarantee that the activity will stop immediately.
