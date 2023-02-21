@@ -115,10 +115,10 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers with Eventually  
     val priorityActivity2 = Activity(new SleepingActivity())
     priorityActivity2.startPrioritized()
     eventually {
-      priorityActivity1.value() mustBe true
+      priorityActivity2.value() mustBe true
     }
 
-    //stopActivities(sleepingActivities :+ priorityActivity1 :+ priorityActivity2)
+    stopActivities(sleepingActivities :+ priorityActivity1 :+ priorityActivity2)
   }
 
   private def stopActivities(activities: Iterable[ActivityControl[_]]): Unit = {

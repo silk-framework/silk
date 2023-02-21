@@ -64,7 +64,11 @@ trait ActivityControl[T] {
    */
   def startBlockingAndGetValue(initialValue: Option[T] = None)(implicit user: UserContext): T
 
-  //TODO doc
+  /**
+    * Starts this activity immediately.
+    * If the activity has already been started, but it not being executed yet, it will skip the waiting queue.
+    * Prioritized activities will not take a slot in the fork join pool.
+    */
   def startPrioritized()(implicit user: UserContext): Unit
 
   /**
