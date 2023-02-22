@@ -14,6 +14,8 @@ object WorkflowSerializers {
     private final val OPERATORS = "operators"
     private final val DATASETS = "datasets"
     final val UI_ANNOTATIONS = "uiAnnotations"
+    final val VARIABLE_INPUTS = "variableInputs"
+    final val VARIABLE_OUTPUTS = "variableOutputs"
 
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
@@ -27,7 +29,9 @@ object WorkflowSerializers {
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read)).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(
           arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty)),
-        uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
+        uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
+        variableInputs = Workflow.taskIds(stringValueOption(parameterObject, VARIABLE_INPUTS).getOrElse("")),
+        variableOutputs = Workflow.taskIds(stringValueOption(parameterObject, VARIABLE_OUTPUTS).getOrElse(""))
       )
     }
 
@@ -38,7 +42,9 @@ object WorkflowSerializers {
         JsonSerializers.PARAMETERS -> Json.obj(
           OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
           DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write),
-          UI_ANNOTATIONS -> toJson(value.uiAnnotations)
+          UI_ANNOTATIONS -> toJson(value.uiAnnotations),
+          VARIABLE_INPUTS -> value.variableInputs.taskIds,
+          VARIABLE_OUTPUTS -> value.variableOutputs.taskIds
         )
       )
     }

@@ -86,7 +86,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   /** Return error if VariableDataset is used in output and input */
   protected def checkVariableDatasets()
                                      (implicit userContext: UserContext): Unit = {
-    val variableDatasets = currentWorkflow.variableDatasets(project)
+    val variableDatasets = currentWorkflow.legacyVariableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.nonEmpty) {
       throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " +

@@ -131,6 +131,29 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     dsA1.get.followingNodes.find(_.nodeId == TRANSFORM_1).get.precedingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
   }
 
+  it should "resolve variable datasets correctly" in {
+    testWorkflow.copy(
+      variableInputs = Seq(),
+      variableOutputs = Seq()
+    ).markedVariableDatasets() mustBe AllVariableDatasets(Seq(), Seq())
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(
+        variableInputs = Seq(),
+        variableOutputs = Seq(DS_B1)
+      ).markedVariableDatasets()
+    }
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(
+        variableInputs = Seq(DS_B1),
+        variableOutputs = Seq()
+      ).markedVariableDatasets()
+    }
+    testWorkflow.copy(
+      variableInputs = Seq(DS_A1),
+      variableOutputs = Seq(OUTPUT)
+    ).markedVariableDatasets() mustBe AllVariableDatasets(Seq(DS_A1), Seq(OUTPUT))
+  }
+
   val testWorkflow: Workflow = {
     Workflow(
       operators = Seq(
