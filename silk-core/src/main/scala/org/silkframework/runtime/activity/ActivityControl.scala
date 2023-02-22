@@ -66,7 +66,7 @@ trait ActivityControl[T] {
 
   /**
     * Starts this activity immediately.
-    * If the activity has already been started, but it not being executed yet, it will skip the waiting queue.
+    * If the activity has already been started, but is not being executed yet, it will skip the waiting queue.
     * Prioritized activities will not take a slot in the fork join pool.
     */
   def startPrioritized()(implicit user: UserContext): Unit
