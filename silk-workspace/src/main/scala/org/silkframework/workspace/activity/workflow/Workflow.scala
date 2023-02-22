@@ -186,6 +186,14 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
+  /** Legacy and marked variable datasets combined. */
+  def allVariableDatasets(project: Project)
+                         (implicit userContext: UserContext): AllVariableDatasets = {
+    val legacy = legacyVariableDatasets(project)
+    val marked = markedVariableDatasets()
+    AllVariableDatasets(legacy.dataSources ++ marked.dataSources, legacy.sinks ++ marked.sinks)
+  }
+
   /** Returns all Dataset tasks that are used as output in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {

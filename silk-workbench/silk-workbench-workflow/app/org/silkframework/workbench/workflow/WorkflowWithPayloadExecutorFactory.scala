@@ -80,7 +80,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
                   (implicit userContext: UserContext): Unit = {
 
     val projectName = task.project.id
-    val variableDatasets = task.data.legacyVariableDatasets(task.project)
+    val variableDatasets = task.data.allVariableDatasets(task.project)
 
     // Create sinks and resources for variable datasets, all resources are returned in the response
     val variableSinks = variableDatasets.sinks

@@ -29,7 +29,7 @@ object WorkflowInfo {
   def fromWorkflow(workflow: Task[Workflow],
                    project: Project)
                   (implicit userContext: UserContext): WorkflowInfo = {
-    val variableDatasets = workflow.legacyVariableDatasets(project)
+    val variableDatasets = workflow.allVariableDatasets(project)
     WorkflowInfo(
       workflow.id,
       workflow.fullLabel,

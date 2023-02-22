@@ -134,7 +134,7 @@ object VariableWorkflowRequestUtils {
   def queryStringToWorkflowConfig(project: Project,
                                   workflowTask: Task[Workflow])
                                  (implicit request: Request[_], userContext: UserContext): (Map[String, String], Option[String]) = {
-    val variableDatasets = workflowTask.data.legacyVariableDatasets(project)
+    val variableDatasets = workflowTask.data.allVariableDatasets(project)
     if(variableDatasets.sinks.size > 1 || variableDatasets.dataSources.size > 1) {
       throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one variable data source " +
           s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
