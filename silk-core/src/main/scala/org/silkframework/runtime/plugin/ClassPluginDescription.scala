@@ -14,7 +14,6 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.templating.GlobalTemplateVariables
@@ -303,18 +302,16 @@ object ClassPluginDescription {
       }
     }
     override def autoComplete(searchQuery: String,
-                                        projectId: String,
-                                        dependOnParameterValues: Seq[String],
-                                        workspace: WorkspaceReadTrait)
-                                       (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                              dependOnParameterValues: Seq[ParamValue],
+                              workspace: WorkspaceReadTrait)
+                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
       filterResults(searchQuery, enumValues)
     }
 
-    override def valueToLabel(projectId: String,
-                              value: String,
-                              dependOnParameterValues: Seq[String],
+    override def valueToLabel(value: String,
+                              dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit userContext: UserContext): Option[String] = {
+                             (implicit context: PluginContext): Option[String] = {
       enumValues.find(_.value == value).flatMap(_.label)
     }
   }

@@ -34,6 +34,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   // Full serialization of paths
   private def fullPaths(paths: Seq[String]) = paths.map(p => if(p.startsWith("\\")) p else "/" + p)
   private val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang = 'en']")
+  private val backwardPathTransform = "Transformwithbackwardpath_4cbd9840bc500dd9"
+  private val backwardPathRuleId = "backward"
 
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
@@ -207,6 +209,17 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
       Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT).contains(p)) ++ Seq("\\")
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
+  }
+
+  it should "suggest the correct paths for object mappings starting with backward paths" in {
+    def suggest(query: String): Seq[String] = {
+      val response = partialSourcePathAutoCompleteRequest(backwardPathTransform, backwardPathRuleId, inputText = query, cursorPosition = query.length)
+      response.replacementResults
+        .flatMap(_.replacements)
+        .map(_.value)
+    }
+    suggest("") mustBe allJsonPaths ++ jsonSpecialPaths ++ Seq("\\")
+    suggest("nam") mustBe Seq("name") ++ jsonOps
   }
 
   private def partialAutoCompleteResult(inputString: String = "",

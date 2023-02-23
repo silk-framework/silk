@@ -14,14 +14,13 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import java.util.logging.Logger
-import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, Resource, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
-import scala.collection.SortedMap
+import java.util.logging.Logger
 
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve the entities.
@@ -30,7 +29,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
                             pageSize: Int = SimpleEntityRetriever.DEFAULT_PAGE_SIZE,
                             graphUri: Option[String] = None,
                             useOrderBy: Boolean = true,
-                            useSubSelect: Boolean = false) extends EntityRetriever {
+                            useSubSelect: Boolean = false,
+                            useOptional: Boolean = true) extends EntityRetriever {
   private val log: Logger = Logger.getLogger(getClass.getName)
   private val varPrefix = "v"
 
@@ -82,7 +82,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
     addRestrictions(sparqlEntitySchema, sparql)
 
-    sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix, useOptional = true)
+    sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix, useOptional = useOptional)
     // End GRAPH in subselect case
     for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"}"
     sparql append "}" // END WHERE

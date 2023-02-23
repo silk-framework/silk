@@ -1,9 +1,9 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.util.StringUtils
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.util.{Identifier, StringUtils}
 import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
@@ -15,10 +15,9 @@ import org.silkframework.workspace.WorkspaceReadTrait
 trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   /** Auto-completion based on a text based search query */
   def autoComplete(searchQuery: String,
-                   projectId: String,
-                   dependOnParameterValues: Seq[String],
+                   dependOnParameterValues: Seq[ParamValue],
                    workspace: WorkspaceReadTrait)
-                  (implicit userContext: UserContext): Traversable[AutoCompletionResult]
+                  (implicit context: PluginContext): Traversable[AutoCompletionResult]
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
     * be presented to the user and the actual internal value is e.g. not human-readable.
@@ -27,11 +26,10 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
     * @param value     The value of the parameter.
     * @param dependOnParameterValues The parameter values this parameter auto-completion depends on.
     * */
-  def valueToLabel(projectId: String,
-                   value: String,
-                   dependOnParameterValues: Seq[String],
+  def valueToLabel(value: String,
+                   dependOnParameterValues: Seq[ParamValue],
                    workspace: WorkspaceReadTrait)
-                  (implicit userContext: UserContext): Option[String]
+                  (implicit context: PluginContext): Option[String]
 
   /** Match search terms against string. Returns only true if all search terms match. */
   protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
@@ -46,13 +44,12 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
 
   /** Auto-completion based on a text query with limit and offset. */
   def autoComplete(searchQuery: String,
-                   projectId: String,
-                   dependOnParameterValues: Seq[String],
+                   dependOnParameterValues: Seq[ParamValue],
                    workspace: WorkspaceReadTrait,
                    limit: Int,
                    offset: Int)
-                  (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
-    autoComplete(searchQuery, projectId, dependOnParameterValues, workspace).slice(offset, offset + limit)
+                  (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+    autoComplete(searchQuery, dependOnParameterValues, workspace).slice(offset, offset + limit)
   }
 
   /** Filters an auto-completion result list by the search query. */
@@ -70,6 +67,43 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
     val multiWordSearchQuery = extractSearchTerms(searchQuery)
     results filter (r => matchesSearchTerm(multiWordSearchQuery, r)) map(r => AutoCompletionResult(r, None))
   }
+
+  /**
+    * Retrieves the project from the first dependent parameter.
+    * If no dependent parameter is provided, it will fall back to the project in the plugin context.
+    */
+  protected def getProject(dependOnParameterValues: Seq[ParamValue])(implicit context: PluginContext): Identifier = {
+    dependOnParameterValues.headOption.map(v => Identifier(v.strValue))
+      .orElse(context.projectId)
+      .getOrElse(throw new ValidationException("Project not provided"))
+  }
+}
+
+/**
+  * Represents a parameter value.
+  *
+  * @param strValue The string value.
+  * @param paramType The parameter type.
+  */
+case class ParamValue(strValue: String, paramType: ParameterType[_])
+
+object ParamValue {
+
+  def create(strValue: String, paramName: String, pluginDescription: PluginDescription[_]): ParamValue = {
+    ParamValue(strValue, pluginDescription.findParameter(paramName).parameterType)
+  }
+
+  def createAll(strValues: Seq[String], paramNames: Seq[String], pluginDescription: PluginDescription[_]): Seq[ParamValue] = {
+    if(paramNames.nonEmpty && strValues.size != paramNames.size) {
+      throw BadUserInputException("No values for depends-on parameters supplied. Values are expected for " +
+        s"following parameters: ${paramNames.mkString(", ")}.")
+    }
+
+    for((strValue, paramName) <- strValues zip paramNames) yield {
+      create(strValue, paramName, pluginDescription)
+    }
+  }
+
 }
 
 /**
@@ -83,13 +117,13 @@ case class AutoCompletionResult(value: String, label: Option[String]) {
 
 /** Default auto-completion provider. This one always returns empty results. */
 case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
-                                      workspace: WorkspaceReadTrait)
-                                     (implicit userContext: UserContext): Traversable[AutoCompletionResult] = Seq.empty
-
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String],
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = None
+                            (implicit context: PluginContext): Traversable[AutoCompletionResult] = Seq.empty
+
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                           (implicit context: PluginContext): Option[String] = None
 
 }
 
@@ -138,18 +172,16 @@ trait ReferencePluginParameterAutoCompletionProvider extends PluginParameterAuto
   }
 
   override def autoComplete(searchQuery: String,
-                                      projectId: String,
-                                      dependOnParameterValues: Seq[String],
-                                      workspace: WorkspaceReadTrait)
-                                     (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
-    autoCompletionProvider.toSeq.flatMap(_.autoComplete(searchQuery, projectId, dependOnParameterValues, workspace))
+                            dependOnParameterValues: Seq[ParamValue],
+                            workspace: WorkspaceReadTrait)
+                            (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+    autoCompletionProvider.toSeq.flatMap(_.autoComplete(searchQuery, dependOnParameterValues, workspace))
   }
 
-  override def valueToLabel(projectId: String,
-                            value: String,
-                            dependOnParameterValues: Seq[String],
+  override def valueToLabel(value: String,
+                            dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = {
-    autoCompletionProvider.flatMap(_.valueToLabel(projectId, value, dependOnParameterValues, workspace))
+                           (implicit context: PluginContext): Option[String] = {
+    autoCompletionProvider.flatMap(_.valueToLabel(value, dependOnParameterValues, workspace))
   }
 }

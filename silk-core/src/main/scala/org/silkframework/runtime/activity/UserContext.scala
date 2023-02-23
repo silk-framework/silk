@@ -24,13 +24,7 @@ object UserContext {
 
   /** User context that returns no user.
     * This should be used where no user context makes sense, is not available or for tests. */
-  def empty(userExecutionContext: UserExecutionContext): UserContext = new UserContext {
-    def user: Option[User] = None
-
-    override def executionContext: UserExecutionContext = userExecutionContext
-
-    override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = empty(userExecutionContext)
-  }
+  def empty(userExecutionContext: UserExecutionContext): UserContext = SimpleUserContext(None, userExecutionContext)
 
   // A user that can be used at places where there is no user input and no real user context is needed
   val INTERNAL_USER = SimpleUserContext(Some(DefaultUserManager.get(SilkVocab.internalUser))) // FIXME: Remove necessity for this context

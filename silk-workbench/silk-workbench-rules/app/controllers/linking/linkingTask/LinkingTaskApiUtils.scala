@@ -135,7 +135,7 @@ object LinkingTaskApiUtils {
     PluginRegistry.pluginDescriptionsById(pluginId, assignableTo = Some(Seq(pluginParentClass))).headOption match {
       case Some(pluginDescription) =>
         val parameters = JsonHelpers.objectValue(operatorJson, PARAMETERS)
-        val updatedParameters = TaskApiUtils.addLabelsToValues("", parameters.value, pluginDescription)
+        val updatedParameters = TaskApiUtils.addLabelsToValues(project.id, parameters.value, pluginDescription)
         operatorJson ++ Json.obj(
           PARAMETERS -> JsObject(updatedParameters)
         )
