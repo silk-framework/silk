@@ -30,8 +30,8 @@ object WorkflowSerializers {
         datasets = WorkflowDatasetsParameter(
           arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty)),
         uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
-        variableInputs = Workflow.taskIds(stringValueOption(parameterObject, VARIABLE_INPUTS).getOrElse("")),
-        variableOutputs = Workflow.taskIds(stringValueOption(parameterObject, VARIABLE_OUTPUTS).getOrElse(""))
+        variableInputs = arrayValueOption(parameterObject, VARIABLE_INPUTS).getOrElse(JsArray()).value.map(_.as[String]),
+        variableOutputs = arrayValueOption(parameterObject, VARIABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String])
       )
     }
 
@@ -67,6 +67,16 @@ object WorkflowSerializers {
 
     override def write(value: WorkflowDatasetsParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsArray(value.value.map(WorkflowDatasetJsonFormat.write))
+    }
+  }
+
+  implicit object TaskIdentifierParameterFormat extends JsonFormat[TaskIdentifierParameter] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): TaskIdentifierParameter = {
+      TaskIdentifierParameter(mustBeJsArray(value)(_.value.map(_.as[String])))
+    }
+
+    override def write(value: TaskIdentifierParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(value.taskIds.map(id => JsString(id)))
     }
   }
 
