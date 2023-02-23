@@ -1,5 +1,7 @@
 package org.silkframework.runtime.serialization
 
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues}
+
 import scala.xml.{Node, NodeSeq, PCData}
 
 /**
@@ -23,17 +25,19 @@ object XmlSerialization {
     })
   }
 
-  def deserializeParameters(node: Node): Map[String, String] = {
-    (node \ "Param").map { p =>
-      val name = (p \ "@name").text
-      val valueAttr = p \ "@value"
-      val value = if(valueAttr.isEmpty) {
-        p.text
-      } else {
-        valueAttr.text
+  def deserializeParameters(node: Node): ParameterValues = {
+    val values =
+      (node \ "Param").map { p =>
+        val name = (p \ "@name").text
+        val valueAttr = p \ "@value"
+        val value = if(valueAttr.isEmpty) {
+          p.text
+        } else {
+          valueAttr.text
+        }
+        (name, ParameterStringValue(value))
       }
-      (name, value)
-    }.toMap
+    ParameterValues(values.toMap)
   }
 
   def serializeTemplates(templates: Map[String, String]): NodeSeq = {
@@ -43,9 +47,19 @@ object XmlSerialization {
     })
   }
 
-  def deserializeTemplates(node: Node): Map[String, String] = {
-    (node \ "Template").map { p =>
-      ((p \ "@name").text, p.text)
-    }.toMap
+  def deserializeTemplates(node: Node): ParameterValues = {
+    val values =
+      (node \ "Template").map { p =>
+        ((p \ "@name").text, ParameterTemplateValue(p.text))
+      }
+    ParameterValues(values.toMap)
+  }
+
+  def serializeParameterValues(values: ParameterValues): NodeSeq = {
+    serializeParameters(values.toStringMap) ++ serializeTemplates(values.templates)
+  }
+
+  def deserializeParameterValues(node: Node): ParameterValues = {
+    deserializeParameters(node) merge deserializeTemplates(node)
   }
 }

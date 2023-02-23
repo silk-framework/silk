@@ -34,12 +34,14 @@ object GlobalTemplateVariables {
     }
   }
 
+  def resolveParameter(template: String): String = {
+    val writer = new StringWriter()
+    engine().compile(template).evaluate(variables().map, writer)
+    writer.toString
+  }
+
   def resolveParameters(parameterTemplates: Map[String, String]): Map[String, String] = {
-    parameterTemplates.mapValues { value =>
-      val writer = new StringWriter()
-      engine().compile(value).evaluate(variables().map, writer)
-      writer.toString
-    }
+    parameterTemplates.mapValues(resolveParameter)
   }
 
 }

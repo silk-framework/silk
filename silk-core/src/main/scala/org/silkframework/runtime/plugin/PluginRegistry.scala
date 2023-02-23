@@ -79,9 +79,9 @@ object PluginRegistry {
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty, templates: Map[String, String] = Map.empty)
+  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty)
                          (implicit context: PluginContext): T = {
-    pluginType[T].create[T](id, params, templates)
+    pluginType[T].create[T](id, params)
   }
 
   /**
@@ -118,7 +118,7 @@ object PluginRegistry {
       val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().asScala else Set.empty
       // Instantiate plugin with configured parameters
       val pluginParams = for (entry <- configValues) yield (entry.getKey, entry.getValue.unwrapped().toString)
-      val plugin = create[T](pluginId, pluginParams.toMap)
+      val plugin = create[T](pluginId, ParameterValues.fromStringMap(pluginParams.toMap))
       log.fine(s"Loaded plugin $plugin")
       Some(plugin)
     }
@@ -331,15 +331,14 @@ object PluginRegistry {
      *
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
-     * @param resources The resource loader for retrieving referenced resources.
      * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: Map[String, String], templates: Map[String, String])
+    def create[T: ClassTag](id: String, params: ParameterValues)
                            (implicit context: PluginContext): T = {
       val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
       val pluginDesc = plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
-      pluginDesc(params, templates).asInstanceOf[T]
+      pluginDesc(params).asInstanceOf[T]
     }
 
     /**

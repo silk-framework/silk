@@ -4,7 +4,7 @@ import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
-import controllers.util.{SerializationUtils, TextSearchUtils}
+import controllers.util.TextSearchUtils
 import controllers.workspace.DatasetApi.TypeCacheFailedException
 import controllers.workspace.doc.DatasetApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
@@ -21,8 +21,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
 import org.silkframework.util.Uri
@@ -276,7 +275,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
     implicit val context: PluginContext = PluginContext.fromProject(project)
     val datasetParams = request.queryString.mapValues(_.head)
-    val datasetPlugin = Dataset.apply(pluginId, datasetParams)
+    val datasetPlugin = Dataset.apply(pluginId, ParameterValues.fromStringMap(datasetParams))
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
         Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured)), title = dialogTitle, createDialog = createDialog))

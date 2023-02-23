@@ -3,7 +3,7 @@ package org.silkframework.rule.test
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.similarity.{Aggregator, SimilarityOperator}
-import org.silkframework.runtime.plugin.{AggregatorExampleValue, AnyPlugin, ClassPluginDescription, PluginContext}
+import org.silkframework.runtime.plugin.{AggregatorExampleValue, AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.{DPair, Identifier}
 
@@ -48,7 +48,7 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
   }
 
   private class AggregatorTest(example: AggregatorExampleValue) {
-    val aggregator: T = pluginDesc(example.parameters)(PluginContext.empty)
+    val aggregator: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(PluginContext.empty)
 
     def addTest(): Unit = {
       val result = aggregator(operators(example.inputs, example.weights), DPair.fill(Entity.empty("dummy")), 0.0)

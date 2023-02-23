@@ -29,8 +29,9 @@ trait AnyPlugin {
   /**
    * The parameters for this plugin as Map.
    */
-  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
+  @transient lazy val parameters: ParameterValues = pluginSpec.parameterValues(this)(Prefixes.empty)
 
+  //TODO store both in a single var?
   @volatile
   var templateValues: Map[String, String] = Map.empty
 
@@ -42,7 +43,7 @@ trait AnyPlugin {
     *                          Property values that are not part of the map remain unchanged.
     */
   def withParameters(updatedProperties: Map[String, String])(implicit context: PluginContext): this.type = {
-    val updatedParameters = parameters ++ updatedProperties
+    val updatedParameters = ParameterValues.fromStringMap(parameters.toStringMap ++ updatedProperties)
     pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
   }
 }

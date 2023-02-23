@@ -4,6 +4,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.ParameterValues
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 
@@ -21,7 +22,7 @@ import scala.xml.Node
 case class CachedEntitySchemata(configuredSchema: EntitySchema,
                                 untypedSchema: Option[EntitySchema],
                                 inputTaskId: Identifier,
-                                datasetParameters: Option[Map[String, String]]) {
+                                datasetParameters: Option[ParameterValues]) {
   /**
     * Returns the cached paths. Depending on the provided context either the configured or the untyped
     * cached paths are returned.
@@ -64,9 +65,9 @@ object CachedEntitySchemata {
           }
         }
         {
-          for(params <- value.datasetParameters.toSeq) yield {
+          for(params <- value.datasetParameters) yield {
             <Dataset>{
-              XmlSerialization.serializeParameters(params)
+              XmlSerialization.serializeParameterValues(params)
             }</Dataset>
           }
         }

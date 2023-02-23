@@ -13,7 +13,7 @@ import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginBackwardCompatibility
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
@@ -152,8 +152,7 @@ object JsonSerializers {
         plugin =
           Dataset(
             id = (value \ TYPE).as[JsString].value,
-            params = taskParameters(value),
-            templates = (value \ TEMPLATES).toOption.map(_.as[Map[String, String]]).getOrElse(Map.empty)
+            params = readPluginParameters(value)
           ),
         uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
@@ -164,7 +163,7 @@ object JsonSerializers {
         Json.obj(
           TASKTYPE -> JsString(JsonSerializers.TASK_TYPE_DATASET),
           TYPE -> JsString(value.plugin.pluginSpec.id.toString),
-          PARAMETERS -> Json.toJson(value.plugin.parameters),
+          PARAMETERS -> writeParameterValues(value.plugin.parameters),
           TEMPLATES -> Json.toJson(value.plugin.templateValues)
         )
       for(property <- value.uriAttribute) {
@@ -174,16 +173,56 @@ object JsonSerializers {
     }
   }
 
+  //TODO move to JsonPluginSerializers?
+  //TODO write serializer for PluginParameters?
   // Extracts the parameter map
-  private def taskParameters(value: JsValue) = {
-    (value \ PARAMETERS).as[JsObject].value.
-        mapValues {
-          case boolean: JsBoolean => boolean.value.toString
-          case str: JsString => str.value
-          case number: JsNumber => number.value.toString()
-          case other =>
-            throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as parameter values!")
-        }.asInstanceOf[Map[String, String]]
+  private def taskParameters(value: JsValue): ParameterValues = {
+    ParameterValues(
+      (value \ PARAMETERS).as[JsObject].value.mapValues(taskParameter).toMap
+    )
+  }
+
+  private def taskParameter(value: JsValue): ParameterValue = {
+    value match {
+      case boolean: JsBoolean => ParameterStringValue(boolean.value.toString)
+      case str: JsString => ParameterStringValue(str.value)
+      case number: JsNumber => ParameterStringValue(number.value.toString())
+      case obj: JsObject => ParameterValues(obj.value.mapValues(taskParameter).toMap)
+      case other: JsValue =>
+        throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as parameter values!")
+    }
+  }
+
+  private def templates(value: JsValue): ParameterValues = {
+    (value \ TEMPLATES).toOption.map(t => ParameterValues(t.as[JsObject].value.mapValues(template).toMap)).getOrElse(ParameterValues.empty)
+  }
+
+  private def template(value: JsValue): ParameterValue = {
+    value match {
+      case str: JsString => ParameterTemplateValue(str.value)
+      case obj: JsObject => ParameterValues(obj.value.mapValues(template).toMap)
+      case other: JsValue =>
+        throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as template values!")
+    }
+  }
+
+  private def readPluginParameters(value: JsValue): ParameterValues = {
+    val parameterValues = taskParameters(value)
+    val templateValues = templates(value)
+    parameterValues merge templateValues
+  }
+
+  private def writeParameterValues(params: ParameterValues): JsObject = {
+    JsObject(
+      params.values.mapValues {
+        case ParameterStringValue(strValue) =>
+          JsString(strValue)
+        case values: ParameterValues =>
+          writeParameterValues(values)
+        case _ =>
+          JsObject.empty
+      }
+    )
   }
 
   implicit object CustomTaskJsonFormat extends JsonFormat[CustomTask] {
@@ -193,8 +232,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
       CustomTask(
         id = (value \ TYPE).as[JsString].value,
-        params = taskParameters(value),
-        templates = (value \ TEMPLATES).toOption.map(_.as[Map[String, String]]).getOrElse(Map.empty)
+        params = readPluginParameters(value)
       )
     }
 
@@ -202,7 +240,7 @@ object JsonSerializers {
       Json.obj(
         TASKTYPE -> JsString(TASK_TYPE_CUSTOM_TASK),
         TYPE -> JsString(value.pluginSpec.id.toString),
-        PARAMETERS -> Json.toJson(value.parameters),
+        PARAMETERS -> writeParameterValues(value.parameters),
         TEMPLATES -> Json.toJson(value.templateValues)
       )
     }
@@ -245,7 +283,7 @@ object JsonSerializers {
       }
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
-        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readParameters(value))
+        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readPluginParameters(value))
         TransformInput(id, transformer, inputs.toList)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
@@ -259,7 +297,7 @@ object JsonSerializers {
           ID -> JsString(value.id),
           FUNCTION -> JsString(value.transformer.pluginSpec.id),
           INPUTS -> JsArray(value.inputs.map(toJson[Input])),
-          PARAMETERS -> Json.toJson(value.transformer.parameters)
+          PARAMETERS -> writeParameterValues(value.transformer.parameters)
         )
       )
     }
@@ -843,7 +881,7 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
       val metricPluginId = stringValue(value, METRIC)
-      val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readParameters(value))
+      val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readPluginParameters(value))
 
       Comparison(
         id = identifier(value, "comparison"),
@@ -867,7 +905,7 @@ object JsonSerializers {
         THRESHOLD -> value.threshold,
         INDEXING -> value.indexing,
         METRIC -> value.metric.pluginSpec.id.toString,
-        PARAMETERS -> Json.toJson(value.metric.parameters),
+        PARAMETERS -> writeParameterValues(value.metric.parameters),
         SOURCEINPUT -> toJson(value.inputs.source),
         TARGETINPUT -> toJson(value.inputs.target)
       )
@@ -884,7 +922,7 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(AGGREGATION_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Aggregation = {
-      val aggregator = Aggregator(stringValue(value, AGGREGATOR), readParameters(value))
+      val aggregator = Aggregator(stringValue(value, AGGREGATOR), readPluginParameters(value))
       val inputs = mustBeJsArray(mustBeDefined(value, OPERATORS)) { jsArray =>
         jsArray.value.map(fromJson[SimilarityOperator](_)(SimilarityOperatorJsonFormat, readContext))
       }
@@ -903,7 +941,7 @@ object JsonSerializers {
         TYPE -> AGGREGATION_TYPE,
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
-        PARAMETERS -> Json.toJson(value.aggregator.parameters),
+        PARAMETERS -> writeParameterValues(value.aggregator.parameters),
         OPERATORS -> value.operators.map(toJson(_))
       )
     }
@@ -990,6 +1028,9 @@ object JsonSerializers {
     /** Deprecated properties */
     final val DEPRECATED_OUTPUTS = "outputs"
 
+    //TODO
+    lazy val pluginDesc = ClassPluginDescription.create(classOf[LinkSpec])
+
     override def typeNames: Set[String] = Set(TASK_TYPE_LINKING)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkSpec = {
@@ -998,17 +1039,12 @@ object JsonSerializers {
           deprecatedRead(value)
         case _ =>
           val parametersObj = objectValue(value, PARAMETERS)
-          LinkSpec(
-            source =
-                fromJson[DatasetSelection](mustBeDefined(parametersObj, SOURCE)),
-            target =
-                fromJson[DatasetSelection](mustBeDefined(parametersObj, TARGET)),
-            rule = optionalValue(parametersObj, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
-            output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(o => Identifier(o.trim)),
-            referenceLinks = optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
-            linkLimit = numberValueOption(parametersObj, LINK_LIMIT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-            matchingExecutionTimeout = numberValueOption(parametersObj, MATCHING_EXECUTION_TIMEOUT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
-          )
+          val objParameters = ParameterValues(Map(
+            RULE -> ParameterObjectValue(optionalValue(parametersObj, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule())),
+            REFERENCE_LINKS -> ParameterObjectValue(optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty))
+          ))
+          val parameters = readPluginParameters(value) merge objParameters
+          pluginDesc(parameters)
       }
     }
 
@@ -1038,7 +1074,11 @@ object JsonSerializers {
           REFERENCE_LINKS -> toJson(value.referenceLinks),
           LINK_LIMIT -> JsString(value.linkLimit.toString),
           MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
-        )
+        ),
+        TEMPLATES -> (Json.toJsObject(value.templateValues) ++ Json.obj(
+          SOURCE -> Json.toJson(value.dataSelections.source.templateValues),
+          TARGET -> Json.toJson(value.dataSelections.target.templateValues)
+        ))
       )
     }
   }

@@ -45,7 +45,7 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
   }
 
   override def toString = transformer match {
-    case Transformer(name, params, _) => "Transformer(type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
+    case Transformer(name, params) => "Transformer(type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
   }
 }
 
@@ -77,7 +77,7 @@ object TransformInput {
 
       <TransformInput id={value.id} function={plugin.id}>
         { value.inputs.map(toXml[Input]) }
-        {XmlSerialization.serializeParameters(params)}
+        {XmlSerialization.serializeParameterValues(params)}
       </TransformInput>
     }
   }

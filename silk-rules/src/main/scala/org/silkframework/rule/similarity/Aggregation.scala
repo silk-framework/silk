@@ -95,7 +95,7 @@ object Aggregation {
 
     def write(value: Aggregation)(implicit writeContext: WriteContext[Node]): Node = {
       value.aggregator match {
-        case Aggregator(plugin, params, _) =>
+        case Aggregator(plugin, params) =>
           <Aggregate id={value.id} weight={value.weight.toString} type={plugin.id}>
             {value.operators.map(toXml[SimilarityOperator])}
           </Aggregate>
