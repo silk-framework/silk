@@ -2,7 +2,7 @@ package org.silkframework.runtime.serialization
 
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValue, ParameterValues}
 
-import scala.xml.{Elem, Node, NodeSeq, PCData}
+import scala.xml.{Node, NodeSeq, PCData}
 
 /**
  * Serializes between classes and XML.
@@ -31,7 +31,7 @@ object XmlSerialization {
       case ParameterTemplateValue(template) =>
         <Template name={key} xml:space="preserve">{PCData(template)}</Template>
       case values: ParameterValues =>
-        <Param name={key}>{serializeParameters(values)}</Param>
+        <Params name={key}>{serializeParameters(values)}</Params>
       case _ =>
         throw new IllegalArgumentException("Unsupported parameter type: " + value.getClass)
     }
@@ -52,8 +52,6 @@ object XmlSerialization {
 
   private def deserializeParameter(node: Node): Option[ParameterValue] = {
     node.label match {
-      case "Param" if node.child.exists(_.isInstanceOf[Elem]) =>
-        Some(deserializeParameters(node))
       case "Param" =>
         val valueAttr = node \ "@value"
         if (valueAttr.nonEmpty) {
@@ -63,6 +61,8 @@ object XmlSerialization {
         }
       case "Template" =>
         Some(ParameterTemplateValue(node.text))
+      case "Params" =>
+        Some(deserializeParameters(node))
       case _ =>
         None
     }
