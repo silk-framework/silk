@@ -38,12 +38,11 @@ trait AnyPlugin {
   /**
     * Creates a new instance of this plugin with updated properties.
     *
-    * @param updatedProperties A list of property values to be updated.
+    * @param updatedParameters A list of property values to be updated.
     *                          This can be a subset of all available properties.
     *                          Property values that are not part of the map remain unchanged.
     */
-  def withParameters(updatedProperties: Map[String, String])(implicit context: PluginContext): this.type = {
-    val updatedParameters = ParameterValues.fromStringMap(parameters.toStringMap ++ updatedProperties)
-    pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
+  def withParameters(updatedParameters: ParameterValues)(implicit context: PluginContext): this.type = {
+    pluginSpec(parameters merge updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
   }
 }

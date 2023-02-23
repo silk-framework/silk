@@ -47,6 +47,17 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
     values.collect { case (key, t: ParameterTemplateValue) => (key, t.template)}
   }
 
+  def filterTemplates: ParameterValues = {
+    copy(values =
+      values.collect {
+        case (key, template: ParameterTemplateValue) =>
+          (key, template)
+        case (key, values: ParameterValues) =>
+          (key, values)
+      }
+    )
+  }
+
   def merge(other: ParameterValues): ParameterValues = {
     ParameterValues(
       for((key, value) <- values) yield {

@@ -81,6 +81,6 @@ object Operator {
    * Reads the parameters of an operator.
    */
   def readParams(node: Node): ParameterValues = {
-    XmlSerialization.deserializeParameterValues(node)
+    XmlSerialization.deserializeParameters(node)
   }
 }

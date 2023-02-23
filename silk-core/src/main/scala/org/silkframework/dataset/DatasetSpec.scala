@@ -22,7 +22,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
@@ -94,7 +94,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
 
   override def withProperties(updatedProperties: Map[String, String])(implicit context: PluginContext): DatasetSpec[DatasetType] = {
-    copy(plugin = plugin.withParameters(updatedProperties))
+    copy(plugin = plugin.withParameters(ParameterValues.fromStringMap(updatedProperties)))
   }
 
   override def toString: String = DatasetSpec.toString
@@ -328,7 +328,7 @@ object DatasetSpec {
         val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.nonEmpty).map(Uri(_))
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
-        val parameters = XmlSerialization.deserializeParameterValues(sourceNode)
+        val parameters = XmlSerialization.deserializeParameters(sourceNode)
         new DatasetSpec(
           plugin = Dataset((sourceNode \ "@type").text, parameters),
           uriAttribute = uriProperty
@@ -340,7 +340,7 @@ object DatasetSpec {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
-            {XmlSerialization.serializeParameterValues(params)}
+            {XmlSerialization.serializeParameters(params)}
           </Dataset>
       }
     }

@@ -1,8 +1,8 @@
 package org.silkframework.runtime.serialization
 
-import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues}
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValue, ParameterValues}
 
-import scala.xml.{Node, NodeSeq, PCData}
+import scala.xml.{Elem, Node, NodeSeq, PCData}
 
 /**
  * Serializes between classes and XML.
@@ -18,48 +18,53 @@ object XmlSerialization {
     format.read(node)
   }
 
-  def serializeParameters(parameters: Map[String, String]): NodeSeq = {
-    NodeSeq.fromSeq(parameters.toSeq.map {
-      case (name, v) =>
-        <Param name={name} xml:space="preserve">{PCData(v)}</Param>
-    })
+  def serializeParameters(parameters: ParameterValues): NodeSeq = {
+    NodeSeq.fromSeq(parameters.values.map {
+      case (key, value) => serializeParameter(key, value)
+    }.toSeq)
+  }
+
+  private def serializeParameter(key: String, value: ParameterValue): Node = {
+    value match {
+      case ParameterStringValue(v) =>
+        <Param name={key} xml:space="preserve">{PCData(v)}</Param>
+      case ParameterTemplateValue(template) =>
+        <Template name={key} xml:space="preserve">{PCData(template)}</Template>
+      case values: ParameterValues =>
+        <Param name={key}>{serializeParameters(values)}</Param>
+      case _ =>
+        throw new IllegalArgumentException("Unsupported parameter type: " + value.getClass)
+    }
   }
 
   def deserializeParameters(node: Node): ParameterValues = {
-    val values =
-      (node \ "Param").map { p =>
-        val name = (p \ "@name").text
-        val valueAttr = p \ "@value"
-        val value = if(valueAttr.isEmpty) {
-          p.text
+    val values = {
+      for {
+        child <- node.child
+        value <- deserializeParameter(child)
+      } yield {
+        val name = (child \ "@name").text
+        (name, value)
+      }
+    }
+    ParameterValues(values.toMap)
+  }
+
+  private def deserializeParameter(node: Node): Option[ParameterValue] = {
+    node.label match {
+      case "Param" if node.child.exists(_.isInstanceOf[Elem]) =>
+        Some(deserializeParameters(node))
+      case "Param" =>
+        val valueAttr = node \ "@value"
+        if (valueAttr.nonEmpty) {
+          Some(ParameterStringValue(valueAttr.text))
         } else {
-          valueAttr.text
+          Some(ParameterStringValue(node.text))
         }
-        (name, ParameterStringValue(value))
-      }
-    ParameterValues(values.toMap)
-  }
-
-  def serializeTemplates(templates: Map[String, String]): NodeSeq = {
-    NodeSeq.fromSeq(templates.toSeq.map {
-      case (name, v) =>
-        <Template name={name} xml:space="preserve">{PCData(v)}</Template>
-    })
-  }
-
-  def deserializeTemplates(node: Node): ParameterValues = {
-    val values =
-      (node \ "Template").map { p =>
-        ((p \ "@name").text, ParameterTemplateValue(p.text))
-      }
-    ParameterValues(values.toMap)
-  }
-
-  def serializeParameterValues(values: ParameterValues): NodeSeq = {
-    serializeParameters(values.toStringMap) ++ serializeTemplates(values.templates)
-  }
-
-  def deserializeParameterValues(node: Node): ParameterValues = {
-    deserializeParameters(node) merge deserializeTemplates(node)
+      case "Template" =>
+        Some(ParameterTemplateValue(node.text))
+      case _ =>
+        None
+    }
   }
 }

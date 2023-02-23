@@ -27,7 +27,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{AnyPlugin, IdentifierOptionParameter}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
@@ -226,21 +226,26 @@ object LinkSpec {
       if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification")
       if (linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
-      LinkSpec(
-        source = DatasetSelection.fromXML((node \ "SourceDataset").head),
-        target = DatasetSelection.fromXML((node \ "TargetDataset").head),
-        rule = fromXml[LinkageRule](linkageRuleNode),
-        output =
-          (node \ "Outputs" \ "Output").headOption map { outputNode =>
-            val id = (outputNode \ "@id").text
-            if (id.isEmpty) {
-              throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
-            }
-            Identifier(id)
-          },
-        linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
-      )
+      // Create link spec
+      val linkSpec =
+        LinkSpec(
+          source = DatasetSelection.fromXML((node \ "SourceDataset").head),
+          target = DatasetSelection.fromXML((node \ "TargetDataset").head),
+          rule = fromXml[LinkageRule](linkageRuleNode),
+          output =
+            (node \ "Outputs" \ "Output").headOption map { outputNode =>
+              val id = (outputNode \ "@id").text
+              if (id.isEmpty) {
+                throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
+              }
+              Identifier(id)
+            },
+          linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+          matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        )
+
+      // Apply templates
+      linkSpec.withParameters(XmlSerialization.deserializeParameters(node))
     }
 
     /**
@@ -254,6 +259,7 @@ object LinkSpec {
         <Outputs>
           {spec.output.value.toSeq.map(o => <Output id={o}></Output>)}
         </Outputs>
+        {XmlSerialization.serializeParameters(spec.parameters.filterTemplates)}
       </Interlink>
   }
 }

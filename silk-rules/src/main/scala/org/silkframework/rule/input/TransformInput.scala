@@ -77,7 +77,7 @@ object TransformInput {
 
       <TransformInput id={value.id} function={plugin.id}>
         { value.inputs.map(toXml[Input]) }
-        {XmlSerialization.serializeParameterValues(params)}
+        {XmlSerialization.serializeParameters(params)}
       </TransformInput>
     }
   }
