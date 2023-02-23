@@ -45,6 +45,11 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
         .getOrElse(throw new NoSuchElementException(s"Cannot find node $nodeId in the workflow."))
   }
 
+  def validate(): AllVariableDatasets = {
+    markedVariableDatasets()
+  }
+  validate()
+
   /**
     * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow with the layer index, i.e.
     * in which layer this operator would be executed.
@@ -134,16 +139,25 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /** Returns all variable input and output datasets that exist in the workflow and were marked as variable dataset. */
   def markedVariableDatasets(): AllVariableDatasets = {
     val workflowDatasets = datasets.map(_.task.toString).toSet
-    val workflowOutputs = operators.flatMap(_.outputs).distinct.toSet
-    val workflowInputs = operators.flatMap(_.inputs).distinct.toSet
+    val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
+    val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    val workflowDatasetInputs = operators.flatMap(_.inputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    val variableInputUsedAsOutput = workflowDatasetOutputs.intersect(variableInputs.taskIds.toSet)
+    if(variableInputUsedAsOutput.nonEmpty) {
+      throw new IllegalArgumentException("Datasets marked as variable input must not be used as output dataset! Affected dataset: " + variableInputUsedAsOutput.mkString(", "))
+    }
+    val variableOutputUsedAsInput = workflowDatasetInputs.intersect(variableOutputs.taskIds.toSet)
+    if (variableOutputUsedAsInput.nonEmpty) {
+      throw new IllegalArgumentException("Datasets marked as variable input must not be used as output dataset! Affected dataset: " + variableOutputUsedAsInput.mkString(", "))
+    }
     val bothInputAndOutput = (variableInputs ++ variableOutputs).filter(id =>
-      workflowInputs.contains(id) && workflowOutputs.contains(id)
+      workflowDatasetInputs.contains(id) && workflowDatasetOutputs.contains(id)
     )
     if (bothInputAndOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets must not be marked as variable input and output simultaneously! Affected dataset: " + bothInputAndOutput.mkString(", "))
     }
-    val actualVariableInputs = variableInputs.filter(id => workflowDatasets.contains(id) && workflowInputs.contains(id))
-    val actualVariableOutputs = variableOutputs.filter(id => workflowDatasets.contains(id) && workflowOutputs.contains(id))
+    val actualVariableInputs = variableInputs.filter(id => workflowDatasets.contains(id) && workflowDatasetInputs.contains(id))
+    val actualVariableOutputs = variableOutputs.filter(id => workflowDatasets.contains(id) && workflowDatasetOutputs.contains(id))
     AllVariableDatasets(
       dataSources = actualVariableInputs,
       sinks = actualVariableOutputs
