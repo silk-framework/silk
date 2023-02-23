@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
-import { useTranslation, Trans } from "react-i18next";
-import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "@eccenca/gui-elements";
+import { Trans, useTranslation } from "react-i18next";
 import {
     Button,
     Card,
@@ -12,18 +11,20 @@ import {
     CardOptions,
     CardTitle,
     Divider,
+    ElapsedDateTimeDisplay,
     FieldItem,
+    HtmlContentBlock,
     IconButton,
     Label,
-    MultiSelect,
+    Link,
+    Markdown,
     PropertyName,
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
-    Link,
     TextArea,
     TextField,
-    HtmlContentBlock,
+    TimeUnits,
 } from "@eccenca/gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -36,8 +37,8 @@ import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
-import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { MultiTagSelect } from "../MultiTagSelect";
 
 export const getDateData = (dateTime: number | string) => {
     const then = new Date(dateTime);
@@ -234,18 +235,6 @@ export function Metadata(props: IProps) {
         });
     }, []);
 
-    const handleTagQueryChange = React.useCallback(async (query: string) => {
-        if (projectId) {
-            try {
-                const res = await utils.queryTags(projectId, query);
-                return res?.data.tags ?? [];
-            } catch (ex) {
-                registerError("Metadata-handleTagQueryChange", "An error occurred while searching for tags.", ex);
-                return [];
-            }
-        }
-    }, []);
-
     const goToPage = (path: string) => {
         dispatch(routerOp.goToPage(path));
     };
@@ -309,26 +298,10 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem data-test-id={"meta-data-tag-selection"}>
-                                <MultiSelect<Keyword>
-                                    prePopulateWithItems
-                                    openOnKeyDown
-                                    itemId={(keyword) => keyword.uri}
-                                    itemLabel={(keyword) => keyword.label}
-                                    items={data.tags ?? []}
-                                    onSelection={handleTagSelectionChange}
-                                    runOnQueryChange={handleTagQueryChange}
-                                    newItemCreationText={t("Metadata.addNewTag")}
-                                    newItemPostfix={t("Metadata.newTagPostfix")}
-                                    inputProps={{
-                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
-                                    }}
-                                    tagInputProps={{
-                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
-                                    }}
-                                    createNewItemFromQuery={(query) => ({
-                                        uri: removeExtraSpaces(query),
-                                        label: removeExtraSpaces(query),
-                                    })}
+                                <MultiTagSelect
+                                    projectId={projectId}
+                                    handleTagSelectionChange={handleTagSelectionChange}
+                                    initialTags={data.tags}
                                 />
                             </FieldItem>
                         </PropertyValue>
