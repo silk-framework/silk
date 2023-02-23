@@ -34,13 +34,6 @@ object GlobalTemplateVariables {
     }
   }
 
-  /** Resolves the variable template parameters. */
-  def resolveParameters(parameterTemplates: Map[String, String]): Map[String, String] = {
-    parameterTemplates.mapValues { value =>
-     resolveTemplateValue(value)
-    }
-  }
-
   /** Resolves a variable template string.
     * @throws TemplateEvaluationException If the template evaluation failed.
     **/
@@ -48,14 +41,6 @@ object GlobalTemplateVariables {
     val writer = new StringWriter()
     engine().compile(value).evaluate(templateVariables().map, writer)
     writer.toString
-  def resolveParameter(template: String): String = {
-    val writer = new StringWriter()
-    engine().compile(template).evaluate(variables().map, writer)
-    writer.toString
-  }
-
-  def resolveParameters(parameterTemplates: Map[String, String]): Map[String, String] = {
-    parameterTemplates.mapValues(resolveParameter)
   }
 
   def variableNames: Seq[String] = templateVariables().map.keys.toSeq.sorted

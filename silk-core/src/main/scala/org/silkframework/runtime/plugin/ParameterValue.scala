@@ -24,7 +24,7 @@ case class ParameterObjectValue(value: AnyRef) extends ParameterValue
 case class ParameterTemplateValue(template: String) extends ParameterValue {
 
   def evaluate(): String = {
-    GlobalTemplateVariables.resolveParameter(template)
+    GlobalTemplateVariables.resolveTemplateValue(template)
   }
 
 }
