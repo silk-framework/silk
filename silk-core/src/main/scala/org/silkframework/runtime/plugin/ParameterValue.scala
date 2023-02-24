@@ -59,9 +59,9 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
   }
 
   def merge(other: ParameterValues): ParameterValues = {
-    ParameterValues(
+    val updatedValues =
       for((key, value) <- values) yield {
-        val mergedValue = other.values.get(key) match {
+        val otherValue = other.values.get(key) match {
           case Some(otherNestedValues: ParameterValues) =>
             value match {
               case nestedValues: ParameterValues =>
@@ -69,14 +69,15 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
               case _ =>
                 otherNestedValues
             }
-          case Some(otherValue) =>
-            otherValue
+          case Some(otherSimpleValue) =>
+            otherSimpleValue
           case None =>
             value
         }
-        (key, mergedValue)
+        (key, otherValue)
       }
-    )
+
+    ParameterValues(updatedValues ++ (other.values -- updatedValues.keys))
   }
 
 }
