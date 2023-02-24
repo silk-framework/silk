@@ -18,7 +18,7 @@ object JsonHelpers {
 
   def mustBeDefined(value: JsValue, attributeName: String): JsValue = {
     (value \ attributeName).toOption.
-      getOrElse(throw JsonParseException("No attribute with name " + attributeName + " found!"))
+      getOrElse(throw JsonParseException("No attribute with name '" + attributeName + "' found!"))
   }
 
   def mustBeJsObject[T](jsValue: JsValue)(block: JsObject => T): T = {

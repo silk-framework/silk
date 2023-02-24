@@ -6,7 +6,7 @@ import org.silkframework.serialization.json.ExecutionReportSerializers._
 import org.silkframework.serialization.json.InputJsonSerializer.{CachedEntitySchemataJsonFormat, InputJsonFormat}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.ReferenceLinksJsonFormat
-import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
+import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
 import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
 
 class JsonPluginModule extends PluginModule {
@@ -16,7 +16,7 @@ class JsonPluginModule extends PluginModule {
       PluginListJsonFormat.getClass ::
       TaskSpecJsonFormat.getClass ::
       GenericTaskJsonFormat.getClass ::
-      JsonDatasetSpecFormat.getClass ::
+      DatasetSpecJsonFormat.getClass ::
       CustomTaskJsonFormat.getClass ::
       TransformSpecJsonFormat.getClass ::
       LinkSpecJsonFormat.getClass ::

@@ -8,7 +8,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin._
-import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginSerializers}
+import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginDescriptionSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsObject, JsValue, Json}
 
@@ -24,7 +24,7 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
         endpoint <- Seq("plugins", "plugins/org.silkframework.dataset.Dataset")) {
       val request = client.url(s"$baseUrl/core/$endpoint?addMarkdownDocumentation=$addMarkdown")
       val response = request.get
-      val markdownDocs = (checkResponse(response).json \\ PluginSerializers.MARKDOWN_DOCUMENTATION_PARAMETER).map(_.as[String])
+      val markdownDocs = (checkResponse(response).json \\ PluginDescriptionSerializers.MARKDOWN_DOCUMENTATION_PARAMETER).map(_.as[String])
       val markdownExists = markdownDocs.size > 0
       assert(!(markdownExists ^ addMarkdown), s"For endpoint '$endpoint' markdown was ${if(addMarkdown) "" else "not "}" +
           s"requested, but Markdown was ${if(markdownExists) "found" else "missing"}.")

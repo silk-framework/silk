@@ -5,7 +5,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
-import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
+import org.silkframework.rule.TransformSpec.TargetVocabularyListParameter
 import org.silkframework.rule._
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
@@ -23,6 +23,7 @@ import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFor
 import org.silkframework.serialization.json.JsonSerializers.{ID, _}
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
+import org.silkframework.serialization.json.PluginSerializers.{ParameterValuesJsonFormat, PluginJsonFormat}
 import org.silkframework.util.{DPair, Identifier, IdentifierUtils, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
@@ -138,22 +139,17 @@ object JsonSerializers {
     }
   }
 
-  implicit object JsonDatasetSpecFormat extends JsonFormat[GenericDatasetSpec] {
+  implicit object DatasetSpecJsonFormat extends JsonFormat[GenericDatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
+
+    private val pluginFormat = new PluginJsonFormat[Dataset]
 
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_DATASET)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resource = readContext.resources
-      implicit val user = readContext.user
       new DatasetSpec(
-        plugin =
-          Dataset(
-            id = (value \ TYPE).as[JsString].value,
-            params = readPluginParameters(value)
-          ),
+        plugin = pluginFormat.read(value),
         uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
     }
@@ -162,87 +158,29 @@ object JsonSerializers {
       var json =
         Json.obj(
           TASKTYPE -> JsString(JsonSerializers.TASK_TYPE_DATASET),
-          TYPE -> JsString(value.plugin.pluginSpec.id.toString),
-          PARAMETERS -> writeParameterValues(value.plugin.parameters),
-          TEMPLATES -> Json.toJson(value.plugin.templateValues)
         )
       for(property <- value.uriAttribute) {
         json += (URI_PROPERTY -> JsString(property.uri))
       }
+      json ++= pluginFormat.write(value.plugin)
       json
     }
   }
 
-  //TODO move to JsonPluginSerializers?
-  //TODO write serializer for PluginParameters?
-  // Extracts the parameter map
-  private def taskParameters(value: JsValue): ParameterValues = {
-    ParameterValues(
-      (value \ PARAMETERS).as[JsObject].value.mapValues(taskParameter).toMap
-    )
-  }
-
-  private def taskParameter(value: JsValue): ParameterValue = {
-    value match {
-      case boolean: JsBoolean => ParameterStringValue(boolean.value.toString)
-      case str: JsString => ParameterStringValue(str.value)
-      case number: JsNumber => ParameterStringValue(number.value.toString())
-      case obj: JsObject => ParameterValues(obj.value.mapValues(taskParameter).toMap)
-      case other: JsValue =>
-        throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as parameter values!")
-    }
-  }
-
-  private def templates(value: JsValue): ParameterValues = {
-    (value \ TEMPLATES).toOption.map(t => ParameterValues(t.as[JsObject].value.mapValues(template).toMap)).getOrElse(ParameterValues.empty)
-  }
-
-  private def template(value: JsValue): ParameterValue = {
-    value match {
-      case str: JsString => ParameterTemplateValue(str.value)
-      case obj: JsObject => ParameterValues(obj.value.mapValues(template).toMap)
-      case other: JsValue =>
-        throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as template values!")
-    }
-  }
-
-  private def readPluginParameters(value: JsValue): ParameterValues = {
-    val parameterValues = taskParameters(value)
-    val templateValues = templates(value)
-    parameterValues merge templateValues
-  }
-
-  private def writeParameterValues(params: ParameterValues): JsObject = {
-    JsObject(
-      params.values.mapValues {
-        case ParameterStringValue(strValue) =>
-          JsString(strValue)
-        case values: ParameterValues =>
-          writeParameterValues(values)
-        case _ =>
-          JsObject.empty
-      }
-    )
-  }
-
   implicit object CustomTaskJsonFormat extends JsonFormat[CustomTask] {
+
+    private val pluginFormat = new PluginJsonFormat[CustomTask]
 
     override def typeNames: Set[String] = Set(TASK_TYPE_CUSTOM_TASK)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
-      CustomTask(
-        id = (value \ TYPE).as[JsString].value,
-        params = readPluginParameters(value)
-      )
+      pluginFormat.read(value)
     }
 
     override def write(value: CustomTask)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TASKTYPE -> JsString(TASK_TYPE_CUSTOM_TASK),
-        TYPE -> JsString(value.pluginSpec.id.toString),
-        PARAMETERS -> writeParameterValues(value.parameters),
-        TEMPLATES -> Json.toJson(value.templateValues)
-      )
+      ) ++ pluginFormat.write(value)
     }
   }
 
@@ -283,7 +221,7 @@ object JsonSerializers {
       }
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
-        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readPluginParameters(value))
+        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), ParameterValuesJsonFormat.read(value))
         TransformInput(id, transformer, inputs.toList)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
@@ -297,9 +235,8 @@ object JsonSerializers {
           ID -> JsString(value.id),
           FUNCTION -> JsString(value.transformer.pluginSpec.id),
           INPUTS -> JsArray(value.inputs.map(toJson[Input])),
-          PARAMETERS -> writeParameterValues(value.transformer.parameters)
         )
-      )
+      ) ++ ParameterValuesJsonFormat.write(value.transformer.parameters)
     }
   }
 
@@ -811,8 +748,7 @@ object JsonSerializers {
     // A transform task can only have one output (outside of a workflow)
     final val DEPRECATED_OUTPUTS: String = "outputs"
 
-    //TODO
-    private lazy val pluginDesc = ClassPluginDescription.create(classOf[TransformSpec])
+    private val pluginFormat = new PluginJsonFormat[TransformSpec](Some(ClassPluginDescription.create(classOf[TransformSpec])))
 
     override def typeNames: Set[String] = Set(TASK_TYPE_TRANSFORM)
 
@@ -828,8 +764,7 @@ object JsonSerializers {
           val objParameters = ParameterValues(Map(
             RULES_PROPERTY -> ParameterObjectValue(optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty))
           ))
-          val parameters = readPluginParameters(value) merge objParameters
-          pluginDesc(parameters)
+          pluginFormat.read(value, objParameters)
       }
     }
 
@@ -849,19 +784,7 @@ object JsonSerializers {
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TASKTYPE -> TASK_TYPE_TRANSFORM,
-        TYPE -> "transform",
-        PARAMETERS -> JsObject(Seq(
-          SELECTION -> toJson(value.selection),
-          RULES_PROPERTY -> toJson(value.mappingRule),
-          OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies)),
-          ABORT_IF_ERRORS_OCCUR -> JsString(value.abortIfErrorsOccur.toString)
-        )),
-        TEMPLATES -> (Json.toJsObject(value.templateValues) ++ Json.obj(
-          SELECTION -> Json.toJson(value.selection.templateValues)
-        ))
-      )
+      ) ++ pluginFormat.write(value)
     }
   }
 
@@ -878,7 +801,7 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
       val metricPluginId = stringValue(value, METRIC)
-      val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readPluginParameters(value))
+      val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), ParameterValuesJsonFormat.read(value))
 
       Comparison(
         id = identifier(value, "comparison"),
@@ -902,10 +825,9 @@ object JsonSerializers {
         THRESHOLD -> value.threshold,
         INDEXING -> value.indexing,
         METRIC -> value.metric.pluginSpec.id.toString,
-        PARAMETERS -> writeParameterValues(value.metric.parameters),
         SOURCEINPUT -> toJson(value.inputs.source),
         TARGETINPUT -> toJson(value.inputs.target)
-      )
+      ) ++ ParameterValuesJsonFormat.write(value.metric.parameters)
     }
   }
 
@@ -919,7 +841,7 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(AGGREGATION_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Aggregation = {
-      val aggregator = Aggregator(stringValue(value, AGGREGATOR), readPluginParameters(value))
+      val aggregator = Aggregator(stringValue(value, AGGREGATOR), ParameterValuesJsonFormat.read(value))
       val inputs = mustBeJsArray(mustBeDefined(value, OPERATORS)) { jsArray =>
         jsArray.value.map(fromJson[SimilarityOperator](_)(SimilarityOperatorJsonFormat, readContext))
       }
@@ -938,9 +860,8 @@ object JsonSerializers {
         TYPE -> AGGREGATION_TYPE,
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
-        PARAMETERS -> writeParameterValues(value.aggregator.parameters),
         OPERATORS -> value.operators.map(toJson(_))
-      )
+      ) ++ ParameterValuesJsonFormat.write(value.aggregator.parameters)
     }
   }
 
@@ -1025,8 +946,7 @@ object JsonSerializers {
     /** Deprecated properties */
     final val DEPRECATED_OUTPUTS = "outputs"
 
-    //TODO
-    private lazy val pluginDesc = ClassPluginDescription.create(classOf[LinkSpec])
+    private val pluginFormat = new PluginJsonFormat[LinkSpec](Some(ClassPluginDescription.create(classOf[LinkSpec])))
 
     override def typeNames: Set[String] = Set(TASK_TYPE_LINKING)
 
@@ -1035,13 +955,12 @@ object JsonSerializers {
         case None =>
           deprecatedRead(value)
         case _ =>
-          val parametersObj = objectValue(value, PARAMETERS)
+          val jsonParameters = objectValue(value, PARAMETERS)
           val objParameters = ParameterValues(Map(
-            RULE -> ParameterObjectValue(optionalValue(parametersObj, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule())),
-            REFERENCE_LINKS -> ParameterObjectValue(optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty))
+            RULE -> ParameterObjectValue(optionalValue(jsonParameters, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule())),
+            REFERENCE_LINKS -> ParameterObjectValue(optionalValue(jsonParameters, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty))
           ))
-          val parameters = readPluginParameters(value) merge objParameters
-          pluginDesc(parameters)
+          pluginFormat.read(value, objParameters)
       }
     }
 
@@ -1060,23 +979,11 @@ object JsonSerializers {
     }
 
     override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        TASKTYPE -> TASK_TYPE_LINKING,
-        TYPE -> "linking",
-        PARAMETERS -> Json.obj(
-          SOURCE -> toJson(value.dataSelections.source),
-          TARGET -> toJson(value.dataSelections.target),
-          RULE -> toJson(value.rule),
-          OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          REFERENCE_LINKS -> toJson(value.referenceLinks),
-          LINK_LIMIT -> JsString(value.linkLimit.toString),
-          MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
-        ),
-        TEMPLATES -> (Json.toJsObject(value.templateValues) ++ Json.obj(
-          SOURCE -> Json.toJson(value.dataSelections.source.templateValues),
-          TARGET -> Json.toJson(value.dataSelections.target.templateValues)
-        ))
-      )
+      val json =
+        Json.obj(
+          TASKTYPE -> TASK_TYPE_LINKING,
+        ) ++ pluginFormat.write(value)
+      json
     }
   }
 
