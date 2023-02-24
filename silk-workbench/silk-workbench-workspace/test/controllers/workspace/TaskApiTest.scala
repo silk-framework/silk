@@ -119,8 +119,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
       TYPE -> "internal",
       PARAMETERS -> Json.obj(
         "graphUri" -> "urn:dataset1"
-      ),
-      TEMPLATES -> Json.obj()
+      )
     )
   }
 

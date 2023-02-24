@@ -1,10 +1,9 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.runtime.plugin.{AnyPlugin, ParameterObjectValue, ParameterStringValue, ParameterTemplateValue,
-  ParameterValue, ParameterValues, PluginDescription, PluginRegistry}
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TEMPLATES, TYPE}
-import play.api.libs.json.{JsBoolean, JsNumber, JsObject, JsString, JsValue, Json}
+import play.api.libs.json._
 
 import scala.reflect.ClassTag
 
@@ -17,15 +16,23 @@ object PluginSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): ParameterValues = {
       val parameters = ParameterValues((value \ PARAMETERS).as[JsObject].value.mapValues(readParameters).toMap)
-      val templates = ParameterValues((value \ TEMPLATES).as[JsObject].value.mapValues(readTemplates).toMap)
+      val templates = ParameterValues((value \ TEMPLATES).asOpt[JsObject].map(_.value.mapValues(readTemplates).toMap).getOrElse(Map.empty))
       parameters merge templates
     }
 
     override def write(value: ParameterValues)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      Json.obj(
-        PARAMETERS -> writeParameters(value),
-        TEMPLATES -> writeTemplates(value)
-      )
+      val parameters = writeParameters(value)
+      val templates = writeTemplates(value)
+      if(templates.value.isEmpty) {
+        Json.obj(
+          PARAMETERS -> parameters
+        )
+      } else {
+        Json.obj(
+          PARAMETERS -> parameters,
+          TEMPLATES -> templates
+        )
+      }
     }
 
     private def readParameters(value: JsValue): ParameterValue = {
@@ -98,9 +105,11 @@ object PluginSerializers {
     }
 
     override def write(value: T)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+      // The JSON serialization currently should use prefixed names, so we need to re-serialize the parameters with prefixes.
+      val parameters = value.pluginSpec.parameterValues(value)(writeContext.prefixes)
       Json.obj(
         TYPE -> JsString(value.pluginSpec.id.toString),
-      ) ++ ParameterValuesJsonFormat.write(value.parameters)
+      ) ++ ParameterValuesJsonFormat.write(parameters)
     }
   }
 }
