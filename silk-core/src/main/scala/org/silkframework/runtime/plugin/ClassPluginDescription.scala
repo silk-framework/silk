@@ -16,7 +16,6 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.runtime.templating.GlobalTemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
@@ -74,41 +73,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
   private def parseParameters(parameterValues: ParameterValues)(implicit context: PluginContext): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.values.get(parameter.name) match {
-        case Some(v) =>
-          try {
-            parameter.parameterType match {
-              case stringParam: StringParameterType[_] =>
-                v match {
-                  case ParameterStringValue(value) =>
-                    stringParam.fromString(value).asInstanceOf[AnyRef]
-                  case template: ParameterTemplateValue =>
-                    stringParam.fromString(template.evaluate()).asInstanceOf[AnyRef]
-                  case _ =>
-                    // TODO
-                    throw new IllegalArgumentException("")
-                }
-              case objParam: PluginObjectParameterTypeTrait =>
-                v match {
-                  case ParameterObjectValue(obj) =>
-                    obj
-                  case values: ParameterValues =>
-                    objParam.pluginDescription match {
-                      case Some(pluginDesc: PluginDescription[_]) =>
-                        // TODO conversion
-                        pluginDesc.asInstanceOf[ClassPluginDescription[_]](values).asInstanceOf[AnyRef]
-                      case _ =>
-                        throw new RuntimeException(s"No plugin description available for parameter ${parameter.name} of plugin $id.")
-                    }
-                  case _ =>
-                    // TODO message still correct?
-                    throw new RuntimeException(s"Plugin parameter '${parameter.name}' of plugin '$id' has no simple string representation, but is a complex object.") // TODO: What to do with that?
-                }
-
-            }
-          } catch {
-            case NonFatal(ex) =>
-              throw new InvalidPluginParameterValueException(s"$label has an invalid value for parameter '${parameter.name}'. Value must be a valid " + parameter.parameterType + ". Issue: " + ex.getMessage, ex)
-          }
+        case Some(value) =>
+          parseParameter(parameter, value)
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
         case None =>
@@ -117,7 +83,43 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
     }
   }
 
-  override def toString = label
+  private def parseParameter(parameter: PluginParameter, value: ParameterValue)
+                            (implicit context: PluginContext): AnyRef = {
+    try {
+      parameter.parameterType match {
+        case stringParam: StringParameterType[_] =>
+          value match {
+            case ParameterStringValue(strValue) =>
+              stringParam.fromString(strValue).asInstanceOf[AnyRef]
+            case template: ParameterTemplateValue =>
+              stringParam.fromString(template.evaluate()).asInstanceOf[AnyRef]
+            case _ =>
+              throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
+          }
+        case objParam: PluginObjectParameterTypeTrait =>
+          value match {
+            case ParameterObjectValue(obj) =>
+              obj
+            case values: ParameterValues =>
+              objParam.pluginDescription match {
+                case Some(pluginDesc: PluginDescription[_]) =>
+                  pluginDesc(values).asInstanceOf[AnyRef]
+                case _ =>
+                  throw new IllegalArgumentException(s"No plugin description available.")
+              }
+            case _ =>
+              throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
+          }
+
+      }
+    } catch {
+      case NonFatal(ex) =>
+        throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. " +
+          s"Value must be a valid " + parameter.parameterType + ". Details: " + ex.getMessage, ex)
+    }
+  }
+
+  override def toString: String = label
 
   /**
     * Throws an exception if a parameter value is provided that does not exist on this plugin.
