@@ -18,10 +18,29 @@ object XmlSerialization {
     format.read(node)
   }
 
+  /**
+    * Writes plugin parameter values to a resource.
+    */
   def serializeParameters(parameters: ParameterValues): NodeSeq = {
     NodeSeq.fromSeq(parameters.values.map {
       case (key, value) => serializeParameter(key, value)
     }.toSeq)
+  }
+
+  /**
+    * Reads plugin parameter values from a resource.
+    */
+  def deserializeParameters(node: Node): ParameterValues = {
+    val values = {
+      for {
+        child <- node.child
+        value <- deserializeParameter(child)
+      } yield {
+        val name = (child \ "@name").text
+        (name, value)
+      }
+    }
+    ParameterValues(values.toMap)
   }
 
   private def serializeParameter(key: String, value: ParameterValue): Node = {
@@ -35,19 +54,6 @@ object XmlSerialization {
       case _ =>
         throw new IllegalArgumentException("Unsupported parameter type: " + value.getClass)
     }
-  }
-
-  def deserializeParameters(node: Node): ParameterValues = {
-    val values = {
-      for {
-        child <- node.child
-        value <- deserializeParameter(child)
-      } yield {
-        val name = (child \ "@name").text
-        (name, value)
-      }
-    }
-    ParameterValues(values.toMap)
   }
 
   private def deserializeParameter(node: Node): Option[ParameterValue] = {

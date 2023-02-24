@@ -13,7 +13,7 @@ import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.WorkspaceReadTrait
@@ -416,7 +416,10 @@ object TransformSpec {
       val abortIfErrorsOccur = (node \ "@abortIfErrorsOccur").headOption.exists(_.text.toBoolean)
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
+      val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
+
+      // Apply templates
+      transformSpec.withParameters(XmlSerialization.deserializeParameters(node))
     }
 
     /**
@@ -445,6 +448,7 @@ object TransformSpec {
               </TargetVocabularies>
           }
         }
+        {XmlSerialization.serializeParameters(value.parameters.filterTemplates)}
       </TransformSpec>
     }
   }

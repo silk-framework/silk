@@ -811,6 +811,9 @@ object JsonSerializers {
     // A transform task can only have one output (outside of a workflow)
     final val DEPRECATED_OUTPUTS: String = "outputs"
 
+    //TODO
+    private lazy val pluginDesc = ClassPluginDescription.create(classOf[TransformSpec])
+
     override def typeNames: Set[String] = Set(TASK_TYPE_TRANSFORM)
 
     /**
@@ -822,19 +825,11 @@ object JsonSerializers {
           readDeprecated(value)
         case _ =>
           val parametersObj = objectValue(value, PARAMETERS)
-          TransformSpec(
-            selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
-            mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-            output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
-            errorOutput = stringValueOption(parametersObj, ERROR_OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
-            targetVocabularies = {
-              val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
-                  map(TargetVocabularyParameterType.fromString).
-                  getOrElse(TargetVocabularyListParameter(Seq.empty))
-              vocabs
-            },
-            abortIfErrorsOccur = stringValueOption(parametersObj, ABORT_IF_ERRORS_OCCUR).map(_.toBoolean).getOrElse(false)
-          )
+          val objParameters = ParameterValues(Map(
+            RULES_PROPERTY -> ParameterObjectValue(optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty))
+          ))
+          val parameters = readPluginParameters(value) merge objParameters
+          pluginDesc(parameters)
       }
     }
 
@@ -852,7 +847,6 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      implicit val prefixes: Prefixes = writeContext.prefixes
       Json.obj(
         TASKTYPE -> TASK_TYPE_TRANSFORM,
         TYPE -> "transform",
@@ -863,6 +857,9 @@ object JsonSerializers {
           ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
           TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies)),
           ABORT_IF_ERRORS_OCCUR -> JsString(value.abortIfErrorsOccur.toString)
+        )),
+        TEMPLATES -> (Json.toJsObject(value.templateValues) ++ Json.obj(
+          SELECTION -> Json.toJson(value.selection.templateValues)
         ))
       )
     }
@@ -1029,7 +1026,7 @@ object JsonSerializers {
     final val DEPRECATED_OUTPUTS = "outputs"
 
     //TODO
-    lazy val pluginDesc = ClassPluginDescription.create(classOf[LinkSpec])
+    private lazy val pluginDesc = ClassPluginDescription.create(classOf[LinkSpec])
 
     override def typeNames: Set[String] = Set(TASK_TYPE_LINKING)
 
