@@ -24,7 +24,7 @@ case class ClasspathResource(resourcePath: String) extends Resource {
     }
   }
 
-  val name: String = resourcePath.split(',').last
+  val name: String = resourcePath.split('/').last
 
   def exists: Boolean = {
     Option(getClass.getClassLoader.getResourceAsStream(resourcePath)).isDefined
