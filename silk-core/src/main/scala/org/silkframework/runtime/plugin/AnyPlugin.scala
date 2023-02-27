@@ -31,7 +31,9 @@ trait AnyPlugin {
    */
   @transient lazy val parameters: ParameterValues = pluginSpec.parameterValues(this)(Prefixes.empty)
 
-  //TODO store both in a single var?
+  /**
+    * Holds all templates. Set by ClassPluginDescription.
+    */
   @volatile
   var templateValues: Map[String, String] = Map.empty
 

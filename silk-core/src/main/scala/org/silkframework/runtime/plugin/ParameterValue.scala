@@ -34,6 +34,10 @@ case class ParameterTemplateValue(template: String) extends ParameterValue {
   */
 case class ParameterValues(values: Map[String, ParameterValue]) extends ParameterValue {
 
+  /**
+    * Converts the root parameter values to a string map.
+    * Nested values are ignored.
+    */
   def toStringMap: Map[String, String] = {
     values.collect {
       case (key, ParameterStringValue(value)) =>
@@ -43,21 +47,31 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
     }
   }
 
+  /**
+    * Returns the root templates as a string map.
+    * Nested templates are ignored.
+    */
   def templates: Map[String, String] = {
     values.collect { case (key, t: ParameterTemplateValue) => (key, t.template)}
   }
 
+  /**
+    * Only returns the nested templates.
+    */
   def filterTemplates: ParameterValues = {
     copy(values =
       values.collect {
         case (key, template: ParameterTemplateValue) =>
           (key, template)
         case (key, values: ParameterValues) =>
-          (key, values)
+          (key, values.filterTemplates)
       }
     )
   }
 
+  /**
+    * Merges this parameter values tree with another value tree.
+    */
   def merge(other: ParameterValues): ParameterValues = {
     val updatedValues =
       for((key, value) <- values) yield {

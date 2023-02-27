@@ -4,7 +4,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource._
 
@@ -76,11 +76,11 @@ case class CsvDataset (
   override def autoConfigured(implicit pluginContext: PluginContext): CsvDataset = {
     val source = csvSource(firstResource, ignoreMalformed = true)
     val autoConfig = source.autoConfigure()
-    this.copy(
-      separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,
-      charset = autoConfig.codecName,
-      linesToSkip = autoConfig.linesToSkip.getOrElse(linesToSkip)
-    )
+    this.withParameters(ParameterValues(Map(
+      "separator" -> ParameterStringValue(if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator),
+      "charset" -> ParameterStringValue(autoConfig.codecName),
+      "linesToSkip" -> ParameterStringValue(autoConfig.linesToSkip.getOrElse(linesToSkip).toString)
+    )))
   }
 
   override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
