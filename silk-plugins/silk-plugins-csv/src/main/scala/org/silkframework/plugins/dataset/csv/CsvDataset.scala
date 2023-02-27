@@ -4,7 +4,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource._
 
@@ -77,6 +77,7 @@ case class CsvDataset (
     val source = csvSource(firstResource, ignoreMalformed = true)
     val autoConfig = source.autoConfigure()
     this.withParameters(ParameterValues(Map(
+      "file" -> ParameterObjectValue(file),
       "separator" -> ParameterStringValue(if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator),
       "charset" -> ParameterStringValue(autoConfig.codecName),
       "linesToSkip" -> ParameterStringValue(autoConfig.linesToSkip.getOrElse(linesToSkip).toString)

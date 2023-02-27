@@ -74,7 +74,18 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
     for (parameter <- parameters) yield {
       parameterValues.values.get(parameter.name) match {
         case Some(value) =>
-          parseParameter(parameter, value)
+          try {
+            parameter.parameterType match {
+              case stringParam: StringParameterType[_] =>
+                parseStringParameter(stringParam, value)
+              case objParam: PluginObjectParameterTypeTrait =>
+                parseObjectParameter(objParam, value)
+            }
+          } catch {
+            case NonFatal(ex) =>
+              throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. " +
+                s"Value must be a valid " + parameter.parameterType + ". Details: " + ex.getMessage, ex)
+          }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
         case None =>
@@ -83,39 +94,34 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
     }
   }
 
-  private def parseParameter(parameter: PluginParameter, value: ParameterValue)
-                            (implicit context: PluginContext): AnyRef = {
-    try {
-      parameter.parameterType match {
-        case stringParam: StringParameterType[_] =>
-          value match {
-            case ParameterStringValue(strValue) =>
-              stringParam.fromString(strValue).asInstanceOf[AnyRef]
-            case template: ParameterTemplateValue =>
-              stringParam.fromString(template.evaluate()).asInstanceOf[AnyRef]
-            case _ =>
-              throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
-          }
-        case objParam: PluginObjectParameterTypeTrait =>
-          value match {
-            case ParameterObjectValue(obj) =>
-              obj
-            case values: ParameterValues =>
-              objParam.pluginDescription match {
-                case Some(pluginDesc: PluginDescription[_]) =>
-                  pluginDesc(values).asInstanceOf[AnyRef]
-                case _ =>
-                  throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
-              }
-            case _ =>
-              throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
-          }
+  private def parseStringParameter(stringParam: StringParameterType[_], value: ParameterValue)
+                                  (implicit context: PluginContext): AnyRef = {
+    value match {
+      case ParameterStringValue(strValue) =>
+        stringParam.fromString(strValue).asInstanceOf[AnyRef]
+      case template: ParameterTemplateValue =>
+        stringParam.fromString(template.evaluate()).asInstanceOf[AnyRef]
+      case ParameterObjectValue(objValue) =>
+        objValue
+      case _ =>
+        throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
+    }
+  }
 
-      }
-    } catch {
-      case NonFatal(ex) =>
-        throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. " +
-          s"Value must be a valid " + parameter.parameterType + ". Details: " + ex.getMessage, ex)
+  private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue)
+                                  (implicit context: PluginContext): AnyRef = {
+    value match {
+      case ParameterObjectValue(obj) =>
+        obj
+      case values: ParameterValues =>
+        objParam.pluginDescription match {
+          case Some(pluginDesc: PluginDescription[_]) =>
+            pluginDesc(values).asInstanceOf[AnyRef]
+          case _ =>
+            throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
+        }
+      case _ =>
+        throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
     }
   }
 
