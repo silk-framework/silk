@@ -89,13 +89,13 @@ object PluginSerializers {
   class PluginJsonFormat[T <: AnyPlugin : ClassTag](pluginDesc: Option[PluginDescription[T]] = None) extends JsonFormat[T] {
 
     def read(value: JsValue, extraParameters: ParameterValues)(implicit readContext: ReadContext): T = {
-      val id = (value \ TYPE).as[JsString].value
       val params = ParameterValuesJsonFormat.read(value) merge extraParameters
 
       pluginDesc match {
         case Some(plugin) =>
           plugin(params)
         case None =>
+          val id = (value \ TYPE).as[JsString].value
           PluginRegistry.create[T](id, params)
       }
     }
