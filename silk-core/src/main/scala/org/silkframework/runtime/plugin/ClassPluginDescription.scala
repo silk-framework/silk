@@ -105,7 +105,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
                 case Some(pluginDesc: PluginDescription[_]) =>
                   pluginDesc(values).asInstanceOf[AnyRef]
                 case _ =>
-                  throw new IllegalArgumentException(s"No plugin description available.")
+                  throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
               }
             case _ =>
               throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
