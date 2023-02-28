@@ -113,26 +113,26 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     dsA1.get.followingNodes.find(_.nodeId == TRANSFORM_1).get.precedingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
   }
 
-  it should "resolve variable datasets correctly" in {
+  it should "resolve replaceable datasets correctly" in {
     testWorkflow.copy(
-      variableInputs = Seq(),
-      variableOutputs = Seq()
+      replaceableInputs = Seq(),
+      replaceableOutputs = Seq()
     ).markedVariableDatasets() mustBe AllVariableDatasets(Seq(), Seq())
     intercept[IllegalArgumentException] {
       testWorkflow.copy(
-        variableInputs = Seq(),
-        variableOutputs = Seq(DS_B)
+        replaceableInputs = Seq(),
+        replaceableOutputs = Seq(DS_B)
       ).markedVariableDatasets()
     }
     intercept[IllegalArgumentException] {
       testWorkflow.copy(
-        variableInputs = Seq(DS_B),
-        variableOutputs = Seq()
+        replaceableInputs = Seq(DS_B),
+        replaceableOutputs = Seq()
       ).markedVariableDatasets()
     }
     testWorkflow.copy(
-      variableInputs = Seq(DS_A1),
-      variableOutputs = Seq(OUTPUT)
+      replaceableInputs = Seq(DS_A1),
+      replaceableOutputs = Seq(OUTPUT)
     ).markedVariableDatasets() mustBe AllVariableDatasets(Seq(DS_A1), Seq(OUTPUT))
   }
 }

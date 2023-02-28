@@ -227,8 +227,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
           ),
-          variableInputs = Seq(DATASET_ID),
-          variableOutputs = Seq(OUTPUTS_DATASET_ID)
+          replaceableInputs = Seq(DATASET_ID),
+          replaceableOutputs = Seq(OUTPUTS_DATASET_ID)
         ),
       metaData = metaData
     )

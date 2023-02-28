@@ -87,8 +87,8 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
   "Workflows" should "serialize to and from JSON" in {
     val workflow = testWorkflow.copy(
-      variableInputs = Seq(DS_A1),
-      variableOutputs = Seq(OUTPUT)
+      replaceableInputs = Seq(DS_A1),
+      replaceableOutputs = Seq(OUTPUT)
     )
     testSerialization(workflow)
   }

@@ -20,7 +20,7 @@ class PluginSerializersTest extends FlatSpec with MustMatchers {
     stringValue(js, "type") mustBe "object"
     stringValue(js, TASKTYPE) mustBe "W"
     val properties = objectValue(js, PROPERTIES)
-    properties.keys mustBe Set("operators", "datasets", "uiAnnotations", "variableInputs", "variableOutputs")
+    properties.keys mustBe Set("operators", "datasets", "uiAnnotations", "replaceableInputs", "replaceableOutputs")
     mustBeJsObject(properties.value("operators")) { operatorsParam =>
       stringValue(operatorsParam, "type") mustBe "object"
       arrayValueOption(operatorsParam, "value") mustBe Some(JsArray())

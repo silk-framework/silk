@@ -226,8 +226,8 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
         WorkflowDataset(Seq(transformTask), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty)
       ),
       uiAnnotations = UiAnnotations(),
-      variableInputs = Seq(inputDataset),
-      variableOutputs = Seq(outputDataset)
+      replaceableInputs = Seq(inputDataset),
+      replaceableOutputs = Seq(outputDataset)
     )
     val workflowId = "newWorkflow"
     project.addTask[Workflow](workflowId, workflow)
