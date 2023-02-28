@@ -153,14 +153,18 @@ object WorkflowOutput {
       variableSinkResultJson(value.resourceManager, sink2ResourceMap)
     }
 
+    /** Result content for a replaceable dataset sink. */
+    case class WorkflowOutputSinkContent(sinkId: String, textContent: String)
+
+    object WorkflowOutputSinkContent {
+      implicit val workflowOutputSinkContentFormat: Format[WorkflowOutputSinkContent] = Json.format[WorkflowOutputSinkContent]
+    }
+
     private def variableSinkResultJson(resourceManager: ResourceManager, sink2ResourceMap: Map[String, String]) = {
       JsArray(
         for ((sinkId, resourceId) <- sink2ResourceMap.toSeq if resourceManager.exists(resourceId)) yield {
           val resource = resourceManager.get(resourceId, mustExist = true)
-          JsObject(Seq(
-            "sinkId" -> JsString(sinkId),
-            "textContent" -> JsString(resource.loadAsString())
-          ))
+          Json.toJson(WorkflowOutputSinkContent(sinkId, resource.loadAsString()))
         }
       )
     }
