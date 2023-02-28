@@ -61,6 +61,8 @@ object PluginSerializers {
         params.values.collect {
           case (key, ParameterStringValue(strValue)) =>
             (key, JsString(strValue))
+          case (key, template: ParameterTemplateValue) =>
+            (key, JsString(template.evaluate()))
           case (key, ParameterObjectValue(objValue)) =>
             (key, Serialization.formatForDynamicType[JsValue](objValue.getClass).write(objValue))
           case (key, values: ParameterValues) =>
