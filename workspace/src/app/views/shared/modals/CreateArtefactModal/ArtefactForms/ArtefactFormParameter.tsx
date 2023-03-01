@@ -262,7 +262,7 @@ const TemplateInputComponent = memo(
                             end: errorPosition + 2,
                             message: validationResult.parseError!.message,
                         };
-                        errorMessage = t("ArtefactFormParameter.invalidTemplate");
+                        errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
                     }
                 }
             }
