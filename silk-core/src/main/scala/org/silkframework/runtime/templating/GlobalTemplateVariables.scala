@@ -2,8 +2,8 @@ package org.silkframework.runtime.templating
 
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
-import scala.collection.JavaConverters.asScalaSetConverter
 import java.io.StringWriter
+import scala.collection.JavaConverters.{asScalaSetConverter, mapAsJavaMapConverter}
 
 /**
   * Global template variables, which are defined in the configuration.
@@ -11,6 +11,8 @@ import java.io.StringWriter
 object GlobalTemplateVariables {
 
   private final val configNamespace: String = "config.variables"
+
+  private final val globalScope = "global"
 
   private val engine: ConfigValue[TemplateEngine] = (config: Config) => {
     val engineConfigVar = configNamespace + ".engine"
@@ -39,10 +41,15 @@ object GlobalTemplateVariables {
     **/
   def resolveTemplateValue(value: String): String = {
     val writer = new StringWriter()
-    engine().compile(value).evaluate(templateVariables().map, writer)
+    engine().compile(value).evaluate(Map(globalScope -> templateVariables().map.asJava), writer)
     writer.toString
   }
 
-  def variableNames: Seq[String] = templateVariables().map.keys.toSeq.sorted
-  def variableMap: Map[String, String] = templateVariables().map
+  def variableNames: Seq[String] = variableMap.keys.toSeq.sorted
+
+  def variableMap: Map[String, String] = {
+    for((key, value) <- templateVariables().map) yield {
+      (globalScope + "." + key, value)
+    }
+  }
 }
