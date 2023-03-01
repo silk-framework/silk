@@ -1,16 +1,7 @@
-import React, { memo, MouseEventHandler } from "react";
-import { Parameter } from "@carbon/icons-react";
-import {
-    AutoSuggestion,
-    FieldItem,
-    IconButton,
-    Spacing,
-    TestIcon,
-    Toolbar,
-    ToolbarSection,
-} from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
-import { ExtendedParameterCallbacks } from "./ParameterWidget";
+import React, {memo, MouseEventHandler} from "react";
+import {AutoSuggestion, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection,} from "@eccenca/gui-elements";
+import {useTranslation} from "react-i18next";
+import {ExtendedParameterCallbacks} from "./ParameterWidget";
 import {
     requestAutoCompleteTemplateString,
     requestValidateTemplateString,
@@ -22,7 +13,7 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
-import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import {IValidationResult} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 interface Props {
     // ID of the parameter
@@ -211,7 +202,7 @@ export const ArtefactFormParameter = ({
                                     ? t("ArtefactFormParameter.switchToValue")
                                     : t("ArtefactFormParameter.switchToTemplate")
                             }
-                            name={<TestIcon tryout={Parameter} />}
+                            name={"template-parameter"}
                             data-test-id={`${parameterId}-template-switch-${
                                 showVariableTemplateInput ? "back" : "to"
                             }-btn`}
