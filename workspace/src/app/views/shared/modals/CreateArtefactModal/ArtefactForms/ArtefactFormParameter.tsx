@@ -100,7 +100,7 @@ export const ArtefactFormParameter = ({
     }>({
         // Input value needs to be undefined, so it gets set to the default value
         currentInputValue: startWithTemplateView ? stringDefaultValue : initialValue,
-        currentTemplateValue: startWithTemplateView ? initialValue ?? "" : "",
+        currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
     const switchShowVariableTemplateInput = React.useCallback(() => {
@@ -177,7 +177,7 @@ export const ArtefactFormParameter = ({
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             parameterId={parameterId}
-                            initialValue={valueState.current.templateValueBeforeSwitch ?? initialValue ?? ""}
+                            initialValue={valueState.current.templateValueBeforeSwitch ?? valueState.current.inputValueBeforeSwitch ?? initialValue ?? ""}
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
