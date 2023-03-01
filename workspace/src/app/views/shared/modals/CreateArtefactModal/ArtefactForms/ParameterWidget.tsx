@@ -202,6 +202,12 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         const isTemplateParameter = parameterCallbacks.initialTemplateFlag(formParamId);
+        const initialValue = autoCompletion
+            ? initialValues[formParamId]
+                ? initialValues[formParamId].value
+                : defaultValueAsJs(propertyDetails, true)
+            : initialValues[formParamId]?.value ??
+            optionallyLabelledParameterToValue(propertyDetails.value)
         return (
             <ArtefactFormParameter
                 label={title}
@@ -215,17 +221,12 @@ export const ParameterWidget = (props: IProps) => {
                     startWithTemplateView: isTemplateParameter,
                     showTemplatePreview: taskParameter.param.parameterType !== INPUT_TYPES.PASSWORD,
                     parameterCallbacks,
-                    initialValue: autoCompletion
-                        ? initialValues[formParamId]
-                            ? initialValues[formParamId].value
-                            : defaultValueAsJs(propertyDetails, true)
-                        : initialValues[formParamId]?.value ??
-                          optionallyLabelledParameterToValue(propertyDetails.value),
+                    initialValue,
                     defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
                 inputElementFactory={(initialValueReplace, onChange) => {
                     if (autoCompletion) {
-                        const initialValue = initialValueReplace ? initialValueReplace : undefined;
+                        const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
                         return (
                             <ParameterAutoCompletion
                                 projectId={projectId}
@@ -235,7 +236,7 @@ export const ParameterWidget = (props: IProps) => {
                                     onChange ? onChange(value.value) : changeHandlers[formParamId](value.value)
                                 }
                                 initialValue={
-                                    initialValue ||
+                                    currentInitialValue ||
                                     // Only set initial value when this was not a template value
                                     (initialValues[formParamId] && !isTemplateParameter
                                         ? initialValues[formParamId]
@@ -250,17 +251,16 @@ export const ParameterWidget = (props: IProps) => {
                             />
                         );
                     } else {
+                        const initialParameterValue: string = initialValueReplace ??
+                            // Only set initial value when this was not a template value
+                            (!isTemplateParameter ? initialValues[formParamId]?.value : undefined)
                         return (
                             <InputMapper
                                 projectId={projectId}
                                 parameter={{ paramId: formParamId, param: propertyDetails }}
                                 intent={errors ? Intent.DANGER : Intent.NONE}
                                 onChange={onChange ?? changeHandlers[formParamId]}
-                                initialParameterValue={
-                                    initialValueReplace ??
-                                    // Only set initial value when this was not a template value
-                                    (!isTemplateParameter ? initialValues[formParamId]?.value : undefined)
-                                }
+                                initialParameterValue={initialParameterValue}
                                 required={required}
                                 parameterCallbacks={parameterCallbacks}
                             />

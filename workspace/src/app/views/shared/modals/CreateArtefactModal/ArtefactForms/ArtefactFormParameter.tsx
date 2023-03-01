@@ -18,6 +18,7 @@ import {
 } from "../CreateArtefactModal.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import {
+    LabelledParameterValue,
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
@@ -89,6 +90,13 @@ export const ArtefactFormParameter = ({
     if (initialValue != null && (initialValue as OptionallyLabelledParameter<any>)?.value != null) {
         initialValue = `${(initialValue as OptionallyLabelledParameter<any>).value}`;
     }
+    const stringDefaultValue: string | LabelledParameterValue<any> | undefined = typeof supportVariableTemplateElement?.defaultValue === "object" ?
+        // The auto-completion values should be kept as is
+        supportVariableTemplateElement?.defaultValue :
+        supportVariableTemplateElement?.defaultValue != null ?
+            // Other defaults should be converted to string
+            `${supportVariableTemplateElement?.defaultValue}` :
+            undefined
     const valueState = React.useRef<{
         // The most recent value of the input component
         currentInputValue?: string;
@@ -100,7 +108,7 @@ export const ArtefactFormParameter = ({
         templateValueBeforeSwitch?: string;
     }>({
         // Input value needs to be undefined, so it gets set to the default value
-        currentInputValue: startWithTemplateView ? supportVariableTemplateElement?.defaultValue : initialValue,
+        currentInputValue: startWithTemplateView ? stringDefaultValue : initialValue,
         currentTemplateValue: startWithTemplateView ? initialValue ?? "" : "",
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
@@ -134,7 +142,7 @@ export const ArtefactFormParameter = ({
 
     const onElementValueChange = React.useCallback(
         (valueOrEvent: any) => {
-            const value = valueOrEvent.target ? valueOrEvent.target.value : `${valueOrEvent}`;
+            const value = valueOrEvent.target ? `${valueOrEvent.target.value}` : `${valueOrEvent}`;
             valueState.current.currentInputValue = value;
             supportVariableTemplateElement?.onChange(value);
         },

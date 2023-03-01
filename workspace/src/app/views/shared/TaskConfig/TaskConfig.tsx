@@ -6,7 +6,7 @@ import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
-import { IProjectTask } from "@ducks/shared/typings";
+import {IProjectTask, TemplateValueType} from "@ducks/shared/typings";
 import { IPluginDetails } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
@@ -53,6 +53,7 @@ export function TaskConfig(props: IProps) {
             // Config dialog is always opened with fresh data
             const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
             const taskPluginDetails = await artefactProperties(taskData.data.type);
+            const templates: TemplateValueType = taskData.data.templates ?? {}
             dispatch(
                 commonOp.updateProjectTask({
                     projectId: taskData.project,
@@ -66,7 +67,7 @@ export function TaskConfig(props: IProps) {
                                   uriProperty: taskData.data.uriProperty,
                               }
                             : undefined,
-                    currentTemplateValues: taskData.data.templates ?? {},
+                    currentTemplateValues: templates,
                 })
             );
         } catch (e) {
