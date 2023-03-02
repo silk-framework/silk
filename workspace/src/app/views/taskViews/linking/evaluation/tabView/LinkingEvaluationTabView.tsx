@@ -23,9 +23,9 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import React from "react";
-import {useTranslation} from "react-i18next";
-import {TaskActivityWidget} from "../../../../../views/shared/TaskActivityWidget/TaskActivityWidget";
-import {getEvaluatedLinks, getLinkRuleInputPaths, updateReferenceLink,} from "./LinkingEvaluationViewUtils";
+import { useTranslation } from "react-i18next";
+import { TaskActivityWidget } from "../../../../shared/TaskActivityWidget/TaskActivityWidget";
+import { getEvaluatedLinks, getLinkRuleInputPaths, updateReferenceLink } from "./LinkingEvaluationViewUtils";
 import {
     EvaluationLinkInputValue,
     LinkEvaluationFilters,
@@ -36,17 +36,16 @@ import {
     ReferenceLinkType,
 } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
-import {IAggregationOperator, IComparisonOperator} from "../../linking.types";
-import {EvaluationResultType} from "../LinkingRuleEvaluation";
-import {requestRuleOperatorPluginDetails} from "@ducks/common/requests";
-import {IPluginDetails} from "@ducks/common/typings";
-import {debounce} from "lodash";
-import {workspaceSel} from "@ducks/workspace";
-import {useSelector} from "react-redux";
-import {usePagination} from "@eccenca/gui-elements/src/components/Pagination/Pagination";
-import {useFirstRender} from "../../../../../hooks/useFirstRender";
-import {DataTableCustomRenderProps} from "carbon-components-react";
-import {LinkingEvaluationRow} from "./LinkingEvaluationRow";
+import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
+import { EvaluationResultType } from "../LinkingRuleEvaluation";
+import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { IPluginDetails } from "@ducks/common/typings";
+import { workspaceSel } from "@ducks/workspace";
+import { useSelector } from "react-redux";
+import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
+import { useFirstRender } from "../../../../../hooks/useFirstRender";
+import { DataTableCustomRenderProps } from "carbon-components-react";
+import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -59,9 +58,9 @@ const sortDirectionMapping = {
     DESC: "NONE",
 } as const;
 
-type LinkingEvaluationResultWithId = LinkingEvaluationResult & {id: string}
+type LinkingEvaluationResultWithId = LinkingEvaluationResult & { id: string };
 
-const pageSizes = [10, 20, 50]
+const pageSizes = [10, 20, 50];
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
@@ -81,6 +80,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         IActivityStatus["concreteStatus"] | undefined
     >();
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
+    const searchState = React.useRef<{ currentSearchId?: number }>({});
     const [searchQuery, setSearchQuery] = React.useState<string>("");
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
@@ -117,38 +117,28 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )?.data;
             evaluationResults.current = results;
             linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
-            // TODO: Is this really needed anymore?
-            // setInputValuesExpansion(
-            //     () => new Map(results?.links.map((_, idx) => [idx, { expanded: showInputValues, precinct: true }]))
-            // );
-            // setOperatorsExpansion(
-            //     () => new Map(results?.links.map((_, idx) => [idx, { expanded: showOperators, precinct: true }]))
-            // );
         } catch (err) {
         } finally {
             setLoading(false);
         }
     }, []);
 
-    const debouncedSearchUtil = React.useCallback(
-        debounce(async (searchQuery: string) => {
-            await getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
-        }, 500),
-        []
-    );
+    const debouncedSearch = React.useCallback((query: string) => {
+        if (searchState.current.currentSearchId != null) {
+            clearTimeout(searchState.current.currentSearchId);
+        }
+        searchState.current.currentSearchId = window.setTimeout(() => {
+            setSearchQuery(query);
+        }, 500);
+    }, []);
 
     React.useEffect(() => {
-        let shouldCancel = false;
-        if (!shouldCancel && hasRenderedBefore) {
-            debouncedSearchUtil(searchQuery);
+        if (hasRenderedBefore) {
+            getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
         }
-
-        return () => {
-            shouldCancel = true;
-        };
     }, [searchQuery]);
 
-    const sortString = linkSortBy.join(",")
+    const sortString = linkSortBy.join(",");
 
     //initial loads of links
     React.useEffect(() => {
@@ -160,30 +150,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             shouldCancel = true;
         };
     }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, sortString]);
-
-    // TODO: Do we need this behavior?
-    // const handleAlwaysExpandSwitch = React.useCallback(
-    //     (inputSwitch: "operator" | "inputValue") => {
-    //         if (evaluationResults.current?.links.length) {
-    //             //if expansion buttons have been triggered by user, maintain user's update while changing the default of the rest.
-    //             const newUpdate = (prev) =>
-    //                 new Map(
-    //                     evaluationResults.current?.links.map((_: any, idx: number) => {
-    //                         const { precinct, expanded } = prev.get(idx);
-    //                         return [
-    //                             idx,
-    //                             {
-    //                                 expanded: precinct ? !expanded : expanded,
-    //                                 precinct: precinct ?? true,
-    //                             },
-    //                         ];
-    //                     })
-    //                 );
-    //             inputSwitch === "inputValue" ? setInputValuesExpansion(newUpdate) : setOperatorsExpansion(newUpdate);
-    //         }
-    //     },
-    //     [showOperators, showInputValues, evaluationResults]
-    // );
 
     React.useEffect(() => {
         if (
@@ -267,27 +233,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     ];
 
     const rowData: LinkingEvaluationResultWithId[] = React.useMemo(() => {
-            return evaluationResults.current?.links.map((evaluation, i) => ({...evaluation, id: `${i}`})) ?? []
-        },
-        [evaluationResults.current]
-    );
+        return evaluationResults.current?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
+    }, [evaluationResults.current]);
 
     const handleRowExpansion = React.useCallback(
         (rowId?: number) => {
             setExpandedRows((prevExpandedRows) => {
                 if (typeof rowId !== "undefined" && prevExpandedRows.has(rowId)) {
                     prevExpandedRows.delete(rowId);
-                    //when universal expansion btn is pressed,
-                    //modify input and operator list behavior
-                    // TODO: Is this really needed?
-                    // handleNodeExpand(rowId, showOperators, true);
-                    // setInputValuesExpansion((prevInputExpansion) => {
-                    //     prevInputExpansion.set(rowId, {
-                    //         expanded: showInputValues,
-                    //         precinct: true,
-                    //     });
-                    //     return new Map(prevInputExpansion);
-                    // });
                     return new Map([...prevExpandedRows]);
                 } else if (typeof rowId !== "undefined") {
                     //provided row id doesn't exist in record
@@ -318,9 +271,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     //update one
                     evaluationResults.current.links[index].decision = linkType;
                 }
-                return true
+                return true;
             } catch (err) {
-                return false
+                return false;
             }
         },
         []
@@ -340,12 +293,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const handleRowSorting = React.useCallback(
         (key: typeof headerData[number]["key"]) => {
             const sortDirection = tableSortDirection.get(key)!;
-            const sortBy = sortDirectionMapping[sortDirection] === "NONE"
-                ? []
-                : [LinkEvaluationSortByObj[sortDirectionMapping[sortDirection]][key]]
+            const sortBy =
+                sortDirectionMapping[sortDirection] === "NONE"
+                    ? []
+                    : [LinkEvaluationSortByObj[sortDirectionMapping[sortDirection]][key]];
             setLinkSortBy(sortBy);
             setTableSortDirection((prev) => {
-                const newMap = new Map<string, "ASC" | "DESC" | "NONE">([...prev])
+                const newMap = new Map<string, "ASC" | "DESC" | "NONE">([...prev]);
                 newMap.set(key, sortDirectionMapping[sortDirection]);
                 return newMap;
             });
@@ -367,7 +321,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             );
         }
 
-        if(taskEvaluationStatus === "Waiting" || taskEvaluationStatus === "Running") {
+        if (taskEvaluationStatus === "Waiting" || taskEvaluationStatus === "Running") {
             // evaluation is still running
             return (
                 <Notification data-test-id="notification-missing-execution">
@@ -418,8 +372,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     }, []);
 
     const registerForTaskUpdates = React.useCallback((status: IActivityStatus) => {
-        if(status.concreteStatus !== "Successful") {
-            setLoading(false)
+        if (status.concreteStatus !== "Successful") {
+            setLoading(false);
         }
         setTaskEvaluationStatus(status.concreteStatus);
     }, []);
@@ -500,8 +454,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             </Toolbar>
             <Divider addSpacing="medium" />
             <SearchField
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => debouncedSearch(e.target.value)}
                 onClearanceHandler={() => setSearchQuery("")}
             />
             <Spacing size="small" />
@@ -579,22 +532,24 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         {(evaluationResults.current && evaluationResults.current.links.length && !loading && (
                             <TableBody>
                                 {rowData.map((row, rowIdx) => {
-                                    return <LinkingEvaluationRow
-                                        colSpan={headers.length + 2}
-                                        rowIdx={rowIdx}
-                                        inputValues={inputValues[rowIdx]}
-                                        linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
-                                        rowIsExpanded={expandedRows.has(rowIdx)}
-                                        handleReferenceLinkTypeUpdate={handleReferenceLinkTypeUpdate}
-                                        searchQuery={searchQuery}
-                                        // carbonRowProps={getRowProps({ row })} // TODO: What is this needed for? This leads to unnecessary re-renders even though it didn't change
-                                        handleRowExpansion={handleRowExpansion}
-                                        linkRuleOperatorTree={evaluationResults.current?.linkRule.operator}
-                                        inputValuesExpandedByDefault={showInputValues}
-                                        operatorTreeExpandedByDefault={showOperators}
-                                        evaluationMap={linksToValueMap.current[rowIdx]}
-                                        operatorPlugins={operatorPlugins}
-                                    />;
+                                    return (
+                                        <LinkingEvaluationRow
+                                            colSpan={headers.length + 2}
+                                            rowIdx={rowIdx}
+                                            inputValues={inputValues[rowIdx]}
+                                            linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
+                                            rowIsExpanded={expandedRows.has(rowIdx)}
+                                            handleReferenceLinkTypeUpdate={handleReferenceLinkTypeUpdate}
+                                            searchQuery={searchQuery}
+                                            // carbonRowProps={getRowProps({ row })} // TODO: What is this needed for? This leads to unnecessary re-renders even though it didn't change
+                                            handleRowExpansion={handleRowExpansion}
+                                            linkRuleOperatorTree={evaluationResults.current?.linkRule.operator}
+                                            inputValuesExpandedByDefault={showInputValues}
+                                            operatorTreeExpandedByDefault={showOperators}
+                                            evaluationMap={linksToValueMap.current[rowIdx]}
+                                            operatorPlugins={operatorPlugins}
+                                        />
+                                    );
                                 })}
                             </TableBody>
                         )) ||
