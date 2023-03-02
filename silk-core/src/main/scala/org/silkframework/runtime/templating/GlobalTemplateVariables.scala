@@ -14,8 +14,14 @@ object GlobalTemplateVariables {
 
   private final val configNamespace: String = "config.variables"
 
+  /**
+    * Global template variables are nested under this name.
+    */
   final val globalScope = "global"
 
+  /**
+    * The configured template engine.
+    */
   private val engine: ConfigValue[TemplateEngine] = (config: Config) => {
     val engineConfigVar = configNamespace + ".engine"
     if(config.hasPath(engineConfigVar)) {
@@ -25,6 +31,9 @@ object GlobalTemplateVariables {
     }
   }
 
+  /**
+    * The configured global template variables.
+    */
   private val templateVariables: ConfigValue[TemplateVariables] = (config: Config) => {
     val variablesConfigVar = configNamespace + ".global"
     if(config.hasPath(variablesConfigVar)) {
@@ -43,17 +52,18 @@ object GlobalTemplateVariables {
     **/
   def resolveTemplateValue(value: String): String = {
     val writer = new StringWriter()
-    engine().compile(value).evaluate(variableMapNested, writer)
+    engine().compile(value).evaluate(variableMap, writer)
     writer.toString
   }
 
-  def variableMapNested: Map[String, util.Map[String, String]] = Map(globalScope -> templateVariables().map.asJava)
-
+  /**
+    * Lists all available variable names.
+    */
   def variableNames: Seq[String] = variableMap.keys.toSeq.sorted
 
-  def variableMap: Map[String, String] = {
-    for((key, value) <- templateVariables().map) yield {
-      (globalScope + "." + key, value)
-    }
-  }
+  /**
+    * Returns variables as a map to be used in template evaluation.
+    */
+  def variableMap: Map[String, util.Map[String, String]] = Map(globalScope -> templateVariables().map.asJava)
+
 }
