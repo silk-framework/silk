@@ -209,6 +209,10 @@ object LinkingTaskApiDoc {
         "overallLinkCount": 100,
         "filteredLinkCount": 42
     },
+    "metaData": {
+        "sourceInputLabel": "Dataset A",
+        "targetInputLabel": "Transform task B"
+    },
     "links": [
         {
             "source": "http://dbpedia.org/resource/The_Score_%28film%29",

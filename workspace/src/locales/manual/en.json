@@ -375,8 +375,8 @@
     },
     "linkingEvaluationTabView": {
         "toolbar": {
-            "toggleExampleValues": "input values by default",
-            "toggleOperatorsTree": "operator tree by default",
+            "toggleExampleValues": "Value table expanded by default",
+            "toggleOperatorsTree": "Operator tree expanded by default",
             "statsHeadSources": "Sources",
             "statsHeadTargets": "Targets",
             "statsHeadLinkCount": "Links",

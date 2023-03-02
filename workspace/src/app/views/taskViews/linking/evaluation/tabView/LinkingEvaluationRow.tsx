@@ -265,7 +265,7 @@ export const LinkingEvaluationRow = React.memo(
             input: any,
             tree: TreeNodeInfo,
             index: number,
-            tagInputTag: string,
+            tagInputTag: "Source path" | "Target path",
             parentTree: TreeNodeInfo,
             isSourceEntity = false
         ): TreeNodeInfo => {

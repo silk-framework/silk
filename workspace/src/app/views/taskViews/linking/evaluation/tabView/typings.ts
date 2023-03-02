@@ -90,6 +90,10 @@ export interface LinkRuleEvaluationResult {
     linkRule: ILinkingRule;
     evaluationActivityStats: EvaluationActivityStats;
     resultStats: LinkRuleEvaluationResultStats;
+    metaData: {
+        sourceInputLabel: string;
+        targetInputLabel: string;
+    };
 }
 
 /**

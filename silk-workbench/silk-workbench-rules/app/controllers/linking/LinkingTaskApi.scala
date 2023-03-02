@@ -1084,10 +1084,22 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         }
         val resultStats = ResultStats(overallLinkCount, links.size)
         links = links.slice(offset, offset + limit)
-        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache, resultStats)
+        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache, resultStats, inputTaskLabel(linkTask))
       case None =>
         throw NotFoundException("No evaluation results available.")
     }
+  }
+
+  /** Labels of the source and target input tasks. */
+  private def inputTaskLabel(linkingTask: ProjectTask[LinkSpec])
+                            (implicit userContext: UserContext): (String, String) = {
+    val project = linkingTask.project
+    val sourceId = linkingTask.data.source.inputId
+    val targetId = linkingTask.data.target.inputId
+    (
+      project.anyTaskOption(sourceId).map(_.fullLabel).getOrElse(sourceId),
+      project.anyTaskOption(targetId).map(_.fullLabel).getOrElse(targetId)
+    )
   }
 
   /**
@@ -1105,7 +1117,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                        linkingRule: LinkageRule,
                                        links: Seq[Link],
                                        referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType],
-                                       resultStats: ResultStats)
+                                       resultStats: ResultStats,
+                                       inputTaskLabels: (String, String))
                                       (implicit writeContext: WriteContext[JsValue]) = {
     def linkDecisionFromReferenceEntities(link: Link): LinkDecision = {
       referenceEntitiesCache.map(_.linkDecision(link)).getOrElse(LinkDecision.UNLABELED)
@@ -1119,7 +1132,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       "links" -> linkJson,
       "linkRule" -> JsonSerialization.toJson(linkingRule),
       "resultStats" -> Json.toJson(resultStats),
-      "evaluationActivityStats" -> linkEvaluationStats(evaluationResult)
+      "evaluationActivityStats" -> linkEvaluationStats(evaluationResult),
+      "metaData" -> Json.obj(
+        "sourceInputLabel" -> inputTaskLabels._1,
+        "targetInputLabel" -> inputTaskLabels._2
+      )
     ))
   }
 

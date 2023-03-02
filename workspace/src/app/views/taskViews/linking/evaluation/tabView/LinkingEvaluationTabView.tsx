@@ -44,8 +44,9 @@ import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { useFirstRender } from "../../../../../hooks/useFirstRender";
-import { DataTableCustomRenderProps } from "carbon-components-react";
+import { DataTableCustomRenderProps, DataTableHeader } from "carbon-components-react";
 import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
+import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -217,18 +218,38 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [linksToValueMap.current]);
 
-    const headerData = [
+    const headerData: DataTableHeader[] = [
         {
             key: "source",
-            header: t("linkingEvaluationTabView.table.header.source"),
+            header: (
+                <>
+                    {t("linkingEvaluationTabView.table.header.source")}:
+                    <Spacing vertical={true} size={"tiny"} />
+                    {evaluationResults.current?.metaData.sourceInputLabel && (
+                        <Tag backgroundColor={tagColor("Source path")} round={true}>
+                            {evaluationResults.current?.metaData.sourceInputLabel}
+                        </Tag>
+                    )}
+                </>
+            ),
         },
         {
             key: "target",
-            header: t("linkingEvaluationTabView.table.header.target"),
+            header: (
+                <>
+                    {t("linkingEvaluationTabView.table.header.target")}:
+                    <Spacing vertical={true} size={"tiny"} />
+                    {evaluationResults.current?.metaData.targetInputLabel && (
+                        <Tag backgroundColor={tagColor("Target path")} round={true}>
+                            {evaluationResults.current?.metaData.targetInputLabel}
+                        </Tag>
+                    )}
+                </>
+            ),
         },
         {
             key: "confidence",
-            header: t("linkingEvaluationTabView.table.header.score"),
+            header: t("linkingEvaluationTabView.table.header.score") as string,
         },
     ];
 
