@@ -6,6 +6,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -30,15 +31,15 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  override def refresh()(implicit userContext: UserContext): Unit = {
-    primaryWorkspace.refresh()
+  override def refresh(resources: ResourceRepository)(implicit userContext: UserContext): Unit = {
+    primaryWorkspace.refresh(resources)
 
     // Delete all projects from the secondary workspace provider and recommit them
     // We do this to avoid that both workspace providers get out of sync
     for(project <- secondaryWorkspace.readProjects()) {
       secondaryWorkspace.deleteProject(project.id)
     }
-    WorkspaceIO.copyProjects(primaryWorkspace, secondaryWorkspace, None, None)
+    WorkspaceIO.copyProjects(primaryWorkspace, secondaryWorkspace, Some(resources), Some(resources))
   }
 
   /**

@@ -51,7 +51,8 @@ object WorkspaceIO {
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[CustomTask](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    outputWorkspace.refresh()
+    //TODO is this really needed?
+    //outputWorkspace.refresh()
   }
 
   def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {

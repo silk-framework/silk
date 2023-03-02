@@ -5,9 +5,9 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, Instant, ZoneOffset}
-
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
@@ -62,8 +62,9 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
   }
 
-  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit = synchronized {
-    implicit val wc = WriteContext.empty[JsValue]
+  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport])
+                        (implicit pluginContext: PluginContext): Unit = synchronized {
+    implicit val wc = WriteContext.fromPluginContext[JsValue]()
     val reportJson = reportJsonFormat.write(report)
 
     removeOldReports(retentionTime)

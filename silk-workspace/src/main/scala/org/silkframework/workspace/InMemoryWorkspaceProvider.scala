@@ -7,6 +7,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag
 
@@ -122,7 +123,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * No refresh needed.
     */
-  override def refresh()(implicit userContext: UserContext): Unit = {}
+  override def refresh(resources: ResourceRepository)(implicit userContext: UserContext): Unit = {}
 
   protected class InMemoryProject(@volatile var config: ProjectConfig) {
 

@@ -33,7 +33,8 @@ trait ExecutionReportManager extends AnyPlugin {
   /**
     * Adds a new report.
     */
-  def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit
+  def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport])
+               (implicit pluginContext: PluginContext): Unit
 
   /**
     * Removes a report.

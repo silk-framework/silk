@@ -213,7 +213,7 @@ object Resource {
       throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
     }
     if(resource.path.startsWith(basePath)) {
-      resource.path.stripPrefix(basePath).stripPrefix("/")
+      resource.path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
     } else {
       resource.name
     }

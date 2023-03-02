@@ -9,6 +9,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSe
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{LoadedTask, ProjectConfig, WorkspaceProvider}
 
 import java.util.logging.{Level, Logger}
@@ -183,7 +184,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  override def refresh()(implicit userContext: UserContext): Unit = {
+  override def refresh(resources: ResourceRepository)(implicit userContext: UserContext): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
   }

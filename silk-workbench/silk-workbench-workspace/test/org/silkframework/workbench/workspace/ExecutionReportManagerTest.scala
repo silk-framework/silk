@@ -4,6 +4,8 @@ import java.time.Duration
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
@@ -18,6 +20,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
   private val taskId = "4150f4a9-4104-4681-90f5-9fc64d4ecce0_workflow"
   private val testReport = loadReport("workflowReport.json")
   private val testReportResult = ActivityExecutionResult(ActivityExecutionMetaData(), Some(testReport))
+  private implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
 
   protected def withReportManager(retentionTime: Duration = ExecutionReportManager.DEFAULT_RETENTION_TIME)(f: ExecutionReportManager => Unit): Unit
 
@@ -56,6 +59,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
   private def loadReport(name: String): ExecutionReport = {
     val inputStream = getClass.getResourceAsStream(name)
     try {
+      //TODO should probably be built based on the plugin context
       implicit val rc: ReadContext = ReadContext()
       ExecutionReportSerializers.ExecutionReportJsonFormat.read(Json.parse(inputStream))
     } finally {

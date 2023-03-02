@@ -5,6 +5,7 @@ import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -104,7 +105,7 @@ trait WorkspaceProvider {
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  def refresh()(implicit userContext: UserContext): Unit
+  def refresh(projectResources: ResourceRepository)(implicit userContext: UserContext): Unit
 
   /** Fetches registered prefix definitions, e.g. from known voabularies. */
   def fetchRegisteredPrefixes()(implicit userContext: UserContext): Prefixes = {

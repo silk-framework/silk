@@ -490,7 +490,7 @@ object SearchApiModel {
                        typedTask: TypedTasks)(implicit userContext: UserContext): JsObject = {
       val pd = PluginDescription.forTask(task)
       val parameters = if(addParameters) {
-        implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+        implicit val writeContext: WriteContext[JsValue] = WriteContext.forProject(task.project)
         val jsonValue = TaskSpecJsonFormat.write(task.data)
         Seq(PARAMETERS -> (jsonValue \ "parameters").as[JsObject])
       } else {
