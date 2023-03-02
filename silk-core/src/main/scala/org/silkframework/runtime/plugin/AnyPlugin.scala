@@ -14,7 +14,6 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.{EmptyResourceManager, FallbackResourceManager, ResourceManager}
 
 /**
@@ -27,14 +26,14 @@ trait AnyPlugin {
    */
   @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = ClassPluginDescription(getClass)
 
-  def computeParameters(implicit pluginContext: PluginContext): Map[String, String] = {
-    pluginSpec.parameterValues(this)
-  }
+//  def computeParameters(implicit pluginContext: PluginContext): Map[String, String] = {
+//    pluginSpec.parameterValues(this)
+//  }
 
   /**
    * The parameters for this plugin as Map.
    */
-  @transient lazy val parameters: ParameterValues = pluginSpec.parameterValues(this)(Prefixes.empty)
+  //@transient lazy val parameters: ParameterValues = pluginSpec.parameterValues(this)(Prefixes.empty)
 
   /**
     * Holds all templates. Set by ClassPluginDescription.
@@ -42,9 +41,9 @@ trait AnyPlugin {
   @volatile
   var templateValues: Map[String, String] = Map.empty
 
-    // TODO: Get rid of this?
-//  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(PluginContext.empty)
-    def parameters(implicit pluginContext: PluginContext): Map[String, String] = pluginSpec.parameterValues(this)
+  // TODO: Get rid of this?
+  //  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(PluginContext.empty)
+  def parameters(implicit pluginContext: PluginContext): ParameterValues = pluginSpec.parameterValues(this)
   /**
     * Creates a new instance of this plugin with updated properties.
     *
