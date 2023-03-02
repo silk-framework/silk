@@ -7,26 +7,20 @@ import controllers.util.SerializationUtils
 import controllers.workspace.doc.TaskApiDoc
 import controllers.workspace.taskApi.{TaskApiUtils, TaskLink}
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
-import controllers.workspaceApi.project.ProjectApiRestPayloads.ItemMetaData
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginContext, PluginDescription, PluginObjectParameterTypeTrait}
-import org.silkframework.runtime.resource.{FileResource, ResourceManager}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
-import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.serialization.json.MetaDataSerializers._
-import org.silkframework.util.Uri
-import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
@@ -36,7 +30,6 @@ import java.util.logging.Logger
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-import scala.util.control.NonFatal
 
 @Tag(name = "Project tasks")
 class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -201,7 +194,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val currentTask = project.anyTask(taskName)
 
     // Update task JSON
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val currentJson = toJson[Task[TaskSpec]](currentTask).as[JsObject]
     // Templates are only partially defined, so they must be replaced completely by the new value.
     // Since template values have precedence over the parameter values, the parameter values can be deep merged without problems.
@@ -212,7 +205,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val updatedJson = currentJsonWithoutTemplates.deepMerge(request.body.as[JsObject])
 
     // Update task
-    implicit val writeContext = WriteContext(prefixes = project.config.prefixes, projectId = None, resources = project.resources)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     val updatedTask = fromJson[Task[TaskSpec]](updatedJson)
     if(updatedTask.id.toString != taskName) {
       throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${updatedTask.id} in payload.")

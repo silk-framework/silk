@@ -21,7 +21,7 @@ object WriteContext {
 
   def empty[U]: WriteContext[U] = WriteContext(resources = EmptyResourceManager(), user = UserContext.Empty)
 
-  def forProject[U](project: ProjectTrait, parent: Option[U] = None)(implicit user: UserContext): WriteContext[U] = {
+  def fromProject[U](project: ProjectTrait, parent: Option[U] = None)(implicit user: UserContext): WriteContext[U] = {
     WriteContext[U](
       parent = parent,
       prefixes = project.config.prefixes,
