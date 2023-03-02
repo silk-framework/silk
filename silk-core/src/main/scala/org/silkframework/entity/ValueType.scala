@@ -124,17 +124,19 @@ object ValueType {
     Right(AnyDateTimeValueType())
   )
 
-  lazy val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
+  lazy val valueTypeMapByStringId: Map[String, Either[Class[_ <: AnyPlugin], ValueType]] = allValueType.map {
     case Left((id, clazz)) => (id, Left(clazz))
     case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
-  lazy val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT_ID).map(ei =>  // we have to remove the outdated name
-    ei._2 match {
-      case Left(clazz) => (clazz, ei._1)
-      case Right(obj) => (obj.getClass, ei._1)
-    }
-  ).toMap
+  lazy val valueTypeIdMapByClass: Map[Class[_ <: AnyPlugin], String] = {
+    valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT_ID).map(ei =>  // we have to remove the outdated name
+      ei._2 match {
+        case Left(clazz) => (clazz, ei._1)
+        case Right(obj) => (obj.getClass, ei._1)
+      }
+    ).toMap
+  }
 
   val DefaultOrdering: Ordering[String] = Ordering.String
   val GregorianCalendarOrdering: Ordering[XMLGregorianCalendar] = Ordering.fromLessThan[XMLGregorianCalendar]((date1: XMLGregorianCalendar, date2: XMLGregorianCalendar) =>{

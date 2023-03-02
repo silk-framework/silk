@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
-import { AutoSuggestion, Button, FieldItem, Notification, Spacing, TextField, Spinner } from "@eccenca/gui-elements";
 import {
-    AffirmativeButton,
-    DismissiveButton,
-    Radio,
-    TextField as LegacyTextField,
-} from "@eccenca/gui-elements/src/legacy-replacements";
+    AutoSuggestion,
+    Button,
+    FieldItem,
+    Notification,
+    Spacing,
+    TextField,
+    Spinner,
+    TextArea,
+} from "@eccenca/gui-elements";
+import { AffirmativeButton, DismissiveButton, Radio } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import { ParentElement } from "../../../components/ParentElement";
@@ -425,7 +429,9 @@ export const ObjectRuleForm = (props: IProps) => {
         }
     } else {
         patternInput = (
-            <LegacyTextField disabled label="URI formula" value="This URI cannot be edited in the edit form." />
+            <FieldItem labelProps={{ text: "URI formula" }}>
+                <TextField disabled value="This URI cannot be edited in the edit form." />
+            </FieldItem>
         );
     }
 
@@ -509,29 +515,34 @@ export const ObjectRuleForm = (props: IProps) => {
                             {previewExamples}
                         </FieldItem>
                     }
-                    <LegacyTextField
-                        data-test-id={"object-rule-form-label-input"}
-                        label="Label"
-                        className="ecc-silk-mapping__ruleseditor__label"
-                        value={modifiedValues().label}
-                        onChange={({ value }) => {
-                            handleChangeValue("label", value);
-                        }}
-                    />
-                    <LegacyTextField
-                        multiline
-                        label="Description"
-                        className="ecc-silk-mapping__ruleseditor__comment"
-                        value={modifiedValues().comment}
-                        onChange={({ value }) => {
-                            handleChangeValue("comment", value);
-                        }}
-                    />
+                    <FieldItem labelProps={{ text: "Label" }}>
+                        <TextField
+                            data-test-id={"object-rule-form-label-input"}
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            defaultValue={props.ruleData["label"]}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                handleChangeValue("label", value);
+                            }}
+                        />
+                    </FieldItem>
+                    <FieldItem labelProps={{ text: "Description" }}>
+                        <TextArea
+                            data-test-id={"object-rule-form-description-input"}
+                            className="ecc-silk-mapping__ruleseditor__comment"
+                            defaultValue={props.ruleData["comment"]}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                handleChangeValue("comment", value);
+                            }}
+                        />
+                    </FieldItem>
                 </CardContent>
                 <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                     <AffirmativeButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         raised
+                        data-test-id={"object-rule-form-confirm-button"}
                         onClick={handleConfirm}
                         disabled={
                             !allowConfirm ||

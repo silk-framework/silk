@@ -1,12 +1,13 @@
 package org.silkframework.workspace.resources
 
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 
 /**
   * Holds resources for projects.
   */
-trait ResourceRepository {
+trait ResourceRepository extends AnyPlugin {
 
   /**
     * If true, all projects share the same resources.
@@ -60,7 +61,7 @@ trait PerProjectResourceRepository { self: ResourceRepository =>
 /**
   * Resource repository for which all projects share the same resources.
   */
-trait SharedResourceRespository { self: ResourceRepository =>
+trait SharedResourceRepository { self: ResourceRepository =>
 
   /**
     * Base resource manager.

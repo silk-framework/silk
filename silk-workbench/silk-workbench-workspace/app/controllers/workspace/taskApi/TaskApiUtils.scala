@@ -2,7 +2,7 @@ package controllers.workspace.taskApi
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParamValue, ParameterAutoCompletion, PluginContext, PluginDescription, PluginObjectParameterTypeTrait}
 import org.silkframework.workspace.{ProjectTask, Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsString, JsValue}
 
@@ -51,9 +51,11 @@ object TaskApiUtils {
           val updatedInnerValues = addLabelsToValues(projectName, valueObj.value, paramPluginDescription)
           JsObject(Seq("value" -> JsObject(updatedInnerValues))) // Nested objects cannot have a label
         case jsString: JsString if pd.autoCompletion.isDefined && pd.autoCompletion.get.autoCompleteValueWithLabels && jsString.value != "" =>
+          implicit val pluginContext: PluginContext = PluginContext(user = userContext, projectId = Some(projectName))
           val autoComplete = pd.autoCompletion.get
-          val dependsOnParameterValues = fetchDependsOnValues(autoComplete, parameterValues)
-          val label = autoComplete.autoCompletionProvider.valueToLabel(projectName, jsString.value, dependsOnParameterValues, workspace)
+          val dependsOnParameterValues = ParamValue.createAll(fetchDependsOnValues(autoComplete, parameterValues),
+                                                              autoComplete.autoCompletionDependsOnParameters, pluginDescription)
+          val label = autoComplete.autoCompletionProvider.valueToLabel(jsString.value, dependsOnParameterValues, workspace)
           JsObject(Seq("value" -> jsString) ++ label.toSeq.map(l => "label" -> JsString(l)))
         case other: JsValue =>
           JsObject(Seq("value" -> other))

@@ -41,7 +41,7 @@ import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
-import { uppercaseFirstChar } from "../../../../utils/transformers";
+import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
@@ -118,6 +118,7 @@ export function CreateArtefactModal() {
     const externalParameterUpdateMap = React.useRef(
         new Map<string, (value: { value: string; label?: string }) => any>()
     );
+    const templateParameters = React.useRef(new Set<string>());
     const NOTIFICATION_ID = "create-update-dialog";
 
     React.useEffect(() => {
@@ -143,6 +144,21 @@ export function CreateArtefactModal() {
         };
         dispatch(commonOp.setModalError(newError));
     };
+
+    const resetModalError = () => {
+        dispatch(commonOp.setModalError({}));
+    };
+
+    // Function to set template parameter flag for a parameter
+    const setTemplateFlag = React.useCallback((parameterId: string, isTemplate: boolean) => {
+        if (isTemplate) {
+            templateParameters.current.add(parameterId);
+        } else {
+            templateParameters.current.delete(parameterId);
+        }
+    }, []);
+
+    const templateFlag = React.useCallback((parameterId: string) => templateParameters.current.has(parameterId), []);
 
     /** set the current Project when opening modal from a project
      * i.e project id already exists **/
@@ -285,12 +301,15 @@ export function CreateArtefactModal() {
                             updateExistingTask.projectId,
                             updateExistingTask.taskId,
                             formValues,
-                            dataParameters
+                            dataParameters,
+                            templateParameters.current
                         )
                     );
                 } else {
                     !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
-                    await dispatch(commonOp.createArtefactAsync(formValues, type, dataParameters));
+                    await dispatch(
+                        commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current)
+                    );
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -320,6 +339,7 @@ export function CreateArtefactModal() {
     };
 
     const resetModal = (closeModal?: boolean) => {
+        templateParameters.current = new Set<string>();
         setIsProjectImport(false);
         setToBeAdded(undefined);
         setCurrentProject(undefined);
@@ -447,12 +467,12 @@ export function CreateArtefactModal() {
         );
     }
 
-    const registerForExternalChanges = (
-        paramId: string,
-        handleUpdates: (value: { value: string; label?: string }) => any
-    ) => {
-        externalParameterUpdateMap.current.set(paramId, handleUpdates);
-    };
+    const registerForExternalChanges = React.useCallback(
+        (paramId: string, handleUpdates: (value: { value: string; label?: string }) => any) => {
+            externalParameterUpdateMap.current.set(paramId, handleUpdates);
+        },
+        []
+    );
 
     if (updateExistingTask) {
         // Task update
@@ -466,8 +486,13 @@ export function CreateArtefactModal() {
                 updateTask={{
                     parameterValues: updateExistingTask.currentParameterValues,
                     dataParameters: updateExistingTask.dataParameters,
+                    variableTemplateValues: objectToFlatRecord(updateExistingTask.currentTemplateValues, {}),
                 }}
-                registerForExternalChanges={registerForExternalChanges}
+                parameterCallbacks={{
+                    setTemplateFlag,
+                    registerForExternalChanges,
+                    templateFlag,
+                }}
             />
         );
     } else {
@@ -485,7 +510,11 @@ export function CreateArtefactModal() {
                             form={form}
                             artefact={detailedArtefact}
                             projectId={activeProjectId}
-                            registerForExternalChanges={registerForExternalChanges}
+                            parameterCallbacks={{
+                                setTemplateFlag,
+                                registerForExternalChanges,
+                                templateFlag,
+                            }}
                         />
                     );
                 }
@@ -553,11 +582,18 @@ export function CreateArtefactModal() {
         }
         try {
             setAutoConfigPending(true);
-            const parameters = commonOp.buildTaskObject(form.getValues());
+            resetModalError();
+            const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
+                form.getValues(),
+                templateParameters.current
+            );
+            const parameterData = commonOp.buildTaskObject(parameters);
+            const variableTemplateData = commonOp.buildTaskObject(variableTemplateParameters);
             const requestBody: DatasetTaskPlugin<any> = {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,
-                parameters,
+                parameters: parameterData,
+                templates: variableTemplateData as Record<string, string>,
             };
             const parameterChanges: Record<string, string> = (
                 await requestAutoConfiguredDataset(projectId, requestBody)
@@ -619,6 +655,7 @@ export function CreateArtefactModal() {
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(
             <IconButton
+                key={"show-enhanced-description-btn"}
                 name="item-question"
                 onClick={(e) =>
                     handleShowEnhancedDescription(e, {

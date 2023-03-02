@@ -1,4 +1,4 @@
-import {IArtefactItemProperty} from "@ducks/common/typings";
+import { IArtefactItemProperty } from "@ducks/common/typings";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview;
 
@@ -80,5 +80,5 @@ export interface BrandingProps {
 /** Extended handling for parameter types. */
 export interface ParameterExtensions {
     /** Extends the given parameter definition (or leaves it as it is). */
-    extend: (input: IArtefactItemProperty) => IArtefactItemProperty
+    extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
 }

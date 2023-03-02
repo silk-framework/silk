@@ -3,6 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
@@ -10,7 +11,7 @@ import org.silkframework.workspace.resources.ResourceRepository
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
-trait WorkspaceProvider {
+trait WorkspaceProvider extends AnyPlugin {
 
   /**
    * Reads all projects from the workspace.

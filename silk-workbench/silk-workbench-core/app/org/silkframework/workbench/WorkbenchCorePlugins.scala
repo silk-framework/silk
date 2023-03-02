@@ -1,8 +1,8 @@
 package org.silkframework.workbench
 
-import org.silkframework.runtime.plugin.PluginModule
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
 class WorkbenchCorePlugins extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_]] = Seq(classOf[PluginListCsvFormat])
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = Seq(classOf[PluginListCsvFormat])
 }

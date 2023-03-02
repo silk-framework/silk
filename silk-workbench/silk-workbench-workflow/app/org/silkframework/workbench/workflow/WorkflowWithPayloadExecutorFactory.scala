@@ -191,7 +191,7 @@ object WorkflowOutput {
                                     variableSinks: Seq[String])
                                    (implicit pluginContext: PluginContext): Map[String, String] = {
     variableSinks.map(s =>
-      s -> sinks.get(s).flatMap(_.parameters.get("file")).getOrElse(s + "_file_resource")
+      s -> sinks.get(s).flatMap(_.parameters.toStringMap.get("file")).getOrElse(s + "_file_resource")
     ).toMap
   }
 }

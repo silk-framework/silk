@@ -203,7 +203,13 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     // Update task JSON
     implicit val readContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
     val currentJson = toJson[Task[TaskSpec]](currentTask).as[JsObject]
-    val updatedJson = currentJson.deepMerge(request.body.as[JsObject])
+    // Templates are only partially defined, so they must be replaced completely by the new value.
+    // Since template values have precedence over the parameter values, the parameter values can be deep merged without problems.
+    val currentJsonWithoutTemplates = currentJson ++ Json.obj(
+      "data" -> currentJson.value.get("data").map(data =>
+        data.as[JsObject] - "templates")
+    )
+    val updatedJson = currentJsonWithoutTemplates.deepMerge(request.body.as[JsObject])
 
     // Update task
     implicit val writeContext = WriteContext(prefixes = project.config.prefixes, projectId = None, resources = project.resources)

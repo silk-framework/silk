@@ -106,6 +106,7 @@ export const FileWidget = () => {
                                             textQuery={textQuery}
                                             onSearch={onSearch}
                                             data-test-id={"file-search-bar"}
+                                            focusOnCreation={!!textQuery.length}
                                         />
                                     </ToolbarSection>
                                     <ToolbarSection>

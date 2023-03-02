@@ -1,5 +1,6 @@
 package org.silkframework.rule.plugins.distance.equality
 
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.test.PluginTest
 
 class NumericEqualityMetricTest extends PluginTest {
@@ -103,5 +104,5 @@ class NumericEqualityMetricTest extends PluginTest {
     )
   }
 
-  override protected def pluginObject: AnyRef = NumericEqualityMetric()
+  override protected def pluginObject: AnyPlugin = NumericEqualityMetric()
 }

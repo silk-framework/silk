@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, TextField } from "@eccenca/gui-elements";
+import { TextField } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
@@ -7,6 +7,7 @@ import useCopyButton from "../../../../../hooks/useCopyButton";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
+import { ArtefactFormParameter } from "./ArtefactFormParameter";
 
 const IDENTIFIER = "id";
 
@@ -64,34 +65,34 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
     const otherProps = taskId ? { value: taskId } : {};
 
     return (
-        <FieldItem
+        <ArtefactFormParameter
+            parameterId={IDENTIFIER}
             disabled={!!taskId}
-            labelProps={{
-                text: projectId
+            label={
+                projectId
                     ? t("CreateModal.CustomIdentifierInput.TaskId")
-                    : t("CreateModal.CustomIdentifierInput.ProjectId"),
-                htmlFor: IDENTIFIER,
-            }}
+                    : t("CreateModal.CustomIdentifierInput.ProjectId")
+            }
             helperText={t("CreateModal.CustomIdentifierInput.helperDescription")}
-            hasStateDanger={!!errorMessage(IDENTIFIER, errors.id)}
-            messageText={errorMessage(IDENTIFIER, errors.id)}
-        >
-            <TextField
-                id={IDENTIFIER}
-                name={IDENTIFIER}
-                onChange={onValueChange(IDENTIFIER)}
-                hasStateDanger={errors.id ? true : false}
-                onKeyDown={(e) => {
-                    if (e.keyCode === 13) {
-                        e.preventDefault();
-                        return false;
-                    }
-                }}
-                disabled={!!taskId}
-                rightElement={taskId ? copyButton : undefined}
-                {...otherProps}
-            />
-        </FieldItem>
+            errorMessage={errorMessage(IDENTIFIER, errors.id)}
+            inputElementFactory={() => (
+                <TextField
+                    id={IDENTIFIER}
+                    name={IDENTIFIER}
+                    onChange={onValueChange(IDENTIFIER)}
+                    hasStateDanger={errors.id ? true : false}
+                    onKeyDown={(e) => {
+                        if (e.keyCode === 13) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    }}
+                    disabled={!!taskId}
+                    rightElement={taskId ? copyButton : undefined}
+                    {...otherProps}
+                />
+            )}
+        />
     );
 };
 

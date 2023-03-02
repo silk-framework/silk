@@ -55,7 +55,7 @@ object PluginRegistry {
   }
 
   // Returns an error message string if the object type is invalid.
-  def checkInvalidObjectPluginParameterType(parameterType: Class[_],
+  def checkInvalidObjectPluginParameterType(parameterType: Class[_ <: AnyPlugin],
                                             usageInParams: Seq[PluginParameter]): Option[String] = {
     var errorMessage = ""
     val needsCheck = usageInParams.exists(_.visibleInDialog)
@@ -79,7 +79,7 @@ object PluginRegistry {
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */
-  def create[T: ClassTag](id: String, params: Map[String, String] = Map.empty)
+  def create[T: ClassTag](id: String, params: ParameterValues = ParameterValues.empty)
                          (implicit context: PluginContext): T = {
     pluginType[T].create[T](id, params)
   }
@@ -118,7 +118,7 @@ object PluginRegistry {
       val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().asScala else Set.empty
       // Instantiate plugin with configured parameters
       val pluginParams = for (entry <- configValues) yield (entry.getKey, entry.getValue.unwrapped().toString)
-      val plugin = create[T](pluginId, pluginParams.toMap)
+      val plugin = create[T](pluginId, ParameterValues.fromStringMap(pluginParams.toMap))
       log.fine(s"Loaded plugin $plugin")
       Some(plugin)
     }
@@ -127,7 +127,7 @@ object PluginRegistry {
   /**
    * Given a plugin instance, extracts its plugin description and parameters.
    */
-  def reflect(pluginInstance: AnyRef)(implicit pluginContext: PluginContext): (PluginDescription[_], Map[String, String]) = {
+  def reflect(pluginInstance: AnyPlugin)(implicit pluginContext: PluginContext): (PluginDescription[_], Map[String, String]) = {
     val desc = ClassPluginDescription(pluginInstance.getClass)
     val parameters =
       for(param <- desc.parameters if param(pluginInstance) != null) yield
@@ -269,7 +269,7 @@ object PluginRegistry {
   /**
    * Registers a single plugin.
    */
-  def registerPlugin(implementingClass: Class[_]): Unit = {
+  def registerPlugin(implementingClass: Class[_ <: AnyPlugin]): Unit = {
     val pluginDesc = ClassPluginDescription.create(implementingClass)
     registerPlugin(pluginDesc)
     log.fine(s"Loaded plugin " + pluginDesc.id)
@@ -300,7 +300,7 @@ object PluginRegistry {
   /**
     * Removes a plugin from the registry.
     */
-  def unregisterPlugin(implementingClass: Class[_]): Unit = {
+  def unregisterPlugin(implementingClass: Class[_ <: AnyPlugin]): Unit = {
     unregisterPlugin(ClassPluginDescription.create(implementingClass))
   }
 
@@ -331,11 +331,10 @@ object PluginRegistry {
      *
      * @param id The id of the plugin.
      * @param params The instantiation parameters.
-     * @param resources The resource loader for retrieving referenced resources.
      * @tparam T The base type of the plugin.
      * @return A new instance of the plugin type with the given parameters.
      */
-    def create[T: ClassTag](id: String, params: Map[String, String])
+    def create[T: ClassTag](id: String, params: ParameterValues)
                            (implicit context: PluginContext): T = {
       val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
       val pluginDesc = plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
@@ -415,8 +414,8 @@ object PluginRegistry {
 /**
   * Function that creates a plugin description from a Java class.
   */
-private object PluginDescriptionFactory extends (Class[_] => PluginDescription[_]) {
-  override def apply(v1: Class[_]): PluginDescription[_] = {
+private object PluginDescriptionFactory extends (Class[_ <: AnyPlugin] => PluginDescription[_]) {
+  override def apply(v1: Class[_ <: AnyPlugin]): PluginDescription[_] = {
     ClassPluginDescription.create(v1)
   }
 }

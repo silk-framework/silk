@@ -34,25 +34,26 @@ trait AnyPlugin {
   /**
    * The parameters for this plugin as Map.
    */
+  @transient lazy val parameters: ParameterValues = pluginSpec.parameterValues(this)(Prefixes.empty)
+
+  /**
+    * Holds all templates. Set by ClassPluginDescription.
+    */
+  @volatile
+  var templateValues: Map[String, String] = Map.empty
+
     // TODO: Get rid of this?
 //  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(PluginContext.empty)
     def parameters(implicit pluginContext: PluginContext): Map[String, String] = pluginSpec.parameterValues(this)
   /**
     * Creates a new instance of this plugin with updated properties.
     *
-    * @param updatedProperties A list of property values to be updated.
+    * @param updatedParameters A list of property values to be updated.
     *                          This can be a subset of all available properties.
     *                          Property values that are not part of the map remain unchanged.
     */
-  def withParameters(updatedProperties: Map[String, String])(implicit context: PluginContext): this.type = {
-    val updatedParameters = parameters ++ updatedProperties
-    pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
-  }
-
-  override def toString: String = {
-    // FIXME: The toString method won't return correct paths
-    implicit val pluginContext: PluginContext = PluginContext(resources = AnyPlugin.dummyEmptyResourceManager)
-    getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
+  def withParameters(updatedParameters: ParameterValues)(implicit context: PluginContext): this.type = {
+    pluginSpec(parameters merge updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
   }
 }
 

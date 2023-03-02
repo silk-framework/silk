@@ -1,5 +1,7 @@
 package org.silkframework.runtime.serialization
 
+import org.silkframework.runtime.plugin.AnyPlugin
+
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -9,7 +11,7 @@ import scala.reflect.ClassTag
   * @tparam T The value type that can be serialized by an implementing class.
   * @tparam U The serialized type. For instance scala.xml.Node for XML serializations.
   */
-abstract class SerializationFormat[T: ClassTag, U: ClassTag] extends Serializable {
+abstract class SerializationFormat[T: ClassTag, U: ClassTag] extends AnyPlugin with Serializable {
 
   /**
     * The type that can be serialized by this format.

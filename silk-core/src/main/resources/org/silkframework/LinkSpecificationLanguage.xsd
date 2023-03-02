@@ -27,12 +27,12 @@
                 <xs:element name="DatasetPlugin"  minOccurs="0" maxOccurs="1">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                            <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
                         </xs:sequence>
                         <xs:attribute name="type" type="xs:string" use="required"/>
                     </xs:complexType>
                 </xs:element>
-                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>
             <xs:attribute name="type" type="xs:string" use="optional"/>
@@ -43,14 +43,16 @@
     <xs:element name="DataSource">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>
             <xs:attribute name="type" type="xs:string" use="required"/>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="Param">
+    <xs:element name="ParamOrTemplate" abstract="true"/>
+
+    <xs:element name="Param" substitutionGroup="ParamOrTemplate">
         <xs:complexType>
             <xs:simpleContent>
                 <xs:extension base="xs:string">
@@ -61,6 +63,27 @@
             </xs:simpleContent>
         </xs:complexType>
     </xs:element>
+
+    <xs:element name="Template" substitutionGroup="ParamOrTemplate">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:attribute name="name" type="xs:string" use="required"/>
+                    <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="skip" /> <!-- Allow xml:space -->
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Params" substitutionGroup="ParamOrTemplate">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:complexType>
+    </xs:element>
+
 
     <xs:element name="Description">
         <xs:complexType>
@@ -85,7 +108,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="AnyInput" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="optional"/>
             <xs:attribute name="function" type="xs:string" use="required"/>
@@ -97,7 +120,7 @@
             <xs:sequence>
                 <!-- Errors if number of inputs is different from 2 are handled in code to give better error messages -->
                 <xs:element ref="AnyInput" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="optional"/>
             <xs:attribute name="metric" type="xs:string" use="required"/>
@@ -114,7 +137,7 @@
                 <xs:choice minOccurs="0" maxOccurs="unbounded">
                     <xs:element ref="Aggregate"/>
                     <xs:element ref="Compare"/>
-                    <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:choice>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="optional"/>
@@ -252,7 +275,7 @@
     <xs:element name="Output">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="optional"/>
             <xs:attribute name="name" type="xs:string" use="optional"/>
@@ -342,6 +365,8 @@
                 <xs:element ref="Filter" minOccurs="0"/>
 
                 <xs:element ref="Outputs" minOccurs="0"/>
+
+                <xs:element ref="ParamOrTemplate" minOccurs="0" maxOccurs="unbounded"/>
 
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>

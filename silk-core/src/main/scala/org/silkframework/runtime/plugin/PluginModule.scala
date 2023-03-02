@@ -2,7 +2,7 @@ package org.silkframework.runtime.plugin
 
 trait PluginModule {
 
-  def pluginClasses: Seq[Class[_]]
+  def pluginClasses: Seq[Class[_ <: AnyPlugin]]
 
   def load(): Unit = {}
 

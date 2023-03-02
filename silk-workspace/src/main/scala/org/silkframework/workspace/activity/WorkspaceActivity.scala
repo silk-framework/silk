@@ -192,7 +192,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * The default configuration of this activity type.
     */
-  final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(PluginContext.empty)
+  final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(PluginContext.empty).toStringMap
 
   @deprecated("should send configuration when calling start", "4.5.0")
   final def update(config: Map[String, String]): Unit = {
