@@ -57,5 +57,6 @@ trait AnyPlugin {
 }
 
 object AnyPlugin {
+  //TODO remove?
   val dummyEmptyResourceManager: ResourceManager = FallbackResourceManager(EmptyResourceManager(), EmptyResourceManager(), writeIntoFallbackLoader = false)
 }
