@@ -83,6 +83,16 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
   }
 
+  /** Make sure that the workflow does not try to write into a read-only dataset. */
+  protected def checkReadOnlyDatasets()
+                                     (implicit userContext: UserContext): Unit = {
+    val readOnlyDatasetsAsOutputs = currentWorkflow.outputDatasets(project).filter(_.readOnly)
+    if(readOnlyDatasetsAsOutputs.nonEmpty) {
+      throw WorkflowExecutionException("Cannot execute workflow because it tries to write into following read-only datasets: " +
+        readOnlyDatasetsAsOutputs.map(_.fullLabel).mkString("'", "', '", "'"))
+    }
+  }
+
   /** Return error if VariableDataset is used in output and input */
   protected def checkVariableDatasets()
                                      (implicit userContext: UserContext): Unit = {

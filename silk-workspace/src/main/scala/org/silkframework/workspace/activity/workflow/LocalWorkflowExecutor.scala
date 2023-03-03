@@ -63,6 +63,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       userContext = userContext
     )
 
+    checkReadOnlyDatasets()
     checkVariableDatasets()
     if(clearDatasets) {
       clearOutputDatasets()

@@ -34,10 +34,13 @@ import scala.xml.Node
 /**
   * A dataset of entities.
   *
+  * @param pluging      The concrete pluigin/implementation of a dataset.
   * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
                         The additional attribute contains the URI of each entity.
   */
-case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None)
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
+                                                uriAttribute: Option[Uri] = None,
+                                                readOnly: Boolean = false)
     extends TaskSpec with DatasetAccess {
 
   def source(implicit userContext: UserContext): DataSource = {
@@ -326,11 +329,13 @@ object DatasetSpec {
         // Read new format
         val id = (node \ "@id").text
         val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.nonEmpty).map(Uri(_))
+        val readOnly: Boolean = (node \ "@readOnly").headOption.exists(_.text.toBoolean)
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetSpec(
           plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
-          uriAttribute = uriProperty
+          uriAttribute = uriProperty,
+          readOnly = readOnly
         )
       }
     }
@@ -338,7 +343,7 @@ object DatasetSpec {
     def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
-          <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
+          <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")} readOnly={value.readOnly.toString}>
             {XmlSerialization.serializeParameter(params)}
           </Dataset>
       }

@@ -141,20 +141,23 @@ object JsonSerializers {
   implicit object JsonDatasetSpecFormat extends JsonFormat[GenericDatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
+    private val READ_ONLY = "readOnly"
 
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_DATASET)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resource = readContext.resources
-      implicit val user = readContext.user
+      implicit val prefixes: Prefixes = readContext.prefixes
+      implicit val resource: ResourceManager = readContext.resources
+      implicit val user: UserContext = readContext.user
+
       new DatasetSpec(
         plugin =
           Dataset(
             id = (value \ TYPE).as[JsString].value,
             params = taskParameters(value)
           ),
-        uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
+        uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim)),
+        readOnly = booleanValueOption(value, READ_ONLY).getOrElse(false)
       )
     }
 
@@ -163,7 +166,8 @@ object JsonSerializers {
         Json.obj(
           TASKTYPE -> JsString(JsonSerializers.TASK_TYPE_DATASET),
           TYPE -> JsString(value.plugin.pluginSpec.id.toString),
-          PARAMETERS -> Json.toJson(value.plugin.parameters)
+          PARAMETERS -> Json.toJson(value.plugin.parameters),
+          READ_ONLY -> value.readOnly
         )
       for(property <- value.uriAttribute) {
         json += (URI_PROPERTY -> JsString(property.uri))

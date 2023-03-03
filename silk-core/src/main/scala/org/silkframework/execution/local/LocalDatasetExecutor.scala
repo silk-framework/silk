@@ -82,7 +82,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
-      case DatasetSpec(rdfDataset: RdfDataset, _) =>
+      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
         readTriples(dataset, rdfDataset)
       case _ =>
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
@@ -92,7 +92,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     dataset.data match {
       case rdfDataset: RdfDataset =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
-      case DatasetSpec(rdfDataset: RdfDataset, _) =>
+      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
@@ -113,6 +113,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
                               (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+    if(dataset.readOnly) {
+      throw new IllegalAccessException(s"Not allowed to write into dataset '${dataset.fullLabel}'. It is set to read-only mode!")
+    }
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
