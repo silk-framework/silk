@@ -14,8 +14,6 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
-
 import scala.reflect.ClassTag
 
 /**
@@ -54,7 +52,7 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Registers a single plugin.
    */
-  def register(implementationClass: Class[_ <: T]) {
+  def register(implementationClass: Class[_ <: T]): Unit = {
     PluginRegistry.registerPlugin(implementationClass)
   }
 }

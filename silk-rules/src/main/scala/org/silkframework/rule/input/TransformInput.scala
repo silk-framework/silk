@@ -16,7 +16,7 @@ package org.silkframework.rule.input
 
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
-import org.silkframework.runtime.plugin.{PluginBackwardCompatibility, PluginContext}
+import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -38,18 +38,10 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
     transformer(values)
   }
 
-  override def children = inputs
+  override def children: Seq[Input] = inputs
 
-  override def withChildren(newChildren: Seq[Operator]) = {
+  override def withChildren(newChildren: Seq[Operator]): TransformInput = {
     copy(inputs = newChildren.map(_.asInstanceOf[Input]))
-  }
-
-  override def toString = {
-    // FIXME: No valid resource paths might be output here
-    implicit val pluginContext = PluginContext.empty
-    transformer match {
-      case Transformer(name, params) => "Transformer(type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
-    }
   }
 }
 

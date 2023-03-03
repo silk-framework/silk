@@ -3,10 +3,11 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.{DefaultConfig, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
-import org.silkframework.runtime.resource.{Resource, WritableResource}
+import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
+import java.io.File
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.spec.InvalidKeySpecException
@@ -401,7 +402,22 @@ object StringParameterType {
       }
     }
 
-    override def toString(value: Resource)(implicit pluginContext: PluginContext): String = Resource.serializeResourceValue(value)
+    /**
+      * Returns the path relative to the provided project resources.
+      *
+      * @throws IllegalArgumentException If the project resources are either empty or use a different base path than this resource.
+      **/
+    override def toString(value: Resource)(implicit pluginContext: PluginContext): String = {
+      val basePath = pluginContext.resources.basePath
+      if (pluginContext.resources == EmptyResourceManager()) {
+        throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
+      }
+      if (value.path.startsWith(basePath)) {
+        value.path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
+      } else {
+        throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
+      }
+    }
   }
 
   object WritableResourceType extends StringParameterType[WritableResource] {
@@ -418,7 +434,9 @@ object StringParameterType {
       }
     }
 
-    override def toString(value: WritableResource)(implicit pluginContext: PluginContext): String = Resource.serializeResourceValue(value)
+    override def toString(value: WritableResource)(implicit pluginContext: PluginContext): String = {
+      ResourceType.toString(value)
+    }
   }
 
   object ResourceOptionType extends StringParameterType[ResourceOption] {
@@ -436,7 +454,7 @@ object StringParameterType {
     }
 
     override def toString(value: ResourceOption)(implicit pluginContext: PluginContext): String = {
-      value.resource.map(Resource.serializeResourceValue).getOrElse("")
+      value.resource.map(ResourceType.toString).getOrElse("")
     }
 
   }
