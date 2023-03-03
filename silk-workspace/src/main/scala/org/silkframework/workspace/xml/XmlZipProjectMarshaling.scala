@@ -30,9 +30,9 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
       val outputWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
-      val projectResources = resourcesIfIncluded(resourceManager).getOrElse(EmptyResourceManager())
+      val exportResources = resourcesIfIncluded(getProjectResources(outputWorkspaceProvider, project.config.id))
 
-      exportProject(project, outputWorkspaceProvider, projectResources, Some(getProjectResources(outputWorkspaceProvider, project.config.id)))
+      exportProject(project, outputWorkspaceProvider, resourceManager, exportResources)
     } finally {
       zipResourceManager.close()
     }
