@@ -78,7 +78,8 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
       TYPE -> "internal",
       PARAMETERS -> Json.obj(
         "graphUri" -> "urn:dataset1"
-      )
+      ),
+      "readOnly" -> false
     )
   }
 
