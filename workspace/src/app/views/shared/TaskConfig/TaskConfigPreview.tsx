@@ -91,8 +91,13 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     // Because of line_height: 1, underscores are not rendered
     const fixStyle = { lineHeight: "normal" };
     const taskParameterValues: Record<string, string> = taskValues(taskData.data.parameters);
-    if (taskDescription.taskType === "Dataset" && taskData.data.uriProperty) {
-        taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty;
+    if (taskDescription.taskType === "Dataset") {
+        if(taskData.data.readOnly === true) {
+            taskParameterValues[t("CreateModal.ReadOnlyParameter.label")] = "true";
+        }
+        if(taskData.data.uriProperty) {
+            taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty;
+        }
     }
 
     const taskResourceParameterType = Object.values(taskDescription.properties).reduce((obj, property) => {

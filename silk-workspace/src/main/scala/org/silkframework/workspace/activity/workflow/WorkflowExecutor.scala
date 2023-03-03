@@ -88,7 +88,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                      (implicit userContext: UserContext): Unit = {
     val readOnlyDatasetsAsOutputs = currentWorkflow.outputDatasets(project).filter(_.readOnly)
     if(readOnlyDatasetsAsOutputs.nonEmpty) {
-      throw WorkflowExecutionException("Cannot execute workflow because it tries to write into following read-only datasets: " +
+      throw WorkflowExecutionException("Workflow execution is not allowed to start because following read-only datasets would be written into: " +
         readOnlyDatasetsAsOutputs.map(_.fullLabel).mkString("'", "', '", "'"))
     }
   }

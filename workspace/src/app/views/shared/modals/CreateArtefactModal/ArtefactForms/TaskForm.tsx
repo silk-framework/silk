@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, TextArea, TextField } from "@eccenca/gui-elements";
+import { FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -16,6 +16,8 @@ import { RegisterForExternalChangesFn } from "./InputMapper";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { MultiTagSelect } from "../../../MultiTagSelect";
+
+export const READ_ONLY_PARAMETER = "readOnly"
 
 export interface IProps {
     form: any;
@@ -180,6 +182,7 @@ export function TaskForm({
         }
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
+            register({ name: READ_ONLY_PARAMETER });
         }
         registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
         setFormValueKeys(returnKeys);
@@ -314,6 +317,23 @@ export function TaskForm({
                         registerForExternalChanges={registerForExternalChanges}
                     />
                 ))}
+                { // The read-only parameter
+                    artefact.taskType === "Dataset" ? (
+                        <FieldItem
+                            labelProps={{
+                                text: t("CreateModal.ReadOnlyParameter.label"),
+                                htmlFor: READ_ONLY_PARAMETER,
+                            }}
+                            helperText={t("CreateModal.ReadOnlyParameter.description")}
+                        >
+                            <Switch
+                                id={READ_ONLY_PARAMETER}
+                                onChange={handleChange(READ_ONLY_PARAMETER)}
+                                defaultChecked={(updateTask?.dataParameters?.readOnly ?? "false") === "true"}
+                            />
+                        </FieldItem>
+                    ) : null
+                }
 
                 <AdvancedOptionsArea>
                     <CustomIdentifierInput

@@ -17,6 +17,10 @@
             "changeProjectButton": "Change target project",
             "resetModalTitle": "Configuration reset necessary"
         },
+        "ReadOnlyParameter": {
+            "label": "Read-only",
+            "description": "When enabled, writing into the dataset is prevented and write operation will fail. Workflows that write into read-only datasets are not executed at all."
+        },
         "CustomIdentifierInput": {
             "ProjectId": "Project identifier",
             "ProjectUri": "Project URI",
