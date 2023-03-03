@@ -7,6 +7,7 @@ import {
     IActivityAction,
 } from "@eccenca/gui-elements/src/cmem/ActivityControl/ActivityControlWidget";
 import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
 
 interface EvaluationActivityControlProps {
     score: IEvaluatedReferenceLinksScore | undefined;
@@ -43,6 +44,7 @@ export const EvaluationActivityControl = ({
     };
 
     let activityInfo = {} as IActivityControlProps;
+    let EvaluationTooltip = ({children}: {children: JSX.Element}): JSX.Element => children
 
     if (!!evaluationResultsShown) {
         if (score) {
@@ -55,14 +57,7 @@ export const EvaluationActivityControl = ({
             const recallText = `<h3>Recall: ${score.recall}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items (${score.truePositives}) vs all existing positive items (${allTrue}). ${range}</p>`;
 
             activityInfo = {
-                label: (
-                    <Tooltip
-                        content={<Markdown allowHtml={true}>{fmeasureText + precisionText + recallText}</Markdown>}
-                        size={"large"}
-                    >
-                        <strong>F / P / R</strong>
-                    </Tooltip>
-                ),
+                label: <strong>F / P / R</strong>,
                 statusMessage: loading ? "loading" : `${score.fMeasure} / ${score.precision} / ${score.recall}`,
                 progressBar: {
                     intent: "primary",
@@ -72,26 +67,33 @@ export const EvaluationActivityControl = ({
                 },
                 progressSpinner: loading ? { intent: "none" } : undefined,
             };
+            EvaluationTooltip = ({children}) => <Tooltip
+                content={<Markdown allowHtml={true}>{fmeasureText + precisionText + recallText}</Markdown>}
+                size={"large"}
+            >
+                {children}
+            </Tooltip>
         } else {
             activityInfo = {
-                label: (
-                    <Tooltip
-                        content={<Markdown>{t("RuleEditor.evaluation.scoreWidget.noScoreTooltip")}</Markdown>}
-                        size={"large"}
-                    >
-                        {t("RuleEditor.evaluation.scoreWidget.noScore")}
-                    </Tooltip>
-                ),
+                label: t("RuleEditor.evaluation.scoreWidget.noScore"),
                 progressBar: {
                     animate: false,
                     stripes: false,
                     value: 0,
                 },
             };
+            EvaluationTooltip = ({children}) => {
+                return <Tooltip
+                    content={<Markdown>{t("RuleEditor.evaluation.scoreWidget.noScoreTooltip")}</Markdown>}
+                    size={"large"}
+                >
+                    {children}
+                </Tooltip>
+            }
         }
     }
 
-    return (
+    return <EvaluationTooltip>
         <ActivityControlWidget
             border={evaluationResultsShown}
             small
@@ -99,5 +101,5 @@ export const EvaluationActivityControl = ({
             {...activityInfo}
             activityActions={Menu()}
         />
-    );
+    </EvaluationTooltip>;
 };
