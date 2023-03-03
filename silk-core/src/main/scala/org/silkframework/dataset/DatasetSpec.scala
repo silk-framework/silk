@@ -16,7 +16,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config._
-import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
+import org.silkframework.dataset.DatasetSpec.{UriAttributeNotUniqueException, checkDatasetAllowsWriteAccess}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
@@ -34,7 +34,7 @@ import scala.xml.Node
 /**
   * A dataset of entities.
   *
-  * @param pluging      The concrete pluigin/implementation of a dataset.
+  * @param pluging      The concrete plugin/implementation of a dataset.
   * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
                         The additional attribute contains the URI of each entity.
   */
@@ -48,10 +48,11 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   def entitySink(implicit userContext: UserContext): EntitySink = {
-    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this, readOnly), SafeModeSink)
   }
 
   def linkSink(implicit userContext: UserContext): LinkSink = {
+    checkDatasetAllowsWriteAccess(None, readOnly)
     safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
   }
 
@@ -121,9 +122,19 @@ object DatasetSpec {
     */
   type GenericDatasetSpec = DatasetSpec[Dataset]
 
+  case class ReadOnlyDatasetWriteAccessException(datasetLabel: Option[String]) extends RuntimeException {
+    override def getMessage: String = s"Cannot write to read-only dataset${datasetLabel.map(label => s": '$label'").getOrElse("")}. Disable read-only mode in the dataset config if this was not a mistake."
+  }
+
   implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
   def empty: DatasetSpec[EmptyDataset.type] = new DatasetSpec(EmptyDataset)
+
+  def checkDatasetAllowsWriteAccess(datasetLabel: Option[String], readOnly: Boolean): Unit = {
+    if(readOnly) {
+      throw ReadOnlyDatasetWriteAccessException(datasetLabel)
+    }
+  }
 
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
@@ -207,7 +218,7 @@ object DatasetSpec {
     override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
   }
 
-  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
+  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset], readOnly: Boolean) extends EntitySink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -218,6 +229,7 @@ object DatasetSpec {
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes){
+      checkDatasetAllowsWriteAccess(None, readOnly)
       if (isOpen) {
         entitySink.close()
         isOpen = false
