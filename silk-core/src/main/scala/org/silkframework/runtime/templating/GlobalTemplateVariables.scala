@@ -59,7 +59,11 @@ object GlobalTemplateVariables {
   /**
     * Lists all available variable names.
     */
-  def variableNames: Seq[String] = variableMap.keys.toSeq.sorted
+  def variableNames: Seq[String] = {
+    for(key <- templateVariables().map.keys.toSeq.sorted) yield {
+      globalScope + "." + key
+    }
+  }
 
   /**
     * Returns variables as a map to be used in template evaluation.
