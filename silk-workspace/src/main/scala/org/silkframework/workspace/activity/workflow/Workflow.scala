@@ -45,7 +45,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
         .getOrElse(throw new NoSuchElementException(s"Cannot find node $nodeId in the workflow."))
   }
 
-  def validate(): AllVariableDatasets = {
+  def validate(): AllReplaceableDatasets = {
     markedVariableDatasets()
   }
   validate()
@@ -137,7 +137,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   }
 
   /** Returns all replaceable input and output datasets that exist in the workflow and were marked as replaceable dataset. */
-  def markedVariableDatasets(): AllVariableDatasets = {
+  def markedVariableDatasets(): AllReplaceableDatasets = {
     val workflowDatasets = datasets.map(_.task.toString).toSet
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
@@ -158,7 +158,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
     val actualVariableInputs = replaceableInputs.filter(id => workflowDatasets.contains(id) && workflowDatasetInputs.contains(id))
     val actualVariableOutputs = replaceableOutputs.filter(id => workflowDatasets.contains(id) && workflowDatasetOutputs.contains(id))
-    AllVariableDatasets(
+    AllReplaceableDatasets(
       dataSources = actualVariableInputs,
       sinks = actualVariableOutputs
     )
@@ -172,7 +172,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     * @throws Exception if a variable dataset is used as input and output, which is not allowed.
     */
   def legacyVariableDatasets(project: Project)
-                            (implicit userContext: UserContext): AllVariableDatasets = {
+                            (implicit userContext: UserContext): AllReplaceableDatasets = {
     val variableDatasetsUsedInOutput =
       for (datasetTask <- outputDatasets(project)
            if datasetTask.data.plugin.isInstanceOf[VariableDataset]) yield {
@@ -188,7 +188,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     if (bothInAndOut.nonEmpty) {
       throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
     }
-    AllVariableDatasets(variableDatasetsUsedInInput.distinct, variableDatasetsUsedInOutput.distinct)
+    AllReplaceableDatasets(variableDatasetsUsedInInput.distinct, variableDatasetsUsedInOutput.distinct)
   }
 
   /** Returns all Dataset tasks that are used as input in the workflow */
@@ -200,12 +200,12 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
-  /** Legacy and marked variable datasets combined. */
-  def allVariableDatasets(project: Project)
-                         (implicit userContext: UserContext): AllVariableDatasets = {
+  /** Legacy and marked replaceable datasets combined. */
+  def allReplaceableDatasets(project: Project)
+                            (implicit userContext: UserContext): AllReplaceableDatasets = {
     val legacy = legacyVariableDatasets(project)
     val marked = markedVariableDatasets()
-    AllVariableDatasets(legacy.dataSources ++ marked.dataSources, legacy.sinks ++ marked.sinks)
+    AllReplaceableDatasets(legacy.dataSources ++ marked.dataSources, legacy.sinks ++ marked.sinks)
   }
 
   /** Returns all Dataset tasks that are used as output in the workflow */
@@ -332,7 +332,7 @@ object TaskIdentifierParameter {
 }
 
 /** All IDs of replaceable datasets in a workflow */
-case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
+case class AllReplaceableDatasets(dataSources: Seq[String], sinks: Seq[String])
 
 /** The workflow dependency graph */
 case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],

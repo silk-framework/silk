@@ -134,7 +134,7 @@ object VariableWorkflowRequestUtils {
   def queryStringToWorkflowConfig(project: Project,
                                   workflowTask: Task[Workflow])
                                  (implicit request: Request[_], userContext: UserContext): (Map[String, String], Option[String]) = {
-    val replaceableDatasets = workflowTask.data.allVariableDatasets(project)
+    val replaceableDatasets = workflowTask.data.allReplaceableDatasets(project)
     if(replaceableDatasets.sinks.size > 1 || replaceableDatasets.dataSources.size > 1) {
       throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one replaceable input " +
           s"and one replaceable output dataset. Instead it has ${replaceableDatasets.dataSources.size} replaceable inputs and ${replaceableDatasets.sinks.size} replaceable outputs.")
