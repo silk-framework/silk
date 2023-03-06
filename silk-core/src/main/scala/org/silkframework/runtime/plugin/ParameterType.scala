@@ -430,7 +430,7 @@ object StringParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        context.resources.get(str)
+        context.resources.getInPath(str)
       }
     }
 
@@ -449,7 +449,7 @@ object StringParameterType {
       if (str.trim.isEmpty) {
         ResourceOption(None)
       } else {
-        ResourceOption(Some(context.resources.get(str)))
+        ResourceOption(Some(context.resources.getInPath(str)))
       }
     }
 
