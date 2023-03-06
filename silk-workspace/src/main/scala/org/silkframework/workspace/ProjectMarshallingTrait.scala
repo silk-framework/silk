@@ -102,8 +102,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   protected def importProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
                               importFromWorkspace: WorkspaceProvider,
-                              resources: Option[ResourceManager],
-                              importResources: Option[ResourceManager])
+                              resources: ResourceManager,
+                              importResources: ResourceManager,
+                              alsoCopyResources: Boolean)
                              (implicit userContext: UserContext): Unit = {
     // Create new empty project
     for ((project, index) <- importFromWorkspace.readProjects().filter(_.id == projectName).zipWithIndex) {
@@ -111,15 +112,15 @@ trait ProjectMarshallingTrait extends AnyPlugin {
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources)
+      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources, alsoCopyResources)
     }
   }
 
   protected def exportProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
                               exportToWorkspace: WorkspaceProvider,
-                              resources: Option[ResourceManager],
-                              exportToResources: Option[ResourceManager])
+                              resources: ResourceManager,
+                              exportToResources: ResourceManager)
                              (implicit userContext: UserContext): Unit = {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get

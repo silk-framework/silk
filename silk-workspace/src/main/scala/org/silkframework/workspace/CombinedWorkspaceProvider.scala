@@ -39,7 +39,7 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     for(project <- secondaryWorkspace.readProjects()) {
       secondaryWorkspace.deleteProject(project.id)
     }
-    WorkspaceIO.copyProjects(primaryWorkspace, secondaryWorkspace, Some(resources), Some(resources))
+    WorkspaceIO.copyProjects(primaryWorkspace, secondaryWorkspace, resources, resources)
   }
 
   /**
@@ -75,11 +75,12 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Imports a complete project.
     */
-  def importProject(project: ProjectConfig,
-                    provider: WorkspaceProvider,
-                    inputResources: Option[ResourceManager],
-                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
-    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  override def importProject(project: ProjectConfig,
+                             provider: WorkspaceProvider,
+                             inputResources: ResourceManager,
+                             outputResources: ResourceManager,
+                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project, alsoCopyResources)
   }
 
   /**

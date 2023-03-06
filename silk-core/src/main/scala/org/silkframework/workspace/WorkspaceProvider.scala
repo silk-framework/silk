@@ -39,8 +39,10 @@ trait WorkspaceProvider extends AnyPlugin {
     */
   def importProject(project: ProjectConfig,
                     provider: WorkspaceProvider,
-                    inputResources: Option[ResourceManager],
-                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit
+                    inputResources: ResourceManager,
+                    outputResources: ResourceManager,
+                    alsoCopyResources: Boolean)
+                   (implicit user: UserContext): Unit
 
   /**
    * Retrieves the project cache folder.
@@ -102,6 +104,11 @@ trait WorkspaceProvider extends AnyPlugin {
     */
   def deleteTag(project: Identifier, tagUri: String)
                (implicit userContext: UserContext): Unit
+
+  /**
+    * Refreshes a single project, i.e. cleans all possible caches if there are any and reloads the project freshly.
+    */
+  def refreshProject(project: Identifier, projectResources: ResourceManager)(implicit userContext: UserContext): Unit = { }
 
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
