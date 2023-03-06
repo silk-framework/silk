@@ -86,11 +86,11 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     * Imports a complete project.
     */
   override def importProject(project: ProjectConfig,
-                             provider: WorkspaceProvider,
-                             inputResources: ResourceManager,
-                             outputResources: ResourceManager,
+                             importProvider: WorkspaceProvider,
+                             importResources: ResourceManager,
+                             targetResources: ResourceManager,
                              alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
-    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project, alsoCopyResources)
+    WorkspaceIO.copyProject(importProvider, this, importResources, targetResources, project, alsoCopyResources)
   }
 
   /**

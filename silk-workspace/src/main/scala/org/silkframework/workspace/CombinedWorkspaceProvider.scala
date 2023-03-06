@@ -76,11 +76,11 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     * Imports a complete project.
     */
   override def importProject(project: ProjectConfig,
-                             provider: WorkspaceProvider,
-                             inputResources: ResourceManager,
-                             outputResources: ResourceManager,
+                             importProvider: WorkspaceProvider,
+                             importResources: ResourceManager,
+                             targetResources: ResourceManager,
                              alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
-    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project, alsoCopyResources)
+    WorkspaceIO.copyProject(importProvider, this, importResources, targetResources, project, alsoCopyResources)
   }
 
   /**
@@ -107,8 +107,8 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResourceManager: ResourceManager)(implicit user: UserContext): Unit = {
-    executeOnBackends(_.putTask(project, task, projectResourceManager), s"Adding/Updating task $task in project $project")
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)(implicit user: UserContext): Unit = {
+    executeOnBackends(_.putTask(project, task, resources), s"Adding/Updating task $task in project $project")
   }
 
   /**

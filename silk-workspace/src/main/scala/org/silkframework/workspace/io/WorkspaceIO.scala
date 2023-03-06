@@ -77,7 +77,7 @@ object WorkspaceIO {
     for(taskTry <- inputWorkspace.readTasks[T](projectName, inputResources)) {
       taskTry.taskOrError match {
         case Right(task) =>
-          outputWorkspace.putTask(projectName, task, outputResources)
+          outputWorkspace.putTask(projectName, task, inputResources)
         case Left(taskLoadingError) =>
           outputWorkspace.retainExternalTaskLoadingError(projectName, taskLoadingError)
           log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + taskLoadingError.throwable.getMessage)

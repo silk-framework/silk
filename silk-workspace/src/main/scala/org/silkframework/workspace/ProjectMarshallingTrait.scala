@@ -112,7 +112,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources, alsoCopyResources)
+      workspaceProvider.importProject(projectConfig, importFromWorkspace, importResources, resources, alsoCopyResources)
     }
   }
 
@@ -120,25 +120,27 @@ trait ProjectMarshallingTrait extends AnyPlugin {
                               workspaceProvider: WorkspaceProvider,
                               exportToWorkspace: WorkspaceProvider,
                               resources: ResourceManager,
-                              exportToResources: ResourceManager)
+                              exportToResources: ResourceManager,
+                              alsoExportResources: Boolean)
                              (implicit userContext: UserContext): Unit = {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get
-    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project)
+    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project, alsoExportResources)
   }
 
   protected def exportProject(project: Project,
                               outputWorkspaceProvider: WorkspaceProvider,
                               resources: ResourceManager,
-                              exportToResources: Option[ResourceManager])
+                              exportToResources: ResourceManager,
+                              alsoExportResources: Boolean)
                              (implicit userContext: UserContext): Unit = {
     // Load project into temporary XML workspace provider
     val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
     val projectId = updatedProjectConfig.id
     outputWorkspaceProvider.putProject(updatedProjectConfig)
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
-    for(outputResources <- exportToResources) {
-      copyResources(resources, outputResources)
+    if(alsoExportResources) {
+      copyResources(resources, exportToResources)
     }
     for(dataset <- project.tasks[DatasetSpec[Dataset]]) {
       outputWorkspaceProvider.putTask(projectId, dataset, resources)

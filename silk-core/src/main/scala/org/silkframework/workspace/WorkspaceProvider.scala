@@ -35,12 +35,19 @@ trait WorkspaceProvider extends AnyPlugin {
   def deleteProject(name: Identifier)(implicit user: UserContext): Unit
 
   /**
-    * Imports a complete project.
+    * Imports a project.
+    *
+    * @param project The meta data of the project to be imported.
+    * @param importProvider The workspace provider that contains the project to be imported.
+    * @param importResources The resources of the project to be imported.
+    * @param targetResources The resources of the new project in this workspace.
+    * @param alsoCopyResources If true, the project resources are imported as well.
+    *                          Otherwise, only the tasks ore imported.
     */
   def importProject(project: ProjectConfig,
-                    provider: WorkspaceProvider,
-                    inputResources: ResourceManager,
-                    outputResources: ResourceManager,
+                    importProvider: WorkspaceProvider,
+                    importResources: ResourceManager,
+                    targetResources: ResourceManager,
                     alsoCopyResources: Boolean)
                    (implicit user: UserContext): Unit
 
@@ -68,7 +75,7 @@ trait WorkspaceProvider extends AnyPlugin {
    */
   def putTask[T <: TaskSpec : ClassTag](project: Identifier,
                                         task: Task[T],
-                                        projectResourceManager: ResourceManager)
+                                        resources: ResourceManager)
                                        (implicit user: UserContext): Unit
 
   /**

@@ -97,8 +97,6 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
     copy(plugin = plugin.withParameters(ParameterValues.fromStringMap(updatedProperties)))
   }
 
-  override def toString: String = DatasetSpec.toString
-
   def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
     for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
       throw UriAttributeNotUniqueException(uriColumn)
