@@ -61,17 +61,6 @@ object ProjectUtils {
     dataset.source
   }
 
-  /**
-    * Extract all data sources from an XML document.
-    *
-    */
-  def createDataSources(xmlRoot: NodeSeq,
-                        dataSourceIds: Option[Set[String]])
-                       (implicit resourceLoader: ResourceManager,
-                        userContext: UserContext): Map[String, DataSource] = {
-    createDatasets(xmlRoot, dataSourceIds, "DataSources").mapValues(_.source)
-  }
-
   def createDatasets(xmlRoot: NodeSeq,
                      datasetIds: Option[Set[String]],
                      xmlElementTag: String)
@@ -83,7 +72,7 @@ object ProjectUtils {
   /**
     * Create dataset objects from JSON serialization
     * @param workflowJson The JSON
-    * @param datasetIds   Optional set of Dataset IDs that should be filtered.
+    * @param datasetIds   Optional set of dataset IDs. If any of the found datasets is not in this set, an exception will be thrown.
     * @param property     The property in the JSON representation under which the array of dataset JSON specs is stored.
     */
   def createDatasets(workflowJson: JsObject,
@@ -176,7 +165,11 @@ object ProjectUtils {
 
   implicit val datasetTaskJsonFormat = new TaskJsonFormat[GenericDatasetSpec]()
 
-  /** Creates all datasets found in the JSON document */
+  /** Creates all datasets found in the JSON document
+    *
+    * @param datasetIds Optional set of dataset IDs. If any of the found datasets is not in this set, an exception will be thrown.
+    * @return
+    */
   private def createAllDatasets(workflowJson: JsValue,
                                 propertyName: String,
                                 datasetIds: Option[Set[String]])
@@ -186,7 +179,15 @@ object ProjectUtils {
     val datasets = for (dataSource <- dataSources.value) yield {
       JsonSerializers.fromJson[Task[GenericDatasetSpec]](dataSource)
     }
-    datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
+    datasetIds match {
+      case Some(ids) =>
+        val notMatched = datasets.filterNot(ds => ids.contains(ds.id.toString))
+        if(notMatched.nonEmpty) {
+          throw new IllegalArgumentException(s"Following dataset IDs were found in the request: ${notMatched.mkString(", ")}, but only following datasets IDs are valid: ${ids.mkString(", ")}")
+        }
+        datasets
+      case None => datasets
+    }
   }
 
   // Create a data sink as specified in a REST request

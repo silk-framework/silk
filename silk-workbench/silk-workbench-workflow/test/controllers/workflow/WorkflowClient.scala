@@ -1,18 +1,21 @@
 package controllers.workflow
 
 import controllers.workflow.WorkflowClient.VariableDatasetPayload
+import controllers.workflowApi.workflow.WorkflowInfo
 import controllers.workspace.ActivityClient
 import controllers.workspace.activityApi.StartActivityResponse
+import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TYPE}
 import org.silkframework.util.Identifier
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
+import play.api.test.Helpers
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.xml.{Elem, Null}
 
-class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier)(implicit client: WSClient) {
+class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier, workflowApiPath: String = "/api/workflow")(implicit client: WSClient) {
 
   def executeVariableWorkflowXml(datasetPayloads: Seq[VariableDatasetPayload], blocking: Boolean = true): WSResponse = {
     val requestXML = {
@@ -61,6 +64,52 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
       activity.waitForActivity(response.activityId, Some(response.instanceId))
       activity.activityValue(response.activityId, Some(response.instanceId), contentType = accept)
     }
+  }
+
+  /**
+    * Returns the result of a simple variable workflow request.
+    *
+    * @param parameters                The input data of the workflow of the replaceable input dataset.
+    * @param usePost                   If a POST request should be used that sends the data in the HTTP body. In a GET request it is send via query parameters.
+    * @param acceptMimeType            The MIME type. This specifies the desired return format and output dataset.
+    * @param contentOpt                Optional content with MIME type and the content as string.
+    * @param additionalQueryParameters Additional query parameters to set.
+    */
+  def executeSimpleVariableWorkflow(parameters: Map[String, Seq[String]] = Map.empty,
+                                    usePost: Boolean = false,
+                                    acceptMimeType: String = "application/xml",
+                                    contentOpt: Option[(String, String)] = None,
+                                    additionalQueryParameters: Map[String, String] = Map.empty): Future[WSResponse] = {
+    val path = {
+      if (usePost) {
+        controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
+      } else {
+        controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultGet(projectId, workflowId).url
+      }
+    }
+    var request = client.url(s"$baseUrl$workflowApiPath$path")
+      .withHttpHeaders(Helpers.ACCEPT -> acceptMimeType)
+    additionalQueryParameters.foreach { queryParam =>
+      request = request.addQueryStringParameters(queryParam)
+    }
+    if (usePost || contentOpt.isDefined) {
+      contentOpt match {
+        case Some(content) =>
+          request.withHttpHeaders(Helpers.CONTENT_TYPE -> content._2).post(content._1)
+        case None =>
+          request.post(parameters)
+      }
+    } else {
+      for ((param, paramValues) <- parameters;
+           paramValue <- paramValues) {
+        request = request.addQueryStringParameters(param -> paramValue)
+      }
+      request.get()
+    }
+  }
+
+  def workflowInfo(): WorkflowInfo = {
+    JsonHelpers.fromJsonValidated[WorkflowInfo](checkResponse(client.url(s"$baseUrl/api/workflow/info/$projectId/$workflowId").get()).json)
   }
 
   private def executeOnPayloadUri(projectId: String, workflowId: String, blocking: Boolean) = {
