@@ -117,7 +117,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     testWorkflow.copy(
       replaceableInputs = Seq(),
       replaceableOutputs = Seq()
-    ).markedVariableDatasets() mustBe AllVariableDatasets(Seq(), Seq())
+    ).markedVariableDatasets() mustBe AllReplaceableDatasets(Seq(), Seq())
     intercept[IllegalArgumentException] {
       testWorkflow.copy(
         replaceableInputs = Seq(),
@@ -133,7 +133,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     testWorkflow.copy(
       replaceableInputs = Seq(DS_A1),
       replaceableOutputs = Seq(OUTPUT)
-    ).markedVariableDatasets() mustBe AllVariableDatasets(Seq(DS_A1), Seq(OUTPUT))
+    ).markedVariableDatasets() mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
   }
 }
 

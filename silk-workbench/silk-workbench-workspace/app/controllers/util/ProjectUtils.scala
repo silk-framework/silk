@@ -62,17 +62,6 @@ object ProjectUtils {
     dataset.source
   }
 
-  /**
-    * Extract all data sources from an XML document.
-    *
-    */
-  def createDataSources(xmlRoot: NodeSeq,
-                        dataSourceIds: Option[Set[String]])
-                       (implicit resourceLoader: ResourceManager,
-                        userContext: UserContext): Map[String, DataSource] = {
-    createDatasets(xmlRoot, dataSourceIds, "DataSources").mapValues(_.source)
-  }
-
   def createDatasets(xmlRoot: NodeSeq,
                      datasetIds: Option[Set[String]],
                      xmlElementTag: String)
