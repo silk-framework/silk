@@ -211,6 +211,7 @@ export const ParameterWidget = (props: IProps) => {
                         formParamId={formParamId}
                         dependentValue={dependentValue}
                         required={required}
+                        registerForExternalChanges={registerForExternalChanges}
                     />
                 ) : (
                     <InputMapper

@@ -15,6 +15,8 @@ import { withHistoryHOC } from "./utils/withHistoryHOC";
 import MappingEditorModal from "./MappingEditorModal";
 import { getHistory } from "../../../../store/configureStore";
 import PromptModal from "../../../../views/shared/projectTaskTabView/PromptModal";
+import {requestValueTypes} from "./HierarchicalMapping.requests";
+import {GlobalMappingEditorContext} from "../contexts/GlobalMappingEditorContext";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -49,6 +51,7 @@ class HierarchicalMapping extends React.Component {
             removeFunction: this.handleConfirmRemove,
             showMappingEditor: false,
             mappingEditorRuleId: undefined,
+            valueTypeLabels: new Map()
         };
     }
 
@@ -56,6 +59,7 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        this.loadValueTypeLabels()
     }
 
     componentWillUnmount() {
@@ -77,6 +81,14 @@ class HierarchicalMapping extends React.Component {
         if (prevProps.task !== this.props.task) {
             this.loadNavigationTree();
         }
+    }
+
+    async loadValueTypeLabels() {
+        const valueTypes = (await requestValueTypes()).data
+        const valueTypeMap = valueTypes.map(vt => [vt.value, vt.label ?? vt.value])
+        this.setState({
+            valueTypeLabels: new Map(valueTypeMap)
+        })
     }
 
     onOpenEdit = (obj) => {
@@ -232,8 +244,12 @@ class HierarchicalMapping extends React.Component {
         const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
         // render mapping edit / create view of value and object
-        return (
-            <section className="ecc-silk-mapping">
+        return <GlobalMappingEditorContext.Provider
+            value={{
+                valueTypeLabels: this.state.valueTypeLabels
+            }}
+        >
+            <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
                 {showMappingEditor && this.state.mappingEditorRuleId ? (
                     <MappingEditorModal
                         projectId={this.props.project}
@@ -290,7 +306,7 @@ class HierarchicalMapping extends React.Component {
                     }
                 </div>
             </section>
-        );
+        </GlobalMappingEditorContext.Provider>;
     }
 }
 

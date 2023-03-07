@@ -2,8 +2,7 @@ package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfLangAutocompletionProvider.supportedLanguages
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceReadTrait
 
@@ -14,18 +13,18 @@ import scala.collection.JavaConverters._
   */
 case class RdfLangAutocompletionProvider() extends PluginParameterAutoCompletionProvider {
 
-  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     supportedLanguages
       .filter(_.matches(multiSearchWords))
       .map(_.toResult)
   }
 
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String],
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = {
+                           (implicit context: PluginContext): Option[String] = {
     supportedLanguages.find(_.value == value).map(_.label)
   }
 }
