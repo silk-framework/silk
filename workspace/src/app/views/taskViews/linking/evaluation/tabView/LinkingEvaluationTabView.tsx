@@ -404,7 +404,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
-                        id={`input-value-${showInputValues ? "checked" : "unchecked"}`}
+                        className={`input-value-${showInputValues ? "checked" : "unchecked"}`}
                         data-test-id="input-value-switch"
                         checked={showInputValues}
                         onChange={handleSwitchChange("inputValue")}
@@ -415,7 +415,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <Switch
-                        id={`operator-${showInputValues ? "checked" : "unchecked"}`}
+                        className={`operator-${showOperators ? "checked" : "unchecked"}`}
                         data-test-id="operator-switch"
                         checked={showOperators}
                         onChange={handleSwitchChange("operator")}
@@ -426,7 +426,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canGrow>
                     <Spacing vertical />
                 </ToolbarSection>
-                {taskEvaluationStatus === "Successful" && (
+                {taskEvaluationStatus === "Successful" ? (
                     <ToolbarSection canShrink style={{ maxWidth: "25%" }}>
                         <ActivityControlWidget
                             border
@@ -455,7 +455,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             ]}
                         />
                     </ToolbarSection>
-                )}
+                ) : null}
                 <ToolbarSection canShrink>
                     <Spacing vertical size="small" />
                     <TaskActivityWidget
@@ -512,6 +512,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                         data-test-id={header.key}
                                         className={tableSortDirection.get(header.key)}
                                         {...getHeaderProps({ header, isSortable: true })}
+                                        key={header.key}
                                         isSortHeader={true}
                                         onClick={() => {
                                             handleRowSorting(header.key);
@@ -555,6 +556,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 {rowData.map((row, rowIdx) => {
                                     return (
                                         <LinkingEvaluationRow
+                                            key={rowIdx}
                                             colSpan={headers.length + 2}
                                             rowIdx={rowIdx}
                                             inputValues={inputValues[rowIdx]}
