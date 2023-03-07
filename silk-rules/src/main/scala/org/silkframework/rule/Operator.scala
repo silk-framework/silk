@@ -14,8 +14,9 @@
 
 package org.silkframework.rule
 
-import java.util.concurrent.atomic.AtomicInteger
+import org.silkframework.runtime.plugin.ParameterValues
 
+import java.util.concurrent.atomic.AtomicInteger
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -79,7 +80,7 @@ object Operator {
   /**
    * Reads the parameters of an operator.
    */
-  def readParams(node: Node): Map[String, String] = {
+  def readParams(node: Node): ParameterValues = {
     XmlSerialization.deserializeParameters(node)
   }
 }

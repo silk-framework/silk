@@ -38,14 +38,10 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
     transformer(values)
   }
 
-  override def children = inputs
+  override def children: Seq[Input] = inputs
 
-  override def withChildren(newChildren: Seq[Operator]) = {
+  override def withChildren(newChildren: Seq[Operator]): TransformInput = {
     copy(inputs = newChildren.map(_.asInstanceOf[Input]))
-  }
-
-  override def toString = transformer match {
-    case Transformer(name, params) => "Transformer(type=" + name + ", params=" + params + ", inputs=" + inputs + ")"
   }
 }
 
@@ -77,7 +73,7 @@ object TransformInput {
 
       <TransformInput id={value.id} function={plugin.id}>
         { value.inputs.map(toXml[Input]) }
-        {XmlSerialization.serializeParameter(params)}
+        {XmlSerialization.serializeParameters(params)}
       </TransformInput>
     }
   }

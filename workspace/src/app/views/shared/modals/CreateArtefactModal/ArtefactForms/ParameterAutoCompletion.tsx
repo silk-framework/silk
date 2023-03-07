@@ -1,6 +1,14 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import React from "react";
-import { AutoCompleteField, Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "@eccenca/gui-elements";
+import React, { useEffect } from "react";
+import {
+    AutoCompleteField,
+    Highlighter,
+    OverflowText,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    Spinner,
+} from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
@@ -10,6 +18,7 @@ import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
+import { RegisterForExternalChangesFn } from "./InputMapper";
 
 interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -37,8 +46,12 @@ interface ParameterAutoCompletionProps {
      * This is needed if other components on the same page are swallowing events, e.g. the react-flow canvas.
      * hasBackDrop should then be set to true in these cases otherwise the popover won't close when clicking those other components.
      **/
-    hasBackDrop?: boolean
+    hasBackDrop?: boolean;
+    /** Register for getting external updates for values. */
+    registerForExternalChanges?: RegisterForExternalChangesFn;
 }
+
+type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
 
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({
@@ -54,10 +67,43 @@ export const ParameterAutoCompletion = ({
     onChange,
     showErrorsInline = false,
     readOnly,
-    hasBackDrop = false
+    hasBackDrop = false,
+    registerForExternalChanges,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
+    const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const { registerError } = useErrorHandler();
+    const initialOrExternalValue = externalValue ? externalValue : initialValue;
+    const [highlightInput, setHighlightInput] = React.useState(false);
+    const [show, setShow] = React.useState(true);
+
+    let onChangeUsed = onChange;
+    if (highlightInput) {
+        onChangeUsed = (value: any) => {
+            onChange(value);
+            setHighlightInput(false);
+        };
+    }
+
+    useEffect(() => {
+        if (registerForExternalChanges) {
+            const handleUpdates = (externalValue: { value: string; label?: string }) => {
+                setExternalValue(externalValue);
+                setHighlightInput(true);
+                onChange(externalValue);
+            };
+            registerForExternalChanges(paramId, handleUpdates);
+        }
+    }, [registerForExternalChanges]);
+
+    // Re-init element when value is set from outside
+    useEffect(() => {
+        if (externalValue) {
+            setShow(false);
+            setTimeout(() => setShow(true), 0);
+        }
+    }, [externalValue]);
+
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
@@ -108,21 +154,24 @@ export const ParameterAutoCompletion = ({
         }
     };
 
-    const itemValue = (value: IAutocompleteDefaultResponse | string) =>
-        typeof value === "string" ? value : value.value;
+    const itemValue = (value: StringOrReifiedValue) => (typeof value === "string" ? value : value.value);
+
+    if (!show) {
+        return <Spinner position={"inline"} />;
+    }
 
     return (
-        <AutoCompleteField<IAutocompleteDefaultResponse | string, IAutocompleteDefaultResponse>
+        <AutoCompleteField<StringOrReifiedValue, IAutocompleteDefaultResponse>
             onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
-            onChange={onChange}
-            initialValue={initialValue}
+            onChange={onChangeUsed}
+            initialValue={initialOrExternalValue}
             disabled={
                 selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
             }
             inputProps={{
                 name: formParamId,
                 id: formParamId,
-                intent: intent,
+                intent: highlightInput ? "success" : intent,
                 readOnly: !!readOnly,
             }}
             reset={
@@ -157,12 +206,12 @@ export const ParameterAutoCompletion = ({
 };
 
 // Label of auto-completion results
-const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
-    const label = item.label || item.value;
+const autoCompleteLabel = (item: StringOrReifiedValue) => {
+    const label = typeof item === "string" ? item : item.label || item.value;
     return label;
 };
 
-const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+const displayAutoCompleteLabel = (item: StringOrReifiedValue) => {
     const label = autoCompleteLabel(item);
     if (label === "") {
         return "\u00A0";
@@ -173,32 +222,39 @@ const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
 
 /** An item renderer for the auto-completion component that will render the label (if available) and value.
  * If the label and value are the same except for case then only the value is displayed. */
-export const labelAndOrValueItemRenderer = (autoCompleteResponse: IAutocompleteDefaultResponse,
-                                            query: string,
-                                            modifiers: IRenderModifiers,
-                                            handleSelectClick: () => any): JSX.Element | string => {
-    const labelValueKindOfSame = (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase()
-    const showLabel = autoCompleteResponse.label && !labelValueKindOfSame
-    return <OverviewItem
-        key={autoCompleteResponse.value}
-        onClick={handleSelectClick}
-        hasSpacing={true}
-        className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
-    >
-        <OverviewItemDescription style={{maxWidth: "50vw"}}>
-            <OverviewItemLine>
-                <OverflowText inline={true} style={{width: "100vw"}}>
-                    <Highlighter label={showLabel ? autoCompleteResponse.label : autoCompleteResponse.value}
-                                 searchValue={query}/>
-                </OverflowText>
-            </OverviewItemLine>
-            {showLabel ?
-                <OverviewItemLine small={true}>
-                    <OverflowText inline={true} style={{width: "100vw"}}>
-                        <Highlighter label={autoCompleteResponse.value} searchValue={query}/>
+export const labelAndOrValueItemRenderer = (
+    autoCompleteResponse: IAutocompleteDefaultResponse,
+    query: string,
+    modifiers: IRenderModifiers,
+    handleSelectClick: () => any
+): JSX.Element | string => {
+    const labelValueKindOfSame =
+        (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase();
+    const showLabel = autoCompleteResponse.label && !labelValueKindOfSame;
+    return (
+        <OverviewItem
+            key={autoCompleteResponse.value}
+            onClick={handleSelectClick}
+            hasSpacing={true}
+            className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+        >
+            <OverviewItemDescription style={{ maxWidth: "50vw" }}>
+                <OverviewItemLine>
+                    <OverflowText inline={true} style={{ width: "100vw" }}>
+                        <Highlighter
+                            label={showLabel ? autoCompleteResponse.label : autoCompleteResponse.value}
+                            searchValue={query}
+                        />
                     </OverflowText>
-                </OverviewItemLine> :
-                null}
-        </OverviewItemDescription>
-    </OverviewItem>
+                </OverviewItemLine>
+                {showLabel ? (
+                    <OverviewItemLine small={true}>
+                        <OverflowText inline={true} style={{ width: "100vw" }}>
+                            <Highlighter label={autoCompleteResponse.value} searchValue={query} />
+                        </OverflowText>
+                    </OverviewItemLine>
+                ) : null}
+            </OverviewItemDescription>
+        </OverviewItem>
+    );
 };

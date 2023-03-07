@@ -22,7 +22,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
@@ -79,11 +79,11 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   override def referencedResources: Seq[Resource] = plugin.referencedResources
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
     var properties =
       plugin match {
         case Dataset(p, params) =>
-          Seq(("type", p.label)) ++ params
+          Seq(("type", p.label)) ++ params.toStringMap
       }
     for(uriProperty <- uriAttribute) {
       properties :+= ("URI Property", uriProperty.uri)
@@ -94,10 +94,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
 
   override def withProperties(updatedProperties: Map[String, String])(implicit context: PluginContext): DatasetSpec[DatasetType] = {
-    copy(plugin = plugin.withParameters(updatedProperties))
+    copy(plugin = plugin.withParameters(ParameterValues.fromStringMap(updatedProperties)))
   }
-
-  override def toString: String = DatasetSpec.toString
 
   def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
     for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
@@ -328,8 +326,9 @@ object DatasetSpec {
         val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.nonEmpty).map(Uri(_))
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
+        val parameters = XmlSerialization.deserializeParameters(sourceNode)
         new DatasetSpec(
-          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
+          plugin = Dataset((sourceNode \ "@type").text, parameters),
           uriAttribute = uriProperty
         )
       }
@@ -339,7 +338,7 @@ object DatasetSpec {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
           <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
-            {XmlSerialization.serializeParameter(params)}
+            {XmlSerialization.serializeParameters(params)}
           </Dataset>
       }
     }

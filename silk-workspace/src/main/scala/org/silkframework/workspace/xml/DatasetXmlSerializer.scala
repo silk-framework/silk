@@ -19,12 +19,13 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.LoadedTask
 
 import java.util.logging.Logger
+import scala.xml.Node
 
 /**
  * The source module which encapsulates all data sources.
@@ -52,7 +53,9 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(task: Task[GenericDatasetSpec], resources: ResourceManager): Unit = {
+  override def writeTask(task: Task[GenericDatasetSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
+    // Only serialize file paths correctly, paths should not be prefixed
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
     val taskXml = XmlSerialization.toXml(task)
     resources.get(task.id.toString + ".xml").write(){ os => taskXml.write(os) }
   }

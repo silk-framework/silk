@@ -30,9 +30,9 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
       val outputWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
-      val projectResources = resourcesIfIncluded(resourceManager).getOrElse(EmptyResourceManager())
+      val exportResources = getProjectResources(outputWorkspaceProvider, project.config.id)
 
-      exportProject(project, outputWorkspaceProvider, projectResources, Some(getProjectResources(outputWorkspaceProvider, project.config.id)))
+      exportProject(project, outputWorkspaceProvider, resourceManager, exportResources, includeResources)
     } finally {
       zipResourceManager.close()
     }
@@ -68,7 +68,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(importResources)
       val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
-      importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = resourcesIfIncluded(resourceManager))
+      importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, resourceManager, importResources = projectResources, includeResources)
     } finally {
       zip.close()
     }
@@ -85,7 +85,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       // Load all projects into temporary XML workspace provider
       for (project <- projects) {
         val projectResources = resourcesIfIncluded(resourceRepository.get(project.config.id)).getOrElse(EmptyResourceManager())
-        exportProject(project, xmlWorkspaceProvider, projectResources, Some(getProjectResources(xmlWorkspaceProvider, project.config.id)))
+        exportProject(project, xmlWorkspaceProvider, projectResources, getProjectResources(xmlWorkspaceProvider, project.config.id), alsoExportResources = true)
       }
     } finally {
       // Close ZIP
@@ -109,7 +109,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
       for (project <- projects) {
         val projectResources = getProjectResources(xmlWorkspaceProvider, project.id)
         importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider,
-          Some(projectResources), importResources = resourcesIfIncluded(resourceRepository.get(project.id)))
+          resourceRepository.get(project.id), importResources = projectResources, includeResources)
       }
     } finally {
       zip.close()

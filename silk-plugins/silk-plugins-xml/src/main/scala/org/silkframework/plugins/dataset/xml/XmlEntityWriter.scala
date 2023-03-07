@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import net.sf.saxon.om.NameChecker
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.plugins.dataset.hierarchical.{HierarchicalEntityWriter, HierarchicalSink}
 import org.silkframework.plugins.dataset.xml.util.IndentingXMLStreamWriter
@@ -118,13 +119,11 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
     * Generates an empty XML element from a URI.
     */
   private def writeStartElement(uri: String): Unit = {
-    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
-    if(separatorIndex == -1) {
-      writer.writeStartElement(uri)
-    } else {
-      val prefix = uri.substring(0, separatorIndex + 1)
-      addPrefix(prefix)
-      writer.writeStartElement(prefix, uri.substring(separatorIndex + 1))
+    splitPathUri(uri) match {
+      case (None, localName) =>
+        writer.writeStartElement(localName)
+      case (Some(namespace), localName) =>
+        writer.writeStartElement(namespace, localName)
     }
   }
 
@@ -132,14 +131,42 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
     * Sets an attribute on a node using a URI.
     */
   private def writeAttribute(uri: String, value: String): Unit = {
-    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
-    if(separatorIndex == -1) {
-      writer.writeAttribute(uri, value)
-    } else {
-      val prefix = uri.substring(0, separatorIndex + 1)
-      addPrefix(prefix)
-      writer.writeAttribute(prefix, uri.substring(separatorIndex + 1), value)
+    splitPathUri(uri) match {
+      case (None, localName) =>
+        writer.writeAttribute(localName, value)
+      case (Some(namespace), localName) =>
+        writer.writeAttribute(namespace, localName, value)
     }
+  }
+
+  /**
+    * Splits a path URI into a namespace and local name.
+    */
+  private def splitPathUri(uri: String): (Option[String], String) = {
+    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#' || c == ':')
+    if(separatorIndex == -1) {
+      if (!isValidLocalName(uri)) {
+        throw new ValidationException(s"Path '$uri' is not a valid XML NCName. The reason could be that the local name starts with a number.")
+      }
+      (None, uri)
+    } else {
+      val namespace = uri.substring(0, separatorIndex + 1)
+      val localName = uri.substring(separatorIndex + 1)
+      if (!isValidLocalName(localName)) {
+        throw new ValidationException(s"Path '$uri' cannot be converted into a QName in XML. The reason could be that the local name '$localName' starts with a number.")
+      }
+      addPrefix(namespace)
+      (Some(namespace), localName)
+    }
+  }
+
+  /**
+    * Tests if a local name is valid.
+    */
+  @inline
+  private def isValidLocalName(name: String): Boolean = {
+    // As Saxon is already part of the dependencies we use their name checker.
+    NameChecker.isValidNCName(name)
   }
 
   /**

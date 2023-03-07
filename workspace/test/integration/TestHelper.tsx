@@ -1,6 +1,6 @@
 import React from "react";
-import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
-import {EnzymePropSelector, mount, ReactWrapper, shallow} from "enzyme";
+import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
+import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
@@ -16,7 +16,7 @@ import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
-import { render } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
@@ -96,7 +96,7 @@ export type RecursivePartial<T> = {
         : T[P];
 };
 
-export const withShallow = (component) => shallow(component)
+export const withShallow = (component) => shallow(component);
 
 export const withMount = (component) => mount(component);
 
@@ -179,6 +179,22 @@ export const findSingleElement = (
     const element = findAll(wrapper, cssSelector);
     expect(element).toHaveLength(1);
     return element[0];
+};
+
+export const elementHtmlToContain = async (
+    wrapper: ReactWrapper<any, any>,
+    selector: string | EnzymePropSelector,
+    substring: string
+) => {
+    await waitFor(() => expect(findSingleElement(wrapper, selector).html()).toContain(substring), {
+        onTimeout: (err) => {
+            console.warn(
+                `Element with selector '${selector}' did not contain sub-string '${substring}'! Printing wrapper HTML:`
+            );
+            logWrapperHtml(wrapper);
+            return err;
+        },
+    });
 };
 
 /** Adds the document.createRange method */

@@ -84,6 +84,8 @@ interface IProps {
     itemDisplayLabel?: (item: IAutoCompleteItem) => string;
     // The text that is displayed when no item was found and no item can be created
     noResultsText?: string;
+    // When a label exist, also show the value in the 2. row below the label of the suggested item. Default: true
+    showValueWhenLabelExists?: boolean;
 }
 
 // Auto-complete interface as it is returned by the auto-complete backend APIs
@@ -97,58 +99,64 @@ interface IAutoCompleteItem {
 const hasDistinctLabel = (autoCompleteItem: IAutoCompleteItem) =>
     autoCompleteItem.label && autoCompleteItem.label.toLowerCase() !== autoCompleteItem.value.toLowerCase();
 
-// Renders an option item in the suggest list
-export const autoCompleteItemRenderer = (
-    autoCompleteItem: IAutoCompleteItem,
-    query: string,
-    modifiers: IRenderModifiers,
-    handleClick: () => any
-): JSX.Element => {
-    let label: string | undefined;
-    let value: string | undefined = undefined;
-    // Do not display value and label if they are basically the same
-    if (hasDistinctLabel(autoCompleteItem)) {
-        label = autoCompleteItem.label;
-        value = autoCompleteItem.value;
-    } else {
-        label = autoCompleteItem.value;
-    }
-    const highlighter = (value: string | undefined) =>
-        modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value;
-    const item =
-        value || autoCompleteItem.description ? (
-            <OverviewItem style={modifiers.styleWidth}>
-                <OverviewItemDescription>
-                    <OverviewItemLine>
-                        <OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText>
-                    </OverviewItemLine>
-                    {value && (
-                        <OverviewItemLine small={true}>
-                            <OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText>
-                        </OverviewItemLine>
-                    )}
-                    {autoCompleteItem.description && (
-                        <OverviewItemLine small={true}>
-                            <OverflowText>{highlighter(autoCompleteItem.description)}</OverflowText>
-                        </OverviewItemLine>
-                    )}
-                </OverviewItemDescription>
-            </OverviewItem>
-        ) : (
-            <OverflowText style={modifiers.styleWidth} ellipsis={"reverse"}>
-                {highlighter(label)}
-            </OverflowText>
-        );
+const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
     return (
-        <MenuItem
-            active={modifiers.active}
-            disabled={modifiers.disabled}
-            key={autoCompleteItem.value}
-            onClick={handleClick}
-            text={item}
-        />
-    );
+        autoCompleteItem: IAutoCompleteItem,
+        query: string,
+        modifiers: IRenderModifiers,
+        handleClick: () => any
+    ): JSX.Element => {
+        let label: string | undefined;
+        let value: string | undefined = undefined;
+        // Do not display value and label if they are basically the same
+        if (hasDistinctLabel(autoCompleteItem)) {
+            label = autoCompleteItem.label;
+            value = autoCompleteItem.value;
+        } else {
+            label = autoCompleteItem.value;
+        }
+        const highlighter = (value: string | undefined) =>
+            modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value;
+        const item =
+            value || autoCompleteItem.description ? (
+                <OverviewItem style={modifiers.styleWidth}>
+                    <OverviewItemDescription>
+                        <OverviewItemLine>
+                            <OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText>
+                        </OverviewItemLine>
+                        {value && showValueWhenLabelExists && (
+                            <OverviewItemLine small={true}>
+                                <OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText>
+                            </OverviewItemLine>
+                        )}
+                        {autoCompleteItem.description && (
+                            <OverviewItemLine small={true}>
+                                <OverflowText>{highlighter(autoCompleteItem.description)}</OverflowText>
+                            </OverviewItemLine>
+                        )}
+                    </OverviewItemDescription>
+                </OverviewItem>
+            ) : (
+                <OverflowText style={modifiers.styleWidth} ellipsis={"reverse"}>
+                    {highlighter(label)}
+                </OverflowText>
+            );
+        return (
+            <MenuItem
+                active={modifiers.active}
+                disabled={modifiers.disabled}
+                key={autoCompleteItem.value}
+                onClick={handleClick}
+                text={item}
+            />
+        );
+    };
 };
+
+// Renders an option item in the suggest list
+export const autoCompleteItemRenderer = autoCompleteItemRendererFactory(true);
+// Does not render the value when a label exists
+export const autoCompleteItemRendererWithoutValue = autoCompleteItemRendererFactory(false);
 
 // Necessary because else popovers won't be shown (still unclear why, maybe interaction with MDL)
 const portalContainer = () => document.body;
@@ -181,6 +189,7 @@ const AutoComplete = ({
     newOptionText,
     options,
     noResultsText,
+    showValueWhenLabelExists = true,
     ...otherProps
 }: IProps) => {
     const reset = clearable
@@ -235,7 +244,9 @@ const AutoComplete = ({
                     itemValueSelector={(item) => item.value}
                     itemValueString={(item) => item.value}
                     onSearch={options ? onSearchOptionFactory(options) : onSearchFactory(ruleId, entity)}
-                    itemRenderer={autoCompleteItemRenderer}
+                    itemRenderer={
+                        showValueWhenLabelExists ? autoCompleteItemRenderer : autoCompleteItemRendererWithoutValue
+                    }
                     itemValueRenderer={itemLabel(itemDisplayLabel)}
                     noResultText={noResultsText ? noResultsText : "No result."}
                     createNewItem={create}

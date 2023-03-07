@@ -2,7 +2,8 @@ package org.silkframework.plugins.dataset
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceReadTrait}
 
@@ -18,12 +19,13 @@ case class DatasetTypeAutoCompletionProvider() extends PluginParameterAutoComple
     * @param dependOnParameterValues It assumes to get the dataset ID in first position.
     */
   override def autoComplete(searchQuery: String,
-                            projectId: String,
-                            dependOnParameterValues: Seq[String],
+                            dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+    implicit val userContext: UserContext = context.user
+    val projectId = context.projectId.getOrElse(throw new ValidationException("Project not provided"))
     dependOnParameterValues.headOption.
-        flatMap(datasetId => workspace.project(projectId).anyTaskOption(datasetId)).
+        flatMap(datasetId => workspace.project(projectId).anyTaskOption(datasetId.strValue)).
         toSeq.flatMap {
           case task: ProjectTask[_] =>
             try {
@@ -40,11 +42,10 @@ case class DatasetTypeAutoCompletionProvider() extends PluginParameterAutoComple
   /**
     * There are no labels for types in the type cache.
     */
-  override def valueToLabel(projectId: String,
-                            value: String,
-                            dependOnParameterValues: Seq[String],
+  override def valueToLabel(value: String,
+                            dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = {
+                           (implicit context: PluginContext): Option[String] = {
     None
   }
 }

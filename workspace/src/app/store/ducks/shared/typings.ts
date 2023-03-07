@@ -70,12 +70,18 @@ export interface IProjectTask<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     data: TaskPlugin<PLUGIN_PARAMETERS>;
 }
 
+export interface TemplateValueType {
+    [key: string]: string | TemplateValueType;
+}
+
 /** Task plugin. */
 export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     // The plugin ID
     type: string;
     // current parameter values
     parameters: PLUGIN_PARAMETERS;
+    // Template parameter values
+    templates?: TemplateValueType;
     // Optional task type, e.g. Dataset, Transform etc.
     taskType?: TaskType;
     // Dataset may have a URI property set

@@ -14,7 +14,6 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
@@ -25,8 +24,6 @@ import java.lang.reflect.{Constructor, InvocationTargetException, Type}
 import scala.io.{Codec, Source}
 import scala.language.existentials
 import scala.util.control.NonFatal
-
-
 
 /**
   * Describes a plugin that is based on a Scala class.
@@ -40,8 +37,8 @@ import scala.util.control.NonFatal
   * @param constructor The constructor for creating a new instance of this plugin.
   * @tparam T The class that implements this plugin.
   */
-class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
-                                 val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T]) extends PluginDescription[T] {
+class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
+                                              val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -57,35 +54,37 @@ class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String]
    * @param ignoreNonExistingParameters If true, parameter values for parameters that do not exist are ignored.
     *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
    */
-  def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
+  def apply(parameterValues: ParameterValues = ParameterValues.empty,
+            ignoreNonExistingParameters: Boolean = true)
            (implicit context: PluginContext): T = {
-    if(!ignoreNonExistingParameters) {
+    if (!ignoreNonExistingParameters) {
       validateParameters(parameterValues)
     }
     val parsedParameters = parseParameters(parameterValues)
     try {
-      constructor.newInstance(parsedParameters: _*)
+      val plugin = constructor.newInstance(parsedParameters: _*)
+      plugin.templateValues = parameterValues.templates
+      plugin
     } catch {
       case ex: InvocationTargetException => throw ex.getCause
     }
   }
 
-  override def toString = label
-
-  private def parseParameters(parameterValues: Map[String, String])(implicit context: PluginContext): Seq[AnyRef] = {
+  private def parseParameters(parameterValues: ParameterValues)(implicit context: PluginContext): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
-      parameterValues.get(parameter.name) match {
-        case Some(v) =>
+      parameterValues.values.get(parameter.name) match {
+        case Some(value) =>
           try {
             parameter.parameterType match {
               case stringParam: StringParameterType[_] =>
-                stringParam.fromString(v).asInstanceOf[AnyRef]
-              case _: PluginObjectParameterTypeTrait =>
-                throw new RuntimeException(s"Plugin parameter '${parameter.name}' of plugin '$id' has no simple string representation, but is a complex object.") // TODO: What to do with that?
+                parseStringParameter(stringParam, value)
+              case objParam: PluginObjectParameterTypeTrait =>
+                parseObjectParameter(objParam, value)
             }
           } catch {
             case NonFatal(ex) =>
-              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.parameterType + ". Issue: " + ex.getMessage, ex)
+              throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. " +
+                s"Value must be a valid " + parameter.parameterType + ". Details: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
@@ -95,11 +94,44 @@ class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String]
     }
   }
 
+  private def parseStringParameter(stringParam: StringParameterType[_], value: ParameterValue)
+                                  (implicit context: PluginContext): AnyRef = {
+    value match {
+      case ParameterStringValue(strValue) =>
+        stringParam.fromString(strValue).asInstanceOf[AnyRef]
+      case template: ParameterTemplateValue =>
+        stringParam.fromString(template.evaluate()).asInstanceOf[AnyRef]
+      case ParameterObjectValue(objValue) =>
+        objValue
+      case _ =>
+        throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
+    }
+  }
+
+  private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue)
+                                  (implicit context: PluginContext): AnyRef = {
+    value match {
+      case ParameterObjectValue(obj) =>
+        obj
+      case values: ParameterValues =>
+        objParam.pluginDescription match {
+          case Some(pluginDesc: PluginDescription[_]) =>
+            pluginDesc(values).asInstanceOf[AnyRef]
+          case _ =>
+            throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
+        }
+      case _ =>
+        throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
+    }
+  }
+
+  override def toString: String = label
+
   /**
     * Throws an exception if a parameter value is provided that does not exist on this plugin.
     */
-  private def validateParameters(parameterValues: Map[String, String]): Unit = {
-    val invalidParameters = parameterValues.keySet -- parameters.map(_.name)
+  private def validateParameters(parameterValues: ParameterValues): Unit = {
+    val invalidParameters = parameterValues.values.keySet -- parameters.map(_.name)
     if (invalidParameters.nonEmpty) {
       throw new InvalidPluginParameterValueException(s"The following parameters cannot be set on plugin '$label' because they are no valid parameters:" +
         s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.map(_.name).mkString(", ")}")
@@ -117,14 +149,14 @@ object ClassPluginDescription {
     * Returns a plugin description for a given class.
     * If available, returns an already registered plugin description.
     */
-  def apply[T](pluginClass: Class[T]): PluginDescription[T] = {
+  def apply[T <: AnyPlugin](pluginClass: Class[T]): PluginDescription[T] = {
     PluginRegistry.pluginDescription(pluginClass).getOrElse(create(pluginClass))
   }
 
   /**
     * Creates a new plugin description from a class.
     */
-  def create[T](pluginClass: Class[T]): ClassPluginDescription[T] = {
+  def create[T <: AnyPlugin](pluginClass: Class[T]): ClassPluginDescription[T] = {
     getAnnotation(pluginClass) match {
       case Some(annotation) => createFromAnnotation(pluginClass, annotation)
       case None => createFromClass(pluginClass)
@@ -135,7 +167,7 @@ object ClassPluginDescription {
     Option(pluginClass.getAnnotation(classOf[Plugin]))
   }
 
-  private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
+  private def createFromAnnotation[T <: AnyPlugin](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
     val markdownDocString = loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
     new ClassPluginDescription(
       id = annotation.id,
@@ -148,7 +180,7 @@ object ClassPluginDescription {
     )
   }
 
-  private def createFromClass[T](pluginClass: Class[T]): ClassPluginDescription[T] = {
+  private def createFromClass[T <: AnyPlugin](pluginClass: Class[T]): ClassPluginDescription[T] = {
     new ClassPluginDescription(
       id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,
@@ -278,18 +310,16 @@ object ClassPluginDescription {
       }
     }
     override def autoComplete(searchQuery: String,
-                                        projectId: String,
-                                        dependOnParameterValues: Seq[String],
-                                        workspace: WorkspaceReadTrait)
-                                       (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                              dependOnParameterValues: Seq[ParamValue],
+                              workspace: WorkspaceReadTrait)
+                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
       filterResults(searchQuery, enumValues)
     }
 
-    override def valueToLabel(projectId: String,
-                              value: String,
-                              dependOnParameterValues: Seq[String],
+    override def valueToLabel(value: String,
+                              dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit userContext: UserContext): Option[String] = {
+                             (implicit context: PluginContext): Option[String] = {
       enumValues.find(_.value == value).flatMap(_.label)
     }
   }

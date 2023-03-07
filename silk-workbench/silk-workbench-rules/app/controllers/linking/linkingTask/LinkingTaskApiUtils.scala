@@ -24,7 +24,7 @@ object LinkingTaskApiUtils {
                                                   sourcePathLabels: Map[String, String],
                                                   targetPathLabels: Map[String, String])
                                                  (implicit userContext: UserContext): JsObject = {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = linkingTask.project.config.prefixes, projectId = Some(linkingTask.project.config.id))
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](linkingTask.project)
     implicit val workspace: Workspace = WorkspaceFactory().workspace
     implicit val project: Project = linkingTask.project
     // JSON only
@@ -135,7 +135,7 @@ object LinkingTaskApiUtils {
     PluginRegistry.pluginDescriptionsById(pluginId, assignableTo = Some(Seq(pluginParentClass))).headOption match {
       case Some(pluginDescription) =>
         val parameters = JsonHelpers.objectValue(operatorJson, PARAMETERS)
-        val updatedParameters = TaskApiUtils.addLabelsToValues("", parameters.value, pluginDescription)
+        val updatedParameters = TaskApiUtils.addLabelsToValues(project.id, parameters.value, pluginDescription)
         operatorJson ++ Json.obj(
           PARAMETERS -> JsObject(updatedParameters)
         )

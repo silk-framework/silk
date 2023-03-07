@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { SearchField } from "@eccenca/gui-elements";
+import { InvisibleCharacterWarningProps } from "@eccenca/gui-elements/src/components/TextField/useTextValidation";
 
 export interface ISearchInputProps {
     onFilterChange(e);
@@ -12,6 +13,10 @@ export interface ISearchInputProps {
     emptySearchInputMessage?: string;
     // Gives the search input the focus if true
     focusOnCreation?: boolean;
+    /**
+     * If set, allows to be informed of invisible, hard to spot characters in the string value.
+     */
+    invisibleCharacterWarning?: InvisibleCharacterWarningProps;
 }
 
 const SearchInput = ({
@@ -46,5 +51,6 @@ const SearchInput = ({
     );
 };
 
-const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => (p.filterValue === n.filterValue) && (p.emptySearchInputMessage === n.emptySearchInputMessage);
+const areEqual = (p: ISearchInputProps, n: ISearchInputProps) =>
+    p.filterValue === n.filterValue && p.emptySearchInputMessage === n.emptySearchInputMessage;
 export default memo<ISearchInputProps>(SearchInput, areEqual);

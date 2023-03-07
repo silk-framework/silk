@@ -4,7 +4,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
@@ -32,7 +32,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
                     @Param(label = "Workflow datasets", value = "Workflow datasets allow reading and writing data from/to a data source/sink.", visibleInDialog = false)
                     datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty),
                     @Param(label = "UI annotations", value = "Annotations that are displayed in the workflow editor to describe parts of the workflow.", visibleInDialog = false)
-                    uiAnnotations: UiAnnotations = UiAnnotations()) extends TaskSpec {
+                    uiAnnotations: UiAnnotations = UiAnnotations()) extends TaskSpec with AnyPlugin {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 

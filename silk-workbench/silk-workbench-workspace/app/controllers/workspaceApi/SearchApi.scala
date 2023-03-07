@@ -6,7 +6,6 @@ import controllers.workspace.doc.SearchApiDoc
 import controllers.workspaceApi.search.SearchApiModel._
 import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -211,43 +210,35 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   private def parameterAutoCompletion(request: ParameterAutoCompletionRequest,
                                       pluginDescription: PluginDescription[_])
                                      (implicit userContext: UserContext): Result = {
-    pluginDescription.parameters.find(_.name == request.parameterId) match {
-      case Some(parameter) =>
-        parameter.autoCompletion match {
-          case Some(autoCompletion) =>
-            parameterAutoCompletion(request, autoCompletion)
-          case None =>
-            log.warning(s"Parameter '${parameter.name}' of plugin '${request.pluginId}' has no auto-completion support.")
-            NotFound
-        }
+    val parameter = pluginDescription.findParameter(request.parameterId)
+    parameter.autoCompletion match {
+      case Some(autoCompletion) =>
+        parameterAutoCompletion(request, autoCompletion, pluginDescription)
       case None =>
-        log.warning(s"Plugin '${request.pluginId}' does not have a parameter '${request.parameterId}'.")
-        NotFound
+        val error = s"Parameter '${parameter.name}' of plugin '${request.pluginId}' has no auto-completion support."
+        log.warning(error)
+        NotFound(error)
     }
   }
 
   private def parameterAutoCompletion(request: ParameterAutoCompletionRequest,
-                                      autoCompletion: ParameterAutoCompletion)
+                                      autoCompletion: ParameterAutoCompletion,
+                                      pluginDescription: PluginDescription[_])
                                      (implicit userContext: UserContext): Result = {
-    if (hasInvalidDependentParameterValues(request, autoCompletion)) {
-      throw BadUserInputException("No values for depends-on parameters supplied. Values are expected for " +
-          s"following parameters: ${autoCompletion.autoCompletionDependsOnParameters.mkString(", ")}.")
-    } else {
-      try {
-        val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
-          request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
-          limit = request.workingLimit, offset = request.workingOffset, workspace = workspace)
-        Ok(Json.toJson(result.map(_.withNonEmptyLabels).toSeq))
-      } catch {
-        case ex: IllegalArgumentException =>
-          throw BadUserInputException(ex)
-      }
+    try {
+      implicit val pluginContext: PluginContext = PluginContext(user = userContext, projectId = Some(request.projectId))
+      val dependOnParameterValues = ParamValue.createAll(request.dependsOnParameterValues.getOrElse(Seq.empty),
+                                                         autoCompletion.autoCompletionDependsOnParameters, pluginDescription)
+      val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
+                                                                      dependOnParameterValues,
+                                                                      limit = request.workingLimit,
+                                                                      offset = request.workingOffset,
+                                                                      workspace = workspace)
+      Ok(Json.toJson(result.map(_.withNonEmptyLabels).toSeq))
+    } catch {
+      case ex: IllegalArgumentException =>
+        throw BadUserInputException(ex)
     }
-  }
-
-  private def hasInvalidDependentParameterValues(request: ParameterAutoCompletionRequest, autoCompletion: ParameterAutoCompletion): Boolean = {
-    autoCompletion.autoCompletionDependsOnParameters.nonEmpty &&
-      autoCompletion.autoCompletionDependsOnParameters.size != request.dependsOnParameterValues.map(_.size).getOrElse(0)
   }
 
   /** Get all item types */

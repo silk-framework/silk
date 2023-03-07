@@ -1,6 +1,7 @@
 package org.silkframework.workbench
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.TaskSpec
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin.{TaskActions, TaskType}
 import org.silkframework.workspace.ProjectTask
@@ -11,7 +12,7 @@ import scala.reflect.ClassTag
 /**
   * Specifies the UI integration of specific task types.
   */
-abstract class WorkbenchPlugin[T <: TaskSpec : ClassTag] {
+abstract class WorkbenchPlugin[T <: TaskSpec : ClassTag] extends AnyPlugin {
 
   /**
     * The task types that are covered by this plugin.

@@ -23,7 +23,7 @@ import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
 import org.silkframework.execution.local.LocalExecutionManager
 import org.silkframework.plugins.dataset.InternalDataset
-import org.silkframework.runtime.plugin.PluginModule
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
 import scala.language.existentials
 
@@ -32,14 +32,14 @@ import scala.language.existentials
   */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses = datasets ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = datasets ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
 
-  private def datasets =
+  private def datasets: Seq[Class[_ <: AnyPlugin]] =
     classOf[InternalDataset] ::
     classOf[VariableDataset] ::
     Nil
 
-  private def serializers =
+  private def serializers: Seq[Class[_ <: AnyPlugin]] =
     TaskSpecXmlFormat.getClass ::
     GenericTaskFormat.getClass ::
     DatasetSpecFormat.getClass ::
@@ -47,7 +47,7 @@ class CorePlugins extends PluginModule {
     CustomTaskFormat.getClass ::
     EntitySchemaFormat.getClass :: Nil
 
-  private def valueTypes = {
-    ValueType.valueTypeIdMapByClass.keys
+  private def valueTypes: Seq[Class[_ <: AnyPlugin]] = {
+    ValueType.valueTypeIdMapByClass.keys.toSeq
   }
 }

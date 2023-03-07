@@ -96,7 +96,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
         TestSerializerCategoryName -> LazyMetadataJson(new DPair("s", "t"), serializer)
       )
     )
-    val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(WriteContext[JsValue]())
+    val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(WriteContext.empty[JsValue])
     val readMetadata = newMetadata.serializer.fromString(stringVers, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext())
     val ex = readMetadata.getLazyMetadata[FailureClass](EntityMetadata.FAILURE_KEY).metadata.get
     val pair = readMetadata.getLazyMetadata[DPair[String]](TestSerializerCategoryName).metadata.get
@@ -106,7 +106,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
 
   it should "deal correctly with empty metadata objects" in{
     val emptyMap = EntityMetadataJson()
-    val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(WriteContext[JsValue]())
+    val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(WriteContext.empty[JsValue])
     stringVal shouldBe ""
     val parsed = EntityMetadataJson.JsonSerializer.fromString(stringVal, "")(ReadContext())
     parsed shouldBe EntityMetadataJson()

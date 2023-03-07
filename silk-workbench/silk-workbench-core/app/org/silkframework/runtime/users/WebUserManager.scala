@@ -1,18 +1,17 @@
 package org.silkframework.runtime.users
 
-import java.util.logging.Logger
-import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry}
 import play.api.mvc.RequestHeader
 
+import java.util.logging.Logger
 import scala.util.control.NonFatal
 
 /**
   * Fetches user related data from a request object.
   */
-trait WebUserManager {
+trait WebUserManager extends AnyPlugin {
   def user(request: RequestHeader): Option[WebUser]
 
   def userContext(request: RequestHeader): UserContext

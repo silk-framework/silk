@@ -21,5 +21,5 @@ export const INPUT_TYPES = {
     OBJECT: "objectParameter",
     TARGET_VOCABULARY: "targetVocabularies",
     IDENTIFIER: "identifier",
-    GRAPH_URI: "graph uri"
+    GRAPH_URI: "graph uri",
 };
