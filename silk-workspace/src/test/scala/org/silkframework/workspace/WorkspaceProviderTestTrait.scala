@@ -32,6 +32,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   val WORKFLOW_ID = "workflow1"
   val TRANSFORM_ID = "transform1"
   val DATASET_ID = "dataset1"
+  val OUTPUTS_DATASET_ID = "outputDataset1"
   val LINKING_TASK_ID = "linking1"
   val CUSTOM_TASK_ID = "custom1"
   val NEW_PREFIX = "newPrefix"
@@ -211,20 +212,23 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       metaData = metaData
     )
 
-  val miniWorkflow =
+  val miniWorkflow: PlainTask[Workflow] =
     PlainTask(
       id = WORKFLOW_ID,
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
+            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty),
+            WorkflowDataset(Seq(TRANSFORM_ID), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), configInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
-          )
+          ),
+          replaceableInputs = Seq(DATASET_ID),
+          replaceableOutputs = Seq(OUTPUTS_DATASET_ID)
         ),
       metaData = metaData
     )

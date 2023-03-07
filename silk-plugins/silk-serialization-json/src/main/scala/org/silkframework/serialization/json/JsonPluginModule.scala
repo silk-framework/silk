@@ -7,7 +7,7 @@ import org.silkframework.serialization.json.InputJsonSerializer.{CachedEntitySch
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.ReferenceLinksJsonFormat
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
-import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
+import org.silkframework.serialization.json.WorkflowSerializers.{TaskIdentifierParameterFormat, WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
 
 class JsonPluginModule extends PluginModule {
 
@@ -53,5 +53,6 @@ class JsonPluginModule extends PluginModule {
       ReferenceLinksJsonFormat.getClass ::
       ComplexMappingJsonFormat.getClass ::
       UiAnnotationsJsonFormat.getClass ::
+      TaskIdentifierParameterFormat.getClass ::
       Nil
 }

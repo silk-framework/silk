@@ -32,7 +32,11 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
                     @Param(label = "Workflow datasets", value = "Workflow datasets allow reading and writing data from/to a data source/sink.", visibleInDialog = false)
                     datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty),
                     @Param(label = "UI annotations", value = "Annotations that are displayed in the workflow editor to describe parts of the workflow.", visibleInDialog = false)
-                    uiAnnotations: UiAnnotations = UiAnnotations()) extends TaskSpec {
+                    uiAnnotations: UiAnnotations = UiAnnotations(),
+                    @Param(label = "Replaceable input datasets", value = "The IDs of input datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
+                    replaceableInputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty),
+                    @Param(label = "Replaceable output datasets", value = "The IDs of output datasets that can be replaced in the workflow with other user defined datasets.", visibleInDialog = false)
+                    replaceableOutputs: TaskIdentifierParameter = TaskIdentifierParameter(Seq.empty)) extends TaskSpec {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -40,6 +44,11 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     nodes.find(_.nodeId == nodeId)
         .getOrElse(throw new NoSuchElementException(s"Cannot find node $nodeId in the workflow."))
   }
+
+  def validate(): AllVariableDatasets = {
+    markedVariableDatasets()
+  }
+  validate()
 
   /**
     * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow with the layer index, i.e.
@@ -127,15 +136,43 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     workflowNodeMap
   }
 
+  /** Returns all replaceable input and output datasets that exist in the workflow and were marked as replaceable dataset. */
+  def markedVariableDatasets(): AllVariableDatasets = {
+    val workflowDatasets = datasets.map(_.task.toString).toSet
+    val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
+    val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    val workflowDatasetInputs = operators.flatMap(_.inputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
+    if(replaceableInputUsedAsOutput.nonEmpty) {
+      throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
+    }
+    val replaceableOutputUsedAsInput = workflowDatasetInputs.intersect(replaceableOutputs.taskIds.toSet)
+    if (replaceableOutputUsedAsInput.nonEmpty) {
+      throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableOutputUsedAsInput.mkString(", "))
+    }
+    val bothInputAndOutput = (replaceableInputs ++ replaceableOutputs).filter(id =>
+      workflowDatasetInputs.contains(id) && workflowDatasetOutputs.contains(id)
+    )
+    if (bothInputAndOutput.nonEmpty) {
+      throw new IllegalArgumentException("Datasets must not be marked as replaceable input and output simultaneously! Affected dataset: " + bothInputAndOutput.mkString(", "))
+    }
+    val actualVariableInputs = replaceableInputs.filter(id => workflowDatasets.contains(id) && workflowDatasetInputs.contains(id))
+    val actualVariableOutputs = replaceableOutputs.filter(id => workflowDatasets.contains(id) && workflowDatasetOutputs.contains(id))
+    AllVariableDatasets(
+      dataSources = actualVariableInputs,
+      sinks = actualVariableOutputs
+    )
+  }
+
   /**
-    * Returns all variable datasets and how they are used in the workflow.
+    * Returns all legacy variable datasets and how they are used in the workflow.
     *
     * @param project
     * @return
     * @throws Exception if a variable dataset is used as input and output, which is not allowed.
     */
-  def variableDatasets(project: Project)
-                      (implicit userContext: UserContext): AllVariableDatasets = {
+  def legacyVariableDatasets(project: Project)
+                            (implicit userContext: UserContext): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
       for (datasetTask <- outputDatasets(project)
            if datasetTask.data.plugin.isInstanceOf[VariableDataset]) yield {
@@ -163,7 +200,15 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
-  /** Returns all Dataset tasks that are uesd as output in the workflow */
+  /** Legacy and marked variable datasets combined. */
+  def allVariableDatasets(project: Project)
+                         (implicit userContext: UserContext): AllVariableDatasets = {
+    val legacy = legacyVariableDatasets(project)
+    val marked = markedVariableDatasets()
+    AllVariableDatasets(legacy.dataSources ++ marked.dataSources, legacy.sinks ++ marked.sinks)
+  }
+
+  /** Returns all Dataset tasks that are used as output in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
     for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
@@ -277,7 +322,16 @@ object WorkflowDatasetsParameter {
   implicit def fromWorkflowDatasetParameter(v: WorkflowDatasetsParameter): Seq[WorkflowDataset] = v.value
 }
 
-/** All IDs of variable datasets in a workflow */
+/** Used e.g. for replaceable input/output lists. */
+case class TaskIdentifierParameter(taskIds: Seq[String]) extends PluginObjectParameterNoSchema
+
+object TaskIdentifierParameter {
+  implicit def toTaskIdentifierParameter(v: Seq[String]): TaskIdentifierParameter = TaskIdentifierParameter(v)
+
+  implicit def fromTaskIdentifierParameter(v: TaskIdentifierParameter): Seq[String] = v.taskIds
+}
+
+/** All IDs of replaceable datasets in a workflow */
 case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
 
 /** The workflow dependency graph */
@@ -286,6 +340,15 @@ case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
 
 
 object Workflow {
+
+  /** Extract task IDs from a comma concatenated string. */
+  def taskIds(concatenatedIdsString: String): Seq[String] = {
+    if (concatenatedIdsString.isEmpty) {
+      Seq.empty
+    } else {
+      concatenatedIdsString.split(",").toSeq
+    }
+  }
 
   implicit object WorkflowXmlFormat extends XmlFormat[Workflow] {
 
@@ -316,14 +379,14 @@ object Workflow {
 
       val datasets =
         for (ds <- xml \ "Dataset") yield {
-          val inputStr = (ds \ "@inputs").text
-          val outputStr = (ds \ "@outputs").text
+          val inputs = taskIds((ds \ "@inputs").text)
+          val outputs = taskIds((ds \ "@outputs").text)
           val configInputStr = (ds \ "@configInputs").text
           val task = (ds \ "@task").text
           WorkflowDataset(
-            inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
+            inputs = inputs,
             task = task,
-            outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
+            outputs = outputs,
             position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(ds, task),
             outputPriority = parseOutputPriority(ds),
@@ -332,7 +395,9 @@ object Workflow {
         }
 
       val stickyNotes = (xml \ "UiAnnotations" \ "StickyNotes" \ "StickyNote").map(StickyNote.StickyNodeXmlFormat.read)
-      new Workflow(operators, datasets, UiAnnotations(stickyNotes))
+      val replaceableInputs = taskIds((xml \ "@replaceableInputs").text.trim)
+      val replaceableOutputs = taskIds((xml \ "@replaceableOutputs").text.trim)
+      new Workflow(operators, datasets, UiAnnotations(stickyNotes), replaceableInputs, replaceableOutputs)
     }
 
     /**
@@ -340,7 +405,7 @@ object Workflow {
       */
     override def write(workflow: Workflow)(implicit writeContext: WriteContext[Node]): Node = {
       import workflow._
-      <Workflow>
+      <Workflow replaceableInputs={workflow.replaceableInputs.mkString(",")} replaceableOutputs={workflow.replaceableOutputs.mkString(",")}>
         {for (op <- operators) yield {
           <Operator
           posX={op.position._1.toString}
