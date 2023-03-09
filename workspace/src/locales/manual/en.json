@@ -736,7 +736,7 @@
                 "stopActivity": "Stop activity",
                 "showErrorReport": "Show error report",
                 "viewCachedData": "View cached data in new tab",
-                "startPrioritized": "Run prioritized"
+                "startPrioritized": "Run prioritized and skip the waiting queue"
             },
             "errorMessages": {
                 "actions": {
