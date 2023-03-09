@@ -93,8 +93,12 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
 
   override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
 
-  override def withProperties(updatedProperties: Map[String, String])(implicit context: PluginContext): DatasetSpec[DatasetType] = {
-    copy(plugin = plugin.withParameters(ParameterValues.fromStringMap(updatedProperties)))
+  override def parameters(implicit pluginContext: PluginContext): ParameterValues = {
+    plugin.parameters
+  }
+
+  def withParameters(updatedParameters: ParameterValues, dropExistingValues: Boolean = false)(implicit context: PluginContext): DatasetSpec[DatasetType] = {
+    copy(plugin = plugin.withParameters(updatedParameters, dropExistingValues))
   }
 
   def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {

@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
@@ -543,7 +543,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val fromTask = project.anyTask(oldTask)
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
     implicit val context: PluginContext = PluginContext.fromProject(project)
-    val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
+    val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
     project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
     Ok
   }

@@ -6,7 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.Entity
 import org.silkframework.execution._
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -147,7 +147,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           if (configParameters.isEmpty) {
             task
           } else {
-            PlainTask(id = task.id, data = task.data.withProperties(configParameters), metaData = task.metaData)
+            PlainTask(id = task.id, data = task.data.withParameters(ParameterValues.fromStringMap(configParameters)), metaData = task.metaData)
           }
         }
       ).asInstanceOf[Task[T]]
