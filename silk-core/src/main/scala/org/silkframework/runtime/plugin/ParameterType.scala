@@ -442,7 +442,7 @@ object StringParameterType {
 
     override def name: String = "duration"
 
-    override def description: String = " An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
+    override def description: String = "An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
 
     override def fromString(str: String)(implicit context: PluginContext): Duration = {
       Duration.parse(str)

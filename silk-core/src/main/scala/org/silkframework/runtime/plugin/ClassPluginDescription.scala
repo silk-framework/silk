@@ -83,8 +83,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
             }
           } catch {
             case NonFatal(ex) =>
-              throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. " +
-                s"Value must be a valid " + parameter.parameterType + ". Details: " + ex.getMessage, ex)
+              throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. ${ex.getMessage}", ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
@@ -98,9 +97,21 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories
                                   (implicit context: PluginContext): AnyRef = {
     value match {
       case ParameterStringValue(strValue) =>
-        stringParam.fromString(strValue).asInstanceOf[AnyRef]
+        try {
+          stringParam.fromString(strValue).asInstanceOf[AnyRef]
+        } catch {
+          case NonFatal(ex) =>
+            throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description}. Details: ${ex.getMessage}", ex)
+        }
       case template: ParameterTemplateValue =>
-        stringParam.fromString(template.evaluate()).asInstanceOf[AnyRef]
+        val evaluatedValue = template.evaluate()
+        try {
+          stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
+        } catch {
+          case NonFatal(ex) =>
+            throw new InvalidPluginParameterValueException(s"Got '$evaluatedValue' based on template '${template.template}', " +
+              s"but expected: ${stringParam.description}. Details: ${ex.getMessage}", ex)
+        }
       case ParameterObjectValue(objValue) =>
         objValue
       case _ =>
