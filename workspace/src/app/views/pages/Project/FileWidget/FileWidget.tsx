@@ -175,7 +175,7 @@ export const FileWidget = () => {
                                                                     name="item-download"
                                                                     text={t("common.action.download")}
                                                                     small
-                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/resources/${encodeURIComponent(
+                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/files?path=${encodeURIComponent(
                                                                         fileValue(file)
                                                                     )}`}
                                                                 />
