@@ -481,7 +481,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing size="small" />
             {linkStateFilter && (
                 <TagList label="Link State">
-                    <Tag onRemove={() => handleLinkFilterStateChange(linkStateFilter)}>
+                    <Tag
+                        data-test-id={`${LinkEvaluationFilters[linkStateFilter].label}-tag`}
+                        onRemove={() => handleLinkFilterStateChange(linkStateFilter)}
+                    >
                         {LinkEvaluationFilters[linkStateFilter].label}
                     </Tag>
                 </TagList>
@@ -525,13 +528,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 <TableHeader>
                                     {t("linkingEvaluationTabView.table.header.linkState")}
                                     <Spacing vertical size="tiny" />
-                                    <ContextMenu togglerElement="operation-filter">
+                                    <ContextMenu togglerElement="operation-filter" data-test-id="link-state-filter-btn">
                                         <MenuItem
                                             text={t("ReferenceLinks.confirmed")}
                                             active={linkStateFilter === LinkEvaluationFilters.positiveLinks.key}
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.positiveLinks.key);
                                             }}
+                                            data-test-id="link-confirmed-state"
                                         />
                                         <MenuItem
                                             text={t("ReferenceLinks.uncertainOnly")}
@@ -539,6 +543,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.undecidedLinks.key);
                                             }}
+                                            data-test-id="link-uncertain-state"
                                         />
                                         <MenuItem
                                             text={t("ReferenceLinks.declined")}
@@ -546,6 +551,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             onClick={() => {
                                                 handleLinkFilterStateChange(LinkEvaluationFilters.negativeLinks.key);
                                             }}
+                                            data-test-id="link-declined-state"
                                         />
                                     </ContextMenu>
                                 </TableHeader>
