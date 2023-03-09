@@ -99,6 +99,11 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startPrioritized()(implicit user: UserContext): Unit = {
     initStatus(user, allowWaiting = true)
+    user.user match {
+      case Some(u) if u.uri.nonEmpty => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString).getOrElse("")} has been " +
+        s"started prioritized, skipping the waiting queue. (triggered by user with URI: ${u.uri})")
+      case _ => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString)} has been started with priority, skipping the waiting queue.")
+    }
     for(runner <- forkJoinRunner) {
       // Activity has already been scheduled
       if (!runner.cancel(false)) {
