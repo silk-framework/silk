@@ -142,6 +142,7 @@ object JsonSerializers {
   implicit object DatasetSpecJsonFormat extends JsonFormat[GenericDatasetSpec] {
 
     private val URI_PROPERTY = "uriProperty"
+    private val READ_ONLY = "readOnly"
 
     private val pluginFormat = new PluginJsonFormat[Dataset]
 
@@ -150,7 +151,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
       new DatasetSpec(
         plugin = pluginFormat.read(value),
-        uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
+        uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim)),
+        readOnly = booleanValueOption(value, READ_ONLY).getOrElse(false)
       )
     }
 
@@ -158,6 +160,7 @@ object JsonSerializers {
       var json =
         Json.obj(
           TASKTYPE -> JsString(JsonSerializers.TASK_TYPE_DATASET),
+          READ_ONLY -> value.readOnly
         )
       for(property <- value.uriAttribute) {
         json += (URI_PROPERTY -> JsString(property.uri))

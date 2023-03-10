@@ -138,7 +138,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serializeCompileTime[DatasetTask](PlainTask(task.id, DatasetSpec(autoConfDataset)), Some(project))
+        serializeCompileTime[DatasetTask](PlainTask(task.id, DatasetSpec(autoConfDataset, readOnly = task.readOnly)), Some(project))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }

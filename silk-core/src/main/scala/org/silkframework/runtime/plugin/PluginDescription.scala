@@ -166,7 +166,7 @@ object PluginDescription {
   def forTask(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
     task.data match {
       case plugin: AnyPlugin => plugin.pluginSpec
-      case DatasetSpec(plugin, _) => plugin.pluginSpec
+      case DatasetSpec(plugin, _, _) => plugin.pluginSpec
       case _ => throw new IllegalArgumentException(s"Provided task $task is not a plugin.")
     }
   }

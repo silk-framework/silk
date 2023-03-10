@@ -53,6 +53,12 @@ export function TaskConfig(props: IProps) {
             // Config dialog is always opened with fresh data
             const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
             const taskPluginDetails = await artefactProperties(taskData.data.type);
+            const dataParameters: Record<string, string> | undefined =  taskPluginDetails.taskType === "Dataset" ? {
+                readOnly: `${taskData.data.readOnly === true}`
+            } : undefined
+            if(dataParameters && taskData.data.uriProperty) {
+                dataParameters.uriProperty = taskData.data.uriProperty
+            }
             const templates: TemplateValueType = taskData.data.templates ?? {}
             dispatch(
                 commonOp.updateProjectTask({
@@ -61,13 +67,8 @@ export function TaskConfig(props: IProps) {
                     metaData: taskData.metadata,
                     taskPluginDetails: taskPluginDetails,
                     currentParameterValues: taskData.data.parameters,
-                    dataParameters:
-                        taskPluginDetails.taskType === "Dataset" && taskData.data.uriProperty
-                            ? {
-                                  uriProperty: taskData.data.uriProperty,
-                              }
-                            : undefined,
-                    currentTemplateValues: templates,
+                    dataParameters: dataParameters,
+                    currentTemplateValues: templates
                 })
             );
         } catch (e) {

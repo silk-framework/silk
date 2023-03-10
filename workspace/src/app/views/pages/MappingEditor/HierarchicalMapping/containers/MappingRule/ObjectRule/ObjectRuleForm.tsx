@@ -37,6 +37,7 @@ import silkApi from "../../../../api/silkRestApi";
 import { IUriPattern } from "../../../../api/types";
 import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import { defaultUriPattern } from "./ObjectRule.utils";
 
 interface IProps {
     id?: string;
@@ -85,6 +86,8 @@ export const ObjectRuleForm = (props: IProps) => {
     const [targetEntityTypeOptions] = useState<Map<string, any>>(new Map());
     const lastEmittedEvent = React.useRef<string>("");
     const { project, transformTask } = useApiDetails();
+    const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
+    const [uriPatternInputHasFocus, setUriPatternInputHasFocus] = useState<boolean>(false);
     const { id, parentId, parent } = props;
 
     const autoCompleteRuleId = id || parentId;
@@ -259,7 +262,9 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const checkUriPattern = async (uriPattern: string) => {
         const validationResult = await checkUriPatternValidity(uriPattern);
-        if (validationResult?.valid !== undefined) {
+        if (!uriPattern) {
+            setUriPatternIsValid(true);
+        } else if (validationResult?.valid !== undefined) {
             setUriPatternIsValid(validationResult?.valid as boolean);
         }
         return validationResult;
@@ -359,6 +364,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 }
                 checkInput={checkValuePathValidity}
                 onInputChecked={setObjectPathValid}
+                onFocusChange={setValuePathInputHasFocus}
             />
         );
     }
@@ -408,6 +414,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             modifiedValues().sourceProperty
                         )
                     }
+                    onFocusChange={setUriPatternInputHasFocus}
                     checkInput={checkUriPattern}
                     rightElement={
                         distinctUriPatterns.length > 0 ? (
@@ -436,14 +443,19 @@ export const ObjectRuleForm = (props: IProps) => {
     }
 
     let previewExamples: null | JSX.Element = null;
+    const noUriRule = !modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI;
+    const noUriPattern = !modifiedValues().pattern;
 
-    if (
-        !modifiedValues().pattern &&
-        (!modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI)
-    ) {
+    if (valuePathInputHasFocus || uriPatternInputHasFocus) {
+        previewExamples = (
+            <Notification data-test-id={"object-rule-form-preview-path-has-focus"}>
+                No preview is shown while {valuePathInputHasFocus ? "value path" : "URI pattern"} is being edited.
+            </Notification>
+        );
+    } else if (noUriPattern && noUriRule && !modifiedValues().sourceProperty) {
         previewExamples = (
             <Notification data-test-id={"object-rule-form-preview-no-pattern"}>
-                No preview shown for default URI pattern.
+                No preview shown for default URI pattern with empty value path.
             </Notification>
         );
     } else if (!uriPatternIsValid || !objectPathValid) {
@@ -452,23 +464,26 @@ export const ObjectRuleForm = (props: IProps) => {
                 URI pattern or value path is invalid. No preview shown.
             </Notification>
         );
-    } else if (modifiedValues().pattern || modifiedValues().uriRule) {
+    } else if (modifiedValues().pattern || modifiedValues().uriRule || modifiedValues().sourceProperty) {
+        const ruleType = modifiedValues().pattern
+            ? MAPPING_RULE_TYPE_URI
+            : modifiedValues().uriRule
+            ? modifiedValues().uriRule.type
+            : MAPPING_RULE_TYPE_URI;
         previewExamples = (
             <ExampleView
                 id={parentId || "root"}
                 rawRule={
-                    // when not "pattern" then it is "uriRule"
-                    modifiedValues().pattern
+                    ruleType === MAPPING_RULE_TYPE_URI
                         ? {
                               type: MAPPING_RULE_TYPE_URI,
-                              pattern: modifiedValues().pattern,
+                              pattern: modifiedValues().pattern
+                                  ? modifiedValues().pattern
+                                  : defaultUriPattern(id ?? "yetUnknownRuleId"),
                           }
                         : modifiedValues().uriRule
                 }
-                ruleType={
-                    // when not "pattern" then it is "uriRule"
-                    modifiedValues().pattern ? MAPPING_RULE_TYPE_URI : modifiedValues().uriRule.type
-                }
+                ruleType={ruleType}
                 objectSourcePathContext={modifiedValues().sourceProperty}
             />
         );

@@ -7,28 +7,10 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
+import WorkflowTest._
 
 class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   behavior of "Workflow"
-
-  val DS_A = "dsA"
-  val DS_A1 = "dsA1"
-  val DS_A2 = "dsA2"
-  val DS_B = "dsB"
-  val DS_B1 = "dsB1"
-  val DS_B2 = "dsB2"
-  val TRANSFORM = "transform"
-  val TRANSFORM_1 = "transform1"
-  val TRANSFORM_2 = "transform2"
-  val LINKS = "links"
-  val OUTPUT = "output"
-  val LINKING = "linking"
-  val GENERATE_OUTPUT = "generateOutput"
-  val WORKFLOW = "workflow"
-  val OP_1 = "op1"
-  val OP_2 = "op2"
-  val DS_C = "dsC"
-  val CONFIG_NODE = "conf"
 
   it should "support sorting its workflow operators topologically" in {
     val project = mock[Project]
@@ -131,6 +113,50 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     dsA1.get.followingNodes.find(_.nodeId == TRANSFORM_1).get.precedingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
   }
 
+  it should "resolve replaceable datasets correctly" in {
+    testWorkflow.copy(
+      replaceableInputs = Seq(),
+      replaceableOutputs = Seq()
+    ).markedVariableDatasets() mustBe AllReplaceableDatasets(Seq(), Seq())
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(
+        replaceableInputs = Seq(),
+        replaceableOutputs = Seq(DS_B)
+      ).markedVariableDatasets()
+    }
+    intercept[IllegalArgumentException] {
+      testWorkflow.copy(
+        replaceableInputs = Seq(DS_B),
+        replaceableOutputs = Seq()
+      ).markedVariableDatasets()
+    }
+    testWorkflow.copy(
+      replaceableInputs = Seq(DS_A1),
+      replaceableOutputs = Seq(OUTPUT)
+    ).markedVariableDatasets() mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
+  }
+}
+
+object WorkflowTest {
+  val DS_A = "dsA"
+  val DS_A1 = "dsA1"
+  val DS_A2 = "dsA2"
+  val DS_B = "dsB"
+  val DS_B1 = "dsB1"
+  val DS_B2 = "dsB2"
+  val TRANSFORM = "transform"
+  val TRANSFORM_1 = "transform1"
+  val TRANSFORM_2 = "transform2"
+  val LINKS = "links"
+  val OUTPUT = "output"
+  val LINKING = "linking"
+  val GENERATE_OUTPUT = "generateOutput"
+  val WORKFLOW = "workflow"
+  val OP_1 = "op1"
+  val OP_2 = "op2"
+  val DS_C = "dsC"
+  val CONFIG_NODE = "conf"
+
   val testWorkflow: Workflow = {
     Workflow(
       operators = Seq(
@@ -151,7 +177,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   val testWorkflowWithConfigInputs: Workflow = {
     Workflow(
-      operators = testWorkflow.operators.map(op => if(op.nodeId != TRANSFORM_1) op else op.copy(configInputs = Seq(CONFIG_NODE))) ++ Seq(
+      operators = testWorkflow.operators.map(op => if (op.nodeId != TRANSFORM_1) op else op.copy(configInputs = Seq(CONFIG_NODE))) ++ Seq(
         operator(task = CONFIG_NODE, inputs = Seq(DS_A1), outputs = Seq(TRANSFORM_1), CONFIG_NODE)
       ),
       datasets = testWorkflow.datasets
