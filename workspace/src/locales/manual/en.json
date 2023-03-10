@@ -17,6 +17,10 @@
             "changeProjectButton": "Change target project",
             "resetModalTitle": "Configuration reset necessary"
         },
+        "ReadOnlyParameter": {
+            "label": "Read-only",
+            "description": "If enabled, all write operations using this dataset object will fail, e.g. when used as output in workflows or transform/linking executions. This will NOT protect the underlying resource in general, e.g. files, databases or knowledge graphs could still be changed externally."
+        },
         "CustomIdentifierInput": {
             "ProjectId": "Project identifier",
             "ProjectUri": "Project URI",

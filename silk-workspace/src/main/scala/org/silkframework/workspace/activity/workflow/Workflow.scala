@@ -208,7 +208,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     AllReplaceableDatasets(legacy.dataSources ++ marked.dataSources, legacy.sinks ++ marked.sinks)
   }
 
-  /** Returns all Dataset tasks that are used as output in the workflow */
+  /** Returns all Dataset tasks that are used as outputs in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
     for (datasetNodeId <- operators.flatMap(_.outputs).distinct;

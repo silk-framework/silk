@@ -93,7 +93,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   private val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(Some(DATASET_ID), Some(DATASET_ID + " description")))
 
-  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(Some(DATASET_ID)))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri"), readOnly = true), metaData = MetaData(Some(DATASET_ID)))
 
   private val dummyType = "urn:test:dummyType"
   private val dummyRestriction = Restriction.custom("  ?a <urn:test:prop1> 1 .\n\n  ?a <urn:test:prop2> true .\n")(Prefixes.default)
@@ -313,7 +313,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   it should "read and write dataset tasks" in {
     implicit val us: UserContext = emptyUserContext
     PluginRegistry.registerPlugin(classOf[MockDataset])
-    project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
+    project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset, readOnly = true))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {
       val tasks = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).map(_.task)

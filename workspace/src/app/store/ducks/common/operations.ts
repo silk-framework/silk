@@ -19,6 +19,7 @@ import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateAr
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import {READ_ONLY_PARAMETER} from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 
 const {
     setError,
@@ -225,9 +226,9 @@ const createTagsAndAddToMetadata = async (payload: {
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
 const extractDataAttributes = (formData): ArtefactDataParameters => {
     let returnValue: ArtefactDataParameters = {};
-    const uriAttribute = formData[URI_PROPERTY_PARAMETER_ID];
     returnValue = {};
-    returnValue[URI_PROPERTY_PARAMETER_ID] = uriAttribute;
+    returnValue[URI_PROPERTY_PARAMETER_ID] = formData[URI_PROPERTY_PARAMETER_ID];
+    returnValue[READ_ONLY_PARAMETER] = formData[READ_ONLY_PARAMETER];
     return returnValue;
 };
 

@@ -78,8 +78,11 @@ export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     parameters: PLUGIN_PARAMETERS;
     // Optional task type, e.g. Dataset, Transform etc.
     taskType?: TaskType;
+
+    /** Dataset-only parameters. */
     // Dataset may have a URI property set
     uriProperty?: string
+    readOnly?: boolean
 }
 
 export interface DatasetTaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> extends TaskPlugin<PLUGIN_PARAMETERS> {
