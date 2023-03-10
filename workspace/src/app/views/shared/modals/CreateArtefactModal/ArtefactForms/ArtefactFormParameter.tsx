@@ -209,8 +209,8 @@ export const ArtefactFormParameter = ({
                             }}
                             text={
                                 showVariableTemplateInput
-                                    ? t("ArtefactFormParameter.switchToValue")
-                                    : t("ArtefactFormParameter.switchToTemplate")
+                                    ? t("ArtefactFormParameter.switchToValue").replace("EXAMPLE", "{{global.myVar}}")
+                                    : t("ArtefactFormParameter.switchToTemplate").replace("EXAMPLE", "{{global.myVar}}")
                             }
                             name={"template-parameter"}
                             data-test-id={`${parameterId}-template-switch-${

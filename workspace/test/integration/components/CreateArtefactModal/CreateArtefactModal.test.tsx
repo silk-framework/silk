@@ -67,6 +67,7 @@ describe("Task creation widget", () => {
             common: {
                 initialSettings: {
                     emptyWorkspace: false,
+                    templatingEnabled: true,
                 },
                 artefactModal: {
                     isOpen: true,
