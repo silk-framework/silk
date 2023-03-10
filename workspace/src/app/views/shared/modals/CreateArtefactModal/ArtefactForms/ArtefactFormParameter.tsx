@@ -77,7 +77,7 @@ export const ArtefactFormParameter = ({
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
     const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
-    const [infoMessage, setInfoMessage] = React.useState<string | undefined>(undefined);
+    const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string | undefined>(undefined);
     const { templatingEnabled } = useSelector(commonSel.initialSettingsSelector);
     let initialValue: any = supportVariableTemplateElement?.initialValue;
     // Initial value might be a labelled value, safe-guard
@@ -116,6 +116,7 @@ export const ArtefactFormParameter = ({
                 valueState.current.templateValueBeforeSwitch = valueState.current.currentTemplateValue;
             }
             setValidationError(undefined);
+            setTemplateInfoMessage(undefined);
             supportVariableTemplateElement!.parameterCallbacks.setTemplateFlag(parameterId, becomesTemplate);
             supportVariableTemplateElement!.onChange(
                 becomesTemplate
@@ -168,7 +169,7 @@ export const ArtefactFormParameter = ({
                 tooltip: tooltip,
             }}
             hasStateDanger={!!errorMessage || !!validationError}
-            messageText={errorMessage || validationError || infoMessage}
+            messageText={errorMessage || validationError || templateInfoMessage}
             disabled={disabled}
             helperText={helperText}
         >
@@ -190,7 +191,7 @@ export const ArtefactFormParameter = ({
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
-                                supportVariableTemplateElement.showTemplatePreview ? setInfoMessage : undefined
+                                supportVariableTemplateElement.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                         />
                     ) : (
