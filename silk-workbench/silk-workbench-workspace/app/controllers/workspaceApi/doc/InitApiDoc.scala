@@ -9,6 +9,7 @@ object InitApiDoc {
         "initialLanguage":"en",
         "dmBaseUrl": "http://docker.local",
         "maxFileUploadSize": 1000000000,
+        "templatingEnabled": true,
         "version": "v21.11",
         "dmModuleLinks": [
                 {

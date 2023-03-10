@@ -217,6 +217,9 @@ export interface IInitFrontend {
 
     /** The application version. */
     version?: string;
+
+    /** If templating in some input fields is enabled. */
+    templatingEnabled: boolean;
 }
 
 type HotKeyIds = "quickSearch";

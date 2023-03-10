@@ -1,7 +1,7 @@
-import React, {memo, MouseEventHandler} from "react";
-import {AutoSuggestion, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection,} from "@eccenca/gui-elements";
-import {useTranslation} from "react-i18next";
-import {ExtendedParameterCallbacks} from "./ParameterWidget";
+import React, { memo, MouseEventHandler } from "react";
+import { AutoSuggestion, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
+import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import {
     requestAutoCompleteTemplateString,
     requestValidateTemplateString,
@@ -13,7 +13,9 @@ import {
     OptionallyLabelledParameter,
     optionallyLabelledParameterToValue,
 } from "../../../../taskViews/linking/linking.types";
-import {IValidationResult} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 
 interface Props {
     // ID of the parameter
@@ -76,18 +78,20 @@ export const ArtefactFormParameter = ({
     const [showRareActions, setShowRareActions] = React.useState(false);
     const [validationError, setValidationError] = React.useState<string | undefined>(undefined);
     const [infoMessage, setInfoMessage] = React.useState<string | undefined>(undefined);
+    const { templatingEnabled } = useSelector(commonSel.initialSettingsSelector);
     let initialValue: any = supportVariableTemplateElement?.initialValue;
     // Initial value might be a labelled value, safe-guard
     if (initialValue != null && (initialValue as OptionallyLabelledParameter<any>)?.value != null) {
         initialValue = `${(initialValue as OptionallyLabelledParameter<any>).value}`;
     }
-    const stringDefaultValue: string | LabelledParameterValue<any> | undefined = typeof supportVariableTemplateElement?.defaultValue === "object" ?
-        // The auto-completion values should be kept as is
-        supportVariableTemplateElement?.defaultValue :
-        supportVariableTemplateElement?.defaultValue != null ?
-            // Other defaults should be converted to string
-            `${supportVariableTemplateElement?.defaultValue}` :
-            undefined
+    const stringDefaultValue: string | LabelledParameterValue<any> | undefined =
+        typeof supportVariableTemplateElement?.defaultValue === "object"
+            ? // The auto-completion values should be kept as is
+              supportVariableTemplateElement?.defaultValue
+            : supportVariableTemplateElement?.defaultValue != null
+            ? // Other defaults should be converted to string
+              `${supportVariableTemplateElement?.defaultValue}`
+            : undefined;
     const valueState = React.useRef<{
         // The most recent value of the input component
         currentInputValue?: string;
@@ -177,7 +181,12 @@ export const ArtefactFormParameter = ({
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             parameterId={parameterId}
-                            initialValue={valueState.current.templateValueBeforeSwitch ?? valueState.current.inputValueBeforeSwitch ?? initialValue ?? ""}
+                            initialValue={
+                                valueState.current.templateValueBeforeSwitch ??
+                                valueState.current.inputValueBeforeSwitch ??
+                                initialValue ??
+                                ""
+                            }
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
@@ -188,7 +197,7 @@ export const ArtefactFormParameter = ({
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
                     )}
                 </ToolbarSection>
-                {supportVariableTemplateElement && !disabled && (
+                {templatingEnabled && supportVariableTemplateElement && !disabled && (
                     <ToolbarSection hideOverflow style={!showSwitchButton ? { width: "0px" } : {}}>
                         <Spacing vertical={true} size={"tiny"} />
                         <IconButton

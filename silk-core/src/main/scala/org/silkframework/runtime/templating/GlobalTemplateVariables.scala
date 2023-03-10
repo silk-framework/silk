@@ -70,4 +70,6 @@ object GlobalTemplateVariables {
     */
   def variableMap: Map[String, util.Map[String, String]] = Map(globalScope -> templateVariables().map.asJava)
 
+  /** If the templating mechanism is enabled. */
+  def isEnabled: Boolean = !engine().isInstanceOf[DisabledTemplateEngine]
 }
