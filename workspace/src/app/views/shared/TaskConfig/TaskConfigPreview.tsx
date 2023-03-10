@@ -106,7 +106,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     const taskParameterValues: Record<string, ParameterConfigValue> = taskValues(taskData.data.parameters);
     if (taskDescription.taskType === "Dataset") {
         if(taskData.data.readOnly === true) {
-            taskParameterValues[t("CreateModal.ReadOnlyParameter.label")] = "true";
+            taskParameterValues[t("CreateModal.ReadOnlyParameter.label")] = { value: "true" };
         }
         if(taskData.data.uriProperty) {
             taskParameterValues[t("DatasetUriPropertyParameter.label")] = { value: taskData.data.uriProperty };
