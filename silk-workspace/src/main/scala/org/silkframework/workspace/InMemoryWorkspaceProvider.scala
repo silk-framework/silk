@@ -79,7 +79,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
         case plugin: AnyPlugin =>
           InMemoryPluginTask(task.id, taskType, plugin.pluginSpec, plugin.parameters, task.metaData)
         case dataset: GenericDatasetSpec =>
-          InMemoryDataset(task.id, taskType, dataset.plugin.pluginSpec, dataset.plugin.parameters, task.metaData, dataset.uriAttribute)
+          InMemoryDataset(task.id, taskType, dataset.plugin.pluginSpec, dataset.plugin.parameters, task.metaData, dataset.uriAttribute, dataset.readOnly)
         case _ =>
           throw new IllegalArgumentException("Non-plugin tasks are not supported: " + task)
     }
@@ -187,10 +187,11 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                  pluginDesc: PluginDescription[_],
                                                                  parameters: ParameterValues,
                                                                  metaData: MetaData,
-                                                                 uriAttribute: Option[Uri] = None) extends InMemoryTask[T] {
+                                                                 uriAttribute: Option[Uri],
+                                                                 readOnly: Boolean) extends InMemoryTask[T] {
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
       try {
-        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameters).asInstanceOf[Dataset], uriAttribute), metaData).asInstanceOf[Task[T]])
+        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameters).asInstanceOf[Dataset], uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
       } catch {
         case NonFatal(ex) =>
           LoadedTask.failed[T](TaskLoadingError(Some(projectId), id, ex, metaData.label, metaData.description))
