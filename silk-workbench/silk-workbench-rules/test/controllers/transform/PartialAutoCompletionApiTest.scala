@@ -233,7 +233,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     val pathCacheResource = project.cacheResources.child("transform").child(backwardPathTransform).get(s"pathsCache.xml")
     val xmlValue = XML.load(pathCacheResource.inputStream)
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
-    implicit val writeContext: WriteContext[Node] = WriteContext.forProject[Node](project)
+    implicit val writeContext: WriteContext[Node] = WriteContext.fromProject[Node](project)
     val cachedEntitySchema = CachedEntitySchemata.CachedEntitySchemaXmlFormat.read(xmlValue)
     val newCachedEntitySchema = cachedEntitySchema.copy(
       configuredSchema = cachedEntitySchema.configuredSchema.copy(
