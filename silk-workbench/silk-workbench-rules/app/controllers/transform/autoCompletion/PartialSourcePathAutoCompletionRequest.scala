@@ -1,5 +1,6 @@
 package controllers.transform.autoCompletion
 
+import controllers.autoCompletion.AutoSuggestAutoCompletionRequest
 import org.silkframework.entity.paths.PathPositionStatus
 import play.api.libs.json.{Format, Json}
 

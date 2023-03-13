@@ -2,7 +2,7 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.CloseableDataset.using
-import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
+import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec, ReadOnlyDatasetWriteAccessException}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
@@ -82,7 +82,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
-      case DatasetSpec(rdfDataset: RdfDataset, _) =>
+      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
         readTriples(dataset, rdfDataset)
       case _ =>
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
@@ -92,7 +92,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     dataset.data match {
       case rdfDataset: RdfDataset =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
-      case DatasetSpec(rdfDataset: RdfDataset, _) =>
+      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
         new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
@@ -113,6 +113,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
                               (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+    DatasetSpec.checkDatasetAllowsWriteAccess(Some(dataset.fullLabel), dataset.readOnly)
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
@@ -348,7 +349,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     sink match {
       case tripleSink: TripleSink =>
         writeTriples(entities, tripleSink)
-      case EntitySinkWrapper(tripleSink: TripleSink, __) =>
+      case EntitySinkWrapper(tripleSink: TripleSink, _, _) =>
         writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")

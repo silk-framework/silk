@@ -1,5 +1,6 @@
 import { IProjectTask } from "@ducks/shared/typings";
 import {
+    Icon,
     IconButton,
     Notification,
     OverflowText,
@@ -14,10 +15,16 @@ import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
 import { INPUT_TYPES } from "../../../constants";
 import { CONTEXT_PATH } from "../../../constants/path";
+import { objectToFlatRecord } from "../../../utils/transformers";
 
 interface IProps {
     taskData: IProjectTask;
     taskDescription: IPluginDetails;
+}
+
+export interface ParameterConfigValue {
+    value: string;
+    templateValue?: string;
 }
 
 /**
@@ -33,13 +40,15 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     }
 
     // Generates a flat object of (nested) parameter labels and their display values, i.e. their label if it exists
-    const taskValues = (taskData: any): Record<string, string> => {
-        if (taskData) {
-            const result: Record<string, string> = {};
+    const taskValues = (parameters: any): Record<string, ParameterConfigValue> => {
+        if (parameters) {
+            const templates = objectToFlatRecord(taskData.data.templates ?? {}, {});
+            const result: Record<string, ParameterConfigValue> = {};
             // Recursively extracts (nested) parameter display values.
             const taskValuesRec = (
                 obj: object,
                 labelPrefix: string,
+                parameterIdPrefix: string,
                 paramDescriptions: Record<string, IArtefactItemProperty>
             ) => {
                 Object.entries(obj)
@@ -58,14 +67,18 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                             taskValuesRec(
                                 value,
                                 propertyTitle + ": ",
+                                `${paramName}.`,
                                 paramDescriptions[paramName].properties as Record<string, IArtefactItemProperty>
                             );
                         } else {
-                            result[labelPrefix + propertyTitle] = value;
+                            result[labelPrefix + propertyTitle] = {
+                                value,
+                                templateValue: templates[parameterIdPrefix + paramName],
+                            };
                         }
                     });
             };
-            taskValuesRec(taskData, "", taskDescription.properties);
+            taskValuesRec(parameters, "", "", taskDescription.properties);
             return result;
         } else {
             return {};
@@ -90,9 +103,14 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     };
     // Because of line_height: 1, underscores are not rendered
     const fixStyle = { lineHeight: "normal" };
-    const taskParameterValues: Record<string, string> = taskValues(taskData.data.parameters);
-    if (taskDescription.taskType === "Dataset" && taskData.data.uriProperty) {
-        taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty;
+    const taskParameterValues: Record<string, ParameterConfigValue> = taskValues(taskData.data.parameters);
+    if (taskDescription.taskType === "Dataset") {
+        if (taskData.data.readOnly === true) {
+            taskParameterValues[t("CreateModal.ReadOnlyParameter.label")] = { value: "true" };
+        }
+        if (taskData.data.uriProperty) {
+            taskParameterValues[t("DatasetUriPropertyParameter.label")] = { value: taskData.data.uriProperty };
+        }
     }
 
     const taskResourceParameterType = Object.values(taskDescription.properties).reduce((obj, property) => {
@@ -107,8 +125,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
             <PropertyValueList>
                 {Object.entries(taskParameterValues)
                     // Only non-empty parameter values are shown
-                    .filter(([paramId, value]) => value.trim() !== "")
-                    .map(([paramId, value]) => {
+                    .filter(([paramId, { value }]) => value.trim() !== "")
+                    .map(([paramId, { value, templateValue }]) => {
                         return (
                             <PropertyValuePair hasDivider key={paramId}>
                                 <PropertyName title={paramId}>{paramId}</PropertyName>
@@ -125,6 +143,20 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                                 href={`${CONTEXT_PATH}/workspace/projects/${
                                                     taskData.project
                                                 }/resources/${encodeURIComponent(value)}`}
+                                            />
+                                        </>
+                                    )}
+                                    {templateValue != null && (
+                                        <>
+                                            <Spacing vertical={true} size={"small"} />
+                                            <Icon
+                                                name={"template-parameter"}
+                                                intent={"info"}
+                                                tooltipText={
+                                                    t("widget.TaskConfigWidget.templateValueInfo") +
+                                                    `\n\n\`\`\`${templateValue}\`\`\``
+                                                }
+                                                tooltipProps={{ placement: "top", markdownEnabler: "```" }}
                                             />
                                         </>
                                     )}

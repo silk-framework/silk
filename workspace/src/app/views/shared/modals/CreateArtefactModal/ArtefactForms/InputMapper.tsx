@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
+import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 
@@ -22,16 +23,10 @@ interface IProps {
     onChange: (value) => void;
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
-    initialValues: {
-        [key: string]: {
-            label: string;
-            value: string;
-        };
-    };
+    initialParameterValue?: string;
     /** This is a required parameter. */
     required: boolean;
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
+    parameterCallbacks: ExtendedParameterCallbacks;
 }
 
 export type RegisterForExternalChangesFn = (
@@ -57,9 +52,9 @@ export function InputMapper({
     parameter,
     intent,
     onChange,
-    initialValues,
+    initialParameterValue,
     required,
-    registerForExternalChanges,
+    parameterCallbacks,
 }: IProps) {
     const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
@@ -67,7 +62,7 @@ export function InputMapper({
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const [show, setShow] = React.useState(true);
     const [highlightInput, setHighlightInput] = React.useState(false);
-    const initialOrExternalValue = externalValue ? externalValue.value : initialValues[paramId]?.value;
+    const initialOrExternalValue = externalValue ? externalValue.value : initialParameterValue;
     const initialValue =
         initialOrExternalValue != null
             ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)
@@ -87,7 +82,7 @@ export function InputMapper({
             setHighlightInput(true);
             onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value));
         };
-        registerForExternalChanges(paramId, handleUpdates);
+        parameterCallbacks.registerForExternalChanges(paramId, handleUpdates);
     }, []);
 
     // Re-init element when value is set from outside

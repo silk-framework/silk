@@ -12,7 +12,7 @@ export interface IRuleEditorViewSelectionDragState {
 }
 
 /** State that is maintained during any kind of connection based action, e.g. creating a new edge or updating an existing one. */
-export interface IRuleEditorViewBaseEdgeConnectionState {
+export interface EditorEdgeConnectionState {
     edgeConnectOperationActive: boolean;
     // Set when the edge is drawn from a source handle
     sourceNodeId?: string;

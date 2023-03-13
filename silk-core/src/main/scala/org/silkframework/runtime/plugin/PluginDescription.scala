@@ -5,6 +5,8 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 
+import scala.util.control.NonFatal
+
 /**
   * Describes a plugin.
   *
@@ -40,15 +42,37 @@ trait PluginDescription[+T] {
     * @param ignoreNonExistingParameters If true, parameter values for parameters that do not exist are ignored.
     *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
     */
-  def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
+  def apply(parameterValues: ParameterValues = ParameterValues.empty,
+            ignoreNonExistingParameters: Boolean = true)
            (implicit context: PluginContext): T
 
 
   /**
     * Retrieves the parameters values of a given plugin instance.
     */
-  def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String] = {
-    parameters.map(param => (param.name, param.stringValue(plugin))).toMap
+  def parameterValues(plugin: AnyPlugin)(implicit prefixes: Prefixes): ParameterValues = {
+    val values =
+      for(param <- parameters) yield {
+        val value =
+          param.parameterType match {
+            case _: StringParameterType[_] =>
+              plugin.templateValues.get(param.name) match {
+                case Some(templateValue) =>
+                  ParameterTemplateValue(templateValue)
+                case None =>
+                  ParameterStringValue(param.stringValue(plugin))
+              }
+            case pt: PluginObjectParameterTypeTrait =>
+              pt.pluginDescription match {
+                case Some(pd) =>
+                  pd.parameterValues(param(plugin).asInstanceOf[AnyPlugin])
+                case None =>
+                  ParameterObjectValue(param(plugin))
+              }
+          }
+        (param.name, value)
+      }
+    ParameterValues(values.toMap)
   }
 
   /**
@@ -65,6 +89,75 @@ trait PluginDescription[+T] {
     }
   }
 
+  /**
+    * Parses parameter values.
+    */
+  protected def parseParameters(parameterValues: ParameterValues)(implicit context: PluginContext): Seq[AnyRef] = {
+    for (parameter <- parameters) yield {
+      parameterValues.values.get(parameter.name) match {
+        case Some(value) =>
+          try {
+            parameter.parameterType match {
+              case stringParam: StringParameterType[_] =>
+                parseStringParameter(stringParam, value)
+              case objParam: PluginObjectParameterTypeTrait =>
+                parseObjectParameter(objParam, value)
+            }
+          } catch {
+            case NonFatal(ex) =>
+              throw new InvalidPluginParameterValueException(s"Invalid value for plugin parameter '${parameter.name}' of plugin '$id'. ${ex.getMessage}", ex)
+          }
+        case None if parameter.defaultValue.isDefined =>
+          parameter.defaultValue.get
+        case None =>
+          throw new InvalidPluginParameterValueException("Parameter '" + parameter.name + "' is required for " + label)
+      }
+    }
+  }
+
+  private def parseStringParameter(stringParam: StringParameterType[_], value: ParameterValue)
+                                  (implicit context: PluginContext): AnyRef = {
+    value match {
+      case ParameterStringValue(strValue) =>
+        try {
+          stringParam.fromString(strValue).asInstanceOf[AnyRef]
+        } catch {
+          case NonFatal(ex) =>
+            throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description}. Details: ${ex.getMessage}", ex)
+        }
+      case template: ParameterTemplateValue =>
+        val evaluatedValue = template.evaluate()
+        try {
+          stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
+        } catch {
+          case NonFatal(ex) =>
+            throw new InvalidPluginParameterValueException(s"Got '$evaluatedValue' based on template '${template.template}', " +
+              s"but expected: ${stringParam.description}. Details: ${ex.getMessage}", ex)
+        }
+      case ParameterObjectValue(objValue) =>
+        objValue
+      case _ =>
+        throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
+    }
+  }
+
+  private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue)
+                                  (implicit context: PluginContext): AnyRef = {
+    value match {
+      case ParameterObjectValue(obj) =>
+        obj
+      case values: ParameterValues =>
+        objParam.pluginDescription match {
+          case Some(pluginDesc: PluginDescription[_]) =>
+            pluginDesc(values).asInstanceOf[AnyRef]
+          case _ =>
+            throw new IllegalArgumentException(s"No plugin description available. Value needs to be provided using a ${classOf[ParameterObjectValue].getClass.getSimpleName}.")
+        }
+      case _ =>
+        throw new IllegalArgumentException(s"Expected a complex parameter, but got $value.")
+    }
+  }
+
 }
 
 object PluginDescription {
@@ -73,8 +166,8 @@ object PluginDescription {
   def forTask(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
     task.data match {
       case plugin: AnyPlugin => plugin.pluginSpec
-      case DatasetSpec(plugin, _) => plugin.pluginSpec
-      case plugin: TaskSpec => ClassPluginDescription(plugin.getClass)
+      case DatasetSpec(plugin, _, _) => plugin.pluginSpec
+      case _ => throw new IllegalArgumentException(s"Provided task $task is not a plugin.")
     }
   }
 

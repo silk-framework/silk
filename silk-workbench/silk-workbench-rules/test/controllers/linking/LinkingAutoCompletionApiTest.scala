@@ -1,6 +1,7 @@
 package controllers.linking
 
-import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionResponse, PartialSourcePathAutoCompletionRequest}
+import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
+import controllers.transform.autoCompletion.PartialSourcePathAutoCompletionRequest
 import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.rule.LinkSpec

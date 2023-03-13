@@ -17,6 +17,10 @@
             "changeProjectButton": "Change target project",
             "resetModalTitle": "Configuration reset necessary"
         },
+        "ReadOnlyParameter": {
+            "label": "Read-only",
+            "description": "If enabled, all write operations using this dataset object will fail, e.g. when used as output in workflows or transform/linking executions. This will NOT protect the underlying resource in general, e.g. files, databases or knowledge graphs could still be changed externally."
+        },
         "CustomIdentifierInput": {
             "ProjectId": "Project identifier",
             "ProjectUri": "Project URI",
@@ -318,6 +322,7 @@
             "all": "All",
             "and": "and",
             "back": "Back",
+            "config": "Config",
             "description": "Description",
             "emptyPath": "Empty path",
             "itemType": "Item type",
@@ -785,7 +790,8 @@
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
-            "title": "Configuration"
+            "title": "Configuration",
+            "templateValueInfo": "The parameter value is derived from the following variable template: "
         },
         "WarningWidget": {
             "loading": "Loading log messages.",
@@ -947,5 +953,11 @@
             "cleanAction": "Clean text",
             "cleanActionTooltip": "Removes all detected characters from the input text"
         }
+    },
+    "ArtefactFormParameter": {
+        "evaluatedValue": "Evaluated template value: {{value}}",
+        "invalidTemplate": "Invalid template value",
+        "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
+        "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
     }
 }

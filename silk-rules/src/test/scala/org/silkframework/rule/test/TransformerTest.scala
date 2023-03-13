@@ -1,7 +1,7 @@
 package org.silkframework.rule.test
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext, TransformExampleValue}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext, TransformExampleValue}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger
@@ -37,13 +37,13 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   transformTests.foreach(_.addTest())
 
   // Forward one transformer for general plugin testing.
-  override protected lazy val pluginObject: AnyRef = {
+  override protected lazy val pluginObject: AnyPlugin = {
     require(transformTests.nonEmpty, s"$pluginClass does not define any TransformExample annotation.")
     transformTests.head.transformer
   }
 
   private class TransformTest(example: TransformExampleValue) {
-    lazy val transformer: T = pluginDesc(example.parameters)(PluginContext.empty)
+    lazy val transformer: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(PluginContext.empty)
 
     private lazy val (generatedOutput, throwableOpt): (Seq[String], Option[Throwable]) =
       try {

@@ -14,6 +14,8 @@ object WorkflowSerializers {
     private final val OPERATORS = "operators"
     private final val DATASETS = "datasets"
     final val UI_ANNOTATIONS = "uiAnnotations"
+    final val REPLACEABLE_INPUTS = "replaceableInputs"
+    final val REPLACEABLE_OUTPUTS = "replaceableOutputs"
 
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
@@ -27,7 +29,9 @@ object WorkflowSerializers {
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read)).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(
           arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty)),
-        uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
+        uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
+        replaceableInputs = arrayValueOption(parameterObject, REPLACEABLE_INPUTS).getOrElse(JsArray()).value.map(_.as[String]),
+        replaceableOutputs = arrayValueOption(parameterObject, REPLACEABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String])
       )
     }
 
@@ -38,7 +42,9 @@ object WorkflowSerializers {
         JsonSerializers.PARAMETERS -> Json.obj(
           OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
           DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write),
-          UI_ANNOTATIONS -> toJson(value.uiAnnotations)
+          UI_ANNOTATIONS -> toJson(value.uiAnnotations),
+          REPLACEABLE_INPUTS -> value.replaceableInputs.taskIds,
+          REPLACEABLE_OUTPUTS -> value.replaceableOutputs.taskIds
         )
       )
     }
@@ -61,6 +67,16 @@ object WorkflowSerializers {
 
     override def write(value: WorkflowDatasetsParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsArray(value.value.map(WorkflowDatasetJsonFormat.write))
+    }
+  }
+
+  implicit object TaskIdentifierParameterFormat extends JsonFormat[TaskIdentifierParameter] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): TaskIdentifierParameter = {
+      TaskIdentifierParameter(mustBeJsArray(value)(_.value.map(_.as[String])))
+    }
+
+    override def write(value: TaskIdentifierParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(value.taskIds.map(id => JsString(id)))
     }
   }
 

@@ -32,6 +32,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   val WORKFLOW_ID = "workflow1"
   val TRANSFORM_ID = "transform1"
   val DATASET_ID = "dataset1"
+  val OUTPUTS_DATASET_ID = "outputDataset1"
   val LINKING_TASK_ID = "linking1"
   val CUSTOM_TASK_ID = "custom1"
   val NEW_PREFIX = "newPrefix"
@@ -92,7 +93,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   private val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(Some(DATASET_ID), Some(DATASET_ID + " description")))
 
-  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(Some(DATASET_ID)))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri"), readOnly = true), metaData = MetaData(Some(DATASET_ID)))
 
   private val dummyType = "urn:test:dummyType"
   private val dummyRestriction = Restriction.custom("  ?a <urn:test:prop1> 1 .\n\n  ?a <urn:test:prop2> true .\n")(Prefixes.default)
@@ -211,20 +212,23 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       metaData = metaData
     )
 
-  val miniWorkflow =
+  val miniWorkflow: PlainTask[Workflow] =
     PlainTask(
       id = WORKFLOW_ID,
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
+            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty),
+            WorkflowDataset(Seq(TRANSFORM_ID), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), configInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
-          )
+          ),
+          replaceableInputs = Seq(DATASET_ID),
+          replaceableOutputs = Seq(OUTPUTS_DATASET_ID)
         ),
       metaData = metaData
     )
@@ -309,7 +313,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   it should "read and write dataset tasks" in {
     implicit val us: UserContext = emptyUserContext
     PluginRegistry.registerPlugin(classOf[MockDataset])
-    project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
+    project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset, readOnly = true))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {
       val tasks = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).map(_.task)

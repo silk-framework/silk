@@ -1,5 +1,7 @@
 package org.silkframework.runtime.serialization
 
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValue, ParameterValues}
+
 import scala.xml.{Node, NodeSeq, PCData}
 
 /**
@@ -16,24 +18,59 @@ object XmlSerialization {
     format.read(node)
   }
 
-  def serializeParameter(parameters: Map[String, String]): NodeSeq = {
-    NodeSeq.fromSeq(parameters.toSeq.map {
-      case (name, v) =>
-        val vPCdata = PCData(v)
-        <Param name={name} xml:space="preserve">{vPCdata}</Param>
-    })
+  /**
+    * Writes plugin parameter values to a resource.
+    */
+  def serializeParameters(parameters: ParameterValues): NodeSeq = {
+    NodeSeq.fromSeq(parameters.values.map {
+      case (key, value) => serializeParameter(key, value)
+    }.toSeq)
   }
 
-  def deserializeParameters(node: Node): Map[String, String] = {
-    (node \ "Param").map { p =>
-      val name = (p \ "@name").text
-      val valueAttr = p \ "@value"
-      val value = if(valueAttr.isEmpty) {
-        p.text
-      } else {
-        valueAttr.text
+  /**
+    * Reads plugin parameter values from a resource.
+    */
+  def deserializeParameters(node: Node): ParameterValues = {
+    val values = {
+      for {
+        child <- node.child
+        value <- deserializeParameter(child)
+      } yield {
+        val name = (child \ "@name").text
+        (name, value)
       }
-      (name, value)
-    }.toMap
+    }
+    ParameterValues(values.toMap)
+  }
+
+  private def serializeParameter(key: String, value: ParameterValue): Node = {
+    value match {
+      case ParameterStringValue(v) =>
+        <Param name={key} xml:space="preserve">{PCData(v)}</Param>
+      case ParameterTemplateValue(template) =>
+        <Template name={key} xml:space="preserve">{PCData(template)}</Template>
+      case values: ParameterValues =>
+        <Params name={key}>{serializeParameters(values)}</Params>
+      case _ =>
+        throw new IllegalArgumentException("Unsupported parameter type: " + value.getClass)
+    }
+  }
+
+  private def deserializeParameter(node: Node): Option[ParameterValue] = {
+    node.label match {
+      case "Param" =>
+        val valueAttr = node \ "@value"
+        if (valueAttr.nonEmpty) {
+          Some(ParameterStringValue(valueAttr.text))
+        } else {
+          Some(ParameterStringValue(node.text))
+        }
+      case "Template" =>
+        Some(ParameterTemplateValue(node.text))
+      case "Params" =>
+        Some(deserializeParameters(node))
+      case _ =>
+        None
+    }
   }
 }

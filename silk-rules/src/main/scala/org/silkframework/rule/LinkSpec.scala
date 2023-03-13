@@ -14,8 +14,6 @@
 
 package org.silkframework.rule
 
-import java.util.logging.Logger
-
 import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -25,15 +23,16 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.IdentifierOptionParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{AnyPlugin, IdentifierOptionParameter}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
+import java.util.logging.Logger
 import scala.collection.mutable
 import scala.xml.Node
 
@@ -63,7 +62,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
                     @Param(label = "Matching timeout", value = "The timeout for the matching phase. If the matching takes longer the execution will be stopped.",
                       advanced = true)
-                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
+                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec with AnyPlugin {
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
@@ -227,21 +226,26 @@ object LinkSpec {
       if (linkageRuleNode.isEmpty && linkConditionNode.isEmpty) throw new ValidationException("No <LinkageRule> found in link specification")
       if (linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
-      LinkSpec(
-        source = DatasetSelection.fromXML((node \ "SourceDataset").head),
-        target = DatasetSelection.fromXML((node \ "TargetDataset").head),
-        rule = fromXml[LinkageRule](linkageRuleNode),
-        output =
-          (node \ "Outputs" \ "Output").headOption map { outputNode =>
-            val id = (outputNode \ "@id").text
-            if (id.isEmpty) {
-              throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
-            }
-            Identifier(id)
-          },
-        linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
-      )
+      // Create link spec
+      val linkSpec =
+        LinkSpec(
+          source = DatasetSelection.fromXML((node \ "SourceDataset").head),
+          target = DatasetSelection.fromXML((node \ "TargetDataset").head),
+          rule = fromXml[LinkageRule](linkageRuleNode),
+          output =
+            (node \ "Outputs" \ "Output").headOption map { outputNode =>
+              val id = (outputNode \ "@id").text
+              if (id.isEmpty) {
+                throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
+              }
+              Identifier(id)
+            },
+          linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+          matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        )
+
+      // Apply templates
+      linkSpec.withParameters(XmlSerialization.deserializeParameters(node))
     }
 
     /**
@@ -255,6 +259,7 @@ object LinkSpec {
         <Outputs>
           {spec.output.value.toSeq.map(o => <Output id={o}></Output>)}
         </Outputs>
+        {XmlSerialization.serializeParameters(spec.parameters.filterTemplates)}
       </Interlink>
   }
 }

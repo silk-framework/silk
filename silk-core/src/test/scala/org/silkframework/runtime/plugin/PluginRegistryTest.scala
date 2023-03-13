@@ -41,5 +41,4 @@ case class TestObjectParameterInner(param: Int) extends PluginObjectParameter
 
 @Plugin(id = "invalid", label = "invalid")
 case class InvalidInvisiblePluginParameterClass(@Param(value = "invisible", visibleInDialog = false)
-                                                invisible: String
-)
+                                                invisible: String) extends AnyPlugin

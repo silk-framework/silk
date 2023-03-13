@@ -23,7 +23,7 @@ export function initialCommonState(): ICommonState {
         searchQuery: "",
         error: {},
         availableDataTypes: {},
-        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {}},
+        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {}, templatingEnabled: false },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),
     };

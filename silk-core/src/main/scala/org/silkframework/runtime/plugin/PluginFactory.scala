@@ -26,7 +26,8 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Creates a new instance of a specific plugin.
    */
-  def apply(id: String, params: Map[String, String] = Map.empty)
+  def apply(id: String,
+            params: ParameterValues = ParameterValues.empty)
            (implicit context: PluginContext): T = {
     PluginRegistry.create(id, params)
   }
@@ -34,7 +35,7 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
-  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], Map[String, String])] = {
+  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], ParameterValues)] = {
     Some(t.pluginSpec, t.parameters)
   }
 

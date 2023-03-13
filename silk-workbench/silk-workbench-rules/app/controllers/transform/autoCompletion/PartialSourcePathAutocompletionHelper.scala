@@ -1,7 +1,7 @@
 package controllers.transform.autoCompletion
 
 import controllers.autoCompletion
-import controllers.autoCompletion.{Completion, CompletionBase, Completions}
+import controllers.autoCompletion.{Completion, CompletionBase, Completions, ReplacementInterval, ReplacementResults}
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetCharacteristics

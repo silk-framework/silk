@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.plugins.dataset.DatasetTypeAutoCompletionProvider
 import org.silkframework.plugins.filter.RemoveStopwords
 import org.silkframework.plugins.transformer.value.ReadParameter
-import org.silkframework.runtime.plugin.PluginModule
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.TypesCacheFactory
 import org.silkframework.workspace.activity.linking._
@@ -18,7 +18,7 @@ import scala.language.existentials
 
 class WorkspacePlugins extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_]] =
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] =
     workspaceProviders :::
     datasetActivities :::
     transformActivities :::
@@ -32,34 +32,34 @@ class WorkspacePlugins extends PluginModule {
     workspaceActivityPlugins :::
     formats
 
-  def workspaceTaskPlugins: List[Class[_]] =
+  def workspaceTaskPlugins: List[Class[_ <: AnyPlugin]] =
     classOf[Workflow] ::
     classOf[LocalWorkflowAsTaskExecutor] ::
     Nil
 
-  def workspaceProviders: List[Class[_]] =
+  def workspaceProviders: List[Class[_ <: AnyPlugin]] =
     classOf[FileWorkspaceProvider] ::
     classOf[InMemoryWorkspaceProvider] :: Nil
 
-  def datasetActivities: List[Class[_]] =
+  def datasetActivities: List[Class[_ <: AnyPlugin]] =
     classOf[TypesCacheFactory] :: Nil
 
-  def transformActivities: List[Class[_]] =
+  def transformActivities: List[Class[_ <: AnyPlugin]] =
     classOf[ExecuteTransformFactory] ::
     classOf[TransformPathsCacheFactory] ::
     classOf[VocabularyCacheFactory] ::
     Nil
 
-  def linkingActivities: List[Class[_]] =
+  def linkingActivities: List[Class[_ <: AnyPlugin]] =
     classOf[EvaluateLinkingFactory] ::
     classOf[ExecuteLinkingFactory] ::
     classOf[LinkingPathsCacheFactory] ::
     classOf[ReferenceEntitiesCacheFactory] :: Nil
 
-  def workflowActivities: List[Class[_]] =
+  def workflowActivities: List[Class[_ <: AnyPlugin]] =
     classOf[LocalWorkflowExecutorFactory] :: Nil
 
-  def formats: List[Class[_]] = {
+  def formats: List[Class[_ <: AnyPlugin]] = {
     TypesFormat.getClass ::
     VocabularyCacheValue.ValueFormat.getClass ::
     CachedEntitySchemaXmlFormat.getClass ::
@@ -67,22 +67,22 @@ class WorkspacePlugins extends PluginModule {
     Nil
   }
 
-  def rulePlugins: List[Class[_]] = {
+  def rulePlugins: List[Class[_ <: AnyPlugin]] = {
     classOf[ReadParameter] ::
     classOf[RemoveStopwords] ::
     Nil
   }
 
-  def projectMarshaller: List[Class[_]] = {
+  def projectMarshaller: List[Class[_ <: AnyPlugin]] = {
     classOf[XmlZipWithResourcesProjectMarshaling] ::
     classOf[XmlZipWithoutResourcesProjectMarshaling] :: Nil
   }
 
-  def provenancePlugins: List[Class[_]] = classOf[NopPersistWorkflowProvenance] :: Nil
+  def provenancePlugins: List[Class[_ <: AnyPlugin]] = classOf[NopPersistWorkflowProvenance] :: Nil
 
-  def autoCompletionProviderPlugins: List[Class[_]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
+  def autoCompletionProviderPlugins: List[Class[_ <: AnyPlugin]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 
-  def workspaceActivityPlugins: List[Class[_]] = {
+  def workspaceActivityPlugins: List[Class[_ <: AnyPlugin]] = {
     classOf[GlobalVocabularyCacheFactory] ::
       classOf[GlobalUriPatternCacheFactory] ::
       Nil

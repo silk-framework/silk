@@ -5,6 +5,7 @@ import {
     optionallyLabelledParameterToLabel,
     optionallyLabelledParameterToValue,
 } from "../views/taskViews/linking/linking.types";
+import { UpdateTaskProps } from "../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 
 /** Converts the default value to a JS value */
 export const defaultValueAsJs = (property: IArtefactItemProperty, withLabel: boolean): any => {
@@ -30,32 +31,40 @@ export const stringValueAsJs = (valueType: string, value: OptionallyLabelledPara
     }
     return v;
 };
+
+export const objectToFlatRecord = (object: object, replacementValues: Record<string, any>): Record<string, any> => {
+    const result: any = {};
+    const objToFlatRec = (obj: object, prefix: string) => {
+        Object.entries(obj).forEach(([paramName, paramLabelAndValue]) => {
+            const fullParameterId = `${prefix}${paramName}`;
+            let paramValue = paramLabelAndValue;
+            if (
+                paramLabelAndValue !== null &&
+                paramLabelAndValue.value !== undefined &&
+                (Object.entries(paramLabelAndValue).length === 1 ||
+                    (Object.entries(paramLabelAndValue).length === 2 && paramLabelAndValue.label !== undefined))
+            ) {
+                paramValue = paramLabelAndValue.value;
+            }
+            if (typeof paramValue === "object" && paramValue !== null) {
+                objToFlatRec(paramValue, paramName + ".");
+            } else {
+                result[prefix + paramName] =
+                    replacementValues[fullParameterId] != null
+                        ? { value: replacementValues[fullParameterId] }
+                        : paramLabelAndValue;
+            }
+        });
+    };
+    objToFlatRec(object, "");
+    return result;
+};
 /** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"].
  *  If the original values are reified values with optional labels, this reified structure is kept in the flat object.
  **/
-export const existingTaskValuesToFlatParameters = (updateTask: any) => {
+export const existingTaskValuesToFlatParameters = (updateTask: UpdateTaskProps | undefined) => {
     if (updateTask) {
-        const result: any = {};
-        const objToFlatRec = (obj: object, prefix: string) => {
-            Object.entries(obj).forEach(([paramName, paramLabelAndValue]) => {
-                let paramValue = paramLabelAndValue;
-                if (
-                    paramLabelAndValue !== null &&
-                    paramLabelAndValue.value !== undefined &&
-                    (Object.entries(paramLabelAndValue).length === 1 ||
-                        (Object.entries(paramLabelAndValue).length === 2 && paramLabelAndValue.label !== undefined))
-                ) {
-                    paramValue = paramLabelAndValue.value;
-                }
-                if (typeof paramValue === "object" && paramValue !== null) {
-                    objToFlatRec(paramValue, paramName + ".");
-                } else {
-                    result[prefix + paramName] = paramLabelAndValue;
-                }
-            });
-        };
-        objToFlatRec(updateTask.parameterValues, "");
-        return result;
+        return objectToFlatRecord(updateTask.parameterValues, updateTask.variableTemplateValues);
     } else {
         return {};
     }

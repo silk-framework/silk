@@ -65,9 +65,10 @@ object ParameterType {
       case None =>
         dataType match {
           case cl: Class[_] if classOf[PluginObjectParameter].isAssignableFrom(cl) =>
-            PluginObjectParameterType(cl)
+            PluginObjectParameterType(cl.asInstanceOf[Class[PluginObjectParameter]])
           case cl: Class[_] if classOf[PluginObjectParameterNoSchema].isAssignableFrom(cl) =>
-            PluginObjectParameterNoSchemaType(cl) // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+            // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+            PluginObjectParameterNoSchemaType(cl.asInstanceOf[Class[PluginObjectParameterNoSchema]])
           case cl: Class[_] if classOf[PluginStringParameter].isAssignableFrom(cl) =>
             GenericPluginStringParameterType(cl)
           case _ =>
@@ -79,14 +80,14 @@ object ParameterType {
 
 /** Trait that marks a class as a plugin parameter.
   * There will be done additional tests on start-up for all plugins implementing this trait, e.g. if JSON and XML formats are registered etc. */
-trait PluginObjectParameter {
+trait PluginObjectParameter extends AnyPlugin {
   /** defines if the parameter type has a schema definition, i.e. is composed completely from [[ParameterType]] elements. */
   def hasSchemaDefinition: Boolean = true
 }
 
 /** Plugin parameter type that is of type object and represents nested values. The default string representation is to JSON. */
-trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter] {
-  def pluginObjectParameterClass: Class[_]
+trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter] with AnyPlugin {
+  def pluginObjectParameterClass: Class[_ <: AnyPlugin]
 
   override def jsonSchemaType: String = "object"
 
@@ -100,7 +101,7 @@ trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter
 
 /** Parameter type that is represented by a plugin class.
   * It is expected that this type has proper serialization formats implemented, e.g. for XML and JSON etc. */
-case class PluginObjectParameterType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
+case class PluginObjectParameterType(pluginObjectParameterClass: Class[_ <: AnyPlugin]) extends PluginObjectParameterTypeTrait {
   override def name: String = "objectParameter"
 }
 
@@ -110,7 +111,7 @@ trait PluginObjectParameterNoSchema extends PluginObjectParameter {
   override def hasSchemaDefinition: Boolean = false
 }
 
-case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
+case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_ <: AnyPlugin]) extends PluginObjectParameterTypeTrait {
   override def name: String = "pluginObjectParameterNoSchema"
 }
 
@@ -138,7 +139,7 @@ case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]
 }
 
 /** Parameter type that implements a PluginStringParameter parameter. */
-abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T]
+abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T] with AnyPlugin
 
 /**
   * Represents a plugin parameter type and provides string-based serialization.
@@ -441,7 +442,7 @@ object StringParameterType {
 
     override def name: String = "duration"
 
-    override def description: String = " An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
+    override def description: String = "An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
 
     override def fromString(str: String)(implicit context: PluginContext): Duration = {
       Duration.parse(str)

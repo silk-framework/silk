@@ -1,10 +1,9 @@
 package org.silkframework.workbench.workspace
 
-import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.workspace.reports.InMemoryExecutionReportManager
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
 class WorkspacePlugins extends PluginModule {
-  override def pluginClasses: Seq[Class[_]] =
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] =
     Seq(
       classOf[WorkbenchPluginDataset],
       classOf[WorkbenchPluginCustomTask],

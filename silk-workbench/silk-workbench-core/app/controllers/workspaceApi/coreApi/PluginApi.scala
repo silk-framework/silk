@@ -17,7 +17,7 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
+import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
