@@ -244,7 +244,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     )
     pathCacheResource.writeString(CachedEntitySchemata.CachedEntitySchemaXmlFormat.write(newCachedEntitySchema).toString())
     val pathsCache = project.task[TransformSpec](backwardPathTransform).activity[TransformPathsCache]
-    pathsCache.reInitializeCachedActivity()
+    pathsCache.startDirty(reloadCacheFile = true)
     pathsCache.control.waitUntilFinished()
     val cacheValue = pathsCache.control.value.get.get
     cacheValue.configuredSchema.typedPaths.find(_.toString.contains("someBackwardPathToParent")) mustBe defined

@@ -118,14 +118,22 @@ trait CachedActivity[T] extends Activity[T] {
     }
   }
 
-  /** Sets the dirty flag of the cached activity and starts it if it is not already running. */
-  def startDirty(taskActivity: ActivityControl[_])
+  /**
+    * Sets the dirty flag of the cached activity and starts it if it is not already running.
+    *
+    * @param reloadCacheFile Re-read the cache from the file.
+    * */
+  def startDirty(taskActivity: ActivityControl[_], reloadCacheFile: Boolean = false)
                 (implicit userContext: UserContext): Unit = {
+    if (reloadCacheFile) {
+      initialized = false
+    }
+
     dirty = true
 
     if(taskActivity.status().isRunning) {
       // Do nothing, the dirty flag should be picked up by the activity execution
-    } else{
+    } else {
       try {
         taskActivity.start()
       } catch {
@@ -133,10 +141,5 @@ trait CachedActivity[T] extends Activity[T] {
         // Ignore exception because of race condition that another thread already started the activity
       }
     }
-  }
-
-  /** Sets this cached activity back to uninitialized, so it will try to read the cache value from file. */
-  def setToUnInitialized(): Unit = {
-    initialized = false
   }
 }

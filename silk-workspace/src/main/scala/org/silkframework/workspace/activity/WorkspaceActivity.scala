@@ -206,13 +206,13 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   def isDatasetRelatedCache: Boolean = factory.isDatasetRelatedCache
 
   /** Only if this is a cached activity start the activity dirty, i.e. even if the activity is currently running, it will run again. */
-  def startDirty()
+  def startDirty(reloadCacheFile: Boolean = false)
                 (implicit user: UserContext): Unit = {
     if(isCacheActivity) {
       val a = control.underlying
       a match {
         case cacheActivity: CachedActivity[_] =>
-          cacheActivity.startDirty(control)
+          cacheActivity.startDirty(control, reloadCacheFile)
         case _ =>
       }
     }
