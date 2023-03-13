@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
@@ -242,7 +242,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       workspaceActivity.control.cancel()
     }
     // Refresh workspace provider
-    provider.refresh()
+    provider.refresh(repository)
 
     // Reload projects
     loadProjects()

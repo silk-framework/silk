@@ -50,7 +50,7 @@ trait PluginDescription[+T] {
   /**
     * Retrieves the parameters values of a given plugin instance.
     */
-  def parameterValues(plugin: AnyPlugin)(implicit prefixes: Prefixes): ParameterValues = {
+  def parameterValues(plugin: AnyPlugin)(implicit pluginContext: PluginContext): ParameterValues = {
     val values =
       for(param <- parameters) yield {
         val value =

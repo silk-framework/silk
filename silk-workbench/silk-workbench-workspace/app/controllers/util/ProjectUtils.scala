@@ -1,7 +1,5 @@
 package controllers.util
 
-import java.io.StringWriter
-
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.silkframework.config.{Task, TaskSpec}
@@ -22,6 +20,7 @@ import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
 
+import java.io.StringWriter
 import scala.reflect.ClassTag
 import scala.xml.{Node, NodeSeq}
 
@@ -266,11 +265,11 @@ object ProjectUtils {
     wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
   }
 
-  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: InMemoryResourceManager)
+  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: ResourceManager)
                                         (implicit userContext: UserContext)= {
     if (withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
-      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true), resourceManager)
+      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true, basePath = projectResourceManager.basePath), resourceManager)
     } else {
       (resourceManager, resourceManager)
     }

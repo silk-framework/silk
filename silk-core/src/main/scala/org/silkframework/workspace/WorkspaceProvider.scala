@@ -6,6 +6,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -34,12 +35,21 @@ trait WorkspaceProvider extends AnyPlugin {
   def deleteProject(name: Identifier)(implicit user: UserContext): Unit
 
   /**
-    * Imports a complete project.
+    * Imports a project.
+    *
+    * @param project The meta data of the project to be imported.
+    * @param importProvider The workspace provider that contains the project to be imported.
+    * @param importResources The resources of the project to be imported.
+    * @param targetResources The resources of the new project in this workspace.
+    * @param alsoCopyResources If true, the project resources are imported as well.
+    *                          Otherwise, only the tasks ore imported.
     */
   def importProject(project: ProjectConfig,
-                    provider: WorkspaceProvider,
-                    inputResources: Option[ResourceManager],
-                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit
+                    importProvider: WorkspaceProvider,
+                    importResources: ResourceManager,
+                    targetResources: ResourceManager,
+                    alsoCopyResources: Boolean)
+                   (implicit user: UserContext): Unit
 
   /**
    * Retrieves the project cache folder.
@@ -60,8 +70,13 @@ trait WorkspaceProvider extends AnyPlugin {
 
   /**
    * Adds/Updates a task in a project.
+    *
+    * @param projectResourceManager The resource manager that is used to serialize the path of project resources correctly.
    */
-  def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit
+  def putTask[T <: TaskSpec : ClassTag](project: Identifier,
+                                        task: Task[T],
+                                        resources: ResourceManager)
+                                       (implicit user: UserContext): Unit
 
   /**
    * Deletes a task from a project.
@@ -98,9 +113,14 @@ trait WorkspaceProvider extends AnyPlugin {
                (implicit userContext: UserContext): Unit
 
   /**
+    * Refreshes a single project, i.e. cleans all possible caches if there are any and reloads the project freshly.
+    */
+  def refreshProject(project: Identifier, projectResources: ResourceManager)(implicit userContext: UserContext): Unit = { }
+
+  /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  def refresh()(implicit userContext: UserContext): Unit
+  def refresh(projectResources: ResourceRepository)(implicit userContext: UserContext): Unit
 
   /** Fetches registered prefix definitions, e.g. from known voabularies. */
   def fetchRegisteredPrefixes()(implicit userContext: UserContext): Prefixes = {

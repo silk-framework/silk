@@ -19,7 +19,9 @@ case class WriteContext[U](parent: Option[U] = None,
 
 object WriteContext {
 
-  def forProject[U](project: ProjectTrait, parent: Option[U] = None)(implicit user: UserContext): WriteContext[U] = {
+  def empty[U]: WriteContext[U] = WriteContext(resources = EmptyResourceManager(), user = UserContext.Empty)
+
+  def fromProject[U](project: ProjectTrait, parent: Option[U] = None)(implicit user: UserContext): WriteContext[U] = {
     WriteContext[U](
       parent = parent,
       prefixes = project.config.prefixes,
@@ -30,4 +32,15 @@ object WriteContext {
     )
   }
 
+  def fromPluginContext[U](parent: Option[U] = None,
+                           projectUri: Option[String] = None)(implicit pluginContext: PluginContext): WriteContext[U] = {
+    WriteContext[U](
+      parent = parent,
+      prefixes = pluginContext.prefixes,
+      projectId = pluginContext.projectId,
+      projectUri = projectUri,
+      resources = pluginContext.resources,
+      user = pluginContext.user
+    )
+  }
 }

@@ -120,17 +120,17 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
                                         json: JsValue)
                                        (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
     val workflowJson = json.as[JsObject]
+    val (sourceResourceManager, _) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
     var dataSources = {
-      implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
-      createDatasets(workflowJson, Some(variableDatasets.dataSources.toSet), property = "DataSources")
+      createDatasets(workflowJson, Some(variableDatasets.dataSources.toSet), property = "DataSources")(sourceResourceManager)
     }
     // Sink
     val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
-    implicit val resourceManager: ResourceManager = sinkResourceManager
-    val sinks = createDatasets(workflowJson, Some(sinkIds), property = "Sinks")
+    val sinks = createDatasets(workflowJson, Some(sinkIds), property = "Sinks")(sinkResourceManager)
     val autoConfig = (workflowJson \ "config" \ "autoConfig").asOpt[Boolean].getOrElse(false)
     if(autoConfig) {
-      implicit val pluginContext: PluginContext = PluginContext.fromProject(getProject(projectName))
+      val project = getProject(projectName)
+      implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id))
       dataSources = dataSources.mapValues {
         case autoConfigDataset: DatasetPluginAutoConfigurable[_] => autoConfigDataset.autoConfigured
         case other: Dataset => other
@@ -205,7 +205,9 @@ object WorkflowOutput {
     }
   }
 
-  private def sinkToResourceMapping(sinks: Map[String, Dataset], variableSinks: Seq[String]) = {
+  private def sinkToResourceMapping(sinks: Map[String, Dataset],
+                                    variableSinks: Seq[String])
+                                   (implicit pluginContext: PluginContext): Map[String, String] = {
     variableSinks.map(s =>
       s -> sinks.get(s).flatMap(_.parameters.toStringMap.get("file")).getOrElse(s + "_file_resource")
     ).toMap

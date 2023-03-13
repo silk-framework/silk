@@ -13,18 +13,16 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
-import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.utils.ErrorResult
-import org.silkframework.workspace.{Project, WorkspaceFactory}
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -271,7 +269,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       val (project, fromTask) = projectAndAnyTask(projectId, taskId)
       // Clone task spec, since task specs may contain state, e.g. RDF file dataset
       implicit val context: PluginContext = PluginContext.fromProject(project)
-      val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
+      val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
       val requestMetaData = request.metaData.asMetaData
       project.addAnyTask(generatedId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
       val itemType = ItemType.itemType(fromTask)

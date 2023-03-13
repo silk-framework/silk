@@ -13,7 +13,8 @@ import org.silkframework.util.Uri
 import java.io.StringReader
 
 class CsvSourceTest extends FlatSpec with Matchers {
-  behavior of "CCV Source"
+
+  behavior of "CSV Source"
 
   val resources: ResourceManager = ReadOnlyResourceManager(ClasspathResourceLoader("org/silkframework/plugins/dataset/csv"))
 

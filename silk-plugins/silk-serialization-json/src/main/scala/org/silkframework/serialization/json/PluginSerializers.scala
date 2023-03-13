@@ -108,7 +108,7 @@ object PluginSerializers {
 
     override def write(value: T)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       // The JSON serialization currently should use prefixed names, so we need to re-serialize the parameters with prefixes.
-      val parameters = value.pluginSpec.parameterValues(value)(writeContext.prefixes)
+      val parameters = value.pluginSpec.parameterValues(value)
       Json.obj(
         TYPE -> JsString(value.pluginSpec.id.toString),
       ) ++ ParameterValuesJsonFormat.write(parameters)

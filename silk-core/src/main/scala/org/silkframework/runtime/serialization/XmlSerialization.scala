@@ -10,7 +10,7 @@ import scala.xml.{Node, NodeSeq, PCData}
  */
 object XmlSerialization {
 
-  def toXml[T](value: T)(implicit format: XmlFormat[T], writeContext: WriteContext[Node] = WriteContext[Node](projectId = None)): Node = {
+  def toXml[T](value: T)(implicit format: XmlFormat[T], writeContext: WriteContext[Node] = WriteContext.empty[Node]): Node = {
     format.write(value)
   }
 

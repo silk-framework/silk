@@ -2,6 +2,7 @@ import { createSelector } from "@reduxjs/toolkit";
 import { IFiltersState, IPreviewState, IWidgetsState } from "./typings";
 import { IStore } from "../../typings/IStore";
 import { ICommonState } from "@ducks/common/typings";
+import { fileValue } from "@ducks/shared/typings";
 
 const commonSelector = (state: IStore): ICommonState => state.common;
 const filtersSelector = (state: IStore): IFiltersState => state.workspace.filters;
@@ -30,7 +31,7 @@ const warningListSelector = createSelector([widgetsSelector], (widgets) => widge
 
 const filesListSelector = createSelector([widgetsSelector, commonSelector], (widgets, common) =>
     widgets.files.results.map((item) => ({
-        id: item.name,
+        id: fileValue(item),
         formattedDate: new Date(item.modified).toLocaleString(),
         formattedSize: item.size.toLocaleString(common.locale),
         ...item,
