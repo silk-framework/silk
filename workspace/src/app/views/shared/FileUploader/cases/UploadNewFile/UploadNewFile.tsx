@@ -21,7 +21,7 @@ interface IProps {
 
     projectId?: string;
 
-    // If true, the file name will be added to the uploadEndpoint for each file to be uploaded
+    // If true, the file name will be added as query parameter 'path' to the uploadEndpoint for each file to be uploaded
     attachFileNameToEndpoint: boolean;
 
     validateBeforeAdd?(fileName: string);
@@ -39,15 +39,8 @@ interface IProps {
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const {
-        projectId,
-        uppy,
-        onAdded,
-        onUploadSuccess,
-        validateBeforeAdd,
-        uploadEndpoint,
-        attachFileNameToEndpoint,
-    } = props;
+    const { projectId, uppy, onAdded, onUploadSuccess, validateBeforeAdd, uploadEndpoint, attachFileNameToEndpoint } =
+        props;
 
     // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);
@@ -183,7 +176,7 @@ export function UploadNewFile(props: IProps) {
                 uppy.setFileState(file.id, {
                     xhrUpload: {
                         endpoint: attachFileNameToEndpoint
-                            ? `${uploadEndpoint}/${encodeURIComponent(file.name)}`
+                            ? `${uploadEndpoint}?path=${encodeURIComponent(file.name)}`
                             : uploadEndpoint,
                     },
                 });

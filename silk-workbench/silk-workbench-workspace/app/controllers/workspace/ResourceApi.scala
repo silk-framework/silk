@@ -161,16 +161,16 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                   )
                   projectName: String,
                   @Parameter(
-                    name = "name",
-                    description = "The resource",
+                    name = "path",
+                    description = "The resource path relative to the resource repository",
                     required = true,
-                    in = ParameterIn.PATH,
+                    in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
                   )
                   resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
-    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> "attachment")
+    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
   }
 
   @Operation(
@@ -212,10 +212,10 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                   )
                   projectName: String,
                   @Parameter(
-                    name = "name",
-                    description = "The resource",
+                    name = "path",
+                    description = "The resource path relative to the resource repository",
                     required = true,
-                    in = ParameterIn.PATH,
+                    in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
                   )
                   resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
@@ -342,10 +342,10 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                      )
                      projectName: String,
                      @Parameter(
-                       name = "name",
-                       description = "The resource",
+                       name = "path",
+                       description = "The resource path relative to the resource repository",
                        required = true,
-                       in = ParameterIn.PATH,
+                       in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
                      resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
