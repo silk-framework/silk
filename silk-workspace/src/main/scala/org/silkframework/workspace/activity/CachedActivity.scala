@@ -134,4 +134,9 @@ trait CachedActivity[T] extends Activity[T] {
       }
     }
   }
+
+  /** Sets this cached activity back to uninitialized, so it will try to read the cache value from file. */
+  def setToUnInitialized(): Unit = {
+    initialized = false
+  }
 }

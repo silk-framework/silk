@@ -80,5 +80,19 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
       clazz :: recursiveTypes
     }
   }
+
+  /** Completely re-initialized a cached activity as if it were run for the first time. */
+  def reInitializeCachedActivity()
+                                (implicit user: UserContext): Unit = {
+    if (isCacheActivity) {
+      val a = control.underlying
+      a match {
+        case cacheActivity: CachedActivity[_] =>
+          cacheActivity.setToUnInitialized()
+          cacheActivity.startDirty(control)
+        case _ =>
+      }
+    }
+  }
 }
 
