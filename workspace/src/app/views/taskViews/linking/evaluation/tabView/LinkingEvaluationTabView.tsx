@@ -87,7 +87,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
     const hasRenderedBefore = useFirstRender();
     const [tableSortDirection, setTableSortDirection] = React.useState<
-        Map<typeof headerData[number]["key"], "ASC" | "DESC" | "NONE">
+        Map<typeof headerData[number]["key"], keyof typeof sortDirectionMapping>
     >(
         () =>
             new Map([
@@ -320,7 +320,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     : [LinkEvaluationSortByObj[sortDirectionMapping[sortDirection]][key]];
             setLinkSortBy(sortBy);
             setTableSortDirection((prev) => {
-                const newMap = new Map<string, "ASC" | "DESC" | "NONE">([...prev]);
+                const newMap = new Map<string, keyof typeof sortDirectionMapping>([...prev]);
                 newMap.set(key, sortDirectionMapping[sortDirection]);
                 return newMap;
             });
