@@ -150,7 +150,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                         <>
                                             <Spacing vertical={true} size={"small"} />
                                             <Icon
-                                                name={"template-parameter"}
+                                                name={"form-template"}
                                                 intent={"info"}
                                                 tooltipText={
                                                     t("widget.TaskConfigWidget.templateValueInfo") +
