@@ -112,7 +112,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       )
     )
   )
-  def getResourceMetadata(@Parameter(
+  def getFileMetadata(@Parameter(
                             name = "project",
                             description = "The project identifier",
                             required = true,
@@ -120,7 +120,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                             schema = new Schema(implementation = classOf[String])
                           )
                           projectName: String,
-                          @Parameter(
+                      @Parameter(
                             name = "name",
                             description = "The resource",
                             required = true,
@@ -139,6 +139,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
   }
 
+  @deprecated("Use files-endpoints instead.")
+  def getResourceMetadata(projectName: String, resourceName: String): Action[AnyContent] = getFileMetadata(projectName, resourceName).apply()
+
   @Operation(
     summary = "Retrieve resource",
     description = "Retrieve the contents of a resource.",
@@ -152,7 +155,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       )
     )
   )
-  def getResource(@Parameter(
+  def getFile(@Parameter(
                     name = "project",
                     description = "The project identifier",
                     required = true,
@@ -160,7 +163,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     schema = new Schema(implementation = classOf[String])
                   )
                   projectName: String,
-                  @Parameter(
+              @Parameter(
                     name = "path",
                     description = "The resource path relative to the resource repository",
                     required = true,
@@ -172,6 +175,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     val resource = project.resources.get(resourceName, mustExist = true)
     Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
   }
+
+  @deprecated("Use files-endpoints instead.")
+  def getResource(projectName: String, resourceName: String): Action[AnyContent] = getFile(projectName, resourceName).apply()
 
   @Operation(
     summary = "Upload resource",
@@ -203,7 +209,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       ),
     )
   )
-  def putResource(@Parameter(
+  def putFile(@Parameter(
                     name = "project",
                     description = "The project identifier",
                     required = true,
@@ -211,7 +217,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     schema = new Schema(implementation = classOf[String])
                   )
                   projectName: String,
-                  @Parameter(
+              @Parameter(
                     name = "path",
                     description = "The resource path relative to the resource repository",
                     required = true,
@@ -250,6 +256,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     }
     response
   }
+
+  @deprecated("Use files-endpoints instead.")
+  def putResource(projectName: String, resourceName: String): Action[AnyContent] = putFile(projectName, resourceName).apply()
 
   private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
     try {
@@ -295,7 +304,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       )
     )
   )
-  def resourceUsage(@Parameter(
+  def fileUsage(@Parameter(
                       name = "project",
                       description = "The project identifier",
                       required = true,
@@ -303,7 +312,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                       schema = new Schema(implementation = classOf[String])
                     )
                     projectId: String,
-                    @Parameter(
+                @Parameter(
                       name = "name",
                       description = "The resource",
                       required = true,
@@ -319,6 +328,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     Ok(Json.toJson(dependentTasks))
   }
 
+  @deprecated("Use files-endpoints instead.")
+  def resourceUsage(projectName: String, resourceName: String): Action[AnyContent] = fileUsage(projectName, resourceName).apply()
+
   @Operation(
     summary = "Delete resource",
     description = "If the resource exists, delete it.",
@@ -333,7 +345,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       )
     )
   )
-  def deleteResource(@Parameter(
+  def deleteFile(@Parameter(
                        name = "project",
                        description = "The project identifier",
                        required = true,
@@ -341,7 +353,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                        schema = new Schema(implementation = classOf[String])
                      )
                      projectName: String,
-                     @Parameter(
+                 @Parameter(
                        name = "path",
                        description = "The resource path relative to the resource repository",
                        required = true,
@@ -354,4 +366,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
     NoContent
   }
+
+  @deprecated("Use files-endpoints instead.")
+  def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = deleteFile(projectName, resourceName).apply()
 }
