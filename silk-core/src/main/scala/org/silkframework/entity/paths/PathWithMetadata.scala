@@ -56,7 +56,7 @@ object PathWithMetadata{
   }
 
   private val requiredMetadataKeys = Seq(META_FIELD_IS_ATTRIBUTE, META_FIELD_ORIGIN_NAME, META_FIELD_VALUE_TYPE)
-  private val vtwc: WriteContext[String] = WriteContext[String]()
+  private val vtwc: WriteContext[String] = WriteContext.empty[String]
   /**
     * the default apply method
     */

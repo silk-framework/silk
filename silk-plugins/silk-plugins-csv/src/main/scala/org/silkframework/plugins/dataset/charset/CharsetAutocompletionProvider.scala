@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.charset
 
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
 import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
@@ -10,18 +9,18 @@ import org.silkframework.workspace.WorkspaceReadTrait
   */
 case class CharsetAutocompletionProvider() extends PluginParameterAutoCompletionProvider {
 
-  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
+  override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     CharsetUtils.charsetNames
       .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))
       .map(r => AutoCompletionResult(r, None))
   }
 
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String],
+  override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit userContext: UserContext): Option[String] = {
+                           (implicit context: PluginContext): Option[String] = {
     None
   }
 }

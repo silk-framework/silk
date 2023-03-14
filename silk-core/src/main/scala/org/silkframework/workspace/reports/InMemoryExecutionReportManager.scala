@@ -1,9 +1,9 @@
 package org.silkframework.workspace.reports
 
 import java.time.Duration
-
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Identifier
 
@@ -32,7 +32,8 @@ case class InMemoryExecutionReportManager(retentionTime: Duration = ExecutionRep
     reports(reportId)
   }
 
-  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit = synchronized {
+  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport])
+                        (implicit pluginContext: PluginContext): Unit = synchronized {
     removeOldReports(retentionTime)
     reports += ((reportId, report))
   }

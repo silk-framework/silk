@@ -97,7 +97,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     val task = project.task[TransformSpec](taskName)
 
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
 
     SerializationUtils.deserializeCompileTime[TransformRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { transformRule =>
       val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)

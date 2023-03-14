@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.transform.routes.EvaluateTransformApi
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait

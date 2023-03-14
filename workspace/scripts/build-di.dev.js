@@ -21,7 +21,7 @@ const webpack = require("webpack");
 const bfj = require("bfj");
 const configFactory = require("../config/webpack.di.config");
 const paths = require("../config/paths");
-const utils = require("./build.utils")
+const utils = require("./build.utils");
 const checkRequiredFiles = require("react-dev-utils/checkRequiredFiles");
 const formatWebpackMessages = require("react-dev-utils/formatWebpackMessages");
 const printBuildError = require("react-dev-utils/printBuildError");
@@ -121,7 +121,7 @@ function runCallback(err, stats) {
 
 // Create the production build and print the deployment instructions.
 function run() {
-    const adaptedConfig = utils.adaptWebpackConfig(config)
+    const adaptedConfig = utils.adaptWebpackConfig(config);
     const compiler = webpack(adaptedConfig);
     if (isWatch) {
         return compiler.watch(
@@ -145,8 +145,8 @@ function copyPublicFolder() {
 }
 
 function copyAssetsToPublicFolder() {
-    const from = path.join(diBuildPath, "assets")
-    const to = path.join(diAssetsPath, "assets")
-    console.log(`Copying assets from '${from}' to '${to}'.`)
+    const from = path.join(diBuildPath, "assets");
+    const to = path.join(diAssetsPath, "assets");
+    console.log(`Copying assets from '${from}' to '${to}'.`);
     fs.copySync(from, to);
 }

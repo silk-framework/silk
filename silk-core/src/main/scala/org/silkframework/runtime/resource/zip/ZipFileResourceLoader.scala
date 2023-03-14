@@ -42,7 +42,7 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
     } else if(mustExist) {
       throw new ResourceNotFoundException(s"No resource $name found in zip file at path $basePath.")
     } else {
-      MissingResource(name)
+      MissingResource(name, fullPath(name))
     }
   }
 
@@ -117,8 +117,7 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
   /**
     * Returned if the user requests a non-existing resource, but mustExist is false.
     */
-  case class MissingResource(name: String) extends Resource {
-    override def path: String = name
+  case class MissingResource(name: String, path: String) extends Resource {
     override def exists: Boolean = false
     override def size: Option[Long] = None
     override def modificationTime: Option[Instant] = None

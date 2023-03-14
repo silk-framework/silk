@@ -2,6 +2,7 @@
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.activity.UserContext
 
+@import org.silkframework.runtime.plugin.PluginContext
 @(name: String,
 opType: String,
 pluginGroup: org.silkframework.runtime.plugin.PluginFactory[_],
@@ -34,5 +35,5 @@ project: Project)(implicit userContext: UserContext)
 
 @parameterValues(plugin: PluginDescription[_]) = @{
   implicit val prefixes = project.config.prefixes
-  for(p <- plugin.parameters) yield p.stringDefaultValue.getOrElse("")
+  for(p <- plugin.parameters) yield p.stringDefaultValue(PluginContext.empty).getOrElse("")
 }

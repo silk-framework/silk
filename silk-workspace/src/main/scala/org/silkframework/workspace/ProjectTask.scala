@@ -205,7 +205,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   private def persistTask(task: Task[TaskType])(implicit userContext: UserContext): Unit = {
     // Write task
-    module.provider.putTask(project.id, task)
+    module.provider.putTask(project.id, task, module.project.resources)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()

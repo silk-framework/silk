@@ -19,6 +19,7 @@ import { wasTouched } from "../../../utils/wasTouched";
 import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 
 const LANGUAGES_LIST = [
     "en",
@@ -98,10 +99,14 @@ interface IProps {
 
 /** The edit form of a value mapping rule. */
 export function ValueRuleForm(props: IProps) {
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     const [loading, setLoading] = useState<boolean>(false);
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
-    const [valueType, setValueType] = useState<IValueType>({ nodeType: "StringValueType" });
+    const [valueType, _setValueType] = useState<IValueType & { label: string }>({
+        nodeType: "StringValueType",
+        label: "String",
+    });
     const sourceProperty = React.useRef<string | { value: string }>("");
     const [isAttribute, setIsAttribute] = useState(false);
     const [initialValues, setInitialValues] = useState<Partial<IState>>({});
@@ -114,6 +119,12 @@ export function ValueRuleForm(props: IProps) {
     const lastEmittedEvent = React.useRef<string>("");
 
     const { id, parentId } = props;
+    const setValueType = React.useCallback((valueType: IValueType) => {
+        _setValueType({
+            ...valueType,
+            label: mappingEditorContext.valueTypeLabels.get(valueType.nodeType) ?? valueType.nodeType,
+        });
+    }, []);
 
     const autoCompleteRuleId = id || parentId;
 
@@ -423,9 +434,10 @@ export function ValueRuleForm(props: IProps) {
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
                             ruleId={autoCompleteRuleId}
-                            value={valueType.nodeType}
+                            value={{ value: valueType.nodeType, label: valueType.label }}
                             clearable={false}
                             onChange={handleChangePropertyType}
+                            showValueWhenLabelExists={false}
                         />
                         {valueType.nodeType === "LanguageValueType" && (
                             <AutoComplete

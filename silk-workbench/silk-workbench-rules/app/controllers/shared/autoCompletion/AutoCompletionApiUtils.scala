@@ -1,9 +1,11 @@
 package controllers.shared.autoCompletion
 
+import controllers.autoCompletion
+import controllers.autoCompletion._
 import controllers.transform.AutoCompletionApi.Categories
-import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, Completion, Completions, OpFilter, PathToReplace, ReplacementInterval, ReplacementResults}
+import controllers.transform.autoCompletion.{OpFilter, PathToReplace}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, PathOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths._
 import org.silkframework.plugins.path.PathMetaData
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.UserContext
@@ -58,7 +60,7 @@ object AutoCompletionApiUtils {
           isCompletion = true
         )
       }
-      Completions(completions)
+      autoCompletion.Completions(completions)
     } else {
       Completions()
     }
@@ -79,13 +81,13 @@ object AutoCompletionApiUtils {
   /** Filter out paths that start with either the simple source or forward only source path, then
     * rewrite the auto-completion to a relative path from the full paths. */
   def extractRelativePaths(simpleSourcePath: List[PathOperator],
-                                   forwardOnlySourcePath: List[PathOperator],
-                                   pathCacheCompletions: Completions,
-                                   isRdfInput: Boolean,
-                                   oneHopOnly: Boolean = false,
-                                   serializeFull: Boolean = false,
-                                   pathOpFilter: OpFilter.Value = OpFilter.None)
-                                  (implicit prefixes: Prefixes): Seq[Completion] = {
+                           forwardOnlySourcePath: List[PathOperator],
+                           pathCacheCompletions: Completions,
+                           isRdfInput: Boolean,
+                           oneHopOnly: Boolean = false,
+                           serializeFull: Boolean = false,
+                           pathOpFilter: OpFilter.Value = OpFilter.None)
+                          (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
       val path = UntypedPath.parse(p.value)
       val matchesPrefix = isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
@@ -118,7 +120,7 @@ object AutoCompletionApiUtils {
     }
   }
 
-  /** Normalize this path by eliminating backward operators */
+  /** Normalize this path by eliminating backward operators. It does not eliminate backward operators at the start, since this would suggest incorrect paths then. */
   def forwardOnlyPath(simpleSourcePath: List[PathOperator]): List[PathOperator] = {
     // Remove BackwardOperators
     var pathStack = List.empty[PathOperator]
@@ -126,9 +128,9 @@ object AutoCompletionApiUtils {
       op match {
         case f: ForwardOperator =>
           pathStack ::= f
-        case BackwardOperator(_) =>
-          if (pathStack.isEmpty) {
-            // Nothing we can do
+        case b: BackwardOperator =>
+          if (pathStack.isEmpty || pathStack.head.isInstanceOf[BackwardOperator]) {
+            pathStack ::= b
           } else {
             pathStack = pathStack.tail
           }

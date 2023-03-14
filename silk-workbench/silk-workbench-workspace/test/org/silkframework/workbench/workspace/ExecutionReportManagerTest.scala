@@ -4,6 +4,8 @@ import java.time.Duration
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
@@ -13,6 +15,8 @@ import play.api.libs.json.Json
   * Base class for ExecutionReportManager implementation tests.
   */
 abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
+
+  private implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
 
   private val projectId = "4e371d98-3de7-4986-ab7d-979612f1ac29_project"
   private val taskId = "4150f4a9-4104-4681-90f5-9fc64d4ecce0_workflow"
@@ -56,7 +60,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
   private def loadReport(name: String): ExecutionReport = {
     val inputStream = getClass.getResourceAsStream(name)
     try {
-      implicit val rc: ReadContext = ReadContext()
+      implicit val rc = ReadContext.fromPluginContext()
       ExecutionReportSerializers.ExecutionReportJsonFormat.read(Json.parse(inputStream))
     } finally {
       inputStream.close()

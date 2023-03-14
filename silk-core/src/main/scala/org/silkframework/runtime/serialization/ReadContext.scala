@@ -34,4 +34,17 @@ object ReadContext {
     )
   }
 
+  def fromPluginContext(identifierGenerator: IdentifierGenerator = new IdentifierGenerator(),
+                        validationEnabled: Boolean = false)
+                       (implicit pluginContext: PluginContext): ReadContext = {
+    ReadContext(
+      resources = pluginContext.resources,
+      prefixes = pluginContext.prefixes,
+      identifierGenerator = identifierGenerator,
+      validationEnabled = validationEnabled,
+      user = pluginContext.user,
+      projectId = pluginContext.projectId,
+    )
+  }
+
 }

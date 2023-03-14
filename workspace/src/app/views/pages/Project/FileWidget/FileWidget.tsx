@@ -20,6 +20,7 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
+    HelperClasses,
 } from "@eccenca/gui-elements";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
@@ -30,6 +31,7 @@ import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 import { CONTEXT_PATH } from "../../../../constants/path";
+import { fileValue } from "@ducks/shared/typings";
 
 /** Project file management widget. */
 export const FileWidget = () => {
@@ -58,7 +60,7 @@ export const FileWidget = () => {
     }
 
     const headers = [
-        { key: "name", header: t("widget.FileWidget.sort.name", "Name"), highlighted: true },
+        { key: "name", mainKey: "fullPath", header: t("widget.FileWidget.sort.name", "Name"), highlighted: true },
         { key: "formattedDate", header: t("widget.FileWidget.sort.modified", "Last modified"), highlighted: false },
         { key: "formattedSize", header: t("widget.FileWidget.sort.size", "Size (bytes)"), highlighted: true },
     ];
@@ -105,6 +107,7 @@ export const FileWidget = () => {
                                             textQuery={textQuery}
                                             onSearch={onSearch}
                                             data-test-id={"file-search-bar"}
+                                            focusOnCreation={!!textQuery.length}
                                         />
                                     </ToolbarSection>
                                     <ToolbarSection>
@@ -137,18 +140,31 @@ export const FileWidget = () => {
                                                 )
                                                 .map((file) => (
                                                     <TableRow key={file.id}>
-                                                        {headers.map((property) => (
-                                                            <TableCell key={property.key}>
-                                                                {property.highlighted ? (
-                                                                    <Highlighter
-                                                                        label={file[property.key]}
-                                                                        searchValue={textQuery}
-                                                                    />
-                                                                ) : (
-                                                                    file[property.key]
-                                                                )}
-                                                            </TableCell>
-                                                        ))}
+                                                        {headers.map((property) => {
+                                                            const value =
+                                                                property.mainKey && file[property.mainKey]
+                                                                    ? file[property.mainKey]
+                                                                    : file[property.key];
+                                                            return (
+                                                                <TableCell
+                                                                    key={property.key}
+                                                                    className={
+                                                                        property.key === "name"
+                                                                            ? HelperClasses.Typography.FORCELINEBREAK
+                                                                            : ""
+                                                                    }
+                                                                >
+                                                                    {property.highlighted ? (
+                                                                        <Highlighter
+                                                                            label={value}
+                                                                            searchValue={textQuery}
+                                                                        />
+                                                                    ) : (
+                                                                        value
+                                                                    )}
+                                                                </TableCell>
+                                                            );
+                                                        })}
                                                         <TableCell
                                                             key={"fileActions"}
                                                             className="bx--table-column-menu"
@@ -159,8 +175,8 @@ export const FileWidget = () => {
                                                                     name="item-download"
                                                                     text={t("common.action.download")}
                                                                     small
-                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/resources/${encodeURIComponent(
-                                                                        file.name
+                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/files?path=${encodeURIComponent(
+                                                                        fileValue(file)
                                                                     )}`}
                                                                 />
                                                                 <IconButton

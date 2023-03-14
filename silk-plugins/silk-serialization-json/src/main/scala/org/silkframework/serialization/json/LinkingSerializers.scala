@@ -39,7 +39,7 @@ object LinkingSerializers {
         Json.obj(
           SOURCE -> link.source,
           TARGET -> link.target,
-          CONFIDENCE -> link.confidence,
+          CONFIDENCE -> evaluationDetails.flatMap(_.score).orElse(link.confidence),
           RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
         )
 

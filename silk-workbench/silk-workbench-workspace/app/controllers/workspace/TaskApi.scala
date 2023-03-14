@@ -7,26 +7,20 @@ import controllers.util.SerializationUtils
 import controllers.workspace.doc.TaskApiDoc
 import controllers.workspace.taskApi.{TaskApiUtils, TaskLink}
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
-import controllers.workspaceApi.project.ProjectApiRestPayloads.ItemMetaData
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginContext, PluginDescription, PluginObjectParameterTypeTrait}
-import org.silkframework.runtime.resource.{FileResource, ResourceManager}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
-import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.serialization.json.MetaDataSerializers._
-import org.silkframework.util.Uri
-import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
@@ -36,7 +30,6 @@ import java.util.logging.Logger
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.util.Try
-import scala.util.control.NonFatal
 
 @Tag(name = "Project tasks")
 class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -92,7 +85,8 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
-      implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.id))
+      implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.id),
+        resources = project.resources)
       Created(JsonSerializers.GenericTaskJsonFormat.write(task)).
           withHeaders(LOCATION -> routes.TaskApi.getTask(projectName, task.id).path())
     }
@@ -200,12 +194,18 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val currentTask = project.anyTask(taskName)
 
     // Update task JSON
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val currentJson = toJson[Task[TaskSpec]](currentTask).as[JsObject]
-    val updatedJson = currentJson.deepMerge(request.body.as[JsObject])
+    // Templates are only partially defined, so they must be replaced completely by the new value.
+    // Since template values have precedence over the parameter values, the parameter values can be deep merged without problems.
+    val currentJsonWithoutTemplates = currentJson ++ Json.obj(
+      "data" -> currentJson.value.get("data").map(data =>
+        data.as[JsObject] - "templates")
+    )
+    val updatedJson = currentJsonWithoutTemplates.deepMerge(request.body.as[JsObject])
 
     // Update task
-    implicit val writeContext = WriteContext(prefixes = project.config.prefixes, projectId = None)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     val updatedTask = fromJson[Task[TaskSpec]](updatedJson)
     if(updatedTask.id.toString != taskName) {
       throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${updatedTask.id} in payload.")
@@ -276,7 +276,8 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                                          project: Project,
                                          task: ProjectTask[_ <: TaskSpec])
                                         (implicit userContext: UserContext): Result = {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.config.id))
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes,
+      projectId = Some(project.config.id), resources = project.resources)
     // JSON only
     val jsObj: JsObject = JsonSerialization.toJson[Task[TaskSpec]](task).as[JsObject]
     val data = (jsObj \ DATA).as[JsObject]
@@ -493,7 +494,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         includeSchemata = Some(true)
       )
     val taskFormat = new TaskJsonFormat[TaskSpec](formatOptions, Some(userContext), dependentTaskFormatter)
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = Some(task.project.config.id))
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = Some(task.project.config.id), resources = task.project.resources)
     val taskJson = taskFormat.write(task)
     val metaDataJson = JsonSerializers.toJson(task.metaData)
     val mergedJson = metaDataJson.as[JsObject].deepMerge(taskJson.as[JsObject])
@@ -542,7 +543,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val fromTask = project.anyTask(oldTask)
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
     implicit val context: PluginContext = PluginContext.fromProject(project)
-    val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
+    val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
     project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
     Ok
   }

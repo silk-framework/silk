@@ -6,7 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.Entity
 import org.silkframework.execution._
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -83,10 +83,20 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
   }
 
-  /** Return error if VariableDataset is used in output and input */
+  /** Make sure that the workflow does not try to write into a read-only dataset. */
+  protected def checkReadOnlyDatasets()
+                                     (implicit userContext: UserContext): Unit = {
+    val readOnlyDatasetsAsOutputs = currentWorkflow.outputDatasets(project).filter(_.readOnly)
+    if(readOnlyDatasetsAsOutputs.nonEmpty) {
+      throw WorkflowExecutionException("Workflow execution is not allowed to start because following read-only datasets would be written into: " +
+        readOnlyDatasetsAsOutputs.map(_.fullLabel).mkString("'", "', '", "'"))
+    }
+  }
+
+  /** Return error if legacy VariableDataset has no replacement. Marked variable datasets do not need to be replaced. */
   protected def checkVariableDatasets()
                                      (implicit userContext: UserContext): Unit = {
-    val variableDatasets = currentWorkflow.variableDatasets(project)
+    val variableDatasets = currentWorkflow.legacyVariableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.nonEmpty) {
       throw new scala.IllegalArgumentException("No replacement for following variable datasets as data sources provided: " +
@@ -147,7 +157,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           if (configParameters.isEmpty) {
             task
           } else {
-            PlainTask(id = task.id, data = task.data.withProperties(configParameters), metaData = task.metaData)
+            PlainTask(id = task.id, data = task.data.withParameters(ParameterValues.fromStringMap(configParameters)), metaData = task.metaData)
           }
         }
       ).asInstanceOf[Task[T]]

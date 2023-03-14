@@ -5,7 +5,7 @@ import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../.
 import Color from "color";
 
 /** Adds highlighting to the text if query is non-empty. */
-const addHighlighting = (text: string, query?: string): string | JSX.Element => {
+export const addHighlighting = (text: string, query?: string): string | JSX.Element => {
     return query ? <Highlighter label={text} searchValue={query} /> : text;
 };
 
@@ -23,7 +23,7 @@ const createOperatorTags = (
                 minimal={true}
                 small={true}
                 backgroundColor={color ? color(tag) : undefined}
-                emphasis={tag==="Recommended" ? "stronger" : "normal"}
+                emphasis={tag === "Recommended" ? "stronger" : "normal"}
             >
                 {addHighlighting(tag, query)}
             </Tag>

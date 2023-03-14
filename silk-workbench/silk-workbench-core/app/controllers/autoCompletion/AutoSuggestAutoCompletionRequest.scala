@@ -1,4 +1,4 @@
-package controllers.transform.autoCompletion
+package controllers.autoCompletion
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import play.api.libs.json.{Format, Json}

@@ -6,6 +6,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -30,15 +31,15 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  override def refresh()(implicit userContext: UserContext): Unit = {
-    primaryWorkspace.refresh()
+  override def refresh(resources: ResourceRepository)(implicit userContext: UserContext): Unit = {
+    primaryWorkspace.refresh(resources)
 
     // Delete all projects from the secondary workspace provider and recommit them
     // We do this to avoid that both workspace providers get out of sync
     for(project <- secondaryWorkspace.readProjects()) {
       secondaryWorkspace.deleteProject(project.id)
     }
-    WorkspaceIO.copyProjects(primaryWorkspace, secondaryWorkspace, None, None)
+    WorkspaceIO.copyProjects(primaryWorkspace, secondaryWorkspace, resources, resources)
   }
 
   /**
@@ -74,11 +75,12 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Imports a complete project.
     */
-  def importProject(project: ProjectConfig,
-                    provider: WorkspaceProvider,
-                    inputResources: Option[ResourceManager],
-                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
-    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  override def importProject(project: ProjectConfig,
+                             importProvider: WorkspaceProvider,
+                             importResources: ResourceManager,
+                             targetResources: ResourceManager,
+                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(importProvider, this, importResources, targetResources, project, alsoCopyResources)
   }
 
   /**
@@ -105,8 +107,8 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit = {
-    executeOnBackends(_.putTask(project, task), s"Adding/Updating task $task in project $project")
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)(implicit user: UserContext): Unit = {
+    executeOnBackends(_.putTask(project, task, resources), s"Adding/Updating task $task in project $project")
   }
 
   /**

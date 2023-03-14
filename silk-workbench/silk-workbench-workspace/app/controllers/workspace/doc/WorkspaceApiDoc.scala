@@ -123,4 +123,18 @@ object WorkspaceApiDoc {
         ]
       }
     """
+
+  final val globalVocabularyFindPropertyExample =
+    """
+      [
+        {
+          "value: "http://domain.com/propertyA",
+          "label": "Property A",
+          "description: "Description of property A"
+        },
+        {
+          "value": "owl:sameAs"
+        }
+      ]
+    """
 }

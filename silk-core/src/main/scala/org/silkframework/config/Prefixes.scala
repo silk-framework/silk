@@ -70,7 +70,7 @@ case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serial
    * @see resolve
    */
   def shorten(uri: String): String = {
-    for ((id, namespace) <- prefixMap if uri.startsWith(namespace)) {
+    for ((id, namespace) <- prefixMap if uri.startsWith(namespace) && namespace.nonEmpty) {
       return id + ":" + uri.substring(namespace.length)
     }
 

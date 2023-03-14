@@ -11,7 +11,8 @@ import {
     Link,
     Notification,
     OverviewItem,
-    OverviewItemDepiction,
+    Depiction,
+    OverviewItemDescription,
     OverviewItemLine,
     SimpleDialog,
     Spacing,
@@ -24,9 +25,6 @@ import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/reque
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
-
-//custom styles
-require("./CopyToModal.scss");
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -133,10 +131,11 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
         try {
             const payload = {
-                limit: 10,
+                limit: 50,
                 offset: 0,
                 itemType: "project",
                 textQuery,
+                sortBy: "label",
             };
             const results = (await requestSearchList(payload)).results;
             return removeFromList(results);
@@ -200,6 +199,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 }}
             >
                 <AutoCompleteField
+                    autoFocus={true}
                     onSearch={handleSearch}
                     onChange={async (value) => {
                         setTargetProject(value);
@@ -239,27 +239,40 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open
                         >
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
-                                <OverviewItem key={t.id} className="copy-modal-item">
-                                    <OverviewItemDepiction>
-                                        <ItemDepiction
-                                            itemType={t.taskType}
-                                            pluginId={t.pluginId}
-                                            size={{ large: true }}
+                                <>
+                                    <OverviewItem key={t.id} className="copy-modal-item" hasSpacing={true}>
+                                        <Depiction
+                                            image={
+                                                <ItemDepiction
+                                                    itemType={t.taskType}
+                                                    pluginId={t.pluginId}
+                                                    size={{ large: true }}
+                                                />
+                                            }
+                                            ratio="1:1"
+                                            padding="medium"
+                                            backgroundColor="dark"
                                         />
-                                    </OverviewItemDepiction>
-                                    <OverviewItemLine>
-                                        <Tooltip content={`open ${t.taskType} "${t.label}" in a new window`}>
-                                            <Link href={t.originalTaskLink} target="_blank">
-                                                {t.label}
-                                            </Link>
-                                        </Tooltip>
-                                    </OverviewItemLine>
-                                    <Tooltip content={`open replaced ${t.taskType} "${t.label}" in a new window`}>
-                                        <Link href={t.overwrittenTaskLink} target="_blank">
-                                            [overwritten task]
-                                        </Link>
-                                    </Tooltip>
-                                </OverviewItem>
+                                        <OverviewItemDescription>
+                                            <OverviewItemLine>
+                                                <Tooltip content={`Open ${t.taskType} "${t.label}" in a new window`}>
+                                                    <Link href={t.originalTaskLink} target="_blank">
+                                                        {t.label}
+                                                    </Link>
+                                                </Tooltip>
+                                            </OverviewItemLine>
+                                            <OverviewItemLine>
+                                                <Tooltip
+                                                    content={`Open to-be-replaced ${t.taskType} "${t.label}" in a new window`}
+                                                >
+                                                    <Link href={t.overwrittenTaskLink} target="_blank">
+                                                        To be overwritten: {t.label}
+                                                    </Link>
+                                                </Tooltip>
+                                            </OverviewItemLine>
+                                        </OverviewItemDescription>
+                                    </OverviewItem>
+                                </>
                             ))}
                         </AccordionItem>
                         <AccordionItem
@@ -276,19 +289,28 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open={false}
                         >
                             {orderTasksByLabel(info.copiedTasks)?.map((item) => (
-                                <OverviewItem key={item.id} className="copy-modal-item">
-                                    <OverviewItemDepiction>
-                                        <ItemDepiction
-                                            itemType={item.taskType}
-                                            pluginId={item.pluginId}
-                                            size={{ large: true }}
-                                        />
-                                    </OverviewItemDepiction>
-                                    <OverviewItemLine>
-                                        <Link href={item.originalTaskLink} target="_blank">
-                                            <Tooltip content={t("common.action.openInNewTab")}>{item.label}</Tooltip>
-                                        </Link>
-                                    </OverviewItemLine>
+                                <OverviewItem key={item.id} className="copy-modal-item" hasSpacing={true}>
+                                    <Depiction
+                                        image={
+                                            <ItemDepiction
+                                                itemType={item.taskType}
+                                                pluginId={item.pluginId}
+                                                size={{ large: true }}
+                                            />
+                                        }
+                                        ratio="1:1"
+                                        padding="medium"
+                                        backgroundColor="dark"
+                                    />
+                                    <OverviewItemDescription>
+                                        <OverviewItemLine>
+                                            <Link href={item.originalTaskLink} target="_blank">
+                                                <Tooltip content={t("common.action.openInNewTab")}>
+                                                    {item.label}
+                                                </Tooltip>
+                                            </Link>
+                                        </OverviewItemLine>
+                                    </OverviewItemDescription>
                                 </OverviewItem>
                             ))}
                         </AccordionItem>

@@ -14,8 +14,6 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
-
 import scala.reflect.ClassTag
 
 /**
@@ -26,7 +24,8 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Creates a new instance of a specific plugin.
    */
-  def apply(id: String, params: Map[String, String] = Map.empty)
+  def apply(id: String,
+            params: ParameterValues = ParameterValues.empty)
            (implicit context: PluginContext): T = {
     PluginRegistry.create(id, params)
   }
@@ -34,7 +33,7 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
-  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], Map[String, String])] = {
+  def unapply(t: T)(implicit pluginContext: PluginContext): Option[(PluginDescription[_], ParameterValues)] = {
     Some(t.pluginSpec, t.parameters)
   }
 
@@ -53,7 +52,7 @@ class PluginFactory[T <: AnyPlugin: ClassTag] {
   /**
    * Registers a single plugin.
    */
-  def register(implementationClass: Class[_ <: T]) {
+  def register(implementationClass: Class[_ <: T]): Unit = {
     PluginRegistry.registerPlugin(implementationClass)
   }
 }

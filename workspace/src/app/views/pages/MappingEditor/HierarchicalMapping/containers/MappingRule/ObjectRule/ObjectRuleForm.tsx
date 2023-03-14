@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
-import { AutoSuggestion, Button, FieldItem, Notification, Spacing, TextField, Spinner } from "@eccenca/gui-elements";
 import {
-    AffirmativeButton,
-    DismissiveButton,
-    Radio,
-    TextField as LegacyTextField,
-} from "@eccenca/gui-elements/src/legacy-replacements";
+    AutoSuggestion,
+    Button,
+    FieldItem,
+    Notification,
+    Spacing,
+    TextField,
+    Spinner,
+    TextArea,
+} from "@eccenca/gui-elements";
+import { AffirmativeButton, DismissiveButton, Radio } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import { ParentElement } from "../../../components/ParentElement";
@@ -33,6 +37,7 @@ import silkApi from "../../../../api/silkRestApi";
 import { IUriPattern } from "../../../../api/types";
 import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import { defaultUriPattern } from "./ObjectRule.utils";
 
 interface IProps {
     id?: string;
@@ -81,6 +86,8 @@ export const ObjectRuleForm = (props: IProps) => {
     const [targetEntityTypeOptions] = useState<Map<string, any>>(new Map());
     const lastEmittedEvent = React.useRef<string>("");
     const { project, transformTask } = useApiDetails();
+    const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
+    const [uriPatternInputHasFocus, setUriPatternInputHasFocus] = useState<boolean>(false);
     const { id, parentId, parent } = props;
 
     const autoCompleteRuleId = id || parentId;
@@ -255,7 +262,9 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const checkUriPattern = async (uriPattern: string) => {
         const validationResult = await checkUriPatternValidity(uriPattern);
-        if (validationResult?.valid !== undefined) {
+        if (!uriPattern) {
+            setUriPatternIsValid(true);
+        } else if (validationResult?.valid !== undefined) {
             setUriPatternIsValid(validationResult?.valid as boolean);
         }
         return validationResult;
@@ -355,6 +364,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 }
                 checkInput={checkValuePathValidity}
                 onInputChecked={setObjectPathValid}
+                onFocusChange={setValuePathInputHasFocus}
             />
         );
     }
@@ -404,6 +414,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             modifiedValues().sourceProperty
                         )
                     }
+                    onFocusChange={setUriPatternInputHasFocus}
                     checkInput={checkUriPattern}
                     rightElement={
                         distinctUriPatterns.length > 0 ? (
@@ -425,19 +436,26 @@ export const ObjectRuleForm = (props: IProps) => {
         }
     } else {
         patternInput = (
-            <LegacyTextField disabled label="URI formula" value="This URI cannot be edited in the edit form." />
+            <FieldItem labelProps={{ text: "URI formula" }}>
+                <TextField disabled value="This URI cannot be edited in the edit form." />
+            </FieldItem>
         );
     }
 
     let previewExamples: null | JSX.Element = null;
+    const noUriRule = !modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI;
+    const noUriPattern = !modifiedValues().pattern;
 
-    if (
-        !modifiedValues().pattern &&
-        (!modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI)
-    ) {
+    if (valuePathInputHasFocus || uriPatternInputHasFocus) {
+        previewExamples = (
+            <Notification data-test-id={"object-rule-form-preview-path-has-focus"}>
+                No preview is shown while {valuePathInputHasFocus ? "value path" : "URI pattern"} is being edited.
+            </Notification>
+        );
+    } else if (noUriPattern && noUriRule && !modifiedValues().sourceProperty) {
         previewExamples = (
             <Notification data-test-id={"object-rule-form-preview-no-pattern"}>
-                No preview shown for default URI pattern.
+                No preview shown for default URI pattern with empty value path.
             </Notification>
         );
     } else if (!uriPatternIsValid || !objectPathValid) {
@@ -446,23 +464,26 @@ export const ObjectRuleForm = (props: IProps) => {
                 URI pattern or value path is invalid. No preview shown.
             </Notification>
         );
-    } else if (modifiedValues().pattern || modifiedValues().uriRule) {
+    } else if (modifiedValues().pattern || modifiedValues().uriRule || modifiedValues().sourceProperty) {
+        const ruleType = modifiedValues().pattern
+            ? MAPPING_RULE_TYPE_URI
+            : modifiedValues().uriRule
+            ? modifiedValues().uriRule.type
+            : MAPPING_RULE_TYPE_URI;
         previewExamples = (
             <ExampleView
                 id={parentId || "root"}
                 rawRule={
-                    // when not "pattern" then it is "uriRule"
-                    modifiedValues().pattern
+                    ruleType === MAPPING_RULE_TYPE_URI
                         ? {
                               type: MAPPING_RULE_TYPE_URI,
-                              pattern: modifiedValues().pattern,
+                              pattern: modifiedValues().pattern
+                                  ? modifiedValues().pattern
+                                  : defaultUriPattern(id ?? "yetUnknownRuleId"),
                           }
                         : modifiedValues().uriRule
                 }
-                ruleType={
-                    // when not "pattern" then it is "uriRule"
-                    modifiedValues().pattern ? MAPPING_RULE_TYPE_URI : modifiedValues().uriRule.type
-                }
+                ruleType={ruleType}
                 objectSourcePathContext={modifiedValues().sourceProperty}
             />
         );
@@ -509,29 +530,34 @@ export const ObjectRuleForm = (props: IProps) => {
                             {previewExamples}
                         </FieldItem>
                     }
-                    <LegacyTextField
-                        data-test-id={"object-rule-form-label-input"}
-                        label="Label"
-                        className="ecc-silk-mapping__ruleseditor__label"
-                        value={modifiedValues().label}
-                        onChange={({ value }) => {
-                            handleChangeValue("label", value);
-                        }}
-                    />
-                    <LegacyTextField
-                        multiline
-                        label="Description"
-                        className="ecc-silk-mapping__ruleseditor__comment"
-                        value={modifiedValues().comment}
-                        onChange={({ value }) => {
-                            handleChangeValue("comment", value);
-                        }}
-                    />
+                    <FieldItem labelProps={{ text: "Label" }}>
+                        <TextField
+                            data-test-id={"object-rule-form-label-input"}
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            defaultValue={props.ruleData["label"]}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                handleChangeValue("label", value);
+                            }}
+                        />
+                    </FieldItem>
+                    <FieldItem labelProps={{ text: "Description" }}>
+                        <TextArea
+                            data-test-id={"object-rule-form-description-input"}
+                            className="ecc-silk-mapping__ruleseditor__comment"
+                            defaultValue={props.ruleData["comment"]}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                handleChangeValue("comment", value);
+                            }}
+                        />
+                    </FieldItem>
                 </CardContent>
                 <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                     <AffirmativeButton
                         className="ecc-silk-mapping__ruleseditor__actionrow-save"
                         raised
+                        data-test-id={"object-rule-form-confirm-button"}
                         onClick={handleConfirm}
                         disabled={
                             !allowConfirm ||
