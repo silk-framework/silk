@@ -34,7 +34,7 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
     }, [projectId, taskId]);
 
     return (
-        <Grid fullWidth>
+        <Grid>
             <GridRow>
                 <OverviewItem hasSpacing>
                     <Spacing size="small" vertical />
@@ -58,7 +58,7 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
             </GridRow>
             <Spacing size="large" />
             <GridRow>
-                <GridColumn full>
+                <GridColumn>
                     <LinkingExecutionReport project={projectId} task={taskId} updateCounter={executionUpdateCounter} />
                 </GridColumn>
             </GridRow>
