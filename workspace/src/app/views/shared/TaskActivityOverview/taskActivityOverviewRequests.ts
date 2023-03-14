@@ -44,6 +44,28 @@ export const activityActionCreator = (
     };
 };
 
+/** Start an activity with priority, i.e. it will skip the 'Waiting' state. */
+export const activityStartPrioritized = async (
+    activityName: string,
+    projectId: string | undefined,
+    taskId: string | undefined,
+    handleError: (activityName: string, error: DIErrorTypes) => any
+): Promise<void> => {
+    try {
+        await fetch({
+            url: legacyApiEndpoint("/activities/startPrioritized"),
+            method: "POST",
+            query: {
+                project: projectId,
+                task: taskId,
+                activity: activityName,
+            },
+        });
+    } catch (ex) {
+        handleError(activityName, ex);
+    }
+}
+
 /** Fetches the activity error report if available. */
 export const fetchActivityErrorReport = async (
     activity: string,

@@ -190,6 +190,20 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   /**
+    * Starts an activity prioritized and returns immediately.
+    * Optionally applies a supplied configuration to the started activity.
+    *
+    * @param config The activity parameters
+    * @param user   The user context
+    * @return The identifier of the started activity instance
+    */
+  final def startPrioritized(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+    val (id, control) = addInstance(config)
+    control.startPrioritized()
+    id
+  }
+
+  /**
     * The default configuration of this activity type.
     */
   final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(PluginContext.empty).toStringMap

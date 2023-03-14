@@ -157,6 +157,7 @@ GET           /projects/:project/tasks/:task/activities/:activity/value         
 GET           /activities/list                                                  controllers.workspace.ActivityApi.listActivities(project ?= "", task ?= "", addDependentActivities: Boolean ?= false)
 POST          /activities/start                                                 controllers.workspace.ActivityApi.startActivity(project ?= "", task ?= "", activity)
 POST          /activities/startBlocking                                         controllers.workspace.ActivityApi.startActivityBlocking(project ?= "", task ?= "", activity)
+POST          /activities/startPrioritized                                      controllers.workspace.ActivityApi.startPrioritized(project ?= "", task ?= "", activity)
 POST          /activities/cancel                                                controllers.workspace.ActivityApi.cancelActivity(project ?= "", task ?= "", activity, instance: String ?= "")
 POST          /activities/restart                                               controllers.workspace.ActivityApi.restartActivity(project ?= "", task ?= "", activity, instance: String ?= "", blocking: Boolean ?= false)
 GET           /activities/config                                                controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)

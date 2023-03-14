@@ -13,7 +13,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverviewRequests";
+import {activityActionCreator, activityStartPrioritized} from "../TaskActivityOverview/taskActivityOverviewRequests";
 
 interface TaskActivityWidgetProps {
     projectId: string;
@@ -113,6 +113,14 @@ export const useTaskActivityWidget = ({
             return originalAction(action);
         }
     };
+
+    const executePrioritized = React.useCallback(async () => {
+        const registerActivityError = (activityName: string, error: DIErrorTypes) => {
+            registerError(`TaskActivityWidget.${projectId}-${taskId}-${activityName}.startPrioritized`, `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`, error)
+        }
+        await activityStartPrioritized(activityName, projectId, taskId, registerActivityError)
+    }, [])
+
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
     // For the elapsed time component, showing when a cache was last updated
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
@@ -145,5 +153,6 @@ export const useTaskActivityWidget = ({
               }
             : undefined,
         hideMessageOnStatus: isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined,
+        executePrioritized
     });
 };
