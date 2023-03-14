@@ -8,6 +8,8 @@ export interface ComparisonPairs {
     suggestedPairs: ComparisonPair[];
     selectedPairs: ComparisonPair[];
     warnings: string[];
+    /** If true, then the activity has finished generating comparison pairs. */
+    finished: boolean;
 }
 
 /** A pair of source and target paths that will be compared. */
