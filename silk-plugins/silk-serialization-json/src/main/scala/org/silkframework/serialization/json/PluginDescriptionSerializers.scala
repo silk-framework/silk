@@ -1,6 +1,5 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
@@ -110,7 +109,7 @@ object PluginDescriptionSerializers {
             value
           }
         case (_, Some(_)) =>
-          val value = param.stringDefaultValue(Prefixes.empty).get
+          val value = param.stringDefaultValue.get
           param.autoCompletion match {
             case Some(autoCompletion) if withLabels =>
               val label: Option[String] = if(autoCompletion.autoCompleteValueWithLabels) {

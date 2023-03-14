@@ -164,7 +164,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
       Comparison(metric = EqualityMetric(), inputs = DPair(inputPath(), inputPath()))
     ))
     // Make request
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     val linkageRuleJson = LinkageRuleJsonFormat.write(alternativeLinkingRule)
     val linkLimitQuery = linkLimit.map(ll => s"?linkLimit=$ll").getOrElse("")
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + linkLimitQuery)

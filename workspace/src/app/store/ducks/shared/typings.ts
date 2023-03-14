@@ -184,16 +184,22 @@ export interface IResourceListPayload {
     offset?: number;
 }
 
+export interface FileBaseInfo {
+    /** The file name. */
+    name: string;
+    /** The absolute path inside the file repository. Not the absolute path on the file system!
+     * This should be used as value. */
+    fullPath?: string;
+}
+
+export const fileValue = (file: FileBaseInfo): string => file.fullPath ?? file.name;
+
 /** Project file resource. */
-export interface IProjectResource {
+export interface IProjectResource extends FileBaseInfo {
     /**
      * Last modification Datetime
      */
     modified: string;
-    /**
-     * The name of resource/file
-     */
-    name: string;
     /**
      * Resource/file size on bytes
      */

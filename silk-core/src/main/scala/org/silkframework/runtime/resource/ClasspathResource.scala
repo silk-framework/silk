@@ -6,28 +6,14 @@ import java.time.Instant
 /**
   * A resource in the classpath.
   *
-  * @param resourcePath The path of the resource, e.g., "org/silkframework/resource.txt"
+  * @param path The path of the resource, e.g., "org/silkframework/resource.txt"
   */
-case class ClasspathResource(resourcePath: String) extends Resource {
+case class ClasspathResource(path: String) extends Resource {
 
-  override def path: String = {
-    try {
-      if (! new File(resourcePath).exists) {
-        asFilePath.replaceAllLiterally("%20"," ")
-      }
-      else {
-        resourcePath
-      }
-    }
-    catch {
-      case _: Throwable => asFilePath
-    }
-  }
-
-  val name: String = resourcePath.split('/').last
+  val name: String = path.split('/').last
 
   def exists: Boolean = {
-    Option(getClass.getClassLoader.getResourceAsStream(resourcePath)).isDefined
+    Option(getClass.getClassLoader.getResourceAsStream(path)).isDefined
   }
 
   def size: Option[Long] = {
@@ -46,22 +32,12 @@ case class ClasspathResource(resourcePath: String) extends Resource {
   def modificationTime: Option[Instant] = None
 
   override def inputStream: InputStream = {
-    val inputStream = getClass.getClassLoader.getResourceAsStream(resourcePath)
+    val inputStream = getClass.getClassLoader.getResourceAsStream(path)
     if(inputStream == null) {
-      throw new ResourceNotFoundException(s"No resource found at classpath '$resourcePath'.")
+      throw new ResourceNotFoundException(s"No resource found at classpath '$path'.")
     }
     inputStream
   }
-
-
-  /**
-    * Returns a file path. Sometimes the Classloader does not return a valid path in non production modes.
-    * In these situations a fallback to this path occurs.
-    *
-    * @return Path to module ./target/test-classes folder with appended resourcePath
-    */
-  def asFilePath: String = asFileResource.path
-
 
   /**
     * Returns a file path. Sometimes the Classloader does not return a valid path in non production modes.
@@ -69,6 +45,6 @@ case class ClasspathResource(resourcePath: String) extends Resource {
     *
     * @return Resource in module ./target/test-classes folder with appended resourcePath
     */
-  def asFileResource: WritableResource = FileResource(new File(getClass.getResource(s"/$resourcePath").getPath))
+  def asFileResource: WritableResource = FileResource(new File(getClass.getClassLoader.getResource(s"/$path").getPath))
 
 }

@@ -4,14 +4,19 @@ import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, Completion
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.entity.ValueType
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.transform.TransformPathsCache
+import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, TransformPathsCache}
 import play.api.libs.json.Json
 import test.Routes
+
+import scala.xml.{Node, XML}
 
 class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait {
 
@@ -211,15 +216,39 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
   }
 
+  private def suggest(query: String, ruleId: String = backwardPathRuleId): Seq[String] = {
+    val response = partialSourcePathAutoCompleteRequest(backwardPathTransform, ruleId, inputText = query, cursorPosition = query.length)
+    response.replacementResults
+      .flatMap(_.replacements)
+      .map(_.value)
+  }
+
   it should "suggest the correct paths for object mappings starting with backward paths" in {
-    def suggest(query: String): Seq[String] = {
-      val response = partialSourcePathAutoCompleteRequest(backwardPathTransform, backwardPathRuleId, inputText = query, cursorPosition = query.length)
-      response.replacementResults
-        .flatMap(_.replacements)
-        .map(_.value)
-    }
     suggest("") mustBe allJsonPaths ++ jsonSpecialPaths ++ Seq("\\")
     suggest("nam") mustBe Seq("name") ++ jsonOps
+  }
+
+  it should "suggest the correct path for object mappings starting with backward paths when there is a backward path in the paths cache" in {
+    // Add path with backward operator containing the forward path "name" in it to the paths cache
+    val pathCacheResource = project.cacheResources.child("transform").child(backwardPathTransform).get(s"pathsCache.xml")
+    val xmlValue = XML.load(pathCacheResource.inputStream)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
+    implicit val writeContext: WriteContext[Node] = WriteContext.fromProject[Node](project)
+    val cachedEntitySchema = CachedEntitySchemata.CachedEntitySchemaXmlFormat.read(xmlValue)
+    val newCachedEntitySchema = cachedEntitySchema.copy(
+      configuredSchema = cachedEntitySchema.configuredSchema.copy(
+        typedPaths = cachedEntitySchema.configuredSchema.typedPaths ++ Seq(
+          TypedPath("\\someBackwardPathToParent/nameAfterBack", ValueType.STRING)
+        )
+      )
+    )
+    pathCacheResource.writeString(CachedEntitySchemata.CachedEntitySchemaXmlFormat.write(newCachedEntitySchema).toString())
+    val pathsCache = project.task[TransformSpec](backwardPathTransform).activity[TransformPathsCache]
+    pathsCache.startDirty(reloadCacheFile = true)
+    pathsCache.control.waitUntilFinished()
+    val cacheValue = pathsCache.control.value.get.get
+    cacheValue.configuredSchema.typedPaths.find(_.toString.contains("someBackwardPathToParent")) mustBe defined
+    suggest("nam", ruleId = "toParent") mustBe Seq("nameAfterBack") ++ jsonOps
   }
 
   private def partialAutoCompleteResult(inputString: String = "",

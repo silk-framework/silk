@@ -1,9 +1,9 @@
 package controllers.transform
 
+import controllers.transform.routes.EvaluateTransformApi
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import controllers.transform.routes.EvaluateTransformApi
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.routing.Router
 

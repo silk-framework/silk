@@ -149,7 +149,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
   }
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
     Seq(
       ("Source", selection.inputId.toString),
       ("Type", selection.typeUri.toString),
@@ -498,7 +498,7 @@ object TransformSpec {
 
     override def jsonSchemaType: String = "string"
 
-    override def toString(value: TargetVocabularyParameter)(implicit prefixes: Prefixes): String = {
+    override def toString(value: TargetVocabularyParameter)(implicit pluginContext: PluginContext): String = {
       value match {
         case v: TargetVocabularyListParameter => TargetVocabularyParameterType.stringValue(v)
         case v: TargetVocabularyCategory => TargetVocabularyParameterType.stringValue(v)
@@ -516,7 +516,7 @@ object TransformSpec {
   }
 
   object TargetVocabularyParameterType {
-    private implicit val prefixes: Prefixes = Prefixes.empty
+    private implicit val pluginContext: PluginContext = PluginContext.empty
     private val instance = TargetVocabularyParameterType()
     def stringValue(v: TargetVocabularyListParameter): String = v.value.mkString(", ")
 

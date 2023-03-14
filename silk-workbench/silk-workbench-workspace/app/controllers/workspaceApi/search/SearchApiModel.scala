@@ -6,7 +6,7 @@ import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
@@ -159,7 +159,7 @@ object SearchApiModel {
       val pluginLabel = PluginDescription.forTask(task).label
       val taskLabel = task.fullLabel
       val description = task.metaData.description.getOrElse("")
-      val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
+      val searchInProperties = if(matchTaskProperties) task.data.properties(PluginContext.fromProject(task.project)).map(p => p._2).mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
@@ -490,7 +490,7 @@ object SearchApiModel {
                        typedTask: TypedTasks)(implicit userContext: UserContext): JsObject = {
       val pd = PluginDescription.forTask(task)
       val parameters = if(addParameters) {
-        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+        implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject(task.project)
         val jsonValue = TaskSpecJsonFormat.write(task.data)
         Seq(PARAMETERS -> (jsonValue \ "parameters").as[JsObject])
       } else {
@@ -589,7 +589,8 @@ object SearchApiModel {
 
     private def writeTask(task: ProjectTask[_ <: TaskSpec])
                          (implicit userContext: UserContext): JsValue = {
-      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.id)))
+      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.id),
+        resources = task.project.resources))
     }
   }
 }

@@ -142,7 +142,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                                 small
                                                 href={`${CONTEXT_PATH}/workspace/projects/${
                                                     taskData.project
-                                                }/resources/${encodeURIComponent(value)}`}
+                                                }/files?path=${encodeURIComponent(value)}`}
                                             />
                                         </>
                                     )}
