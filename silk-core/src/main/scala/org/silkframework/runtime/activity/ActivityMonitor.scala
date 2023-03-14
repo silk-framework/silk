@@ -71,7 +71,13 @@ class ActivityMonitor[T](name: String,
   def blockUntil(condition: () => Boolean): Unit = {
     val sleepTime = 500
     while(!condition() && !status().isInstanceOf[Canceling]) {
-      ForkJoinTask.helpQuiesce()
+      try {
+        ForkJoinTask.helpQuiesce()
+      } catch {
+        case _: InterruptedException =>
+          // Interrupted while executing another activity
+      }
+
       ForkJoinPool.managedBlock(
         new ManagedBlocker {
           @volatile
