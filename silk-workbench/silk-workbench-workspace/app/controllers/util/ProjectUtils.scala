@@ -273,7 +273,7 @@ object ProjectUtils {
                                         (implicit userContext: UserContext)= {
     var wrappedResourceManager: ResourceManager = inMemoryResourceManager
     userContext.executionContext.primaryResourceManager foreach  { optionalPrimaryResourceManager =>
-      wrappedResourceManager = FallbackResourceManager(optionalPrimaryResourceManager, wrappedResourceManager, writeIntoFallbackLoader = true, basePath = projectResourceManager.basePath)
+      wrappedResourceManager = FallbackResourceManager(optionalPrimaryResourceManager, wrappedResourceManager, writeIntoFallbackLoader = true, basePath = optionalPrimaryResourceManager.basePath)
     }
     if (withProjectResources) {
       val projectResourceManager = getProject(projectName).resources
