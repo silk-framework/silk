@@ -5,11 +5,10 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
@@ -35,7 +34,7 @@ class DatasetController @Inject() (implicit workspaceReact: WorkspaceReact) exte
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
     implicit val context: PluginContext = PluginContext.fromProject(project)
     val datasetParams = request.queryString.mapValues(_.head)
-    val datasetPlugin = Dataset.apply(pluginId, datasetParams)
+    val datasetPlugin = Dataset.apply(pluginId, ParameterValues.fromStringMap(datasetParams))
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
         Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured)), title = dialogTitle, createDialog = createDialog))

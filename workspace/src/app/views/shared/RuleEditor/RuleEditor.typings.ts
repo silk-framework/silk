@@ -141,7 +141,10 @@ interface IRuleSideBarTabBaseConfig {
 
 /** Filters (and sorts) the operator rule list and shows it in the tab. */
 export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
+    /** Returns the operators that should be shown in this tab. */
     filterAndSort: (ruleOperators: IRuleOperator[]) => IRuleOperator[];
+    /** Allows to also show operators from the pre-configured operator tabs, when a search query is entered. */
+    showOperatorsFromPreConfiguredOperatorTabsForQuery: boolean;
 }
 
 /** Allow to fetch and list pre-configured operators in a tab. This is used to have e.g. pre-configured path operators. */
@@ -154,8 +157,9 @@ export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> ext
     isOriginalOperator: (item: ListItem | IRuleOperator) => boolean;
     /** If the text query changes then the following search text of the ListItem is used.
      * This is an optimization, if we deal with a lot of elements, e.g. an array of strings, and don't want to convert them first into rule operators.
+     * Parameter mergedWithOtherOperators if the pre-configured operators of this tab may be shown together with other operators.
      **/
-    itemSearchText: (listItem: ListItem) => string;
+    itemSearchText: (listItem: ListItem, mergedWithOtherOperators: boolean) => string;
     /** Returns the label of the item. Also an optimization to not convert to IPreConfiguredRuleOperator first. */
     itemLabel: (listItem: ListItem) => string;
     /** Unique ID for each list item. */

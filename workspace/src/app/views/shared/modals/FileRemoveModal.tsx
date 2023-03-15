@@ -6,8 +6,9 @@ import { UppyFile } from "@uppy/core";
 import { ITaskLink } from "@ducks/workspace/typings";
 import { Link } from "@eccenca/gui-elements";
 import { taskUrl } from "@ducks/router/operations";
+import { fileValue } from "@ducks/shared/typings";
 
-type UppyFileOrResource = UppyFile | { name: string; id: string };
+type UppyFileOrResource = UppyFile | { name: string; fullPath?: string; id: string };
 
 interface IProps {
     file: UppyFileOrResource;
@@ -25,7 +26,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
     // get file dependencies on open
     useEffect(() => {
         const openDeleteModal = async () => {
-            const dependentTasksResponse = await projectFileResourceDependents(projectId, file.name);
+            const dependentTasksResponse = await projectFileResourceDependents(projectId, fileValue(file));
             setDependentTasks(dependentTasksResponse.data);
         };
 
@@ -41,7 +42,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
 
     const deleteFile = async () => {
         try {
-            await requestRemoveProjectResource(projectId, file.name);
+            await requestRemoveProjectResource(projectId, fileValue(file));
             onConfirm(file.id);
         } finally {
             closeDeleteModal();
@@ -52,7 +53,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
         if (dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: file.name })}</p>
+                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: fileValue(file) })}</p>
                     <ul>
                         {dependentTasks.map((task) => (
                             <li key={task.id}>
@@ -63,12 +64,12 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
                         ))}
                     </ul>
                     <p>
-                        {t("widget.FileWidget.removeText", "Do you really want to delete file")} {file.name}?
+                        {t("widget.FileWidget.removeText", "Do you really want to delete file")} {fileValue(file)}?
                     </p>
                 </div>
             );
         } else {
-            const fileName = file?.name;
+            const fileName = fileValue(file);
             return <p>{t("widget.FileWidget.deleted", { fileName })}</p>;
         }
     };

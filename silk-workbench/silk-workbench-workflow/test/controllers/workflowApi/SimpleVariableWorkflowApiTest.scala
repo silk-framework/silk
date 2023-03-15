@@ -9,10 +9,16 @@ import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.runtime.resource.FileResource
+import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.FileUtils
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.workspace.annotation.UiAnnotations
 import play.api.libs.json.JsArray
 import play.api.libs.ws.WSResponse
 import play.api.mvc.MultipartFormData.FilePart
@@ -214,6 +220,32 @@ class SimpleVariableWorkflowApiTest extends FlatSpec with BeforeAndAfterAll
     checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
     checkForValues(1, Seq("csv value 1"), response.body)
     checkForValues(2, Seq("csv value 2"), response.body)
+  }
+
+  it should "support running variable workflows with marked datasets" in {
+    val transformTask = "b944ba5e-87b1-4511-8d67-02cb00da6baf_Transform"
+    val inputDataset = "inputDataset1"
+    val outputDataset = "outputDataset1"
+    project.addTask[GenericDatasetSpec](inputDataset, DatasetSpec(InMemoryDataset()))
+    project.addTask[GenericDatasetSpec](outputDataset, DatasetSpec(InMemoryDataset()))
+    val workflow = Workflow(
+      operators = Seq(
+        WorkflowOperator(inputs = Seq(inputDataset), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, None, Seq.empty)
+      ),
+      datasets = Seq(
+        WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, None, Seq.empty),
+        WorkflowDataset(Seq(transformTask), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty)
+      ),
+      uiAnnotations = UiAnnotations(),
+      replaceableInputs = Seq(inputDataset),
+      replaceableOutputs = Seq(outputDataset)
+    )
+    val workflowId = "newWorkflow"
+    project.addTask[Workflow](workflowId, workflow)
+    val inputValue = "some test value ä€"
+    val response = checkResponseExactStatusCode(
+      executeVariableWorkflow(workflowId, contentOpt = Some((s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON))))
+    checkForValues(1, Seq(inputValue), response.body)
   }
 
   it should "allow re-configuring the data source and sink parameters" in {

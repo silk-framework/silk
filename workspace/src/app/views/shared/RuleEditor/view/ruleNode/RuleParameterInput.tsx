@@ -1,6 +1,6 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
+import { CodeEditor, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,9 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
-import { IProjectResource } from "@ducks/shared/typings";
+import { fileValue, IProjectResource } from "@ducks/shared/typings";
+import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
+import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -27,7 +29,7 @@ interface RuleParameterInputProps {
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 /** An input widget for a parameter value. */
@@ -38,7 +40,7 @@ export const RuleParameterInput = ({
     hasValidationError,
     dependentValue,
     large,
-    insideModal
+    insideModal,
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -75,27 +77,14 @@ export const RuleParameterInput = ({
             if (large) {
                 // FIXME: CodeEditor looks buggy in the modal
                 // return <CodeEditor {...inputAttributes} />;
-                return (
-                    <TextArea
-                        {...inputAttributes}
-                        fill={true}
-                        large={true}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                            onChange(e.target.value);
-                        }}
-                        rows={10}
-                    />
-                );
+                return <TextAreaWithCharacterWarnings {...inputAttributes} fill={true} large={true} rows={10} />;
             } else {
                 return (
-                    <TextArea
+                    <TextAreaWithCharacterWarnings
                         {...inputAttributes}
                         fill={false}
                         small={true}
                         growVertically={false}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                            onChange(e.target.value);
-                        }}
                         rows={2}
                         {...preventEventsFromBubblingToReactFlow}
                     />
@@ -125,7 +114,7 @@ export const RuleParameterInput = ({
                 />
             );
         case "resource":
-            const resourceNameFn = (item: IProjectResource) => item.name;
+            const resourceNameFn = (item: IProjectResource) => fileValue(item);
             return (
                 <SelectFileFromExisting
                     autocomplete={{
@@ -174,13 +163,7 @@ export const RuleParameterInput = ({
                 );
             } else {
                 return (
-                    <TextField
-                        {...inputAttributes}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                            onChange(e.target.value);
-                        }}
-                        {...preventEventsFromBubblingToReactFlow}
-                    />
+                    <TextFieldWithCharacterWarnings {...inputAttributes} {...preventEventsFromBubblingToReactFlow} />
                 );
             }
     }

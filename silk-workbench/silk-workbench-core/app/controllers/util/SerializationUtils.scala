@@ -12,6 +12,9 @@ import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.Results.Ok
 import play.api.mvc._
 import Serialization.defaultMimeTypes
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.EmptyResourceManager
+
 import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
 
@@ -45,9 +48,11 @@ object SerializationUtils {
   private def createWriteContext(project: Option[Project]): WriteContext[Any] = {
     project match {
       case Some(proj) =>
-        WriteContext[Any](prefixes = proj.config.prefixes, projectId = Some(proj.config.id))
+        WriteContext[Any](prefixes = proj.config.prefixes, projectId = Some(proj.config.id), projectUri = proj.config.projectResourceUriOpt,
+          resources = proj.resources, user = UserContext.Empty
+        )
       case None =>
-        WriteContext[Any](prefixes = Prefixes.default, projectId = None)
+        WriteContext[Any](prefixes = Prefixes.default, projectId = None, resources = EmptyResourceManager(), user = UserContext.Empty)
     }
   }
 
@@ -211,6 +216,14 @@ object SerializationUtils {
               case AnyContentAsXml(xml) => Serialization.formatForType[T, Node].read(xml.head)
               case AnyContentAsJson(json) => Serialization.formatForType[T, JsValue].read(json)
               case AnyContentAsText(str) => Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
+              case AnyContentAsRaw(raw) =>
+                raw.asBytes() match {
+                  case Some(bytes) =>
+                    val str = new String(bytes.toArrayUnsafe(), request.charset.getOrElse("UTF8"))
+                    Serialization.formatForMime[T](mimeType).fromString(str, mimeType)
+                  case None =>
+                    return ErrorResult(BAD_REQUEST, title = "Body too large", detail = "The raw body is too large to be loaded into memory.")
+                }
               case _ => return ErrorResult(UNSUPPORTED_MEDIA_TYPE, title = "Unsupported Media Type", detail = "Unsupported content type")
             }
           // Call the user provided function and return its result

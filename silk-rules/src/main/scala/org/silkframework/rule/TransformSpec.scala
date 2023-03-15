@@ -8,13 +8,12 @@ import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.WorkspaceReadTrait
@@ -61,7 +60,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                          @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
                                 "If false, the execution will continue, adding a validation error to the execution report.")
                          abortIfErrorsOccur: Boolean = false
-                        ) extends TaskSpec {
+                        ) extends TaskSpec with AnyPlugin {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
@@ -150,7 +149,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
   }
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
     Seq(
       ("Source", selection.inputId.toString),
       ("Type", selection.typeUri.toString),
@@ -417,7 +416,10 @@ object TransformSpec {
       val abortIfErrorsOccur = (node \ "@abortIfErrorsOccur").headOption.exists(_.text.toBoolean)
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
+      val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
+
+      // Apply templates
+      transformSpec.withParameters(XmlSerialization.deserializeParameters(node))
     }
 
     /**
@@ -446,6 +448,7 @@ object TransformSpec {
               </TargetVocabularies>
           }
         }
+        {XmlSerialization.serializeParameters(value.parameters.filterTemplates)}
       </TransformSpec>
     }
   }
@@ -495,7 +498,7 @@ object TransformSpec {
 
     override def jsonSchemaType: String = "string"
 
-    override def toString(value: TargetVocabularyParameter)(implicit prefixes: Prefixes): String = {
+    override def toString(value: TargetVocabularyParameter)(implicit pluginContext: PluginContext): String = {
       value match {
         case v: TargetVocabularyListParameter => TargetVocabularyParameterType.stringValue(v)
         case v: TargetVocabularyCategory => TargetVocabularyParameterType.stringValue(v)
@@ -513,7 +516,7 @@ object TransformSpec {
   }
 
   object TargetVocabularyParameterType {
-    private implicit val prefixes: Prefixes = Prefixes.empty
+    private implicit val pluginContext: PluginContext = PluginContext.empty
     private val instance = TargetVocabularyParameterType()
     def stringValue(v: TargetVocabularyListParameter): String = v.value.mkString(", ")
 
@@ -529,18 +532,16 @@ object TransformSpec {
       AutoCompletionResult(value.id(), Some(value.displayName()))
     }
     override def autoComplete(searchQuery: String,
-                              projectId: String,
-                              dependOnParameterValues: Seq[String],
+                              dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
       filterResults(searchQuery, potentialResults)
     }
 
-    override def valueToLabel(projectId: String,
-                              value: String,
-                              dependOnParameterValues: Seq[String],
+    override def valueToLabel(value: String,
+                              dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit userContext: UserContext): Option[String] = {
+                             (implicit context: PluginContext): Option[String] = {
       potentialResults.find(_.value == value).flatMap(_.label)
     }
   }

@@ -20,7 +20,7 @@ import scala.collection.mutable
 import scala.io.{Codec, Source}
 
 /**
-  * Helps to handle variable workflow requests.
+  * Helps to handle replaceable workflow requests.
   */
 object VariableWorkflowRequestUtils {
   final val INPUT_FILE_RESOURCE_NAME = "variable_workflow_json_input"
@@ -61,9 +61,9 @@ object VariableWorkflowRequestUtils {
   /** Returns the output dataset config for the variable workflow based on the ACCEPT header.
     * The second return value is the MIME type that should be returned in the response.
     *
-    * @param datasetId The ID of the variable dataset in the workflow.
+    * @param datasetId The ID of the replaceable dataset in the workflow.
     **/
-  private def variableDataSinkConfig(datasetId: String,
+  private def replaceableDataSinkConfig(datasetId: String,
                                      fileBasedPluginIds: Seq[String])
                                     (implicit request: Request[_]): VariableDataSinkConfig = {
     request.getQueryString(QUERY_PARAM_OUTPUT_TYPE) match {
@@ -148,7 +148,7 @@ object VariableWorkflowRequestUtils {
 
   private def customMimeTypeRegex = "application/x-plugin-(.*)".r
 
-  private def variableDataSourceConfig(datasetId: String,
+  private def replaceableDataSourceConfig(datasetId: String,
                                        mediaType: Option[String],
                                        fileBasedPluginIds: Seq[String])
                                       (implicit request: Request[AnyContent]): JsValue = {
@@ -237,10 +237,10 @@ object VariableWorkflowRequestUtils {
                               workflowTask: Task[Workflow],
                               fileBasedPluginIds: Seq[String])
                              (implicit request: Request[AnyContent], userContext: UserContext): VariableWorkflowRequestConfig  = {
-    val variableDatasets = workflowTask.data.variableDatasets(project)
-    if(variableDatasets.sinks.size > 1 || variableDatasets.dataSources.size > 1) {
-      throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one variable data source " +
-          s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
+    val replaceableDatasets = workflowTask.data.allReplaceableDatasets(project)
+    if (replaceableDatasets.sinks.size > 1 || replaceableDatasets.dataSources.size > 1) {
+      throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one replaceable input " +
+        s"and one replaceable output dataset. Instead it has ${replaceableDatasets.dataSources.size} replaceable inputs and ${replaceableDatasets.sinks.size} replaceable outputs.")
     }
     val mediaType = request.contentType map { mediaType =>
       if(customMimeTypeRegex.findFirstIn(mediaType).isEmpty && !validMediaTypes.contains(mediaType)) {
@@ -248,12 +248,12 @@ object VariableWorkflowRequestUtils {
       }
       mediaType
     }
-    // Optional data source config depending on whether there is a variable input dataset or not.
-    val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(dataSourceId => variableDataSourceConfig(dataSourceId, mediaType, fileBasedPluginIds))
+    // Optional data source config depending on whether there is a replaceable input dataset or not.
+    val dataSourceConfig: Option[JsValue] = replaceableDatasets.dataSources.headOption.map(dataSourceId => replaceableDataSourceConfig(dataSourceId, mediaType, fileBasedPluginIds))
     // Only parse resource if a variable input dataset is defined in the workflow
     val resourceJson: Option[Option[JsValue]] = dataSourceConfig.map(_ => requestToInputResource(mediaType))
     // Optional data sink config and corresponding mime type depending on whether a variable output dataset is part of the workflow.
-    val variableDataSinkConfigOpt: Option[VariableDataSinkConfig] = variableDatasets.sinks.headOption.map(datasetId => variableDataSinkConfig(datasetId, fileBasedPluginIds))
+    val replaceableDataSinkConfigOpt: Option[VariableDataSinkConfig] = replaceableDatasets.sinks.headOption.map(datasetId => replaceableDataSinkConfig(datasetId, fileBasedPluginIds))
     val resourceContentJson = resourceJson match {
       case Some(Some(jsValue)) => Some(jsValue)
       case Some(None) => None
@@ -269,7 +269,7 @@ object VariableWorkflowRequestUtils {
     }
     val workflowConfig = Json.obj(
       "DataSources" -> dataSourceConfig.toSeq,
-      "Sinks" -> variableDataSinkConfigOpt.map(_.configJson).toSeq,
+      "Sinks" -> replaceableDataSinkConfigOpt.map(_.configJson).toSeq,
       "Resources" -> resources,
       "config" -> Json.obj(
         "autoConfig" -> request.getQueryString(QUERY_CONFIG_PARAM_AUTO_CONFIG).map(_.trim).contains("true")
@@ -280,7 +280,7 @@ object VariableWorkflowRequestUtils {
         "configuration" -> workflowConfig.toString(),
         "configurationType" -> jsonMimeType
       ),
-      variableDataSinkConfig = variableDataSinkConfigOpt.map(_.mimeType),
+      variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
       resourceManager = variableWorkflowFileResourceManager
     )
   }

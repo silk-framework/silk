@@ -25,17 +25,16 @@ case class ResourceSearchRequest(searchText: Option[String] = None,
     val resources = project.resources.listRecursive
     val matchedSortedResources = filterByTextQuery(resources).sorted
     val pagedResources = matchedSortedResources.slice(workingOffset, workingOffset + workingLimit)
-    val resultResources = pagedResources.map(resource => project.resources.get(resource))
+    val resultResources = pagedResources.map(resource => (resource, project.resources.get(resource)))
     JsArray(resultResources.map(toJson))
   }
 
-  private def toJson(resource: Resource): JsObject = {
+  private def toJson(resourceData: (String, Resource)): JsObject = {
+    val (relativePath, resource) = resourceData
     JsObject(
       Seq(
-        ResourceSearchRequest.NAME_PARAM -> JsString(resource.name)
-        /* FIXME: The full path should reflect the full path with the resource repository as root and only makes sense
-                  as soon as hierarchical folder structures are supported. resource.path actually prints the file system absolute path. */
-//        ResourceSearchRequest.FULL_PATH_PARAM -> JsString(resource.path)
+        ResourceSearchRequest.NAME_PARAM -> JsString(resource.name),
+        ResourceSearchRequest.FULL_PATH_PARAM -> JsString(relativePath)
       )
         ++ resource.modificationTime.map(instant => ResourceSearchRequest.MODIFIED_PARAM -> JsString(formatDate(instant))).toSeq
         ++ resource.size.map(size => ResourceSearchRequest.SIZE_PARAM -> JsNumber(size))

@@ -1471,7 +1471,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const operatorNodeOperationsInternal: IOperatorNodeOperations = {
         handleDeleteNode: deleteNode,
         handleParameterChange: changeNodeParameter,
-        handleCloneNode: (nodeId) => copyAndPasteNodes([nodeId])
+        handleCloneNode: (nodeId) => copyAndPasteNodes([nodeId]),
     };
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
@@ -1479,7 +1479,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
-        operatorSpec: Map<string, Map<string, IParameterSpecification>>,
+        operatorSpec: Map<string, Map<string, IParameterSpecification>>
     ): IOperatorCreateContext => ({
         operatorParameterSpecification: operatorSpec.get(operatorPluginId) ?? new Map(),
         t,
@@ -1489,7 +1489,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         nodePluginId,
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
-        readOnlyMode: ruleEditorContext.readOnlyMode ?? false
+        readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
     });
 
     /** Auto-layout the rule nodes.
@@ -1670,7 +1670,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (needsLayout) {
                 await autoLayoutInternal(elems, false, false);
             }
-            reactFlowInstance?.fitView({maxZoom: 1});
+            reactFlowInstance?.fitView({ maxZoom: 1 });
             ruleEditorContext.initialFitToViewZoomLevel &&
                 reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
             setInitializing(false);
@@ -1716,10 +1716,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 ruleOperatorNodes,
             }}
         >
-            <InteractionGate
-                showSpinner={initializing}
-                useParentPositioning
-            >
+            <InteractionGate showSpinner={initializing} useParentPositioning>
                 {children}
             </InteractionGate>
         </RuleEditorModelContext.Provider>

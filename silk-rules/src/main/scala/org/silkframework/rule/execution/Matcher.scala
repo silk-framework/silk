@@ -70,7 +70,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val finishedTasks = new AtomicInteger()
     val logProgress = progressLogger(context, finishedTasks, scheduler)
     while (!cancelled && (scheduler.isAlive || finishedTasks.get() < scheduler.taskCount) && errors.get().isEmpty) {
-      for(result <- poll(executor)) {
+      for(result <- poll(executor, context)) {
         context.value.updateWith(_.addLinks(result))
         finishedTasks.incrementAndGet()
         if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().links.size) {
@@ -90,7 +90,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       handleErrors(errors.get())
     }
 
-    for (result <- poll(executor)) {
+    for (result <- poll(executor, context)) {
       context.value.updateWith(_.addLinks(result))
       updateStatus(context, finishedTasks.get(), scheduler.taskCount)
     }
@@ -98,9 +98,16 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     shutdown(executorService, scheduler)
   }
 
-  private def poll[T](executor: ExecutorCompletionService[T]): Option[T] = {
+  private def poll[T](executor: ExecutorCompletionService[T], context: ActivityContext[MatcherResult]): Option[T] = {
     try {
-      Option(executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS)).map(_.get())
+      executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS) match {
+        case null =>
+          // No result available: make sure that loaders are not blocked
+          context.helpQuiesce()
+          None
+        case future: Future[T] =>
+          Some(future.get())
+      }
     } catch {
       case _: InterruptedException =>
         cancelled = true

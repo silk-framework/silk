@@ -1,4 +1,4 @@
-package controllers.transform.autoCompletion
+package controllers.autoCompletion
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.util.StringUtils

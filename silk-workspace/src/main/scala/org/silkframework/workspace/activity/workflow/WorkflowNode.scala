@@ -36,7 +36,8 @@ sealed trait WorkflowNode {
   def nodeId: NodeReference
 
   /**
-    * Operators with a smaller priority are executed first.
+    * Workflow nodes with a smaller priority are executed first. A node with a defined priority is executed before a node without priority.
+    * This only applies for output nodes, i.e. nodes that do not have any outgoing connections. For other nodes this has no effect.
     */
   def outputPriority: Option[Double]
 

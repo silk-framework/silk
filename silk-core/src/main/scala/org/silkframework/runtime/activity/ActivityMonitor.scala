@@ -1,8 +1,9 @@
 package org.silkframework.runtime.activity
+import org.silkframework.runtime.activity.Status.Canceling
+
 import java.util.concurrent.{ForkJoinPool, ForkJoinTask}
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.logging.Logger
-
 import scala.reflect.ClassTag
 import scala.reflect.ClassTag._
 
@@ -69,8 +70,14 @@ class ActivityMonitor[T](name: String,
     */
   def blockUntil(condition: () => Boolean): Unit = {
     val sleepTime = 500
-    while(!condition()) {
-      ForkJoinTask.helpQuiesce()
+    while(!condition() && !status().isInstanceOf[Canceling]) {
+      try {
+        ForkJoinTask.helpQuiesce()
+      } catch {
+        case _: InterruptedException =>
+          // Interrupted while executing another activity
+      }
+
       ForkJoinPool.managedBlock(
         new ManagedBlocker {
           @volatile
@@ -87,6 +94,16 @@ class ActivityMonitor[T](name: String,
           }
         }
       )
+    }
+  }
+
+  /**
+    * Possibly executes other activities that are blocked.
+    * Can be called to avoid deadlocks if child activities are run in the background.
+    */
+  def helpQuiesce(): Unit = {
+    if(ForkJoinTask.getQueuedTaskCount >= 1) {
+      ForkJoinTask.helpQuiesce()
     }
   }
 

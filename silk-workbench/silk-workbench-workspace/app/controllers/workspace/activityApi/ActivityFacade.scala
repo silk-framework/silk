@@ -3,6 +3,7 @@ package controllers.workspace.activityApi
 import controllers.workspace.activityApi.ActivityListResponse.{ActivityCharacteristics, ActivityInstance, ActivityListEntry, ActivityMetaData}
 import org.silkframework.config.TaskSpec
 import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.activity.Status.Waiting
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
@@ -132,6 +133,20 @@ object ActivityFacade {
         } else {
           activity.start(activityConfig)
         }
+      StartActivityResponse(activityName, id.toString)
+    }
+  }
+
+  def startPrioritized(projectName: String,
+                       taskName: String,
+                       activityName: String,
+                       activityConfig: Map[String, String])
+                      (implicit user: UserContext): StartActivityResponse = {
+    val activity = getActivity(projectName, taskName, activityName)
+    if (activity.isSingleton && activity.status().isRunning && !activity.status().isInstanceOf[Waiting]) {
+      throw ActivityAlreadyRunningException(activityName)
+    } else {
+      val id = activity.startPrioritized(activityConfig)
       StartActivityResponse(activityName, id.toString)
     }
   }

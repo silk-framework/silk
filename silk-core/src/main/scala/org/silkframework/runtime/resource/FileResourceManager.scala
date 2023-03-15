@@ -7,7 +7,7 @@ import java.io._
  */
 case class FileResourceManager(baseDir: File) extends ResourceManager {
 
-  val basePath: String = baseDir.getAbsolutePath
+  val basePath: String = baseDir.getCanonicalPath
 
   def this(baseDir: String) = this(new File(baseDir))
 

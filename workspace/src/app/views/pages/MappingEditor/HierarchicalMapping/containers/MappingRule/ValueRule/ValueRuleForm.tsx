@@ -1,24 +1,25 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
+import React, {useEffect, useState} from "react";
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC} from "gui-elements-deprecated";
 import {
     AffirmativeButton,
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { AutoSuggestion, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
+import {AutoSuggestion, IconButton, Spacing, Spinner, TextField} from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
-import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
-import { convertToUri } from "../../../utils/convertToUri";
+import store, {checkValuePathValidity, fetchValuePathSuggestions} from "../../../store";
+import {convertToUri} from "../../../utils/convertToUri";
 import ErrorView from "../../../components/ErrorView";
 import AutoComplete from "../../../components/AutoComplete";
-import { trimValue } from "../../../utils/trimValue";
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from "../../../utils/constants";
+import {trimValue} from "../../../utils/trimValue";
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from "../../../utils/constants";
 import EventEmitter from "../../../utils/EventEmitter";
-import { wasTouched } from "../../../utils/wasTouched";
-import { newValueIsIRI } from "../../../utils/newValueIsIRI";
+import {wasTouched} from "../../../utils/wasTouched";
+import {newValueIsIRI} from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
+import {IViewActions} from "../../../../../../../views/plugins/PluginRegistry";
+import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
 
 const LANGUAGES_LIST = [
     "en",
@@ -98,10 +99,14 @@ interface IProps {
 
 /** The edit form of a value mapping rule. */
 export function ValueRuleForm(props: IProps) {
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext)
     const [loading, setLoading] = useState<boolean>(false);
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
-    const [valueType, setValueType] = useState<IValueType>({ nodeType: "StringValueType" });
+    const [valueType, _setValueType] = useState<IValueType & { label: string }>({
+        nodeType: "StringValueType",
+        label: "String",
+    });
     const sourceProperty = React.useRef<string | { value: string }>("");
     const [isAttribute, setIsAttribute] = useState(false);
     const [initialValues, setInitialValues] = useState<Partial<IState>>({});
@@ -114,6 +119,9 @@ export function ValueRuleForm(props: IProps) {
     const lastEmittedEvent = React.useRef<string>("");
 
     const { id, parentId } = props;
+    const setValueType = React.useCallback((valueType: IValueType) => {
+        _setValueType({ ...valueType, label: mappingEditorContext.valueTypeLabels.get(valueType.nodeType) ?? valueType.nodeType});
+    }, []);
 
     const autoCompleteRuleId = id || parentId;
 
@@ -423,9 +431,10 @@ export function ValueRuleForm(props: IProps) {
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
                             ruleId={autoCompleteRuleId}
-                            value={valueType.nodeType}
+                            value={{ value: valueType.nodeType, label: valueType.label }}
                             clearable={false}
                             onChange={handleChangePropertyType}
+                            showValueWhenLabelExists={false}
                         />
                         {valueType.nodeType === "LanguageValueType" && (
                             <AutoComplete

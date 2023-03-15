@@ -69,7 +69,7 @@ export interface IOperatorCreateContext {
     // Updates several node parameters in a single transaction
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
-    readOnlyMode: boolean
+    readOnlyMode: boolean;
 }
 
 /** Creates a new react-flow rule operator node. */

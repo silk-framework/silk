@@ -131,7 +131,7 @@ class RootMappingRule extends React.Component {
         }
 
         return (
-            <div className="ecc-silk-mapping__rulesobject" ref={this.expandedRuleRef}>
+            <div data-test-id="root-mapping-rule" className="ecc-silk-mapping__rulesobject" ref={this.expandedRuleRef}>
                 <Card shadow={0}>
                     <CardTitle>
                         <div className="ecc-silk-mapping__ruleitem">

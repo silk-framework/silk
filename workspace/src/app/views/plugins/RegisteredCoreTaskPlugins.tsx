@@ -2,6 +2,7 @@ import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskView
 import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
 import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
+import LinkingEvaluationTabView from "../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabView";
 import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
 import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
 
@@ -60,6 +61,13 @@ export const registerCorePlugins = () => {
             },
         });
 
+        pluginRegistry.registerTaskView("linking", {
+            id: "linkingEvaluation",
+            label: "linking evaluation (new)",
+            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+                return <LinkingEvaluationTabView projectId={projectId} linkingTaskId={taskId} />;
+            },
+        });
         pluginRegistry.registerTaskView("transform", {
             id: "TransformExecution",
             label: "Transform execution",

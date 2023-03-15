@@ -7,11 +7,14 @@ $diapp-entitybox-cell-background-hovered: $eccgui-color-tablerow-hover !default;
 $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
 
 .diapp-linking-learningdata__container {
-
 }
 
 .diapp-linking-learningdata__row {
+}
 
+.diapp-linking-learningdata__header.fullwidth,
+.diapp-linking-learningdata__cell.fullwidth {
+    max-width: 100%;
 }
 
 .diapp-linking-learningdata__header {
@@ -27,6 +30,12 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     font-size: 0.875rem;
 }
 
+.diapp-linking-learningdata__cell.shrink {
+    visibility: hidden;
+    opacity: 0;
+    height: 0px;
+}
+
 .diapp-linking-learningdata__cell {
     max-width: 40%;
     border-color: $diapp-entitybox-cell-border;
@@ -34,6 +43,10 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     border-width: 2px;
     border-style: none solid;
     padding: 7px 7px 3.5px 7px;
+    transition: 300ms;
+    visibility: visible;
+    opacity: 1;
+    height: auto;
 
     .diapp-linking-learningdata__row-body:nth-child(odd) & {
         background-color: $diapp-entitybox-cell-background;

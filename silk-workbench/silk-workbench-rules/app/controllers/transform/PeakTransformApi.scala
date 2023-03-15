@@ -235,7 +235,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
         case rdfDataset: RdfDataset with Dataset =>
-          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset)))
+          val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset, readOnly = true)))
           val executor = LocalSparqlSelectExecutor()
           val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)

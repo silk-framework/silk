@@ -1,3 +1,5 @@
+import { IArtefactItemProperty } from "@ducks/common/typings";
+
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview;
 
 interface IValidation {
@@ -73,4 +75,10 @@ export interface BrandingProps {
     applicationSuiteName: string;
     // The application name for Silk.
     applicationName: string;
+}
+
+/** Extended handling for parameter types. */
+export interface ParameterExtensions {
+    /** Extends the given parameter definition (or leaves it as it is). */
+    extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
 }

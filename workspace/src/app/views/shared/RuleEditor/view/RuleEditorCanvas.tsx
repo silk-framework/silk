@@ -12,7 +12,7 @@ import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import { SelectionMenu } from "./ruleNode/SelectionMenu";
 import {
-    IRuleEditorViewBaseEdgeConnectionState,
+    EditorEdgeConnectionState,
     IRuleEditorViewConnectState,
     IRuleEditorViewDragState,
     IRuleEditorViewEdgeUpdateState,
@@ -43,7 +43,7 @@ export const RuleEditorCanvas = () => {
     const modelContext = React.useContext(RuleEditorModelContext);
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     // Stores the state when any edge connection operation is active, i.e. creating a new or updating an existing edge
-    const [edgeConnectState] = React.useState<IRuleEditorViewBaseEdgeConnectionState>({
+    const [edgeConnectState] = React.useState<EditorEdgeConnectionState>({
         edgeConnectOperationActive: false,
     });
     // Stores state during a connection operation, i.e. creating a new connection
@@ -534,6 +534,10 @@ export const RuleEditorCanvas = () => {
                     minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
                     multiSelectionKeyCode={18} // ALT
+                    scrollOnDrag={{
+                        scrollStepSize: 0.1,
+                        scrollInterval: 50,
+                    }}
                 >
                     {!ruleEditorUiContext.hideMinimap && (
                         <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />

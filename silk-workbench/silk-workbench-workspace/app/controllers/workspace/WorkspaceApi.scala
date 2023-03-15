@@ -4,17 +4,16 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.doc.WorkspaceApiDoc
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
@@ -212,14 +211,14 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val clonedProjectUri = clonedProjectConfig.generateDefaultUri
     val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
-    // Clone task spec, since task specs may contain state, e.g. RDF file dataset
-    implicit val context: PluginContext = PluginContext.fromProject(project)
     // Clone tags
     for (tag <- project.tagManager.allTags()) {
       clonedProject.tagManager.putTag(tag)
     }
-    for(task <- project.allTasks) {
-      val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
+    // Clone tasks, since task specs may contain state, e.g. RDF file dataset
+    for (task <- project.allTasks) {
+      val taskParameters = task.data.parameters(PluginContext.fromProject(project))
+      val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(clonedProject))
       clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
     }
 

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Spinner, Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
+import { CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -11,6 +11,10 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
+import { fileValue } from "@ducks/shared/typings";
+import { ExtendedParameterCallbacks } from "./ParameterWidget";
+import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
+import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 
 interface IProps {
     projectId: string;
@@ -20,16 +24,10 @@ interface IProps {
     onChange: (value) => void;
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
-    initialValues: {
-        [key: string]: {
-            label: string;
-            value: string;
-        };
-    };
+    initialParameterValue?: string;
     /** This is a required parameter. */
     required: boolean;
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
+    parameterCallbacks: ExtendedParameterCallbacks;
 }
 
 export type RegisterForExternalChangesFn = (
@@ -55,9 +53,9 @@ export function InputMapper({
     parameter,
     intent,
     onChange,
-    initialValues,
+    initialParameterValue,
     required,
-    registerForExternalChanges,
+    parameterCallbacks,
 }: IProps) {
     const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
@@ -65,7 +63,7 @@ export function InputMapper({
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const [show, setShow] = React.useState(true);
     const [highlightInput, setHighlightInput] = React.useState(false);
-    const initialOrExternalValue = externalValue ? externalValue.value : initialValues[paramId]?.value;
+    const initialOrExternalValue = externalValue ? externalValue.value : initialParameterValue;
     const initialValue =
         initialOrExternalValue != null
             ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)
@@ -85,7 +83,7 @@ export function InputMapper({
             setHighlightInput(true);
             onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value));
         };
-        registerForExternalChanges(paramId, handleUpdates);
+        parameterCallbacks.registerForExternalChanges(paramId, handleUpdates);
     }, []);
 
     // Re-init element when value is set from outside
@@ -136,7 +134,7 @@ export function InputMapper({
         case INPUT_TYPES.INTEGER:
             return <TextField {...inputAttributes} />;
         case INPUT_TYPES.TEXTAREA:
-            return <TextArea {...inputAttributes} />;
+            return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
             return <CodeEditor mode="sparql" {...inputAttributes} />;
         case INPUT_TYPES.MULTILINE_STRING:
@@ -146,7 +144,7 @@ export function InputMapper({
         case INPUT_TYPES.TARGET_VOCABULARY:
             return <DefaultTargetVocabularySelection {...inputAttributes} />;
         case INPUT_TYPES.RESOURCE:
-            const resourceNameFn = (item) => item.name;
+            const resourceNameFn = (item) => fileValue(item);
             return (
                 <FileSelectionMenu
                     projectId={projectId}
@@ -175,6 +173,6 @@ export function InputMapper({
         case INPUT_TYPES.OPTION_INT:
         case INPUT_TYPES.STRING:
         default:
-            return <TextField {...inputAttributes} />;
+            return <TextFieldWithCharacterWarnings {...inputAttributes} />;
     }
 }

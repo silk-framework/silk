@@ -17,6 +17,10 @@
             "changeProjectButton": "Change target project",
             "resetModalTitle": "Configuration reset necessary"
         },
+        "ReadOnlyParameter": {
+            "label": "Read-only",
+            "description": "If enabled, all write operations using this dataset object will fail, e.g. when used as output in workflows or transform/linking executions. This will NOT protect the underlying resource in general, e.g. files, databases or knowledge graphs could still be changed externally."
+        },
         "CustomIdentifierInput": {
             "ProjectId": "Project identifier",
             "ProjectUri": "Project URI",
@@ -221,7 +225,7 @@
             "abort": "Abort",
             "add": "Add",
             "cancel": "Cancel",
-            "proceed":"Proceed",
+            "proceed": "Proceed",
             "copy": "Copy",
             "clone": "Clone",
             "close": "Close",
@@ -318,6 +322,7 @@
             "all": "All",
             "and": "and",
             "back": "Back",
+            "config": "Config",
             "description": "Description",
             "emptyPath": "Empty path",
             "itemType": "Item type",
@@ -371,6 +376,37 @@
             "requestFailed": "Preview request failed",
             "server": "Server error",
             "timeout": "Timeout"
+        }
+    },
+    "linkingEvaluationTabView": {
+        "toolbar": {
+            "toggleExampleValues": "Value table expanded by default",
+            "toggleOperatorsTree": "Operator tree expanded by default",
+            "statsHeadSources": "Sources",
+            "statsHeadTargets": "Targets",
+            "statsHeadLinkCount": "Links",
+            "statsShowInfo": "Show statistical information"
+        },
+        "messages": {
+            "missingExecution": "Linking evaluation action need to run first to get evaluation results.",
+            "emptyWithoutFilters": "No evaluation results available.",
+            "emptyWithFilters": "No evaluation results available for the filters you set. Adjust or clear them first.",
+            "running": "Evaluation is currently running.",
+            "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
+            "unknownProblem": "No results available because of unexpected behaviour."
+        },
+        "table": {
+            "header": {
+                "source": "Source",
+                "target": "Target",
+                "score": "Score",
+                "linkState": "Link state",
+                "expandRows": "Expand all rows",
+                "collapseRows": "Collapse all rows"
+            },
+            "infoCollapsedInputValue": "Input values available",
+            "expandRow": "Expand row",
+            "collapseRow": "Collapse row"
         }
     },
     "navigation": {
@@ -735,7 +771,8 @@
                 "reloadActivity": "Restart activity",
                 "stopActivity": "Stop activity",
                 "showErrorReport": "Show error report",
-                "viewCachedData": "View cached data in new tab"
+                "viewCachedData": "View cached data in new tab",
+                "startPrioritized": "Run prioritized and skip the waiting queue"
             },
             "errorMessages": {
                 "actions": {
@@ -754,7 +791,8 @@
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
-            "title": "Configuration"
+            "title": "Configuration",
+            "templateValueInfo": "The parameter value is derived from the following variable template: "
         },
         "WarningWidget": {
             "loading": "Loading log messages.",
@@ -907,5 +945,20 @@
             "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
             "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
         }
+    },
+    "InvisibleCharacterHandling": {
+        "iconTooltip": "One or more invisible characters have been detected in the input text. Click to show possible actions.",
+        "modal": {
+            "title": "Invisible characters found",
+            "description": "Following invisible characters have been detected in the input string:",
+            "cleanAction": "Clean text",
+            "cleanActionTooltip": "Removes all detected characters from the input text"
+        }
+    },
+    "ArtefactFormParameter": {
+        "evaluatedValue": "Evaluated template value: {{value}}",
+        "invalidTemplate": "Invalid template value",
+        "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
+        "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
     }
 }

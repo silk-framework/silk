@@ -20,7 +20,7 @@ trait EntitySink extends DataSink {
    */
   def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit
 
-  def openTableWithPaths(typeUri: Uri, typedPaths: Seq[TypedPath], singleEntity: Boolean)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  def openTableWithPaths(typeUri: Uri, typedPaths: Seq[TypedPath], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val properties = typedPaths.map(tp => tp.property.getOrElse(throw new RuntimeException("Typed path is neither a simple forward or backward path: " + tp)))
     openTable(typeUri, properties, singleEntity)
   }

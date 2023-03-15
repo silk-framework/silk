@@ -1,3 +1,5 @@
+import { FileBaseInfo } from "@ducks/shared/typings";
+
 export interface IPrefixDefinition {
     /**
      * Name of prefix
@@ -41,8 +43,7 @@ export interface IWarningWidget {
     error: any;
 }
 
-export interface IFileWidgetItem {
-    name: string;
+export interface IFileWidgetItem extends FileBaseInfo {
     size: number;
     modified: string;
 }

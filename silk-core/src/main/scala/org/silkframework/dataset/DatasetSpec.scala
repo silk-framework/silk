@@ -16,13 +16,13 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config._
-import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
+import org.silkframework.dataset.DatasetSpec.{UriAttributeNotUniqueException, checkDatasetAllowsWriteAccess}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
@@ -34,10 +34,13 @@ import scala.xml.Node
 /**
   * A dataset of entities.
   *
+  * @param pluging      The concrete plugin/implementation of a dataset.
   * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
                         The additional attribute contains the URI of each entity.
   */
-case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None)
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
+                                                uriAttribute: Option[Uri] = None,
+                                                readOnly: Boolean = false)
     extends TaskSpec with DatasetAccess {
 
   def source(implicit userContext: UserContext): DataSource = {
@@ -45,10 +48,11 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   }
 
   def entitySink(implicit userContext: UserContext): EntitySink = {
-    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this, readOnly), SafeModeSink)
   }
 
   def linkSink(implicit userContext: UserContext): LinkSink = {
+    checkDatasetAllowsWriteAccess(None, readOnly)
     safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
   }
 
@@ -79,11 +83,11 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   override def referencedResources: Seq[Resource] = plugin.referencedResources
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
     var properties =
       plugin match {
         case Dataset(p, params) =>
-          Seq(("type", p.label)) ++ params
+          Seq(("type", p.label)) ++ params.toStringMap
       }
     for(uriProperty <- uriAttribute) {
       properties :+= ("URI Property", uriProperty.uri)
@@ -93,11 +97,13 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
 
   override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
 
-  override def withProperties(updatedProperties: Map[String, String])(implicit context: PluginContext): DatasetSpec[DatasetType] = {
-    copy(plugin = plugin.withParameters(updatedProperties))
+  override def parameters(implicit pluginContext: PluginContext): ParameterValues = {
+    plugin.parameters
   }
 
-  override def toString: String = DatasetSpec.toString
+  def withParameters(updatedParameters: ParameterValues, dropExistingValues: Boolean = false)(implicit context: PluginContext): DatasetSpec[DatasetType] = {
+    copy(plugin = plugin.withParameters(updatedParameters, dropExistingValues))
+  }
 
   def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
     for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
@@ -118,9 +124,19 @@ object DatasetSpec {
     */
   type GenericDatasetSpec = DatasetSpec[Dataset]
 
+  case class ReadOnlyDatasetWriteAccessException(datasetLabel: Option[String]) extends RuntimeException {
+    override def getMessage: String = s"Cannot write to read-only dataset${datasetLabel.map(label => s": '$label'").getOrElse("")}. Disable read-only mode in the dataset config if this was not a mistake."
+  }
+
   implicit def toTransformTask(task: Task[DatasetSpec[Dataset]]): DatasetTask = DatasetTask(task.id, task.data, task.metaData)
 
   def empty: DatasetSpec[EmptyDataset.type] = new DatasetSpec(EmptyDataset)
+
+  def checkDatasetAllowsWriteAccess(datasetLabel: Option[String], readOnly: Boolean): Unit = {
+    if(readOnly) {
+      throw ReadOnlyDatasetWriteAccessException(datasetLabel)
+    }
+  }
 
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
@@ -204,7 +220,7 @@ object DatasetSpec {
     override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
   }
 
-  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
+  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset], readOnly: Boolean) extends EntitySink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -215,6 +231,7 @@ object DatasetSpec {
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes){
+      checkDatasetAllowsWriteAccess(None, readOnly)
       if (isOpen) {
         entitySink.close()
         isOpen = false
@@ -326,11 +343,14 @@ object DatasetSpec {
         // Read new format
         val id = (node \ "@id").text
         val uriProperty = (node \ "@uriProperty").headOption.map(_.text).filter(_.trim.nonEmpty).map(Uri(_))
+        val readOnly: Boolean = (node \ "@readOnly").headOption.exists(_.text.toBoolean)
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
+        val parameters = XmlSerialization.deserializeParameters(sourceNode)
         new DatasetSpec(
-          plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
-          uriAttribute = uriProperty
+          plugin = Dataset((sourceNode \ "@type").text, parameters),
+          uriAttribute = uriProperty,
+          readOnly = readOnly
         )
       }
     }
@@ -338,8 +358,8 @@ object DatasetSpec {
     def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
-          <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
-            {XmlSerialization.serializeParameter(params)}
+          <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")} readOnly={value.readOnly.toString}>
+            {XmlSerialization.serializeParameters(params)}
           </Dataset>
       }
     }

@@ -5,6 +5,7 @@
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.runtime.plugin.PluginCategories
 
+@import org.silkframework.runtime.plugin.PluginContext
 @(project: Project,
   name: String,
   plugins: Seq[PluginDescription[_]],
@@ -290,6 +291,6 @@
   // Convert parameter value to string
   implicit val prefixes = project.config.prefixes
   val paramType = param.parameterType.asInstanceOf[StringParameterType[AnyRef]]
-  val paramStr = paramObj.map(paramType.toString).getOrElse("")
+  val paramStr = paramObj.map(pv => paramType.toString(pv)(PluginContext.empty)).getOrElse("")
   paramStr
 }

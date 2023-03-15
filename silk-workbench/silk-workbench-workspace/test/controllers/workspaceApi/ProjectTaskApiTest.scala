@@ -1,18 +1,18 @@
 package controllers.workspaceApi
 
-import controllers.workspaceApi.projectTask.{RelatedItem, RelatedItems}
+import controllers.workspaceApi.projectTask.RelatedItems
 import controllers.workspaceApi.search.ItemType
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerialization
-import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import play.api.libs.json.Json
-import testWorkspace.Routes
 import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import play.api.libs.json.{JsValue, Json}
+import testWorkspace.Routes
 
 class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
@@ -68,11 +68,12 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
     val path = controllers.projectApi.routes.ProjectTaskApi.postDatasetAutoConfigured(projectId).url
     val initialDataset = DatasetSpec[CsvDataset](CsvDataset(csvResource))
     initialDataset.plugin.separator mustBe ","
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val request = client.url(s"$baseUrl$path")
       .addHttpHeaders(ACCEPT -> APPLICATION_JSON)
       .post(JsonSerialization.toJson[GenericDatasetSpec](initialDataset))
     val response = checkResponse(request).json
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     val autoConfiguredDataset = JsonSerialization.fromJson[GenericDatasetSpec](response).plugin.asInstanceOf[CsvDataset]
     autoConfiguredDataset.separator mustBe ";"
   }
