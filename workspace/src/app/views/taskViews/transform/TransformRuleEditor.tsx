@@ -19,7 +19,7 @@ import { optionallyLabelledParameterToValue } from "../linking/linking.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { inputPathTab } from "./transformEditor.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
-import TransformRuleEvaluation from "./evalution/TransformRuleEvaluation";
+import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */

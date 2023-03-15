@@ -1,0 +1,1882 @@
+{
+    "rules": [
+        {
+            "type": "complex",
+            "id": "uri",
+            "operator": {
+                "type": "transformInput",
+                "id": "buildUri",
+                "function": "concat",
+                "inputs": [
+                    {
+                        "type": "transformInput",
+                        "id": "constant0",
+                        "function": "constant",
+                        "inputs": [],
+                        "parameters": {
+                            "value": "http://example.org/"
+                        }
+                    },
+                    {
+                        "type": "transformInput",
+                        "id": "encode1",
+                        "function": "urlEncode",
+                        "inputs": [
+                            {
+                                "type": "pathInput",
+                                "id": "path1",
+                                "path": "birthdate"
+                            }
+                        ],
+                        "parameters": {
+                            "encoding": "UTF-8"
+                        }
+                    }
+                ],
+                "parameters": {
+                    "glue": "",
+                    "missingValuesAsEmptyStrings": "false"
+                }
+            },
+            "sourcePaths": ["birthdate"],
+            "metadata": {},
+            "layout": {
+                "nodePositions": {}
+            },
+            "uiAnnotations": {
+                "stickyNotes": []
+            }
+        },
+        {
+            "type": "complex",
+            "id": "type",
+            "operator": {
+                "type": "transformInput",
+                "id": "generateType",
+                "function": "constantUri",
+                "inputs": [],
+                "parameters": {
+                    "value": "<http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date>"
+                }
+            },
+            "sourcePaths": [],
+            "metadata": {},
+            "layout": {
+                "nodePositions": {}
+            },
+            "uiAnnotations": {
+                "stickyNotes": []
+            },
+            "mappingTarget": {
+                "uri": "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",
+                "valueType": {
+                    "nodeType": "UriValueType"
+                },
+                "isBackwardProperty": false,
+                "isAttribute": false
+            }
+        }
+    ],
+    "evaluatedEntities": [
+        {
+            "uris": ["http://example.org/1969-07-31"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1969-07-31"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1969-07-31"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1969-07-31"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1957-07-10"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1957-07-10"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1957-07-10"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1957-07-10"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1970-04-23"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1970-04-23"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1970-04-23"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1970-04-23"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1979-01-28"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1979-01-28"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1979-01-28"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1979-01-28"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1988-11-16"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1988-11-16"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1988-11-16"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1988-11-16"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1984-07-13"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1984-07-13"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1984-07-13"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1984-07-13"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1975-08-19"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1975-08-19"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1975-08-19"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1975-08-19"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1985-06-19"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1985-06-19"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1985-06-19"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1985-06-19"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1950-04-29"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1950-04-29"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1950-04-29"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1950-04-29"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1961-01-19"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1961-01-19"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1961-01-19"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1961-01-19"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1971-07-01"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1971-07-01"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1971-07-01"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1971-07-01"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1984-07-01"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1984-07-01"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1984-07-01"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1984-07-01"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1975-05-03"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1975-05-03"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1975-05-03"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1975-05-03"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1989-02-24"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1989-02-24"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1989-02-24"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1989-02-24"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1968-12-31"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1968-12-31"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1968-12-31"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1968-12-31"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1987-04-07"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1987-04-07"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1987-04-07"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1987-04-07"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1972-11-25"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1972-11-25"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1972-11-25"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1972-11-25"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1980-04-16"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1980-04-16"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1980-04-16"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1980-04-16"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1956-03-14"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1956-03-14"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1956-03-14"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1956-03-14"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1982-02-02"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1982-02-02"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1982-02-02"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1982-02-02"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1963-01-24"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1963-01-24"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1963-01-24"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1963-01-24"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1981-10-24"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1981-10-24"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1981-10-24"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1981-10-24"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1974-03-04"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1974-03-04"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1974-03-04"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1974-03-04"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1980-01-02"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1980-01-02"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1980-01-02"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1980-01-02"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1989-04-08"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1989-04-08"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1989-04-08"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1989-04-08"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1952-05-24"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1952-05-24"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1952-05-24"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1952-05-24"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1977-06-26"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1977-06-26"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1977-06-26"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1977-06-26"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1962-02-24"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1962-02-24"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1962-02-24"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1962-02-24"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1979-03-05"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1979-03-05"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1979-03-05"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1979-03-05"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1985-08-16"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1985-08-16"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1985-08-16"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1985-08-16"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1955-03-10"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1955-03-10"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1955-03-10"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1955-03-10"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1984-08-20"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1984-08-20"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1984-08-20"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1984-08-20"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1979-10-18"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1979-10-18"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1979-10-18"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1979-10-18"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1982-08-02"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1982-08-02"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1982-08-02"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1982-08-02"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1988-10-04"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1988-10-04"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1988-10-04"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1988-10-04"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1968-12-09"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1968-12-09"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1968-12-09"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1968-12-09"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1967-08-17"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1967-08-17"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1967-08-17"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1967-08-17"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1978-07-02"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1978-07-02"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1978-07-02"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1978-07-02"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1974-12-09"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1974-12-09"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1974-12-09"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1974-12-09"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1950-07-26"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1950-07-26"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1950-07-26"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1950-07-26"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1969-05-13"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1969-05-13"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1969-05-13"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1969-05-13"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1970-02-28"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1970-02-28"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1970-02-28"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1970-02-28"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1989-05-09"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1989-05-09"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1989-05-09"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1989-05-09"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1964-04-23"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1964-04-23"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1964-04-23"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1964-04-23"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1950-03-30"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1950-03-30"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1950-03-30"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1950-03-30"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1988-07-11"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1988-07-11"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1988-07-11"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1988-07-11"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1966-11-12"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1966-11-12"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1966-11-12"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1966-11-12"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1968-07-13"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1968-07-13"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1968-07-13"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1968-07-13"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1952-04-14"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1952-04-14"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1952-04-14"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1952-04-14"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        },
+        {
+            "uris": ["http://example.org/1962-08-08"],
+            "values": [
+                {
+                    "operatorId": "buildUri",
+                    "values": ["http://example.org/1962-08-08"],
+                    "error": null,
+                    "children": [
+                        {
+                            "operatorId": "constant0",
+                            "values": ["http://example.org/"],
+                            "error": null,
+                            "children": []
+                        },
+                        {
+                            "operatorId": "encode1",
+                            "values": ["1962-08-08"],
+                            "error": null,
+                            "children": [
+                                {
+                                    "operatorId": "path1",
+                                    "values": ["1962-08-08"],
+                                    "error": null
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Date"],
+                    "error": null,
+                    "children": []
+                }
+            ]
+        }
+    ]
+}

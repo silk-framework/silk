@@ -193,11 +193,6 @@ class HierarchicalMapping extends React.Component {
 
     // react to rule id changes
     onRuleNavigation = ({ newRuleId }) => {
-        console.log({
-            newRuleId,
-            currentRuleId: this.state.currentRuleId,
-            editingElements: this.state.editingElements,
-        });
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
