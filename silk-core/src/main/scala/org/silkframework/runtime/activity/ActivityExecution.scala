@@ -126,10 +126,14 @@ private class ActivityExecution[T](activity: Activity[T],
     if(cancelling) {
       // cancel children outside of lock to not run into dead locks
       children().foreach(_.cancel())
-        activity.cancelExecution()
-      ThreadLock.synchronized {
-        runningThread foreach { thread =>
-          thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+      activity.cancelExecution()
+      interruptEnabled.synchronized {
+        if (interruptEnabled.get()) {
+          ThreadLock.synchronized {
+            runningThread foreach { thread =>
+              thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+            }
+          }
         }
       }
     }

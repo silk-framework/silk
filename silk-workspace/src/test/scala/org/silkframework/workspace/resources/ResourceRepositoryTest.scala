@@ -42,11 +42,26 @@ abstract class ResourceRepositoryTest extends FlatSpec with MustMatchers  {
     testResourceRead.loadAsString() mustBe testContent
     testResource.delete()
     testResource.exists mustBe false
+
+    // Make sure that the base path is correct
+    val basePath = if(project.basePath.isEmpty) "" else project.basePath + "/"
+    normalize(project.child("child1").child("child2").basePath) mustBe normalize(s"${basePath}child1/child2")
+    normalize(project.child("child1").child("child2").parent.get.basePath) mustBe normalize(s"${basePath}child1")
+    normalize(project.child("non-existing").basePath) mustBe normalize(s"${basePath}non-existing")
+
+    // Make sure that the resource path is correct
+    normalize(project.child("child1").get("resource").path) mustBe normalize(s"${basePath}child1/resource")
+    normalize(project.child("child1").child("child2").get("non-existing").path) mustBe normalize(s"${basePath}child1/child2/non-existing")
   }
 
   it should "not allow to open resources that do not exist" in {
     intercept[ResourceNotFoundException] {
       project.get("nonExistingResource", mustExist = true)
     }
+  }
+
+  // Normalizes a path so that the test works on Windows as well
+  private def normalize(path: String): String = {
+    path.replace('\\', '/')
   }
 }

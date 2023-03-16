@@ -1,8 +1,9 @@
 package org.silkframework.runtime.activity
 import org.silkframework.runtime.activity.Status.Canceling
 
-import java.util.concurrent.{ForkJoinPool, ForkJoinTask}
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{ForkJoinPool, ForkJoinTask}
 import java.util.logging.Logger
 import scala.reflect.ClassTag
 import scala.reflect.ClassTag._
@@ -28,6 +29,13 @@ class ActivityMonitor[T](name: String,
     */
   @volatile
   private var childControls: Seq[ActivityControl[_]] = Seq.empty
+
+  /**
+    * If false, the current thread should not be interrupted because it might be executing another activity.
+    * Mutable access must be synchronized.
+    */
+  @volatile
+  protected var interruptEnabled: AtomicBoolean = new AtomicBoolean(true)
 
   /**
     * Retrieves the logger to be used by the activity.
@@ -71,12 +79,7 @@ class ActivityMonitor[T](name: String,
   def blockUntil(condition: () => Boolean): Unit = {
     val sleepTime = 500
     while(!condition() && !status().isInstanceOf[Canceling]) {
-      try {
-        ForkJoinTask.helpQuiesce()
-      } catch {
-        case _: InterruptedException =>
-          // Interrupted while executing another activity
-      }
+      helpQuiesce()
 
       ForkJoinPool.managedBlock(
         new ManagedBlocker {
@@ -102,8 +105,19 @@ class ActivityMonitor[T](name: String,
     * Can be called to avoid deadlocks if child activities are run in the background.
     */
   def helpQuiesce(): Unit = {
-    if(ForkJoinTask.getQueuedTaskCount >= 1) {
+    // helpQuiesce() might execute another activity in this thread
+    interruptEnabled.synchronized {
+      interruptEnabled.set(false)
+    }
+    try {
       ForkJoinTask.helpQuiesce()
+    } finally {
+      interruptEnabled.synchronized {
+        interruptEnabled.set(true)
+      }
+      if (status().isInstanceOf[Canceling]) {
+        Thread.currentThread().interrupt()
+      }
     }
   }
 

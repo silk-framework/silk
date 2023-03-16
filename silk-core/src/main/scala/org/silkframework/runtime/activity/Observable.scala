@@ -88,4 +88,13 @@ trait Observable[T] {
       subscriber(newValue)
     }
   }
+
+  override def toString: String = {
+    get match {
+      case Some(value) =>
+        value.toString
+      case None =>
+        "<undefined>"
+    }
+  }
 }

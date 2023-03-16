@@ -6,7 +6,7 @@ import _ from "lodash";
 
 import { childExampleAsync, ruleExampleAsync } from "../../store";
 import { InfoBox } from "../../components/InfoBox";
-import { IconButton, Markdown, Notification } from "@eccenca/gui-elements";
+import { IconButton, Markdown, Notification, Spinner, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import EventEmitter from "../../utils/EventEmitter";
 import { MESSAGES } from "../../utils/constants";
 import { useTranslation } from "react-i18next";
@@ -41,10 +41,12 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
     // Show message details
     const [showDetails, setShowDetails] = useState(false);
     const [error, setError] = useState<any>(undefined);
+    const [loading, setLoading] = useState(true);
     const [t] = useTranslation();
 
     const ruleExampleFunc = rawRule ? childExampleAsync : ruleExampleAsync;
-    const updateFn = () =>
+    const updateFn = () => {
+        setLoading(true);
         ruleExampleFunc({
             id: id,
             rawRule: rawRule,
@@ -53,11 +55,14 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
         }).subscribe(
             ({ example }) => {
                 setExamples(example);
+                setLoading(false);
             },
             (error) => {
                 setError(error);
+                setLoading(false);
             }
         );
+    };
 
     useEffect(() => {
         EventEmitter.on(MESSAGES.RELOAD, updateFn);
@@ -74,6 +79,17 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
             updateFn();
         }
     }, [id, objectSourcePathContext, ruleType, rawRule]);
+
+    if (loading) {
+        return (
+            <Toolbar>
+                <ToolbarSection>
+                    <Spinner position={"local"} stroke={"thin"} />
+                </ToolbarSection>
+                <ToolbarSection canGrow={true}></ToolbarSection>
+            </Toolbar>
+        );
+    }
 
     if (error) {
         return <ErrorView {...error} titlePrefix={"There has been an error loading the examples: "} />;

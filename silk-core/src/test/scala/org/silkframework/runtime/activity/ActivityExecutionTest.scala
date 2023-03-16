@@ -3,7 +3,7 @@ package org.silkframework.runtime.activity
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.runtime.activity.Status.Waiting
+import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
 import org.silkframework.runtime.users.User
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -89,7 +89,30 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers with Eventually  
       sleepingActivities.forall(_.value()) mustBe true
     }
 
-    stopActivities(blockingActivities ++ sleepingActivities)
+    // Only stop the blocking activities
+    for (activity <- blockingActivities) {
+      activity.cancel()
+    }
+
+    // The sleeping activities should still be running
+    // This check is needed because the call to blockUntil might execute a sleeping activity internally
+    // In this case the sleeping activity should not be cancelled even though it's running in the same thread.
+    sleepingActivities.forall(_.status().isInstanceOf[Running]) mustBe true
+
+    // Clean up
+    stopActivities(sleepingActivities)
+
+    // Make sure that the blocking activities have been stopped as well now
+    eventually {
+      for (activity <- blockingActivities) {
+        activity.status() match {
+          case Finished(_, _, cancelled, _) =>
+            cancelled mustBe true
+          case status: Status =>
+            fail("Unexpected status: " + status)
+        }
+      }
+    }
   }
 
   it should "allow activities to skip the waiting queue" in {
