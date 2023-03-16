@@ -39,13 +39,13 @@ import scala.math.{abs, max, min}
     output = 0.0
   ),
   new DistanceMeasureExample(
-    description = "Returns 1 for strings that differ by 1 edit operation.",
+    description = "Returns 1 for strings that differ by one edit operation.",
     input1 = Array("John"),
     input2 = Array("Jxhn"),
     output = 1.0
   ),
   new DistanceMeasureExample(
-    description = "Returns 3 for strings that differ by 3 edit operations.",
+    description = "Returns 3 for strings that differ by three edit operations.",
     input1 = Array("Saturday"),
     input2 = Array("Sunday"),
     output = 3.0

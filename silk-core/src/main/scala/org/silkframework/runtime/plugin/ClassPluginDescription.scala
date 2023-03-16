@@ -194,9 +194,9 @@ object ClassPluginDescription {
     if (distanceMeasureExamples.nonEmpty) {
       sb ++= "### Examples"
       sb ++= "\n\n"
-      sb ++= "#### Notation\n\n"
-      sb ++= "List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
+      sb ++= "**Notation:** List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
       for ((example, idx) <- distanceMeasureExamples.zipWithIndex) {
+        sb ++= "---\n"
         example.description match {
           case Some(desc) =>
             sb ++= s"#### ${desc.stripSuffix(".")}:\n\n"
