@@ -8,7 +8,6 @@ import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.workspace.ProjectConfig
 import play.api.libs.json.JsArray
-import workspace.Routes
 
 class ResourceApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with BeforeAndAfterAll {
   behavior of "Resource API"
@@ -25,7 +24,7 @@ class ResourceApiTest extends FlatSpec with IntegrationTestTrait with MustMatche
     project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(TextFileDataset(resource)))
   }
 
-  override def routes: Option[Class[Routes]] = Some(classOf[workspace.Routes])
+  override def routes: Option[Class[testWorkspace.Routes]] = Some(classOf[testWorkspace.Routes])
 
   override def workspaceProviderId: String = "inMemory"
 
