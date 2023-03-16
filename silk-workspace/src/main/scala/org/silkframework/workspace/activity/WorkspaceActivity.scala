@@ -1,14 +1,14 @@
 package org.silkframework.workspace.activity
 
-import java.time.Instant
-import java.util.logging.Logger
-import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{ObservableMirror, _}
+import org.silkframework.config.{DefaultConfig, TaskSpec}
+import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext}
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import java.time.Instant
+import java.util.logging.Logger
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -190,17 +190,10 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   /**
-    * Starts an activity prioritized and returns immediately.
-    * Optionally applies a supplied configuration to the started activity.
-    *
-    * @param config The activity parameters
-    * @param user   The user context
-    * @return The identifier of the started activity instance
+    * Starts the current activity instance prioritized.
     */
-  final def startPrioritized(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
-    val (id, control) = addInstance(config)
-    control.startPrioritized()
-    id
+  final def startPrioritized()(implicit user: UserContext): Unit = {
+    currentInstance.startPrioritized()
   }
 
   /**

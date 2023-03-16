@@ -216,23 +216,8 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[StartActivityResponse])
         ))
-      ),
-      new ApiResponse(
-        responseCode = "503",
-        description = "Activity execution could not be started because concurrent execution limit is reached."
       )
     ))
-  @RequestBody(
-    description = "Optionally updates configuration parameters, before starting the activity.",
-    required = false,
-    content = Array(
-      new Content(
-        mediaType = "application/x-www-form-urlencoded",
-        schema = new Schema(implementation = classOf[String]),
-        examples = Array(new ExampleObject("param1=value1&param2=value2"))
-      )
-    )
-  )
   def startPrioritized(@Parameter(
                          name = "project",
                          description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
@@ -258,7 +243,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                         )
                         activityName: String): Action[AnyContent] = RequestUserContextAction { request =>
     implicit userContext: UserContext =>
-      val response = ActivityFacade.startPrioritized(projectName, taskName, activityName, activityConfig(request))
+      val response = ActivityFacade.startPrioritized(projectName, taskName, activityName)
       Ok(Json.toJson(response))
   }
 

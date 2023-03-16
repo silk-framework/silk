@@ -139,14 +139,13 @@ object ActivityFacade {
 
   def startPrioritized(projectName: String,
                        taskName: String,
-                       activityName: String,
-                       activityConfig: Map[String, String])
+                       activityName: String)
                       (implicit user: UserContext): StartActivityResponse = {
     val activity = getActivity(projectName, taskName, activityName)
     if (activity.isSingleton && activity.status().isRunning && !activity.status().isInstanceOf[Waiting]) {
       throw ActivityAlreadyRunningException(activityName)
     } else {
-      val id = activity.startPrioritized(activityConfig)
+      val id = activity.startPrioritized()
       StartActivityResponse(activityName, id.toString)
     }
   }
