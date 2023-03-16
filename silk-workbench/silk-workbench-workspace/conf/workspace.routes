@@ -89,8 +89,10 @@ POST          /projects/:project/copy                                           
 POST          /projects/:project/reload                                         controllers.workspace.WorkspaceApi.reloadProject(project: String)
 
 # Resources
-# deprecated
+
 GET           /projects/:project/resources                                      controllers.workspace.ResourceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
+
+# deprecated
 GET           /projects/:project/resources/:name                                controllers.workspace.ResourceApi.getResource(project: String, name: String)
 PUT           /projects/:project/resources/:name                                controllers.workspace.ResourceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name                                controllers.workspace.ResourceApi.deleteResource(project: String, name: String)
