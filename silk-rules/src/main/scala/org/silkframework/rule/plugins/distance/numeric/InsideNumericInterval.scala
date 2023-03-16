@@ -1,13 +1,16 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 @Plugin(
   id = "insideNumericInterval",
   label = "Inside numeric interval",
   categories = Array("Numeric"),
   description = "Checks if a number is contained inside a numeric interval, such as '1900 - 2000'."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.BOOLEAN
 )
 case class InsideNumericInterval(separator: String = "—|–|-") extends SimpleDistanceMeasure {
 

@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations._
 
 import java.time.temporal.ChronoUnit
 import java.time.{DateTimeException, LocalDate}
@@ -27,7 +27,12 @@ import scala.math._
   id = "date",
   categories = Array("Numeric"),
   label = "Date",
-  description = "The distance in days between two dates ('YYYY-MM-DD' format).")
+  description = "The distance in days between two dates ('YYYY-MM-DD' format)."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.UNBOUND,
+  unit = "days"
+)
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
     input1 = Array("2003-03-01"),

@@ -15,13 +15,16 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 @Plugin(
   id = "jaro",
   categories = Array("Characterbased"),
   label = "Jaro distance",
   description = "String similarity based on the Jaro distance metric."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class JaroDistanceMetric() extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = {

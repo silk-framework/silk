@@ -2,13 +2,16 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 
 @Plugin(
   id = "substringDistance",
   categories = Array("Characterbased"),
   label = "Substring comparison",
   description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class SubStringDistance(@Param("The minimum length of a possible substring match.")
                              granularity: String = "3") extends SimpleDistanceMeasure {

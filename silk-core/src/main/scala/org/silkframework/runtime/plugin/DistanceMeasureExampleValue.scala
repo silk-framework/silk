@@ -3,7 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.plugin.annotations.DistanceMeasureExample
 import org.silkframework.util.DPair
 
-case class DistanceMeasureExampleValue(description: String,
+case class DistanceMeasureExampleValue(description: Option[String],
                                        parameters: Map[String, String],
                                        inputs: DPair[Seq[String]],
                                        output: Double,
@@ -11,6 +11,23 @@ case class DistanceMeasureExampleValue(description: String,
 
   def formatted: String = {
     s"Returns $output for parameters ${format(parameters)} and input values ${format(inputs.map(format))}."
+  }
+
+  def markdownFormatted: String = {
+    val sb = new StringBuilder()
+    if (parameters.nonEmpty) {
+      sb ++= "* Parameters\n"
+      for ((param, paramValue) <- parameters) {
+        sb ++= s"  * *$param*: `$paramValue`\n"
+      }
+      sb ++= "\n"
+    }
+    sb ++= "* Input values:\n"
+    sb ++= s"  - Source: `${format(inputs.source)}`\n"
+    sb ++= s"  - Target: `${format(inputs.target)}`\n"
+    sb ++= "\n"
+    sb ++= s"* Returns: → `${output}`\n"
+    sb.toString()
   }
 
   private def format(traversable: Traversable[_]): String = {
@@ -21,11 +38,11 @@ case class DistanceMeasureExampleValue(description: String,
 
 object DistanceMeasureExampleValue {
 
-  def retrieve(transformer: Class[_]): Seq[DistanceMeasureExampleValue] = {
-    val transformExamples = transformer.getAnnotationsByType(classOf[DistanceMeasureExample])
-    for(example <- transformExamples) yield {
+  def retrieve(distanceMeasureClass: Class[_]): Seq[DistanceMeasureExampleValue] = {
+    val distanceMeasureExamples = distanceMeasureClass.getAnnotationsByType(classOf[DistanceMeasureExample])
+    for(example <- distanceMeasureExamples) yield {
       DistanceMeasureExampleValue(
-        description = example.description(),
+        description = Option(example.description()).filter(_.nonEmpty),
         parameters = retrieveParameters(example),
         inputs = DPair(example.input1(), example.input2()),
         output = example.output(),

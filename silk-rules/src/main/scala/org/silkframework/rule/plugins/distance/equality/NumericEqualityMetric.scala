@@ -2,10 +2,9 @@ package org.silkframework.rule.plugins.distance.equality
 
 import java.math.RoundingMode
 import java.text.DecimalFormat
-
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 
 @Plugin(
@@ -14,6 +13,37 @@ import org.silkframework.runtime.plugin.PluginCategories
   label = "Numeric equality",
   description = NumericEqualityMetric.description
 )
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.BOOLEAN
+)
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for equal numbers.",
+    input1 = Array("4.2"),
+    input2 = Array("4.2"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 if at least one value is not a number.",
+    input1 = Array("1"),
+    input2 = Array("one"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 0 for numbers within the configured precision.",
+    parameters = Array("precision", "0.1"),
+    input1 = Array("1.3"),
+    input2 = Array("1.35"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 for numbers outside the configured precision.",
+    parameters = Array("precision", "0.1"),
+    input1 = Array("1.3"),
+    input2 = Array("1.5"),
+    output = 1.0
+  )
+))
 case class NumericEqualityMetric(@Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")
                                  precision: Double = 0.0) extends SimpleDistanceMeasure {
   val MAX_SIGNIFICANT_DECIMAL_PLACE = 50
@@ -89,7 +119,5 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
 object NumericEqualityMetric {
   final val description = """Compares values numerically instead of their string representation as the 'String Equality' operator does.
 Allows to set the needed precision of the comparison. A value of 0.0 means that the values must represent exactly the same
-(floating point) value, values higher than that allow for a margin of tolerance. Example: With a precision of 0.1, the
-following pairs of values will be considered equal: (1.3, 1.35), (0.0, 0.9999), (0.0, -0.90001), but following pairs will NOT match:
-(1.2, 1.30001), (1.0, 1.10001), (1.0, 0.89999)."""
+(floating point) value, values higher than that allow for a margin of tolerance."""
 }

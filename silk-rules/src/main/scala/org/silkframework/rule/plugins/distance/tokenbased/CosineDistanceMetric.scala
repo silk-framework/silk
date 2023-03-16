@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 /**
  * Created by IntelliJ IDEA.
@@ -20,6 +20,9 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Tokenbased"),
   label = "Cosine",
   description = "Cosine Distance Measure."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class CosineDistanceMetric(k: Int = 3) extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, limit: Double): Double = {

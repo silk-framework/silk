@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 import org.silkframework.util.StringUtils._
 
 import scala.math._
@@ -33,7 +33,11 @@ import scala.math._
   id = "wgs84",
   categories = Array("Numeric"),
   label = "Geographical distance",
-  description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)")
+  description = "Computes the geographical distance between two points. Author: Konrad Höffner (MOLE subgroup of Research Group AKSW, University of Leipzig)"
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.UNBOUND
+)
 case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceMeasure {
   require(Set("m", "meter", "km", "kilometer").contains(unit), "Invalid unit: '" + unit + "'. Allowed units: \"m\", \"meter\", \"km\", \"kilometer\"")
 

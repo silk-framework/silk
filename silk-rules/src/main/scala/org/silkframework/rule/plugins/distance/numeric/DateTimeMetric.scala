@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
 import scala.math._
@@ -24,7 +24,12 @@ import scala.math._
   id = "dateTime",
   categories = Array("Numeric"),
   label = "DateTime",
-  description = "Distance between two date time values (xsd:dateTime format) in seconds.")
+  description = "Distance between two date time values (xsd:dateTime format) in seconds."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.UNBOUND,
+  unit = "seconds"
+)
 case class DateTimeMetric() extends SimpleDistanceMeasure {
 
   import DateTimeMetric._

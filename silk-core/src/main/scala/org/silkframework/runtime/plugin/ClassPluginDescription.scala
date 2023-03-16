@@ -14,7 +14,7 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, Param, Plugin}
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
@@ -118,7 +118,7 @@ object ClassPluginDescription {
       label = annotation.label,
       categories = annotation.categories,
       description = annotation.description.stripMargin,
-      documentation = markdownDocString + (if(markdownDocString.nonEmpty) "\n" else "") + addTransformDocumentation(pluginClass),
+      documentation = generateDocumentation(pluginClass, markdownDocString),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -130,7 +130,7 @@ object ClassPluginDescription {
       label = pluginClass.getSimpleName,
       categories = Seq(PluginCategories.uncategorized),
       description = "",
-      documentation = addTransformDocumentation(pluginClass),
+      documentation = generateDocumentation(pluginClass, ""),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -153,9 +153,18 @@ object ClassPluginDescription {
     }
   }
 
-  private def addTransformDocumentation(pluginClass: Class[_]) = {
+  private def generateDocumentation(pluginClass: Class[_], doc: String): String = {
     val sb = new StringBuilder()
+    if(doc.nonEmpty) {
+      sb.append(doc)
+      sb.append("\n")
+    }
+    addTransformDocumentation(pluginClass, sb)
+    addDistanceMeasureDocumentation(pluginClass, sb)
+    sb.toString()
+  }
 
+  private def addTransformDocumentation(pluginClass: Class[_], sb: StringBuilder): Unit = {
     val transformExamples = TransformExampleValue.retrieve(pluginClass)
     if(transformExamples.nonEmpty) {
       sb ++= "### Examples"
@@ -168,8 +177,36 @@ object ClassPluginDescription {
         sb ++= "\n\n"
       }
     }
+  }
 
-    sb.toString
+  private def addDistanceMeasureDocumentation(pluginClass: Class[_], sb: StringBuilder): Unit = {
+    val annotations = pluginClass.getAnnotationsByType(classOf[DistanceMeasurePlugin])
+    for(annotation <- annotations) {
+      if (annotation.unit().nonEmpty) {
+        sb ++= s"All distances are in ${annotation.unit()}."
+      }
+      sb ++= annotation.range().getDescription()
+      sb ++= "\n"
+    }
+
+    // Add examples
+    val distanceMeasureExamples = DistanceMeasureExampleValue.retrieve(pluginClass)
+    if (distanceMeasureExamples.nonEmpty) {
+      sb ++= "### Examples"
+      sb ++= "\n\n"
+      sb ++= "#### Notation\n\n"
+      sb ++= "List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
+      for ((example, idx) <- distanceMeasureExamples.zipWithIndex) {
+        example.description match {
+          case Some(desc) =>
+            sb ++= s"#### ${desc.stripSuffix(".")}:\n\n"
+          case None =>
+            sb ++= s"#### Example ${idx + 1}:\n\n"
+        }
+        sb ++= example.markdownFormatted
+        sb ++= "\n\n"
+      }
+    }
   }
 
   private def getConstructor[T](pluginClass: Class[T]): Constructor[T] = {

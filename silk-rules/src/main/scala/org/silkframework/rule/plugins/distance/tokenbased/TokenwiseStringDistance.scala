@@ -18,7 +18,7 @@ import java.util.regex.Pattern
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 
 /**
  * <p>
@@ -84,6 +84,9 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   categories = Array("Tokenbased"),
   label = "Token-wise distance",
   description = "Token-wise string distance using the specified metric."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class TokenwiseStringDistance(
         ignoreCase: Boolean = true,

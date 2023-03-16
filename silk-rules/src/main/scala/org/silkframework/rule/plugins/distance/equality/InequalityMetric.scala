@@ -15,13 +15,17 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 @Plugin(
   id = "inequality",
   categories = Array("Equality"),
   label = "Inequality",
-  description = "Returns success if values are not equal, failure otherwise.")
+  description = "Returns success if values are not equal, failure otherwise."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.BOOLEAN
+)
 case class InequalityMetric() extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = if (str1 == str2) 1.0 else 0.0
 }

@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 
 import scala.math.max
 
@@ -24,7 +24,11 @@ import scala.math.max
   id = "levenshtein",
   categories = Array("Characterbased"),
   label = "Normalized Levenshtein distance",
-  description = "Normalized Levenshtein distance.")
+  description = "Normalized Levenshtein distance."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
+)
 case class LevenshteinMetric(
   @Param(label = "Q-grams size", value = "The size of the q-grams to be indexed. Setting this to zero will disable indexing.", advanced = true)
   qGramsSize: Int = 2,

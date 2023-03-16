@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.util.StringUtils._
 
@@ -28,6 +28,29 @@ import scala.math.{abs, max, min}
   label = "Levenshtein distance",
   description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
 )
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.UNBOUND
+)
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for equal strings.",
+    input1 = Array("John"),
+    input2 = Array("John"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 for strings that differ by 1 edit operation.",
+    input1 = Array("John"),
+    input2 = Array("Jxhn"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 3 for strings that differ by 3 edit operations.",
+    input1 = Array("Saturday"),
+    input2 = Array("Sunday"),
+    output = 3.0
+  )
+))
 case class LevenshteinDistance(
   @Param(label = "Q-grams size", value = "The size of the q-grams to be indexed. Setting this to zero will disable indexing.", advanced = true)
   qGramsSize: Int = 2,

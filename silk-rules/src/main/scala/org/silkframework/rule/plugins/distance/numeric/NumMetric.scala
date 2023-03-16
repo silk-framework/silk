@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.distance.numeric
 import java.util.logging.Logger
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 import scala.math._
@@ -27,6 +27,9 @@ import scala.math._
   categories = Array("Numeric"),
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.UNBOUND
 )
 case class NumMetric(@Param(label = "Min index value", value = "The minimum number that is used for indexing", advanced = true)
                      minValue: Double = Double.NegativeInfinity,

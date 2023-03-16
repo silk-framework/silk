@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.distance.characterbased
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.tokenbased.JaccardDistance
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 import scala.math.{max, min}
@@ -33,6 +33,9 @@ import scala.math.{max, min}
   categories = Array("Characterbased"),
   label = "qGrams",
   description = "String similarity based on q-grams (by default q=2)."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class QGramsMetric(q: Int = 2,
                         @Param(value = "The minimum character that is used for indexing", advanced = true)

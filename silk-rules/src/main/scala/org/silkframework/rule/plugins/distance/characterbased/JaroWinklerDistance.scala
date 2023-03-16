@@ -15,13 +15,16 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 @Plugin(
   id = "jaroWinkler",
   categories = Array("Characterbased"),
   label = "Jaro-Winkler distance",
   description = "String similarity based on the Jaro-Winkler distance measure."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class JaroWinklerDistance() extends SimpleDistanceMeasure {
   // maximum prefix length to use

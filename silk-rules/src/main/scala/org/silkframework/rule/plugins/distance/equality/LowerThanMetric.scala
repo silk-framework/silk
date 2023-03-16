@@ -1,14 +1,18 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.{NonSymmetricDistanceMeasure, SimpleDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 @Plugin(
   id = "lowerThan",
   categories = Array("Equality"),
   label = "Lower than",
-  description = "Checks if the source value is lower than the target value.")
+  description = "Checks if the source value is lower than the target value."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.BOOLEAN
+)
 case class LowerThanMetric(@Param("Accept equal values")
                            orEqual: Boolean = false,
                            @Param("Per default, if both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used. Choose a more specific order for improved performance.")

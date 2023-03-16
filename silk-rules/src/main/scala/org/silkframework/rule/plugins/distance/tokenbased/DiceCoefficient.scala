@@ -16,13 +16,16 @@ package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
 
 @Plugin(
   id = "dice",
   categories = Array("Tokenbased"),
   label = "Dice coefficient",
   description = "Dice similarity coefficient."
+)
+@DistanceMeasurePlugin(
+  range = DistanceMeasureRange.NORMALIZED
 )
 case class DiceCoefficient() extends DistanceMeasure {
   override def apply(values1: Seq[String], values2: Seq[String], threshold: Double): Double = {
