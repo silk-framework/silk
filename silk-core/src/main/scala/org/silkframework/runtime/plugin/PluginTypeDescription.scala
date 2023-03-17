@@ -12,25 +12,32 @@ case class PluginTypeDescription(baseClass: Class[_], customDescription: CustomP
 
 }
 
-//TODO document
+/**
+  * Generates a custom plugin description that is specific to a given plugin type.
+  */
 trait CustomPluginDescriptionGenerator {
 
   def generate(pluginClass: Class[_]): Option[CustomPluginDescription]
 
 }
 
+/**
+  * Default plugin description generator, for plugins that do not provide a custom description.
+  */
 class NoCustomPluginDescription extends CustomPluginDescriptionGenerator {
 
   override def generate(pluginClass: Class[_]): Option[CustomPluginDescription] = None
 
 }
 
+/**
+  * Custom plugin description that is specific to a given plugin type.
+  */
 trait CustomPluginDescription {
 
   /**
-    * Generates additional documentation for a given plugin.
+    * Generates additional documentation for a particular plugin.
     */
   def generateDocumentation(sb: StringBuilder): Unit
 
 }
-
