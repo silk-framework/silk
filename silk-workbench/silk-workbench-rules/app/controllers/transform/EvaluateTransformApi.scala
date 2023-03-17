@@ -168,7 +168,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
 
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
 
     implicit val prefixes: Prefixes = project.config.prefixes
     val ruleSchema = ruleSchemaById(task, ruleId)
