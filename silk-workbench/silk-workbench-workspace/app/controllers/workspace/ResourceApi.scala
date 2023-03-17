@@ -313,15 +313,15 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     )
                     projectId: String,
                 @Parameter(
-                      name = "name",
-                      description = "The resource",
+                      name = "path",
+                      description = "The file path relative to the resource repository",
                       required = true,
                       in = ParameterIn.PATH,
                       schema = new Schema(implementation = classOf[String])
                     )
-                    resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+                    filePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(resourceName, project)
+    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(filePath, project)
       .map { task =>
         TaskLinkInfo(task.id, task.fullLabel, PluginApiCache.taskTypeByClass(task.taskType))
       }

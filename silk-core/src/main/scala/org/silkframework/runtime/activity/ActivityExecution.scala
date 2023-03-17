@@ -110,6 +110,7 @@ private class ActivityExecution[T](activity: Activity[T],
         throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
       }
     }
+    forkJoinRunner = None
     ActivityExecution.priorityThreadPool.execute(() => runActivity())
   }
 

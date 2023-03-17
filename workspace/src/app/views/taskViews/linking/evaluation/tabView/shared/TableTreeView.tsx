@@ -1,5 +1,5 @@
 import { TreeNodeInfo } from "@blueprintjs/core";
-import { IconButton, Table, TableBody, TableCell, TableRow, Tree } from "@eccenca/gui-elements";
+import { Divider, IconButton, Table, TableBody, TableCell, TableRow, Tree } from "@eccenca/gui-elements";
 import React from "react";
 
 interface TableTreeProps {
@@ -32,7 +32,8 @@ const TableTree: React.FC<TableTreeProps> = React.memo(
                                 name={!rowIsExpanded ? "toggler-caretright" : "toggler-caretdown"}
                             />
                         </TableCell>
-                        <TableCell>
+                        <TableCell colSpan={4}>
+                            <Divider width="half" alignment="center" />
                             <Tree contents={nodes} />
                         </TableCell>
                     </TableRow>
