@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
+import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure, TokenBasedDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Cosine",
   description = "Cosine Distance Measure."
 )
-case class CosineDistanceMetric(k: Int = 3) extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
+case class CosineDistanceMetric(k: Int = 3) extends SingleValueDistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure {
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     val items1 = str1.split(";")
     val items2 = str2.split(";")

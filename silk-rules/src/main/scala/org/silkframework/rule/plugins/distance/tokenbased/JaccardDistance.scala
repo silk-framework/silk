@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.{DistanceMeasure, NormalizedDistanceMeasure}
+import org.silkframework.rule.similarity.{DistanceMeasure, NormalizedDistanceMeasure, TokenBasedDistanceMeasure}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Plugin}
 
@@ -51,7 +51,7 @@ import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, Dis
     output = 2.0 / 3.0
   )
 ))
-case class JaccardDistance() extends DistanceMeasure with NormalizedDistanceMeasure {
+case class JaccardDistance() extends DistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure {
 
   override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     val set1 = values1.toSet
