@@ -194,13 +194,10 @@ private class ActivityExecution[T](activity: Activity[T],
         }
       } catch {
         case ex: Throwable =>
-          Thread.interrupted()
           StatusLock.synchronized {
             status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
             if(!activity.wasCancelled()) {
-              throw new RuntimeException("XXXXXXXXXXXXX", ex)
-            } else {
-              //Thread.interrupted()
+              throw ex
             }
           }
       } finally {
