@@ -14,18 +14,19 @@
 
 package org.silkframework.runtime.plugin.annotations;
 
+import org.silkframework.runtime.plugin.*;
+
 import java.lang.annotation.*;
 
+/**
+ * Annotates the base class of a plugin type.
+ */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface DistanceMeasurePlugin {
+public @interface PluginType {
 
-  DistanceMeasureRange range();
+  /** Optional custom metadata about this plugin. */
+  Class<? extends CustomPluginDescriptionGenerator> customDescription() default NoCustomPluginDescription.class;
 
-  /**
-   * The unit of the measured distance (e.g., 'days').
-   * Empty, if the distance is unitless.
-   */
-  String unit() default "";
 }

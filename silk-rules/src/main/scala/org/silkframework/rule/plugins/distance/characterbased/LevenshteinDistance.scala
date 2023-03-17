@@ -15,8 +15,8 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.util.StringUtils._
 
@@ -27,9 +27,6 @@ import scala.math.{abs, max, min}
   categories = Array("Characterbased", PluginCategories.recommended),
   label = "Levenshtein distance",
   description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
-)
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.UNBOUND
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -57,7 +54,7 @@ case class LevenshteinDistance(
   @Param(value = "The minimum character that is used for indexing", advanced = true)
   minChar: Char = '0',
   @Param(value = "The maximum character that is used for indexing", advanced = true)
-  maxChar: Char = 'z') extends SimpleDistanceMeasure {
+  maxChar: Char = 'z') extends SingleValueDistanceMeasure {
 
   assert(qGramsSize >= 0, "Q-grams size cannot be negative")
   assert(qGramsSize <= 4, "Q-grams size is not allowed to be larger than 4")

@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.numeric
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
+import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "insideNumericInterval",
@@ -9,10 +9,7 @@ import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, Dist
   categories = Array("Numeric"),
   description = "Checks if a number is contained inside a numeric interval, such as '1900 - 2000'."
 )
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.BOOLEAN
-)
-case class InsideNumericInterval(separator: String = "—|–|-") extends SimpleDistanceMeasure {
+case class InsideNumericInterval(separator: String = "—|–|-") extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
 
   override def evaluate(value1: String, value2: String, limit: Double): Double = {
     (parseInterval(value1), parseInterval(value2)) match {

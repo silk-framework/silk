@@ -19,9 +19,10 @@ import org.silkframework.entity.Index
 import scala.math.min
 
 /**
- * A simple similarity measure, which compares pairs of values.
+ * A similarity measure that compares single values (as opposed to sequences of values).
+ * If multiple values are provided, all values are compared and the lowest distance is returned.
  */
-abstract class SimpleDistanceMeasure extends DistanceMeasure {
+abstract class SingleValueDistanceMeasure extends DistanceMeasure {
 
   /**
    * Computes the distance between two strings.

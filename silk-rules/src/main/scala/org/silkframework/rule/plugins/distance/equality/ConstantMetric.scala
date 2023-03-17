@@ -15,16 +15,13 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "constantDistance",
   categories = Array("Equality"),
   label = "Constant similarity value",
   description = "Always returns a constant similarity value."
-)
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.UNBOUND
 )
 case class ConstantMetric(value: Double = 1.0) extends DistanceMeasure {
   override def apply(values1: Seq[String], values2: Seq[String], limit: Double) = {

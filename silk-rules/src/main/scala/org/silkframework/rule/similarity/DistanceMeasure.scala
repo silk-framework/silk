@@ -15,8 +15,12 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.entity.Index
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
+@PluginType(
+  customDescription = classOf[DistanceMeasureDescriptionGenerator]
+)
 trait DistanceMeasure extends AnyPlugin {
 
   /**

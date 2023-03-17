@@ -3,8 +3,8 @@ package org.silkframework.rule.plugins.distance.equality
 import java.text.Collator
 import java.util.Locale
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
+import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Equality Metric with some fuzziness regarding case, accents, diereses, etc.
@@ -21,10 +21,7 @@ import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, Dist
   label = "Relaxed equality",
   description = "Return success if strings are equal, failure otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal."
 )
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.BOOLEAN
-)
-class RelaxedEqualityMetric extends SimpleDistanceMeasure {
+class RelaxedEqualityMetric extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
 
   val collator = {
     //Collator is locale-specific, but finding the actual differences was aborted without success after some time

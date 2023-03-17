@@ -1,6 +1,6 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
@@ -34,6 +34,9 @@ trait PluginDescription[+T] {
 
   /** The concrete plugin class  */
   def pluginClass: Class[_ <: T]
+
+  /** The plugin types for this plugin. Ideally just one. */
+  val pluginTypes: Seq[PluginTypeDescription]
 
   /**
     * Creates an instance of this plugin with the given parameters.

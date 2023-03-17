@@ -16,7 +16,7 @@ package org.silkframework.plugins.spatial.relation
 
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils._
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 
@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Spatial"),
   label = "Relate",
   description = "Computes every relation from DE-9IM between two geometries.")
-case class RelateMetric(blockingParameter: Double = 1.0, relation: String = "") extends SimpleDistanceMeasure {
+case class RelateMetric(blockingParameter: Double = 1.0, relation: String = "") extends SingleValueDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateRelation(str1, str2, limit, relation)

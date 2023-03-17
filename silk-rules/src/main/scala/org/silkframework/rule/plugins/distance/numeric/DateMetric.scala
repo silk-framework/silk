@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations._
 
 import java.time.temporal.ChronoUnit
@@ -28,10 +28,6 @@ import scala.math._
   categories = Array("Numeric"),
   label = "Date",
   description = "The distance in days between two dates ('YYYY-MM-DD' format)."
-)
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.UNBOUND,
-  unit = "days"
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -93,7 +89,7 @@ import scala.math._
 case class DateMetric(
   @Param("If true, no distance value will be generated if months or days are missing (e.g., 2019-11). If false, missing month or day fields will default to 1.")
   requireMonthAndDay: Boolean = false
-  ) extends SimpleDistanceMeasure {
+  ) extends SingleValueDistanceMeasure {
 
   import DateMetric._
 

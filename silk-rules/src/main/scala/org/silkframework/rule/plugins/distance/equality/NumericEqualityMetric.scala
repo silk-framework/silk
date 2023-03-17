@@ -3,8 +3,8 @@ package org.silkframework.rule.plugins.distance.equality
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, DistanceMeasurePlugin, DistanceMeasureRange, Param, Plugin}
+import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 
 @Plugin(
@@ -12,9 +12,6 @@ import org.silkframework.runtime.plugin.PluginCategories
   categories = Array("Equality", PluginCategories.recommended),
   label = "Numeric equality",
   description = NumericEqualityMetric.description
-)
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.BOOLEAN
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
@@ -45,7 +42,8 @@ import org.silkframework.runtime.plugin.PluginCategories
   )
 ))
 case class NumericEqualityMetric(@Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")
-                                 precision: Double = 0.0) extends SimpleDistanceMeasure {
+                                 precision: Double = 0.0) extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
+
   val MAX_SIGNIFICANT_DECIMAL_PLACE = 50
 
   if(precision >= 1.0 || precision < 0.0) {

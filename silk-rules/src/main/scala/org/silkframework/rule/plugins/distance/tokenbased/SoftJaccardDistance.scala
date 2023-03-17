@@ -16,8 +16,8 @@ package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
-import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
+import org.silkframework.rule.similarity.{DistanceMeasure, NormalizedDistanceMeasure}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "softjaccard",
@@ -25,10 +25,7 @@ import org.silkframework.runtime.plugin.annotations.{DistanceMeasurePlugin, Dist
   label = "Soft Jaccard",
   description = "Soft Jaccard similarity coefficient. Same as Jaccard distance but values within an levenhstein distance of 'maxDistance' are considered equivalent."
 )
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.NORMALIZED
-)
-case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
+case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure with NormalizedDistanceMeasure {
 
   private val levenshtein = LevenshteinDistance()
 

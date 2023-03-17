@@ -15,9 +15,9 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, DistanceMeasurePlugin, DistanceMeasureRange, Plugin}
+import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Plugin}
 
 @Plugin(
   id = "equality",
@@ -40,10 +40,7 @@ import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, Dis
     output = 1.0
   )
 ))
-@DistanceMeasurePlugin(
-  range = DistanceMeasureRange.BOOLEAN
-)
-case class EqualityMetric() extends SimpleDistanceMeasure {
+case class EqualityMetric() extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
 
   override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     if(values2.size == 1) {
