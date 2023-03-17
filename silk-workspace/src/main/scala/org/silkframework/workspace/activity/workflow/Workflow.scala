@@ -1,12 +1,14 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -46,7 +48,8 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   }
 
   def validate(): AllReplaceableDatasets = {
-    markedVariableDatasets()
+    // We do not have the project here, so we can only validate the replaceable datasets of this workflow and not of nested workflows
+    validateAndGetReplaceableDatasetsOfCurrentWorkflow()
   }
   validate()
 
@@ -136,14 +139,13 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     workflowNodeMap
   }
 
-  /** Returns all replaceable input and output datasets that exist in the workflow and were marked as replaceable dataset. */
-  def markedVariableDatasets(): AllReplaceableDatasets = {
-    val workflowDatasets = datasets.map(_.task.toString).toSet
+  // Returns and validates the replaceable datasets of this workflow that are actually in use, others are ignored.
+  private def validateAndGetReplaceableDatasetsOfCurrentWorkflow(): AllReplaceableDatasets = {
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
     val workflowDatasetInputs = operators.flatMap(_.inputs.flatMap(datasetNodeMap.get)).distinct.toSet
     val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
-    if(replaceableInputUsedAsOutput.nonEmpty) {
+    if (replaceableInputUsedAsOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
     }
     val replaceableOutputUsedAsInput = workflowDatasetInputs.intersect(replaceableOutputs.taskIds.toSet)
@@ -156,12 +158,24 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     if (bothInputAndOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets must not be marked as replaceable input and output simultaneously! Affected dataset: " + bothInputAndOutput.mkString(", "))
     }
+    val workflowDatasets = datasets.map(_.task.toString).toSet
     val actualVariableInputs = replaceableInputs.filter(id => workflowDatasets.contains(id) && workflowDatasetInputs.contains(id))
     val actualVariableOutputs = replaceableOutputs.filter(id => workflowDatasets.contains(id) && workflowDatasetOutputs.contains(id))
-    AllReplaceableDatasets(
+    AllReplaceableDatasets(actualVariableInputs, actualVariableOutputs)
+  }
+
+  /** Returns all replaceable input and output datasets that exist in the workflow or a nested workflows and were marked as replaceable dataset. */
+  def markedReplaceableDatasets(project: Project)
+                               (implicit userContext: UserContext): AllReplaceableDatasets = {
+    val AllReplaceableDatasets(actualVariableInputs, actualVariableOutputs) = validateAndGetReplaceableDatasetsOfCurrentWorkflow()
+    var result = AllReplaceableDatasets(
       dataSources = actualVariableInputs,
       sinks = actualVariableOutputs
     )
+    for (nestedWorkflow <- nestedWorkflows(project)) {
+      result = result ++ nestedWorkflow.markedReplaceableDatasets(project)
+    }
+    result
   }
 
   /**
@@ -188,7 +202,11 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     if (bothInAndOut.nonEmpty) {
       throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
     }
-    AllReplaceableDatasets(variableDatasetsUsedInInput.distinct, variableDatasetsUsedInOutput.distinct)
+    var result = AllReplaceableDatasets(variableDatasetsUsedInInput.distinct, variableDatasetsUsedInOutput.distinct)
+    for (nestedWorkflow <- nestedWorkflows(project)) {
+      result = result ++ nestedWorkflow.legacyVariableDatasets(project)
+    }
+    result
   }
 
   /** Returns all Dataset tasks that are used as input in the workflow */
@@ -200,12 +218,27 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
-  /** Legacy and marked replaceable datasets combined. */
+  private def nestedWorkflows(project: Project)
+                             (implicit userContext: UserContext): Seq[Workflow] = {
+    operators
+      .map(taskId => project.anyTask(taskId.task))
+      .filter(_.data.isInstanceOf[Workflow])
+      .map(_.data.asInstanceOf[Workflow])
+  }
+
+  /** Legacy and marked replaceable datasets combined. This also adds replaceable datasets from nested workflows. */
   def allReplaceableDatasets(project: Project)
                             (implicit userContext: UserContext): AllReplaceableDatasets = {
     val legacy = legacyVariableDatasets(project)
-    val marked = markedVariableDatasets()
-    AllReplaceableDatasets(legacy.dataSources ++ marked.dataSources, legacy.sinks ++ marked.sinks)
+    val marked = markedReplaceableDatasets(project)
+    val all = legacy ++ marked
+    val inAndOut = all.dataSources.intersect(all.sinks)
+    if(inAndOut.nonEmpty) {
+      val datasetLabels = inAndOut.map(id => project.task[GenericDatasetSpec](id).fullLabel).sorted
+      throw new ValidationException("Following replaceable/variable datasets are used as input and output at " +
+        "the same time in the workflow and nested workflows: " + datasetLabels.mkString(","))
+    }
+    all
   }
 
   /** Returns all Dataset tasks that are used as outputs in the workflow */
@@ -332,7 +365,14 @@ object TaskIdentifierParameter {
 }
 
 /** All IDs of replaceable datasets in a workflow */
-case class AllReplaceableDatasets(dataSources: Seq[String], sinks: Seq[String])
+case class AllReplaceableDatasets(dataSources: Seq[String], sinks: Seq[String]) {
+  def ++(other: AllReplaceableDatasets): AllReplaceableDatasets = {
+    AllReplaceableDatasets(
+      (dataSources ++ other.dataSources).distinct,
+      (sinks ++ other.sinks).distinct
+    )
+  }
+}
 
 /** The workflow dependency graph */
 case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
