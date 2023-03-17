@@ -110,6 +110,7 @@ private class ActivityExecution[T](activity: Activity[T],
         throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
       }
     }
+    forkJoinRunner = None
     ActivityExecution.priorityThreadPool.execute(() => runActivity())
   }
 
@@ -193,10 +194,13 @@ private class ActivityExecution[T](activity: Activity[T],
         }
       } catch {
         case ex: Throwable =>
+          Thread.interrupted()
           StatusLock.synchronized {
             status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
             if(!activity.wasCancelled()) {
-              throw ex
+              throw new RuntimeException("XXXXXXXXXXXXX", ex)
+            } else {
+              //Thread.interrupted()
             }
           }
       } finally {
