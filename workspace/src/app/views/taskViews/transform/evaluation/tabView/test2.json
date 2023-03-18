@@ -1,0 +1,295 @@
+{
+    "rules": [
+        {
+            "type": "complex",
+            "id": "type",
+            "operator": {
+                "type": "transformInput",
+                "id": "generateType",
+                "function": "constantUri",
+                "inputs": [],
+                "parameters": {
+                    "value": "fibo-fnd-tim-tim:Day"
+                }
+            },
+            "sourcePaths": [],
+            "metadata": {},
+            "layout": {
+                "nodePositions": {}
+            },
+            "uiAnnotations": {
+                "stickyNotes": []
+            },
+            "mappingTarget": {
+                "uri": "rdf:type",
+                "valueType": {
+                    "nodeType": "UriValueType"
+                },
+                "isBackwardProperty": false,
+                "isAttribute": false
+            }
+        },
+        {
+            "type": "complex",
+            "id": "direct",
+            "operator": {
+                "type": "pathInput",
+                "id": "direct",
+                "path": "name"
+            },
+            "sourcePaths": ["name"],
+            "metadata": {},
+            "layout": {
+                "nodePositions": {}
+            },
+            "uiAnnotations": {
+                "stickyNotes": []
+            },
+            "mappingTarget": {
+                "uri": "fibo-be-lex-nam:hasName",
+                "valueType": {
+                    "nodeType": "StringValueType"
+                },
+                "isBackwardProperty": false,
+                "isAttribute": false
+            }
+        },
+        {
+            "type": "complex",
+            "id": "direct1",
+            "operator": {
+                "type": "pathInput",
+                "id": "direct1",
+                "path": "customerId"
+            },
+            "sourcePaths": ["customerId"],
+            "metadata": {},
+            "layout": {
+                "nodePositions": {}
+            },
+            "uiAnnotations": {
+                "stickyNotes": []
+            },
+            "mappingTarget": {
+                "uri": "fibo-fnd-acc-dbt:identity",
+                "valueType": {
+                    "nodeType": "StringValueType"
+                },
+                "isBackwardProperty": false,
+                "isAttribute": false
+            }
+        }
+    ],
+    "evaluatedEntities": [
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#1"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Rosalee Bauch"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["0"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#2"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Adele Bogisich"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["1"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#3"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Wilmer Prohaska"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["2"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#4"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Abner Willms"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["3"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#5"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Rosalinda Raynor"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["4"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#6"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Adele Bartell"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["5"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#7"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Abdullah Prosacco"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["6"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#8"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Rodrick Reinger"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["7"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#9"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Abdul Quitzon"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["8"],
+                    "error": null
+                }
+            ]
+        },
+        {
+            "uris": ["urn:instance:1505301396771_mega_customerscsv#10"],
+            "values": [
+                {
+                    "operatorId": "generateType",
+                    "values": ["http://spec.edmcouncil.org/fibo/red/fnd/date-time/date-time/Day"],
+                    "error": null,
+                    "children": []
+                },
+                {
+                    "operatorId": "direct",
+                    "values": ["Abigayle Lockman"],
+                    "error": null
+                },
+                {
+                    "operatorId": "direct1",
+                    "values": ["9"],
+                    "error": null
+                }
+            ]
+        }
+    ]
+}

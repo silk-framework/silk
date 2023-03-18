@@ -1,4 +1,4 @@
-interface EvaluatedEntityOperator {
+export interface EvaluatedEntityOperator {
     operatorId: string;
     values: string[];
     error?: string;
@@ -12,7 +12,7 @@ interface EvaluatedEntity {
 
 type ruleOperatorTypes = "transformInput" | "pathInput";
 
-interface EvaluatedRule {
+export interface EvaluatedURIRule {
     type: string;
     id: string;
     operator: {
@@ -20,7 +20,7 @@ interface EvaluatedRule {
         id: string;
         function?: string;
         path?: string;
-        inputs: Array<EvaluatedRule["operator"]>;
+        inputs: Array<EvaluatedURIRule["operator"]>;
         parameters: {
             glue?: string;
             missingValuesAsEmptyStrings?: string;
@@ -29,7 +29,15 @@ interface EvaluatedRule {
     };
 }
 
+export interface EvaluatedComplexRule extends EvaluatedURIRule {
+    mappingTarget: {
+        uri: string;
+        valueType: {
+            nodeType: string;
+        };
+    };
+}
 export interface EvaluatedRuleEntityResult {
-    rules: EvaluatedRule[];
+    rules: Array<EvaluatedURIRule | EvaluatedComplexRule>;
     evaluatedEntities: EvaluatedEntity[];
 }
