@@ -9,23 +9,25 @@ import {
     TableRow,
     TableContainer,
     TableExpandHeader,
-    TableExpandRow,
-    TableCell,
     Spinner,
     Notification,
     Spacing,
     Section,
     TreeNodeInfo,
-    TableExpandedRow,
-    IconButton,
-    Tree,
+    TagList,
+    Tag,
 } from "@eccenca/gui-elements";
 import { DataTableCustomRenderProps } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import MappingsTree from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
 import { EvaluatedComplexRule, EvaluatedEntityOperator, EvaluatedRuleEntityResult, EvaluatedURIRule } from "./typing";
+import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { IPluginDetails } from "@ducks/common/typings";
+import { operatorInputMapping } from "../../../../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationRow";
+import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;
@@ -39,9 +41,10 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     startFullScreen,
 }) => {
     const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>();
-    const [expandedRows] = React.useState<Map<number, number>>(new Map());
+    const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>("root");
+    const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
     const nodes = React.useRef<TreeNodeInfo[][]>([]);
     const [t] = useTranslation();
 
@@ -49,9 +52,11 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         (async () => {
             try {
                 setLoading(true);
-                const results = await (
-                    await getEvaluatedEntities(projectId, transformTaskId, currentRuleId, 10, false)
-                ).data;
+                const [results, plugins] = await Promise.all([
+                    (await getEvaluatedEntities(projectId, transformTaskId, currentRuleId, 10, false)).data,
+                    Object.values((await requestRuleOperatorPluginDetails(false)).data),
+                ]);
+                operatorPlugins.current = plugins;
                 evaluatedEntityResults.current = results;
             } catch (err) {
             } finally {
@@ -72,7 +77,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     ]).current;
 
     React.useEffect(() => {
-        if (evaluatedEntityResults.current) {
+        if (evaluatedEntityResults.current && operatorPlugins.current?.length) {
             const { rules, evaluatedEntities } = evaluatedEntityResults.current;
             nodes.current = evaluatedEntities.map((entity) =>
                 entity.values.map((e) => {
@@ -86,25 +91,29 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                             hasCaret: false,
                             isExpanded: true,
                             label: (
-                                <span>
-                                    <>
-                                        {rule.type} ({rule.id ?? ""})
-                                    </>
-                                    <Spacing vertical size="tiny" />
-                                    <>
+                                <OperatorLabel
+                                    tagPluginType={operatorInputMapping[rule.type]}
+                                    operator={rule}
+                                    operatorPlugins={operatorPlugins.current}
+                                >
+                                    <TagList>
                                         {values.map((v, i) => (
-                                            <span key={i}>{v}</span>
+                                            <Tag key={i} round emphasis="stronger" interactive>
+                                                {v}
+                                            </Tag>
                                         ))}
-                                    </>
-                                </span>
+                                    </TagList>
+                                </OperatorLabel>
                             ),
                         };
                     };
                     let treeNodeInfo = {
-                        hasCaret: false,
+                        hasCaret: true,
                         id: matchingRuleType.id,
                         isExpanded: true,
-                        label: <p>{(matchingRuleType as EvaluatedComplexRule)?.mappingTarget?.uri ?? "URI"}</p>,
+                        label: (
+                            <strong>{(matchingRuleType as EvaluatedComplexRule)?.mappingTarget?.uri ?? "URI"}</strong>
+                        ),
                         childNodes: [],
                     } as TreeNodeInfo;
 
@@ -130,7 +139,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                 })
             );
         }
-    }, [evaluatedEntityResults.current]);
+    }, [evaluatedEntityResults.current, operatorPlugins.current]);
 
     const rows = React.useMemo(
         () =>
@@ -141,7 +150,9 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         [evaluatedEntityResults.current]
     );
 
-    const handleRowExpansion = React.useCallback((rowIdx?: number) => () => {}, []);
+    const expandAllRows = React.useCallback(() => {
+        setAllRowsExpanded((e) => !e);
+    }, []);
     /**
      * todo ui issues
      *  1. overflowing ui vertically and horizontally
@@ -149,7 +160,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
      *  3. table needs padding to the right
      */
     return (
-        <Section>
+        <Section className="diapp-linking-evaluation">
             <Grid useAbsoluteSpace className="transform-evaluation">
                 <GridRow fullHeight>
                     <GridColumn small>
@@ -167,10 +178,10 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                         <TableRow>
                                             <TableExpandHeader
                                                 enableToggle
-                                                isExpanded={expandedRows.size === rows.length}
-                                                onExpand={handleRowExpansion()}
+                                                isExpanded={allRowsExpanded}
+                                                onExpand={expandAllRows}
                                                 togglerText={
-                                                    expandedRows.size === rows.length
+                                                    allRowsExpanded
                                                         ? t("linkingEvaluationTabView.table.header.collapseRows")
                                                         : t("linkingEvaluationTabView.table.header.expandRows")
                                                 }
@@ -178,62 +189,25 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                             <TableHeader>{headers[0].header}</TableHeader>
                                         </TableRow>
                                     </TableHead>
-                                    {(!loading && rows.length && (
-                                        <TableBody>
-                                            {rows.map((rowItem, rowIdx) => {
-                                                return (
-                                                    <React.Fragment key={rowItem.id}>
-                                                        <TableExpandRow
-                                                            isExpanded={true}
-                                                            onExpand={handleRowExpansion(rowIdx)}
-                                                            togglerText={
-                                                                expandedRows.has(rowIdx)
-                                                                    ? t("linkingEvaluationTabView.table.collapseRow")
-                                                                    : t("linkingEvaluationTabView.table.expandRow")
-                                                            }
-                                                        >
-                                                            <TableCell>{rowItem.uri}</TableCell>
-                                                        </TableExpandRow>
-                                                        <TableExpandedRow
-                                                            colSpan={headers.length * 2}
-                                                            className="linking-table__expanded-row-container"
-                                                        >
-                                                            <Table size="compact" hasDivider={false} colorless>
-                                                                <TableBody>
-                                                                    <TableRow>
-                                                                        <TableCell
-                                                                            style={{
-                                                                                paddingLeft: "0",
-                                                                                paddingRight: "0",
-                                                                            }}
-                                                                        >
-                                                                            <IconButton
-                                                                                data-test-id="tree-expand-item-btn"
-                                                                                id={`tree-btn-${
-                                                                                    true ? "expanded" : "collapsed"
-                                                                                }`}
-                                                                                onClick={() => {}}
-                                                                                name={
-                                                                                    true
-                                                                                        ? "toggler-caretright"
-                                                                                        : "toggler-caretdown"
-                                                                                }
-                                                                            />
-                                                                        </TableCell>
-                                                                        <TableCell>
-                                                                            <Tree
-                                                                                contents={nodes.current[rowIdx] ?? []}
-                                                                            />
-                                                                        </TableCell>
-                                                                    </TableRow>
-                                                                </TableBody>
-                                                            </Table>
-                                                        </TableExpandedRow>
-                                                    </React.Fragment>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    )) ||
+                                    {(!loading &&
+                                        rows.length &&
+                                        evaluatedEntityResults.current &&
+                                        evaluatedEntityResults.current.evaluatedEntities.length && (
+                                            <TableBody>
+                                                {rows.map((rowItem, rowIdx) => (
+                                                    <TransformEvaluationTabRow
+                                                        rowExpandedByParent={allRowsExpanded}
+                                                        rowItem={rowItem}
+                                                        colSpan={headers.length * 2}
+                                                        operatorPlugins={operatorPlugins.current}
+                                                        entity={
+                                                            evaluatedEntityResults.current!.evaluatedEntities[rowIdx]
+                                                        }
+                                                        rules={evaluatedEntityResults.current!.rules}
+                                                    />
+                                                ))}
+                                            </TableBody>
+                                        )) ||
                                         (loading && <Spinner size="small" />) || (
                                             <>
                                                 <Spacing />

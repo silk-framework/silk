@@ -2,13 +2,12 @@ import React from "react";
 import { TreeNodeInfo } from "@blueprintjs/core";
 import { EvaluationLinkInputValue, HoveredValuedType, LinkingEvaluationResult, ReferenceLinkType } from "./typings";
 import { useTranslation } from "react-i18next";
-import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
-import { getOperatorLabel, getParentNodes } from "./LinkingEvaluationViewUtils";
+import { getParentNodes } from "./LinkingEvaluationViewUtils";
 import { IAggregationOperator, ISimilarityOperator } from "../../linking.types";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { PropertyBox } from "../../activeLearning/components/PropertyBox";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
-import TableTree from "./shared/TableTreeView";
+import TableTree from "../../../shared/evaluations/TableTreeView";
 import { IPluginDetails } from "@ducks/common/typings";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
 
@@ -26,8 +25,8 @@ import {
     TableExpandRow,
     TableRow,
     Tag,
-    TagList,
 } from "@eccenca/gui-elements";
+import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 
 interface ExpandedEvaluationRowProps {
     rowIdx: number;
@@ -51,10 +50,10 @@ interface ExpandedEvaluationRowProps {
     evaluationMap?: Map<string, EvaluationResultType[number]>;
 }
 
-const operatorInputMapping = {
+export const operatorInputMapping = {
     transformInput: "Transform",
     pathInput: "Input",
-};
+} as const;
 
 const linkStateButtons = [
     { icon: "state-confirmed", hasStateSuccess: true, linkType: "positive", tooltip: "Confirm" },
@@ -150,13 +149,13 @@ export const LinkingEvaluationRow = React.memo(
                 isExpanded: operatorTreeExpansion.expanded,
                 hasCaret: false,
                 label: (
-                    <span>
-                        <Tag backgroundColor={tagColor(operatorNode.type)}>
-                            {getOperatorLabel(operatorNode, operatorPlugins)}
-                        </Tag>
-                        <Spacing vertical size="tiny" />
+                    <OperatorLabel
+                        tagPluginType={operatorNode.type}
+                        operator={operatorNode}
+                        operatorPlugins={operatorPlugins}
+                    >
                         {getOperatorConfidence(operatorNode.id)}
-                    </span>
+                    </OperatorLabel>
                 ),
                 childNodes: [],
             };
@@ -175,13 +174,13 @@ export const LinkingEvaluationRow = React.memo(
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <span>
-                                    <Tag backgroundColor={tagColor(nodeInput.type)}>
-                                        {getOperatorLabel(nodeInput, operatorPlugins)}
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
+                                <OperatorLabel
+                                    tagPluginType={nodeInput.type}
+                                    operator={nodeInput}
+                                    operatorPlugins={operatorPlugins}
+                                >
                                     {getOperatorConfidence(nodeInput.id)}
-                                </span>
+                                </OperatorLabel>
                             ),
                             childNodes: [],
                         });
@@ -195,24 +194,20 @@ export const LinkingEvaluationRow = React.memo(
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <TagList>
-                                    <Tag
-                                        key="pathinput"
-                                        backgroundColor={
-                                            tagColor(
-                                                node[inputPath].type === "pathInput"
-                                                    ? inputPathCategory[inputPath]
-                                                    : operatorInputMapping[node[inputPath].type]
-                                            ) as string
-                                        }
-                                    >
-                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
-                                    </Tag>
+                                <OperatorLabel
+                                    tagPluginType={
+                                        node[inputPath].type === "pathInput"
+                                            ? inputPathCategory[inputPath]
+                                            : operatorInputMapping[node[inputPath].type]
+                                    }
+                                    operator={node[inputPath]}
+                                    operatorPlugins={operatorPlugins}
+                                >
                                     {getLinkValues(node[inputPath].id, rowIdx, treeInfo, {
                                         path: node[inputPath].path ?? "",
                                         isSourceEntity,
                                     })}
-                                </TagList>
+                                </OperatorLabel>
                             ),
                             childNodes: [],
                         };
@@ -247,11 +242,9 @@ export const LinkingEvaluationRow = React.memo(
                           isExpanded: true,
                           hasCaret: false,
                           label: (
-                              <span>
-                                  <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
-                                  <Spacing vertical size="tiny" />
+                              <OperatorLabel tagPluginType={i.type} operator={i} operatorPlugins={operatorPlugins}>
                                   {getOperatorConfidence(i.id)}
-                              </span>
+                              </OperatorLabel>
                           ),
                           childNodes: [],
                       });
@@ -275,15 +268,12 @@ export const LinkingEvaluationRow = React.memo(
                     hasCaret: false,
                     isExpanded: true,
                     label: (
-                        <TagList>
-                            <Tag key="input" backgroundColor={tagColor(tagInputTag) as string}>
-                                {getOperatorLabel(input, operatorPlugins)}
-                            </Tag>
+                        <OperatorLabel tagPluginType={tagInputTag} operator={input} operatorPlugins={operatorPlugins}>
                             {getLinkValues(input.id, index, parentTree, {
                                 path: input.path ?? "",
                                 isSourceEntity,
                             })}
-                        </TagList>
+                        </OperatorLabel>
                     ),
                 };
                 tree.childNodes = [...(tree?.childNodes ?? []), newChild];
@@ -296,15 +286,16 @@ export const LinkingEvaluationRow = React.memo(
                     hasCaret: false,
                     isExpanded: true,
                     label: (
-                        <TagList>
-                            <Tag key="operator" backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
-                                {getOperatorLabel(input, operatorPlugins)}
-                            </Tag>
+                        <OperatorLabel
+                            tagPluginType={operatorInputMapping[input.type]}
+                            operator={input}
+                            operatorPlugins={operatorPlugins}
+                        >
                             {getLinkValues(input.id, index, parentTree, {
                                 path: input.path ?? "",
                                 isSourceEntity,
                             })}
-                        </TagList>
+                        </OperatorLabel>
                     ),
                 };
                 tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];

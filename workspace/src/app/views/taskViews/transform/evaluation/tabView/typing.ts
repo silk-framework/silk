@@ -5,7 +5,7 @@ export interface EvaluatedEntityOperator {
     children: EvaluatedEntityOperator[];
 }
 
-interface EvaluatedEntity {
+export interface EvaluatedEntity {
     uris: string[];
     values: EvaluatedEntityOperator[];
 }
