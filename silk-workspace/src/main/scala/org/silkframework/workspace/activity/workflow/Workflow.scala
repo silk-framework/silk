@@ -221,7 +221,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   private def nestedWorkflows(project: Project)
                              (implicit userContext: UserContext): Seq[Workflow] = {
     operators
-      .map(taskId => project.anyTask(taskId.task))
+      .map(op => project.anyTask(op.task))
       .filter(_.data.isInstanceOf[Workflow])
       .map(_.data.asInstanceOf[Workflow])
   }
