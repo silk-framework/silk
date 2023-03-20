@@ -84,7 +84,7 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
         return (
             <Toolbar>
                 <ToolbarSection>
-                    <Spinner position={"local"} stroke={"thin"} />
+                    <Spinner position={"local"} stroke={"thin"} delay={10} />
                 </ToolbarSection>
                 <ToolbarSection canGrow={true}></ToolbarSection>
             </Toolbar>

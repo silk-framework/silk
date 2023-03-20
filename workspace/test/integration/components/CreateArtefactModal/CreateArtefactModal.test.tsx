@@ -260,13 +260,13 @@ describe("Task creation widget", () => {
     it("should show validation errors for an unfinished form when clicking 'Create'", async () => {
         const { wrapper } = await pluginCreationDialogWrapper();
         clickCreate(wrapper);
-        await expectValidationErrors(wrapper, 3);
+        await expectValidationErrors(wrapper, 6);
         // Enter valid value for int parameter
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
-        await expectValidationErrors(wrapper, 2);
+        await expectValidationErrors(wrapper, 4);
         // Enter invalid value for int parameter
         changeValue(findSingleElement(wrapper, "#intParam"), "abc");
-        await expectValidationErrors(wrapper, 3);
+        await expectValidationErrors(wrapper, 6);
     });
 
     it("should send the correct request when clicking 'Create' on a valid form", async () => {

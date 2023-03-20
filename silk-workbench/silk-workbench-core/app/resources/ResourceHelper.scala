@@ -32,9 +32,12 @@ object ResourceHelper {
   }
 
   /** Find all tasks that depend on a resource. */
-  def tasksDependingOnResource(resourceName: String, project: Project)
+  def tasksDependingOnResource(resourcePath: String, project: Project)
                               (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    val p = project.resources.getInPath(resourcePath)
     project.allTasks
-      .filter(_.referencedResources.map(_.name).contains(resourceName))
+      .filter(
+        _.referencedResources.exists(ref =>
+          ref.path == p.path))
   }
 }
