@@ -111,16 +111,15 @@ function TargetVocabularyRadioMenu({ selectionConfig, onChange }: ITargetVocabul
         onChange(item);
     };
     return (
-        <FieldItemRow>
+        <>
             {selectionConfig.staticEntries.map(({ label, value }) => (
-                <FieldItem key={value}>
-                    <RadioButton
-                        checked={!selectedItem.multiSelection && selectedItem.staticValue === value}
-                        label={label}
-                        onChange={() => handleChange({ multiSelection: false, staticValue: value })}
-                        value={value}
-                    />
-                </FieldItem>
+                <RadioButton
+                    key={value}
+                    checked={!selectedItem.multiSelection && selectedItem.staticValue === value}
+                    label={label}
+                    onChange={() => handleChange({ multiSelection: false, staticValue: value })}
+                    value={value}
+                />
             ))}
             {selectionConfig.multiSelection && (
                 <RadioButton
@@ -130,6 +129,6 @@ function TargetVocabularyRadioMenu({ selectionConfig, onChange }: ITargetVocabul
                     value={"__multi_selection__"}
                 />
             )}
-        </FieldItemRow>
+        </>
     );
 }
