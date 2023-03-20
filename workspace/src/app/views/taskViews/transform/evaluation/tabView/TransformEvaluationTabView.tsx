@@ -13,20 +13,15 @@ import {
     Notification,
     Spacing,
     Section,
-    TreeNodeInfo,
-    TagList,
-    Tag,
 } from "@eccenca/gui-elements";
 import { DataTableCustomRenderProps } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import MappingsTree from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
-import { EvaluatedComplexRule, EvaluatedEntityOperator, EvaluatedRuleEntityResult, EvaluatedURIRule } from "./typing";
+import { EvaluatedRuleEntityResult } from "./typing";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { operatorInputMapping } from "../../../../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationRow";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 
 interface TransformEvaluationTabViewProps {
@@ -45,7 +40,6 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     const [loading, setLoading] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>("root");
     const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
-    const nodes = React.useRef<TreeNodeInfo[][]>([]);
     const [t] = useTranslation();
 
     React.useEffect(() => {
@@ -75,71 +69,6 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
             header: "Transform Entities", //Todo use translation
         },
     ]).current;
-
-    React.useEffect(() => {
-        if (evaluatedEntityResults.current && operatorPlugins.current?.length) {
-            const { rules, evaluatedEntities } = evaluatedEntityResults.current;
-            nodes.current = evaluatedEntities.map((entity) =>
-                entity.values.map((e) => {
-                    const matchingRuleType = rules.find((rule) => rule.operator.id === e.operatorId)!;
-                    const newNode = (
-                        rule: EvaluatedURIRule["operator"],
-                        values: EvaluatedEntityOperator["values"]
-                    ): TreeNodeInfo<{}> => {
-                        return {
-                            id: rule.id,
-                            hasCaret: false,
-                            isExpanded: true,
-                            label: (
-                                <OperatorLabel
-                                    tagPluginType={operatorInputMapping[rule.type]}
-                                    operator={rule}
-                                    operatorPlugins={operatorPlugins.current}
-                                >
-                                    <TagList>
-                                        {values.map((v, i) => (
-                                            <Tag key={i} round emphasis="stronger" interactive>
-                                                {v}
-                                            </Tag>
-                                        ))}
-                                    </TagList>
-                                </OperatorLabel>
-                            ),
-                        };
-                    };
-                    let treeNodeInfo = {
-                        hasCaret: true,
-                        id: matchingRuleType.id,
-                        isExpanded: true,
-                        label: (
-                            <strong>{(matchingRuleType as EvaluatedComplexRule)?.mappingTarget?.uri ?? "URI"}</strong>
-                        ),
-                        childNodes: [],
-                    } as TreeNodeInfo;
-
-                    const generateTree = (
-                        rule: EvaluatedURIRule["operator"],
-                        entityValue: EvaluatedEntityOperator,
-                        tree: TreeNodeInfo
-                    ) => {
-                        if (!rule.inputs?.length) {
-                            tree.childNodes = [...(tree?.childNodes ?? []), newNode(rule, entityValue.values)];
-                            return tree;
-                        }
-                        const currentNode = newNode(rule, entityValue.values);
-                        tree.childNodes = [...(tree?.childNodes ?? []), currentNode];
-
-                        for (let i = 0; i < rule.inputs.length; i++) {
-                            generateTree(rule.inputs[i], entityValue.children[i], currentNode);
-                        }
-                    };
-
-                    generateTree(matchingRuleType.operator, e, treeNodeInfo);
-                    return treeNodeInfo;
-                })
-            );
-        }
-    }, [evaluatedEntityResults.current, operatorPlugins.current]);
 
     const rows = React.useMemo(
         () =>
