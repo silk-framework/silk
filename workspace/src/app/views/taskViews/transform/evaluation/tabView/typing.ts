@@ -12,21 +12,30 @@ export interface EvaluatedEntity {
 
 type ruleOperatorTypes = "transformInput" | "pathInput";
 
+export interface EvaluatedRuleOperator {
+    type: ruleOperatorTypes;
+    id: string;
+    function?: string;
+    path?: string;
+    inputs: Array<EvaluatedRuleOperator>;
+    parameters: {
+        glue?: string;
+        missingValuesAsEmptyStrings?: string;
+        value?: string;
+    };
+}
+
 export interface EvaluatedURIRule {
     type: string;
     id: string;
-    operator: {
-        type: ruleOperatorTypes;
-        id: string;
-        function?: string;
-        path?: string;
-        inputs: Array<EvaluatedURIRule["operator"]>;
-        parameters: {
-            glue?: string;
-            missingValuesAsEmptyStrings?: string;
-            value?: string;
-        };
+    rules?: {
+        propertyRules: Array<{
+            id: string;
+            type: string;
+            operator: EvaluatedRuleOperator;
+        }>;
     };
+    operator?: EvaluatedRuleOperator;
 }
 
 export interface EvaluatedComplexRule extends EvaluatedURIRule {

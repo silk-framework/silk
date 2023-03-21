@@ -40,6 +40,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     const [loading, setLoading] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>("root");
     const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
+    const [error, setError] = React.useState<string>("");
     const [t] = useTranslation();
 
     React.useEffect(() => {
@@ -53,6 +54,8 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                 operatorPlugins.current = plugins;
                 evaluatedEntityResults.current = results;
             } catch (err) {
+                evaluatedEntityResults.current = undefined;
+                setError(err?.body.detail ?? "");
             } finally {
                 setLoading(false);
             }
@@ -140,8 +143,8 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                         (loading && <Spinner size="small" />) || (
                                             <>
                                                 <Spacing />
-                                                <Notification warning data-test-id="notification-unknown-problem">
-                                                    {t("linkingEvaluationTabView.messages.unknownProblem")}
+                                                <Notification danger data-test-id="notification-unknown-problem">
+                                                    {error}
                                                 </Notification>
                                             </>
                                         )}
