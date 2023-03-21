@@ -30,16 +30,16 @@ import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
-import org.silkframework.util.{CollectLogs, DPair, Identifier, StringUtils, Uri}
+import org.silkframework.util.{DPair, Identifier, StringUtils, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{Format, JsArray, JsString, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc._
 
-import java.util.logging.{Level, LogRecord, Logger}
+import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 import scala.collection.mutable
 
@@ -143,7 +143,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val readContext: ReadContext = ReadContext(resources, prefixes)
 
     try {
-      val (updatedRule, warnings) = linkageRule(request)
+      val updatedRule = linkageRule(request)
       val validationIssues = updatedRule.validate()
       if(validationIssues.isEmpty) {
         // Commit rule
@@ -151,7 +151,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
       } else {
         // Return issues
-        ErrorResult.validation(BAD_REQUEST, "Linkage rule committed with warnings", issues = validationIssues ++ warnings.map(log => ValidationWarning(log.getMessage)))
+        ErrorResult.validation(BAD_REQUEST, "Linkage rule with warnings", issues = validationIssues)
       }
     } catch {
       case ex: BadUserInputException =>
@@ -166,25 +166,18 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def linkageRule(request: Request[AnyContent])
-                         (implicit readContext: ReadContext,
-                          prefixes: Prefixes,
-                          resources: ResourceManager): (LinkageRule, Seq[LogRecord]) = {
-    var linkageRule: LinkageRule = null
-    //Collect warnings while parsing linkage rule
-    val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
-      request.body.asXml match {
-        case Some(xml) =>
-          linkageRule = XmlSerialization.fromXml[LinkageRule](xml.head)
-        case None =>
-          request.body.asJson match {
-            case Some(json) =>
-              linkageRule = JsonSerialization.fromJson[LinkageRule](json)
-            case None =>
-              throw BadUserInputException("Expecting text/xml or application/json request body")
-          }
-      }
+                         (implicit readContext: ReadContext): LinkageRule = {
+    request.body.asXml match {
+      case Some(xml) =>
+        XmlSerialization.fromXml[LinkageRule](xml.head)
+      case None =>
+        request.body.asJson match {
+          case Some(json) =>
+            JsonSerialization.fromJson[LinkageRule](json)
+          case None =>
+            throw BadUserInputException("Expecting text/xml or application/json request body")
+        }
     }
-    (linkageRule, warnings)
   }
 
   def getLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -206,15 +199,16 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     request.body.asXml match {
       case Some(xml) => {
         try {
-          //Collect warnings while parsing link spec
-          val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkspec") {
-            //Load link specification
-            val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
+          //Load link specification
+          val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
+          val issues = newLinkSpec.rule.validate()
+          if(issues.isEmpty) {
             //Update linking task
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
+            ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
+          } else {
+            ErrorResult.validation(OK, "Linkage rule with warnings", issues = issues)
           }
-
-          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid linkage rule")
