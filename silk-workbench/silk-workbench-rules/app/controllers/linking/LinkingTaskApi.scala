@@ -144,11 +144,15 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
     try {
       val (updatedRule, warnings) = linkageRule(request)
-      //Update linking task
-      val updatedLinkSpec = task.data.copy(rule = updatedRule)
-      project.updateTask(taskName, updatedLinkSpec)
-      // Return warnings
-      ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
+      val validationIssues = updatedRule.validate()
+      if(validationIssues.isEmpty) {
+        // Commit rule
+        project.updateTask(taskName, task.data.copy(rule = updatedRule))
+        ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
+      } else {
+        // Return issues
+        ErrorResult.validation(BAD_REQUEST, "Linkage rule committed with warnings", issues = validationIssues ++ warnings.map(log => ValidationWarning(log.getMessage)))
+      }
     } catch {
       case ex: BadUserInputException =>
         throw ex

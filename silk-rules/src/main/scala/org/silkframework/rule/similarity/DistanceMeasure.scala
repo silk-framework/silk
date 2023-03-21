@@ -34,7 +34,30 @@ trait DistanceMeasure extends AnyPlugin {
    */
   def apply(values1: Seq[String], values2: Seq[String], limit: Double = Double.PositiveInfinity): Double
 
+  /**
+    * Indexes a sequence of values.
+    *
+    * @param values The values.
+    * @param limit Two values that are closer than this limit receive have a overlapping index.
+    * @param sourceOrTarget True, if the source values should be indexed.
+    *                       False, if the target values should be indexed.
+    * @return
+    */
   def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = Index.default
+
+  /**
+    * Checks if the provided threshold is valid for this measure.
+    *
+    * @return None, if the threshold is valid
+    *         An error message, otherwise.
+    */
+  def validateThreshold(threshold: Double): Option[String] = {
+    if(threshold < 0.0) {
+      Some(s"Threshold must be greater than 0.")
+    } else {
+      None
+    }
+  }
 }
 
 object DistanceMeasure extends PluginFactory[DistanceMeasure]
