@@ -50,10 +50,10 @@ interface ExpandedEvaluationRowProps {
     evaluationMap?: Map<string, EvaluationResultType[number]>;
 }
 
-export const operatorInputMapping = {
+const operatorInputMapping = {
     transformInput: "Transform",
     pathInput: "Input",
-} as const;
+};
 
 const linkStateButtons = [
     { icon: "state-confirmed", hasStateSuccess: true, linkType: "positive", tooltip: "Confirm" },

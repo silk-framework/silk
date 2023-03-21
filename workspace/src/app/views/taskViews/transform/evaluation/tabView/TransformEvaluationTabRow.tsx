@@ -13,7 +13,6 @@ import {
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { operatorInputMapping } from "../../../../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationRow";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import { EvaluatedComplexRule, EvaluatedEntity, EvaluatedEntityOperator, EvaluatedURIRule } from "./typing";
 
@@ -25,6 +24,11 @@ interface TransformEvaluationTabRowProps {
     operatorPlugins: Array<IPluginDetails>;
     rules: Array<EvaluatedURIRule | EvaluatedComplexRule>;
 }
+
+const operatorMapping = {
+    pathInput: "Source path",
+    transformInput: "Transform",
+} as const;
 
 const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = ({
     rowItem,
@@ -72,7 +76,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = ({
                         isExpanded: true,
                         label: (
                             <OperatorLabel
-                                tagPluginType={operatorInputMapping[rule.type]}
+                                tagPluginType={operatorMapping[rule.type]}
                                 operator={rule}
                                 operatorPlugins={operatorPlugins}
                             >
