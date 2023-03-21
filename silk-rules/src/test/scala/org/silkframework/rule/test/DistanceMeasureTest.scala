@@ -1,7 +1,7 @@
 package org.silkframework.rule.test
 
-import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, DistanceMeasureExampleValue, ParameterValues, PluginContext}
+import org.silkframework.rule.similarity.{DistanceMeasure, DistanceMeasureExampleValue}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger

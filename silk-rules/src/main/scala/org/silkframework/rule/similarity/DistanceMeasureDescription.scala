@@ -1,11 +1,12 @@
 package org.silkframework.rule.similarity
 
+import org.silkframework.rule.OperatorExampleValues
 import org.silkframework.rule.similarity.DistanceMeasureDescription._
-import org.silkframework.runtime.plugin.{CustomPluginDescription, CustomPluginDescriptionGenerator, DistanceMeasureExampleValue}
+import org.silkframework.runtime.plugin.{CustomPluginDescription, CustomPluginDescriptionGenerator}
 
 case class DistanceMeasureDescription(range: DistanceMeasureRange,
                                       cardinality: Option[DistanceMeasureCardinality],
-                                      examples: Seq[DistanceMeasureExampleValue]) extends CustomPluginDescription {
+                                      examples: OperatorExampleValues[DistanceMeasureExampleValue]) extends CustomPluginDescription {
 
   def generateDocumentation(sb: StringBuilder): Unit = {
     sb ++= range.description
@@ -13,25 +14,7 @@ case class DistanceMeasureDescription(range: DistanceMeasureRange,
       sb ++= "\n\n"
       sb ++= c.description
     }
-    sb ++= "\n"
-
-    // Add examples
-    if (examples.nonEmpty) {
-      sb ++= "### Examples"
-      sb ++= "\n\n"
-      sb ++= "**Notation:** List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
-      for ((example, idx) <- examples.zipWithIndex) {
-        sb ++= "---\n"
-        example.description match {
-          case Some(desc) =>
-            sb ++= s"#### ${desc.stripSuffix(".")}:\n\n"
-          case None =>
-            sb ++= s"#### Example ${idx + 1}:\n\n"
-        }
-        sb ++= example.markdownFormatted
-        sb ++= "\n\n"
-      }
-    }
+    examples.markdownFormatted(sb)
   }
 
 }
@@ -93,7 +76,7 @@ class DistanceMeasureDescriptionGenerator extends CustomPluginDescriptionGenerat
         None
       }
 
-    Some(DistanceMeasureDescription(range, cardinality, DistanceMeasureExampleValue.retrieve(pluginClass)))
+    Some(DistanceMeasureDescription(range, cardinality, OperatorExampleValues(DistanceMeasureExampleValue.retrieve(pluginClass))))
   }
 }
 

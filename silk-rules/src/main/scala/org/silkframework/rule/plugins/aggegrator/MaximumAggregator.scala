@@ -15,9 +15,10 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
 import org.silkframework.rule.similarity.{SimilarityScore, SimpleAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "max",
@@ -27,10 +28,12 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
 )
 @AggregatorExamples(Array(
   new AggregatorExample(
+    description = "Selects the maximum similarity score.",
     inputs = Array(0.5, 0.0),
     output = 0.5
   ),
   new AggregatorExample(
+    description = "Selects the maximum similarity score.",
     inputs = Array(-1.0, -0.5, -0.3),
     output = -0.3
   ),

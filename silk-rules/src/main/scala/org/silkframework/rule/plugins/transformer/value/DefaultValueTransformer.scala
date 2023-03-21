@@ -1,8 +1,9 @@
 package org.silkframework.rule.plugins.transformer.value
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "defaultValue",
@@ -12,10 +13,12 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExa
 )
 @TransformExamples(Array(
   new TransformExample(
+    description = "Forwards input values.",
     input1 = Array("input value"),
     output = Array("input value")
   ),
   new TransformExample(
+    description = "Outputs the default value, if the inputs are empty.",
     parameters = Array("value" , "default value"),
     input1 = Array(),
     output = Array("default value")

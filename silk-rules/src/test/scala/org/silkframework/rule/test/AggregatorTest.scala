@@ -2,8 +2,8 @@ package org.silkframework.rule.test
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
-import org.silkframework.rule.similarity.{Aggregator, SimilarityOperator}
-import org.silkframework.runtime.plugin.{AggregatorExampleValue, AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
+import org.silkframework.rule.similarity.{Aggregator, AggregatorExampleValue, SimilarityOperator}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
 import org.silkframework.test.PluginTest
 import org.silkframework.util.{DPair, Identifier}
 

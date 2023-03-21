@@ -1,5 +1,6 @@
 package org.silkframework.rule.plugins.transformer.value
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
@@ -10,6 +11,13 @@ import org.silkframework.runtime.plugin.PluginCategories
   categories = Array("Value", PluginCategories.recommended),
   description = "Generates a constant value."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    description = "Always outputs the specified value.",
+    parameters = Array("value", "John"),
+    output = Array("John")
+  ),
+))
 case class ConstantTransformer(
   @Param("The constant value to be generated")
   value: String = "") extends Transformer {

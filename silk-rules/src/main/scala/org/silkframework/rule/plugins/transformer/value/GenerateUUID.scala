@@ -4,8 +4,9 @@ import java.nio.charset.Charset
 import java.util.UUID
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import GenerateUUID._
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 
 @Plugin(
   id = "uuid",

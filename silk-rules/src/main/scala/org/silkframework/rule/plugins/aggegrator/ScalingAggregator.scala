@@ -1,8 +1,9 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
 import org.silkframework.rule.similarity.{SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
-import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "scale",

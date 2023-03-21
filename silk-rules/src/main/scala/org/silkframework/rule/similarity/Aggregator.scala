@@ -15,9 +15,13 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.util.DPair
 
+@PluginType(
+  customDescription = classOf[AggregatorDescriptionGenerator]
+)
 trait Aggregator extends AnyPlugin {
 
   def apply(operators: Seq[SimilarityOperator], entities: DPair[Entity], limit: Double): SimilarityScore

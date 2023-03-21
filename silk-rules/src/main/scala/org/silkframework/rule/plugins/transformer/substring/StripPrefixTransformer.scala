@@ -14,8 +14,9 @@
 
 package org.silkframework.rule.plugins.transformer.substring
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "stripPrefix",

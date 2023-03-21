@@ -1,15 +1,33 @@
-package org.silkframework.runtime.plugin
+package org.silkframework.rule.similarity
 
-import org.silkframework.runtime.plugin.annotations.AggregatorExample
+import org.silkframework.rule.OperatorExampleValue
+import org.silkframework.rule.annotations.AggregatorExample
 
-case class AggregatorExampleValue(description: String,
+case class AggregatorExampleValue(description: Option[String],
                                   parameters: Map[String, String],
                                   inputs: Seq[Option[Double]],
                                   weights: Seq[Int],
-                                  output: Option[Double]) {
+                                  output: Option[Double]) extends OperatorExampleValue {
 
   def formatted: String = {
     s"Returns ${formatScore(output)} for parameters ${format(parameters)}, input scores ${format(inputs.map(formatScore))} and weights ${format(weights)}."
+  }
+
+  /**
+    * Format this example as markdown.
+    */
+  override def markdownFormatted(sb: StringBuilder): Unit = {
+    if (weights.nonEmpty) {
+      sb ++= "* Weights: "
+      sb ++= format(weights)
+      sb ++= "\n"
+    }
+    if (inputs.nonEmpty) {
+      sb ++= "* Input values: "
+      sb ++= format(inputs.map(formatScore))
+      sb ++= "\n"
+    }
+    sb ++= s"* Returns: `${formatScore(output)}`\n"
   }
 
   private def formatScore(score: Option[Double]): String = {
@@ -22,7 +40,6 @@ case class AggregatorExampleValue(description: String,
   private def format(traversable: Traversable[_]): String = {
     traversable.mkString("[", ", ", "]")
   }
-
 }
 
 object AggregatorExampleValue {
@@ -31,10 +48,10 @@ object AggregatorExampleValue {
     val aggregatorExamples = transformer.getAnnotationsByType(classOf[AggregatorExample])
     for(example <- aggregatorExamples) yield {
       AggregatorExampleValue(
-        description = example.description(),
+        description = Option(example.description()).filter(_.nonEmpty),
         parameters = retrieveParameters(example),
         inputs = example.inputs.map(convertScore),
-        weights = if(example.weights().isEmpty) Seq.fill(example.inputs().length)(1) else example.weights(),
+        weights = example.weights(),
         output = convertScore(example.output())
       )
     }

@@ -1,33 +1,25 @@
-package org.silkframework.runtime.plugin
+package org.silkframework.rule.similarity
 
-import org.silkframework.runtime.plugin.annotations.DistanceMeasureExample
+import org.silkframework.rule.OperatorExampleValue
+import org.silkframework.rule.annotations.DistanceMeasureExample
 import org.silkframework.util.DPair
 
 case class DistanceMeasureExampleValue(description: Option[String],
                                        parameters: Map[String, String],
                                        inputs: DPair[Seq[String]],
                                        output: Double,
-                                       throwsException: Option[Class[_]]) {
+                                       throwsException: Option[Class[_]]) extends OperatorExampleValue {
 
   def formatted: String = {
     s"Returns $output for parameters ${format(parameters)} and input values ${format(inputs.map(format))}."
   }
 
-  def markdownFormatted: String = {
-    val sb = new StringBuilder()
-    if (parameters.nonEmpty) {
-      sb ++= "* Parameters\n"
-      for ((param, paramValue) <- parameters) {
-        sb ++= s"  * *$param*: `$paramValue`\n"
-      }
-      sb ++= "\n"
-    }
+  def markdownFormatted(sb: StringBuilder): Unit = {
     sb ++= "* Input values:\n"
     sb ++= s"  - Source: `${format(inputs.source)}`\n"
     sb ++= s"  - Target: `${format(inputs.target)}`\n"
     sb ++= "\n"
     sb ++= s"* Returns: → `${output}`\n"
-    sb.toString()
   }
 
   private def format(traversable: Traversable[_]): String = {

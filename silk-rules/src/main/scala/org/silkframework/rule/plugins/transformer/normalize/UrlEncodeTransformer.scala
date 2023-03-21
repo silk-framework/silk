@@ -1,9 +1,10 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.net.URLEncoder
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "urlEncode",

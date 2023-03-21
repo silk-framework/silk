@@ -15,8 +15,9 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.util.StringUtils._
 

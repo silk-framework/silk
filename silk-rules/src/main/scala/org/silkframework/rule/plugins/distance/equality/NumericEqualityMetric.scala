@@ -3,8 +3,9 @@ package org.silkframework.rule.plugins.distance.equality
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 
 @Plugin(

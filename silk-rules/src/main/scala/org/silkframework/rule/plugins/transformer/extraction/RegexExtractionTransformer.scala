@@ -1,7 +1,8 @@
 package org.silkframework.rule.plugins.transformer.extraction
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
   * Extracts values from a String based on a regular expression.
