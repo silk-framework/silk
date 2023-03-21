@@ -1,7 +1,9 @@
 import {
     ActivityControlWidget,
+    ContextOverlay,
     ContextMenu,
     Divider,
+    HtmlContentBlock,
     IActivityStatus,
     MenuItem,
     Notification,
@@ -21,6 +23,7 @@ import {
     TagList,
     Toolbar,
     ToolbarSection,
+    WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -74,6 +77,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [loading, setLoading] = React.useState<boolean>(true);
     const [showInputValues, setShowInputValues] = React.useState<boolean>(true);
     const [showOperators, setShowOperators] = React.useState<boolean>(true);
+    const [showStatisticOverlay, setShowStatisticOverlay] = React.useState<boolean>(false);
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
     const [expandedRows, setExpandedRows] = React.useState<Map<number, number>>(new Map());
     const linksToValueMap = React.useRef<Array<Map<string, EvaluationResultType[number]>>>([]);
@@ -428,32 +432,60 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 </ToolbarSection>
                 {taskEvaluationStatus === "Successful" ? (
                     <ToolbarSection canShrink style={{ maxWidth: "25%" }}>
-                        <ActivityControlWidget
-                            border
-                            small
-                            canShrink
-                            label={
-                                <strong>
-                                    {t("linkingEvaluationTabView.toolbar.statsHeadSources")}
-                                    {" / "}
-                                    {t("linkingEvaluationTabView.toolbar.statsHeadTargets")}
-                                    {" / "}
-                                    {t("linkingEvaluationTabView.toolbar.statsHeadLinkCount")}
-                                </strong>
+                        <ContextOverlay
+                            isOpen={showStatisticOverlay ? true : undefined}
+                            onClose={() => setShowStatisticOverlay(false)}
+                            interactionKind={"hover"}
+                            content={
+                                <WhiteSpaceContainer paddingTop="small" paddingRight="small" paddingBottom="small">
+                                    <HtmlContentBlock>
+                                        <ul>
+                                            <li>
+                                                {t("linkingEvaluationTabView.toolbar.statsHeadSources")}:{" "}
+                                                {nrSourceEntities.toLocaleString(commonSel.locale)}
+                                            </li>
+                                            <li>
+                                                {t("linkingEvaluationTabView.toolbar.statsHeadTargets")}:{" "}
+                                                {nrTargetEntities.toLocaleString(commonSel.locale)}
+                                            </li>
+                                            <li>
+                                                {t("linkingEvaluationTabView.toolbar.statsHeadLinkCount")}:{" "}
+                                                {nrLinks.toLocaleString(commonSel.locale)}
+                                            </li>
+                                        </ul>
+                                    </HtmlContentBlock>
+                                </WhiteSpaceContainer>
                             }
-                            statusMessage={`${nrSourceEntities.toLocaleString(
-                                commonSel.locale
-                            )} / ${nrTargetEntities.toLocaleString(commonSel.locale)} / ${nrLinks.toLocaleString(
-                                commonSel.locale
-                            )}`}
-                            activityActions={[
-                                {
-                                    icon: "item-info",
-                                    action: () => {}, // TODO
-                                    tooltip: t("linkingEvaluationTabView.toolbar.statsShowInfo"),
-                                },
-                            ]}
-                        />
+                        >
+                            <ActivityControlWidget
+                                border
+                                small
+                                canShrink
+                                label={
+                                    <strong>
+                                        {t("linkingEvaluationTabView.toolbar.statsHeadSources")}
+                                        {" / "}
+                                        {t("linkingEvaluationTabView.toolbar.statsHeadTargets")}
+                                        {" / "}
+                                        {t("linkingEvaluationTabView.toolbar.statsHeadLinkCount")}
+                                    </strong>
+                                }
+                                statusMessage={`${nrSourceEntities.toLocaleString(
+                                    commonSel.locale
+                                )} / ${nrTargetEntities.toLocaleString(commonSel.locale)} / ${nrLinks.toLocaleString(
+                                    commonSel.locale
+                                )}`}
+                                activityActions={[
+                                    {
+                                        icon: "item-info",
+                                        action: () => {
+                                            setShowStatisticOverlay(!showStatisticOverlay);
+                                        },
+                                        tooltip: t("linkingEvaluationTabView.toolbar.statsShowInfo"),
+                                    },
+                                ]}
+                            />
+                        </ContextOverlay>
                     </ToolbarSection>
                 ) : null}
                 <ToolbarSection canShrink>
