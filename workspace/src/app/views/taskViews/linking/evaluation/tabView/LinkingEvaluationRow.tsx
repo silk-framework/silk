@@ -427,6 +427,7 @@ export const LinkingEvaluationRow = React.memo(
                                 : t("linkingEvaluationTabView.table.expandRow")
                         }
                         className="diapp-linking-evaluation__row-item"
+                        useZebraStyle={rowIdx % 2 === 1}
                     >
                         <TableCell key={"sourceEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
