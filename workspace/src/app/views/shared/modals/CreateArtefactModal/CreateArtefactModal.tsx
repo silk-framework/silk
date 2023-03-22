@@ -26,7 +26,7 @@ import {
 } from "@eccenca/gui-elements";
 import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactModal, IPluginDetails, IPluginOverview } from "@ducks/common/typings";
+import { IArtefactModal, IPluginDetails, IPluginOverview, IProjectTaskUpdatePayload } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
@@ -669,6 +669,8 @@ export function CreateArtefactModal() {
         );
     }
 
+    const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
+
     const createDialog = (
         <SimpleDialog
             size="large"
@@ -677,7 +679,9 @@ export function CreateArtefactModal() {
             title={
                 updateExistingTask
                     ? t("CreateModal.updateTitle", {
-                          type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
+                          type: `'${updateModalTitle(updateExistingTask)}' (${
+                              updateExistingTask.taskPluginDetails.title
+                          })`,
                       })
                     : selectedArtefactTitle
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })

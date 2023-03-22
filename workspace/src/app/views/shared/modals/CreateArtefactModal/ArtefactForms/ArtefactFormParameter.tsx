@@ -177,8 +177,15 @@ export const ArtefactFormParameter = ({
                 onMouseOver={showVariableTemplateInput ? undefined : onMouseOver}
                 onMouseOut={showVariableTemplateInput ? undefined : onMouseOut}
                 style={{ alignItems: "flex-start" }}
+                noWrap
             >
-                <ToolbarSection canGrow={true} style={{ alignSelf: "center" }}>
+                <ToolbarSection
+                    canGrow
+                    style={{
+                        alignSelf: "center",
+                        maxWidth: showVariableTemplateInput ? "calc(100% - 3.5px - 32px)" : "auto", // set full width minus tiny spacing and icon button width
+                    }}
+                >
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             parameterId={parameterId}
