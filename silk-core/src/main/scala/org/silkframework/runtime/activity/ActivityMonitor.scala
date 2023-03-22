@@ -3,7 +3,7 @@ import org.silkframework.runtime.activity.Status.Canceling
 
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ForkJoinPool, ForkJoinTask}
+import java.util.concurrent.{ForkJoinPool, ForkJoinTask, ForkJoinWorkerThread}
 import java.util.logging.Logger
 import scala.reflect.ClassTag
 import scala.reflect.ClassTag._
@@ -110,7 +110,13 @@ class ActivityMonitor[T](name: String,
       interruptEnabled.set(false)
     }
     try {
-      ForkJoinTask.helpQuiesce()
+      // Only execute helpQuiesce() in our own thread pool
+      Thread.currentThread match {
+        case thread: ForkJoinWorkerThread if thread.getPool == ActivityExecution.forkJoinPool =>
+          ForkJoinTask.helpQuiesce()
+        case _ =>
+          // Do nothing
+      }
     } finally {
       interruptEnabled.synchronized {
         interruptEnabled.set(true)

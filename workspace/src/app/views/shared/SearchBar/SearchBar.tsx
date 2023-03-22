@@ -23,6 +23,9 @@ interface IProps extends ISearchBarSearchInputProps {
 
     /** If defined, the component will warn of queries containing invisible characters that are hard to spot. */
     warnOfInvisibleCharacters?: boolean;
+
+    /** Optional onEnter handler. Default is to refresh the current search. */
+    onEnter?: () => any;
 }
 
 /** A simple search bar. */
@@ -33,10 +36,11 @@ export function SearchBar({
     onSearch,
     focusOnCreation = false,
     warnOfInvisibleCharacters = true,
+    onEnter,
     ...otherProps
 }: IProps) {
     const [t] = useTranslation();
-    const { query, setQuery, onChange, onEnter, onClear } = useSearch(onSearch, textQuery);
+    const { query, setQuery, onChange, onEnter: onEnterRefreshSearch, onClear } = useSearch(onSearch, textQuery);
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
@@ -57,7 +61,7 @@ export function SearchBar({
                     data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
                     onFilterChange={onChange}
-                    onEnter={onEnter}
+                    onEnter={onEnter ?? onEnterRefreshSearch}
                     filterValue={query}
                     onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
