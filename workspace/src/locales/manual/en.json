@@ -476,6 +476,8 @@
             "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links.",
             "scoreWidget": {
+                "title": "Evaluation",
+                "notStarted": "Not run yet.",
                 "showExamples": "Show Examples",
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
@@ -549,7 +551,8 @@
                 }
             },
             "startEvaluation": "Start evaluation",
-            "showEvaluation": "Show evaluation"
+            "showEvaluation": "Show evaluation context",
+            "hideEvaluation": "Hide evaluation context"
         }
     },
     "taskViews": {
