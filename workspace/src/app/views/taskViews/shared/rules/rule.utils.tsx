@@ -140,6 +140,7 @@ const customInputPathRenderer = (
 const inputPathOperator = (
     pluginId: string,
     label: string,
+    additionalCategories: string[],
     description?: string,
     customAutoCompletionRequest?: (
         textQuery: string,
@@ -173,7 +174,7 @@ const inputPathOperator = (
                     : undefined,
             }),
         },
-        categories: ["Input", "Recommended"],
+        categories: [...additionalCategories, "Recommended"],
         icon: undefined,
         description: description,
         tags: [],

@@ -215,6 +215,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         ruleUtils.inputPathOperator(
             "sourcePathInput",
             t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
+            ["Source path"],
             t("RuleEditor.sidebar.operator.sourcePathDesc", "The value path of the source input of the linking task."),
             inputPathAutoCompletion("source")
         );
@@ -223,6 +224,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         ruleUtils.inputPathOperator(
             "targetPathInput",
             t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
+            ["Target path"],
             t("RuleEditor.sidebar.operator.targetPathDesc", "The value path of the target input of the linking task."),
             inputPathAutoCompletion("target")
         );
