@@ -524,12 +524,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
                 {({ headers, getHeaderProps, getTableProps, getRowProps }: DataTableCustomRenderProps) => (
-                    <Table
-                        {...getTableProps()}
-                        size="medium"
-                        columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
-                        useZebraStyles
-                    >
+                    <Table {...getTableProps()} size="medium" columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}>
                         <TableHead>
                             <TableRow>
                                 <TableExpandHeader

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
@@ -90,7 +90,8 @@ export function CreateArtefactModal() {
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
-    const [toBeAdded, setToBeAdded] = useState<IPluginOverview | undefined>(selectedArtefactFromStore);
+    const toBeAdded = useRef<IPluginOverview | undefined>(selectedArtefactFromStore);
+    const toBeAddedKey = useRef<string | undefined>(selectedArtefactFromStore?.key);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const [autoConfigPending, setAutoConfigPending] = useState(false);
@@ -102,8 +103,6 @@ export function CreateArtefactModal() {
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
     const selectedArtefactKey: string | undefined = selectedArtefactFromStore?.key;
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
-
-    const toBeAddedKey: string | undefined = toBeAdded?.key;
     const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
     const [formValueChanges, setFormValueChanges] = React.useState<{
@@ -121,6 +120,10 @@ export function CreateArtefactModal() {
     const templateParameters = React.useRef(new Set<string>());
     const NOTIFICATION_ID = "create-update-dialog";
 
+    const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
+        toBeAdded.current = plugin;
+        toBeAddedKey.current = plugin?.key;
+    }, []);
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
             const timeoutId = setTimeout(() => {
@@ -204,10 +207,10 @@ export function CreateArtefactModal() {
     }, [isOpen]);
 
     const handleAdd = () => {
-        if (toBeAddedKey === DATA_TYPES.PROJECT) {
-            return dispatch(commonOp.selectArtefact(toBeAdded));
-        } else if (toBeAdded) {
-            dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded));
+        if (toBeAddedKey.current === DATA_TYPES.PROJECT) {
+            return dispatch(commonOp.selectArtefact(toBeAdded.current));
+        } else if (toBeAdded.current) {
+            dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded.current));
         } else {
             console.error("No item plugin selected, cannot add new item!");
         }
@@ -248,7 +251,7 @@ export function CreateArtefactModal() {
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
     const handleArtefactSelect = (artefact: IPluginOverview) => {
         if (
-            toBeAddedKey === artefact.key &&
+            toBeAddedKey.current === artefact.key &&
             lastSelectedClick &&
             Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
         ) {
@@ -266,7 +269,7 @@ export function CreateArtefactModal() {
     };
 
     const handleEnter = (e) => {
-        if (e.key === "Enter" && toBeAdded) {
+        if (e.key === "Enter" && toBeAdded.current) {
             handleAdd();
         }
     };
@@ -724,7 +727,7 @@ export function CreateArtefactModal() {
                             key="add"
                             affirmative={true}
                             onClick={handleAdd}
-                            disabled={!toBeAddedKey}
+                            disabled={!toBeAddedKey.current}
                             data-test-id={"item-add-btn"}
                         >
                             {t("common.action.add")}
@@ -778,7 +781,12 @@ export function CreateArtefactModal() {
                                     <ArtefactTypesList onSelect={handleSelectDType} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar textQuery={searchValue} focusOnCreation={true} onSearch={handleSearch} />
+                                    <SearchBar
+                                        textQuery={searchValue}
+                                        focusOnCreation={true}
+                                        onSearch={handleSearch}
+                                        onEnter={handleAdd}
+                                    />
                                     <Spacing />
                                     {loading ? (
                                         <Loading
@@ -801,7 +809,7 @@ export function CreateArtefactModal() {
                                                         isOnlyLayout
                                                         key={artefact.key}
                                                         className={
-                                                            toBeAddedKey === artefact.key
+                                                            toBeAddedKey.current === artefact.key
                                                                 ? HelperClasses.Intent.ACCENT
                                                                 : ""
                                                         }
