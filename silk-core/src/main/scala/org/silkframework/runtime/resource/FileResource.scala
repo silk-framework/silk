@@ -19,7 +19,7 @@ case class FileResource(file: File)
 
   val name: String = file.getName
 
-  val path: String = file.getAbsolutePath
+  val path: String = file.getCanonicalPath
 
   def exists: Boolean = file.exists()
 

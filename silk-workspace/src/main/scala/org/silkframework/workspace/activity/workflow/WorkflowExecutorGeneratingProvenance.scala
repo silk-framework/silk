@@ -30,7 +30,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
 
   override def run(context: ActivityContext[WorkflowExecutionReportWithProvenance])
                   (implicit userContext: UserContext): Unit = {
-    implicit val pluginContext: PluginContext = PluginContext(user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(workflowTask.project)
     val workflowExecutor: Activity[WorkflowExecutionReport] = workflowExecutionActivity()
     val control = context.child(workflowExecutor, 1.0)
     var executionException: Option[Throwable] = None

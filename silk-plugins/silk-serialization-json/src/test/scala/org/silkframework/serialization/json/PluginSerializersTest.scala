@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginDescription}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, PluginDescription}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsArray, JsObject, JsValue}
 import JsonHelpers._
@@ -20,7 +20,7 @@ class PluginSerializersTest extends FlatSpec with MustMatchers {
     stringValue(js, "type") mustBe "object"
     stringValue(js, TASKTYPE) mustBe "W"
     val properties = objectValue(js, PROPERTIES)
-    properties.keys mustBe Set("operators", "datasets", "uiAnnotations")
+    properties.keys mustBe Set("operators", "datasets", "uiAnnotations", "replaceableInputs", "replaceableOutputs")
     mustBeJsObject(properties.value("operators")) { operatorsParam =>
       stringValue(operatorsParam, "type") mustBe "object"
       arrayValueOption(operatorsParam, "value") mustBe Some(JsArray())
@@ -49,10 +49,13 @@ class PluginSerializersTest extends FlatSpec with MustMatchers {
     }
   }
 
-  private def serialize(pluginClass: Class[_], markdown: Boolean = false, overviewOnly: Boolean = false, taskType: Option[String] = None): (JsObject, PluginDescription[_]) = {
+  private def serialize(pluginClass: Class[_ <: AnyPlugin],
+                        markdown: Boolean = false,
+                        overviewOnly: Boolean = false,
+                        taskType: Option[String] = None): (JsObject, PluginDescription[_]) = {
     val pluginDescription = ClassPluginDescription(pluginClass)
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
-    val json = PluginSerializers.PluginListJsonFormat.serializePlugin(pluginDescription, markdown, overviewOnly, taskType, withLabels = false)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+    val json = PluginDescriptionSerializers.PluginListJsonFormat.serializePlugin(pluginDescription, markdown, overviewOnly, taskType, withLabels = false)
     (json, pluginDescription)
   }
 }

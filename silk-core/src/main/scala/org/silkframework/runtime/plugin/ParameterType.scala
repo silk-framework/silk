@@ -1,12 +1,13 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
+import org.silkframework.config.{DefaultConfig, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
-import org.silkframework.runtime.resource.{Resource, WritableResource}
+import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
+import java.io.File
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.spec.InvalidKeySpecException
@@ -50,7 +51,8 @@ sealed abstract class ParameterType[T: ClassTag] {
   override def toString: String = dataType.getSimpleName
 
   /** The default string representation of the value. */
-  def toString(value: T)(implicit prefixes: Prefixes): String
+  def toString(value: T)
+              (implicit pluginContext: PluginContext): String
 }
 
 object ParameterType {
@@ -65,9 +67,10 @@ object ParameterType {
       case None =>
         dataType match {
           case cl: Class[_] if classOf[PluginObjectParameter].isAssignableFrom(cl) =>
-            PluginObjectParameterType(cl)
+            PluginObjectParameterType(cl.asInstanceOf[Class[PluginObjectParameter]])
           case cl: Class[_] if classOf[PluginObjectParameterNoSchema].isAssignableFrom(cl) =>
-            PluginObjectParameterNoSchemaType(cl) // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+            // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+            PluginObjectParameterNoSchemaType(cl.asInstanceOf[Class[PluginObjectParameterNoSchema]])
           case cl: Class[_] if classOf[PluginStringParameter].isAssignableFrom(cl) =>
             GenericPluginStringParameterType(cl)
           case _ =>
@@ -79,20 +82,20 @@ object ParameterType {
 
 /** Trait that marks a class as a plugin parameter.
   * There will be done additional tests on start-up for all plugins implementing this trait, e.g. if JSON and XML formats are registered etc. */
-trait PluginObjectParameter {
+trait PluginObjectParameter extends AnyPlugin {
   /** defines if the parameter type has a schema definition, i.e. is composed completely from [[ParameterType]] elements. */
   def hasSchemaDefinition: Boolean = true
 }
 
 /** Plugin parameter type that is of type object and represents nested values. The default string representation is to JSON. */
-trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter] {
-  def pluginObjectParameterClass: Class[_]
+trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter] with AnyPlugin {
+  def pluginObjectParameterClass: Class[_ <: AnyPlugin]
 
   override def jsonSchemaType: String = "object"
 
   def pluginDescription: Option[PluginDescription[_]] = PluginRegistry.pluginDescription(pluginObjectParameterClass)
 
-  override def toString(value: PluginObjectParameter)(implicit prefixes: Prefixes): String = {
+  override def toString(value: PluginObjectParameter)(implicit pluginContext: PluginContext): String = {
     // There is no string representation
     ???
   }
@@ -100,7 +103,7 @@ trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter
 
 /** Parameter type that is represented by a plugin class.
   * It is expected that this type has proper serialization formats implemented, e.g. for XML and JSON etc. */
-case class PluginObjectParameterType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
+case class PluginObjectParameterType(pluginObjectParameterClass: Class[_ <: AnyPlugin]) extends PluginObjectParameterTypeTrait {
   override def name: String = "objectParameter"
 }
 
@@ -110,7 +113,7 @@ trait PluginObjectParameterNoSchema extends PluginObjectParameter {
   override def hasSchemaDefinition: Boolean = false
 }
 
-case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
+case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_ <: AnyPlugin]) extends PluginObjectParameterTypeTrait {
   override def name: String = "pluginObjectParameterNoSchema"
 }
 
@@ -138,7 +141,7 @@ case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]
 }
 
 /** Parameter type that implements a PluginStringParameter parameter. */
-abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T]
+abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T] with AnyPlugin
 
 /**
   * Represents a plugin parameter type and provides string-based serialization.
@@ -164,7 +167,7 @@ abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
     * @param value The value to be serialized.
     * @return The string representation of the value that can be parsed by calling fromString on the same datatype.
     */
-  def toString(value: T)(implicit prefixes: Prefixes): String = Option(value) map (_.toString) getOrElse ""
+  def toString(value: T)(implicit pluginContext: PluginContext): String = Option(value) map (_.toString) getOrElse ""
 
   override def jsonSchemaType: String = "string"
 }
@@ -252,7 +255,7 @@ object StringParameterType {
     }
 
     override def toString(value: StringTraversableParameter)
-                         (implicit prefixes: Prefixes): String = {
+                         (implicit pluginContext: PluginContext): String = {
       value.mkString(", ")
     }
   }
@@ -323,7 +326,7 @@ object StringParameterType {
       }
     }
 
-    override def toString(value: IntOptionParameter)(implicit prefixes: Prefixes): String = {
+    override def toString(value: IntOptionParameter)(implicit pluginContext: PluginContext): String = {
       value.value.map(_.toString).getOrElse("")
     }
   }
@@ -342,7 +345,7 @@ object StringParameterType {
       }
     }
 
-    override def toString(value: IdentifierOptionParameter)(implicit prefixes: Prefixes): String = {
+    override def toString(value: IdentifierOptionParameter)(implicit pluginContext: PluginContext): String = {
       value.value.map(_.toString).getOrElse("")
     }
   }
@@ -363,7 +366,7 @@ object StringParameterType {
       }
     }
 
-    override def toString(value: Map[String, String])(implicit prefixes: Prefixes): String = {
+    override def toString(value: Map[String, String])(implicit pluginContext: PluginContext): String = {
       val strValues = for ((k, v) <- value) yield URLEncoder.encode(k, utf8) + ":" + URLEncoder.encode(v, utf8)
       strValues.mkString(",")
     }
@@ -380,8 +383,8 @@ object StringParameterType {
       Uri.parse(str, context.prefixes)
     }
 
-    override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
-      value.serialize(prefixes)
+    override def toString(value: Uri)(implicit pluginContext: PluginContext): String = {
+      value.serialize(pluginContext.prefixes)
     }
   }
 
@@ -395,10 +398,26 @@ object StringParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        context.resources.get(str)
+        context.resources.getInPath(str)
       }
     }
 
+    /**
+      * Returns the path relative to the provided project resources.
+      *
+      * @throws IllegalArgumentException If the project resources are either empty or use a different base path than this resource.
+      **/
+    override def toString(value: Resource)(implicit pluginContext: PluginContext): String = {
+      val basePath = pluginContext.resources.basePath
+      if (pluginContext.resources == EmptyResourceManager()) {
+        throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
+      }
+      if (value.path.startsWith(basePath)) {
+        value.path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
+      } else {
+        throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
+      }
+    }
   }
 
   object WritableResourceType extends StringParameterType[WritableResource] {
@@ -411,10 +430,13 @@ object StringParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        context.resources.get(str)
+        context.resources.getInPath(str)
       }
     }
 
+    override def toString(value: WritableResource)(implicit pluginContext: PluginContext): String = {
+      ResourceType.toString(value)
+    }
   }
 
   object ResourceOptionType extends StringParameterType[ResourceOption] {
@@ -427,12 +449,12 @@ object StringParameterType {
       if (str.trim.isEmpty) {
         ResourceOption(None)
       } else {
-        ResourceOption(Some(context.resources.get(str)))
+        ResourceOption(Some(context.resources.getInPath(str)))
       }
     }
 
-    override def toString(value: ResourceOption)(implicit prefixes: Prefixes): String = {
-      value.resource.map(_.name).getOrElse("")
+    override def toString(value: ResourceOption)(implicit pluginContext: PluginContext): String = {
+      value.resource.map(ResourceType.toString).getOrElse("")
     }
 
   }
@@ -441,13 +463,13 @@ object StringParameterType {
 
     override def name: String = "duration"
 
-    override def description: String = " An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
+    override def description: String = "An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
 
     override def fromString(str: String)(implicit context: PluginContext): Duration = {
       Duration.parse(str)
     }
 
-    override def toString(value: Duration)(implicit prefixes: Prefixes): String = {
+    override def toString(value: Duration)(implicit pluginContext: PluginContext): String = {
       value.toString
     }
 
@@ -463,7 +485,7 @@ object StringParameterType {
       ProjectReference(Identifier(str))
     }
 
-    override def toString(value: ProjectReference)(implicit prefixes: Prefixes): String = {
+    override def toString(value: ProjectReference)(implicit pluginContext: PluginContext): String = {
       value.id
     }
 
@@ -479,7 +501,7 @@ object StringParameterType {
       TaskReference(Identifier(str))
     }
 
-    override def toString(value: TaskReference)(implicit prefixes: Prefixes): String = {
+    override def toString(value: TaskReference)(implicit pluginContext: PluginContext): String = {
       value.id
     }
   }
@@ -494,7 +516,7 @@ object StringParameterType {
       Identifier(str)
     }
 
-    override def toString(value: Identifier)(implicit prefixes: Prefixes): String = {
+    override def toString(value: Identifier)(implicit pluginContext: PluginContext): String = {
       value.toString
     }
   }
@@ -509,7 +531,7 @@ object StringParameterType {
       Restriction.parse(str)(context.prefixes)
     }
 
-    override def toString(value: Restriction)(implicit prefixes: Prefixes): String = {
+    override def toString(value: Restriction)(implicit pluginContext: PluginContext): String = {
       value.serialize
     }
   }
@@ -557,7 +579,7 @@ object StringParameterType {
       }
     }
 
-    override def toString(value: Enum[_])(implicit prefixes: Prefixes): String = enumerationValue(value)
+    override def toString(value: Enum[_])(implicit pluginContext: PluginContext): String = enumerationValue(value)
   }
 
   object MultilineStringParameterType extends StringParameterType[MultilineStringParameter] {

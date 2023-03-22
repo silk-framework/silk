@@ -2,7 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS, TASK_TYPE_DATASET, TYPE, TASKTYPE, ID}
+import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TEMPLATES, TYPE}
 import play.api.libs.json.{JsObject, Json}
 
 class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
@@ -78,7 +78,8 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
       TYPE -> "internal",
       PARAMETERS -> Json.obj(
         "graphUri" -> "urn:dataset1"
-      )
+      ),
+      "readOnly" -> false
     )
   }
 

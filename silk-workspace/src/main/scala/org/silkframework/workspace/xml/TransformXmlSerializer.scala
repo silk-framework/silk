@@ -4,7 +4,7 @@ import org.silkframework.config._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -12,7 +12,7 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.LoadedTask
 
 import java.util.logging.Logger
-import scala.xml.{Attribute, Null, Text, XML}
+import scala.xml.{Attribute, Node, Null, Text, XML}
 
 /**
  * The transform module, which encapsulates all transform tasks.
@@ -26,11 +26,11 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   /**
    * Writes an updated task.
    */
-  override def writeTask(data: Task[TransformSpec], resources: ResourceManager): Unit = {
+  override def writeTask(data: Task[TransformSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     val taskResources = resources.child(data.id)
 
-    //Don't use any prefixes
-    implicit val prefixes = Prefixes.empty
+    // Only serialize file paths correctly, paths should not be prefixed
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
 
     val datasetXml = data.selection.toXML(asSource = true)
     val rulesXml = toXml(data)

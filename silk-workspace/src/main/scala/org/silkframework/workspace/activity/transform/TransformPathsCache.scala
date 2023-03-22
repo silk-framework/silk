@@ -7,6 +7,7 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
@@ -50,6 +51,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
                         (implicit userContext: UserContext): Unit = {
     val transform = transformTask.data
     implicit val prefixes: Prefixes = transformTask.project.config.prefixes
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(transformTask.project)
 
     if(datasetObserverFunctions.isEmpty) {
       setTransformSpecObserverFunction()
@@ -94,7 +96,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
   override protected val wrappedXmlFormat = WrappedXmlFormat()
 
-  private def datasetParameters()(implicit userContext: UserContext) = {
+  private def datasetParameters()(implicit userContext: UserContext,
+                                  pluginContext: PluginContext) = {
     transformTask.project.anyTask(inputId).data match {
       case dataset: DatasetSpec[Dataset] =>
         Some(dataset.plugin.parameters)

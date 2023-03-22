@@ -4,7 +4,7 @@ import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.ResourceRepository
@@ -23,11 +23,11 @@ object WorkspaceIO {
     * Copies all projects in one workspace to another workspace.
     */
   def copyProjects(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider,
-                   inputResources: Option[ResourceRepository], outputResources: Option[ResourceRepository])
+                   inputResources: ResourceRepository, outputResources: ResourceRepository,
+                   alsoCopyResources: Boolean = true)
                   (implicit userContext: UserContext): Unit = {
     for(project <- inputWorkspace.readProjects()) {
-      copyProject(inputWorkspace, outputWorkspace,
-        inputResources.map(_.get(project.id)), outputResources.map(_.get(project.id)), project)
+      copyProject(inputWorkspace, outputWorkspace, inputResources.get(project.id), outputResources.get(project.id), project, alsoCopyResources)
     }
   }
 
@@ -35,22 +35,22 @@ object WorkspaceIO {
     * Copies a project from one workspace to another workspace.
     */
   def copyProject(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider,
-                  inputResources: Option[ResourceManager], outputResources: Option[ResourceManager],
-                  project: ProjectConfig)
+                  inputResources: ResourceManager, outputResources: ResourceManager,
+                  project: ProjectConfig, alsoCopyResources: Boolean = true)
                  (implicit userContext: UserContext): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
     val tags = inputWorkspace.readTags(updatedProjectConfig.id)
     outputWorkspace.putTags(updatedProjectConfig.id, tags)
-    for(input <- inputResources; output <- outputResources)
-      copyResources(input, output)
-    val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager()))
-    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    copyTasks[CustomTask](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    outputWorkspace.refresh()
+    if(alsoCopyResources) {
+      copyResources(inputResources, outputResources)
+    }
+    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
+    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
+    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
+    copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
+    copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
+    outputWorkspace.refreshProject(updatedProjectConfig.id, outputResources)
   }
 
   def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {
@@ -70,13 +70,14 @@ object WorkspaceIO {
 
   private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider,
                                                   outputWorkspace: WorkspaceProvider,
-                                                  resources: ResourceManager,
+                                                  inputResources: ResourceManager,
+                                                  outputResources: ResourceManager,
                                                   projectName: Identifier)
                                                  (implicit userContext: UserContext): Unit = {
-    for(taskTry <- inputWorkspace.readTasks[T](projectName, resources)) {
+    for(taskTry <- inputWorkspace.readTasks[T](projectName, inputResources)) {
       taskTry.taskOrError match {
         case Right(task) =>
-          outputWorkspace.putTask(projectName, task)
+          outputWorkspace.putTask(projectName, task, inputResources)
         case Left(taskLoadingError) =>
           outputWorkspace.retainExternalTaskLoadingError(projectName, taskLoadingError)
           log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + taskLoadingError.throwable.getMessage)

@@ -63,6 +63,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       userContext = userContext
     )
 
+    checkReadOnlyDatasets()
     checkVariableDatasets()
     if(clearDatasets) {
       clearOutputDatasets()
@@ -330,19 +331,19 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     */
   private def resolveDataset(datasetTask: Task[GenericDatasetSpec],
                              replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
-    datasetTask.data.plugin match {
-      case _: VariableDataset =>
-        replaceDatasets.get(datasetTask.id.toString) match {
-          case Some(d) =>
-            PlainTask(datasetTask.id, datasetTask.data.copy(plugin = d), metaData = datasetTask.metaData)
-          case None =>
-            throw new IllegalArgumentException("No input found for variable dataset " + datasetTask.id.toString)
+    replaceDatasets.get(datasetTask.id.toString) match {
+      case Some(d) =>
+        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = d), metaData = datasetTask.metaData)
+      case None =>
+        datasetTask.data.plugin match {
+          case _: VariableDataset =>
+            throw new IllegalArgumentException("No replacement found for variable dataset " + datasetTask.id.toString)
+          case _: InternalDataset =>
+            val internalDataset = executionContext.createInternalDataset(Some(datasetTask.id.toString))
+            PlainTask(datasetTask.id, datasetTask.data.copy(plugin = internalDataset), metaData = datasetTask.metaData)
+          case _: Dataset =>
+            datasetTask
         }
-      case _: InternalDataset =>
-        val internalDataset = executionContext.createInternalDataset(Some(datasetTask.id.toString))
-        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = internalDataset), metaData = datasetTask.metaData)
-      case _: Dataset =>
-        datasetTask
     }
   }
 

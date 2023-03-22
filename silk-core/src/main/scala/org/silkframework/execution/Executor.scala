@@ -3,6 +3,7 @@ package org.silkframework.execution
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
+import org.silkframework.runtime.plugin.AnyPlugin
 
 /**
   * Executes a task specification.
@@ -10,7 +11,7 @@ import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, Use
   * @tparam TaskType      The supported task type, e.g., TransformSpecification
   * @tparam ExecType The execution type, e.g., SparkExecution
   */
-trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] {
+trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugin {
 
   def execute(task: Task[TaskType], inputs: Seq[ExecType#DataType], output: ExecutorOutput,
               execution: ExecType, context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))

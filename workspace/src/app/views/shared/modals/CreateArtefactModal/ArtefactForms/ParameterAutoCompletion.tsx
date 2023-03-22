@@ -51,6 +51,8 @@ interface ParameterAutoCompletionProps {
     registerForExternalChanges?: RegisterForExternalChangesFn;
 }
 
+type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
+
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({
     paramId,
@@ -152,15 +154,14 @@ export const ParameterAutoCompletion = ({
         }
     };
 
-    const itemValue = (value: IAutocompleteDefaultResponse | string) =>
-        typeof value === "string" ? value : value.value;
+    const itemValue = (value: StringOrReifiedValue) => (typeof value === "string" ? value : value.value);
 
     if (!show) {
         return <Spinner position={"inline"} />;
     }
 
     return (
-        <AutoCompleteField<IAutocompleteDefaultResponse | string, IAutocompleteDefaultResponse>
+        <AutoCompleteField<StringOrReifiedValue, IAutocompleteDefaultResponse>
             onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
@@ -205,12 +206,12 @@ export const ParameterAutoCompletion = ({
 };
 
 // Label of auto-completion results
-const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
-    const label = item.label || item.value;
+const autoCompleteLabel = (item: StringOrReifiedValue) => {
+    const label = typeof item === "string" ? item : item.label || item.value;
     return label;
 };
 
-const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+const displayAutoCompleteLabel = (item: StringOrReifiedValue) => {
     const label = autoCompleteLabel(item);
     if (label === "") {
         return "\u00A0";

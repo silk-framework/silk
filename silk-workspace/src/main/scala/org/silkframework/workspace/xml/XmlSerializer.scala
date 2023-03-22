@@ -35,8 +35,11 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
 
   /**
     * Writes an updated task.
+    *
+    * @param resources The resource manager where the task will be written to.
+    * @param projectResourceManager The resource manager to serialize project file resources correctly.
     */
-  def writeTask(task: Task[TaskType], resources: ResourceManager)
+  def writeTask(task: Task[TaskType], resources: ResourceManager, projectResourceManager: ResourceManager)
 
   /**
     * Extracts task meta data from input stream and also returns the parsed XML element.

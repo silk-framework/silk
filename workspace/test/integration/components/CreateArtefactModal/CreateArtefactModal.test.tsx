@@ -14,6 +14,7 @@ import {
     checkRequestMade,
     cleanUpDOM,
     clickWrapperElement,
+    elementHtmlToContain,
     findAll,
     findSingleElement,
     legacyApiUrl,
@@ -66,6 +67,7 @@ describe("Task creation widget", () => {
             common: {
                 initialSettings: {
                     emptyWorkspace: false,
+                    templatingEnabled: true,
                 },
                 artefactModal: {
                     isOpen: true,
@@ -242,6 +244,8 @@ describe("Task creation widget", () => {
         expect(findAll(wrapper, "legend")).toHaveLength(2);
         // restriction and multi-line use code mirror widget
         expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
+        // Default values should be set
+        await elementHtmlToContain(wrapper, "#stringParam", "default string");
     });
 
     // Click the create button in the create dialog
@@ -256,13 +260,13 @@ describe("Task creation widget", () => {
     it("should show validation errors for an unfinished form when clicking 'Create'", async () => {
         const { wrapper } = await pluginCreationDialogWrapper();
         clickCreate(wrapper);
-        await expectValidationErrors(wrapper, 3);
+        await expectValidationErrors(wrapper, 6);
         // Enter valid value for int parameter
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
-        await expectValidationErrors(wrapper, 2);
+        await expectValidationErrors(wrapper, 4);
         // Enter invalid value for int parameter
         changeValue(findSingleElement(wrapper, "#intParam"), "abc");
-        await expectValidationErrors(wrapper, 3);
+        await expectValidationErrors(wrapper, 6);
     });
 
     it("should send the correct request when clicking 'Create' on a valid form", async () => {
@@ -394,25 +398,58 @@ describe("Task creation widget", () => {
         },
     };
 
-    it("should use existing values to set the initial parameter values on update", async () => {
-        const { wrapper } = await pluginCreationDialogWrapper(true, {
-            projectId: PROJECT_ID,
-            taskId: TASK_ID,
-            taskPluginDetails: mockPluginDescription,
-            metaData: {
-                label: "Task label",
-            },
-            currentParameterValues: expectedParams,
-        });
+    const existingTask = {
+        projectId: PROJECT_ID,
+        taskId: TASK_ID,
+        taskPluginDetails: mockPluginDescription,
+        metaData: {
+            label: "Task label",
+        },
+        currentParameterValues: expectedParams,
+        currentTemplateValues: {},
+    };
+
+    // Updates a task via update button and returns the request data
+    const updateTask = async (wrapper) => {
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
-        const updateRequest = mockAxios.getReqMatching({
+        return mockAxios.getReqMatching({
             url: legacyApiUrl("workspace/projects/projectId/tasks/taskId"),
             method: "PATCH",
         }).data;
+    };
+
+    it("should use existing values to set the initial parameter values on update", async () => {
+        const { wrapper } = await pluginCreationDialogWrapper(true, existingTask);
+        const updateRequest = await updateTask(wrapper);
         // Build expected request parameter object
         const expectedObject: any = {};
         Object.entries(expectedParams).forEach(([key, value]) => (expectedObject[key] = value.value));
+        const objectParameterObject: any = {};
+        Object.entries(expectedParams.objectParameter.value).forEach(
+            ([key, value]) => (objectParameterObject[key] = value.value)
+        );
+        expectedObject.objectParameter = objectParameterObject;
+        expect(updateRequest.data.parameters).toEqual(expectedObject);
+    });
+
+    it("should use existing template values on initialization and update", async () => {
+        const { wrapper } = await pluginCreationDialogWrapper(true, {
+            ...existingTask,
+            currentTemplateValues: {
+                stringParam: "{{globalVariable}}",
+            },
+        });
+        await waitFor(() => findSingleElement(wrapper, byTestId("stringParam-template-switch-back-btn")));
+        await waitFor(() =>
+            expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value")
+        );
+        const updateRequest = await updateTask(wrapper);
+        // Build expected request parameter object
+        const expectedObject: any = {};
+        Object.entries(expectedParams).forEach(
+            ([key, value]) => key !== "stringParam" && (expectedObject[key] = value.value)
+        );
         const objectParameterObject: any = {};
         Object.entries(expectedParams.objectParameter.value).forEach(
             ([key, value]) => (objectParameterObject[key] = value.value)

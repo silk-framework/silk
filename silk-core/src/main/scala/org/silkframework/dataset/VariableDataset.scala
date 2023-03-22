@@ -10,9 +10,9 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   */
 @Plugin(
   id = "variableDataset",
-  label = "Variable dataset",
+  label = "Variable dataset (deprecated)",
   categories = Array(DatasetCategories.embedded),
-  description = "Dataset that acts as a placeholder in workflows and is replaced at request time.")
+  description = "Dataset that acts as a placeholder in workflows and is replaced at request time. This is deprecated, please use the 'replaceable input/output dataset config' in the node menu of the workflow editor instead.")
 final class VariableDataset extends Dataset {
   /**
     * Returns a data source for reading entities from the data set.

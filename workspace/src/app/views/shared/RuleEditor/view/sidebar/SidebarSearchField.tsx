@@ -19,10 +19,10 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
 
     React.useEffect(() => {
         // Select search text on tab change
-        const input = inputRef.current
-        if(input && textQuery) {
-            input.select()
-            input.focus()
+        const input = inputRef.current;
+        if (input && textQuery) {
+            input.select();
+            input.focus();
         }
     }, [activeTabId]);
 
@@ -65,7 +65,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                         name="operation-search"
                         tooltipText={t("RuleEditor.sidebar.searchTooltip")}
                         tooltipProps={{
-                            hoverOpenDelay: 500
+                            hoverOpenDelay: 500,
                         }}
                     />
                 }
@@ -78,7 +78,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                 onItemSelectionChange={(item) => {
                     setTextQuery(item.value + " ");
                 }}
-                style={{top: "auto"}}
+                style={{ top: "auto" }}
             />
         </>
     );

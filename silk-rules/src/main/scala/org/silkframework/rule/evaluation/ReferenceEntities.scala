@@ -103,6 +103,24 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE) ++ asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
   }
 
+  def positiveReferenceLinks: Seq[ReferenceLink] = {
+    asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE)
+  }
+
+  def negativeReferenceLinks: Seq[ReferenceLink] = {
+    asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
+  }
+
+  def linkDecision(link: Link): LinkDecision = {
+    if(negativeLinks.contains(link)) {
+      LinkDecision.NEGATIVE
+    } else if(positiveLinks.contains(link)) {
+      LinkDecision.POSITIVE
+    } else {
+      LinkDecision.UNLABELED
+    }
+  }
+
   private def asReferenceLinks(links: Seq[Link], linkDecision: LinkDecision): Seq[ReferenceLink] = {
     for (link <- links) yield {
       new ReferenceLink(
@@ -112,7 +130,8 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
           source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
           target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
         ),
-        decision = linkDecision
+        decision = linkDecision,
+        confidence = link.confidence
       )
     }
   }

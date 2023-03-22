@@ -1,11 +1,12 @@
 package org.silkframework.runtime.activity
 
+import org.silkframework.config.DefaultConfig
+import org.silkframework.runtime.activity.Status.{Canceling, Finished, Waiting}
+import org.silkframework.runtime.execution.Execution
+
 import java.time.Instant
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent._
-import org.silkframework.runtime.activity.Status.{Canceling, Finished}
-import org.silkframework.runtime.execution.Execution
-
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -58,15 +59,15 @@ private class ActivityExecution[T](activity: Activity[T],
     if (parent.isDefined) {
       forkJoin.fork()
     } else {
-      Activity.forkJoinPool.execute(forkJoin)
+      ActivityExecution.forkJoinPool.execute(forkJoin)
     }
   }
 
   // Checks if the activity is already running (and fails if it is) and inits the status.
-  private def initStatus(user: UserContext): Unit = {
+  private def initStatus(user: UserContext, allowWaiting: Boolean = false): Unit = {
     StatusLock.synchronized {
       // Check if the current activity is still running
-      if (status().isRunning) {
+      if (status().isRunning && (!allowWaiting || !status().isInstanceOf[Waiting])) {
         throw new IllegalStateException(s"Cannot start while activity '${this.activity.name}' is still running!")
       }
       setStartMetaData(user)
@@ -96,6 +97,23 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
+  override def startPrioritized()(implicit user: UserContext): Unit = {
+    initStatus(user, allowWaiting = true)
+    user.user match {
+      case Some(u) if u.uri.nonEmpty => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString).getOrElse("")} has been " +
+        s"started prioritized, skipping the waiting queue. (triggered by user with URI: ${u.uri})")
+      case _ => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString)} has been started with priority, skipping the waiting queue.")
+    }
+    for(runner <- forkJoinRunner) {
+      // Activity has already been scheduled
+      if (!runner.cancel(false)) {
+        throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
+      }
+    }
+    forkJoinRunner = None
+    ActivityExecution.priorityThreadPool.execute(() => runActivity())
+  }
+
   override def cancel()(implicit user: UserContext): Unit = {
     var cancelling = false
     StatusLock.synchronized {
@@ -109,10 +127,14 @@ private class ActivityExecution[T](activity: Activity[T],
     if(cancelling) {
       // cancel children outside of lock to not run into dead locks
       children().foreach(_.cancel())
-        activity.cancelExecution()
-      ThreadLock.synchronized {
-        runningThread foreach { thread =>
-          thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+      activity.cancelExecution()
+      interruptEnabled.synchronized {
+        if (interruptEnabled.get()) {
+          ThreadLock.synchronized {
+            runningThread foreach { thread =>
+              thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+            }
+          }
         }
       }
     }
@@ -260,4 +282,29 @@ object ActivityExecution {
     maxPoolSize = Some(MAX_POOL_SIZE),
     keepAliveInMs = KEEP_ALIVE_MS
   ))
+
+  /**
+    * The size of the fork join thread pool
+    */
+  private def poolSize: Option[Int] = {
+    val poolSizePath = "org.silkframework.runtime.activity.poolSize"
+    val config = DefaultConfig.instance()
+    if (config.hasPath(poolSizePath)) {
+      Option(config.getInt(poolSizePath))
+    } else {
+      None
+    }
+  }
+
+  /**
+    * The fork join pool used to run activities.
+    */
+  val forkJoinPool: ForkJoinPool = {
+    Execution.createForkJoinPool("Activity", size = poolSize)
+  }
+
+  /**
+    * Thread pool to execute prioritized threads.
+    */
+  val priorityThreadPool: ExecutorService = Execution.createThreadPool("Activity-Prio")
 }

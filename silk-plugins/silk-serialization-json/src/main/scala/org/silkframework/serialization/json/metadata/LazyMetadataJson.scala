@@ -16,7 +16,7 @@ class LazyMetadataJson[Typ] private[metadata](
 
   override implicit val serTag: ClassTag[JsValue] = ClassTag(classOf[JsValue])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)
-  private implicit val nodeWc = WriteContext[JsValue]()
+  private implicit val nodeWc = WriteContext.empty[JsValue]
   /**
     * the schema object defining the parsed metadata object
     */

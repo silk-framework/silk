@@ -3,10 +3,9 @@ package org.silkframework.runtime.activity
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.runtime.activity.Status.Waiting
+import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
 import org.silkframework.runtime.users.User
 
-import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -24,12 +23,13 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers with Eventually  
   }
   implicit override val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(30, Seconds)))
 
+  private val parallelism = ActivityExecution.forkJoinPool.getParallelism
+
   it should "interrupt activities when they are cancelled by the user" in {
-    val running = new AtomicBoolean(false)
-    val activityExecution = new ActivityExecution(new SleepingActivity(running), projectAndTaskId = None)
+    val activityExecution = new ActivityExecution(new SleepingActivity(), projectAndTaskId = None)
     val start = System.currentTimeMillis()
     Future {
-      while(!running.get()) {
+      while(!activityExecution.value()) {
         val SHORT_TIME = 50
         Thread.sleep(SHORT_TIME)
       }
@@ -47,13 +47,10 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers with Eventually  
   }
 
   it should "put activities into waiting if all thread pool slots are occupied" in {
-    val parallelism = Activity.forkJoinPool.getParallelism
-
     // Start one more activity than the thread pool allowed
     val sleepingActivities =
       for (_ <- 0 until (parallelism + 1)) yield {
-        val running = new AtomicBoolean(false)
-        val activity = Activity(new SleepingActivity(running))
+        val activity = Activity(new SleepingActivity())
         activity.start()
         activity
       }
@@ -64,53 +61,124 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers with Eventually  
     }
 
     // Make sure that the last activity is not executed yet
-    Thread.sleep(100)
-    sleepingActivities.last.status() mustBe a[Waiting]
+    eventually {
+      sleepingActivities.last.status() mustBe a[Waiting]
+    }
 
     // Clean up: cancel all activities
-    for(activity <- sleepingActivities) {
-      activity.cancel()
-    }
-    for (activity <- sleepingActivities) {
-      activity.waitUntilFinished()
-    }
+    stopActivities(sleepingActivities)
   }
 
   it should "maintain parallelism if activities are blocking" in {
-    val parallelism = Activity.forkJoinPool.getParallelism
-
     val blockingActivities =
       for(_ <- 0 until parallelism) yield {
-        val running = new AtomicBoolean(false)
-        Activity(new BlockingActivity(running)).start()
-        running
+        val activity = Activity(new BlockingActivity())
+        activity.start()
+        activity
       }
 
     val sleepingActivities =
       for(_ <- 0 until (parallelism - 1)) yield {
-        val running = new AtomicBoolean(false)
-        Activity(new SleepingActivity(running)).start()
-        running
+        val activity = Activity(new SleepingActivity())
+        activity.start()
+        activity
       }
 
-    Thread.sleep(1000)
+    eventually {
+      blockingActivities.forall(_.value()) mustBe true
+      sleepingActivities.forall(_.value()) mustBe true
+    }
 
-    blockingActivities.forall(_.get()) mustBe true
-    sleepingActivities.forall(_.get()) mustBe true
+    // Only stop the blocking activities
+    for (activity <- blockingActivities) {
+      activity.cancel()
+    }
+
+    // The sleeping activities should still be running
+    // This check is needed because the call to blockUntil might execute a sleeping activity internally
+    // In this case the sleeping activity should not be cancelled even though it's running in the same thread.
+    sleepingActivities.forall(_.status().isInstanceOf[Running]) mustBe true
+
+    // Clean up
+    stopActivities(sleepingActivities)
+
+    // Make sure that the blocking activities have been stopped as well now
+    eventually {
+      for (activity <- blockingActivities) {
+        activity.status() match {
+          case Finished(_, _, cancelled, _) =>
+            cancelled mustBe true
+          case status: Status =>
+            fail("Unexpected status: " + status)
+        }
+      }
+    }
+  }
+
+  it should "allow activities to skip the waiting queue" in {
+    val sleepingActivities =
+      for (_ <- 0 until parallelism) yield {
+        val activity = Activity(new SleepingActivity())
+        activity.start()
+        activity
+      }
+
+    // Activities that have already been started should skip the waiting queue
+    val priorityActivity1 = Activity(new SleepingActivity())
+    priorityActivity1.start()
+    eventually {
+      priorityActivity1.status() mustBe a[Waiting]
+    }
+    priorityActivity1.startPrioritized()
+    eventually {
+      priorityActivity1.value() mustBe true
+    }
+
+    // Activities that have not been started yet, should be started immediately
+    val priorityActivity2 = Activity(new SleepingActivity())
+    priorityActivity2.startPrioritized()
+    eventually {
+      priorityActivity2.value() mustBe true
+    }
+
+    stopActivities(sleepingActivities :+ priorityActivity1 :+ priorityActivity2)
+  }
+
+  private def stopActivities(activities: Iterable[ActivityControl[_]]): Unit = {
+    for (activity <- activities) {
+      activity.cancel()
+    }
+    for (activity <- activities) {
+      activity.waitUntilFinished()
+    }
   }
 }
 
-class SleepingActivity(running: AtomicBoolean) extends Activity[Unit] {
-  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
-    running.set(true)
+/**
+  * Activity that sleeps for a long time.
+  * Will set the boolean context value to true as soon as it's being executed.
+  */
+class SleepingActivity() extends Activity[Boolean] {
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    context.value() = true
     val LONG_TIME = 100000
     Thread.sleep(LONG_TIME)
   }
 }
 
-class BlockingActivity(running: AtomicBoolean) extends Activity[Unit] {
-  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
-    running.set(true)
+/**
+  * Activity that just blocks.
+  * Will set the boolean context value to true as soon as it's being executed.
+  */
+class BlockingActivity() extends Activity[Boolean] {
+
+  override def initialValue: Option[Boolean] = Some(false)
+
+  override def run(context: ActivityContext[Boolean])(implicit userContext: UserContext): Unit = {
+    context.value() = true
     context.blockUntil(() => false)
   }
 }

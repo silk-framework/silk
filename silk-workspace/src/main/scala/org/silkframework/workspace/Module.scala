@@ -83,7 +83,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     assertLoaded()
     val task = new ProjectTask(name, taskData, metaData, this)
     validator.validate(project, task)
-    provider.putTask(project.id, task)
+    provider.putTask(project.id, task, project.resources)
     task.startActivities()
     cachedTasks += ((name, task))
     logger.info(s"Added task '$name' to project ${project.id}." + userContext.logInfo)

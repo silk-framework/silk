@@ -20,9 +20,9 @@ trait ResourceManager extends ResourceLoader with ResourceWriter with AutoClosea
     *
     * @param path A path of the form child1/child2/file.ext
     */
-  def getInPath(path: String, sep: Char = '/', mustExist: Boolean = false): WritableResource = {
+  def getInPath(path: String, mustExist: Boolean = false): WritableResource = {
     var loader: ResourceManager = this
-    val segments = path.split(sep)
+    val segments = path.split("/")
     for(segment <- segments.dropRight(1)) {
       loader = loader.child(segment)
     }

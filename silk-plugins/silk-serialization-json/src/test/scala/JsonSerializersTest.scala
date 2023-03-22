@@ -9,6 +9,8 @@ import org.silkframework.runtime.serialization.{ReadContext, Serialization, Writ
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
+import org.silkframework.serialization.json.WorkflowSerializers._
+import org.silkframework.workspace.activity.workflow.WorkflowTest.{DS_A1, OUTPUT, testWorkflow}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json.Json
 
@@ -23,7 +25,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
   val mime = "application/json"
   private implicit val readContext: ReadContext = ReadContext()
-  private implicit val writeContext: WriteContext[Any] = WriteContext[Any](projectId = None)
+  private implicit val writeContext: WriteContext[Any] = WriteContext.empty[Any]
 
   private def verify[T: ClassTag](value: T) = {
     val format = Serialization.formatForMime[T](mime)
@@ -81,6 +83,14 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
 
   "UiAnnotations" should "serialize to and from JSON" in {
     testSerialization(UiAnnotations(Seq(stickyNote, stickyNote.copy(id = "other Id"))))
+  }
+
+  "Workflows" should "serialize to and from JSON" in {
+    val workflow = testWorkflow.copy(
+      replaceableInputs = Seq(DS_A1),
+      replaceableOutputs = Seq(OUTPUT)
+    )
+    testSerialization(workflow)
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {

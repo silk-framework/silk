@@ -14,7 +14,7 @@ class LazyMetadataXml[Typ] private[metadata](
 
   override implicit val serTag: ClassTag[Node] = ClassTag(classOf[Node])
   override implicit val typTag: ClassTag[Typ] = ClassTag(typ)
-  private implicit val nodeWc = WriteContext[Node]()
+  private implicit val nodeWc = WriteContext.empty[Node]
   /**
     * the schema object defining the parsed metadata object
     */

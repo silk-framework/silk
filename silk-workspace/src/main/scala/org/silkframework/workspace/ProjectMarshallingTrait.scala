@@ -102,8 +102,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   protected def importProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
                               importFromWorkspace: WorkspaceProvider,
-                              resources: Option[ResourceManager],
-                              importResources: Option[ResourceManager])
+                              resources: ResourceManager,
+                              importResources: ResourceManager,
+                              alsoCopyResources: Boolean)
                              (implicit userContext: UserContext): Unit = {
     // Create new empty project
     for ((project, index) <- importFromWorkspace.readProjects().filter(_.id == projectName).zipWithIndex) {
@@ -111,48 +112,50 @@ trait ProjectMarshallingTrait extends AnyPlugin {
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources)
+      workspaceProvider.importProject(projectConfig, importFromWorkspace, importResources, resources, alsoCopyResources)
     }
   }
 
   protected def exportProject(projectName: Identifier,
                               workspaceProvider: WorkspaceProvider,
                               exportToWorkspace: WorkspaceProvider,
-                              resources: Option[ResourceManager],
-                              exportToResources: Option[ResourceManager])
+                              resources: ResourceManager,
+                              exportToResources: ResourceManager,
+                              alsoExportResources: Boolean)
                              (implicit userContext: UserContext): Unit = {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get
-    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project)
+    WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project, alsoExportResources)
   }
 
   protected def exportProject(project: Project,
                               outputWorkspaceProvider: WorkspaceProvider,
                               resources: ResourceManager,
-                              exportToResources: Option[ResourceManager])
+                              exportToResources: ResourceManager,
+                              alsoExportResources: Boolean)
                              (implicit userContext: UserContext): Unit = {
     // Load project into temporary XML workspace provider
     val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
     val projectId = updatedProjectConfig.id
     outputWorkspaceProvider.putProject(updatedProjectConfig)
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
-    for(outputResources <- exportToResources) {
-      copyResources(resources, outputResources)
+    if(alsoExportResources) {
+      copyResources(resources, exportToResources)
     }
     for(dataset <- project.tasks[DatasetSpec[Dataset]]) {
-      outputWorkspaceProvider.putTask(projectId, dataset)
+      outputWorkspaceProvider.putTask(projectId, dataset, resources)
     }
     for(transformTask <- project.tasks[TransformSpec]) {
-      outputWorkspaceProvider.putTask(projectId, transformTask)
+      outputWorkspaceProvider.putTask(projectId, transformTask, resources)
     }
     for(task <- project.tasks[LinkSpec]) {
-      outputWorkspaceProvider.putTask(projectId, task)
+      outputWorkspaceProvider.putTask(projectId, task, resources)
     }
     for(task <- project.tasks[Workflow]) {
-      outputWorkspaceProvider.putTask(projectId, task)
+      outputWorkspaceProvider.putTask(projectId, task, resources)
     }
     for(task <- project.tasks[CustomTask]) {
-      outputWorkspaceProvider.putTask(projectId, task)
+      outputWorkspaceProvider.putTask(projectId, task, resources)
     }
   }
 }

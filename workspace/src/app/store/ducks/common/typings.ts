@@ -1,4 +1,10 @@
-import { IAutocompleteDefaultResponse, IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
+import {
+    IAutocompleteDefaultResponse,
+    IMetadata,
+    PluginType,
+    TaskType,
+    TemplateValueType,
+} from "@ducks/shared/typings";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
@@ -117,6 +123,7 @@ export interface IProjectTaskUpdatePayload {
     currentParameterValues: {
         [key: string]: string | object;
     };
+    currentTemplateValues: TemplateValueType;
     dataParameters?: {
         [key: string]: string;
     };
@@ -210,6 +217,9 @@ export interface IInitFrontend {
 
     /** The application version. */
     version?: string;
+
+    /** If templating in some input fields is enabled. */
+    templatingEnabled: boolean;
 }
 
 type HotKeyIds = "quickSearch";
