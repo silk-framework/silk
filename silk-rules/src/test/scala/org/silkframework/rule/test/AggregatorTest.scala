@@ -51,7 +51,8 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
     val aggregator: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(PluginContext.empty)
 
     def addTest(): Unit = {
-      val result = aggregator(operators(example.inputs, example.weights), DPair.fill(Entity.empty("dummy")), 0.0)
+      val weights = if(example.weights.nonEmpty) example.weights else Seq.fill(example.inputs.size)(1)
+      val result = aggregator(operators(example.inputs, weights), DPair.fill(Entity.empty("dummy")), 0.0)
       val description = if(example.description.isEmpty) "" else s" (${example.description})"
 
       it should "fulfill: " + example.formatted + description in {
