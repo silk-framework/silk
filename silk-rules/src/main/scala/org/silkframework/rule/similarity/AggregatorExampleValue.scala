@@ -7,10 +7,15 @@ case class AggregatorExampleValue(description: Option[String],
                                   parameters: Map[String, String],
                                   inputs: Seq[Option[Double]],
                                   weights: Seq[Int],
-                                  output: Option[Double]) extends OperatorExampleValue {
+                                  output: Option[Double],
+                                  throwsException: String) extends OperatorExampleValue {
 
   def formatted: String = {
-    s"Returns ${formatScore(output)} for parameters ${format(parameters)}, input scores ${format(inputs.map(formatScore))} and weights ${format(weights)}."
+    if (throwsException.trim != "") {
+      s"Fails validation and thus returns ${format(output)} for parameters ${format(parameters)} and input scores ${format(inputs.map(formatScore))}."
+    } else {
+      s"Returns ${formatScore(output)} for parameters ${format(parameters)}, input scores ${format(inputs.map(formatScore))} and weights ${format(weights)}."
+    }
   }
 
   /**
@@ -52,7 +57,8 @@ object AggregatorExampleValue {
         parameters = retrieveParameters(example),
         inputs = example.inputs.map(convertScore),
         weights = example.weights(),
-        output = convertScore(example.output())
+        output = convertScore(example.output()),
+        throwsException = example.throwsException()
       )
     }
   }
