@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.plugins.distance.equality
 
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{BooleanDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -23,6 +24,32 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Inequality",
   description = "Returns success if values are not equal, failure otherwise."
 )
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns distance 0, if the values are different",
+    input1 = Array("max"),
+    input2 = Array("john"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns distance 1, if the values are equal",
+    input1 = Array("max"),
+    input2 = Array("max"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "If multiple values are provided, returns 0, if at least one value does not match",
+    input1 = Array("max", "helmut"),
+    input2 = Array("max"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "If multiple values are provided, returns 1, if all value match",
+    input1 = Array("max", "max"),
+    input2 = Array("max", "max"),
+    output = 1.0
+  )
+))
 case class InequalityMetric() extends SingleValueDistanceMeasure with BooleanDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
