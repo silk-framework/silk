@@ -14,8 +14,6 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
-
 /**
  * Plugin interface.
  */
@@ -27,23 +25,26 @@ trait AnyPlugin {
   @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = ClassPluginDescription(getClass)
 
   /**
-   * The parameters for this plugin as Map.
-   */
-  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
+    * Holds all templates. Set by ClassPluginDescription.
+    */
+  @volatile
+  var templateValues: Map[String, String] = Map.empty
 
   /**
-    * Creates a new instance of this plugin with updated properties.
-    *
-    * @param updatedProperties A list of property values to be updated.
-    *                          This can be a subset of all available properties.
-    *                          Property values that are not part of the map remain unchanged.
+    * Retrieves all parameter values for this plugin.
     */
-  def withParameters(updatedProperties: Map[String, String])(implicit context: PluginContext): this.type = {
-    val updatedParameters = parameters ++ updatedProperties
-    pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
-  }
+  def parameters(implicit pluginContext: PluginContext): ParameterValues = pluginSpec.parameterValues(this)
 
-  override def toString: String = {
-    getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
+  /**
+    * Creates a new instance of this plugin with updated parameters.
+    *
+    * @param updatedParameters A list of parameter values to be updated.
+    * @param dropExistingValues If true, the caller is expected to provide values for all parameters.
+    *                           If false, the updated parameters can be a subset of all available parameters.
+    *                           Parameter values that are not provided remain unchanged.
+    */
+  def withParameters(updatedParameters: ParameterValues, dropExistingValues: Boolean = false)(implicit context: PluginContext): this.type = {
+    val allParameters = if(dropExistingValues) updatedParameters else parameters merge updatedParameters
+    pluginSpec(allParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
   }
 }

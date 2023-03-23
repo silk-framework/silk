@@ -1,2 +1,3 @@
 org.silkframework.plugins.CorePlugins
 org.silkframework.workspace.reports.ExecutionReportPlugins
+org.silkframework.runtime.templating.TemplatePlugins

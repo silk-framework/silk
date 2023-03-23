@@ -31,7 +31,9 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
     None,
     context.project.config.prefixes,
     Some(context.project.config.id),
-    context.project.config.projectResourceUriOpt
+    context.project.config.projectResourceUriOpt,
+    context.project.resources,
+    UserContext.Empty
   )
 
   private def checkGraphParams(query: String, defaultGraphUri: List[String], namedGraphUri: List[String]): String ={

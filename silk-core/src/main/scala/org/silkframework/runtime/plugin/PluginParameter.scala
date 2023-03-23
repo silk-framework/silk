@@ -58,28 +58,28 @@ trait PluginParameter {
   /**
     * Formats a parameter value as string.
     */
-  def formatValue(value: AnyRef)(implicit prefixes: Prefixes): String = {
+  def formatValue(value: AnyRef)(implicit pluginContext: PluginContext): String = {
     parameterType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 
   /**
     * Retrieves the current value of this parameter as string.
     */
-  def stringValue(obj: AnyRef)(implicit prefixes: Prefixes): String = {
+  def stringValue(obj: AnyRef)(implicit pluginContext: PluginContext): String = {
     formatValue(apply(obj))
   }
 
   /**
     * Returns the default value as string.
     */
-  def stringDefaultValue(implicit prefixes: Prefixes): Option[String] = {
+  def stringDefaultValue(implicit pluginContext: PluginContext): Option[String] = {
     for(value <- defaultValue) yield formatValue(value)
   }
 
   /**
     * Returns the example value as string.
     */
-  def stringExampleValue(implicit prefixes: Prefixes): Option[String] = {
+  def stringExampleValue(implicit pluginContext: PluginContext): Option[String] = {
     for(value <- exampleValue) yield formatValue(value)
   }
 

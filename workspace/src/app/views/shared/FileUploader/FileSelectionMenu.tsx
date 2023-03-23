@@ -96,7 +96,7 @@ export interface IUploaderOptions {
     t(key: string, options?: object | string): string;
 
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
 }
 
 interface IState {
@@ -316,7 +316,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                         onProgress={onProgress}
                                         onUploadSuccess={this.handleUploadSuccess}
                                         validateBeforeAdd={this.validateBeforeFileAdded}
-                                        uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/resources`)}`}
+                                        uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/files`)}`}
                                         attachFileNameToEndpoint={true}
                                     />
                                 </>

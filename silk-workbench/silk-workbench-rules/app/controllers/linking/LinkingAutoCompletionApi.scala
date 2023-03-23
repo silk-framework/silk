@@ -1,13 +1,13 @@
 package controllers.linking
 
 import controllers.autoCompletion
-import controllers.autoCompletion.Completions
+import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, Completions}
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.shared.autoCompletion.AutoCompletionApiUtils
 import controllers.transform.AutoCompletionApi
-import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionResponse, OpFilter, PartialSourcePathAutoCompletionRequest, PartialSourcePathAutocompletionHelper}
+import controllers.transform.autoCompletion.{OpFilter, PartialSourcePathAutoCompletionRequest, PartialSourcePathAutocompletionHelper}
 import controllers.transform.doc.AutoCompletionApiDoc
 import controllers.transform.transformTask.TransformUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn

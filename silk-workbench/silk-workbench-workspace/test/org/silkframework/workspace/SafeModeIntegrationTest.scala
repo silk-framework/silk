@@ -2,14 +2,12 @@ package org.silkframework.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, MustMatchers}
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.SafeModeException
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.runtime.activity.Status.Idle
-import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.util.{ConfigTestTrait, SparqlMockServerTrait}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 
@@ -69,7 +67,7 @@ class SafeModeIntegrationTest extends FlatSpec
       val oldProperties = oldTask.properties
       val newProperties = oldProperties.filter(prop => prop._1 != sparqlDatasetEndpointParameter && prop._1 != "type") ++
           Seq(sparqlDatasetEndpointParameter -> s"http://localhost:$sparqlServerPort/sparql")
-      task.update(oldTask.withProperties(newProperties.toMap))
+      task.update(oldTask.withParameters(ParameterValues.fromStringMap(newProperties.toMap)))
       sparqlDatasetInitialized = true
     }
     outputDataset.entitySink.clear()

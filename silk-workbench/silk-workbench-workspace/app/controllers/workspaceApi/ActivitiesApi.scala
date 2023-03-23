@@ -65,7 +65,7 @@ class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) e
           case None =>
             workspace.projects
         }
-        implicit val writeContext: WriteContext[JsValue] = WriteContext()
+        implicit val writeContext: WriteContext[JsValue] = WriteContext.empty
         for(project <- projects;
             task <- project.allTasks;
             activity <- task.activities;

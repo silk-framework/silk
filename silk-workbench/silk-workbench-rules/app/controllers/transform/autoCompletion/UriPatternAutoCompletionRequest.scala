@@ -1,5 +1,6 @@
 package controllers.transform.autoCompletion
 
+import controllers.autoCompletion.AutoSuggestAutoCompletionRequest
 import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.rule.util.UriPatternParser.PathPart
 import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}

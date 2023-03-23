@@ -202,5 +202,4 @@ object Resource {
       checkRecursive(file.getAbsoluteFile)
     }
   }
-
 }

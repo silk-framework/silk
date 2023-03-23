@@ -10,7 +10,7 @@ import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.{CustomTask, MetaData}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivityFactory, ProjectActivityFactory, TaskActivityFactory, WorkspaceActivity}
@@ -243,7 +243,7 @@ case class FailingTaskActivityFactory() extends TaskActivityFactory[MessageTask,
 
 class PlannedException(msg: String) extends RuntimeException(msg)
 
-case class FailingActivity() extends Activity[Unit] {
+case class FailingActivity() extends Activity[Unit] with AnyPlugin {
   override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
     throw new PlannedException("Planned exception")
   }

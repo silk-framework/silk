@@ -6,7 +6,7 @@ import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
-import { IProjectTask } from "@ducks/shared/typings";
+import { IProjectTask, TemplateValueType } from "@ducks/shared/typings";
 import { IPluginDetails } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
@@ -53,12 +53,16 @@ export function TaskConfig(props: IProps) {
             // Config dialog is always opened with fresh data
             const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
             const taskPluginDetails = await artefactProperties(taskData.data.type);
-            const dataParameters: Record<string, string> | undefined =  taskPluginDetails.taskType === "Dataset" ? {
-                readOnly: `${taskData.data.readOnly === true}`
-            } : undefined
-            if(dataParameters && taskData.data.uriProperty) {
-                dataParameters.uriProperty = taskData.data.uriProperty
+            const dataParameters: Record<string, string> | undefined =
+                taskPluginDetails.taskType === "Dataset"
+                    ? {
+                          readOnly: `${taskData.data.readOnly === true}`,
+                      }
+                    : undefined;
+            if (dataParameters && taskData.data.uriProperty) {
+                dataParameters.uriProperty = taskData.data.uriProperty;
             }
+            const templates: TemplateValueType = taskData.data.templates ?? {};
             dispatch(
                 commonOp.updateProjectTask({
                     projectId: taskData.project,
@@ -66,7 +70,8 @@ export function TaskConfig(props: IProps) {
                     metaData: taskData.metadata,
                     taskPluginDetails: taskPluginDetails,
                     currentParameterValues: taskData.data.parameters,
-                    dataParameters: dataParameters
+                    dataParameters: dataParameters,
+                    currentTemplateValues: templates,
                 })
             );
         } catch (e) {
@@ -100,7 +105,10 @@ export function TaskConfig(props: IProps) {
 
     let titlePostfix = "";
     if (labelledTaskData) {
-        titlePostfix = `: ${t("common.dataTypes."+labelledTaskData.taskDescription.title.toLowerCase(), labelledTaskData.taskDescription.title)}`;
+        titlePostfix = `: ${t(
+            "common.dataTypes." + labelledTaskData.taskDescription.title.toLowerCase(),
+            labelledTaskData.taskDescription.title
+        )}`;
     }
 
     // FIXME: CMEM-3742: only return CardContent when it has items, so we need check content before rendering

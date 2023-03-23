@@ -9,6 +9,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSe
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{LoadedTask, ProjectConfig, WorkspaceProvider}
 
 import java.util.logging.{Level, Logger}
@@ -84,11 +85,12 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Imports a complete project.
     */
-  def importProject(project: ProjectConfig,
-                    provider: WorkspaceProvider,
-                    inputResources: Option[ResourceManager],
-                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
-    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  override def importProject(project: ProjectConfig,
+                             importProvider: WorkspaceProvider,
+                             importResources: ResourceManager,
+                             targetResources: ResourceManager,
+                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(importProvider, this, importResources, targetResources, project, alsoCopyResources)
   }
 
   /**
@@ -109,9 +111,9 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     plugins.values.toSeq.flatMap(plugin => plugin.loadTasks(resources.child(project).child(plugin.prefix), projectResources).asInstanceOf[Seq[LoadedTask[_ <: TaskSpec]]])
   }
 
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResourceManager: ResourceManager)
                                                 (implicit userContext: UserContext): Unit = {
-    plugin[T].writeTask(task, resources.child(project).child(plugin[T].prefix))
+    plugin[T].writeTask(task, resources.child(project).child(plugin[T].prefix), projectResourceManager)
   }
 
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
@@ -164,7 +166,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   }
 
   private def updateTags(project: Identifier, tags: Iterable[Tag]): Unit = {
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node]()
+    implicit val writeContext: WriteContext[Node] = WriteContext.empty[Node]
     val tagXml =
       <Tags>
         { tags.map(TagXmlFormat.write) }
@@ -183,7 +185,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  override def refresh()(implicit userContext: UserContext): Unit = {
+  override def refresh(resources: ResourceRepository)(implicit userContext: UserContext): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
   }

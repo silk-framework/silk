@@ -11,7 +11,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
-import { IProjectResource } from "@ducks/shared/typings";
+import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 
@@ -114,7 +114,7 @@ export const RuleParameterInput = ({
                 />
             );
         case "resource":
-            const resourceNameFn = (item: IProjectResource) => item.name;
+            const resourceNameFn = (item: IProjectResource) => fileValue(item);
             return (
                 <SelectFileFromExisting
                     autocomplete={{

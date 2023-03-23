@@ -92,33 +92,33 @@ object LinkingTaskApiDoc {
 
   final val evaluateLinkageRuleRequestJsonExample =
     """
-      {
-        "filter": {
-          "limit": null,
-          "unambiguous": null
+    {
+      "filter": {
+        "limit": null,
+        "unambiguous": null
+      },
+      "linkType": "http://www.w3.org/2002/07/owl#sameAs",
+      "operator": {
+        "id": "unnamed_3",
+        "indexing": true,
+        "metric": "equality",
+        "parameters": {},
+        "required": false,
+        "sourceInput": {
+          "id": "unnamed_1",
+          "path": "group",
+          "type": "pathInput"
         },
-        "linkType": "http://www.w3.org/2002/07/owl#sameAs",
-        "operator": {
-          "id": "unnamed_3",
-          "indexing": true,
-          "metric": "equality",
-          "parameters": {},
-          "required": false,
-          "sourceInput": {
-            "id": "unnamed_1",
-            "path": "group",
-            "type": "pathInput"
-          },
-          "targetInput": {
-            "id": "unnamed_2",
-            "path": "group",
-            "type": "pathInput"
-          },
-          "threshold": 0,
-          "type": "Comparison",
-          "weight": 1
-        }
+        "targetInput": {
+          "id": "unnamed_2",
+          "path": "group",
+          "type": "pathInput"
+        },
+        "threshold": 0,
+        "type": "Comparison",
+        "weight": 1
       }
+    }
     """
 
   final val evaluateLinkageRuleRequestXmlExample =
@@ -160,4 +160,86 @@ object LinkingTaskApiDoc {
       ]
     """
 
+  final val evaluateCurrentLinkageRuleRequest =
+    """
+  {
+    "filters" : [
+      "positiveLinks"
+    ],
+    "limit" : 10,
+    "offset" : 0,
+    "query" : "multi word search query",
+    "sortBy" : [
+      "scoreAsc"
+    ],
+    "includeReferenceLinks": true
+  }
+    """
+
+  final val evaluateCurrentLinkageRuleExample =
+    """
+{
+    "linkRule": {
+        "operator": {
+            "id": "equality",
+            "type": "Comparison",
+            "weight": 1,
+            "threshold": 0,
+            "indexing": true,
+            "metric": "equality",
+            "parameters": {},
+            "sourceInput": {
+                "type": "pathInput",
+                "id": "sourcePathInput_2",
+                "path": "foaf:name"
+            },
+            "targetInput": {
+                "type": "pathInput",
+                "id": "targetPathInput",
+                "path": "rdfs:label"
+            }
+        }
+    },
+    "evaluationActivityStats": {
+        "nrSourceEntities": 195,
+        "nrTargetEntities": 174,
+        "nrLinks": 124
+    },
+    "resultStats": {
+        "overallLinkCount": 100,
+        "filteredLinkCount": 42
+    },
+    "metaData": {
+        "sourceInputLabel": "Dataset A",
+        "targetInputLabel": "Transform task B"
+    },
+    "links": [
+        {
+            "source": "http://dbpedia.org/resource/The_Score_%28film%29",
+            "target": "http://data.linkedmdb.org/resource/film/746",
+            "confidence": 1,
+            "ruleValues": {
+                "operatorId": "equality",
+                "score": 1,
+                "sourceValue": {
+                    "operatorId": "sourcePathInput_2",
+                    "values": [
+                        "The Score"
+                    ],
+                    "error": null
+                },
+                "targetValue": {
+                    "operatorId": "targetPathInput",
+                    "values": [
+                        "The Score"
+                    ],
+                    "error": null
+                }
+            },
+            "decision": "unlabeled"
+        }
+        ...
+    ]
+}
+      """
 }

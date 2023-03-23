@@ -1,10 +1,10 @@
 package org.silkframework.test
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
-
 import org.scalatest.{FlatSpec, _}
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
 
 /**
   * Can be mixed in into a test to check for basic properties of a plugin.
@@ -17,22 +17,22 @@ abstract class PluginTest extends FlatSpec with Matchers {
   /**
     * Use this plugin object for testing.
     */
-  protected def pluginObject: AnyRef
+  protected def pluginObject: AnyPlugin
 
   private val obj = pluginObject
 
   behavior of obj.getClass.getSimpleName
 
   it should "be serializable" in {
-    obj shouldBe unserialize(serialize(obj))
+    obj shouldBe deserialize(serialize(obj))
   }
 
   it should "be a valid plugin" in {
     // Will throw an exception if the plugin is invalid
-    PluginRegistry.reflect(obj)(Prefixes.empty)
+    PluginRegistry.reflect(obj)(PluginContext.empty)
   }
 
-  private def serialize(obj: Any) = {
+  private def serialize(obj: Any): Array[Byte] = {
     val baos = new ByteArrayOutputStream()
     val oos = new ObjectOutputStream(baos)
     oos.writeObject(obj)
@@ -40,7 +40,7 @@ abstract class PluginTest extends FlatSpec with Matchers {
     baos.toByteArray
   }
 
-  private def unserialize(b: Array[Byte]) = {
+  private def deserialize(b: Array[Byte]): AnyRef = {
     val bais = new ByteArrayInputStream(b)
     val ois = new ObjectInputStream(bais)
     ois.readObject()

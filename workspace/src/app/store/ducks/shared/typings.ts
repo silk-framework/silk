@@ -70,24 +70,31 @@ export interface IProjectTask<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     data: TaskPlugin<PLUGIN_PARAMETERS>;
 }
 
+export interface TemplateValueType {
+    [key: string]: string | TemplateValueType;
+}
+
 /** Task plugin. */
 export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     // The plugin ID
     type: string;
     // current parameter values
     parameters: PLUGIN_PARAMETERS;
+    // Template parameter values
+    templates?: TemplateValueType;
     // Optional task type, e.g. Dataset, Transform etc.
     taskType?: TaskType;
 
     /** Dataset-only parameters. */
     // Dataset may have a URI property set
-    uriProperty?: string
-    readOnly?: boolean
+    uriProperty?: string;
+    readOnly?: boolean;
 }
 
-export interface DatasetTaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> extends TaskPlugin<PLUGIN_PARAMETERS> {
+export interface DatasetTaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters>
+    extends TaskPlugin<PLUGIN_PARAMETERS> {
     /** The attribute/property (URI) that the entity URI should be written to. */
-    uriProperty?: string
+    uriProperty?: string;
 }
 
 export interface ITaskMetadataResponse {
@@ -177,16 +184,22 @@ export interface IResourceListPayload {
     offset?: number;
 }
 
+export interface FileBaseInfo {
+    /** The file name. */
+    name: string;
+    /** The absolute path inside the file repository. Not the absolute path on the file system!
+     * This should be used as value. */
+    fullPath?: string;
+}
+
+export const fileValue = (file: FileBaseInfo): string => file.fullPath ?? file.name;
+
 /** Project file resource. */
-export interface IProjectResource {
+export interface IProjectResource extends FileBaseInfo {
     /**
      * Last modification Datetime
      */
     modified: string;
-    /**
-     * The name of resource/file
-     */
-    name: string;
     /**
      * Resource/file size on bytes
      */

@@ -10,7 +10,7 @@ import java.time.Instant
   * Navigation operations (child, parent) are only applied on the primary resource manager, the fallback resource loader always stays at the same path.
   * The FallbackResourceManager can be used for adding default resources which are always available.
   */
-case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader: ResourceManager, writeIntoFallbackLoader: Boolean) extends ResourceManager {
+case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader: ResourceManager, writeIntoFallbackLoader: Boolean, basePath: String = "") extends ResourceManager {
 
   override def get(name: String, mustExist: Boolean): WritableResource = {
     if(mustExist) {
@@ -21,36 +21,32 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
           ReadOnlyResource(fallbackLoader.get(name, mustExist = true))
       }
     } else {
-      FallBackResource(resourceMgr.get(name, mustExist = false), fallbackLoader.get(name, mustExist = false))
+      FallBackResource(resourceMgr.get(name, mustExist = false), fallbackLoader.get(name, mustExist = false), basePath + "/" + name)
     }
   }
 
-  override def child(name: String): ResourceManager = FallbackResourceManager(
-    resourceMgr.child(name), fallbackLoader, writeIntoFallbackLoader) // fallback loader also needs to return the child
+  override def child(name: String): ResourceManager = {
+    // fallback loader also needs to return the child
+    FallbackResourceManager(resourceMgr.child(name), fallbackLoader, writeIntoFallbackLoader, basePath + "/" + name)
+  }
 
   override def parent: Option[ResourceManager] = {
-    for(parent <- resourceMgr.parent) yield
-      FallbackResourceManager(parent, fallbackLoader, writeIntoFallbackLoader) // TODO: fallback loader also needs to return the parent
+    for(parent <- resourceMgr.parent) yield {
+      FallbackResourceManager(parent, fallbackLoader, writeIntoFallbackLoader, parent.basePath) // TODO: fallback loader also needs to return the parent
+    }
   }
 
   override def delete(name: String): Unit = resourceMgr.delete(name)
-
-  override def basePath: String = resourceMgr.basePath
 
   override def list: List[String] = resourceMgr.list ++ fallbackLoader.list
 
   override def listChildren: List[String] = resourceMgr.listChildren
 
-  case class FallBackResource(primaryResource: WritableResource, fallbackResource: WritableResource) extends WritableResource {
+  case class FallBackResource(primaryResource: WritableResource, fallbackResource: WritableResource, path: String) extends WritableResource {
     /**
       * The local name of this resource.
       */
     override def name: String = primaryResource.name
-
-    /**
-      * The path of this resource.
-      */
-    override def path: String = primaryResource.path
 
     /**
       * Checks if this resource exists.

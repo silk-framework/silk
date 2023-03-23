@@ -1,6 +1,5 @@
 import React from "react";
 import {
-    FieldItem,
     FieldSet,
     Label,
     Markdown,
@@ -17,12 +16,29 @@ import { useTranslation } from "react-i18next";
 import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
+import { ArtefactFormParameter } from "./ArtefactFormParameter";
+import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
 
 interface IHookFormParam {
     errors: any;
+}
+
+/** Parameter related callbacks. */
+export interface ParameterCallbacks {
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn;
+    /** Set the template flag of a parameter. If set to true the parameter value will be handled as a variable template. */
+    setTemplateFlag: (parameterId: string, isTemplate: boolean) => any;
+    /** Request template flag for a parameter. */
+    templateFlag: (parameterId: string) => boolean;
+}
+
+/** Extended parameter callbacks with internal callbacks. */
+export interface ExtendedParameterCallbacks extends ParameterCallbacks {
+    initialTemplateFlag: (parameterId: string) => boolean;
 }
 
 interface IProps {
@@ -48,8 +64,7 @@ interface IProps {
     dependentValues: {
         [key: string]: string;
     };
-    /** Register for getting external updates for values. */
-    registerForExternalChanges: RegisterForExternalChangesFn;
+    parameterCallbacks: ExtendedParameterCallbacks;
 }
 
 /** Renders the errors message based on the error type. */
@@ -62,6 +77,9 @@ export const errorMessage = (title: string, errors: any) => {
         return `${title} must be specified.`;
     } else if (errors.type === "manual") {
         return errors.message;
+    } else if (errors.type) {
+        // Errors should always have an error message, define fallback message though
+        return errors.message ? `${title} ${errors.message}` : `Invalid value for ${title}`;
     } else {
         return "";
     }
@@ -79,7 +97,7 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
-        registerForExternalChanges,
+        parameterCallbacks,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
         SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS
@@ -148,7 +166,7 @@ export const ParameterWidget = (props: IProps) => {
                                 changeHandlers={changeHandlers}
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
-                                registerForExternalChanges={registerForExternalChanges}
+                                parameterCallbacks={parameterCallbacks}
                             />
                         );
                     }
@@ -168,7 +186,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
+                hasStateDanger={!!errorMessage(title, errors)}
                 messageText={errorMessage(title, errors)}
             >
                 <InputMapper
@@ -176,55 +194,80 @@ export const ParameterWidget = (props: IProps) => {
                     parameter={{ paramId: formParamId, param: propertyDetails }}
                     intent={errors ? Intent.DANGER : Intent.NONE}
                     onChange={changeHandlers[formParamId]}
-                    initialValues={initialValues}
+                    initialParameterValue={initialValues[formParamId]}
                     required={required}
-                    registerForExternalChanges={registerForExternalChanges}
+                    parameterCallbacks={parameterCallbacks}
                 />
             </FieldSet>
         );
     } else {
+        const isTemplateParameter = parameterCallbacks.initialTemplateFlag(formParamId);
+        const initialValue = autoCompletion
+            ? initialValues[formParamId]
+                ? initialValues[formParamId].value
+                : defaultValueAsJs(propertyDetails, true)
+            : initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value);
         return (
-            <FieldItem
-                labelProps={{
-                    text: title,
-                    info: required ? t("common.words.required") : "",
-                    htmlFor: formParamId,
-                    tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
-                }}
+            <ArtefactFormParameter
+                label={title}
+                parameterId={formParamId}
+                required={required}
+                tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : undefined}
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
-                messageText={errorMessage(title, errors)}
-            >
-                {autoCompletion ? (
-                    <ParameterAutoCompletion
-                        projectId={projectId}
-                        paramId={taskParameter.paramId}
-                        pluginId={pluginId}
-                        onChange={(value) => changeHandlers[formParamId](value.value)}
-                        initialValue={
-                            initialValues[formParamId]
-                                ? initialValues[formParamId]
-                                : defaultValueAsJs(propertyDetails, true)
-                        }
-                        autoCompletion={autoCompletion}
-                        intent={errors ? Intent.DANGER : Intent.NONE}
-                        formParamId={formParamId}
-                        dependentValue={dependentValue}
-                        required={required}
-                        registerForExternalChanges={registerForExternalChanges}
-                    />
-                ) : (
-                    <InputMapper
-                        projectId={projectId}
-                        parameter={{ paramId: formParamId, param: propertyDetails }}
-                        intent={errors ? Intent.DANGER : Intent.NONE}
-                        onChange={changeHandlers[formParamId]}
-                        initialValues={initialValues}
-                        required={required}
-                        registerForExternalChanges={registerForExternalChanges}
-                    />
-                )}
-            </FieldItem>
+                errorMessage={errorMessage(title, errors)}
+                supportVariableTemplateElement={{
+                    onChange: changeHandlers[formParamId],
+                    startWithTemplateView: isTemplateParameter,
+                    showTemplatePreview: taskParameter.param.parameterType !== INPUT_TYPES.PASSWORD,
+                    parameterCallbacks,
+                    initialValue,
+                    defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
+                }}
+                inputElementFactory={(initialValueReplace, onChange) => {
+                    if (autoCompletion) {
+                        const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
+                        return (
+                            <ParameterAutoCompletion
+                                projectId={projectId}
+                                paramId={taskParameter.paramId}
+                                pluginId={pluginId}
+                                onChange={(value) =>
+                                    onChange ? onChange(value.value) : changeHandlers[formParamId](value.value)
+                                }
+                                initialValue={
+                                    currentInitialValue ||
+                                    // Only set initial value when this was not a template value
+                                    (initialValues[formParamId] && !isTemplateParameter
+                                        ? initialValues[formParamId]
+                                        : defaultValueAsJs(propertyDetails, true))
+                                }
+                                autoCompletion={autoCompletion}
+                                intent={errors ? Intent.DANGER : Intent.NONE}
+                                formParamId={formParamId}
+                                dependentValue={dependentValue}
+                                required={required}
+                                registerForExternalChanges={parameterCallbacks.registerForExternalChanges}
+                            />
+                        );
+                    } else {
+                        const initialParameterValue: string =
+                            initialValueReplace ??
+                            // Only set initial value when this was not a template value
+                            (!isTemplateParameter ? initialValues[formParamId]?.value : undefined);
+                        return (
+                            <InputMapper
+                                projectId={projectId}
+                                parameter={{ paramId: formParamId, param: propertyDetails }}
+                                intent={errors ? Intent.DANGER : Intent.NONE}
+                                onChange={onChange ?? changeHandlers[formParamId]}
+                                initialParameterValue={initialParameterValue}
+                                required={required}
+                                parameterCallbacks={parameterCallbacks}
+                            />
+                        );
+                    }
+                }}
+            />
         );
     }
 };

@@ -206,6 +206,48 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   }
 
   @Operation(
+    summary = "Start activity prioritized (non-blocking)",
+    description = ActivityApiDoc.startPrioritizedDoc,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[StartActivityResponse])
+        ))
+      )
+    ))
+  def startPrioritized(@Parameter(
+                         name = "project",
+                         description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                         required = false,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                        )
+                        projectName: String,
+                        @Parameter(
+                          name = "task",
+                          description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                          required = false,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        taskName: String,
+                        @Parameter(
+                          name = "activity",
+                          description = "Activity name.",
+                          required = true,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        activityName: String): Action[AnyContent] = RequestUserContextAction { request =>
+    implicit userContext: UserContext =>
+      val response = ActivityFacade.startPrioritized(projectName, taskName, activityName)
+      Ok(Json.toJson(response))
+  }
+
+  @Operation(
     summary = "Cancel activity",
     description = "Requests cancellation of an activity. The call returns immediately and does not wait until the activity has been cancelled.",
     responses = Array(
@@ -356,7 +398,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                         )
                         activityInstance: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val (activity, activityLabel) = activityControl(projectName, taskName, activityName, activityInstance)
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
 
     Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activityLabel, activity.startTime).write(activity.status()))
   }
@@ -497,7 +539,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                  schema = new Schema(implementation = classOf[String])
                                )
                                timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
     val activities = allActivities(projectName, taskName, activityName)
     val startTime = System.currentTimeMillis()
 
@@ -567,7 +609,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                  schema = new Schema(implementation = classOf[String])
                                )
                                timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
     val activities = allActivities(projectName, taskName, activityName)
     val startTime = System.currentTimeMillis()
 
@@ -633,7 +675,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      activityInstance: String): WebSocket = {
 
     implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
 
     val activities = allActivities(projectName, taskName, activityName)
     val sources =
@@ -702,7 +744,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                      minIntervalMs: Int): WebSocket = {
 
     implicit val userContext = UserContext.Empty
-    implicit val writeContext = WriteContext[JsValue]()
+    implicit val writeContext = WriteContext.empty[JsValue]
 
     val activities = allActivities(projectName, taskName, activityName)
     val sources =

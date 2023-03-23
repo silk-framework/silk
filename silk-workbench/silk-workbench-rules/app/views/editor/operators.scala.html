@@ -3,6 +3,7 @@
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.runtime.plugin.PluginCategories
 
+@import org.silkframework.runtime.plugin.PluginContext
 @(name: String,
   opType: String,
   pluginsByCategory: Map[String, Seq[org.silkframework.runtime.plugin.PluginDescription[_]]],
@@ -107,5 +108,5 @@ function initOperators() {
 
 @parameterValues(plugin: PluginDescription[_]) = @{
   implicit val prefixes = project.config.prefixes
-  for(p <- plugin.parameters) yield p.stringDefaultValue.getOrElse("")
+  for(p <- plugin.parameters) yield p.stringDefaultValue(PluginContext.empty).getOrElse("")
 }

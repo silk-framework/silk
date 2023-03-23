@@ -19,7 +19,7 @@ import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateAr
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
-import {READ_ONLY_PARAMETER} from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
+import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 
 const {
     setError,
@@ -146,8 +146,25 @@ const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
     };
 };
 
+/** Splits the form data into normal parameters/values and variable template parameters/values. */
+const splitParameterAndVariableTemplateParameters = (formData: any, variableTemplateParameterSet: Set<string>) => {
+    const parameters: Record<string, any> = {};
+    const variableTemplateParameters: Record<string, any> = {};
+    Object.entries(formData).forEach(([key, value]) => {
+        if (variableTemplateParameterSet.has(key)) {
+            variableTemplateParameters[key] = value;
+        } else {
+            parameters[key] = value;
+        }
+    });
+    return {
+        parameters,
+        variableTemplateParameters,
+    };
+};
+
 /** Builds a request object for project/task create call. */
-const buildTaskObject = (formData: any): object => {
+const buildTaskObject = (formData: Record<string, any>): object => {
     const returnObject = {};
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
@@ -166,7 +183,7 @@ const buildTaskObject = (formData: any): object => {
     }, {});
     // Add nested parameters to result object and call buildTaskObject recursively
     Object.entries(nestedParamsMap).forEach(([propName, value]) => {
-        returnObject[propName] = buildTaskObject(value);
+        returnObject[propName] = buildTaskObject(value as Record<string, any>);
     });
     return returnObject;
 };
@@ -175,7 +192,13 @@ type ArtefactDataParameters = {
     [key: string]: string;
 };
 
-const createArtefactAsync = (formData, taskType: TaskType | "Project", dataParameters?: ArtefactDataParameters) => {
+const createArtefactAsync = (
+    formData,
+    taskType: TaskType | "Project",
+    dataParameters: ArtefactDataParameters | undefined,
+    // Parameters that are flagged to have variable template value
+    variableTemplateParameterSet: Set<string>
+) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
@@ -187,7 +210,13 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project", dataParam
                 if (selectedArtefact) {
                     selectedArtefact &&
                         (await dispatch(
-                            fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType, dataParameters)
+                            fetchCreateTaskAsync(
+                                formData,
+                                selectedArtefact.key,
+                                taskType as TaskType,
+                                dataParameters,
+                                variableTemplateParameterSet
+                            )
                         ));
                 } else {
                     console.error("selectedArtefact not set! Cannot create item.");
@@ -236,12 +265,19 @@ const fetchCreateTaskAsync = (
     formData: any,
     artefactId: string,
     taskType: TaskType,
-    dataParameters?: { [key: string]: string }
+    dataParameters: { [key: string]: string } | undefined,
+    // Parameters that are flagged to have variable template value
+    variableTemplateParameterSet: Set<string>
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, id, tags, ...restFormData } = formData;
-        const requestData = buildTaskObject(restFormData);
+        const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
+            restFormData,
+            variableTemplateParameterSet
+        );
+        const parameterData = buildTaskObject(parameters);
+        const variableTemplateData = buildTaskObject(variableTemplateParameters);
         const metadata = {
             label,
             description,
@@ -255,7 +291,10 @@ const fetchCreateTaskAsync = (
                 taskType: taskType,
                 type: artefactId,
                 parameters: {
-                    ...requestData,
+                    ...parameterData,
+                },
+                templates: {
+                    ...variableTemplateData,
                 },
             },
         };
@@ -294,15 +333,25 @@ const fetchUpdateTaskAsync = (
     projectId: string,
     itemId: string,
     formData: any,
-    dataParameters?: ArtefactDataParameters
+    dataParameters: ArtefactDataParameters | undefined,
+    // Parameters that are flagged to have variable template value
+    variableTemplateParameterSet: Set<string>
 ) => {
     return async (dispatch) => {
-        const requestData = buildTaskObject(formData);
+        const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
+            formData,
+            variableTemplateParameterSet
+        );
+        const parameterData = buildTaskObject(parameters);
+        const variableTemplateData = buildTaskObject(variableTemplateParameters);
         const payload = {
             data: {
                 ...dataParameters,
                 parameters: {
-                    ...requestData,
+                    ...parameterData,
+                },
+                templates: {
+                    ...variableTemplateData,
                 },
             },
         };
@@ -384,6 +433,7 @@ const commonOps = {
     resetArtefactModal,
     fetchExportTypesAsync,
     extractDataAttributes,
+    splitParameterAndVariableTemplateParameters,
 };
 
 export default commonOps;

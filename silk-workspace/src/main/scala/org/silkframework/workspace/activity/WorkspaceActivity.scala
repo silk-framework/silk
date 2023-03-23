@@ -1,14 +1,14 @@
 package org.silkframework.workspace.activity
 
-import java.time.Instant
-import java.util.logging.Logger
-import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{ObservableMirror, _}
-import org.silkframework.runtime.plugin.ClassPluginDescription
+import org.silkframework.config.{DefaultConfig, TaskSpec}
+import org.silkframework.runtime.activity._
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext}
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import java.time.Instant
+import java.util.logging.Logger
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -190,9 +190,16 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   /**
+    * Starts the current activity instance prioritized.
+    */
+  final def startPrioritized()(implicit user: UserContext): Unit = {
+    currentInstance.startPrioritized()
+  }
+
+  /**
     * The default configuration of this activity type.
     */
-  final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
+  final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(PluginContext.empty).toStringMap
 
   @deprecated("should send configuration when calling start", "4.5.0")
   final def update(config: Map[String, String]): Unit = {
@@ -206,13 +213,13 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   def isDatasetRelatedCache: Boolean = factory.isDatasetRelatedCache
 
   /** Only if this is a cached activity start the activity dirty, i.e. even if the activity is currently running, it will run again. */
-  def startDirty()
+  def startDirty(reloadCacheFile: Boolean = false)
                 (implicit user: UserContext): Unit = {
     if(isCacheActivity) {
       val a = control.underlying
       a match {
         case cacheActivity: CachedActivity[_] =>
-          cacheActivity.startDirty(control)
+          cacheActivity.startDirty(control, reloadCacheFile)
         case _ =>
       }
     }

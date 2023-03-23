@@ -12,7 +12,7 @@ import org.silkframework.workspace.WorkspaceReadTrait
   *
   * Implementations of this plugin must not have any parameters.
   */
-trait PluginParameterAutoCompletionProvider {
+trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   /** Auto-completion based on a text based search query */
   def autoComplete(searchQuery: String,
                    dependOnParameterValues: Seq[ParamValue],
@@ -71,13 +71,17 @@ trait PluginParameterAutoCompletionProvider {
   /**
     * Retrieves the project from the first dependent parameter.
     * If no dependent parameter is provided, it will fall back to the project in the plugin context.
+    * Else it will throw a [[AutoCompletionProjectDependencyException]].
     */
   protected def getProject(dependOnParameterValues: Seq[ParamValue])(implicit context: PluginContext): Identifier = {
     dependOnParameterValues.headOption.map(v => Identifier(v.strValue))
       .orElse(context.projectId)
-      .getOrElse(throw new ValidationException("Project not provided"))
+      .getOrElse(throw AutoCompletionProjectDependencyException("Project not provided"))
   }
 }
+
+/** Exception that is thrown if the dependency on a project was not met in the auto-completion provider. */
+case class AutoCompletionProjectDependencyException(msg: String) extends RuntimeException(msg)
 
 /**
   * Represents a parameter value.

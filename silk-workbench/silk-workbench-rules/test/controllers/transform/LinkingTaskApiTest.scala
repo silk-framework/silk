@@ -1,5 +1,8 @@
 package controllers.transform
 
+import controllers.linking.evaluation.EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum
+import controllers.linking.evaluation.{EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats}
+
 import java.time.Instant
 import controllers.util.SerializationUtils
 import helper.IntegrationTestTrait
@@ -15,7 +18,7 @@ import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonForma
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
-import play.api.libs.json.{JsArray, JsValue}
+import play.api.libs.json.{JsArray, JsValue, Json}
 
 class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
@@ -104,12 +107,50 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   "Return evaluated links for the current linking rule" in {
-    workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
-    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate")
-    val response = request.
-      get()
-    val jsonBody = checkResponse(response).json
+    val jsonBody: JsValue = linkEvaluationResult()
     (jsonBody \ "links").as[JsArray].value must have size 2
+    (jsonBody \\ "decision").map(_.as[String]) mustBe Seq("unlabeled", "unlabeled")
+    (jsonBody \ "evaluationActivityStats").as[LinkRuleEvaluationStats] mustBe LinkRuleEvaluationStats(2, 2, 2)
+  }
+
+  "Return evaluated links for the current linking rule matching the search query" in {
+    (linkEvaluationResult("simplecsv entry") \ "links").as[JsArray].value must have size 2
+    (linkEvaluationResult("simplecsv entry 1") \ "links").as[JsArray].value must have size 1
+  }
+
+  "Changing the decision of a link should be reflected in the result" in {
+    // Change one link to positive
+    val response = client
+      .url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/referenceLink?source=urn%3Ainstance%3Asimplecsv%232&target=urn%3Ainstance%3Asimplecsv%232&linkType=positive")
+      .put("")
+    checkResponse(response)
+    val jsonBody: JsValue = linkEvaluationResult()
+    (jsonBody \\ "decision").map(_.as[String]).sorted mustBe Seq("positive", "unlabeled")
+  }
+
+  "Link filters should be disjunctive" in {
+    // Test 1 filter
+    (linkEvaluationResult(filters = Some(Seq(
+      EvaluationLinkFilterEnum.positiveLinks
+    ))) \\ "decision").map(_.as[String]) mustBe Seq("positive")
+    // Test 2 filters
+    (linkEvaluationResult(filters = Some(Seq(
+      EvaluationLinkFilterEnum.positiveLinks,
+      EvaluationLinkFilterEnum.undecidedLinks
+    ))) \\ "decision").map(_.as[String]).sorted mustBe Seq("positive", "unlabeled")
+  }
+
+  private def linkEvaluationResult(query: String = "",
+                                   filters: Option[Seq[EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.Value]] = None): JsValue = {
+    workspaceProject(project).task[LinkSpec](csvLinkingTask).activity[EvaluateLinkingActivity].control.startBlocking()
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluate?query=$query")
+    val response = request.
+      post(Json.toJson(EvaluateCurrentLinkageRuleRequest(
+        query = Some(query),
+        filters = filters
+      )))
+    val jsonBody = checkResponse(response).json
+    jsonBody
   }
 
   // Alternative linkage rule returns 4 links, the original rule only returns 2
@@ -123,7 +164,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
       Comparison(metric = EqualityMetric(), inputs = DPair(inputPath(), inputPath()))
     ))
     // Make request
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     val linkageRuleJson = LinkageRuleJsonFormat.write(alternativeLinkingRule)
     val linkLimitQuery = linkLimit.map(ll => s"?linkLimit=$ll").getOrElse("")
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + linkLimitQuery)

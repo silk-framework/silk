@@ -154,7 +154,7 @@ object Comparison {
       value.metric match {
         case DistanceMeasure(plugin, params) =>
           <Compare id={value.id} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>
-            {toXml(value.inputs.source)}{toXml(value.inputs.target)}{XmlSerialization.serializeParameter(params)}
+            {toXml(value.inputs.source)}{toXml(value.inputs.target)}{XmlSerialization.serializeParameters(params)}
           </Compare>
       }
     }

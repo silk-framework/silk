@@ -131,7 +131,7 @@ checkBrowsers(paths.appPath, isInteractive)
 
 // Create the production build and print the deployment instructions.
 function build(previousFileSizes) {
-    const adaptedConfig = utils.adaptWebpackConfig(config)
+    const adaptedConfig = utils.adaptWebpackConfig(config);
     const compiler = webpack(adaptedConfig);
 
     return new Promise((resolve, reject) => {
@@ -203,9 +203,9 @@ function copyPublicFolder() {
 function copyAssetsToPublicFolder() {
     startLog("Cleared and copied assets folder to DI assets:");
     fs.emptyDirSync(paths.appDIAssets);
-    const from = path.join(paths.appDIBuild, "assets")
-    const to = path.join(paths.appDIAssets, "assets")
-    console.log(`Copying assets from '${from}' to '${to}'.`)
+    const from = path.join(paths.appDIBuild, "assets");
+    const to = path.join(paths.appDIAssets, "assets");
+    console.log(`Copying assets from '${from}' to '${to}'.`);
     fs.copySync(from, to);
     stopLog("Cleared and copied assets folder to DI assets:");
 }
