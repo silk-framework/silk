@@ -1,15 +1,24 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {
-    Card,
-    CardContent,
-    CardTitle,
+    Grid,
+    GridRow,
+    GridColumn,
+    Notification,
+    HtmlContentBlock,
+    Section,
+    Spacing,
+    PropertyValueList,
+    PropertyValuePair,
+    PropertyName,
+    PropertyValue,
     Table,
+    TableHeader,
     TableBody,
     TableCell,
     TableHead,
     TableRow,
-} from "gui-elements-deprecated";
+} from "@eccenca/gui-elements";
 import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 
 /**
@@ -52,99 +61,103 @@ export default class ExecutionReport extends React.Component {
         let executionMetaData = [];
         if (this.props.executionMetaData != null) {
             executionMetaData = executionMetaData.concat([
-                <tr key="startedAt">
-                    <td className="silk-report-table-bold">Started at</td>
-                    <td>{this.props.executionMetaData.startedAt}</td>
-                </tr>,
-                <tr key="startedByUser">
-                    <td className="silk-report-table-bold">Started by</td>
-                    <td>
+                <PropertyValuePair hasDivider key="startedAt">
+                    <PropertyName className="silk-report-table-bold">Started at</PropertyName>
+                    <PropertyValue>{this.props.executionMetaData.startedAt}</PropertyValue>
+                </PropertyValuePair>,
+                <PropertyValuePair hasDivider key="startedByUser">
+                    <PropertyName className="silk-report-table-bold">Started by</PropertyName>
+                    <PropertyValue>
                         {this.props.executionMetaData.startedByUser == null
                             ? "Unknown"
                             : this.props.executionMetaData.startedByUser}
-                    </td>
-                </tr>,
-                <tr key="finishedAt">
-                    <td className="silk-report-table-bold">Finished at</td>
-                    <td>{this.props.executionMetaData.finishedAt}</td>
-                </tr>,
-                <tr key="finishStatus">
-                    <td className="silk-report-table-bold">Finish status</td>
-                    <td>{this.props.executionMetaData.finishStatus.message}</td>
-                </tr>,
+                    </PropertyValue>
+                </PropertyValuePair>,
+                <PropertyValuePair hasDivider key="finishedAt">
+                    <PropertyName className="silk-report-table-bold">Finished at</PropertyName>
+                    <PropertyValue>{this.props.executionMetaData.finishedAt}</PropertyValue>
+                </PropertyValuePair>,
+                <PropertyValuePair hasDivider key="finishStatus">
+                    <PropertyName className="silk-report-table-bold">Finish status</PropertyName>
+                    <PropertyValue>{this.props.executionMetaData.finishStatus.message}</PropertyValue>
+                </PropertyValuePair>,
             ]);
             if (this.props.executionMetaData.cancelledAt != null) {
                 executionMetaData.push(
-                    <tr key="cancelledAt">
-                        <td className="silk-report-table-bold">Cancelled at</td>
-                        <td>{this.props.executionMetaData.cancelledAt}</td>
-                    </tr>
+                    <PropertyValuePair hasDivider key="cancelledAt">
+                        <PropertyName className="silk-report-table-bold">Cancelled at</PropertyName>
+                        <PropertyValue>{this.props.executionMetaData.cancelledAt}</PropertyValue>
+                    </PropertyValuePair>
                 );
             }
             if (this.props.executionMetaData.cancelledBy != null) {
                 executionMetaData.push(
-                    <tr key="cancelledBy">
-                        <td className="silk-report-table-bold">Cancelled by</td>
-                        <td>{this.props.executionMetaData.cancelledBy}</td>
-                    </tr>
+                    <PropertyValuePair hasDivider key="cancelledBy">
+                        <PropertyName className="silk-report-table-bold">Cancelled by</PropertyName>
+                        <PropertyValue>{this.props.executionMetaData.cancelledBy}</PropertyValue>
+                    </PropertyValuePair>
                 );
             }
         }
 
         const summaryRows = this.props.executionReport.summary.map((v) => (
-            <tr key={v.key}>
-                <td className="silk-report-table-bold">{v.key}</td>
-                <td>{v.value}</td>
-            </tr>
+            <PropertyValuePair hasDivider key={v.key}>
+                <PropertyName className="silk-report-table-bold">{v.key}</PropertyName>
+                <PropertyValue>{v.value}</PropertyValue>
+            </PropertyValuePair>
         ));
 
         return (
-            <Card className="silk-report-card">
-                <CardTitle>{title}</CardTitle>
-                <CardContent>
-                    {this.renderWarning()}
-                    <div>
-                        <table className="silk-report-table">
-                            <thead></thead>
-                            <tbody>
-                                {executionMetaData}
-                                {summaryRows}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
+            <Section className="silk-report-card">
+                {this.renderWarning()}
+                <Notification info>
+                    <p>{title}</p>
+                    <PropertyValueList className="silk-report-table">
+                        {executionMetaData}
+                        {summaryRows}
+                    </PropertyValueList>
+                </Notification>
+                <Spacing size="tiny" />
+            </Section>
         );
     }
 
     renderWarning() {
         let messages = [];
-        let alertClass = "mdl-alert--info";
+        let notificationState = "info";
         if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.cancelled) {
             messages = [`Task '${this.props.executionReport.label}' has been cancelled.`];
-            alertClass = "mdl-alert--warning";
+            notificationState = "warning";
         } else if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
             messages = [`Task '${this.props.executionReport.label}' failed to execute.`];
-            alertClass = "mdl-alert--danger";
+            notificationState = "danger";
         } else if (this.props.executionReport.error != null) {
             messages = [this.props.executionReport.error];
-            alertClass = "mdl-alert--danger";
+            notificationState = "danger";
         } else if (this.props.executionReport.warnings.length > 0) {
             messages = this.props.executionReport.warnings;
-            alertClass = "mdl-alert--info";
+            notificationState = "neutral";
         } else {
             messages = [`Task '${this.props.executionReport.label}' has been executed without any issues.`];
-            alertClass = "mdl-alert--success";
+            notificationState = "success";
         }
 
         return (
             <div className="silk-report-warning">
-                {messages.map((warning) => (
-                    <div className={alertClass + " mdl-alert mdl-alert--border mdl-alert--spacing"}>
-                        <div className="mdl-alert__content">
-                            <p>{warning}</p>
-                        </div>
-                    </div>
+                {messages.map((warning, idx) => (
+                    <>
+                        <Notification
+                            key={idx}
+                            neutral={notificationState === "neutral"}
+                            info={notificationState === "info"}
+                            success={notificationState === "success"}
+                            warning={notificationState === "warning"}
+                            danger={notificationState === "danger"}
+                        >
+                            {warning}
+                        </Notification>
+                        <Spacing size="tiny" />
+                    </>
                 ))}
             </div>
         );
@@ -152,19 +165,21 @@ export default class ExecutionReport extends React.Component {
 
     renderTransformReport() {
         return (
-            <div className="mdl-grid mdl-grid--no-spacing">
-                <div className="mdl-cell mdl-cell--3-col">
-                    <MappingsTree
-                        currentRuleId={this.state.currentRuleId ?? "root"}
-                        ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
-                        showValueMappings={true}
-                        handleRuleNavigation={this.onRuleNavigation}
-                        ruleValidation={this.generateIcons()}
-                        trackRuleInUrl={this.props.trackRuleInUrl}
-                    />
-                </div>
-                <div className="mdl-cell mdl-cell--9-col">{this.renderRuleReport()}</div>
-            </div>
+            <Grid condensed>
+                <GridRow>
+                    <GridColumn medium>
+                        <MappingsTree
+                            currentRuleId={this.state.currentRuleId ?? "root"}
+                            ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
+                            showValueMappings={true}
+                            handleRuleNavigation={this.onRuleNavigation}
+                            ruleValidation={this.generateIcons()}
+                            trackRuleInUrl={this.props.trackRuleInUrl}
+                        />
+                    </GridColumn>
+                    <GridColumn>{this.renderRuleReport()}</GridColumn>
+                </GridRow>
+            </Grid>
         );
     }
 
@@ -191,27 +206,34 @@ export default class ExecutionReport extends React.Component {
             title = "This mapping rule generated  " + ruleResults.errorCount + " validation issues during execution.";
         }
         return (
-            <div className="ecc-silk-mapping__treenav">
-                <Card className="mdl-card mdl-shadow--2dp mdl-card--stretch">
-                    <div className="mdl-card__supporting-text">{title}</div>
-                    {ruleResults !== undefined && ruleResults.errorCount > 0 && this.renderRuleErrors(ruleResults)}
-                </Card>
-            </div>
+            <Section className="ecc-silk-mapping__treenav">
+                <Notification
+                    neutral={ruleResults === undefined}
+                    success={ruleResults?.errorCount === 0}
+                    warning={ruleResults?.errorCount > 0}
+                >
+                    {title}
+                </Notification>
+                {ruleResults !== undefined && ruleResults.errorCount > 0 && this.renderRuleErrors(ruleResults)}
+            </Section>
         );
     }
 
     renderRuleErrors(ruleResults) {
         return (
-            <Table className="di-execution-report-table" style={{ width: "100%" }}>
-                <TableHead>
-                    <TableRow>
-                        <TableCell isHead={true}>Entity</TableCell>
-                        <TableCell isHead={true}>Values</TableCell>
-                        <TableCell isHead={true}>Issue</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>{ruleResults.sampleErrors.map(this.renderRuleError)}</TableBody>
-            </Table>
+            <>
+                <Spacing size="small" />
+                <Table className="di-execution-report-table" useZebraStyles columnWidths={["30%", "30%", "40%"]}>
+                    <TableHead>
+                        <TableRow>
+                            <TableHeader>Entity</TableHeader>
+                            <TableHeader>Values</TableHeader>
+                            <TableHeader>Issue</TableHeader>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>{ruleResults.sampleErrors.map(this.renderRuleError)}</TableBody>
+                </Table>
+            </>
         );
     }
 
@@ -219,13 +241,19 @@ export default class ExecutionReport extends React.Component {
         return (
             <TableRow key={ruleError.entity}>
                 <TableCell>
-                    <div className="silk-report-errors-value">{ruleError.entity}</div>
+                    <HtmlContentBlock linebreakForced className="silk-report-errors-value">
+                        {ruleError.entity}
+                    </HtmlContentBlock>
                 </TableCell>
                 <TableCell>
-                    <div className="silk-report-errors-value">{ruleError.values.flat().join(", ")}</div>
+                    <HtmlContentBlock linebreakForced className="silk-report-errors-value">
+                        {ruleError.values.flat().join(", ")}
+                    </HtmlContentBlock>
                 </TableCell>
                 <TableCell>
-                    <div className="silk-report-errors-value">{ruleError.error}</div>
+                    <HtmlContentBlock linebreakForced className="silk-report-errors-value">
+                        {ruleError.error}
+                    </HtmlContentBlock>
                 </TableCell>
             </TableRow>
         );
