@@ -123,14 +123,23 @@ export default class ExecutionReport extends React.Component {
         if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.cancelled) {
             messages = [`Task '${this.props.executionReport.label}' has been cancelled.`];
             alertClass = "mdl-alert--warning";
-        } else if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
-            messages = [`Task '${this.props.executionReport.label}' failed to execute.`];
-            alertClass = "mdl-alert--danger";
-        } else if (this.props.executionReport.error != null) {
-            messages = [this.props.executionReport.error];
+        } else if (
+            (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) ||
+            this.props.executionReport.error != null
+        ) {
+            if (this.props.executionReport.error != null) {
+                messages = [
+                    `Task '${this.props.executionReport.label}' failed to execute. Details: ${this.props.executionReport.error}`,
+                ];
+            } else {
+                messages = [`Task '${this.props.executionReport.label}' failed to execute.`];
+            }
             alertClass = "mdl-alert--danger";
         } else if (this.props.executionReport.warnings.length > 0) {
             messages = this.props.executionReport.warnings;
+            alertClass = "mdl-alert--info";
+        } else if (this.props.executionReport.isDone !== true) {
+            messages = [`Task '${this.props.executionReport.label}' has not finished execution yet.`];
             alertClass = "mdl-alert--info";
         } else {
             messages = [`Task '${this.props.executionReport.label}' has been executed without any issues.`];
