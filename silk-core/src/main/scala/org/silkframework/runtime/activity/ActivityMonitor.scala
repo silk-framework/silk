@@ -111,11 +111,8 @@ class ActivityMonitor[T](name: String,
     }
     try {
       // Only execute helpQuiesce() in our own thread pool
-      Thread.currentThread match {
-        case thread: ForkJoinWorkerThread if thread.getPool == ActivityExecution.forkJoinPool =>
-          ForkJoinTask.helpQuiesce()
-        case _ =>
-          // Do nothing
+      if(runningInDefaultPool) {
+        ForkJoinTask.helpQuiesce()
       }
     } finally {
       interruptEnabled.synchronized {
@@ -154,6 +151,18 @@ class ActivityMonitor[T](name: String,
     */
   protected def clearChildren(): Unit = {
     childControls = Seq.empty
+  }
+
+  /**
+    * Returns true if the activity is running in our own fork join pool.
+    */
+  protected def runningInDefaultPool: Boolean = {
+    Thread.currentThread match {
+      case thread: ForkJoinWorkerThread if thread.getPool == ActivityExecution.forkJoinPool =>
+        true
+      case _ =>
+        false
+    }
   }
 
   /**
