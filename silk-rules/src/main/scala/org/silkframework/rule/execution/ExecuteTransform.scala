@@ -32,6 +32,17 @@ class ExecuteTransform(task: Task[TransformSpec],
     // Reset transform report
     context.value() = TransformReport(task)
 
+    try {
+      execute(context)
+    } catch {
+      case NonFatal(ex) =>
+        context.value.updateWith(_.copy(error = Some(ex.getMessage)))
+        throw ex
+    }
+  }
+
+  private def execute(context: ActivityContext[TransformReport])
+                     (implicit userContext: UserContext): Unit = {
     // Get fresh data source and entity sink
     val dataSource = input(userContext)
     val entitySink = output(userContext)
