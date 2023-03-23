@@ -184,6 +184,7 @@ export const TransformRuleEditor = ({
         ruleUtils.inputPathOperator(
             "sourcePathInput",
             "Source path",
+            ["Source path"],
             "The value path of the input source of the transformation task.",
             inputPathAutoCompletion
         );
