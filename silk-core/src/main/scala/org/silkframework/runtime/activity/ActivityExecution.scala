@@ -56,7 +56,7 @@ private class ActivityExecution[T](activity: Activity[T],
     // Execute activity
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
-    if (parent.isDefined) {
+    if (parent.isDefined && runningInDefaultPool) {
       forkJoin.fork()
     } else {
       ActivityExecution.forkJoinPool.execute(forkJoin)
