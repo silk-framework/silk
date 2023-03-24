@@ -208,7 +208,10 @@ export default class ExecutionReport extends React.Component {
         } else if (ruleResults.errorCount === 0) {
             title = "This mapping rule executed successfully without any issues.";
         } else {
-            title = "This mapping rule generated  " + ruleResults.errorCount + " validation issues during execution.";
+            title =
+                "This mapping rule generated  " +
+                ruleResults.errorCount +
+                " validation issues during execution. Examples are shown below.";
         }
         return (
             <Section className="ecc-silk-mapping__treenav">
