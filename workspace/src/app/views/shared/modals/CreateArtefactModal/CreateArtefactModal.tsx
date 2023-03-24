@@ -313,6 +313,7 @@ export function CreateArtefactModal() {
                     await dispatch(
                         commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current)
                     );
+                    setSearchValue("");
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -325,7 +326,6 @@ export function CreateArtefactModal() {
                 }
             }
         } finally {
-            setSearchValue("");
             setActionLoading(false);
         }
     };
