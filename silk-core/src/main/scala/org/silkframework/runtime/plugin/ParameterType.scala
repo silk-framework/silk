@@ -202,6 +202,13 @@ object StringParameterType {
     dataType match {
       case enumClass: Class[_] if enumClass.isEnum =>
         Some(EnumerationType(enumClass))
+      case optionEnumClass: ParameterizedType if
+        optionEnumClass.getRawType == classOf[Option[_]] &&
+          optionEnumClass.getActualTypeArguments.length == 1 &&
+          optionEnumClass.getActualTypeArguments.head.isInstanceOf[Class[_]] &&
+          optionEnumClass.getActualTypeArguments.head.asInstanceOf[Class[_]].isEnum =>
+        val enumClass = optionEnumClass.getActualTypeArguments.head.asInstanceOf[Class[_]]
+        Some(OptionEnumerationType(enumClass))
       case _ =>
         allStaticTypes.find(_.hasType(dataType))
     }
@@ -534,6 +541,28 @@ object StringParameterType {
     override def toString(value: Restriction)(implicit pluginContext: PluginContext): String = {
       value.serialize
     }
+  }
+
+  /** Option enumeration parameter that allows empty strings as None. */
+  case class OptionEnumerationType(enumType: Class[_]) extends StringParameterType[Option[Enum[_]]] {
+    private val enumerationTypeParameter = EnumerationType(enumType)
+
+    override def fromString(str: String)(implicit context: PluginContext): Option[Enum[_]] = {
+      if(str.isEmpty) {
+        None
+      } else {
+        enumerationTypeParameter.fromStringOpt(str)
+      }
+    }
+
+    override def toString(value: Option[Enum[_]])(implicit pluginContext: PluginContext): String = {
+      value match {
+        case Some(enum) => enumerationTypeParameter.toString(enum)
+        case None => ""
+      }
+    }
+
+    override def name: String = "option[enumeration]"
   }
 
   case class EnumerationType(enumType: Class[_]) extends StringParameterType[Enum[_]] {

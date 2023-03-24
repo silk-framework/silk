@@ -20,7 +20,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
 
-import java.lang.reflect.{Constructor, InvocationTargetException, Type}
+import java.lang.reflect.{Constructor, InvocationTargetException, ParameterizedType, Type}
 import scala.io.{Codec, Source}
 import scala.language.existentials
 
@@ -215,6 +215,14 @@ object ClassPluginDescription {
         Some(explicitParameterAutoCompletionProvider(pluginParam))
       case enumClass: Class[_] if enumClass.isEnum =>
         Some(enumParameterAutoCompletion(enumClass))
+      case optionEnumClass: ParameterizedType if
+        optionEnumClass.getRawType == classOf[Option[_]] &&
+          optionEnumClass.getActualTypeArguments.length == 1 &&
+          optionEnumClass.getActualTypeArguments.head.isInstanceOf[Class[_]] &&
+          optionEnumClass.getActualTypeArguments.head.asInstanceOf[Class[_]].isEnum =>
+        val enumClass = optionEnumClass.getActualTypeArguments.head.asInstanceOf[Class[_]]
+        val autoCompletion = enumParameterAutoCompletion(enumClass)
+        Some(autoCompletion)
       case _ =>
           None
     }
