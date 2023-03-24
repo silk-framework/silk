@@ -551,8 +551,8 @@
                 }
             },
             "startEvaluation": "Start evaluation",
-            "showEvaluation": "Show evaluation context",
-            "hideEvaluation": "Hide evaluation context"
+            "showEvaluation": "Show evaluation examples",
+            "hideEvaluation": "Hide evaluation examples"
         }
     },
     "taskViews": {
