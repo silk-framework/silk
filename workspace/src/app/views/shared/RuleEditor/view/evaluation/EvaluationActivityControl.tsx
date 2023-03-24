@@ -38,7 +38,7 @@ export const EvaluationActivityControl = ({
                 tooltip: t("RuleEditor.evaluation.scoreWidget.referenceLinks"),
             });
         }
-        if (evaluationResultsShownToggleButton && !loading && score) {
+        if (evaluationResultsShownToggleButton && !loading && (score || !!evaluationResultsShown)) {
             actionButtons.push(evaluationResultsShownToggleButton);
         }
         if (manualStartButton) {
@@ -65,14 +65,13 @@ export const EvaluationActivityControl = ({
         activityInfo = {
             ...activityInfo,
             label: <strong>F / P / R</strong>,
-            statusMessage: loading ? "loading" : `${score.fMeasure} / ${score.precision} / ${score.recall}`,
+            statusMessage: `${score.fMeasure} / ${score.precision} / ${score.recall}`,
             progressBar: {
                 intent: "primary",
                 animate: false,
                 stripes: false,
                 value: fMeasure,
             },
-            progressSpinner: loading ? { intent: "none" } : undefined,
         };
         EvaluationTooltip = ({ children }) => (
             <Tooltip
@@ -101,6 +100,14 @@ export const EvaluationActivityControl = ({
                     {children}
                 </Tooltip>
             );
+        };
+    }
+
+    if (loading) {
+        activityInfo = {
+            ...activityInfo,
+            statusMessage: `${t("common.words.loading")}...`,
+            progressSpinner: loading ? { intent: "none" } : undefined,
         };
     }
 
