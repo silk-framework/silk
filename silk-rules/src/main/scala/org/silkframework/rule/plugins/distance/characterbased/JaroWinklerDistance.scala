@@ -21,7 +21,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "jaroWinkler",
   categories = Array("Characterbased"),
   label = "Jaro-Winkler distance",
-  description = "String similarity based on the Jaro-Winkler distance measure."
+  description = "Matches strings based on the Jaro-Winkler distance measure.",
+  documentationFile = "JaroWinklerDistance.md"
 )
 case class JaroWinklerDistance() extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
   // maximum prefix length to use

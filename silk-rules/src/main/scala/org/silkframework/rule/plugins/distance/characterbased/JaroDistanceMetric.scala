@@ -21,7 +21,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "jaro",
   categories = Array("Characterbased"),
   label = "Jaro distance",
-  description = "String similarity based on the Jaro distance metric."
+  description = "Matches strings based on the Jaro distance metric.",
+  documentationFile = "JaroDistanceMetric.md"
 )
 case class JaroDistanceMetric() extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
 
