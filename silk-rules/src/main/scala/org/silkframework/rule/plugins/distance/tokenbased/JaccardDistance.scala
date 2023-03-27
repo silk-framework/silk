@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "jaccard",
   categories = Array("Tokenbased", PluginCategories.recommended),
   label = "Jaccard",
-  description = "Jaccard similarity coefficient."
+  description = "Jaccard similarity coefficient. Divides the matching tokens by the number of distinct tokens from both inputs."
 )
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
