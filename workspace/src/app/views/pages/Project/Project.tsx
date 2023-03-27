@@ -47,6 +47,14 @@ const Project = () => {
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
 
+    // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
+    const [searchInitialized, setSearchInitialized] = React.useState(false)
+    const effectiveSearchQuery = searchInitialized ? textQuery : ""
+
+    React.useEffect(() => {
+        setSearchInitialized(true)
+    }, [])
+
     /**
      * Get available Datatypes
      */
@@ -108,7 +116,7 @@ const Project = () => {
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
-                                        textQuery={textQuery}
+                                        textQuery={effectiveSearchQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}

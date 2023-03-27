@@ -28,6 +28,14 @@ const WorkspaceSearch = () => {
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
+    
+    // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
+    const [searchInitialized, setSearchInitialized] = React.useState(false)
+    const effectiveSearchQuery = searchInitialized ? textQuery : ""
+
+    React.useEffect(() => {
+        setSearchInitialized(true)
+    }, [])
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
@@ -57,7 +65,7 @@ const WorkspaceSearch = () => {
                                 <GridColumn full>
                                     <SearchBar
                                         focusOnCreation={true}
-                                        textQuery={textQuery}
+                                        textQuery={effectiveSearchQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}

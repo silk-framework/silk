@@ -44,6 +44,14 @@ const Activities = () => {
 
     const [t] = useTranslation();
 
+    // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
+    const [searchInitialized, setSearchInitialized] = React.useState(false)
+    const effectiveSearchQuery = searchInitialized ? textQuery : ""
+
+    React.useEffect(() => {
+        setSearchInitialized(true)
+    }, [])
+
     const breadcrumbs = [
         {
             text: t("navigation.side.diBrowse"),
@@ -142,7 +150,7 @@ const Activities = () => {
                                         <div style={{ width: "100%" }}>
                                             <SearchBar
                                                 focusOnCreation
-                                                textQuery={textQuery}
+                                                textQuery={effectiveSearchQuery}
                                                 sorters={sorters}
                                                 onSort={handleSort}
                                                 onSearch={handleSearch}
