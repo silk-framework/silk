@@ -1,4 +1,5 @@
 import {
+    HtmlContentBlock,
     WhiteSpaceContainer,
     Spacing,
     Tag,
@@ -56,6 +57,8 @@ export const LinkRuleNodeEvaluation = ({
         lines.forEach((element) => element.classList.remove(highlightedContainerClass));
     };
 
+    const EXAMPLES_MAX = 20;
+
     return evaluationResult ? (
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             {evaluationResult.length > 0 ? (
@@ -73,10 +76,28 @@ export const LinkRuleNodeEvaluation = ({
                                     style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
                                     <Tooltip
-                                        content={error ?? <pre>{value.join(" | ")}</pre>}
+                                        content={
+                                            error ?? (
+                                                <HtmlContentBlock>
+                                                    <ul>
+                                                        {value.slice(0, EXAMPLES_MAX - 1).map((exampleValue) => {
+                                                            return (
+                                                                <li>
+                                                                    <OverflowText>{exampleValue}</OverflowText>
+                                                                </li>
+                                                            );
+                                                        })}
+                                                        {value.length > EXAMPLES_MAX && (
+                                                            <li>+{value.length - EXAMPLES_MAX}</li>
+                                                        )}
+                                                    </ul>
+                                                </HtmlContentBlock>
+                                            )
+                                        }
                                         placement="top"
                                         rootBoundary="viewport"
                                         targetTagName="div"
+                                        size="large"
                                     >
                                         <span>
                                             {error ? (
@@ -88,7 +109,7 @@ export const LinkRuleNodeEvaluation = ({
                                                     </OverflowText>
                                                 </OverviewItemLine>
                                             ) : (
-                                                value.map((value) => (
+                                                value.slice(0, EXAMPLES_MAX - 1).map((value) => (
                                                     <Tag
                                                         small={true}
                                                         minimal={true}
@@ -99,6 +120,11 @@ export const LinkRuleNodeEvaluation = ({
                                                         {value}
                                                     </Tag>
                                                 ))
+                                            )}
+                                            {!error && value.length > EXAMPLES_MAX && (
+                                                <Tag small={true} minimal={true} round={true} htmlTitle={""}>
+                                                    +{value.length - EXAMPLES_MAX}
+                                                </Tag>
                                             )}
                                         </span>
                                     </Tooltip>
