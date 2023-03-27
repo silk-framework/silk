@@ -15,6 +15,7 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
 import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
@@ -24,8 +25,34 @@ import scala.math.max
   id = "levenshtein",
   categories = Array("Characterbased"),
   label = "Normalized Levenshtein distance",
-  description = "Normalized Levenshtein distance."
+  description = "Normalized Levenshtein distance. Divides the edit distance by the length of the longer string."
 )
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for equal strings.",
+    input1 = Array("John"),
+    input2 = Array("John"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1/4 if two strings of length 4 differ by one edit operation.",
+    input1 = Array("John"),
+    input2 = Array("Jxhn"),
+    output = 0.25
+  ),
+  new DistanceMeasureExample(
+    description = "Normalizes the edit distance by the length of the longer string.",
+    input1 = Array("John"),
+    input2 = Array("Jhn"),
+    output = 0.25
+  ),
+  new DistanceMeasureExample(
+    description = "Returns the maximum distance of 1 for completely different strings.",
+    input1 = Array("John"),
+    input2 = Array("Clara"),
+    output = 1.0
+  )
+))
 case class LevenshteinMetric(
   @Param(label = "Q-grams size", value = "The size of the q-grams to be indexed. Setting this to zero will disable indexing.", advanced = true)
   qGramsSize: Int = 2,
@@ -34,15 +61,16 @@ case class LevenshteinMetric(
   @Param(value = "The maximum character that is used for indexing", advanced = true)
   maxChar: Char = 'z') extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
 
-  private val levenshtein = new LevenshteinDistance(qGramsSize, minChar, maxChar)
+  private val levenshtein = LevenshteinDistance(qGramsSize, minChar, maxChar)
 
-  override def evaluate(str1: String, str2: String, limit: Double) = {
+  override def evaluate(str1: String, str2: String, limit: Double): Double = {
     val scale = max(str1.length, str2.length)
-
     levenshtein.evaluate(str1, str2, limit * scale) / scale
   }
 
-  override def emptyIndex(limit: Double): Index = levenshtein.emptyIndex(limit)
+  override def emptyIndex(limit: Double): Index = {
+    levenshtein.emptyIndex(limit)
+  }
 
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     levenshtein.indexValue(str, limit * str.length, sourceOrTarget)

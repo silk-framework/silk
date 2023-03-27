@@ -17,9 +17,6 @@ package org.silkframework.rule.plugins.distance.characterbased
 import org.silkframework.entity.Index
 import org.silkframework.rule.test.DistanceMeasureTest
 
-
-
-
 class LevenshteinDistanceTest extends DistanceMeasureTest[LevenshteinDistance] {
 
   lazy val metric = new LevenshteinDistance()
