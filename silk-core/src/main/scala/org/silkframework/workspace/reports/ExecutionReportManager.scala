@@ -28,7 +28,8 @@ trait ExecutionReportManager extends AnyPlugin {
     *
     * @throws NoSuchElementException If no report for the given project, task and time does exist.
     */
-  def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport]
+  def retrieveReport(reportId: ReportIdentifier)
+                    (implicit pluginContext: PluginContext): ActivityExecutionResult[ExecutionReport]
 
   /**
     * Adds a new report.
