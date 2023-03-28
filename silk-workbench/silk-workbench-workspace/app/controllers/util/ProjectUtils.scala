@@ -167,19 +167,19 @@ object ProjectUtils {
 
   /** Creates all datasets found in the JSON document
     *
-    * @param datasetIds Optional set of dataset IDs. If any of the found datasets is not in this set, an exception will be thrown.
+    * @param allowedDatasetIds Optional set of dataset IDs. If any of the found datasets is not in this set, an exception will be thrown.
     * @return
     */
   private def createAllDatasets(workflowJson: JsValue,
                                 propertyName: String,
-                                datasetIds: Option[Set[String]])
+                                allowedDatasetIds: Option[Set[String]])
                                (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
     val dataSources = (workflowJson \ propertyName).as[JsArray]
     implicit val readContext: ReadContext = ReadContext(resourceLoader)
     val datasets = for (dataSource <- dataSources.value) yield {
       JsonSerializers.fromJson[Task[GenericDatasetSpec]](dataSource)
     }
-    datasetIds match {
+    allowedDatasetIds match {
       case Some(ids) =>
         val notMatched = datasets.filterNot(ds => ids.contains(ds.id.toString))
         if(notMatched.nonEmpty) {

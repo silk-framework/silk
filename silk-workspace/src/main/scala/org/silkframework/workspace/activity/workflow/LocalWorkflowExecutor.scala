@@ -347,7 +347,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  override protected val executionContext: LocalExecution = LocalExecution(useLocalInternalDatasets)
+  override protected val executionContext: LocalExecution = LocalExecution(
+    useLocalInternalDatasets,
+    replaceDataSources,
+    replaceSinks
+  )
 
   override protected def workflowNodeEntities(workflowDependencyNode: WorkflowDependencyNode,
                                               outputTask: Task[_ <: TaskSpec])
