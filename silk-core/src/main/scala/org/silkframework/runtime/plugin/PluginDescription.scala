@@ -1,6 +1,6 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
@@ -123,7 +123,7 @@ trait PluginDescription[+T] {
           stringParam.fromString(strValue).asInstanceOf[AnyRef]
         } catch {
           case NonFatal(ex) =>
-            throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description}. Details: ${ex.getMessage}", ex)
+            throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
         val evaluatedValue = template.evaluate()
@@ -132,7 +132,7 @@ trait PluginDescription[+T] {
         } catch {
           case NonFatal(ex) =>
             throw new InvalidPluginParameterValueException(s"Got '$evaluatedValue' based on template '${template.template}', " +
-              s"but expected: ${stringParam.description}. Details: ${ex.getMessage}", ex)
+              s"but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case ParameterObjectValue(objValue) =>
         objValue
