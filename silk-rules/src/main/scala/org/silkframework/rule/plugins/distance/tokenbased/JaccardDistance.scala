@@ -40,13 +40,13 @@ import org.silkframework.runtime.plugin.annotations.Plugin
     output = 1.0
   ),
   new DistanceMeasureExample(
-    description = "Returns 0.5 if half of all tokens overlap.",
+    description = "Returns 0.5 if half of all unique tokens overlap.",
     input1 = Array("A", "B", "C"),
     input2 = Array("A", "B", "D"),
     output = 0.5
   ),
   new DistanceMeasureExample(
-    description = "Returns 2/3 if one third of the tokens overlap.",
+    description = "Returns 2/3 if one third of all unique tokens overlap.",
     input1 = Array("John", "Jane"),
     input2 = Array("John", "Max"),
     output = 2.0 / 3.0
