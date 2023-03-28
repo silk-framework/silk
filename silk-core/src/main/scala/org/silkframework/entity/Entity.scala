@@ -99,10 +99,9 @@ case class Entity(
   def hasFailed: Boolean = failure.isDefined
 
   /**
-    * Will retrieve the values of a given path (if available)
+    * Will retrieve the values of a given path of any type (if available)
     * @param path - the property or path
     */
-  @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: UntypedPath): Seq[String] = {
     valueOfPath(path)
   }

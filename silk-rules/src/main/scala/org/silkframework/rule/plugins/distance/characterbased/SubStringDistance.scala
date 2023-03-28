@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
 )
 case class SubStringDistance(@Param("The minimum length of a possible substring match.")
-                             granularity: String = "3") extends SimpleDistanceMeasure {
+                             granularity: String = "3") extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
   private val n = granularity.toInt
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {

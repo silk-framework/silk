@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.distance.tokenbased
 import java.util.regex.Pattern
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure, TokenBasedDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
@@ -99,7 +99,7 @@ case class TokenwiseStringDistance(
         matchThreshold: Double = 0.0,
         orderingImpact: Double = 0.0,
         adjustByTokenLength: Boolean = false
-        ) extends SimpleDistanceMeasure
+        ) extends SingleValueDistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure
 {
   require(stopwordWeight >= 0.0 && stopwordWeight <= 1.0, "stopwordWeight must be in [0,1]")
   require(nonStopwordWeight >= 0.0 && nonStopwordWeight <= 1.0, "nonStopwordWeight must be in [0,1]")

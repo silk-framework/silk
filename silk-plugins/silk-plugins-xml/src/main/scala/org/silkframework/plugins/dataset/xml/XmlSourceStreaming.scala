@@ -278,6 +278,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             arr(counter) = PathSegment(Some(fp))
           case pf: PropertyFilter =>
             arr(counter) = arr(counter).copy(pathFilters = arr(counter).pathFilters :+ pf)
+          case _ =>
+            throw new IllegalArgumentException("Unsupported operator: " + op)
         }
       }
       arr

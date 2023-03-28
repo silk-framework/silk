@@ -1,8 +1,13 @@
-package org.silkframework.runtime.plugin
+package org.silkframework.rule.input
 
-import org.silkframework.runtime.plugin.annotations.TransformExample
+import org.silkframework.rule.OperatorExampleValue
+import org.silkframework.rule.annotations.TransformExample
 
-case class TransformExampleValue(description: Option[String], parameters: Map[String, String], input: Seq[Seq[String]], output: Seq[String], throwsException: String) {
+case class TransformExampleValue(description: Option[String],
+                                 parameters: Map[String, String],
+                                 input: Seq[Seq[String]],
+                                 output: Seq[String],
+                                 throwsException: String) extends OperatorExampleValue {
 
   def formatted: String = {
     if(throwsException.trim != "") {
@@ -12,20 +17,7 @@ case class TransformExampleValue(description: Option[String], parameters: Map[St
     }
   }
 
-  def markdownFormatted: String = {
-    val sb = new StringBuilder()
-    for(text <- description) {
-      sb ++= "* Description: "
-      sb ++= text
-      sb ++= "\n\n"
-    }
-    if(parameters.nonEmpty) {
-      sb ++= "* Parameters\n"
-      for((param, paramValue) <- parameters) {
-        sb ++= s"  * *$param*: `$paramValue`\n"
-      }
-      sb ++= "\n"
-    }
+  def markdownFormatted(sb: StringBuilder): Unit = {
     if(input.nonEmpty) {
       sb ++= "* Input values:\n"
       for((input, idx) <- input.zipWithIndex) {
@@ -34,7 +26,6 @@ case class TransformExampleValue(description: Option[String], parameters: Map[St
       sb ++= "\n"
     }
     sb ++= s"* Returns:\n\n  → `${format(output)}`\n"
-    sb.toString()
   }
 
   private def format(traversable: Traversable[_]): String = {

@@ -14,12 +14,16 @@
 
 package org.silkframework.rule.input
 
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
 
 /**
  * Transforms values.
  */
+@PluginType(
+  customDescription = classOf[TransformerDescriptionGenerator]
+)
 trait Transformer extends AnyPlugin {
 
   /**

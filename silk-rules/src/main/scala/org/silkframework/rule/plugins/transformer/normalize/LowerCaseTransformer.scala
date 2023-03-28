@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.plugins.transformer.normalize
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.Plugin
@@ -24,8 +25,16 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Lower case",
   description = "Converts a string to lower case."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    description = "Transforms all values to lower case.",
+    input1 = Array("JoHN", "LeNA"),
+    output = Array("john", "lena")
+  )
+))
 case class LowerCaseTransformer() extends SimpleTransformer {
-  override def evaluate(value: String) = {
+
+  override def evaluate(value: String): String = {
     value.toLowerCase
   }
 }

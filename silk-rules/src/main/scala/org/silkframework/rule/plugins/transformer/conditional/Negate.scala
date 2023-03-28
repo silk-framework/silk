@@ -1,7 +1,8 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "negateTransformer",
