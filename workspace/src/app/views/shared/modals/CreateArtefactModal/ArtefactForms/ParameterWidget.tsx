@@ -61,9 +61,7 @@ interface IProps {
         [key: string]: any;
     };
     // Values that the auto-completion of other parameters depends on
-    dependentValues: {
-        [key: string]: string;
-    };
+    dependentValues: React.MutableRefObject<Record<string, any>>;
     parameterCallbacks: ExtendedParameterCallbacks;
 }
 
@@ -109,7 +107,7 @@ export const ParameterWidget = (props: IProps) => {
 
     const dependentValue = (paramId: string) => {
         const prefixedParamId = formParamId.substring(0, formParamId.length - taskParameter.paramId.length) + paramId;
-        return dependentValues[prefixedParamId];
+        return dependentValues.current[prefixedParamId];
     };
 
     let propertyHelperText: JSX.Element | undefined = undefined;
@@ -211,7 +209,8 @@ export const ParameterWidget = (props: IProps) => {
             <ArtefactFormParameter
                 label={title}
                 parameterId={formParamId}
-                required={required}
+                // For boolean parameters the default is always set to false even if a default value was missing
+                required={required && propertyDetails.parameterType !== "boolean"}
                 tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : undefined}
                 helperText={propertyHelperText}
                 errorMessage={errorMessage(title, errors)}

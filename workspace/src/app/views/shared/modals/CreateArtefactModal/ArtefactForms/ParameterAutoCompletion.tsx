@@ -107,8 +107,9 @@ export const ParameterAutoCompletion = ({
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
-            if (value) {
-                return [value];
+            // At the moment a dependent value must be non-empty, else it is not considered to be set.
+            if (value != null && `${value}` !== "") {
+                return [`${value}`];
             } else {
                 return [];
             }
