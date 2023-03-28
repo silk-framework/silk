@@ -4,7 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.ProjectTrait
+import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
 /**
   * Combines context objects that are available during plugin creation or update.
@@ -34,6 +34,10 @@ object PluginContext {
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PluginContext = {
     PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id))
+  }
+
+  def fromProjectConfig(config: ProjectConfig, projectResource: ResourceManager)(implicit user: UserContext): PluginContext = {
+    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id))
   }
 
   private case class PlainPluginContext(prefixes: Prefixes = Prefixes.empty,

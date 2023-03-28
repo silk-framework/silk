@@ -60,7 +60,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     registerModule[CustomTask]()
 
     // Load tasks
-    val tasks = provider.readAllTasks(id, resources)
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(this)
+    val tasks = provider.readAllTasks(id)
     for(module <- modules) {
       val moduleTasks = tasks.filter(task => module.taskType.isAssignableFrom(task.taskType)).asInstanceOf[Seq[LoadedTask[TaskSpec]]]
       module.asInstanceOf[Module[TaskSpec]].load(moduleTasks)

@@ -4,6 +4,7 @@ import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -74,7 +75,8 @@ object WorkspaceIO {
                                                   outputResources: ResourceManager,
                                                   projectName: Identifier)
                                                  (implicit userContext: UserContext): Unit = {
-    for(taskTry <- inputWorkspace.readTasks[T](projectName, inputResources)) {
+    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, user = userContext)
+    for(taskTry <- inputWorkspace.readTasks[T](projectName)) {
       taskTry.taskOrError match {
         case Right(task) =>
           outputWorkspace.putTask(projectName, task, inputResources)

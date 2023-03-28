@@ -15,7 +15,7 @@
 package org.silkframework.workspace.xml
 
 import org.silkframework.config._
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{WriteContext, XmlSerialization}
 import org.silkframework.util.Identifier
@@ -57,12 +57,11 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
     resources.delete(name.toString + "_cache.xml")
   }
 
-  override def loadTasks(resources: ResourceLoader,
-                         projectResources: ResourceManager)
-                        (implicit userContext: UserContext): Seq[LoadedTask[CustomTask]] = {
+  override def loadTasks(resources: ResourceLoader)
+                        (implicit context: PluginContext): Seq[LoadedTask[CustomTask]] = {
     val names = taskNames(resources)
     val tasks = for (name <- names) yield {
-      loadTaskSafelyFromXML(name, Some(name.stripSuffix(".xml")), resources, projectResources)
+      loadTaskSafelyFromXML(name, Some(name.stripSuffix(".xml")), resources)
     }
 
     tasks
