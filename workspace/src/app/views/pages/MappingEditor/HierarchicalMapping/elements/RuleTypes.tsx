@@ -38,6 +38,7 @@ const RuleTypes = ({ rule, ...otherProps }) => {
             }
             return <span {...otherProps}>{dataTypeLabel}</span>;
         default:
+            return <></>;
     }
 };
 

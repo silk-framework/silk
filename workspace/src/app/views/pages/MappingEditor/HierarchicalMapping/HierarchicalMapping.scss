@@ -1,5 +1,5 @@
-@import '~@eccenca/gui-elements/src/configuration/variables';
-@import '~@eccenca/gui-elements/src/includes/blueprintjs/variables';
+@import "~@eccenca/gui-elements/src/configuration/variables";
+@import "~@eccenca/gui-elements/src/includes/blueprintjs/variables";
 
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
@@ -17,12 +17,11 @@
 }
 
 // TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
-*:not([class*=#{$eccgui}]) {
+*:not([class*="#{$eccgui}"]) {
     // box-sizing: inherit;
 }
 
 .ecc-silk-mapping {
-
     .mdl-alert--narrowed {
         .mdl-alert__content > *:not(:first-child) {
             display: none;
@@ -39,9 +38,9 @@
 }
 
 ul.ecc-hierarchical-mapping-error-list {
-  margin-left: 0;
-  padding-left: 0;
-  list-style-type: none;
+    margin-left: 0;
+    padding-left: 0;
+    list-style-type: none;
 }
 
 .ecc-silk-mapping__header {
@@ -50,7 +49,6 @@ ul.ecc-hierarchical-mapping-error-list {
     &-action-row {
         justify-content: flex-end;
     }
-
 }
 
 .ecc-silk-mapping__content {
@@ -73,7 +71,8 @@ ul.ecc-hierarchical-mapping-error-list {
     margin: $ecc-size-block-whitespace * 0.5;
     box-sizing: border-box;
 
-    ul, li {
+    ul,
+    li {
         list-style-type: none;
     }
 
@@ -87,15 +86,32 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     & > .#{$eccgui}-card {
-
         .#{$eccgui}__content {
-            max-height: calc(100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace});
+            max-height: calc(
+                100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace}
+            );
             overflow: auto;
         }
     }
 
+    .ecc-silk-mapping__treenav--maintree.#{$ns}-tree {
+        overflow: auto !important;
+    }
+
     .ecc-silk-mapping__treenav--maintree {
         box-sizing: border-box;
+
+        .#{$ns}-tree-node-content:hover {
+            // Remove background highlight when tree node is hovered
+            background-color: transparent;
+        }
+        .#{$ns}-tree-node-content {
+            margin-bottom: $ecc-size-block-whitespace;
+        }
+
+        .#{$ns}-tree-node-caret-none {
+            min-width: 0;
+        }
     }
 
     .ecc-silk-mapping__treenav--item {
@@ -133,7 +149,8 @@ ul.ecc-hierarchical-mapping-error-list {
         background-color: transparent;
         outline: none;
 
-        &:hover, &:focus {
+        &:hover,
+        &:focus {
             background-color: $button-hover-color;
         }
     }
@@ -146,7 +163,8 @@ ul.ecc-hierarchical-mapping-error-list {
         white-space: nowrap;
     }
 
-    .ecc-silk-mapping__treenav--item-subtitle {
+    .ecc-silk-mapping__treenav--item-subtitle,
+    .ecc-silk-mapping__treenav--item-rule-subtitle {
         @include typo-caption();
     }
 }
@@ -205,7 +223,6 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__ruleslist {
-
     .ecc-floatingactionlist__wrapper--fixed {
         z-index: 2; // TODO: need to be moved to gui elements
     }
@@ -332,7 +349,7 @@ ul.ecc-hierarchical-mapping-error-list {
     margin-right: $ecc-size-blockelement-margin-horizontal;
     font-size: $ecc-size-typo-caption;
     font-weight: normal;
-    opacity: .61;
+    opacity: 0.61;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -362,7 +379,6 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__ruleitem-summary {
-
     @include material-animation-default(0.28s);
     transition-property: background-color;
 
@@ -504,7 +520,9 @@ ul.ecc-hierarchical-mapping-error-list {
     .#{eccgui}-button {
         opacity: $eccgui-opacity-muted;
 
-        &:hover, &:focus, &:active {
+        &:hover,
+        &:focus,
+        &:active {
             opacity: $eccgui-opacity-regular;
         }
     }
@@ -516,24 +534,22 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__rulesviewer,
 .ecc-silk-mapping__ruleseditor {
-
     .mdl-card__content {
         padding-top: 0;
     }
 }
 
 .ecc-silk-mapping__rulesviewer__title {
-
     .mdl-card__title-text {
         @include typo-subhead();
     }
 }
 
 .ecc-silk-mapping__rulesviewer__attribute {
-
     margin: $ecc-size-block-whitespace * 0.5 0 $ecc-size-block-whitespace * 0.5 0;
 
-    dt, dd {
+    dt,
+    dd {
         margin: 0 0 $ecc-size-block-whitespace * 0.25 0;
         padding: 0;
     }
@@ -559,7 +575,6 @@ ul.ecc-hierarchical-mapping-error-list {
             margin-bottom: 0;
         }
     }
-
 }
 
 .ecc-silk-mapping__rulesviewer__sourcePath {
@@ -569,14 +584,11 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__rulesviewer__infobox {
-
     display: flex;
 
     &.is-narrowed {
-
         .ecc-silk-mapping__rulesviewer__infobox-main,
         .ecc-silk-mapping__rulesviewer__infobox-sub {
-
             max-height: $typo-body-1-line-height * 1em;
             overflow: hidden;
 
@@ -611,7 +623,7 @@ ul.ecc-hierarchical-mapping-error-list {
                     position: relative;
 
                     &:before {
-                        content: '•';
+                        content: "•";
                         width: $ecc-size-block-whitespace;
                         height: $typo-body-1-line-height * 1em;
                         position: absolute;
@@ -621,7 +633,6 @@ ul.ecc-hierarchical-mapping-error-list {
                         vertical-align: middle;
                     }
                 }
-
             }
 
             .ecc-silk-mapping__rulesviewer__infobox-main {
@@ -645,7 +656,6 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__rulesviewer__infobox-content {
-
     flex-grow: 1;
     flex-shrink: 1;
     width: 50vw; // this is a spooky hack but it prevents that the layout explodes
@@ -660,7 +670,8 @@ ul.ecc-hierarchical-mapping-error-list {
     table-layout: unset !important;
     width: 100%;
 
-    th, td {
+    th,
+    td {
         white-space: normal;
         height: auto;
         border-bottom-color: rgba(to_color($data-table-divider-color), 0.06); //#ddd;
@@ -727,7 +738,7 @@ ul.ecc-hierarchical-mapping-error-list {
             .mdl-chip {
                 display: none;
 
-                &:nth-child(-n+7) {
+                &:nth-child(-n + 7) {
                     display: inline-flex;
                 }
             }
@@ -740,12 +751,10 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
-
     margin: 0 $ecc-size-block-whitespace * 0.5;
-
 }
 
-.mdl-layout_item--background-flash{
+.mdl-layout_item--background-flash {
     animation-name: anim-new-element;
     animation-duration: 1s;
     animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -756,4 +765,11 @@ ul.ecc-hierarchical-mapping-error-list {
         background-color: darken($ecc-color-info-background, 30%);
         color: $ecc-color-info-text;
     }
+}
+
+.ecc-silk-mapping__tree-label-wrapper {
+    cursor: pointer;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: $ecc-size-block-whitespace * 0.25 $ecc-size-block-whitespace * 0.5;
 }

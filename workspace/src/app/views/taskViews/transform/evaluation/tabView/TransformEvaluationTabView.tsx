@@ -17,12 +17,13 @@ import {
 import { DataTableCustomRenderProps } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import MappingsTree from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
+// import MappingsTree from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
 import { EvaluatedRuleEntityResult } from "./typing";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
+import MappingsTreeNew from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTreeNew";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;
@@ -88,21 +89,20 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     /**
      * todo ui issues
      *  1. overflowing ui vertically and horizontally
-     *  2. table overlaps with mappingTree
      *  3. table needs padding to the right
      */
     return (
-        <Section className="diapp-linking-evaluation">
-            <Grid useAbsoluteSpace className="transform-evaluation">
+        <Section>
+            <Grid useAbsoluteSpace className="transform-evaluation" fullWidth>
                 <GridRow fullHeight>
-                    <GridColumn small>
-                        <MappingsTree
+                    <GridColumn medium>
+                        <MappingsTreeNew
                             currentRuleId={currentRuleId}
                             handleRuleNavigation={handleRuleNavigation}
                             startFullScreen={startFullScreen}
                         />
                     </GridColumn>
-                    <GridColumn>
+                    <GridColumn className="diapp-linking-evaluation">
                         <TableContainer rows={rows} headers={headers}>
                             {({ getTableProps }: DataTableCustomRenderProps) => (
                                 <Table {...getTableProps()} size="compact" useZebraStyles>

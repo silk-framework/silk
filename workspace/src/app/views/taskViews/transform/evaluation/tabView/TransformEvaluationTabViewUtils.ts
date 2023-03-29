@@ -14,7 +14,6 @@ export const getEvaluatedEntities = async (
         method: "GET",
         url: legacyTransformEndpoint(`/tasks/${projectId}/${taskId}/rule/${ruleId}/evaluated`),
         body: {
-            limit,
             showOnlyEntitiesWithUris: Number(showOnlyEntitiesWithUris),
         },
     });
