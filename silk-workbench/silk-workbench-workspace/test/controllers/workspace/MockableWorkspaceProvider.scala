@@ -2,8 +2,8 @@ package controllers.workspace
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, LoadedTask, ProjectConfig}
 
@@ -29,11 +29,10 @@ class MockableWorkspaceProvider extends InMemoryWorkspaceProvider {
     )
   }
 
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
-                                                   projectResources: ResourceManager)
-                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    config.readTasks[T](project, projectResources).getOrElse(
-      super.readTasks[T](project, projectResources)
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = {
+    config.readTasks[T](project).getOrElse(
+      super.readTasks[T](project)
     )
   }
 }
@@ -62,10 +61,10 @@ class BreakableWorkspaceProviderConfig {
   def readProjects()
                   (implicit user: UserContext): Option[Seq[ProjectConfig]] = None
 
-  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                         (implicit user: UserContext): Option[Seq[LoadedTask[T]]] = None
+  def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                         (implicit context: PluginContext): Option[Seq[LoadedTask[T]]] = None
 
-  def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                  (implicit user: UserContext): Option[Seq[LoadedTask[_]]] = None
+  def readAllTasks(project: Identifier)
+                  (implicit context: PluginContext): Option[Seq[LoadedTask[_]]] = None
 
 }

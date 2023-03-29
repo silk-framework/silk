@@ -1,16 +1,16 @@
 package org.silkframework.workspace.xml
 
 import org.silkframework.config._
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.LoadedTask
 import org.silkframework.workspace.activity.workflow.Workflow
 
-import scala.xml.{Attribute, Node, Null, Text, XML}
+import scala.xml._
 
 private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
 
@@ -19,9 +19,9 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager)
-                        (implicit user: UserContext): Seq[LoadedTask[Workflow]] = {
-    implicit val readContext = ReadContext(projectResources, user = user)
+  override def loadTasks(resources: ResourceLoader)
+                        (implicit context: PluginContext): Seq[LoadedTask[Workflow]] = {
+    implicit val readContext = ReadContext.fromPluginContext()
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {
@@ -30,7 +30,7 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
         if ((xml \ "@id").isEmpty) {
           xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)
         }
-        loadTaskSafelyFromXML(xml, name, Some(name.stripSuffix(".xml")), resources, projectResources)
+        loadTaskSafelyFromXML(xml, name, Some(name.stripSuffix(".xml")), resources)
       }
     tasks
   }

@@ -7,11 +7,11 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
-import org.silkframework.workspace.WorkspaceTest.{SleepActivity, SleepActivityFactory, TestActivity, TestActivityFactory, TestTask, TestWorkspaceProvider}
+import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
@@ -136,17 +136,17 @@ object WorkspaceTest {
       super.readProjects()
     }
 
-    override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                    (implicit user: UserContext): Seq[LoadedTask[T]] = {
-      val tasks = super.readTasks(project, projectResources)
+    override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                                    (implicit context: PluginContext): Seq[LoadedTask[T]] = {
+      val tasks = super.readTasks[T](project)
       Thread.sleep(loadTimePause)
       taskReadTimes += ((project, Instant.now))
       tasks
     }
 
-    override def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                             (implicit user: UserContext): Seq[LoadedTask[_]] = {
-      val tasks = super.readAllTasks(project, projectResources)
+    override def readAllTasks(project: Identifier)
+                             (implicit context: PluginContext): Seq[LoadedTask[_]] = {
+      val tasks = super.readAllTasks(project)
       Thread.sleep(loadTimePause)
       taskReadTimes += ((project, Instant.now))
       tasks

@@ -4,6 +4,7 @@ import org.silkframework.config.Tag.TagXmlFormat
 import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.util.Identifier
@@ -100,15 +101,14 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     resources.child(name)
   }
 
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
-                                                   projectResources: ResourceManager)
-                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix), projectResources)
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = {
+    plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix))
   }
 
-  override def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
-    plugins.values.toSeq.flatMap(plugin => plugin.loadTasks(resources.child(project).child(plugin.prefix), projectResources).asInstanceOf[Seq[LoadedTask[_ <: TaskSpec]]])
+  override def readAllTasks(project: Identifier)
+                           (implicit context: PluginContext): Seq[LoadedTask[_]] = {
+    plugins.values.toSeq.flatMap(plugin => plugin.loadTasks(resources.child(project).child(plugin.prefix)).asInstanceOf[Seq[LoadedTask[_ <: TaskSpec]]])
   }
 
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResourceManager: ResourceManager)

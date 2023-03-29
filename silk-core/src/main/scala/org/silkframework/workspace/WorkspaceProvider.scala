@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
@@ -59,14 +59,14 @@ trait WorkspaceProvider extends AnyPlugin {
   /**
     * Reads all tasks of a specific type from a project.
     **/
-  def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                         (implicit user: UserContext): Seq[LoadedTask[T]]
+  def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                         (implicit context: PluginContext): Seq[LoadedTask[T]]
 
   /**
     * Reads all tasks of all types from a project.
     **/
-  def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                  (implicit user: UserContext): Seq[LoadedTask[_]]
+  def readAllTasks(project: Identifier)
+                  (implicit context: PluginContext): Seq[LoadedTask[_]]
 
   /**
    * Adds/Updates a task in a project.
