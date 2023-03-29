@@ -13,7 +13,7 @@ import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import { dependentValueIsSet, ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
@@ -39,6 +39,8 @@ export interface ParameterCallbacks {
 /** Extended parameter callbacks with internal callbacks. */
 export interface ExtendedParameterCallbacks extends ParameterCallbacks {
     initialTemplateFlag: (parameterId: string) => boolean;
+    /** Returns the label of the parameter with the full parameter ID, i.e. of the form parentParamId.paramId. */
+    parameterLabel: (fullParameterId: string) => string;
 }
 
 interface IProps {
@@ -105,10 +107,25 @@ export const ParameterWidget = (props: IProps) => {
     const { title, description, autoCompletion } = propertyDetails;
     const [t] = useTranslation();
 
+    const formParameterPrefix = formParamId.substring(0, formParamId.length - taskParameter.paramId.length);
+
     const dependentValue = (paramId: string) => {
-        const prefixedParamId = formParamId.substring(0, formParamId.length - taskParameter.paramId.length) + paramId;
+        const prefixedParamId = formParameterPrefix + paramId;
         return dependentValues.current[prefixedParamId];
     };
+
+    const missingParameterLabels = missingDependentParameters(
+        taskParameter.param,
+        dependentValues.current,
+        formParameterPrefix
+    ).map((paramId) => parameterCallbacks.parameterLabel(formParameterPrefix + paramId));
+    /** Text that should be displayed below the input element for this parameter as long as there is no error message displayed. */
+    const infoHelperText =
+        missingParameterLabels.length > 0
+            ? t("ParameterWidget.AutoComplete.missingDependsOnValuesInfo", {
+                  parameterLabels: missingParameterLabels.join(", "),
+              })
+            : undefined;
 
     let propertyHelperText: JSX.Element | undefined = undefined;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
@@ -133,6 +150,7 @@ export const ParameterWidget = (props: IProps) => {
             />
         );
     }
+    const errorText = errorMessage(title, errors);
 
     if (propertyDetails.type === "object") {
         const requiredNestedParams = propertyDetails.required ? propertyDetails.required : [];
@@ -185,7 +203,7 @@ export const ParameterWidget = (props: IProps) => {
                 }
                 helperText={propertyHelperText}
                 hasStateDanger={!!errorMessage(title, errors)}
-                messageText={errorMessage(title, errors)}
+                messageText={errorText ? errorText : infoHelperText}
             >
                 <InputMapper
                     projectId={projectId}
@@ -213,7 +231,8 @@ export const ParameterWidget = (props: IProps) => {
                 required={required && propertyDetails.parameterType !== "boolean"}
                 tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : undefined}
                 helperText={propertyHelperText}
-                errorMessage={errorMessage(title, errors)}
+                infoMessage={errorText ? errorText : infoHelperText}
+                infoMessageDanger={!!errorText}
                 supportVariableTemplateElement={{
                     onChange: changeHandlers[formParamId],
                     startWithTemplateView: isTemplateParameter,
@@ -269,4 +288,14 @@ export const ParameterWidget = (props: IProps) => {
             />
         );
     }
+};
+
+/** Returns an array of parameter IDs of missing dependent values. */
+export const missingDependentParameters = (
+    propertyDetails: IArtefactItemProperty,
+    dependentValues: Record<string, any>,
+    parameterPrefix: string
+): string[] => {
+    const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
+    return dependsOnParameters.filter((paramId) => !dependentValueIsSet(dependentValues[parameterPrefix + paramId]));
 };

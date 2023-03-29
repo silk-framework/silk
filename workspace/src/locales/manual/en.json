@@ -178,7 +178,8 @@
     "ParameterWidget": {
         "AutoComplete": {
             "createNewItem": "Custom entry: '{{query}}'",
-            "fetchErrorTitle": "Could not fetch auto-completion suggestions. "
+            "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
+            "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
         }
     },
     "PrefixDialog": {
