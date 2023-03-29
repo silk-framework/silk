@@ -14,7 +14,7 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginType}
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
@@ -34,10 +34,12 @@ import scala.language.existentials
   * @param documentation Documentation for this plugin in Markdown.
   * @param parameters The parameters of the plugin class.
   * @param constructor The constructor for creating a new instance of this plugin.
+  * @param pluginTypes The plugin types for this plugin. Ideally just one.
   * @tparam T The class that implements this plugin.
   */
 class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
-                                              val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T]) extends PluginDescription[T] {
+                                              val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T],
+                                              val pluginTypes: Seq[PluginTypeDescription]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -112,15 +114,30 @@ object ClassPluginDescription {
   }
 
   private def createFromAnnotation[T <: AnyPlugin](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
-    val markdownDocString = loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
+    val pluginTypes = getPluginTypes(pluginClass)
+
+    // Generate documentation
+    val docBuilder = new StringBuilder()
+    docBuilder ++= loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
+    if (docBuilder.nonEmpty) {
+      docBuilder ++= "\n"
+    }
+    for {
+      pluginType <- pluginTypes
+      customDescription <- pluginType.customDescription.generate(pluginClass)
+    } {
+      customDescription.generateDocumentation(docBuilder)
+    }
+
     new ClassPluginDescription(
       id = annotation.id,
       label = annotation.label,
       categories = annotation.categories,
       description = annotation.description.stripMargin,
-      documentation = markdownDocString + (if(markdownDocString.nonEmpty) "\n" else "") + addTransformDocumentation(pluginClass),
+      documentation = docBuilder.toString,
       parameters = getParameters(pluginClass),
-      constructor = getConstructor(pluginClass)
+      constructor = getConstructor(pluginClass),
+      pluginTypes = pluginTypes
     )
   }
 
@@ -130,9 +147,10 @@ object ClassPluginDescription {
       label = pluginClass.getSimpleName,
       categories = Seq(PluginCategories.uncategorized),
       description = "",
-      documentation = addTransformDocumentation(pluginClass),
+      documentation = "",
       parameters = getParameters(pluginClass),
-      constructor = getConstructor(pluginClass)
+      constructor = getConstructor(pluginClass),
+      pluginTypes = getPluginTypes(pluginClass)
     )
   }
 
@@ -151,25 +169,6 @@ object ClassPluginDescription {
         source.close()
       }
     }
-  }
-
-  private def addTransformDocumentation(pluginClass: Class[_]) = {
-    val sb = new StringBuilder()
-
-    val transformExamples = TransformExampleValue.retrieve(pluginClass)
-    if(transformExamples.nonEmpty) {
-      sb ++= "### Examples"
-      sb ++= "\n\n"
-      sb ++= "#### Notation\n\n"
-      sb ++= "List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
-      for((example, idx) <- transformExamples.zipWithIndex) {
-        sb ++= s"#### Example ${idx + 1}\n\n"
-        sb ++= example.markdownFormatted
-        sb ++= "\n\n"
-      }
-    }
-
-    sb.toString
   }
 
   private def getConstructor[T](pluginClass: Class[T]): Constructor[T] = {
@@ -206,6 +205,37 @@ object ClassPluginDescription {
 
       ClassPluginParameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion)
     }
+  }
+
+  private def getPluginTypes(pluginClass: Class[_]): Seq[PluginTypeDescription] = {
+    val superTypes = getSuperTypes(pluginClass)
+
+    // Find the PluginType annotation(s)
+    val pluginTypes =
+      for {
+        superType <- superTypes.toSeq
+        typeAnnotation <- superType.getAnnotationsByType(classOf[PluginType])
+      } yield {
+        val customDescriptionGenerator = typeAnnotation.customDescription().getDeclaredConstructor().newInstance()
+        PluginTypeDescription(superType, customDescriptionGenerator)
+      }
+
+    // If no PluginType annotation has been found, we need to generate plugin types for all super classes.
+    if(pluginTypes.nonEmpty) {
+      pluginTypes
+    } else {
+      for {
+        superType <- superTypes.toSeq
+      } yield {
+        PluginTypeDescription(superType)
+      }
+    }
+  }
+
+  private def getSuperTypes(pluginClass: Class[_]): Set[Class[_]] = {
+    val superTypes = pluginClass.getInterfaces ++ Option(pluginClass.getSuperclass)
+    val nonStdTypes = superTypes.filterNot(c => c.getName.startsWith("java") || c.getName.startsWith("scala"))
+    nonStdTypes.toSet ++ nonStdTypes.flatMap(getSuperTypes)
   }
 
   private def parameterAutoCompletion[T](dataType: Type,

@@ -35,6 +35,9 @@ trait PluginDescription[+T] {
   /** The concrete plugin class  */
   def pluginClass: Class[_ <: T]
 
+  /** The plugin types for this plugin. Ideally just one. */
+  val pluginTypes: Seq[PluginTypeDescription]
+
   /**
     * Creates an instance of this plugin with the given parameters.
     *

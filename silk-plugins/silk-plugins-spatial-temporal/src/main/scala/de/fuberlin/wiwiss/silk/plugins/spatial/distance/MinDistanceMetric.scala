@@ -16,7 +16,7 @@ package org.silkframework.plugins.spatial.distance
 
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils._
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Spatial"),
   label = "Min distance",
   description = "Computes the minimum distance between two geometries in meters.")
-case class MinDistanceMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
+case class MinDistanceMetric(blockingParameter: Double = 1.0) extends SingleValueDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateDistance(str1, str2, limit, Constants.MIN_DISTANCE)

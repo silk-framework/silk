@@ -14,11 +14,12 @@
 
 package org.silkframework.rule.plugins.transformer.substring
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.net.URLDecoder
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Uri
 
 import scala.math.max

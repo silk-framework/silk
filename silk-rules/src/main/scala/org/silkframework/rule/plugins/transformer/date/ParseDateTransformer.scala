@@ -16,10 +16,11 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.text.{ParseException, SimpleDateFormat}
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException;
 
 /**

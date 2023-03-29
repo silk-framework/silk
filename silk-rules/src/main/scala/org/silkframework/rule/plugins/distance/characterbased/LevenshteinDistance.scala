@@ -15,7 +15,8 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.util.StringUtils._
@@ -28,13 +29,33 @@ import scala.math.{abs, max, min}
   label = "Levenshtein distance",
   description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
 )
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for equal strings.",
+    input1 = Array("John"),
+    input2 = Array("John"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 for strings that differ by one edit operation.",
+    input1 = Array("John"),
+    input2 = Array("Jxhn"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 3 for strings that differ by three edit operations.",
+    input1 = Array("Saturday"),
+    input2 = Array("Sunday"),
+    output = 3.0
+  )
+))
 case class LevenshteinDistance(
   @Param(label = "Q-grams size", value = "The size of the q-grams to be indexed. Setting this to zero will disable indexing.", advanced = true)
   qGramsSize: Int = 2,
   @Param(value = "The minimum character that is used for indexing", advanced = true)
   minChar: Char = '0',
   @Param(value = "The maximum character that is used for indexing", advanced = true)
-  maxChar: Char = 'z') extends SimpleDistanceMeasure {
+  maxChar: Char = 'z') extends SingleValueDistanceMeasure {
 
   assert(qGramsSize >= 0, "Q-grams size cannot be negative")
   assert(qGramsSize <= 4, "Q-grams size is not allowed to be larger than 4")

@@ -15,9 +15,10 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.{Entity, Index}
+import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
 import org.silkframework.rule.similarity.{Aggregator, SimilarityOperator, SimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.DPair
 
 @Plugin(
@@ -28,10 +29,12 @@ import org.silkframework.util.DPair
 )
 @AggregatorExamples(Array(
   new AggregatorExample(
+    description = "Selects the minimum similarity score.",
     inputs = Array(1.0, 0.0),
     output = 0.0
   ),
   new AggregatorExample(
+    description = "Selects the minimum similarity score.",
     inputs = Array(-1.0, 0.0, 0.5, 1.0),
     output = -1.0
   ),

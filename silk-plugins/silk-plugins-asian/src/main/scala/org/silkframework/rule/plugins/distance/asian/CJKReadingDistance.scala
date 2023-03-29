@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.asian
 
 import java.util.{ArrayList, Collections}
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.collection.JavaConverters._
@@ -27,7 +27,7 @@ import scala.io.{Codec, Source}
   label = "CJK reading distance",
   description = "CJK Reading Distance."
 )
-case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends SingleValueDistanceMeasure {
   private val q = 1
 
   override def evaluate(str1: String, str2: String, limit: Double) = {

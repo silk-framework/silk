@@ -16,7 +16,7 @@ package org.silkframework.plugins.temporal.relation
 
 import org.silkframework.entity.Index
 import org.silkframework.plugins.temporal.utils._
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Temporal"),
   label = "Starts",
   description = "Computes the relation \"starts\" between two time periods or instants.")
-case class StartsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
+case class StartsMetric(blockingParameter: Double = 1.0) extends SingleValueDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateRelation(str1, str2, Constants.STARTS)

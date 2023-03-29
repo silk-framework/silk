@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.rule.similarity.{DistanceMeasure, NormalizedDistanceMeasure, TokenBasedDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -24,8 +24,9 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Dice coefficient",
   description = "Dice similarity coefficient."
 )
-case class DiceCoefficient() extends DistanceMeasure {
-  override def apply(values1: Seq[String], values2: Seq[String], threshold: Double): Double = {
+case class DiceCoefficient() extends DistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure {
+
+  override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     val set1 = values1.toSet
     val set2 = values2.toSet
 

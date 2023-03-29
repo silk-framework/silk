@@ -14,8 +14,9 @@
 
 package org.silkframework.rule.plugins.transformer.numeric
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Counts the number of values.

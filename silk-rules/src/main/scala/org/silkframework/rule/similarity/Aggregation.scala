@@ -17,6 +17,7 @@ package org.silkframework.rule.similarity
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.validation.ValidationIssue
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.xml.Node
@@ -65,9 +66,13 @@ case class Aggregation(id: Identifier = Operator.generateId,
     aggregator.aggregateIndexes(indexSets)
   }
 
-  override def children = operators
+  override def validate(): Seq[ValidationIssue] = {
+    operators.flatMap(_.validate())
+  }
 
-  override def withChildren(newChildren: Seq[Operator]) = {
+  override def children: Seq[SimilarityOperator] = operators
+
+  override def withChildren(newChildren: Seq[Operator]): Aggregation = {
     copy(operators = newChildren.map(_.asInstanceOf[SimilarityOperator]))
   }
 }

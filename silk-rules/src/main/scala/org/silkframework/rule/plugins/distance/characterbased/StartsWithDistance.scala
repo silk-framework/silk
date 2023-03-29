@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.{NonSymmetricDistanceMeasure, SimpleDistanceMeasure}
+import org.silkframework.rule.similarity.{BooleanDistanceMeasure, NonSymmetricDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
@@ -15,7 +15,8 @@ case class StartsWithDistance(@Param("Reverse source and target values")
                               @Param(label = "Min length", value = "The minimum length of the string being contained.")
                               minLength: Int = StartsWithDistance.DEFAULT_MIN_LENGTH,
                               @Param(label = "Max length", value = StartsWithDistance.MAX_LENGTH_DESCRIPTION)
-                              maxLength: Int = StartsWithDistance.DEFAULT_MAX_LENGTH) extends SimpleDistanceMeasure with NonSymmetricDistanceMeasure {
+                              maxLength: Int = StartsWithDistance.DEFAULT_MAX_LENGTH) extends SingleValueDistanceMeasure
+                                                                                      with NonSymmetricDistanceMeasure with BooleanDistanceMeasure {
 
   override def evaluate(value1: String, value2: String, limit: Double): Double = {
     val prefix = if(value2.length > maxLength) value2.take(maxLength) else value2

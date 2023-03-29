@@ -1,7 +1,7 @@
 package org.silkframework.rule.test
 
-import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext, TransformExampleValue}
+import org.silkframework.rule.input.{TransformExampleValue, Transformer}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger

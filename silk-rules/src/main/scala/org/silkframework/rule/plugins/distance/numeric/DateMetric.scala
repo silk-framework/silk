@@ -15,8 +15,9 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
+import org.silkframework.runtime.plugin.annotations._
 
 import java.time.temporal.ChronoUnit
 import java.time.{DateTimeException, LocalDate}
@@ -27,31 +28,31 @@ import scala.math._
   id = "date",
   categories = Array("Numeric"),
   label = "Date",
-  description = "The distance in days between two dates ('YYYY-MM-DD' format).")
+  description = "The distance in days between two dates ('YYYY-MM-DD' format)."
+)
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
+    description = "Returns 0 if both dates are equal.",
     input1 = Array("2003-03-01"),
     input2 = Array("2003-03-01"),
     output = 0.0
   ),
   new DistanceMeasureExample(
+    description = "Returns 1 if both dates are one day apart.",
     input1 = Array("2003-03-01"),
     input2 = Array("2003-03-02"),
     output = 1.0
   ),
   new DistanceMeasureExample(
+    description = "Returns the number of days if both dates are one month apart.",
     input1 = Array("2003-03-01"),
     input2 = Array("2003-04-01"),
     output = 31.0
   ),
   new DistanceMeasureExample(
+    description = "Returns the number of days if both dates are one year apart.",
     input1 = Array("2018-03-01"),
     input2 = Array("2019-03-01"),
-    output = 365.0
-  ),
-  new DistanceMeasureExample(
-    input1 = Array("2018"),
-    input2 = Array("2019"),
     output = 365.0
   ),
   new DistanceMeasureExample(
@@ -61,24 +62,32 @@ import scala.math._
     output = 0.0
   ),
   new DistanceMeasureExample(
-    description = "Missing day is ignored by default",
+    description = "Missing days are set to 1 by default",
     input1 = Array("2003-01"),
     input2 = Array("2003-01-01"),
     output = 0.0
   ),
   new DistanceMeasureExample(
-    description = "Missing month is ignored by default",
+    description = "Missing months are set to 1 by default",
     input1 = Array("2003"),
     input2 = Array("2003-01-01"),
     output = 0.0
   ),
   new DistanceMeasureExample(
+    description = "Missing months and days are set to 1 by default.",
+    input1 = Array("2018"),
+    input2 = Array("2019"),
+    output = 365.0
+  ),
+  new DistanceMeasureExample(
+    description = "If 'requireMonthAndDay' is set, dates without a day and month will not match.",
     parameters = Array("requireMonthAndDay", "true"),
     input1 = Array("2003"),
     input2 = Array("2003-03-01"),
     output = Double.PositiveInfinity
   ),
   new DistanceMeasureExample(
+    description = "If 'requireMonthAndDay' is set, dates without a day will not match.",
     parameters = Array("requireMonthAndDay", "true"),
     input1 = Array("2003-12"),
     input2 = Array("2003-03-01"),
@@ -88,7 +97,7 @@ import scala.math._
 case class DateMetric(
   @Param("If true, no distance value will be generated if months or days are missing (e.g., 2019-11). If false, missing month or day fields will default to 1.")
   requireMonthAndDay: Boolean = false
-  ) extends SimpleDistanceMeasure {
+  ) extends SingleValueDistanceMeasure {
 
   import DateMetric._
 
