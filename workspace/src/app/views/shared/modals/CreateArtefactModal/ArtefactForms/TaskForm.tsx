@@ -83,6 +83,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
     const [t] = useTranslation();
+    const parameterLabels = React.useRef(new Map<string, string>());
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
@@ -93,10 +94,15 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         [updateTask]
     );
 
+    const parameterLabel = React.useCallback((fullParameterId: string) => {
+        return parameterLabels.current.get(fullParameterId) ?? "N/A";
+    }, []);
+
     const extendedCallbacks = React.useMemo(() => {
         return {
             ...parameterCallbacks,
             initialTemplateFlag,
+            parameterLabel,
         };
     }, [initialTemplateFlag]);
 
@@ -158,6 +164,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             );
             params.forEach(([paramId, param]) => {
                 const fullParameterId = prefix + paramId;
+                parameterLabels.current.set(fullParameterId, param.title);
                 if (param.type === "object") {
                     // Nested type, only register nested atomic values
                     if (param.properties) {
@@ -286,7 +293,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             parameterId={LABEL}
                             label={t("form.field.label")}
                             required={true}
-                            errorMessage={errorMessage("Label", errors.label)}
+                            infoMessage={errorMessage("Label", errors.label)}
                             inputElementFactory={() => (
                                 <TextField
                                     id={LABEL}

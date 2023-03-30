@@ -33,7 +33,7 @@ export const UriAttributeParameterInput = ({ onValueChange, initialValue }: Prop
             parameterId={URI_PROPERTY_PARAMETER_ID}
             label={t("DatasetUriPropertyParameter.label")}
             helperText={t("DatasetUriPropertyParameter.description")}
-            errorMessage={validationFailed ? t("DatasetUriPropertyParameter.invalid") : undefined}
+            infoMessage={validationFailed ? t("DatasetUriPropertyParameter.invalid") : undefined}
             inputElementFactory={() => (
                 <TextField
                     id={URI_PROPERTY_PARAMETER_ID}
