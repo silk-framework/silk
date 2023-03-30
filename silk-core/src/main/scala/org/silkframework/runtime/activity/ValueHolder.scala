@@ -6,36 +6,37 @@ package org.silkframework.runtime.activity
 class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
 
   @volatile
-  private var value: T = _
-
-  @volatile
-  private var initialized: Boolean = false
+  private var value: Option[T] = None
 
   override def isDefined: Boolean = {
-    initialized || initialValue.isDefined
+    value.isDefined || initialValue.isDefined
   }
 
   override def apply(): T = {
-    if(!initialized) {
-      if(initialValue.isDefined) {
-        value = initialValue.get
-        initialized = true
-      } else {
-        throw new NoSuchElementException(s"No value has been set and the activity does not define an initial value.")
-      }
+    value match {
+      case Some(v) =>
+        v
+      case None =>
+        initialValue match {
+          case Some(v) =>
+            value = Some(v)
+            v
+          case None =>
+            throw new NoSuchElementException(s"No value has been set and the activity does not define an initial value.")
+        }
     }
-    value
   }
 
   def update(v: T): Unit = {
-    value = v
-    initialized = true
+    value = Some(v)
     publish(v)
   }
 
   /** Re-publishes the current value. This is only used to force updates of subscribers even though the value has not changed. */
   def republish(): Unit = {
-    publish(value)
+    for(v <- value) {
+      publish(v)
+    }
   }
 
   /**
