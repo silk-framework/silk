@@ -374,7 +374,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       case folderName +: tail =>
         val folder = resources.child(folderName)
         deleteRecursive(folder, tail)
-        if(folder.list.isEmpty) {
+        if(folder.list.isEmpty && folder.listChildren.isEmpty) {
           resources.delete(folderName)
         }
     }
