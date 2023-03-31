@@ -47,6 +47,10 @@ import java.net.{URI, URISyntaxException, URLEncoder}
   new TransformExample(
     input1 = Array("http : invalid URI"),
     output = Array("urn:url-encoded-value:http+%3A+invalid+URI")
+  ),
+  new TransformExample(
+    input1 = Array("http://domain.com/[squareBrackets]"),
+    output = Array("urn:url-encoded-value:http%3A%2F%2Fdomain.com%2F%5BsquareBrackets%5D")
   )
 ))
 case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") extends SimpleTransformer {

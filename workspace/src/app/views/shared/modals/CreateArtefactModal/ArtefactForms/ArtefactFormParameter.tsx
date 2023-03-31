@@ -152,7 +152,7 @@ export const ArtefactFormParameter = ({
         if (showRareElementState.current.timeout != null) {
             clearTimeout(showRareElementState.current.timeout);
         }
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 50);
+        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 150);
     }, []);
     const onMouseOut: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
         if (showRareElementState.current.timeout != null) {

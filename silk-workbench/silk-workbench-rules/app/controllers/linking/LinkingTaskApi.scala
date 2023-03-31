@@ -1053,41 +1053,46 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val sortBy = request.sortBy.getOrElse(List.empty)
     val query = request.query.getOrElse("")
     val includeReferenceLinks = request.includeReferenceLinks.getOrElse(false)
+    val includeEvaluationLinks = request.includeEvaluationLinks.getOrElse(true)
     val project = linkTask.project
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
     val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
-    val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache]
-    if (evaluationActivity.control.status.get.isEmpty) {
-      evaluationActivity.control.startBlocking()
+    val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value.get
+    var links: Seq[Link] = Seq.empty
+    var evaluationStats: Option[LinkRuleEvaluationStats] = None
+    if(includeEvaluationLinks) {
+      if (evaluationActivity.control.status.get.isEmpty) {
+        evaluationActivity.control.startBlocking()
+      }
+      evaluationActivity.value.get foreach { evaluationResult =>
+        links = evaluationResult.links
+        evaluationStats = Some(linkEvaluationStats(evaluationResult))
+      }
     }
-    evaluationActivity.value.get match {
-      case Some(evaluationResult) =>
-        val referenceEntitiesCache = referenceEntityCache.value.get
-        val linkingRule = linkTask.data.rule
-        var links: Seq[Link] = evaluationResult.links
-        if(includeReferenceLinks) {
-          links = (referenceEntitiesCache.map(_.toReferenceLinks).getOrElse(Seq.empty) ++ links).distinct
-        }
-        val overallLinkCount = links.size
-        val searchTerms = StringUtils.extractSearchTerms(query)
-        if (searchTerms.nonEmpty) {
-          links = links.filter(link => {
-            val searchText = searchStringFromLink(link)
-            StringUtils.matchesSearchTerm(searchTerms, searchText)
-          })
-        }
-        if (filters.nonEmpty) {
-          links = filterLinks(links, referenceEntitiesCache, filters)
-        }
-        if(sortBy.nonEmpty) {
-          links = sortLinks(links, sortBy)
-        }
-        val resultStats = ResultStats(overallLinkCount, links.size)
-        links = links.slice(offset, offset + limit)
-        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache, resultStats, inputTaskLabel(linkTask))
-      case None =>
-        throw NotFoundException("No evaluation results available.")
+    if (includeReferenceLinks) {
+      links = (referenceEntityCache.map(_.toReferenceLinks).getOrElse(Seq.empty) ++ links).distinct
     }
+    if(links.isEmpty) {
+      throw NotFoundException("No evaluation results available.")
+    }
+    val linkingRule = linkTask.data.rule
+    val overallLinkCount = links.size
+    val searchTerms = StringUtils.extractSearchTerms(query)
+    if (searchTerms.nonEmpty) {
+      links = links.filter(link => {
+        val searchText = searchStringFromLink(link)
+        StringUtils.matchesSearchTerm(searchTerms, searchText)
+      })
+    }
+    if (filters.nonEmpty) {
+      links = filterLinks(links, referenceEntityCache, filters)
+    }
+    if (sortBy.nonEmpty) {
+      links = sortLinks(links, sortBy)
+    }
+    val resultStats = ResultStats(overallLinkCount, links.size)
+    links = links.slice(offset, offset + limit)
+    linkEvaluationJsonResult(evaluationStats, linkingRule, links, referenceEntityCache, resultStats, inputTaskLabel(linkTask))
   }
 
   /** Labels of the source and target input tasks. */
@@ -1113,7 +1118,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val resultStatsFormat: Format[ResultStats] = Json.format[ResultStats]
   }
 
-  private def linkEvaluationJsonResult(evaluationResult: EvaluateLinkingActivity#ValueType,
+  private def linkEvaluationJsonResult(evaluationActivityStats: Option[LinkRuleEvaluationStats],
                                        linkingRule: LinkageRule,
                                        links: Seq[Link],
                                        referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType],
@@ -1132,7 +1137,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       "links" -> linkJson,
       "linkRule" -> JsonSerialization.toJson(linkingRule),
       "resultStats" -> Json.toJson(resultStats),
-      "evaluationActivityStats" -> linkEvaluationStats(evaluationResult),
+      "evaluationActivityStats" -> evaluationActivityStats.map(stats => Json.toJson(stats)),
       "metaData" -> Json.obj(
         "sourceInputLabel" -> inputTaskLabels._1,
         "targetInputLabel" -> inputTaskLabels._2
@@ -1140,12 +1145,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     ))
   }
 
-  private def linkEvaluationStats(evaluationResult: Linking): JsValue = {
-    Json.toJson(LinkRuleEvaluationStats(
+  private def linkEvaluationStats(evaluationResult: Linking): LinkRuleEvaluationStats = {
+    LinkRuleEvaluationStats(
       evaluationResult.statistics.entityCount.source,
       evaluationResult.statistics.entityCount.target,
       evaluationResult.links.size
-    ))
+    )
   }
 
   private def searchStringFromLink(link: Link): String = {
