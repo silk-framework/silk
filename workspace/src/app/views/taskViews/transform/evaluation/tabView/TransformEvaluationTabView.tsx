@@ -23,7 +23,7 @@ import { EvaluatedRuleEntityResult } from "./typing";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
-import MappingsTreeNew from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTreeNew";
+import MappingsTree from "../../../../pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;
@@ -96,7 +96,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
             <Grid useAbsoluteSpace className="transform-evaluation" fullWidth>
                 <GridRow fullHeight>
                     <GridColumn medium>
-                        <MappingsTreeNew
+                        <MappingsTree
                             currentRuleId={currentRuleId}
                             handleRuleNavigation={handleRuleNavigation}
                             startFullScreen={startFullScreen}

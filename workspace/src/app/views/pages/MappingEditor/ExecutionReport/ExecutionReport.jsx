@@ -10,7 +10,7 @@ import {
     TableHead,
     TableRow,
 } from "gui-elements-deprecated";
-import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
+import MappingsTree from "../HierarchicalMapping/containers/MappingsTreeLegacy";
 
 /**
  * Displays a task execution report.

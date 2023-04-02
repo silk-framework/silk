@@ -36,7 +36,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 }) => {
     const [navigationLoading, setNavigationLoading] = React.useState<boolean>(false);
     const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<string, boolean>>(new Map());
-    const [currentlySelectedId, setCurrentlySelected] = React.useState<string>(MAPPING_RULE_TYPE_ROOT);
     const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo[]>([]);
     const [data, setData] = React.useState();
 
@@ -58,6 +57,11 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         };
     }, []);
 
+    //caters for when a ruleId is in the search query, make sure it's expanded on load.
+    React.useEffect(() => {
+        setTreeExpansionMap((prev) => new Map([...prev, [currentRuleId, true]]));
+    }, [currentRuleId]);
+
     React.useEffect(() => {
         updateNavigationTree();
     }, [ruleTree, currentRuleId]);
@@ -66,7 +70,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         if (data) {
             setTreeNodes([buildTree(data)]);
         }
-    }, [data, treeExpansionMap, currentlySelectedId]);
+    }, [data, treeExpansionMap, currentRuleId]);
 
     const handleNodeExpand = React.useCallback((node) => {
         setTreeExpansionMap((prev) => new Map([...prev, [node.id, true]]));
@@ -74,10 +78,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
     const handleNodeCollapse = React.useCallback((node) => {
         setTreeExpansionMap((prev) => new Map([...prev, [node.id, false]]));
-    }, []);
-
-    const handleNodeClick = React.useCallback((node) => {
-        setCurrentlySelected(node.id);
     }, []);
 
     const renderRuleIcon = (ruleId) => {
@@ -107,7 +107,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             const label = (
                 <div
                     className={`ecc-silk-mapping__treenav--item${
-                        currentlySelectedId === id ? " ecc-silk-mapping__treenav--item-active" : ""
+                        currentRuleId === id ? " ecc-silk-mapping__treenav--item-active" : ""
                     }`}
                 >
                     <button
@@ -152,7 +152,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 childNodes: childNodes.map((child) => buildTree(child)),
             };
         },
-        [treeExpansionMap, currentlySelectedId]
+        [treeExpansionMap, currentRuleId]
     );
 
     const getRuleById = (searchId) => {
@@ -220,7 +220,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                             contents={treeNodes}
                             onNodeExpand={handleNodeExpand}
                             onNodeCollapse={handleNodeCollapse}
-                            onNodeClick={handleNodeClick}
                         />
                     )}
                 </CardContent>
