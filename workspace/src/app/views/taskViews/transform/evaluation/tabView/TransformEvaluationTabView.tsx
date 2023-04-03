@@ -17,7 +17,6 @@ import {
 import { DataTableCustomRenderProps } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
-// import MappingsTree from "../../../../../views/pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
 import { EvaluatedRuleEntityResult } from "./typing";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
@@ -49,7 +48,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
             try {
                 setLoading(true);
                 const [results, plugins] = await Promise.all([
-                    (await getEvaluatedEntities(projectId, transformTaskId, currentRuleId, 10, false)).data,
+                    (await getEvaluatedEntities(projectId, transformTaskId, currentRuleId, 10, true)).data,
                     Object.values((await requestRuleOperatorPluginDetails(false)).data),
                 ]);
                 operatorPlugins.current = plugins;

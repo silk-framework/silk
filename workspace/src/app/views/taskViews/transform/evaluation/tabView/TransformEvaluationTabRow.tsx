@@ -1,19 +1,18 @@
+import React from "react";
 import { IPluginDetails } from "@ducks/common/typings";
 import {
+    Spacing,
     Table,
     TableBody,
     TableCell,
     TableExpandedRow,
     TableExpandRow,
     TableRow,
-    Tag,
-    TagList,
     Tree,
     TreeNodeInfo,
 } from "@eccenca/gui-elements";
-import React from "react";
 import { useTranslation } from "react-i18next";
-import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
+import { newNode, newNodeValues } from "./TransformEvaluationTabViewUtils";
 import {
     EvaluatedComplexRule,
     EvaluatedEntity,
@@ -30,11 +29,6 @@ interface TransformEvaluationTabRowProps {
     operatorPlugins: Array<IPluginDetails>;
     rules: Array<EvaluatedURIRule | EvaluatedComplexRule>;
 }
-
-const operatorMapping = {
-    pathInput: "Source path",
-    transformInput: "Transform",
-} as const;
 
 const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = React.memo(
     ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins }) => {
@@ -73,51 +67,45 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                                   mappingTarget: (rules[i] as EvaluatedComplexRule)?.mappingTarget,
                               }
                     ) as Omit<EvaluatedURIRule, "rules">;
-                    const newNode = (
-                        rule: EvaluatedRuleOperator,
-                        values: EvaluatedEntityOperator["values"]
-                    ): TreeNodeInfo<{}> => {
-                        return {
-                            id: rule.id,
-                            hasCaret: false,
-                            isExpanded: true,
-                            label: (
-                                <OperatorLabel
-                                    tagPluginType={operatorMapping[rule.type]}
-                                    operator={rule}
-                                    operatorPlugins={operatorPlugins}
-                                >
-                                    <TagList>
-                                        {values.map((v, i) => (
-                                            <Tag key={i} round emphasis="stronger" interactive>
-                                                {v}
-                                            </Tag>
-                                        ))}
-                                    </TagList>
-                                </OperatorLabel>
-                            ),
-                        };
-                    };
+
                     let treeNodeInfo = {
                         hasCaret: true,
                         id: matchingRuleType.id,
-                        isExpanded: treeExpansionMap.get(matchingRuleType.id) ?? true,
-                        label: (
-                            <strong>{(matchingRuleType as EvaluatedComplexRule)?.mappingTarget?.uri || "URI"}</strong>
-                        ),
+                        isExpanded: treeExpansionMap.get(matchingRuleType.id),
+                        label: "",
                         childNodes: [],
-                    } as TreeNodeInfo;
+                        nodeData: {
+                            label: (matchingRuleType as EvaluatedComplexRule)?.mappingTarget?.uri || "URI",
+                            root: true,
+                        },
+                    } as TreeNodeInfo<Partial<{ root: boolean; label: string }>>;
 
                     const generateTree = (
                         rule: EvaluatedRuleOperator,
                         entityValue: EvaluatedEntityOperator,
-                        tree: TreeNodeInfo
+                        tree: TreeNodeInfo<Partial<{ root: boolean; label: string }>>
                     ) => {
+                        if (tree?.nodeData?.root && tree.nodeData.label) {
+                            tree.label = (
+                                <>
+                                    <strong>{tree.nodeData.label}</strong>
+                                    {!tree.isExpanded ? (
+                                        <>
+                                            <Spacing vertical size="tiny" />
+                                            {newNodeValues(entityValue.values)}
+                                        </>
+                                    ) : null}
+                                </>
+                            );
+                        }
                         if (!rule.inputs?.length) {
-                            tree.childNodes = [...(tree?.childNodes ?? []), newNode(rule, entityValue.values)];
+                            tree.childNodes = [
+                                ...(tree?.childNodes ?? []),
+                                newNode(rule, entityValue.values, operatorPlugins),
+                            ];
                             return tree;
                         }
-                        const currentNode = newNode(rule, entityValue.values);
+                        const currentNode = newNode(rule, entityValue.values, operatorPlugins);
                         tree.childNodes = [...(tree?.childNodes ?? []), currentNode];
 
                         for (let i = 0; i < rule.inputs.length; i++) {
@@ -144,21 +132,24 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                 >
                     <TableCell>{rowItem.uri}</TableCell>
                 </TableExpandRow>
-                <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
-                    <Table size="compact" hasDivider={false} colorless>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell>
-                                    <Tree
-                                        contents={treeNodes}
-                                        onNodeExpand={handleNodeExpand}
-                                        onNodeCollapse={handleNodeCollapse}
-                                    />
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </TableExpandedRow>
+                {(rowIsExpanded && (
+                    <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
+                        <Table size="compact" hasDivider={false} colorless>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>
+                                        <Tree
+                                            contents={treeNodes}
+                                            onNodeExpand={handleNodeExpand}
+                                            onNodeCollapse={handleNodeCollapse}
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableExpandedRow>
+                )) ||
+                    null}
             </React.Fragment>
         );
     }

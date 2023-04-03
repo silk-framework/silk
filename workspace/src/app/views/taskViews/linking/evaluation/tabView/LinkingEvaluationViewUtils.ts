@@ -106,7 +106,7 @@ export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as ITransformOperator).function)
                 ?.title;
         case "pathInput":
-            return (operator as IPathInput).path;
+            return (operator as IPathInput).path || "<Empty path>";
         default:
             return undefined;
     }
