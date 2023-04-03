@@ -4,7 +4,7 @@ import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
-import java.net.{URI, URISyntaxException, URLEncoder}
+import java.net.{MalformedURLException, URI, URISyntaxException, URL, URLDecoder, URLEncoder}
 
 /**
   * Fixes URIs if necessary
@@ -49,8 +49,8 @@ import java.net.{URI, URISyntaxException, URLEncoder}
     output = Array("urn:url-encoded-value:http+%3A+invalid+URI")
   ),
   new TransformExample(
-    input1 = Array("http://domain.com/[squareBrackets]"),
-    output = Array("urn:url-encoded-value:http%3A%2F%2Fdomain.com%2F%5BsquareBrackets%5D")
+    input1 = Array("  http://domain.com/[squareBrackets]"),
+    output = Array("http://domain.com/%5BsquareBrackets%5D")
   )
 ))
 case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") extends SimpleTransformer {
@@ -63,8 +63,9 @@ case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") exten
   private val lenientUriRegex = s"($schemeRegex):([^#]+)(#.*)?".r
 
   override def evaluate(value: String): String = {
+    val trimmedValue = value.trim
     try {
-      value match {
+      trimmedValue match {
         case lenientUriRegex(scheme, schemeSpecificPart, fragment) =>
           if (fragment != null) {
             new URI(scheme, schemeSpecificPart, fragment.substring(1)).toASCIIString
@@ -72,11 +73,25 @@ case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") exten
             new URI(scheme, schemeSpecificPart, null).toASCIIString
           }
         case _ =>
-          generateUri(value)
+          convertToValidUri(trimmedValue)
       }
     } catch {
       case _: URISyntaxException =>
-        generateUri(value)
+        convertToValidUri(trimmedValue)
+    }
+  }
+
+  private def convertToValidUri(possiblyInvalidUri: String): String = {
+    try {
+      // Convert the String and decode the URL into the URL class
+      val url = new URL(URLDecoder.decode(possiblyInvalidUri, "UTF-8"))
+      val uri = new URI(url.getProtocol, url.getUserInfo, url.getHost, url.getPort, url.getPath, url.getQuery, url.getRef)
+      uri.toString
+    } catch {
+      case _: URISyntaxException =>
+        generateUri(possiblyInvalidUri)
+      case _: MalformedURLException =>
+        generateUri(possiblyInvalidUri)
     }
   }
 
