@@ -94,7 +94,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                                     {!tree.isExpanded ? (
                                         <>
                                             <Spacing vertical size="tiny" />
-                                            {newNodeValues(entityValue.values)}
+                                            {newNodeValues(entityValue.values, entityValue.error)}
                                         </>
                                     ) : null}
                                 </>
