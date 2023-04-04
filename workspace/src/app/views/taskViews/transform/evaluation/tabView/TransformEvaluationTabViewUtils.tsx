@@ -27,9 +27,9 @@ const operatorMapping = {
     transformInput: "Transform",
 } as const;
 
-export const newNodeValues = (values: EvaluatedEntityOperator["values"], error = "No Value") => (
+export const newNodeValues = (values: EvaluatedEntityOperator["values"], error?: string) => (
     <TagList>
-        {!values.length && <Icon intent="warning" name="state-warning" tooltipText={error} />}
+        {!values.length && <Icon intent="warning" name="state-warning" tooltipText={error || "No Value"} />}
         {values.map((v, i) => (
             <Tag key={i} round emphasis="stronger" interactive>
                 {v}
