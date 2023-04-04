@@ -43,8 +43,10 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
 
         //update tree
         React.useEffect(() => {
-            buildTree();
-        }, [treeExpansionMap]);
+            if (rowIsExpanded) {
+                buildTree();
+            }
+        }, [treeExpansionMap, rowIsExpanded]);
 
         const handleRowExpansion = React.useCallback(() => setRowIsExpanded((e) => !e), []);
 
@@ -101,11 +103,21 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                         if (!rule.inputs?.length) {
                             tree.childNodes = [
                                 ...(tree?.childNodes ?? []),
-                                newNode(rule, entityValue.values, operatorPlugins),
+                                newNode({
+                                    rule,
+                                    values: entityValue.values,
+                                    operatorPlugins,
+                                    error: entityValue.error,
+                                }),
                             ];
                             return tree;
                         }
-                        const currentNode = newNode(rule, entityValue.values, operatorPlugins);
+                        const currentNode = newNode({
+                            rule,
+                            values: entityValue.values,
+                            operatorPlugins,
+                            error: entityValue.error,
+                        });
                         tree.childNodes = [...(tree?.childNodes ?? []), currentNode];
 
                         for (let i = 0; i < rule.inputs.length; i++) {

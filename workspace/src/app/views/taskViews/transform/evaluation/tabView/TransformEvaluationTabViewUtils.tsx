@@ -27,9 +27,9 @@ const operatorMapping = {
     transformInput: "Transform",
 } as const;
 
-export const newNodeValues = (values: EvaluatedEntityOperator["values"]) => (
+export const newNodeValues = (values: EvaluatedEntityOperator["values"], error = "No Value") => (
     <TagList>
-        {!values.length && <Icon intent="warning" name="state-warning" tooltipText="No value" />}
+        {!values.length && <Icon intent="warning" name="state-warning" tooltipText={error} />}
         {values.map((v, i) => (
             <Tag key={i} round emphasis="stronger" interactive>
                 {v}
@@ -38,18 +38,24 @@ export const newNodeValues = (values: EvaluatedEntityOperator["values"]) => (
     </TagList>
 );
 
-export const newNode = (
-    rule: EvaluatedRuleOperator,
-    values: EvaluatedEntityOperator["values"],
-    operatorPlugins: Array<IPluginDetails>
-): TreeNodeInfo<Partial<{ root: boolean; label: string }>> => {
+export const newNode = ({
+    rule,
+    values,
+    operatorPlugins,
+    error,
+}: {
+    rule: EvaluatedRuleOperator;
+    values: EvaluatedEntityOperator["values"];
+    operatorPlugins: Array<IPluginDetails>;
+    error?: string;
+}): TreeNodeInfo<Partial<{ root: boolean; label: string }>> => {
     return {
         id: rule.id,
         hasCaret: false,
         isExpanded: true,
         label: (
             <OperatorLabel tagPluginType={operatorMapping[rule.type]} operator={rule} operatorPlugins={operatorPlugins}>
-                {newNodeValues(values)}
+                {newNodeValues(values, error)}
             </OperatorLabel>
         ),
         nodeData: {
