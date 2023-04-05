@@ -27,15 +27,35 @@ const operatorMapping = {
     transformInput: "Transform",
 } as const;
 
-export const newNodeValues = (values: EvaluatedEntityOperator["values"], error?: string) => (
-    <TagList>
-        {!values.length && <Icon intent="warning" name="state-warning" tooltipText={error || "No Value"} />}
-        {values.map((v, i) => (
-            <Tag key={i} round emphasis="stronger" interactive>
-                {v}
-            </Tag>
-        ))}
-    </TagList>
+interface NodeTagValuesProps {
+    values: EvaluatedEntityOperator["values"];
+    error?: string;
+    cutAfter?: number;
+}
+
+export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
+    ({ values, error, cutAfter = 3, ...otherTagProps }) => {
+        const remainingNodes =
+            values.length > cutAfter ? (
+                <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
+                    +{values.length - cutAfter}
+                </Tag>
+            ) : (
+                <></>
+            );
+
+        return (
+            <TagList>
+                {!values.length && <Icon intent="warning" name="state-warning" tooltipText={error || "No Value"} />}
+                {values.slice(0, cutAfter).map((v, i) => (
+                    <Tag key={i} round emphasis="stronger" interactive {...otherTagProps}>
+                        {v}
+                    </Tag>
+                ))}
+                {remainingNodes}
+            </TagList>
+        );
+    }
 );
 
 export const newNode = ({
@@ -55,7 +75,7 @@ export const newNode = ({
         isExpanded: true,
         label: (
             <OperatorLabel tagPluginType={operatorMapping[rule.type]} operator={rule} operatorPlugins={operatorPlugins}>
-                {newNodeValues(values, error)}
+                <NodeTagValues values={values} error={error} />
             </OperatorLabel>
         ),
         nodeData: {

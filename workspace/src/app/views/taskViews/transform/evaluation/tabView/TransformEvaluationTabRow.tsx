@@ -12,7 +12,7 @@ import {
     TreeNodeInfo,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { newNode, newNodeValues } from "./TransformEvaluationTabViewUtils";
+import { newNode, NodeTagValues } from "./TransformEvaluationTabViewUtils";
 import {
     EvaluatedComplexRule,
     EvaluatedEntity,
@@ -94,7 +94,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                                     {!tree.isExpanded ? (
                                         <>
                                             <Spacing vertical size="tiny" />
-                                            {newNodeValues(entityValue.values, entityValue.error)}
+                                            <NodeTagValues values={entityValue.values} error={entityValue.error} />
                                         </>
                                     ) : null}
                                 </>
