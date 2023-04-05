@@ -3,6 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TEMPLATES, TYPE}
+import org.silkframework.util.StringUtils.BooleanLiteral
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -60,7 +61,12 @@ object PluginSerializers {
       JsObject(
         params.values.collect {
           case (key, ParameterStringValue(strValue)) =>
-            (key, JsString(strValue))
+            strValue match {
+              case BooleanLiteral(booleanValue) =>
+                (key, JsBoolean(booleanValue))
+              case _ =>
+                (key, JsString(strValue))
+            }
           case (key, template: ParameterTemplateValue) =>
             (key, JsString(template.evaluate()))
           case (key, ParameterObjectValue(objValue)) =>

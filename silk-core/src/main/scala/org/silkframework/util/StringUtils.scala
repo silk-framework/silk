@@ -16,7 +16,6 @@ package org.silkframework.util
 
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 import scala.language.implicitConversions
-import scala.util.Try
 import scala.util.matching.Regex
 
 object StringUtils {
@@ -76,9 +75,15 @@ object StringUtils {
   object BooleanLiteral {
     def apply(x: Boolean): String = x.toString
 
-    def unapply(x: String): Option[Boolean] = {
-      Option(x) flatMap { s =>
-        Try(s.toBoolean).toOption
+    def unapply(s: String): Option[Boolean] = {
+      if (s != null) {
+        s.toLowerCase match {
+          case "true" => Some(true)
+          case "false" => Some(false)
+          case _ => None
+        }
+      } else {
+        None
       }
     }
   }

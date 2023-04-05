@@ -17,11 +17,6 @@ export const stringValueAsJs = (valueType: string, value: OptionallyLabelledPara
     const stringValue = value != null ? optionallyLabelledParameterToValue(value) ?? "" : "";
     let v: any = stringValue;
 
-    if (valueType === INPUT_TYPES.BOOLEAN) {
-        // cast to boolean from string
-        v = stringValue.toLowerCase() === "true";
-    }
-
     if (valueType === INPUT_TYPES.INTEGER) {
         if (v !== "" && stringValue) {
             v = parseInt(stringValue);
