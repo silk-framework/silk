@@ -247,7 +247,7 @@ export default class ExecutionReport extends React.Component {
 
     renderRuleError(ruleError) {
         return (
-            <TableRow key={ruleError.entity}>
+            <TableRow>
                 <TableCell>
                     <HtmlContentBlock linebreakForced className="silk-report-errors-value">
                         {ruleError.entity}
