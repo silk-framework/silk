@@ -1,12 +1,14 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.TaskLink
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory}
 import org.silkframework.runtime.resource.Resource
 
 /**
  * A specific dataset.
  */
+@PluginType()
 trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** The resources that are referenced by this dataset. */

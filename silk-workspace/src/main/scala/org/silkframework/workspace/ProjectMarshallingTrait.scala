@@ -1,12 +1,12 @@
 package org.silkframework.workspace
 
 import java.io.{File, OutputStream}
-
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -17,6 +17,7 @@ import org.silkframework.workspace.resources.ResourceRepository
 /**
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
   */
+@PluginType()
 trait ProjectMarshallingTrait extends AnyPlugin {
   /**
     * A unique ID, so this marshaller can be distinguished from other marshallers

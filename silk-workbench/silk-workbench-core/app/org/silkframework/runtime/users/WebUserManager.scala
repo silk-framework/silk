@@ -2,6 +2,7 @@ package org.silkframework.runtime.users
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry}
 import play.api.mvc.RequestHeader
 
@@ -11,6 +12,7 @@ import scala.util.control.NonFatal
 /**
   * Fetches user related data from a request object.
   */
+@PluginType()
 trait WebUserManager extends AnyPlugin {
   def user(request: RequestHeader): Option[WebUser]
 

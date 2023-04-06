@@ -305,8 +305,8 @@ object PluginRegistry {
   }
 
   private def pluginType[T: ClassTag]: PluginTypeHolder = {
-    val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
-    pluginTypes.getOrElse(pluginClass, new PluginTypeHolder)
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass
+    pluginTypes.getOrElse(pluginClass.getName, new PluginTypeHolder)
   }
 
   /**

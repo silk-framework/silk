@@ -4,6 +4,7 @@ import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 
@@ -11,6 +12,7 @@ import java.time.{Duration, Instant}
 import java.util.logging.{Level, Logger}
 import scala.util.control.NonFatal
 
+@PluginType()
 trait ExecutionReportManager extends AnyPlugin {
 
   protected val log: Logger = Logger.getLogger(getClass.getName)
