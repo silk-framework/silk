@@ -79,18 +79,21 @@ export const LinkRuleNodeEvaluation = ({
                                         content={
                                             error ?? (
                                                 <HtmlContentBlock>
-                                                    <ul>
-                                                        {value.slice(0, EXAMPLES_MAX - 1).map((exampleValue) => {
-                                                            return (
-                                                                <li>
-                                                                    <OverflowText>{exampleValue}</OverflowText>
-                                                                </li>
-                                                            );
-                                                        })}
-                                                        {value.length > EXAMPLES_MAX && (
-                                                            <li>+{value.length - EXAMPLES_MAX}</li>
-                                                        )}
-                                                    </ul>
+                                                    {value.length === 1 && value[0]}
+                                                    {value.length > 1 && (
+                                                        <ul>
+                                                            {value.slice(0, EXAMPLES_MAX - 1).map((exampleValue) => {
+                                                                return (
+                                                                    <li>
+                                                                        <OverflowText>{exampleValue}</OverflowText>
+                                                                    </li>
+                                                                );
+                                                            })}
+                                                            {value.length > EXAMPLES_MAX && (
+                                                                <li>+{value.length - EXAMPLES_MAX}</li>
+                                                            )}
+                                                        </ul>
+                                                    )}
                                                 </HtmlContentBlock>
                                             )
                                         }
