@@ -31,7 +31,8 @@ export const getEvaluatedLinks = async (
     query: string = "",
     filters: Array<keyof typeof LinkEvaluationFilters> = [],
     sortBy: LinkEvaluationSortBy[] = [],
-    includeReferenceLinks: boolean = false
+    includeReferenceLinks = false,
+    includeEvaluationLinks = true
 ): Promise<FetchResponse<LinkRuleEvaluationResult>> =>
     fetch({
         method: "POST",
@@ -43,6 +44,7 @@ export const getEvaluatedLinks = async (
             filters,
             sortBy,
             includeReferenceLinks,
+            includeEvaluationLinks,
         },
     });
 
@@ -62,6 +64,25 @@ export const updateReferenceLink = async (
             source,
             target,
         },
+    });
+
+export const referenceLinkResource = async (
+    projectId: string,
+    taskId: string,
+    query: {
+        positive?: boolean;
+        negative?: boolean;
+        unlabeled?: boolean;
+        generateNegative?: boolean;
+    },
+    body?: any,
+    method: "DELETE" | "PUT" = "DELETE"
+): Promise<FetchResponse<any>> =>
+    fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/referenceLinks`),
+        method,
+        query,
+        body,
     });
 
 export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: string }> => {

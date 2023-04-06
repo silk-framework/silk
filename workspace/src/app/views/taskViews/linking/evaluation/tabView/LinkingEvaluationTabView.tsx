@@ -24,11 +24,24 @@ import {
     Toolbar,
     ToolbarSection,
     WhiteSpaceContainer,
+    Button,
+    IconButton,
+    SimpleDialog,
+    OverviewItem,
+    Checkbox,
+    TextField,
+    FieldItem,
+    Select,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../shared/TaskActivityWidget/TaskActivityWidget";
-import { getEvaluatedLinks, getLinkRuleInputPaths, updateReferenceLink } from "./LinkingEvaluationViewUtils";
+import {
+    getEvaluatedLinks,
+    getLinkRuleInputPaths,
+    referenceLinkResource,
+    updateReferenceLink,
+} from "./LinkingEvaluationViewUtils";
 import {
     EvaluationLinkInputValue,
     LinkEvaluationFilters,
@@ -62,6 +75,12 @@ const sortDirectionMapping = {
     DESC: "NONE",
 } as const;
 
+const referenceLinksMap = new Map([
+    ["positive", false],
+    ["negative", false],
+    ["unlabeled", false],
+]) as Map<ReferenceLinkType, boolean>;
+
 type LinkingEvaluationResultWithId = LinkingEvaluationResult & { id: string };
 
 const pageSizes = [10, 20, 50];
@@ -90,6 +109,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
     const hasRenderedBefore = useFirstRender();
+    const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(false);
+    const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
+    const [shouldGenerateNegativeLink, setShouldGenerateNegativeLink] = React.useState<boolean>(false);
+    const [importedReferenceLinkFile, setImportedReferenceLinkFile] = React.useState<FormData>(new FormData());
+    const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
+    const [newSourceReferenceLink, setNewSourceReferenceLink] = React.useState<string>("");
+    const [newLinkCreationLoading, setNewLinkCreationLoading] = React.useState<boolean>(false);
+    const [newLinkImportLoading, setNewLinkImportLoading] = React.useState<boolean>(false);
+    const [newTargetReferenceLink, setNewTargetReferenceLink] = React.useState<string>("");
+    const [newLinkType, setNewLinkType] = React.useState<ReferenceLinkType>("unlabeled");
+    const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
+    const [deleteReferenceLinkLoading, setDeleteReferenceLinkLoading] = React.useState<boolean>(false);
     const [tableSortDirection, setTableSortDirection] = React.useState<
         Map<typeof headerData[number]["key"], keyof typeof sortDirectionMapping>
     >(
@@ -100,6 +131,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 ["confidence", "NONE"],
             ])
     );
+    const [deleteReferenceLinkMap, setDeleteReferenceLinkMap] =
+        React.useState<Map<ReferenceLinkType, boolean>>(referenceLinksMap);
 
     //fetch operator plugins
     React.useEffect(() => {
@@ -114,19 +147,31 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [evaluationResults.current]);
 
-    const getEvaluatedLinksUtil = React.useCallback(async (pagination, searchQuery = "", filters, linkSortBy) => {
-        try {
-            setLoading(true);
-            const results = (
-                await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
-            )?.data;
-            evaluationResults.current = results;
-            linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
-        } catch (err) {
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const getEvaluatedLinksUtil = React.useCallback(
+        async (pagination, searchQuery = "", filters, linkSortBy, showReferenceLinks) => {
+            try {
+                setLoading(true);
+                const results = (
+                    await getEvaluatedLinks(
+                        projectId,
+                        linkingTaskId,
+                        pagination,
+                        searchQuery,
+                        filters,
+                        linkSortBy,
+                        showReferenceLinks,
+                        !showReferenceLinks
+                    )
+                )?.data;
+                evaluationResults.current = results;
+                linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
+            } catch (err) {
+            } finally {
+                setLoading(false);
+            }
+        },
+        []
+    );
 
     const debouncedSearch = React.useCallback((query: string) => {
         if (searchState.current.currentSearchId != null) {
@@ -139,7 +184,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     React.useEffect(() => {
         if (hasRenderedBefore) {
-            getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
+            getEvaluatedLinksUtil(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
         }
     }, [searchQuery]);
 
@@ -149,12 +200,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     React.useEffect(() => {
         let shouldCancel = false;
         if (!shouldCancel && taskEvaluationStatus === "Successful") {
-            getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
+            getEvaluatedLinksUtil(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
         }
         return () => {
             shouldCancel = true;
         };
-    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, sortString]);
+    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, sortString, showReferenceLinks]);
 
     React.useEffect(() => {
         if (
@@ -403,8 +460,236 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setTaskEvaluationStatus(status.concreteStatus);
     }, []);
 
+    const handleDeleteLinkTypeChecked = React.useCallback((linkType: ReferenceLinkType, checked: boolean) => {
+        setDeleteReferenceLinkMap((prev) => new Map([...prev, [linkType, checked]]));
+    }, []);
+
+    const handleDeleteReferenceLinks = React.useCallback(async () => {
+        try {
+            setDeleteReferenceLinkLoading(true);
+            await referenceLinkResource(projectId, linkingTaskId, {
+                positive: deleteReferenceLinkMap.get("positive")!,
+                negative: deleteReferenceLinkMap.get("negative")!,
+                unlabeled: deleteReferenceLinkMap.get("unlabeled")!,
+            });
+            await getEvaluatedLinksUtil(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
+            closeDeleteReferenceLinksMap();
+        } catch (err) {
+        } finally {
+            setDeleteReferenceLinkLoading(false);
+        }
+    }, [deleteReferenceLinkMap]);
+
+    const closeDeleteReferenceLinksMap = React.useCallback(() => {
+        setDeleteReferenceLinkMap(referenceLinksMap);
+        setShowDeleteReferenceLinkModal(false);
+    }, []);
+
+    const handleImportReferenceLinks = React.useCallback(async () => {
+        try {
+            setNewLinkImportLoading(true);
+            await referenceLinkResource(
+                projectId,
+                linkingTaskId,
+                { generateNegative: shouldGenerateNegativeLink },
+                importedReferenceLinkFile,
+                "PUT"
+            );
+            await getEvaluatedLinksUtil(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
+            closeImportReferenceLinkModal();
+        } catch (err) {
+        } finally {
+            setNewLinkImportLoading(false);
+        }
+    }, [shouldGenerateNegativeLink, importedReferenceLinkFile]);
+
+    const closeImportReferenceLinkModal = React.useCallback(() => {
+        setImportedReferenceLinkFile(new FormData());
+        setShouldGenerateNegativeLink(false);
+        setShowImportLinkModal(false);
+    }, []);
+
+    const handleImportReferenceLinkFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const newFormData = new FormData();
+            newFormData.append("file", file);
+            setImportedReferenceLinkFile(newFormData);
+        }
+    };
+
+    const closeAddNewReferenceLinkModal = React.useCallback(() => {
+        setNewSourceReferenceLink("");
+        setNewTargetReferenceLink("");
+        setNewLinkType("unlabeled");
+        setShowAddLinkModal(false);
+    }, []);
+
+    const handleAddNewReferenceLinks = React.useCallback(async () => {
+        try {
+            setNewLinkCreationLoading(true);
+            await updateReferenceLink(
+                projectId,
+                linkingTaskId,
+                newSourceReferenceLink,
+                newTargetReferenceLink,
+                newLinkType
+            );
+            await getEvaluatedLinksUtil(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
+            closeAddNewReferenceLinkModal();
+        } catch (err) {
+        } finally {
+            setNewLinkCreationLoading(false);
+        }
+    }, [newSourceReferenceLink, newTargetReferenceLink, newLinkType]);
+
     return (
         <section className="diapp-linking-evaluation">
+            <SimpleDialog
+                size="small"
+                title="Remove Reference links"
+                hasBorder
+                isOpen={showDeleteReferenceLinkModal}
+                onClose={closeDeleteReferenceLinksMap}
+                notifications={
+                    <p>
+                        Reference links would be deleted for every of the selection above, please make sure you have
+                        checked correctly
+                    </p>
+                }
+                actions={[
+                    <Button key="cancel" hasStateDanger onClick={handleDeleteReferenceLinks}>
+                        {deleteReferenceLinkLoading ? <Spinner size="tiny" /> : "Delete"}
+                    </Button>,
+                    <Button key="submit" elevated onClick={closeDeleteReferenceLinksMap}>
+                        Close
+                    </Button>,
+                ]}
+            >
+                <OverviewItem>
+                    {Array.from(deleteReferenceLinkMap).map(([linkType, isChecked]) => (
+                        <React.Fragment key={linkType}>
+                            <Checkbox
+                                value={linkType}
+                                checked={isChecked}
+                                label={linkType}
+                                key={linkType}
+                                onChange={(e) => handleDeleteLinkTypeChecked(linkType, e.currentTarget.checked)}
+                            />
+                            <Spacing vertical size="tiny" />
+                        </React.Fragment>
+                    ))}
+                </OverviewItem>
+            </SimpleDialog>
+            <SimpleDialog
+                isOpen={showAddLinkModal}
+                size="small"
+                title="Add Reference Links"
+                onClose={closeAddNewReferenceLinkModal}
+                actions={[
+                    <Button key="cancel" elevated onClick={handleAddNewReferenceLinks}>
+                        {newLinkCreationLoading ? <Spinner size="tiny" /> : "Add"}
+                    </Button>,
+                    <Button key="submit" onClick={closeAddNewReferenceLinkModal}>
+                        Close
+                    </Button>,
+                ]}
+            >
+                <FieldItem
+                    labelProps={{
+                        text: "Source",
+                    }}
+                >
+                    <TextField
+                        value={newSourceReferenceLink}
+                        placeholder="http://dbpedia.org/resource/Little_Nicky"
+                        onChange={(e) => setNewSourceReferenceLink(e.target.value)}
+                    />
+                </FieldItem>
+                <Spacing size="small" />
+                <FieldItem
+                    labelProps={{
+                        text: "Target",
+                    }}
+                >
+                    <TextField
+                        value={newTargetReferenceLink}
+                        placeholder="http://data.linkedmdb.org/resource/film/1749"
+                        onChange={(e) => setNewTargetReferenceLink(e.target.value)}
+                    />
+                </FieldItem>
+                <Spacing size="small" />
+                <FieldItem
+                    labelProps={{
+                        text: "Type",
+                    }}
+                >
+                    <Select
+                        items={Array.from(referenceLinksMap).map((r) => ({ label: r[0] }))}
+                        onItemSelect={() => {}}
+                        itemRenderer={(item, props) => {
+                            return (
+                                <MenuItem
+                                    text={item.label}
+                                    onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
+                                />
+                            );
+                        }}
+                        filterable={false}
+                    >
+                        <Button alignText="left" text={newLinkType} fill outlined rightIcon="toggler-showmore" />
+                    </Select>
+                </FieldItem>
+            </SimpleDialog>
+            <SimpleDialog
+                isOpen={showImportLinkModal}
+                size="small"
+                title="Import Reference Links"
+                onClose={closeImportReferenceLinkModal}
+                actions={[
+                    <Button key="cancel" elevated onClick={handleImportReferenceLinks}>
+                        {newLinkImportLoading ? <Spinner size="tiny" /> : "Import"}
+                    </Button>,
+                    <Button key="submit" onClick={closeImportReferenceLinkModal}>
+                        Close
+                    </Button>,
+                ]}
+            >
+                <>
+                    <FieldItem
+                        labelProps={{
+                            text: "File",
+                        }}
+                    >
+                        <TextField type="file" placeholder="Choose file" onChange={handleImportReferenceLinkFile} />
+                    </FieldItem>
+                    <Spacing size="small" />
+                    <Checkbox
+                        checked={shouldGenerateNegativeLink}
+                        label={"Generate Negative Links"}
+                        onChange={(e) => setShouldGenerateNegativeLink(e.currentTarget.checked)}
+                    />
+                </>
+            </SimpleDialog>
+
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
@@ -493,8 +778,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     <TaskActivityWidget
                         projectId={projectId}
                         taskId={linkingTaskId}
-                        label="Evaluate Linking"
-                        activityName="EvaluateLinking"
+                        label={showReferenceLinks ? "Reference Links Cache" : "Evaluate Linking"}
+                        activityName={showReferenceLinks ? "ReferenceEntitiesCache" : "EvaluateLinking"}
+                        isCacheActivity={showReferenceLinks}
                         registerToReceiveUpdates={registerForTaskUpdates}
                         layoutConfig={{
                             small: true,
@@ -504,6 +790,59 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         }}
                     />
                 </ToolbarSection>
+            </Toolbar>
+            <Divider addSpacing="medium" />
+            <Toolbar>
+                <ToolbarSection>
+                    <Button
+                        small
+                        elevated={showReferenceLinks}
+                        disabled={!showReferenceLinks}
+                        onClick={() => {
+                            setShowReferenceLinks(false);
+                        }}
+                    >
+                        Evaluated Links
+                    </Button>
+                    <Button
+                        small
+                        elevated={!showReferenceLinks}
+                        disabled={showReferenceLinks}
+                        onClick={() => setShowReferenceLinks(true)}
+                    >
+                        Reference Links
+                    </Button>
+                </ToolbarSection>
+                {showReferenceLinks && (
+                    <>
+                        <ToolbarSection canGrow />
+                        <ToolbarSection>
+                            <Button small onClick={() => setShowImportLinkModal(true)}>
+                                Import Link
+                            </Button>
+                            <Spacing vertical size="small" />
+                            <Button small onClick={() => setShowAddLinkModal(true)}>
+                                Add new Link
+                            </Button>
+                        </ToolbarSection>
+                        <ToolbarSection canGrow />
+                        <ToolbarSection>
+                            <IconButton
+                                name="item-download"
+                                hasStatePrimary
+                                text={t("common.action.download")}
+                                href={`/linking/tasks/${projectId}/${linkingTaskId}/referenceLinks`}
+                            />
+                            <Spacing vertical size="tiny" />
+                            <IconButton
+                                name="item-remove"
+                                text="Remove"
+                                hasStateDanger
+                                onClick={() => setShowDeleteReferenceLinkModal(true)}
+                            />
+                        </ToolbarSection>
+                    </>
+                )}
             </Toolbar>
             <Divider addSpacing="medium" />
             <SearchField
