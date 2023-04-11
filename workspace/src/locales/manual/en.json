@@ -378,6 +378,13 @@
             "timeout": "Timeout"
         }
     },
+    "transformEvaluationTabView": {
+        "table": {
+            "header": {
+                "transformEntities": "Transform Entities"
+            }
+        }
+    },
     "linkingEvaluationTabView": {
         "toolbar": {
             "toggleExampleValues": "Value table expanded by default",

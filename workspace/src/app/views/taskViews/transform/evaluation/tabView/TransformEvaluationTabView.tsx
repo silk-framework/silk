@@ -69,7 +69,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     const headers = React.useRef([
         {
             key: "TransformEntities",
-            header: "Transform Entities", //Todo use translation
+            header: t("transformEvaluationTabView.table.header.transformEntities"),
         },
     ]).current;
 
