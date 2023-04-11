@@ -16,6 +16,7 @@ import {
     ConfidenceValue,
     Divider,
     Highlighter,
+    Icon,
     IconButton,
     InteractionGate,
     OverflowText,
@@ -62,6 +63,11 @@ const linkStateButtons = [
     { icon: "item-question", linkType: "unlabeled", tooltip: "Uncertain" },
     { icon: "state-declined", hasStateDanger: true, linkType: "negative", tooltip: "Decline" },
 ] as const;
+
+const linkDecision = {
+    "-1": "negative",
+    "1": "positive",
+} as const;
 
 /** A single row (link) in the linking evaluation view. */
 export const LinkingEvaluationRow = React.memo(
@@ -414,6 +420,11 @@ export const LinkingEvaluationRow = React.memo(
             }
         };
         const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), []);
+
+        //score does not match decision
+        const mismatchExists =
+            linkDecision[Math.sign(linkingEvaluationResult?.confidence ?? 0).toString()] !==
+            linkingEvaluationResult?.decision;
         return (
             <React.Fragment key={rowIdx}>
                 {linkingEvaluationResult && (
@@ -429,6 +440,14 @@ export const LinkingEvaluationRow = React.memo(
                         className="diapp-linking-evaluation__row-item"
                         useZebraStyle={rowIdx % 2 === 1}
                     >
+                        <TableCell>
+                            {mismatchExists ? (
+                                <>
+                                    <Spacing size="tiny" />
+                                    <Icon intent="warning" name="state-warning" tooltipText="decision mismatch" />
+                                </>
+                            ) : null}
+                        </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
                         </TableCell>

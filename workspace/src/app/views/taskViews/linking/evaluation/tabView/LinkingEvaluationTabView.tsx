@@ -25,13 +25,13 @@ import {
     ToolbarSection,
     WhiteSpaceContainer,
     Button,
-    IconButton,
     SimpleDialog,
     OverviewItem,
     Checkbox,
     TextField,
     FieldItem,
     Select,
+    Tabs,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -49,6 +49,8 @@ import {
     LinkEvaluationSortByObj,
     LinkingEvaluationResult,
     LinkRuleEvaluationResult,
+    LinkTypeMapping,
+    referenceLinksMap,
     ReferenceLinkType,
 } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
@@ -63,6 +65,7 @@ import { useFirstRender } from "../../../../../hooks/useFirstRender";
 import { DataTableCustomRenderProps, DataTableHeader } from "carbon-components-react";
 import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
+import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -75,15 +78,14 @@ const sortDirectionMapping = {
     DESC: "NONE",
 } as const;
 
-const referenceLinksMap = new Map([
-    ["positive", false],
-    ["negative", false],
-    ["unlabeled", false],
-]) as Map<ReferenceLinkType, boolean>;
-
 type LinkingEvaluationResultWithId = LinkingEvaluationResult & { id: string };
 
 const pageSizes = [10, 20, 50];
+
+const linkingTabs: TabProps[] = [
+    { id: 0, title: "Evaluated Links" },
+    { id: 1, title: "Reference Links" },
+];
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
@@ -460,8 +462,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setTaskEvaluationStatus(status.concreteStatus);
     }, []);
 
-    const handleDeleteLinkTypeChecked = React.useCallback((linkType: ReferenceLinkType, checked: boolean) => {
-        setDeleteReferenceLinkMap((prev) => new Map([...prev, [linkType, checked]]));
+    const handleDeleteLinkTypeChecked = React.useCallback((linkType: ReferenceLinkType, isChecked: boolean) => {
+        setDeleteReferenceLinkMap((prev) => new Map([...prev, [linkType, isChecked]]));
     }, []);
 
     const handleDeleteReferenceLinks = React.useCallback(async () => {
@@ -590,7 +592,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             <Checkbox
                                 value={linkType}
                                 checked={isChecked}
-                                label={linkType}
+                                label={LinkTypeMapping[linkType]}
                                 key={linkType}
                                 onChange={(e) => handleDeleteLinkTypeChecked(linkType, e.currentTarget.checked)}
                             />
@@ -648,7 +650,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         itemRenderer={(item, props) => {
                             return (
                                 <MenuItem
-                                    text={item.label}
+                                    text={LinkTypeMapping[item.label]}
                                     onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
                                 />
                             );
@@ -684,12 +686,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     <Spacing size="small" />
                     <Checkbox
                         checked={shouldGenerateNegativeLink}
-                        label={"Generate Negative Links"}
+                        label={"Generate Declined Links"}
                         onChange={(e) => setShouldGenerateNegativeLink(e.currentTarget.checked)}
                     />
                 </>
             </SimpleDialog>
-
+            <Tabs id="linkingTabs" tabs={linkingTabs} onChange={(newTabId) => setShowReferenceLinks(!!newTabId)} />
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
@@ -715,7 +717,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canGrow>
                     <Spacing vertical />
                 </ToolbarSection>
-                {taskEvaluationStatus === "Successful" ? (
+                {taskEvaluationStatus === "Successful" && !showReferenceLinks ? (
                     <ToolbarSection canShrink style={{ maxWidth: "25%" }}>
                         <ContextOverlay
                             isOpen={showStatisticOverlay ? true : undefined}
@@ -790,59 +792,20 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         }}
                     />
                 </ToolbarSection>
-            </Toolbar>
-            <Divider addSpacing="medium" />
-            <Toolbar>
-                <ToolbarSection>
-                    <Button
-                        small
-                        elevated={showReferenceLinks}
-                        disabled={!showReferenceLinks}
-                        onClick={() => {
-                            setShowReferenceLinks(false);
-                        }}
-                    >
-                        Evaluated Links
-                    </Button>
-                    <Button
-                        small
-                        elevated={!showReferenceLinks}
-                        disabled={showReferenceLinks}
-                        onClick={() => setShowReferenceLinks(true)}
-                    >
-                        Reference Links
-                    </Button>
-                </ToolbarSection>
-                {showReferenceLinks && (
-                    <>
-                        <ToolbarSection canGrow />
-                        <ToolbarSection>
-                            <Button small onClick={() => setShowImportLinkModal(true)}>
-                                Import Link
-                            </Button>
-                            <Spacing vertical size="small" />
-                            <Button small onClick={() => setShowAddLinkModal(true)}>
-                                Add new Link
-                            </Button>
-                        </ToolbarSection>
-                        <ToolbarSection canGrow />
-                        <ToolbarSection>
-                            <IconButton
-                                name="item-download"
-                                hasStatePrimary
+                {showReferenceLinks ? (
+                    <ToolbarSection>
+                        <Spacing vertical />
+                        <ContextMenu togglerElement="item-moremenu" togglerText="reference links action">
+                            <MenuItem text="Import" onClick={() => setShowImportLinkModal(true)} />
+                            <MenuItem
                                 text={t("common.action.download")}
                                 href={`/linking/tasks/${projectId}/${linkingTaskId}/referenceLinks`}
                             />
-                            <Spacing vertical size="tiny" />
-                            <IconButton
-                                name="item-remove"
-                                text="Remove"
-                                hasStateDanger
-                                onClick={() => setShowDeleteReferenceLinkModal(true)}
-                            />
-                        </ToolbarSection>
-                    </>
-                )}
+                            <MenuItem text="Add" onClick={() => setShowAddLinkModal(true)} />
+                            <MenuItem text="Remove" onClick={() => setShowDeleteReferenceLinkModal(true)} />
+                        </ContextMenu>
+                    </ToolbarSection>
+                ) : null}
             </Toolbar>
             <Divider addSpacing="medium" />
             <SearchField
@@ -863,7 +826,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
                 {({ headers, getHeaderProps, getTableProps, getRowProps }: DataTableCustomRenderProps) => (
-                    <Table {...getTableProps()} size="medium" columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}>
+                    <Table
+                        {...getTableProps()}
+                        size="medium"
+                        columnWidths={["30px", "30px", "40%", "40%", "7rem", "9rem"]}
+                    >
                         <TableHead>
                             <TableRow>
                                 <TableExpandHeader
@@ -876,6 +843,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             : t("linkingEvaluationTabView.table.header.expandRows")
                                     }
                                 />
+                                <TableHeader key="warning-column">&nbsp;</TableHeader>
                                 {headers.map((header) => (
                                     <TableHeader
                                         data-test-id={header.key}
@@ -929,7 +897,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     return (
                                         <LinkingEvaluationRow
                                             key={rowIdx}
-                                            colSpan={headers.length + 2}
+                                            colSpan={headers.length + 3}
                                             rowIdx={rowIdx}
                                             inputValues={inputValues[rowIdx]}
                                             linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
