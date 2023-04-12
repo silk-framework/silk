@@ -99,11 +99,20 @@ class LinkWithEntities(val source: String,
   override def reverse: Link = new LinkWithEntities(target, source, linkEntities)
 }
 
+/**
+  * Link with decision (positive, negative, unlabeled).
+  */
+trait LinkWithDecision extends Link {
+
+  def decision: LinkDecision
+
+}
+
 class ReferenceLink(source: String,
                     target: String,
                     linkEntities: DPair[Entity],
                     val decision: LinkDecision,
-                    confidence: Option[Double] = None) extends LinkWithEntities(source, target, linkEntities, confidence) {
+                    confidence: Option[Double] = None) extends LinkWithEntities(source, target, linkEntities, confidence) with LinkWithDecision {
 
   override def update(source: String = source,
                       target: String = target,

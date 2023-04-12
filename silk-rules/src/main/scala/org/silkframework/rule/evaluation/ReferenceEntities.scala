@@ -123,17 +123,21 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
 
   private def asReferenceLinks(links: Seq[Link], linkDecision: LinkDecision): Seq[ReferenceLink] = {
     for (link <- links) yield {
-      new ReferenceLink(
-        source = link.source,
-        target = link.target,
-        linkEntities = DPair(
-          source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
-          target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
-        ),
-        decision = linkDecision,
-        confidence = link.confidence
-      )
+      asReferenceLink(link, linkDecision)
     }
+  }
+
+  private def asReferenceLink(link: Link, linkDecision: LinkDecision): ReferenceLink = {
+    new ReferenceLink(
+      source = link.source,
+      target = link.target,
+      linkEntities = DPair(
+        source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
+        target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
+      ),
+      decision = linkDecision,
+      confidence = link.confidence
+    )
   }
 
   /** Merges this reference set with another reference set. */
