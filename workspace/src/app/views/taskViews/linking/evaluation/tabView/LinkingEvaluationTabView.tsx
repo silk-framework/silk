@@ -201,7 +201,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     //initial loads of links
     React.useEffect(() => {
         let shouldCancel = false;
-        if (!shouldCancel && taskEvaluationStatus === "Successful") {
+        if (!shouldCancel && (showReferenceLinks || taskEvaluationStatus === "Successful")) {
             getEvaluatedLinksUtil(
                 pagination,
                 searchQuery,
@@ -563,6 +563,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [newSourceReferenceLink, newTargetReferenceLink, newLinkType]);
 
+    const handleLinkingTabSwitch = React.useCallback((tabId: number) => {
+        evaluationResults.current = undefined;
+        setShowReferenceLinks(!!tabId);
+    }, []);
+
     return (
         <section className="diapp-linking-evaluation">
             <SimpleDialog
@@ -657,7 +662,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         }}
                         filterable={false}
                     >
-                        <Button alignText="left" text={newLinkType} fill outlined rightIcon="toggler-showmore" />
+                        <Button
+                            alignText="left"
+                            text={LinkTypeMapping[newLinkType]}
+                            fill
+                            outlined
+                            rightIcon="toggler-showmore"
+                        />
                     </Select>
                 </FieldItem>
             </SimpleDialog>
@@ -691,7 +702,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     />
                 </>
             </SimpleDialog>
-            <Tabs id="linkingTabs" tabs={linkingTabs} onChange={(newTabId) => setShowReferenceLinks(!!newTabId)} />
+            <Tabs id="linkingTabs" tabs={linkingTabs} onChange={handleLinkingTabSwitch} />
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
