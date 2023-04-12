@@ -18,7 +18,8 @@ type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPl
 interface TransformRuleEvaluationProps {
     projectId: string;
     transformTaskId: string;
-    ruleId: string;
+    /** The rule ID of the container rule, e.g. "root". */
+    containerRuleId: string;
     /** The number of links that should be shown inline. */
     numberOfLinkToShow: number;
     /** The children that should be able to use this linking rule evaluation component. */
@@ -29,7 +30,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     projectId,
     transformTaskId,
     numberOfLinkToShow,
-    ruleId,
+    containerRuleId,
     children,
 }) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
@@ -79,7 +80,13 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         rule: IComplexMappingRule
     ) => Promise<EvaluatedTransformEntity[] | undefined> = async (rule: IComplexMappingRule) => {
         try {
-            const result = await evaluateTransformRule(projectId, transformTaskId, ruleId, rule, numberOfLinkToShow);
+            const result = await evaluateTransformRule(
+                projectId,
+                transformTaskId,
+                containerRuleId,
+                rule,
+                numberOfLinkToShow
+            );
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
