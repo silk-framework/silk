@@ -3,9 +3,10 @@ import React from "react";
 import fetch from "../../../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../../../utils/getApiEndpoint";
 import { EvaluatedEntityOperator, EvaluatedRuleEntityResult, EvaluatedRuleOperator } from "./typing";
-import { Icon, Tag, TagList, TreeNodeInfo } from "@eccenca/gui-elements";
+import { Tag, TagList, TreeNodeInfo } from "@eccenca/gui-elements";
 import { IPluginDetails } from "@ducks/common/typings";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
+import { useTranslation } from "react-i18next";
 
 export const getEvaluatedEntities = async (
     projectId: string,
@@ -35,6 +36,7 @@ interface NodeTagValuesProps {
 
 export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
     ({ values, error, cutAfter = 3, ...otherTagProps }) => {
+        const [t] = useTranslation();
         const remainingNodes =
             values.length > cutAfter ? (
                 <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
@@ -46,7 +48,16 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
 
         return (
             <TagList>
-                {!values.length && <Icon intent="warning" name="state-warning" tooltipText={error || "No Value"} />}
+                {!values.length && (
+                    <Tag
+                        htmlTitle={error || t("common.messages.noValuesAvailable")}
+                        round={true}
+                        intent={"neutral"}
+                        emphasis={"weak"}
+                    >
+                        N/A
+                    </Tag>
+                )}
                 {values.slice(0, cutAfter).map((v, i) => (
                     <Tag key={i} round emphasis="stronger" interactive {...otherTagProps}>
                         {v}

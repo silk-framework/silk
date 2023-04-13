@@ -298,6 +298,7 @@
             "createFirstItems": "Create your first {{items}} now.",
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
+            "noValuesAvailable": "No values available",
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
