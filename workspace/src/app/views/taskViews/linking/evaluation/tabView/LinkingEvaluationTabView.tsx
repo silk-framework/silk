@@ -1,14 +1,19 @@
 import {
     ActivityControlWidget,
-    ContextOverlay,
+    Button,
+    Checkbox,
     ContextMenu,
+    ContextOverlay,
     Divider,
+    FieldItem,
     HtmlContentBlock,
     IActivityStatus,
     MenuItem,
     Notification,
     OverflowText,
     SearchField,
+    Select,
+    SimpleDialog,
     Spacing,
     Spinner,
     Switch,
@@ -19,19 +24,13 @@ import {
     TableHead,
     TableHeader,
     TableRow,
+    Tabs,
     Tag,
     TagList,
+    TextField,
     Toolbar,
     ToolbarSection,
     WhiteSpaceContainer,
-    Button,
-    SimpleDialog,
-    OverviewItem,
-    Checkbox,
-    TextField,
-    FieldItem,
-    Select,
-    Tabs,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +38,7 @@ import { TaskActivityWidget } from "../../../../shared/TaskActivityWidget/TaskAc
 import {
     getEvaluatedLinks,
     getLinkRuleInputPaths,
-    referenceLinkResource,
+    referenceLinksChangeRequest,
     updateReferenceLink,
 } from "./LinkingEvaluationViewUtils";
 import {
@@ -66,6 +65,7 @@ import { DataTableCustomRenderProps, DataTableHeader } from "carbon-components-r
 import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
 import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
+import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -122,7 +122,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [newTargetReferenceLink, setNewTargetReferenceLink] = React.useState<string>("");
     const [newLinkType, setNewLinkType] = React.useState<ReferenceLinkType>("unlabeled");
     const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
-    const [deleteReferenceLinkLoading, setDeleteReferenceLinkLoading] = React.useState<boolean>(false);
+
     const [tableSortDirection, setTableSortDirection] = React.useState<
         Map<typeof headerData[number]["key"], keyof typeof sortDirectionMapping>
     >(
@@ -133,8 +133,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 ["confidence", "NONE"],
             ])
     );
-    const [deleteReferenceLinkMap, setDeleteReferenceLinkMap] =
-        React.useState<Map<ReferenceLinkType, boolean>>(referenceLinksMap);
 
     //fetch operator plugins
     React.useEffect(() => {
@@ -149,7 +147,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [evaluationResults.current]);
 
-    const getEvaluatedLinksUtil = React.useCallback(
+    const fetchEvaluatedLinks = React.useCallback(
         async (pagination, searchQuery = "", filters, linkSortBy, showReferenceLinks) => {
             try {
                 setLoading(true);
@@ -186,7 +184,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     React.useEffect(() => {
         if (hasRenderedBefore) {
-            getEvaluatedLinksUtil(
+            fetchEvaluatedLinks(
                 pagination,
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
@@ -202,7 +200,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     React.useEffect(() => {
         let shouldCancel = false;
         if (!shouldCancel && (showReferenceLinks || taskEvaluationStatus === "Successful")) {
-            getEvaluatedLinksUtil(
+            fetchEvaluatedLinks(
                 pagination,
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
@@ -462,48 +460,30 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setTaskEvaluationStatus(status.concreteStatus);
     }, []);
 
-    const handleDeleteLinkTypeChecked = React.useCallback((linkType: ReferenceLinkType, isChecked: boolean) => {
-        setDeleteReferenceLinkMap((prev) => new Map([...prev, [linkType, isChecked]]));
-    }, []);
-
-    const handleDeleteReferenceLinks = React.useCallback(async () => {
-        try {
-            setDeleteReferenceLinkLoading(true);
-            await referenceLinkResource(projectId, linkingTaskId, {
-                positive: deleteReferenceLinkMap.get("positive")!,
-                negative: deleteReferenceLinkMap.get("negative")!,
-                unlabeled: deleteReferenceLinkMap.get("unlabeled")!,
-            });
-            await getEvaluatedLinksUtil(
+    const onCloseDeleteReferenceLinks = async (needsRefresh: boolean) => {
+        if (needsRefresh) {
+            await fetchEvaluatedLinks(
                 pagination,
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
                 linkSortBy,
                 showReferenceLinks
             );
-            closeDeleteReferenceLinksMap();
-        } catch (err) {
-        } finally {
-            setDeleteReferenceLinkLoading(false);
         }
-    }, [deleteReferenceLinkMap]);
-
-    const closeDeleteReferenceLinksMap = React.useCallback(() => {
-        setDeleteReferenceLinkMap(referenceLinksMap);
         setShowDeleteReferenceLinkModal(false);
-    }, []);
+    };
 
     const handleImportReferenceLinks = React.useCallback(async () => {
         try {
             setNewLinkImportLoading(true);
-            await referenceLinkResource(
+            await referenceLinksChangeRequest(
                 projectId,
                 linkingTaskId,
                 { generateNegative: shouldGenerateNegativeLink },
-                importedReferenceLinkFile,
-                "PUT"
+                "PUT",
+                importedReferenceLinkFile
             );
-            await getEvaluatedLinksUtil(
+            await fetchEvaluatedLinks(
                 pagination,
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
@@ -549,7 +529,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 newTargetReferenceLink,
                 newLinkType
             );
-            await getEvaluatedLinksUtil(
+            await fetchEvaluatedLinks(
                 pagination,
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
@@ -570,42 +550,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     return (
         <section className="diapp-linking-evaluation">
-            <SimpleDialog
-                size="small"
-                title="Remove Reference links"
-                hasBorder
-                isOpen={showDeleteReferenceLinkModal}
-                onClose={closeDeleteReferenceLinksMap}
-                notifications={
-                    <p>
-                        Reference links would be deleted for every of the selection above, please make sure you have
-                        checked correctly
-                    </p>
-                }
-                actions={[
-                    <Button key="cancel" hasStateDanger onClick={handleDeleteReferenceLinks}>
-                        {deleteReferenceLinkLoading ? <Spinner size="tiny" /> : "Delete"}
-                    </Button>,
-                    <Button key="submit" elevated onClick={closeDeleteReferenceLinksMap}>
-                        Close
-                    </Button>,
-                ]}
-            >
-                <OverviewItem>
-                    {Array.from(deleteReferenceLinkMap).map(([linkType, isChecked]) => (
-                        <React.Fragment key={linkType}>
-                            <Checkbox
-                                value={linkType}
-                                checked={isChecked}
-                                label={LinkTypeMapping[linkType]}
-                                key={linkType}
-                                onChange={(e) => handleDeleteLinkTypeChecked(linkType, e.currentTarget.checked)}
-                            />
-                            <Spacing vertical size="tiny" />
-                        </React.Fragment>
-                    ))}
-                </OverviewItem>
-            </SimpleDialog>
+            {showDeleteReferenceLinkModal && (
+                <ReferenceLinksRemoveModal
+                    projectId={projectId}
+                    linkingTaskId={linkingTaskId}
+                    onClose={onCloseDeleteReferenceLinks}
+                />
+            )}
             <SimpleDialog
                 isOpen={showAddLinkModal}
                 size="small"

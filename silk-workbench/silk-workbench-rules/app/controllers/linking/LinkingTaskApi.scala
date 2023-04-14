@@ -1062,9 +1062,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     if (includeReferenceLinks) {
       links = (retrieveReferenceLinks(linkTask) ++ links).distinct
     }
-    if(links.isEmpty) {
-      throw NotFoundException("No evaluation results available.")
-    }
     val linkingRule = linkTask.data.rule
     val overallLinkCount = links.size
     val searchTerms = StringUtils.extractSearchTerms(query)

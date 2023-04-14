@@ -66,7 +66,7 @@ export const updateReferenceLink = async (
         },
     });
 
-export const referenceLinkResource = async (
+export const referenceLinksChangeRequest = async (
     projectId: string,
     taskId: string,
     query: {
@@ -75,8 +75,8 @@ export const referenceLinkResource = async (
         unlabeled?: boolean;
         generateNegative?: boolean;
     },
-    body?: any,
-    method: "DELETE" | "PUT" = "DELETE"
+    method: "DELETE" | "PUT",
+    body?: any
 ): Promise<FetchResponse<any>> =>
     fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/referenceLinks`),
