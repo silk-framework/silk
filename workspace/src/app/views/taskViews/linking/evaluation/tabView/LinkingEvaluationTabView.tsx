@@ -758,13 +758,22 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     <ToolbarSection>
                         <Spacing vertical />
                         <ContextMenu togglerElement="item-moremenu" togglerText="reference links action">
-                            <MenuItem text="Import" onClick={() => setShowImportLinkModal(true)} />
                             <MenuItem
-                                text={t("common.action.download")}
+                                text={t("ReferenceLinks.contextMenu.add")}
+                                onClick={() => setShowAddLinkModal(true)}
+                            />
+                            <MenuItem
+                                text={t("ReferenceLinks.contextMenu.removeReferenceLinks")}
+                                onClick={() => setShowDeleteReferenceLinkModal(true)}
+                            />
+                            <MenuItem
+                                text={t("ReferenceLinks.contextMenu.import")}
+                                onClick={() => setShowImportLinkModal(true)}
+                            />
+                            <MenuItem
+                                text={t("ReferenceLinks.contextMenu.export")}
                                 href={`/linking/tasks/${projectId}/${linkingTaskId}/referenceLinks`}
                             />
-                            <MenuItem text="Add" onClick={() => setShowAddLinkModal(true)} />
-                            <MenuItem text="Remove" onClick={() => setShowDeleteReferenceLinkModal(true)} />
                         </ContextMenu>
                     </ToolbarSection>
                 ) : null}

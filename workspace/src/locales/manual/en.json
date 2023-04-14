@@ -930,6 +930,12 @@
             "modalTitle": "Reference link entity URIs",
             "sourceEntity": "Source entity",
             "targetEntity": "Target entity"
+        },
+        "contextMenu": {
+            "add": "Add reference link",
+            "import": "Import reference links",
+            "export": "Export reference links",
+            "removeReferenceLinks": "Remove reference links"
         }
     },
     "HierarchicalMapping": {
