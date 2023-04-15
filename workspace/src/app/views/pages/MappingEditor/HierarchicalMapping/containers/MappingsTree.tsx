@@ -1,7 +1,7 @@
 import React from "react";
 import _ from "lodash";
-import { Info, Icon } from "gui-elements-deprecated";
-import { Card, CardContent, Spinner, Tree, TreeNodeInfo } from "@eccenca/gui-elements";
+import { Icon } from "gui-elements-deprecated";
+import { InteractionGate, Notification, Tree, TreeNodeInfo } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -125,8 +125,8 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                     >
                         <span className="ecc-silk-mapping__treenav--item-maintitle">
                             <span>
-                                <RuleTitle rule={parent} />
                                 {renderRuleIcon(id)}
+                                <RuleTitle rule={parent} />
                             </span>
                         </span>
                         {parentType === MAPPING_RULE_TYPE_OBJECT && (
@@ -205,25 +205,26 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
     return (
         <div className="ecc-silk-mapping__treenav">
-            <Card isOnlyLayout={true}>
-                <CardContent>
-                    {navigationLoading && <Spinner position={"global"} />}
-                    {navigationLoading && _.isUndefined(data) && (
-                        <Info data-test-id="ecc-silk-mapping__treenav-loading">Loading rules</Info>
-                    )}
-                    {!navigationLoading && _.isEmpty(data) && (
-                        <Info data-test-id="ecc-silk-mapping__treenav-norules">No rules found</Info>
-                    )}
-                    {!_.isEmpty(data) && (
-                        <Tree
-                            className="ecc-silk-mapping__treenav--maintree"
-                            contents={treeNodes}
-                            onNodeExpand={handleNodeExpand}
-                            onNodeCollapse={handleNodeCollapse}
-                        />
-                    )}
-                </CardContent>
-            </Card>
+            <InteractionGate inert={navigationLoading} showSpinner={navigationLoading}>
+                {navigationLoading && _.isUndefined(data) && (
+                    <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
+                        Loading rules
+                    </Notification>
+                )}
+                {!navigationLoading && _.isEmpty(data) && (
+                    <Notification warning data-test-id="ecc-silk-mapping__treenav-norules">
+                        No rules found
+                    </Notification>
+                )}
+                {!_.isEmpty(data) && (
+                    <Tree
+                        className="ecc-silk-mapping__treenav--maintree"
+                        contents={treeNodes}
+                        onNodeExpand={handleNodeExpand}
+                        onNodeCollapse={handleNodeCollapse}
+                    />
+                )}
+            </InteractionGate>
         </div>
     );
 };
