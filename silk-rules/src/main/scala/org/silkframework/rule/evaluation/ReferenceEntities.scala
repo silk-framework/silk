@@ -100,14 +100,14 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   }
 
   def toReferenceLinks: Seq[ReferenceLink] = {
-    asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE) ++ asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
+    positiveReferenceLinks ++ negativeReferenceLinks
   }
 
-  def positiveReferenceLinks: Seq[ReferenceLink] = {
+  private def positiveReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE)
   }
 
-  def negativeReferenceLinks: Seq[ReferenceLink] = {
+  private def negativeReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
   }
 

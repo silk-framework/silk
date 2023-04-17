@@ -1,7 +1,6 @@
 import {
     ActivityControlWidget,
     Button,
-    Checkbox,
     ContextMenu,
     ContextOverlay,
     Divider,
@@ -35,12 +34,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { TaskActivityWidget } from "../../../../shared/TaskActivityWidget/TaskActivityWidget";
-import {
-    getEvaluatedLinks,
-    getLinkRuleInputPaths,
-    referenceLinksChangeRequest,
-    updateReferenceLink,
-} from "./LinkingEvaluationViewUtils";
+import { getEvaluatedLinks, getLinkRuleInputPaths, updateReferenceLink } from "./LinkingEvaluationViewUtils";
 import {
     EvaluationLinkInputValue,
     LinkEvaluationFilters,
@@ -66,6 +60,7 @@ import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
 import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
+import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -113,12 +108,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const hasRenderedBefore = useFirstRender();
     const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(false);
     const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
-    const [shouldGenerateNegativeLink, setShouldGenerateNegativeLink] = React.useState<boolean>(false);
-    const [importedReferenceLinkFile, setImportedReferenceLinkFile] = React.useState<FormData>(new FormData());
     const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
     const [newSourceReferenceLink, setNewSourceReferenceLink] = React.useState<string>("");
     const [newLinkCreationLoading, setNewLinkCreationLoading] = React.useState<boolean>(false);
-    const [newLinkImportLoading, setNewLinkImportLoading] = React.useState<boolean>(false);
     const [newTargetReferenceLink, setNewTargetReferenceLink] = React.useState<string>("");
     const [newLinkType, setNewLinkType] = React.useState<ReferenceLinkType>("unlabeled");
     const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
@@ -460,7 +452,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setTaskEvaluationStatus(status.concreteStatus);
     }, []);
 
-    const onCloseDeleteReferenceLinks = async (needsRefresh: boolean) => {
+    const refreshIfNecessary = async (needsRefresh: boolean) => {
         if (needsRefresh) {
             await fetchEvaluatedLinks(
                 pagination,
@@ -470,47 +462,17 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 showReferenceLinks
             );
         }
+    };
+
+    const closeDeleteReferenceLinks = async (needsRefresh: boolean) => {
+        await refreshIfNecessary(needsRefresh);
         setShowDeleteReferenceLinkModal(false);
     };
 
-    const handleImportReferenceLinks = React.useCallback(async () => {
-        try {
-            setNewLinkImportLoading(true);
-            await referenceLinksChangeRequest(
-                projectId,
-                linkingTaskId,
-                { generateNegative: shouldGenerateNegativeLink },
-                "PUT",
-                importedReferenceLinkFile
-            );
-            await fetchEvaluatedLinks(
-                pagination,
-                searchQuery,
-                linkStateFilter ? [linkStateFilter] : [],
-                linkSortBy,
-                showReferenceLinks
-            );
-            closeImportReferenceLinkModal();
-        } catch (err) {
-        } finally {
-            setNewLinkImportLoading(false);
-        }
-    }, [shouldGenerateNegativeLink, importedReferenceLinkFile]);
-
-    const closeImportReferenceLinkModal = React.useCallback(() => {
-        setImportedReferenceLinkFile(new FormData());
-        setShouldGenerateNegativeLink(false);
+    const closeImportReferenceLinkModal = React.useCallback(async (needsRefresh: boolean) => {
+        await refreshIfNecessary(needsRefresh);
         setShowImportLinkModal(false);
     }, []);
-
-    const handleImportReferenceLinkFile = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            const newFormData = new FormData();
-            newFormData.append("file", file);
-            setImportedReferenceLinkFile(newFormData);
-        }
-    };
 
     const closeAddNewReferenceLinkModal = React.useCallback(() => {
         setNewSourceReferenceLink("");
@@ -554,7 +516,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ReferenceLinksRemoveModal
                     projectId={projectId}
                     linkingTaskId={linkingTaskId}
-                    onClose={onCloseDeleteReferenceLinks}
+                    onClose={closeDeleteReferenceLinks}
                 />
             )}
             <SimpleDialog
@@ -626,36 +588,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     </Select>
                 </FieldItem>
             </SimpleDialog>
-            <SimpleDialog
-                isOpen={showImportLinkModal}
-                size="small"
-                title="Import Reference Links"
-                onClose={closeImportReferenceLinkModal}
-                actions={[
-                    <Button key="cancel" elevated onClick={handleImportReferenceLinks}>
-                        {newLinkImportLoading ? <Spinner size="tiny" /> : "Import"}
-                    </Button>,
-                    <Button key="submit" onClick={closeImportReferenceLinkModal}>
-                        Close
-                    </Button>,
-                ]}
-            >
-                <>
-                    <FieldItem
-                        labelProps={{
-                            text: "File",
-                        }}
-                    >
-                        <TextField type="file" placeholder="Choose file" onChange={handleImportReferenceLinkFile} />
-                    </FieldItem>
-                    <Spacing size="small" />
-                    <Checkbox
-                        checked={shouldGenerateNegativeLink}
-                        label={"Generate Declined Links"}
-                        onChange={(e) => setShouldGenerateNegativeLink(e.currentTarget.checked)}
-                    />
-                </>
-            </SimpleDialog>
+            {showImportLinkModal && (
+                <ImportReferenceLinksModal
+                    projectId={projectId}
+                    linkingTaskId={linkingTaskId}
+                    onClose={closeImportReferenceLinkModal}
+                />
+            )}
             <Tabs id="linkingTabs" tabs={linkingTabs} onChange={handleLinkingTabSwitch} />
             <Spacing size={"tiny"} />
             <Toolbar noWrap>

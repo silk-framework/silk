@@ -55,7 +55,6 @@ export const ReferenceLinksRemoveModal = ({ projectId, linkingTaskId, onClose }:
         <SimpleDialog
             size="small"
             title={t("ReferenceLinks.removeModal.title")}
-            hasBorder
             notifications={errorMessage ? <Notification message={errorMessage} warning={true} /> : null}
             isOpen={true}
             onClose={cancel}
