@@ -1,18 +1,14 @@
 import {
     ActivityControlWidget,
-    Button,
     ContextMenu,
     ContextOverlay,
     Divider,
-    FieldItem,
     HtmlContentBlock,
     IActivityStatus,
     MenuItem,
     Notification,
     OverflowText,
     SearchField,
-    Select,
-    SimpleDialog,
     Spacing,
     Spinner,
     Switch,
@@ -26,7 +22,6 @@ import {
     Tabs,
     Tag,
     TagList,
-    TextField,
     Toolbar,
     ToolbarSection,
     WhiteSpaceContainer,
@@ -42,8 +37,6 @@ import {
     LinkEvaluationSortByObj,
     LinkingEvaluationResult,
     LinkRuleEvaluationResult,
-    LinkTypeMapping,
-    referenceLinksMap,
     ReferenceLinkType,
 } from "./typings";
 import utils from "../LinkingRuleEvaluation.utils";
@@ -61,6 +54,7 @@ import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperato
 import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
+import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -109,10 +103,6 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(false);
     const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
     const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
-    const [newSourceReferenceLink, setNewSourceReferenceLink] = React.useState<string>("");
-    const [newLinkCreationLoading, setNewLinkCreationLoading] = React.useState<boolean>(false);
-    const [newTargetReferenceLink, setNewTargetReferenceLink] = React.useState<string>("");
-    const [newLinkType, setNewLinkType] = React.useState<ReferenceLinkType>("unlabeled");
     const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
 
     const [tableSortDirection, setTableSortDirection] = React.useState<
@@ -474,36 +464,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setShowImportLinkModal(false);
     }, []);
 
-    const closeAddNewReferenceLinkModal = React.useCallback(() => {
-        setNewSourceReferenceLink("");
-        setNewTargetReferenceLink("");
-        setNewLinkType("unlabeled");
+    const closeAddNewReferenceLinkModal = React.useCallback(async (needsRefresh: boolean) => {
+        await refreshIfNecessary(needsRefresh);
         setShowAddLinkModal(false);
     }, []);
-
-    const handleAddNewReferenceLinks = React.useCallback(async () => {
-        try {
-            setNewLinkCreationLoading(true);
-            await updateReferenceLink(
-                projectId,
-                linkingTaskId,
-                newSourceReferenceLink,
-                newTargetReferenceLink,
-                newLinkType
-            );
-            await fetchEvaluatedLinks(
-                pagination,
-                searchQuery,
-                linkStateFilter ? [linkStateFilter] : [],
-                linkSortBy,
-                showReferenceLinks
-            );
-            closeAddNewReferenceLinkModal();
-        } catch (err) {
-        } finally {
-            setNewLinkCreationLoading(false);
-        }
-    }, [newSourceReferenceLink, newTargetReferenceLink, newLinkType]);
 
     const handleLinkingTabSwitch = React.useCallback((tabId: number) => {
         evaluationResults.current = undefined;
@@ -519,75 +483,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     onClose={closeDeleteReferenceLinks}
                 />
             )}
-            <SimpleDialog
-                isOpen={showAddLinkModal}
-                size="small"
-                title="Add Reference Links"
-                onClose={closeAddNewReferenceLinkModal}
-                actions={[
-                    <Button key="cancel" elevated onClick={handleAddNewReferenceLinks}>
-                        {newLinkCreationLoading ? <Spinner size="tiny" /> : "Add"}
-                    </Button>,
-                    <Button key="submit" onClick={closeAddNewReferenceLinkModal}>
-                        Close
-                    </Button>,
-                ]}
-            >
-                <FieldItem
-                    labelProps={{
-                        text: "Source",
-                    }}
-                >
-                    <TextField
-                        value={newSourceReferenceLink}
-                        placeholder="http://dbpedia.org/resource/Little_Nicky"
-                        onChange={(e) => setNewSourceReferenceLink(e.target.value)}
-                    />
-                </FieldItem>
-                <Spacing size="small" />
-                <FieldItem
-                    labelProps={{
-                        text: "Target",
-                    }}
-                >
-                    <TextField
-                        value={newTargetReferenceLink}
-                        placeholder="http://data.linkedmdb.org/resource/film/1749"
-                        onChange={(e) => setNewTargetReferenceLink(e.target.value)}
-                    />
-                </FieldItem>
-                <Spacing size="small" />
-                <FieldItem
-                    labelProps={{
-                        text: "Type",
-                    }}
-                >
-                    <Select
-                        items={Array.from(referenceLinksMap).map((r) => ({ label: r[0] }))}
-                        onItemSelect={() => {}}
-                        itemRenderer={(item, props) => {
-                            return (
-                                <MenuItem
-                                    text={t(
-                                        `ReferenceLinks.${LinkTypeMapping[item.label]}`,
-                                        LinkTypeMapping[item.label]
-                                    )}
-                                    onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
-                                />
-                            );
-                        }}
-                        filterable={false}
-                    >
-                        <Button
-                            alignText="left"
-                            text={t(`ReferenceLinks.${LinkTypeMapping[newLinkType]}`, LinkTypeMapping[newLinkType])}
-                            fill
-                            outlined
-                            rightIcon="toggler-showmore"
-                        />
-                    </Select>
-                </FieldItem>
-            </SimpleDialog>
+            {showAddLinkModal && (
+                <AddReferenceLinkModal
+                    projectId={projectId}
+                    linkingTaskId={linkingTaskId}
+                    onClose={closeAddNewReferenceLinkModal}
+                />
+            )}
             {showImportLinkModal && (
                 <ImportReferenceLinksModal
                     projectId={projectId}

@@ -1,4 +1,4 @@
-import { Button, Checkbox, Notification, OverviewItem, SimpleDialog, Spacing, Spinner } from "@eccenca/gui-elements";
+import { Button, Checkbox, Notification, OverviewItem, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import React, { useState } from "react";
 import { LinkTypeMapping, referenceLinksMap, ReferenceLinkType } from "../typings";
 import { referenceLinksChangeRequest } from "../LinkingEvaluationViewUtils";
@@ -64,8 +64,9 @@ export const ReferenceLinksRemoveModal = ({ projectId, linkingTaskId, onClose }:
                     hasStateDanger
                     onClick={handleDeleteReferenceLinks}
                     disabled={!anyCheckboxSelected}
+                    loading={deleteReferenceLinkLoading}
                 >
-                    {deleteReferenceLinkLoading ? <Spinner size="tiny" /> : t("common.action.delete")}
+                    {t("common.action.delete")}
                 </Button>,
                 <Button key="cancel" onClick={cancel}>
                     {t("common.action.cancel")}

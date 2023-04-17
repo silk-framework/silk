@@ -18,6 +18,8 @@ interface Props {
     linkingTaskId: string;
     onClose: (needsRefresh: boolean) => any;
 }
+
+/** Modal to import reference links from a file (export).*/
 export const ImportReferenceLinksModal = ({ projectId, linkingTaskId, onClose }: Props) => {
     const [t] = useTranslation();
     const [shouldGenerateNegativeLink, setShouldGenerateNegativeLink] = React.useState<boolean>(false);
