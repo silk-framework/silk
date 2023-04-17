@@ -394,6 +394,8 @@
             "missingExecution": "Linking evaluation action need to run first to get evaluation results.",
             "emptyWithoutFilters": "No evaluation results available.",
             "emptyWithFilters": "No evaluation results available for the filters you set. Adjust or clear them first.",
+            "referenceLinksEmptyWithoutFilters": "No reference links available.",
+            "referenceLinksEmptyWithFilters": "No reference links available for the filters you set. Adjust or clear them first.",
             "running": "Evaluation is currently running.",
             "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
             "unknownProblem": "No results available because of unexpected behaviour."

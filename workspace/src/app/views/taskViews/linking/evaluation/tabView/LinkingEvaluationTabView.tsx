@@ -407,7 +407,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             // evaluation action done, no filters, no results
             return (
                 <Notification data-test-id="empty-links-banner">
-                    {t("linkingEvaluationTabView.messages.emptyWithoutFilters")}
+                    {t(
+                        `linkingEvaluationTabView.messages.${
+                            showReferenceLinks ? "referenceLinksEmptyWithoutFilters" : "emptyWithoutFilters"
+                        }`
+                    )}
                 </Notification>
             );
         }
@@ -416,7 +420,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             // evaluation action done, filters for link state or search query active
             return (
                 <Notification data-test-id="notification-empty-with-filters">
-                    {t("linkingEvaluationTabView.messages.emptyWithFilters")}
+                    {t(
+                        `linkingEvaluationTabView.messages.${
+                            showReferenceLinks ? "referenceLinksEmptyWithFilters" : "emptyWithFilters"
+                        }`
+                    )}
                 </Notification>
             );
         }
