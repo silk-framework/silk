@@ -64,11 +64,6 @@ const linkStateButtons = [
     { icon: "state-declined", hasStateDanger: true, linkType: "negative", tooltip: "Decline" },
 ] as const;
 
-const linkDecision = {
-    "-1": "negative",
-    "1": "positive",
-} as const;
-
 /** A single row (link) in the linking evaluation view. */
 export const LinkingEvaluationRow = React.memo(
     ({
@@ -422,9 +417,11 @@ export const LinkingEvaluationRow = React.memo(
         const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), []);
 
         //score does not match decision
-        const mismatchExists =
-            linkDecision[Math.sign(linkingEvaluationResult?.confidence ?? 0).toString()] !==
-            linkingEvaluationResult?.decision;
+        const mismatchExists: boolean =
+            linkingEvaluationResult?.decision != null &&
+            linkingEvaluationResult?.confidence != null &&
+            linkingEvaluationResult.decision !== "unlabeled" &&
+            (linkingEvaluationResult.confidence >= 0 ? "positive" : "negative") !== linkingEvaluationResult?.decision;
         return (
             <React.Fragment key={rowIdx}>
                 {linkingEvaluationResult && (
