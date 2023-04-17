@@ -606,7 +606,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         itemRenderer={(item, props) => {
                             return (
                                 <MenuItem
-                                    text={LinkTypeMapping[item.label]}
+                                    text={t(
+                                        `ReferenceLinks.${LinkTypeMapping[item.label]}`,
+                                        LinkTypeMapping[item.label]
+                                    )}
                                     onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
                                 />
                             );
@@ -615,7 +618,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     >
                         <Button
                             alignText="left"
-                            text={LinkTypeMapping[newLinkType]}
+                            text={t(`ReferenceLinks.${LinkTypeMapping[newLinkType]}`, LinkTypeMapping[newLinkType])}
                             fill
                             outlined
                             rightIcon="toggler-showmore"
@@ -654,6 +657,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 </>
             </SimpleDialog>
             <Tabs id="linkingTabs" tabs={linkingTabs} onChange={handleLinkingTabSwitch} />
+            <Spacing size={"tiny"} />
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch

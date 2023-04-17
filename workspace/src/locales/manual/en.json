@@ -922,6 +922,7 @@
         "confirmed": "Confirmed",
         "declined": "Declined",
         "certainOnly": "Certain",
+        "uncertain": "Uncertain",
         "uncertainOnly": "Uncertain",
         "removeLink": "Delete reference link",
         "checkFeedback": "Re-evaluate feedback decision",
@@ -936,6 +937,10 @@
             "import": "Import reference links",
             "export": "Export reference links",
             "removeReferenceLinks": "Remove reference links"
+        },
+        "removeModal": {
+            "title": "Remove reference links",
+            "infoMessage": "All reference links for every of the selected categories will be deleted."
         }
     },
     "HierarchicalMapping": {
