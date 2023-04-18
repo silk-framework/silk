@@ -35,7 +35,7 @@ interface ExpandedEvaluationRowProps {
     rowIdx: number;
     colSpan: number;
     inputValues: EvaluationLinkInputValue;
-    rowIsExpanded: boolean;
+    rowIsExpandedByParent: boolean;
     linkingEvaluationResult?: LinkingEvaluationResult;
     handleReferenceLinkTypeUpdate: (
         currentLinkType: ReferenceLinkType,
@@ -45,7 +45,6 @@ interface ExpandedEvaluationRowProps {
         index: number
     ) => Promise<boolean>;
     searchQuery: string;
-    handleRowExpansion: (rowId?: number) => any;
     linkRuleOperatorTree?: ISimilarityOperator;
     operatorTreeExpandedByDefault: boolean;
     inputValuesExpandedByDefault: boolean;
@@ -70,11 +69,10 @@ export const LinkingEvaluationRow = React.memo(
         rowIdx,
         colSpan,
         inputValues,
-        rowIsExpanded,
+        rowIsExpandedByParent,
         linkingEvaluationResult,
         handleReferenceLinkTypeUpdate,
         searchQuery,
-        handleRowExpansion,
         linkRuleOperatorTree,
         operatorTreeExpandedByDefault,
         inputValuesExpandedByDefault,
@@ -97,11 +95,16 @@ export const LinkingEvaluationRow = React.memo(
         const [currentLinkType, setCurrentLinkType] = React.useState<ReferenceLinkType>(
             linkingEvaluationResult?.decision ?? "unlabeled"
         );
+        const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowIsExpandedByParent);
         const [t] = useTranslation();
 
         const handleInputTableExpansion = React.useCallback(() => {
             setInputValueTableExpanded((prev) => !prev);
         }, []);
+
+        React.useEffect(() => {
+            setRowIsExpanded(rowIsExpandedByParent);
+        }, [rowIsExpandedByParent]);
 
         React.useEffect(() => {
             if (rowIsExpanded) {
@@ -431,7 +434,7 @@ export const LinkingEvaluationRow = React.memo(
                 setUpdateOperationPending(false);
             }
         };
-        const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), []);
+        const onExpandRow = React.useCallback(() => setRowIsExpanded((e) => !e), []);
 
         //score does not match decision
         const mismatchExists: boolean =
