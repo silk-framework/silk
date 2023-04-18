@@ -3,14 +3,12 @@ package org.silkframework.runtime.templating
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 
-import java.io.StringWriter
-import java.util
-import scala.collection.JavaConverters.{asScalaSetConverter, mapAsJavaMapConverter}
+import scala.collection.JavaConverters.asScalaSetConverter
 
 /**
   * Global template variables, which are defined in the configuration.
   */
-object GlobalTemplateVariables {
+object GlobalTemplateVariablesConfig {
 
   private final val configNamespace: String = "config.variables"
 
@@ -39,7 +37,7 @@ object GlobalTemplateVariables {
     if(config.hasPath(variablesConfigVar)) {
       val map =
         for (entry <- config.getConfig(variablesConfigVar).entrySet().asScala) yield {
-          (entry.getKey, entry.getValue.unwrapped().toString)
+          (entry.getKey, TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, globalScope, isSensitive = false))
         }
       TemplateVariables(map.toMap)
     } else {
@@ -47,29 +45,33 @@ object GlobalTemplateVariables {
     }
   }
 
-  /** Resolves a variable template string.
-    * @throws TemplateEvaluationException If the template evaluation failed.
-    **/
-  def resolveTemplateValue(value: String): String = {
-    val writer = new StringWriter()
-    engine().compile(value).evaluate(variableMap, writer)
-    writer.toString
-  }
-
   /**
-    * Lists all available variable names.
+    * Retrieves the configured template engine.
     */
-  def variableNames: Seq[String] = {
-    for(key <- templateVariables().map.keys.toSeq.sorted) yield {
-      globalScope + "." + key
-    }
+  def templateEngine(): TemplateEngine = {
+    engine()
   }
-
-  /**
-    * Returns variables as a map to be used in template evaluation.
-    */
-  def variableMap: Map[String, util.Map[String, String]] = Map(globalScope -> templateVariables().map.asJava)
 
   /** If the templating mechanism is enabled. */
   def isEnabled: Boolean = !engine().isInstanceOf[DisabledTemplateEngine]
+
+
+  def variables(): TemplateVariables = {
+    templateVariables()
+  }
+
+}
+
+object GlobalTemplateVariables extends TemplateVariablesReader with Serializable {
+
+  /**
+    * The available variable scopes.
+    */
+  override def scopes: Set[String] = Set(GlobalTemplateVariablesConfig.globalScope)
+
+  /**
+    * Retrieves all template variables.
+    */
+  override def all: TemplateVariables = GlobalTemplateVariablesConfig.variables()
+
 }

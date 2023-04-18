@@ -2,6 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.plugin.StringParameterType.IntOptionType
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 
 class StringParameterTypeTest extends FlatSpec with MustMatchers {
   behavior of "String parameter type"

@@ -6,7 +6,7 @@ import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.util.TestMocks
 
 import scala.collection.immutable.SortedMap

@@ -1,6 +1,5 @@
 package controllers.workspaceApi.coreApi
 
-import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
@@ -47,10 +46,11 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       )
     )
   )
+  //TODO add project parameter
   def validateTemplate():  Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ValidateVariableTemplateRequest] { validationRequest =>
       val resultOrError: Either[String, String] = try {
-        Left(GlobalTemplateVariables.resolveTemplateValue(validationRequest.templateString))
+        Left(GlobalTemplateVariables.all.resolveTemplateValue(validationRequest.templateString))
       } catch {
         case NonFatal(ex) =>
           Right(ex.getMessage)
@@ -95,9 +95,9 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       )
     )
   )
+  //TODO add project parameter
   def autoCompleteTemplate(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit uc =>
     validateJson[AutoCompleteVariableTemplateRequest] { autoCompleteRequest =>
-      GlobalTemplateVariables.variableNames
       val response = autoCompleteRequest.execute()
       Ok(Json.toJson(response))
     }

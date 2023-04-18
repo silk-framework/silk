@@ -1,6 +1,6 @@
 package controllers.workspaceApi.coreApi.variableTemplate
 
-import controllers.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, CompletionBase, Completions, ReplacementInterval, ReplacementResults}
+import controllers.autoCompletion._
 import org.silkframework.runtime.templating.GlobalTemplateVariables
 import org.silkframework.util.StringUtils
 import play.api.libs.json.{Format, Json}
@@ -35,7 +35,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                cursorPosition: Int,
                                                maxSuggestions: Option[Int]) extends AutoSuggestAutoCompletionRequest {
   def execute(): AutoSuggestAutoCompletionResponse = {
-    val variables = GlobalTemplateVariables.variableNames
+    val variables = GlobalTemplateVariables.all.variableNames
     AutoCompleteVariableTemplateRequest.suggestions(this, variables)
   }
 }

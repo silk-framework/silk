@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.distance.equality;
 
-import org.silkframework.runtime.plugin.EnumerationParameterType;
+import org.silkframework.runtime.plugin.types.EnumerationParameterType;
 
 /**
  * Parameter Enum to represent comparison operators.

@@ -1,4 +1,4 @@
-package org.silkframework.runtime.plugin
+package org.silkframework.runtime.plugin.types
 
 import org.silkframework.execution.AbortExecutionException
 import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType

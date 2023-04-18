@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.QuadEntityTable
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}

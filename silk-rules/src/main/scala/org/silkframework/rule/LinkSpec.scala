@@ -24,9 +24,10 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{IdentifierOptionParameter, PluginContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.{AnyPlugin, IdentifierOptionParameter}
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat, XmlSerialization}

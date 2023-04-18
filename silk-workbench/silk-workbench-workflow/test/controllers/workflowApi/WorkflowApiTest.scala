@@ -9,6 +9,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait

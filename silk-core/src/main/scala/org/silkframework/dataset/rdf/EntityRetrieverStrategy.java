@@ -1,6 +1,6 @@
 package org.silkframework.dataset.rdf;
 
-import org.silkframework.runtime.plugin.EnumerationParameterType;
+import org.silkframework.runtime.plugin.types.EnumerationParameterType;
 
 public enum EntityRetrieverStrategy implements EnumerationParameterType {
 

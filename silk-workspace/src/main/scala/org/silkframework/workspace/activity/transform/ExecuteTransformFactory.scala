@@ -4,8 +4,8 @@ import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.IntOptionParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._

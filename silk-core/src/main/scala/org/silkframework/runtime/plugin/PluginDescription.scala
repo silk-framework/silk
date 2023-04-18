@@ -129,7 +129,7 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
-        val evaluatedValue = template.evaluate()
+        val evaluatedValue = template.evaluate(context.templateVariables.all)
         try {
           stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
         } catch {

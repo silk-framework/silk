@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating;
 
-import org.silkframework.runtime.plugin.EnumerationParameterType;
+import org.silkframework.runtime.plugin.types.EnumerationParameterType;
 
 /**
  *

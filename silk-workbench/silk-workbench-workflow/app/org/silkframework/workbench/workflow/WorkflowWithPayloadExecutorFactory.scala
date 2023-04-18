@@ -3,7 +3,7 @@ package org.silkframework.workbench.workflow
 import controllers.util.ProjectUtils.{createDatasets, createInMemoryResourceManagerForResources, getProject}
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.plugin.{MultilineStringParameter, PluginContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -16,6 +16,7 @@ import play.api.libs.json._
 import scala.xml.{Node, NodeSeq, XML}
 import WorkflowWithPayloadExecutorFactory._
 import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 
 @Plugin(
   id = "ExecuteWorkflowWithPayload",
