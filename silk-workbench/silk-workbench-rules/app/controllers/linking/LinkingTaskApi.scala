@@ -450,10 +450,10 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                          schema = new Schema(implementation = classOf[String])
                        )
                        target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    log.info(s"Adding $linkType reference link: $source - $target")
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val link = new MinimalLink(source, target)
+    val link = new MinimalLink(checkUri(source), checkUri(target))
+    log.info(s"Adding $linkType reference link: ${link.source} - ${link.target}")
 
     linkType match {
       case "positive" => {
@@ -465,8 +465,15 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         project.updateTask(taskName, updatedRefLinks)
       }
     }
-    
     Ok
+  }
+
+  private def checkUri(uri: String): String = {
+    val trimmed = uri.trim
+    if(!Uri(trimmed).isValidUri) {
+      throw BadUserInputException(s"Uri '$trimmed' is not a valid, absolute URI!")
+    }
+    trimmed
   }
 
   @Operation(

@@ -63,7 +63,12 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     hasStatePrimary={true}
                     onClick={handleAddNewReferenceLinks}
                     loading={newLinkCreationLoading}
-                    disabled={!newSourceReferenceLink || !newTargetReferenceLink}
+                    disabled={
+                        !newSourceReferenceLink ||
+                        !newTargetReferenceLink ||
+                        newSourceReferenceLink.trim() === "" ||
+                        newTargetReferenceLink.trim() === ""
+                    }
                 >
                     {t("common.action.add")}
                 </Button>,
