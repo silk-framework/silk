@@ -145,6 +145,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         !showReferenceLinks
                     )
                 )?.data;
+                setExpandedRows(new Map());
                 evaluationResults.current = results;
                 linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
             } catch (err) {
