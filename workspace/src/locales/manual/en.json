@@ -400,6 +400,14 @@
             "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
             "unknownProblem": "No results available because of unexpected behaviour."
         },
+        "errors": {
+            "fetchingLinks": {
+                "msg": "An error has occurred fetching {{linkType}} links"
+            },
+            "updateLink": {
+                "msg": "An error has occurred updating {{linkType}} link"
+            }
+        },
         "table": {
             "header": {
                 "source": "Source",

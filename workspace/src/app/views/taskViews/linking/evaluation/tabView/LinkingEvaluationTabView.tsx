@@ -55,6 +55,7 @@ import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -78,6 +79,7 @@ const linkingTabs: TabProps[] = [
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
+    const errorHandler = useErrorHandler();
     const commonSel = useSelector(workspaceSel.commonSelector);
     const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
     const [pagination, paginationElement, onTotalChange] = usePagination({
@@ -89,7 +91,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [showOperators, setShowOperators] = React.useState<boolean>(true);
     const [showStatisticOverlay, setShowStatisticOverlay] = React.useState<boolean>(false);
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
-    const [expandedRows, setExpandedRows] = React.useState<Map<number, number>>(new Map());
+    const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const linksToValueMap = React.useRef<Array<Map<string, EvaluationResultType[number]>>>([]);
     const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<
         IActivityStatus["concreteStatus"] | undefined
@@ -115,6 +117,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 ["confidence", "NONE"],
             ])
     );
+    const linkType = showReferenceLinks ? "Reference" : "Evaluation";
 
     //fetch operator plugins
     React.useEffect(() => {
@@ -122,6 +125,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             setOperatorPlugins(Object.values((await requestRuleOperatorPluginDetails(false)).data));
         })();
     }, []);
+
+    const registerError = React.useCallback(
+        (errorId: string, err: any, data = {}) =>
+            errorHandler.registerError(errorId, t(`linkingEvaluationTabView.errors.${errorId}`, data), err),
+        []
+    );
 
     React.useEffect(() => {
         if (evaluationResults.current) {
@@ -149,6 +158,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 evaluationResults.current = results;
                 linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
             } catch (err) {
+                registerError("fetchingLinks.msg", `Could not fetch ${linkType} links`, { linkType });
             } finally {
                 setLoading(false);
             }
@@ -301,24 +311,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         return evaluationResults.current?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
     }, [evaluationResults.current]);
 
-    const handleRowExpansion = React.useCallback(
-        (rowId?: number) => {
-            setExpandedRows((prevExpandedRows) => {
-                if (typeof rowId !== "undefined" && prevExpandedRows.has(rowId)) {
-                    prevExpandedRows.delete(rowId);
-                    return new Map([...prevExpandedRows]);
-                } else if (typeof rowId !== "undefined") {
-                    //provided row id doesn't exist in record
-                    return new Map([...prevExpandedRows, [rowId, rowId]]);
-                } else {
-                    //should either collapse all or expand all.
-                    if (prevExpandedRows.size === rowData.length) return new Map();
-                    return new Map(rowData.map((_row: any, i: number) => [i, i]));
-                }
-            });
-        },
-        [rowData]
-    );
+    const handleAllRowsExpansion = React.useCallback(() => setAllRowsExpanded((e) => !e), []);
 
     const handleReferenceLinkTypeUpdate = React.useCallback(
         async (
@@ -338,6 +331,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 }
                 return true;
             } catch (err) {
+                registerError("updateLink.msg", `Could not update ${linkType} link`, { linkType });
                 return false;
             }
         },
@@ -660,10 +654,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             <TableRow>
                                 <TableExpandHeader
                                     enableToggle
-                                    isExpanded={expandedRows.size === rowData.length}
-                                    onExpand={() => handleRowExpansion()}
+                                    isExpanded={allRowsExpanded}
+                                    onExpand={handleAllRowsExpansion}
                                     togglerText={
-                                        expandedRows.size === rowData.length
+                                        allRowsExpanded
                                             ? t("linkingEvaluationTabView.table.header.collapseRows")
                                             : t("linkingEvaluationTabView.table.header.expandRows")
                                     }
@@ -726,11 +720,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                             rowIdx={rowIdx}
                                             inputValues={inputValues[rowIdx]}
                                             linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
-                                            rowIsExpanded={expandedRows.has(rowIdx)}
+                                            rowIsExpandedByParent={allRowsExpanded}
                                             handleReferenceLinkTypeUpdate={handleReferenceLinkTypeUpdate}
                                             searchQuery={searchQuery}
                                             // carbonRowProps={getRowProps({ row })} // TODO: What is this needed for? This leads to unnecessary re-renders even though it didn't change
-                                            handleRowExpansion={handleRowExpansion}
                                             linkRuleOperatorTree={evaluationResults.current?.linkRule.operator}
                                             inputValuesExpandedByDefault={showInputValues}
                                             operatorTreeExpandedByDefault={showOperators}

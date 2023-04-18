@@ -35,7 +35,7 @@ interface ExpandedEvaluationRowProps {
     rowIdx: number;
     colSpan: number;
     inputValues: EvaluationLinkInputValue;
-    rowIsExpanded: boolean;
+    rowIsExpandedByParent: boolean;
     linkingEvaluationResult?: LinkingEvaluationResult;
     handleReferenceLinkTypeUpdate: (
         currentLinkType: ReferenceLinkType,
@@ -45,7 +45,6 @@ interface ExpandedEvaluationRowProps {
         index: number
     ) => Promise<boolean>;
     searchQuery: string;
-    handleRowExpansion: (rowId?: number) => any;
     linkRuleOperatorTree?: ISimilarityOperator;
     operatorTreeExpandedByDefault: boolean;
     inputValuesExpandedByDefault: boolean;
@@ -70,11 +69,10 @@ export const LinkingEvaluationRow = React.memo(
         rowIdx,
         colSpan,
         inputValues,
-        rowIsExpanded,
+        rowIsExpandedByParent,
         linkingEvaluationResult,
         handleReferenceLinkTypeUpdate,
         searchQuery,
-        handleRowExpansion,
         linkRuleOperatorTree,
         operatorTreeExpandedByDefault,
         inputValuesExpandedByDefault,
@@ -97,11 +95,16 @@ export const LinkingEvaluationRow = React.memo(
         const [currentLinkType, setCurrentLinkType] = React.useState<ReferenceLinkType>(
             linkingEvaluationResult?.decision ?? "unlabeled"
         );
+        const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowIsExpandedByParent);
         const [t] = useTranslation();
 
         const handleInputTableExpansion = React.useCallback(() => {
             setInputValueTableExpanded((prev) => !prev);
         }, []);
+
+        React.useEffect(() => {
+            setRowIsExpanded(rowIsExpandedByParent);
+        }, [rowIsExpandedByParent]);
 
         React.useEffect(() => {
             if (rowIsExpanded) {
@@ -330,6 +333,7 @@ export const LinkingEvaluationRow = React.memo(
                             acc = acc && currentHighlightedValue[key] === val;
                             return acc;
                         }, true);
+
                     const otherCount =
                         (evaluationMap.get(id)?.value || []).length > cutAfter ? (
                             <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
@@ -338,37 +342,53 @@ export const LinkingEvaluationRow = React.memo(
                         ) : (
                             <></>
                         );
-                    const exampleValues = evaluationMap
-                        .get(id)
-                        ?.value.slice(0, cutAfter)
-                        .map((val, i) => (
+                    let exampleValues: JSX.Element[] = [];
+
+                    if (!evaluationMap.get(id)?.value.length) {
+                        exampleValues = [
                             <Tag
-                                key={val + i}
-                                round
-                                emphasis="stronger"
-                                interactive
-                                backgroundColor={
-                                    isHighlightMatch(val)
-                                        ? "#746a85" // TODO: get color from CSS config
-                                        : nodeParentHighlightedIds.get(index)?.includes(id)
-                                        ? "#0097a7" // TODO: get color from CSS config
-                                        : undefined
-                                }
-                                onMouseEnter={() => {
-                                    handleValueHover({
-                                        value: val,
-                                        ...nodeData,
-                                    });
-                                    handleParentNodeHighlights(tree, id, index);
-                                }}
-                                onMouseLeave={() => {
-                                    handleValueHover({ value: "", path: "", isSourceEntity: false });
-                                    handleParentNodeHighlights(tree, id, index, true);
-                                }}
+                                htmlTitle={t("common.messages.noValuesAvailable")}
+                                round={true}
+                                intent={"neutral"}
+                                emphasis={"weak"}
                             >
-                                {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
-                            </Tag>
-                        ));
+                                N/A
+                            </Tag>,
+                        ];
+                    }
+
+                    exampleValues =
+                        evaluationMap
+                            .get(id)
+                            ?.value.slice(0, cutAfter)
+                            .map((val, i) => (
+                                <Tag
+                                    key={val + i}
+                                    round
+                                    emphasis="stronger"
+                                    interactive
+                                    backgroundColor={
+                                        isHighlightMatch(val)
+                                            ? "#746a85" // TODO: get color from CSS config
+                                            : nodeParentHighlightedIds.get(index)?.includes(id)
+                                            ? "#0097a7" // TODO: get color from CSS config
+                                            : undefined
+                                    }
+                                    onMouseEnter={() => {
+                                        handleValueHover({
+                                            value: val,
+                                            ...nodeData,
+                                        });
+                                        handleParentNodeHighlights(tree, id, index);
+                                    }}
+                                    onMouseLeave={() => {
+                                        handleValueHover({ value: "", path: "", isSourceEntity: false });
+                                        handleParentNodeHighlights(tree, id, index, true);
+                                    }}
+                                >
+                                    {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
+                                </Tag>
+                            )) ?? [];
                     return [exampleValues, [otherCount]];
                 }
             },
@@ -414,7 +434,7 @@ export const LinkingEvaluationRow = React.memo(
                 setUpdateOperationPending(false);
             }
         };
-        const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), []);
+        const onExpandRow = React.useCallback(() => setRowIsExpanded((e) => !e), []);
 
         //score does not match decision
         const mismatchExists: boolean =
@@ -437,12 +457,9 @@ export const LinkingEvaluationRow = React.memo(
                         className="diapp-linking-evaluation__row-item"
                         useZebraStyle={rowIdx % 2 === 1}
                     >
-                        <TableCell>
+                        <TableCell alignVertical="middle">
                             {mismatchExists ? (
-                                <>
-                                    <Spacing size="tiny" />
-                                    <Icon intent="warning" name="state-warning" tooltipText="decision mismatch" />
-                                </>
+                                <Icon intent="warning" name="state-warning" tooltipText="decision mismatch" />
                             ) : null}
                         </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
