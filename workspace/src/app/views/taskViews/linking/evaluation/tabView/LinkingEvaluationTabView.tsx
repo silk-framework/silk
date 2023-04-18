@@ -55,6 +55,7 @@ import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -78,6 +79,7 @@ const linkingTabs: TabProps[] = [
 
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
+    const errorHandler = useErrorHandler();
     const commonSel = useSelector(workspaceSel.commonSelector);
     const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
     const [pagination, paginationElement, onTotalChange] = usePagination({
@@ -115,6 +117,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 ["confidence", "NONE"],
             ])
     );
+    const linkType = showReferenceLinks ? "Reference" : "Evaluation";
 
     //fetch operator plugins
     React.useEffect(() => {
@@ -122,6 +125,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             setOperatorPlugins(Object.values((await requestRuleOperatorPluginDetails(false)).data));
         })();
     }, []);
+
+    const registerError = React.useCallback(
+        (errorId: string, err: any, data = {}) =>
+            errorHandler.registerError(errorId, t(`linkingEvaluationTabView.errors.${errorId}`, data), err),
+        []
+    );
 
     React.useEffect(() => {
         if (evaluationResults.current) {
@@ -148,6 +157,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 evaluationResults.current = results;
                 linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
             } catch (err) {
+                registerError("fetchingLinks.msg", `Could not fetch ${linkType} links`, { linkType });
             } finally {
                 setLoading(false);
             }
@@ -320,6 +330,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 }
                 return true;
             } catch (err) {
+                registerError("updateLink.msg", `Could not update ${linkType} link`, { linkType });
                 return false;
             }
         },
