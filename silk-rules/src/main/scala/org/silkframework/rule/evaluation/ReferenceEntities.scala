@@ -103,6 +103,11 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     positiveReferenceLinks ++ negativeReferenceLinks
   }
 
+  def toReferenceLinksSafe(sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): Seq[ReferenceLink] = {
+    asReferenceLinksSafe(positiveLinks.toSeq, LinkDecision.POSITIVE, sourceEntitySchema, targetEntitySchema) ++
+      asReferenceLinksSafe(negativeLinks.toSeq, LinkDecision.NEGATIVE, sourceEntitySchema, targetEntitySchema)
+  }
+
   private def positiveReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE)
   }
@@ -125,6 +130,34 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     for (link <- links) yield {
       asReferenceLink(link, linkDecision)
     }
+  }
+
+  private def asReferenceLinksSafe(links: Seq[Link], linkDecision: LinkDecision, sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): Seq[ReferenceLink] = {
+    for (link <- links) yield {
+      asReferenceLinkSafe(link, linkDecision, sourceEntitySchema, targetEntitySchema)
+    }
+  }
+
+  /** Adds entities with no values to the link if the entity could not be found. */
+  private def asReferenceLinkSafe(link: Link, linkDecision: LinkDecision, sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): ReferenceLink = {
+    new ReferenceLink(
+      source = link.source,
+      target = link.target,
+      linkEntities = DPair(
+        source = sourceEntities.getOrElse(link.source, emptyEntity(link.source, sourceEntitySchema)),
+        target = targetEntities.getOrElse(link.target, emptyEntity(link.target, targetEntitySchema)),
+      ),
+      decision = linkDecision,
+      confidence = link.confidence
+    )
+  }
+
+  private def emptyEntity(uri: String, entitySchema: EntitySchema): Entity = {
+    Entity(
+      uri,
+      values = entitySchema.typedPaths.map(_ => Seq()),
+      schema = entitySchema
+    )
   }
 
   private def asReferenceLink(link: Link, linkDecision: LinkDecision): ReferenceLink = {

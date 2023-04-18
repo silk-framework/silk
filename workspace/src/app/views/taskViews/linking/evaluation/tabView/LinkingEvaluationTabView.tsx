@@ -399,28 +399,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
         if (taskEvaluationStatus === "Successful" && !searchQuery && !linkStateFilter) {
             // evaluation action done, no filters, no results
-            return (
-                <Notification data-test-id="empty-links-banner">
-                    {t(
-                        `linkingEvaluationTabView.messages.${
-                            showReferenceLinks ? "referenceLinksEmptyWithoutFilters" : "emptyWithoutFilters"
-                        }`
-                    )}
-                </Notification>
-            );
+            const translationKey = `linkingEvaluationTabView.messages.${
+                showReferenceLinks ? "referenceLinksEmptyWithoutFilters" : "emptyWithoutFilters"
+            }`;
+            return <Notification data-test-id="empty-links-banner">{t(translationKey)}</Notification>;
         }
 
         if (taskEvaluationStatus === "Successful" && (!!searchQuery || !!linkStateFilter)) {
             // evaluation action done, filters for link state or search query active
-            return (
-                <Notification data-test-id="notification-empty-with-filters">
-                    {t(
-                        `linkingEvaluationTabView.messages.${
-                            showReferenceLinks ? "referenceLinksEmptyWithFilters" : "emptyWithFilters"
-                        }`
-                    )}
-                </Notification>
-            );
+            const translationKey = `linkingEvaluationTabView.messages.${
+                showReferenceLinks ? "referenceLinksEmptyWithFilters" : "emptyWithFilters"
+            }`;
+            return <Notification data-test-id="notification-empty-with-filters">{t(translationKey)}</Notification>;
         }
 
         // Fallback

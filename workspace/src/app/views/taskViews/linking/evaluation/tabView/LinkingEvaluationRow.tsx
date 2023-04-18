@@ -34,7 +34,7 @@ import {
 interface ExpandedEvaluationRowProps {
     rowIdx: number;
     colSpan: number;
-    inputValues: EvaluationLinkInputValue;
+    inputValues?: EvaluationLinkInputValue;
     rowIsExpandedByParent: boolean;
     linkingEvaluationResult?: LinkingEvaluationResult;
     handleReferenceLinkTypeUpdate: (
@@ -146,6 +146,31 @@ export const LinkingEvaluationRow = React.memo(
             },
             [evaluationMap, nodeParentHighlightedIds]
         );
+
+        // Returns an icon element that warns the user that the entity has no values at all
+        const emptyEntityWarning = (values?: Record<string, string[]>): JSX.Element | null => {
+            if (!values) {
+                return null;
+            }
+            const entries = Object.entries(values);
+            if (entries.length === 0) {
+                // If there is no input path at all, do not highlight empty entity
+                return null;
+            }
+            const allEmpty = entries.every(
+                ([_prop, propertyValues]) => !Array.isArray(propertyValues) || propertyValues.length === 0
+            );
+            return allEmpty ? (
+                <>
+                    <Spacing vertical={true} size={"small"} />
+                    <Icon
+                        intent={"neutral"}
+                        name={"state-info"}
+                        tooltipText={t("ReferenceLinks.warnings.entityHasNoValues")}
+                    />
+                </>
+            ) : null;
+        };
 
         const updateTreeNode = React.useCallback(() => {
             const operatorNode = linkRuleOperatorTree;
@@ -464,9 +489,11 @@ export const LinkingEvaluationRow = React.memo(
                         </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
+                            {emptyEntityWarning(inputValues?.source)}
                         </TableCell>
                         <TableCell key={"targetEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.target} searchValue={searchQuery} />
+                            {emptyEntityWarning(inputValues?.target)}
                         </TableCell>
                         <TableCell key="confidence" alignVertical="middle">
                             <ConfidenceValue value={linkingEvaluationResult.confidence} />

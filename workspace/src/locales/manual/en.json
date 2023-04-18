@@ -301,6 +301,7 @@
             "createFirstItems": "Create your first {{items}} now.",
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
+            "noValuesAvailable": "No values available",
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
@@ -941,6 +942,9 @@
         "source": "Source",
         "target": "Target",
         "type": "Type",
+        "warnings": {
+            "entityHasNoValues": "This entity has no value available for all of its input paths. Maybe the entity does not exist in the data source."
+        },
         "showEntityUris": {
             "menuText": "Show entity URIs",
             "modalTitle": "Reference link entity URIs",

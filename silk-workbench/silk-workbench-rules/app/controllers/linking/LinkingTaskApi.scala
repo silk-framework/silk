@@ -1067,7 +1067,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       evaluationStats = Some(linkEvaluationStats(evaluationActivity.value()))
     }
     if (includeReferenceLinks) {
-      links = (retrieveReferenceLinks(linkTask) ++ links).distinct
+      links = (retrieveReferenceLinksSafe(linkTask) ++ links).distinct
     }
     val linkingRule = linkTask.data.rule
     val overallLinkCount = links.size
@@ -1113,9 +1113,10 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveReferenceLinks(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
+  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
-    for(link <- referenceEntityCache.toReferenceLinks) yield {
+    val DPair(sourceEntitySchema, targetEntitySchema) = linkTask.data.entityDescriptions
+    for(link <- referenceEntityCache.toReferenceLinksSafe(sourceEntitySchema, targetEntitySchema)) yield {
       val evaluatedLink = DetailedEvaluator(linkTask.data.rule, link.linkEntities)
       evaluatedLink.withDecision(link.decision)
     }

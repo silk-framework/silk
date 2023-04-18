@@ -8,7 +8,7 @@ import {
     LinkRuleEvaluationResult,
     ReferenceLinkType,
 } from "./typings";
-import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
+import { IAggregationOperator, IComparisonOperator, ISimilarityOperator } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@blueprintjs/core";
@@ -96,7 +96,7 @@ export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: s
     }, [] as Array<{ id: string; path: string }>);
 };
 
-export const getLinkRuleInputPaths = (operatorInput: any) =>
+export const getLinkRuleInputPaths = (operatorInput: ISimilarityOperator) =>
     ["sourceInput", "targetInput"].reduce(
         (linkRuleInputPaths, inputPathType) => {
             const label = inputPathType.replace("Input", "");
