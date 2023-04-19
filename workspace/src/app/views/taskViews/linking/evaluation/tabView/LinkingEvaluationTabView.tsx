@@ -56,6 +56,7 @@ import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { getHistory } from "../../../../../store/configureStore";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -102,7 +103,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
     const hasRenderedBefore = useFirstRender();
-    const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(false);
+    const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(() => {
+        const show = new URLSearchParams(window.location.search).get("showReferenceLinks");
+        console.log({ show });
+        return Boolean(show);
+    });
     const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
     const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
     const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
@@ -463,6 +468,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     const handleLinkingTabSwitch = React.useCallback((tabId: number) => {
         evaluationResults.current = undefined;
+        const history = getHistory();
+        history.replace({
+            search: `?${new URLSearchParams(tabId ? { showReferenceLinks: "true" } : {})}`,
+        });
         setShowReferenceLinks(!!tabId);
     }, []);
 
@@ -489,7 +498,12 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     onClose={closeImportReferenceLinkModal}
                 />
             )}
-            <Tabs id="linkingTabs" tabs={linkingTabs} onChange={handleLinkingTabSwitch} />
+            <Tabs
+                id="linkingTabs"
+                tabs={linkingTabs}
+                defaultSelectedTabId={Number(showReferenceLinks)}
+                onChange={handleLinkingTabSwitch}
+            />
             <Spacing size={"tiny"} />
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
