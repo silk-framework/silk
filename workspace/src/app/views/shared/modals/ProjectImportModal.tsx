@@ -146,8 +146,16 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         errorCounter = errorCounter + 1;
                     }
                 }
-                close();
-                dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+                if (status.success) {
+                    close();
+                    dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+                } else {
+                    setStartProjectImportExecutionError([
+                        status.failureMessage ?? "Project could not be imported.",
+                        generateNewProjectId,
+                        overWriteExistingProject,
+                    ]);
+                }
             } catch (ex) {
                 setStartProjectImportExecutionError([
                     " " + errorDetails(ex),
