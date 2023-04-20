@@ -391,9 +391,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             () => projectImportId && loadProjectImportDetails(projectImportId)
         )
     ) : startProjectImportExecutionError ? (
-        errorRetryElement(
-            "Failed to start execution of the project import! " + startProjectImportExecutionError[0],
-            () => startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
+        errorRetryElement(`${t("common.messages.anErrorHasOccurred")} ${startProjectImportExecutionError[0]}`, () =>
+            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
         )
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)
