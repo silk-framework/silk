@@ -1,9 +1,9 @@
 package org.silkframework.workspace
 
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, GlobalTemplateVariablesConfig, TemplateVariable, TemplateVariables, TemplateVariablesManager}
-import org.silkframework.util.Identifier
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables, TemplateVariablesManager}
 
-class ProjectTemplateVariablesManager(project: Identifier, provider: WorkspaceProvider) extends TemplateVariablesManager {
+class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer) extends TemplateVariablesManager {
 
   private val projectScope = "project"
 
@@ -18,12 +18,9 @@ class ProjectTemplateVariablesManager(project: Identifier, provider: WorkspacePr
   override def all: TemplateVariables = GlobalTemplateVariables.all
 
   /**
-    * Add or update a template variable.
+    * Updates all template variables.
     */
-  override def put(variable: TemplateVariable): Unit = ???
-
-  /**
-    * Remove an existing template variable.
-    */
-  override def remove(name: String): Unit = ???
+  override def put(variables: TemplateVariables)(implicit user: UserContext): Unit = {
+    serializer.putVariables(variables)
+  }
 }

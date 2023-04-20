@@ -1,13 +1,14 @@
 package org.silkframework.workspace
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext, PluginDescription}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
@@ -66,6 +67,14 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Retrieves the project cache folder.
     */
   override def projectCache(name: Identifier): ResourceManager = projects(name).cache
+
+  /**
+    * Access to project variables.
+    */
+  def projectVariables(projectName: Identifier)
+                      (implicit userContext: UserContext): TemplateVariablesSerializer = {
+    projects(projectName).variables
+  }
 
   /**
     * Adds/Updates a task in a project.
@@ -156,6 +165,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
 
     val cache = new InMemoryResourceManager
 
+    val variables = new InMemoryTemplateVariablesSerializer
+
   }
 
   abstract class InMemoryTask[T <: TaskSpec : ClassTag] {
@@ -194,6 +205,26 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
         case NonFatal(ex) =>
           LoadedTask.failed[T](TaskLoadingError(Some(projectId), id, ex, metaData.label, metaData.description))
       }
+    }
+  }
+
+  protected class InMemoryTemplateVariablesSerializer extends TemplateVariablesSerializer {
+
+    @volatile
+    private var variables = TemplateVariables.empty
+
+    /**
+      * Reads all variables at this scope.
+      */
+    override def readVariables()(implicit userContext: UserContext): TemplateVariables = {
+      variables
+    }
+
+    /**
+      * Updates all variables.
+      */
+    override def putVariables(variables: TemplateVariables)(implicit userContext: UserContext): Unit = {
+      this.variables = variables
     }
   }
 

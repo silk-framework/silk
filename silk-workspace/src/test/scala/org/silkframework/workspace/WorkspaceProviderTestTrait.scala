@@ -18,6 +18,7 @@ import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
@@ -592,6 +593,38 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     refreshTest {
       workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag2)
     }
+  }
+
+  it should "allow managing project template variables" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Initially, it should return an empty variable list
+    val variables = workspaceProvider.projectVariables(PROJECT_NAME)
+    variables.readVariables().map shouldBe empty
+
+    // Add variables and read again
+    val templateVariables1 = TemplateVariables.fromVariables(Seq(
+      TemplateVariable("myVar1", "myValue1", "project", isSensitive = false),
+      TemplateVariable("myVar2", "myValue2", "project", isSensitive = true),
+      TemplateVariable("myVar3", "myValue3", "project", isSensitive = true)
+    ))
+    variables.putVariables(templateVariables1)
+    refreshTest {
+      variables.readVariables() shouldBe templateVariables1
+    }
+
+    // Modify variables and read again
+    val templateVariables2 = TemplateVariables.fromVariables(Seq(
+      TemplateVariable("myVar2", "myValue2", "project", isSensitive = true),
+      TemplateVariable("myVar4", "myValue4", "project", isSensitive = true),
+      TemplateVariable("myVar1", "myValue1", "project", isSensitive = false)
+    ))
+    variables.putVariables(templateVariables2)
+    refreshTest {
+      variables.readVariables() shouldBe templateVariables2
+    }
+
+    //TODO re add project and make sure that variables are empty
   }
 
   /** Executes the block before and after project refresh */

@@ -41,7 +41,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
-  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(initialConfig.id, provider)
+  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id))
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 

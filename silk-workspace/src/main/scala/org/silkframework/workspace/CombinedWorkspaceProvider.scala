@@ -92,6 +92,14 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   }
 
   /**
+    * Access to project variables.
+    */
+  override def projectVariables(projectName: Identifier)(implicit userContext: UserContext): TemplateVariablesSerializer = {
+    //TODO push variables to secondary workspace
+    primaryWorkspace.projectVariables(projectName)
+  }
+
+  /**
     * Version of readTasks that returns a Seq[Try[Task[T]]]
     **/
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
