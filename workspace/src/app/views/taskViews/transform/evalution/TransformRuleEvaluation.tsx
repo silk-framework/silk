@@ -36,6 +36,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
+    const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [nodeUpdateCallbacks] = React.useState(
         new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
     );
@@ -74,6 +75,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 updateCallback(undefined);
             });
         }
+        setEvaluationResultsShown(show);
     };
 
     const fetchReferenceLinksEvaluation: (
@@ -178,7 +180,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 toggleEvaluationResults,
                 evaluationScore: undefined,
                 // There is no evaluation result for mapping rules
-                evaluationResultsShown: false,
+                evaluationResultsShown: evaluationResultsShown,
                 ruleValidationError,
                 clearRuleValidationError,
             }}

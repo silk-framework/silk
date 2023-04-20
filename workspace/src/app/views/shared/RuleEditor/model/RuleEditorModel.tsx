@@ -229,15 +229,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Inline rule evaluation */
     React.useEffect(() => {
         current.evaluateQuickly =
-            ruleEvaluationContext.supportsEvaluation &&
-            ruleEvaluationContext.supportsQuickEvaluation &&
-            ruleEvaluationContext.evaluationResultsShown;
+            ruleEvaluationContext.supportsEvaluation && ruleEvaluationContext.supportsQuickEvaluation;
         setEvaluateQuickly(current.evaluateQuickly);
-    }, [
-        ruleEvaluationContext.supportsEvaluation,
-        ruleEvaluationContext.supportsQuickEvaluation,
-        ruleEvaluationContext.evaluationResultsShown,
-    ]);
+    }, [ruleEvaluationContext.supportsEvaluation, ruleEvaluationContext.supportsQuickEvaluation]);
 
     React.useEffect(() => {
         const error = ruleEvaluationContext.ruleValidationError;
