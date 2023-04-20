@@ -2,16 +2,19 @@ package controllers.workspaceApi.coreApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.workspaceApi.coreApi.VariableTemplateApi.TemplateVariablesFormat
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationError, VariableTemplateValidationResponse}
-import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.silkframework.runtime.templating.GlobalTemplateVariables
-import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, InjectedController}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
+import org.silkframework.workspace.WorkspaceFactory
+import play.api.libs.json.{JsValue, Json, OFormat}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 import scala.util.control.NonFatal
@@ -19,6 +22,76 @@ import scala.util.control.NonFatal
 /** Everything related to variable templates. */
 @Tag(name = "Variable Templates", description = "Provides endpoints for variable template handling.")
 class VariableTemplateApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
+
+  @Operation(
+    summary = "Retrieve variables",
+    description = "Retrieves all variables at a specific scope.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The variables.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(
+            implementation = classOf[TemplateVariablesFormat]
+          )
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    )
+  )
+  def getVariables(@Parameter(
+                     name = "project",
+                     description = "The project identifier",
+                     required = true,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    Ok(Json.toJson(TemplateVariablesFormat(project.templateVariables.all)))
+  }
+
+  @Operation(
+    summary = "Put variables",
+    description = "Updates all variables at a specific scope.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the update has been successful."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[TemplateVariablesFormat]),
+      )
+    )
+  )
+  def putVariables(@Parameter(
+                     name = "project",
+                     description = "The project identifier",
+                     required = true,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val variables = Json.fromJson[TemplateVariablesFormat](request.body).get.convert
+    project.templateVariables.put(variables)
+    Ok
+  }
+
   @Operation(
     summary = "Validate variable template",
     description = "Validate a template based on Jinja syntax that may contain global variables.",
@@ -102,4 +175,39 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       Ok(Json.toJson(response))
     }
   }
+}
+
+object VariableTemplateApi {
+
+  @Schema(description = "A single template variable")
+  case class TemplateVariableFormat(name: String,
+                                    value: String,
+                                    scope: String,
+                                    isSensitive: Boolean) {
+    def convert: TemplateVariable = {
+      TemplateVariable(name, value, scope, isSensitive)
+    }
+  }
+
+  object TemplateVariableFormat {
+    def apply(variable: TemplateVariable): TemplateVariableFormat = {
+      TemplateVariableFormat(variable.name, variable.value, variable.scope, variable.isSensitive)
+    }
+  }
+
+  @Schema(description = "A list of template variables.")
+  case class TemplateVariablesFormat(variables: Seq[TemplateVariableFormat]) {
+    def convert: TemplateVariables = {
+      TemplateVariables.fromVariables(variables.map(_.convert))
+    }
+  }
+
+  object TemplateVariablesFormat {
+    def apply(variables: TemplateVariables): TemplateVariablesFormat = {
+      TemplateVariablesFormat(variables.variables.map(TemplateVariableFormat(_)))
+    }
+  }
+
+  implicit val templateVariableFormat: OFormat[TemplateVariableFormat] = Json.format[TemplateVariableFormat]
+  implicit val templateVariablesFormat: OFormat[TemplateVariablesFormat] = Json.format[TemplateVariablesFormat]
 }
