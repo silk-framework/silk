@@ -190,7 +190,6 @@ const sendError = async (_logs) => {
     // FIXME: Log exceptions in backend
     tableInstance()[LOG_TABLE].clear();
     return true;
-    ``;
 };
 
 export { logError, onErrorHandler, generateNetworkError };
