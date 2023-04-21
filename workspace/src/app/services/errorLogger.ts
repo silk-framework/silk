@@ -38,6 +38,9 @@ const tableInstance: () => any = () => {
 };
 
 const timerId = setTimeout(async function checkLogs() {
+    if (isDevelopment) {
+        return;
+    }
     try {
         const logs = await tableInstance()[LOG_TABLE].toArray();
         if (logs.length) {
@@ -162,10 +165,14 @@ const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolea
             err = generateDefaultError("Uncaught Error type received ", error);
         }
 
-        tableInstance()[LOG_TABLE].put({
-            ...err,
-            client,
-        });
+        if (isDevelopment) {
+            console.warn(err);
+        } else {
+            tableInstance()[LOG_TABLE].put({
+                ...err,
+                client,
+            });
+        }
 
         return true;
     } catch (e) {
@@ -179,15 +186,11 @@ const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolea
 /**
  * Send the error via http or store in indexedDB
  */
-const sendError = async (logs) => {
+const sendError = async (_logs) => {
     // FIXME: Log exceptions in backend
-    if (isDevelopment) {
-        console.log(`Send Logs at: ${Date().toString()}`);
-        console.log(logs);
-    }
-
     tableInstance()[LOG_TABLE].clear();
     return true;
+    ``;
 };
 
 export { logError, onErrorHandler, generateNetworkError };
