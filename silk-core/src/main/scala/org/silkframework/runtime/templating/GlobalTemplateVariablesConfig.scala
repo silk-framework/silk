@@ -35,11 +35,11 @@ object GlobalTemplateVariablesConfig {
   private val templateVariables: ConfigValue[TemplateVariables] = (config: Config) => {
     val variablesConfigVar = configNamespace + ".global"
     if(config.hasPath(variablesConfigVar)) {
-      val map =
-        for (entry <- config.getConfig(variablesConfigVar).entrySet().asScala) yield {
-          (entry.getKey, TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, globalScope, isSensitive = false))
+      val variables =
+        for (entry <- config.getConfig(variablesConfigVar).entrySet().asScala.toSeq) yield {
+          TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, None, isSensitive = false, globalScope)
         }
-      TemplateVariables(map.toMap)
+      TemplateVariables(variables)
     } else {
       TemplateVariables.empty
     }

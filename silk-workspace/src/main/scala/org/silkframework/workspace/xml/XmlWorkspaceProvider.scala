@@ -106,7 +106,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     */
   def projectVariables(projectName: Identifier)
                       (implicit userContext: UserContext): TemplateVariablesSerializer = {
-    new XmlTemplateVariablesSerializer(resources.child(projectName).child("variables"))
+    new XmlTemplateVariablesSerializer(resources.child(projectName))
   }
 
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)

@@ -6,15 +6,15 @@ import org.silkframework.runtime.templating.TemplateVariable.TemplateVariableFor
 import java.io.StringWriter
 import java.util
 import scala.collection.JavaConverters.mapAsJavaMapConverter
+import scala.collection.mutable
 import scala.xml.{Node, PCData}
 
 /**
   * Holds a set of variables that can be used in parameter value templates.
   */
-//TODO need to retain order
-case class TemplateVariables(map: Map[String, TemplateVariable]) {
+case class TemplateVariables(variables: Seq[TemplateVariable]) {
 
-  def variables: Seq[TemplateVariable] = map.values.toSeq
+  val map: Map[String, TemplateVariable] = variables.map(v => (v.name, v)).toMap
 
   /**
     * Returns variables as a map to be used in template evaluation.
@@ -28,9 +28,23 @@ case class TemplateVariables(map: Map[String, TemplateVariable]) {
     * Lists all available variable names.
     */
   def variableNames: Seq[String] = {
-    for (variable <- map.values.toSeq.sortBy(_.name)) yield {
+    for (variable <- variables.sortBy(_.name)) yield {
       variable.scope + "." + variable.name
     }
+  }
+
+  def resolve(): TemplateVariables = {
+    val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    for(variable <- variables) {
+      variable.template match {
+        case Some(template) =>
+          val value = TemplateVariables(resolvedVariables).resolveTemplateValue(template)
+          resolvedVariables.append(variable.copy(value = value))
+        case None =>
+          resolvedVariables.append(variable)
+      }
+    }
+    TemplateVariables(resolvedVariables)
   }
 
   /**
@@ -38,18 +52,44 @@ case class TemplateVariables(map: Map[String, TemplateVariable]) {
     *
     * @throws TemplateEvaluationException If the template evaluation failed.
     * */
-  def resolveTemplateValue(value: String): String = {
+  def resolveTemplateValue(template: String): String = {
     val writer = new StringWriter()
-    GlobalTemplateVariablesConfig.templateEngine().compile(value).evaluate(variableMap, writer)
+    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(variableMap, writer)
     writer.toString
   }
 
 }
 
+object TemplateVariables {
+
+  def empty: TemplateVariables = TemplateVariables(Seq.empty)
+
+  /**
+    * XML serialization format.
+    */
+  implicit object TemplateVariablesFormat extends XmlFormat[TemplateVariables] {
+
+    override def tagNames: Set[String] = Set("Variables")
+
+    override def read(value: Node)(implicit readContext: ReadContext): TemplateVariables = {
+      val variables = (value \ TemplateVariableFormat.tagName).map(TemplateVariableFormat.read)
+      TemplateVariables(variables)
+    }
+
+    override def write(value: TemplateVariables)(implicit writeContext: WriteContext[Node]): Node = {
+      <Variables>
+        { value.variables.map(TemplateVariableFormat.write) }
+      </Variables>
+    }
+  }
+
+}
+
+
 /**
   * A single template variable.
   */
-case class TemplateVariable(name: String, value: String, scope: String, isSensitive: Boolean)
+case class TemplateVariable(name: String, value: String, template: Option[String], isSensitive: Boolean, scope: String)
 
 object TemplateVariable {
 
@@ -65,43 +105,20 @@ object TemplateVariable {
     override def read(value: Node)(implicit readContext: ReadContext): TemplateVariable = {
       TemplateVariable(
         name = (value \ "@name").text,
-        value = value.text,
+        value =(value \ "value").text,
+        template = Option((value \ "template").text).filter(_.trim.nonEmpty),
+        isSensitive = (value \ "@isSensitive").text.toBoolean,
         scope = (value \ "@scope").text,
-        isSensitive = (value \ "@sensitive").text.toBoolean,
       )
     }
 
     override def write(value: TemplateVariable)(implicit writeContext: WriteContext[Node]): Node = {
-      <Variable name={value.name} scope={value.scope} sensitive={value.isSensitive.toString} xml:space="preserve">{PCData(value.value)}</Variable>
-    }
-  }
-
-}
-
-object TemplateVariables {
-
-  def empty: TemplateVariables = TemplateVariables(Map.empty)
-
-  def fromVariables(variables: Seq[TemplateVariable]): TemplateVariables = {
-    TemplateVariables(variables.map(v => (v.name, v)).toMap)
-  }
-
-  /**
-    * XML serialization format.
-    */
-  implicit object TemplateVariablesFormat extends XmlFormat[TemplateVariables] {
-
-    override def tagNames: Set[String] = Set("Variables")
-
-    override def read(value: Node)(implicit readContext: ReadContext): TemplateVariables = {
-      val variables = (value \ TemplateVariableFormat.tagName).map(TemplateVariableFormat.read)
-      TemplateVariables.fromVariables(variables)
-    }
-
-    override def write(value: TemplateVariables)(implicit writeContext: WriteContext[Node]): Node = {
-      <Variables>
-      { value.variables.map(TemplateVariableFormat.write) }
-      </Variables>
+      <Variable name={value.name}
+                isSensitive={value.isSensitive.toString}
+                scope={value.scope}>
+        <Value xml:space="preserve">{PCData(value.value)}</Value>
+        { value.template.toSeq.map(template => <Template xml:space="preserve">{PCData(template)}</Template>) }
+      </Variable>
     }
   }
 

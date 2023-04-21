@@ -22,7 +22,7 @@ class VariableTemplateApiTest extends FlatSpec with IntegrationTestTrait with Ap
     WorkspaceFactory().workspace.createProject(ProjectConfig(projectName))
     getVariables(projectName).variables shouldBe empty
 
-    val variables = TemplateVariables.fromVariables(Seq(TemplateVariable("myVar", "myValue", "project", isSensitive = false)))
+    val variables = TemplateVariables(Seq(TemplateVariable("myVar", "myValue", None, isSensitive = false, "project")))
     putVariables(projectName, variables)
     getVariables(projectName) shouldBe variables
   }

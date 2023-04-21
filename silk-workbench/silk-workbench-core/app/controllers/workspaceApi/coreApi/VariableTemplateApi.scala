@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -180,25 +181,53 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
 object VariableTemplateApi {
 
   @Schema(description = "A single template variable")
-  case class TemplateVariableFormat(name: String,
-                                    value: String,
-                                    scope: String,
-                                    isSensitive: Boolean) {
+  case class TemplateVariableFormat(@Schema(
+                                      description = "The name of the variable.",
+                                      example = "myVar",
+                                      required = true
+                                    )
+                                    name: String,
+                                    @Schema(
+                                      description = "The value of the variable.",
+                                      example = "example value",
+                                      required = false
+                                    )
+                                    value: Option[String],
+                                    @Schema(
+                                      description = "Template to generate the variable value.",
+                                      required = false
+                                    )
+                                    template: Option[String],
+                                    @Schema(
+                                      description = "True, if this is a sensitive variable that should not be exposed to the user.",
+                                      example = "false",
+                                      required = true
+                                    )
+                                    isSensitive: Boolean,
+                                    @Schema(
+                                      description = "The scope of the variable.",
+                                      example = "project",
+                                      required = true
+                                    )
+                                    scope: String) {
     def convert: TemplateVariable = {
-      TemplateVariable(name, value, scope, isSensitive)
+      if(value.isEmpty && template.isEmpty) {
+        throw new BadUserInputException("Either the variable value or its template has to be defined.")
+      }
+      TemplateVariable(name, value.getOrElse(""), template, isSensitive, scope)
     }
   }
 
   object TemplateVariableFormat {
     def apply(variable: TemplateVariable): TemplateVariableFormat = {
-      TemplateVariableFormat(variable.name, variable.value, variable.scope, variable.isSensitive)
+      TemplateVariableFormat(variable.name, Some(variable.value), variable.template, variable.isSensitive, variable.scope)
     }
   }
 
   @Schema(description = "A list of template variables.")
   case class TemplateVariablesFormat(variables: Seq[TemplateVariableFormat]) {
     def convert: TemplateVariables = {
-      TemplateVariables.fromVariables(variables.map(_.convert))
+      TemplateVariables(variables.map(_.convert))
     }
   }
 
