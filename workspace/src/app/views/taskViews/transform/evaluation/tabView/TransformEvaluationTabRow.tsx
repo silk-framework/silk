@@ -1,14 +1,6 @@
 import React from "react";
 import { IPluginDetails } from "@ducks/common/typings";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableExpandedRow,
-    TableExpandRow,
-    TableRow,
-    TreeNodeInfo,
-} from "@eccenca/gui-elements";
+import { TableCell, TableExpandedRow, TableExpandRow, TreeNodeInfo } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { newNode, NodeTagValues } from "./TransformEvaluationTabViewUtils";
 import {
@@ -140,22 +132,15 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                 </TableExpandRow>
                 {(rowIsExpanded && (
                     <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
-                        <Table size="small" hasDivider={false} colorless>
-                            <TableBody>
-                                <TableRow>
-                                    <TableCell style={{ paddingLeft: "0", paddingRight: "0", verticalAlign: "middle" }}>
-                                        {multipleTrees.map((tree) => (
-                                            <TableTree
-                                                treeIsExpanded={!!treeExpansionMap.get(tree.id as string)}
-                                                key={tree.id}
-                                                nodes={[tree]}
-                                                toggleTableExpansion={() => handleTreeExpansion(tree.id as string)}
-                                            />
-                                        ))}
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
+                        {multipleTrees.map((tree) => (
+                            <TableTree
+                                columnWidths={["2rem", "auto"]}
+                                treeIsExpanded={!!treeExpansionMap.get(tree.id as string)}
+                                key={tree.id}
+                                nodes={[tree]}
+                                toggleTableExpansion={() => handleTreeExpansion(tree.id as string)}
+                            />
+                        ))}
                     </TableExpandedRow>
                 )) ||
                     null}

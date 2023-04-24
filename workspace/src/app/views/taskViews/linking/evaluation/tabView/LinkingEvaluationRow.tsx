@@ -549,6 +549,7 @@ export const LinkingEvaluationRow = React.memo(
                             </TableBody>
                         </Table>
                         <TableTree
+                            columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
                             treeIsExpanded={operatorTreeExpansion.expanded}
                             nodes={treeNodes ? [treeNodes] : []}
                             toggleTableExpansion={toggleRuleTreeExpand}
