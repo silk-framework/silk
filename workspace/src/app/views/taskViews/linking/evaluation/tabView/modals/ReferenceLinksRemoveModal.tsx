@@ -58,6 +58,7 @@ export const ReferenceLinksRemoveModal = ({ projectId, linkingTaskId, onClose }:
             notifications={errorMessage ? <Notification message={errorMessage} warning={true} /> : null}
             isOpen={true}
             onClose={cancel}
+            data-test-id="remove-reference-links-modal"
             actions={[
                 <Button
                     key="delete"

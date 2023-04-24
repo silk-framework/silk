@@ -484,7 +484,12 @@ export const LinkingEvaluationRow = React.memo(
                     >
                         <TableCell alignVertical="middle">
                             {mismatchExists ? (
-                                <Icon intent="warning" name="state-warning" tooltipText="decision mismatch" />
+                                <Icon
+                                    intent="warning"
+                                    name="state-warning"
+                                    data-test-id="decision-mismatch-warning"
+                                    tooltipText="decision mismatch"
+                                />
                             ) : null}
                         </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
@@ -507,6 +512,7 @@ export const LinkingEvaluationRow = React.memo(
                                     {linkStateButtons.map(({ linkType, icon, ...otherProps }, btnIndex) => (
                                         <React.Fragment key={icon}>
                                             <IconButton
+                                                data-test-id={`link-state-button-${linkType}`}
                                                 name={icon}
                                                 onClick={() => onLinkStateUpdate(linkType)}
                                                 {...otherProps}

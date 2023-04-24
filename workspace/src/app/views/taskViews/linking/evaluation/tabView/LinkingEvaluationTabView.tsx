@@ -561,6 +561,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 border
                                 small
                                 canShrink
+                                data-test-id="linking-evaluation-stats"
                                 label={
                                     <strong>
                                         {t("linkingEvaluationTabView.toolbar.statsHeadSources")}
@@ -608,12 +609,17 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 {showReferenceLinks ? (
                     <ToolbarSection>
                         <Spacing vertical />
-                        <ContextMenu togglerElement="item-moremenu" togglerText="reference links action">
+                        <ContextMenu
+                            data-test-id="linking-reference-actions"
+                            togglerElement="item-moremenu"
+                            togglerText="reference links action"
+                        >
                             <MenuItem
                                 text={t("ReferenceLinks.contextMenu.add")}
                                 onClick={() => setShowAddLinkModal(true)}
                             />
                             <MenuItem
+                                data-test-id="remove-reference-links"
                                 text={t("ReferenceLinks.contextMenu.removeReferenceLinks")}
                                 onClick={() => setShowDeleteReferenceLinkModal(true)}
                             />
