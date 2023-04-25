@@ -151,7 +151,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(
     name := "Silk Plugins RDF",
     libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.7.0" % "test",
-    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.3"
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
@@ -177,7 +177,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.13.5",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -207,7 +207,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4",
     libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.8"
   )
 
