@@ -81,8 +81,8 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.7",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.7.1",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.5",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5",
 
   // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
   // Can be removed as soon as there are newer stable versions of logback
@@ -151,7 +151,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(
     name := "Silk Plugins RDF",
     libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.7.0" % "test",
-    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.3"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
@@ -176,7 +176,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.7",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.13.5",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2"
   )
 
@@ -216,7 +216,7 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
   .settings(commonSettings: _*)
   .settings(
     name := "Persistent caching",
-    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.2"
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.3"
   )
 
 // Aggregate all plugins
