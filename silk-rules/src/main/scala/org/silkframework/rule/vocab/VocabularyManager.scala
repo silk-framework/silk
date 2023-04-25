@@ -2,9 +2,11 @@ package org.silkframework.rule.vocab
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 
+@PluginType()
 trait VocabularyManager extends AnyPlugin {
 
   def get(uri: String, project: Option[Identifier])(implicit userContext: UserContext): Option[Vocabulary]

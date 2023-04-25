@@ -53,7 +53,9 @@ class ReportsApiTest extends FlatSpec with IntegrationTestTrait with ReportsApiC
 
     // Wait until first task is being executed
     eventually {
-      activity.value().report.taskReports must not be empty
+      val taskReports = activity.value().report.taskReports
+      taskReports must not be empty
+      taskReports.head.report.task.data.asInstanceOf[TestCustomTask].reportHolder must not be null
     }
 
     // Check the initial execution report

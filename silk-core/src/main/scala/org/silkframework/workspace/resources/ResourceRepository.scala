@@ -1,12 +1,14 @@
 package org.silkframework.workspace.resources
 
 import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 
 /**
   * Holds resources for projects.
   */
+@PluginType()
 trait ResourceRepository extends AnyPlugin {
 
   /**

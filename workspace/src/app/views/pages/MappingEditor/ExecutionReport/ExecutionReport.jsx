@@ -150,9 +150,8 @@ export default class ExecutionReport extends React.Component {
         return (
             <div className="silk-report-warning">
                 {messages.map((warning, idx) => (
-                    <>
+                    <div key={idx}>
                         <Notification
-                            key={idx}
                             neutral={notificationState === "neutral"}
                             info={notificationState === "info"}
                             success={notificationState === "success"}
@@ -162,7 +161,7 @@ export default class ExecutionReport extends React.Component {
                             {warning}
                         </Notification>
                         <Spacing size="tiny" />
-                    </>
+                    </div>
                 ))}
             </div>
         );
@@ -245,9 +244,9 @@ export default class ExecutionReport extends React.Component {
         );
     }
 
-    renderRuleError(ruleError) {
+    renderRuleError(ruleError, idx) {
         return (
-            <TableRow>
+            <TableRow key={idx}>
                 <TableCell>
                     <HtmlContentBlock linebreakForced className="silk-report-errors-value">
                         {ruleError.entity}
