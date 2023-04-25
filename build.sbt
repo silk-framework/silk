@@ -117,7 +117,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.2"
   )
@@ -159,7 +159,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
-    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.8.3",
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.9.1",
     libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.4.0"
   )
 
@@ -168,7 +168,7 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins XML",
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.8.0-6"
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "11.5"
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
