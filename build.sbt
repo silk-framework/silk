@@ -72,11 +72,11 @@ lazy val commonSettings = Seq(
   (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.4" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
-  libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
-  libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
+  libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % "test",
+  libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
@@ -358,7 +358,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))

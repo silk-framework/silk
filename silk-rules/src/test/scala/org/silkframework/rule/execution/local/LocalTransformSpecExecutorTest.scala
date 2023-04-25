@@ -1,6 +1,5 @@
 package org.silkframework.rule.execution.local
 
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity._
@@ -9,6 +8,7 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.util.MockitoSugar
 
 class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
 

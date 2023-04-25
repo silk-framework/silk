@@ -2,7 +2,6 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -15,7 +14,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.TestMocks
+import org.silkframework.util.{MockitoSugar, TestMocks}
 
 class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with MockitoSugar {
   behavior of "Local SPARQL Update Executor"

@@ -1,23 +1,22 @@
 package org.silkframework.plugins.dataset.rdf
 
-  import java.io.File
-
-  import org.scalatest.mock.MockitoSugar
   import org.scalatest.{FlatSpec, MustMatchers}
   import org.silkframework.config.{PlainTask, Prefixes}
   import org.silkframework.dataset.DatasetSpec
   import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
   import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
-  import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
+  import org.silkframework.execution.ExecutorOutput
   import org.silkframework.execution.local.LocalExecution
   import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
   import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
   import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
-  import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
+  import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
   import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
-  import org.silkframework.util.TestMocks
-  import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
+  import org.silkframework.util.{MockitoSugar, TestMocks}
   import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
+  import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
+
+  import java.io.File
 
   class LocalSparqlCopyOperatorTest extends FlatSpec with MustMatchers with MockitoSugar with SingleProjectWorkspaceProviderTestTrait  {
     behavior of "Local SPARQL Copy Executor"
