@@ -6,10 +6,11 @@ interface TableTreeProps {
     toggleTableExpansion: () => void;
     nodes: Array<TreeNodeInfo>;
     treeIsExpanded: boolean;
+    columnWidths?: string[];
 }
 
 const TableTree: React.FC<TableTreeProps> = React.memo(
-    ({ nodes = [], toggleTableExpansion, treeIsExpanded }: TableTreeProps) => {
+    ({ nodes = [], toggleTableExpansion, treeIsExpanded, columnWidths }: TableTreeProps) => {
         const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(treeIsExpanded);
         React.useEffect(() => {
             setRowIsExpanded(treeIsExpanded);
@@ -21,7 +22,7 @@ const TableTree: React.FC<TableTreeProps> = React.memo(
         }, []);
 
         return (
-            <Table size="small" columnWidths={["30px", "40%", "40%", "7rem", "9rem"]} hasDivider={false} colorless>
+            <Table size="small" columnWidths={columnWidths} hasDivider={false} colorless>
                 <TableBody>
                     <TableRow>
                         <TableCell style={{ paddingLeft: "0", paddingRight: "0" }}>
