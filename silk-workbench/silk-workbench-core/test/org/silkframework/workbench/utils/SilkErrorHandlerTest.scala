@@ -2,7 +2,7 @@ package org.silkframework.workbench.utils
 
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+import org.silkframework.util.MockitoSugar
 import play.api.http.MediaRange
 import play.api.mvc.RequestHeader
 

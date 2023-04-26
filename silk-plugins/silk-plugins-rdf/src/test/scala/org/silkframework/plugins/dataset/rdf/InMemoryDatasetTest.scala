@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.Resource
@@ -8,6 +7,7 @@ import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.MockitoSugar
 
 /**
   *
