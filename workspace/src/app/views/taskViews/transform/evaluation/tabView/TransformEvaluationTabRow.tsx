@@ -134,7 +134,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
                         {multipleTrees.map((tree) => (
                             <TableTree
-                                columnWidths={["2rem", "auto"]}
+                                columnWidths={["30px", "40%"]}
                                 treeIsExpanded={!!treeExpansionMap.get(tree.id as string)}
                                 key={tree.id}
                                 nodes={[tree]}
