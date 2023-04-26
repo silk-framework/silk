@@ -1,18 +1,15 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
-import org.silkframework.runtime.resource.EmptyResourceManager
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, MockitoSugar}
 import org.silkframework.workspace.activity.workflow.WorkflowTest._
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectConfig, ProjectTask, Workspace, WorkspaceProviderTestTrait}
+import org.silkframework.workspace._
 
 class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers with TestUserContextTrait {
   behavior of "Workflow"

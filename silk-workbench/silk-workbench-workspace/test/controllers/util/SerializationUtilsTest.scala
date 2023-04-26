@@ -3,12 +3,12 @@ package controllers.util
 import controllers.util.SerializationUtilsTest._
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config.MetaData
 import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonFormat
+import org.silkframework.util.MockitoSugar
 import org.silkframework.workspace.{Project, ProjectConfig}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc.{AnyContent, AnyContentAsJson, Request}
