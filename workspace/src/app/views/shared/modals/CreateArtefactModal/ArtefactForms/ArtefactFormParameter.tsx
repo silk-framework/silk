@@ -24,8 +24,10 @@ interface Props {
     label: string;
     // If required "(required)" will be placed next to the label
     required?: boolean;
-    // Error message that will be displayed below the input component
-    errorMessage?: string;
+    /** Error or info message that will be displayed below the input component. This is usually an error message. */
+    infoMessage?: string;
+    /** If the info message should be displayed with "danger" intent. Default: true */
+    infoMessageDanger?: boolean;
     /** Factory to create the input element
      *
      * @param initialValueReplace If defined, the value the element should be initialized with instead of the starting initial value.
@@ -65,7 +67,9 @@ export const ArtefactFormParameter = ({
     parameterId,
     label,
     required = false,
-    errorMessage,
+    infoMessage,
+    // Default is that the info message is an error
+    infoMessageDanger = true,
     inputElementFactory,
     helperText,
     disabled = false,
@@ -148,7 +152,7 @@ export const ArtefactFormParameter = ({
         if (showRareElementState.current.timeout != null) {
             clearTimeout(showRareElementState.current.timeout);
         }
-        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 50);
+        showRareElementState.current.timeout = window.setTimeout(() => setShowRareActions(true), 150);
     }, []);
     const onMouseOut: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
         if (showRareElementState.current.timeout != null) {
@@ -168,8 +172,8 @@ export const ArtefactFormParameter = ({
                 htmlFor: parameterId,
                 tooltip: tooltip,
             }}
-            hasStateDanger={!!errorMessage || !!validationError}
-            messageText={errorMessage || validationError || templateInfoMessage}
+            hasStateDanger={infoMessageDanger || !!validationError}
+            messageText={infoMessage || validationError || templateInfoMessage}
             disabled={disabled}
             helperText={helperText}
         >
@@ -177,8 +181,15 @@ export const ArtefactFormParameter = ({
                 onMouseOver={showVariableTemplateInput ? undefined : onMouseOver}
                 onMouseOut={showVariableTemplateInput ? undefined : onMouseOut}
                 style={{ alignItems: "flex-start" }}
+                noWrap
             >
-                <ToolbarSection canGrow={true} style={{ alignSelf: "center" }}>
+                <ToolbarSection
+                    canGrow
+                    style={{
+                        alignSelf: "center",
+                        maxWidth: showVariableTemplateInput ? "calc(100% - 3.5px - 32px)" : "auto", // set full width minus tiny spacing and icon button width
+                    }}
+                >
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             parameterId={parameterId}

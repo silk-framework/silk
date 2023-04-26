@@ -12,7 +12,7 @@ import org.silkframework.util.Uri
 )
 case class ConstantUriTransformer(
   @Param("The constant URI to be generated")
-  value: Uri = Uri("owl:Class")) extends Transformer {
+  value: Uri = Uri("http://www.w3.org/2002/07/owl#Class")) extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     Seq(value.toString)

@@ -22,13 +22,11 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers wi
       targetEqual("http://t1", "t1")
     )
     convert(notSatisfiable, sourceOrTarget = true).get.serialize mustBe
-      """?a <http://p1> ?var_pref_0_0_Value .
-        |
-        |FILTER (((STR(?var_pref_0_0_Value) = "p1")))""".stripMargin
+        "?a <http://p1> ?var_pref_0_0_Value .\n\n" +
+        "FILTER (((STR(?var_pref_0_0_Value) = \"p1\")))"
     convert(notSatisfiable, sourceOrTarget = false).get.serialize mustBe
-      """?a <http://t1> ?var_pref_1_0_Value .
-        |
-        |FILTER (((STR(?var_pref_1_0_Value) = "t1")))""".stripMargin
+        "?a <http://t1> ?var_pref_1_0_Value .\n\n" +
+        "FILTER (((STR(?var_pref_1_0_Value) = \"t1\")))"
   }
 
   it should "convert a boolean linkage rule into a SPARQL filter" in {
@@ -46,21 +44,18 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers wi
       )
     )
     convert(andOrMix, sourceOrTarget = true, removeInequalities = false).get.serialize mustBe
-        """?a <http://P1> ?var_pref_0_0_Value .
-          |?a <http://P3> ?var_pref_0_1_Value .
-          |?a <http://P2> ?var_pref_1_0_Value .
-          |
-          |FILTER (((STR(?var_pref_0_0_Value) != "P1" || STR(?var_pref_0_1_Value) != "P3") && (STR(?var_pref_1_0_Value) = "P2")))""".stripMargin
+        "?a <http://P1> ?var_pref_0_0_Value .\n" +
+        "?a <http://P3> ?var_pref_0_1_Value .\n" +
+        "?a <http://P2> ?var_pref_1_0_Value .\n\n" +
+        """FILTER (((STR(?var_pref_0_0_Value) != "P1" || STR(?var_pref_0_1_Value) != "P3") && (STR(?var_pref_1_0_Value) = "P2")))"""
     convert(andOrMix, sourceOrTarget = false, removeInequalities = false).get.serialize mustBe
-        """?a <http://T1> ?var_pref_2_0_Value .
-          |?a <http://T2> ?var_pref_2_1_Value .
-          |
-          |FILTER (((STR(?var_pref_2_0_Value) = "T1" || STR(?var_pref_2_1_Value) != "T2")))""".stripMargin
+        "?a <http://T1> ?var_pref_2_0_Value .\n" +
+         "?a <http://T2> ?var_pref_2_1_Value .\n\n" +
+         """FILTER (((STR(?var_pref_2_0_Value) = "T1" || STR(?var_pref_2_1_Value) != "T2")))"""
     // Inequalities should be removed by default
     convert(andOrMix, sourceOrTarget = true).get.serialize mustBe
-        """?a <http://P2> ?var_pref_1_0_Value .
-          |
-          |FILTER (((STR(?var_pref_1_0_Value) = "P2")))""".stripMargin
+        "?a <http://P2> ?var_pref_1_0_Value .\n\n" +
+        """FILTER (((STR(?var_pref_1_0_Value) = "P2")))"""
     // There will be nothing left for andOrMix when all inequalities are filtered out
     convert(andOrMix, sourceOrTarget = false) mustBe empty
   }

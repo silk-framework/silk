@@ -141,17 +141,23 @@ ul.ecc-hierarchical-mapping-error-list {
     .ecc-silk-mapping__treenav--item-handler {
         flex-grow: 1;
         flex-shrink: 1;
-        padding: $ecc-size-block-whitespace * 0.25 $ecc-size-block-whitespace * 0.5;
+        padding: $ecc-size-block-whitespace * 0.25 0;
         @include typo-body-1();
         cursor: pointer;
         border: none;
         text-align: left;
         background-color: transparent;
         outline: none;
+        max-width: calc(100% - $button-height);
 
         &:hover,
         &:focus {
             background-color: $button-hover-color;
+        }
+
+        & .material-icons {
+            margin-right: $ecc-size-block-whitespace * 0.25;
+            vertical-align: text-bottom;
         }
     }
 

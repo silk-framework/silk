@@ -1,10 +1,12 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.runtime.activity.{Activity, HasValue}
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.workspace.Project
 
 import scala.reflect.ClassTag
 
+@PluginType()
 abstract class ProjectActivityFactory[ActivityType <: HasValue : ClassTag]
   extends WorkspaceActivityFactory with (Project => Activity[ActivityType#ValueType]) {
 

@@ -15,8 +15,9 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
 import org.silkframework.rule.similarity.{SimilarityScore, SimpleAggregator, WeightedSimilarityScore}
-import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.math._
 

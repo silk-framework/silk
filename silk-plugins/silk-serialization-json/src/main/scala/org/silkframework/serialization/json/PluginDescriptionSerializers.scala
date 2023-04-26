@@ -4,6 +4,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.exceptions.ProjectNotFoundException
 import org.silkframework.workspace.{ProjectTrait, WorkspaceReadTrait}
 import play.api.libs.json._
 
@@ -112,13 +113,16 @@ object PluginDescriptionSerializers {
           val value = param.stringDefaultValue.get
           param.autoCompletion match {
             case Some(autoCompletion) if withLabels =>
-              val label: Option[String] = if(autoCompletion.autoCompleteValueWithLabels) {
-                // No project ID/workspace available, only add label for parameters that do not need project/workspace information
+              // No depends-on parameters and workspace/project available. Only add label for parameters that do not need any of this information.
+              val label: Option[String] = if(autoCompletion.autoCompleteValueWithLabels && autoCompletion.autoCompletionDependsOnParameters.isEmpty) {
                 try {
                   autoCompletion.autoCompletionProvider.valueToLabel(value, Seq.empty, DummyWorkspaceRead)
                 } catch {
+                  case _: AutoCompletionProjectDependencyException =>
+                    // Happens when the auto-completion (provider) depends on a project.
+                    None
                   case NonFatal(ex) =>
-                    log.log(Level.WARNING, s"Could not retrieve label for default parameter value '$value'", ex)
+                    log.log(Level.WARNING, s"Could not retrieve label for default parameter value '$value' of parameter '${param.label}'.", ex)
                     None
                 }
               } else {

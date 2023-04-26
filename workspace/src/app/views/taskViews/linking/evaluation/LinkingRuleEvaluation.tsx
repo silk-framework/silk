@@ -81,12 +81,14 @@ export const LinkingRuleEvaluation = ({
                     return valueMap.get(operatorId) ?? { value: [] };
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
-                updateCallback(evaluationValues);
+                if (evaluationResultsShown) {
+                    updateCallback(evaluationValues);
+                }
             });
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
-    }, [evaluationResult]);
+    }, [evaluationResult, evaluationResultsShown]);
 
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {

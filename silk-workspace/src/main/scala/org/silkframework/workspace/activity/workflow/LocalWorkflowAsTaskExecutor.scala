@@ -24,7 +24,12 @@ class LocalWorkflowAsTaskExecutor extends Executor[Workflow, LocalExecution] {
     val workflowContext = context.asInstanceOf[ActivityContext[WorkflowExecutionReport]]
     workflowContext.value() = WorkflowExecutionReport(task)
 
-    LocalWorkflowExecutor(projectTask, clearDatasets = false).run(workflowContext)
+    LocalWorkflowExecutor(
+      projectTask,
+      clearDatasets = false,
+      replaceDataSources = execution.replaceDataSources,
+      replaceSinks = execution.replaceSinks
+    ).run(workflowContext)
 
     None
   }

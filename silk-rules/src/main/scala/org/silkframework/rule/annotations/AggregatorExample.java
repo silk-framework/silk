@@ -1,4 +1,4 @@
-package org.silkframework.runtime.plugin.annotations;
+package org.silkframework.rule.annotations;
 
 import java.lang.annotation.*;
 
@@ -22,5 +22,8 @@ public @interface AggregatorExample {
 
     // Expected output score. NaN to represent an empty score (None).
     double output();
+
+    // The full class path or empty string
+    String throwsException() default "";
 
 }

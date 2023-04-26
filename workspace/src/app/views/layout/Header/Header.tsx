@@ -1,7 +1,7 @@
-import React, {useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {useTranslation} from "react-i18next";
-import {useLocation} from "react-router-dom";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import {
     ApplicationHeader,
     ApplicationSidebarNavigation,
@@ -24,18 +24,18 @@ import {
     ToolbarSection,
     WorkspaceHeader,
 } from "@eccenca/gui-elements";
-import {commonOp, commonSel} from "@ducks/common";
-import {routerOp} from "@ducks/router";
+import { commonOp, commonSel } from "@ducks/common";
+import { routerOp } from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
-import {CreateArtefactModal} from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
-import {NotificationsMenu} from "../../shared/ApplicationNotifications/NotificationsMenu";
-import {triggerHotkeyHandler} from "../../shared/HotKeyHandler/HotKeyHandler";
-import {APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME} from "../../../constants/base";
-import {CONTEXT_PATH, SERVE_PATH} from "../../../constants/path";
-import {APP_VIEWHEADER_ID} from "../../shared/PageHeader/PageHeader";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../plugins/PluginRegistry";
-import {UserMenuFooterProps} from "../../plugins/plugin.types";
-import {ExampleProjectImportMenu} from "./ExampleProjectImportMenu";
+import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
+import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
+import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
+import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { UserMenuFooterProps } from "../../plugins/plugin.types";
+import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -74,7 +74,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const activitiesPageQueries = "?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC";
 
     return (
-        <ApplicationHeader aria-label={`${APPLICATION_NAME}${brandingSuffix}`}>
+        <ApplicationHeader aria-label={`${APPLICATION_NAME()}${brandingSuffix}`}>
             <ApplicationTitle
                 href={SERVE_PATH}
                 prefix={""}
@@ -83,7 +83,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 depiction={
                     <img
                         src={CONTEXT_PATH + "/core/logoSmall.png"}
-                        alt={`Logo: ${APPLICATION_NAME}${brandingSuffix}`}
+                        alt={`Logo: ${APPLICATION_NAME()}${brandingSuffix}`}
                     />
                 }
             >

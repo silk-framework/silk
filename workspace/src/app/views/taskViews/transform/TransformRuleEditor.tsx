@@ -26,6 +26,8 @@ export interface TransformRuleEditorProps {
     projectId: string;
     /** The task the rules are being edited of. */
     transformTaskId: string;
+    /** The container rule ID, i.e. of either the root or an object rule. */
+    containerRuleId: string;
     /** The transform rule that should be edited. This needs to be a value mapping rule. */
     ruleId: string;
     /** Generic actions and callbacks on views. */
@@ -42,6 +44,7 @@ export interface TransformRuleEditorProps {
 export const TransformRuleEditor = ({
     projectId,
     transformTaskId,
+    containerRuleId,
     ruleId,
     initialFitToViewZoomLevel,
     instanceId,
@@ -184,6 +187,7 @@ export const TransformRuleEditor = ({
         ruleUtils.inputPathOperator(
             "sourcePathInput",
             "Source path",
+            ["Source path"],
             "The value path of the input source of the transformation task.",
             inputPathAutoCompletion
         );
@@ -192,7 +196,7 @@ export const TransformRuleEditor = ({
         <TransformRuleEvaluation
             projectId={projectId}
             transformTaskId={transformTaskId}
-            ruleId={ruleId}
+            containerRuleId={containerRuleId}
             numberOfLinkToShow={5}
         >
             <RuleEditor<IComplexMappingRule, IPluginDetails>

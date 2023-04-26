@@ -2,7 +2,7 @@ package org.silkframework.plugins.spatial.relation
 
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils.{Constants, Utils}
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Negate relation (NOT)",
   description = "Computes every relation from DE-9IM between two geometries and negates its result."
 )
-case class NegateMetric(blockingParameter: Double = 1.0, relation: String = "") extends SimpleDistanceMeasure {
+case class NegateMetric(blockingParameter: Double = 1.0, relation: String = "") extends SingleValueDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.negatsRelation(str1, str2, limit, relation)
@@ -23,7 +23,7 @@ case class NegateMetric(blockingParameter: Double = 1.0, relation: String = "") 
 }
 
 object NegateMetric{
-  def apply(blockingParameter: Double, metric: SimpleDistanceMeasure): NegateMetric = {
+  def apply(blockingParameter: Double, metric: SingleValueDistanceMeasure): NegateMetric = {
     metric match{
       case contains: ContainsMetric => NegateMetric(blockingParameter = blockingParameter, relation = Constants.CONTAINS)
       case crosses: CrossesMetric => NegateMetric(blockingParameter = blockingParameter, relation = Constants.CROSSES)

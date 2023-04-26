@@ -65,6 +65,13 @@ trait ActivityControl[T] {
   def startBlockingAndGetValue(initialValue: Option[T] = None)(implicit user: UserContext): T
 
   /**
+    * Starts this activity immediately.
+    * If the activity has already been started, but is not being executed yet, it will skip the waiting queue.
+    * Prioritized activities will not take a slot in the fork join pool.
+    */
+  def startPrioritized()(implicit user: UserContext): Unit
+
+  /**
    * Requests to stop the execution of this activity.
    * There is no guarantee that the activity will stop immediately.
    * Activities need to override cancelExecution() to allow cancellation.

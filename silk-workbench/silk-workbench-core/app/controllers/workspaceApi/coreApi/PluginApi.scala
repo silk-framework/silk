@@ -9,11 +9,12 @@ import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
@@ -48,12 +49,12 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       )
     ))
   def taskPlugins(@Parameter(
-    name = "addMarkdownDocumentation",
-    description = "Add markdown documentation to the result.",
-    required = false,
-    in = ParameterIn.QUERY,
-    schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
-  )
+                    name = "addMarkdownDocumentation",
+                    description = "Add markdown documentation to the result.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                  )
                   addMarkdownDocumentation: Boolean,
                   @Parameter(
                     name = "textQuery",
@@ -70,7 +71,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String], example = "file")
                   )
-                  category: Option[String]): Action[AnyContent] = Action { implicit request =>
+                  category: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val pluginTypes = Seq(
       "org.silkframework.dataset.Dataset",
       "org.silkframework.config.CustomTask"
@@ -129,10 +130,10 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                in = ParameterIn.QUERY,
                schema = new Schema(implementation = classOf[Boolean])
              )
-             withLabels: Boolean): Action[AnyContent] = Action { implicit request =>
+             withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
-        implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+        implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext)
         var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
           taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
         val autoConfigurable = classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(pluginDesc.pluginClass)
@@ -163,7 +164,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                      in = ParameterIn.PATH,
                      schema = new Schema(implementation = classOf[String], example = "csv")
                    )
-                   pluginId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
+                   pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val usages = mutable.Buffer[JsObject]()
 
     for(project <- WorkspaceFactory().workspace.projects) {
@@ -234,7 +235,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                             required = false,
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Boolean]))
-                          inputOperatorsOnly: Option[Boolean]): Action[AnyContent] = Action { implicit request =>
+                          inputOperatorsOnly: Option[Boolean]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val inputOperatorBase = Seq(
       "org.silkframework.rule.input.Transformer"
     )
@@ -260,7 +261,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                            textQuery: Option[String],
                            category: Option[String],
                            overviewOnly: Boolean)
-                          (implicit request: Request[AnyContent]): Result = {
+                          (implicit request: Request[AnyContent], user: UserContext): Result = {
     def filter(pluginDescription: PluginDescription[_]): Boolean = {
       val matchesCategory = category.forall(c => pluginDescription.categories.contains(c))
       lazy val matchesTextQuery = textQuery forall { query =>
@@ -277,7 +278,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)
     }
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+    implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = user)
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
       val withTaskType = PluginApiCache.taskType(pluginId) match {

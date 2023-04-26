@@ -63,4 +63,15 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
     multiEntityTable.subTables.size mustBe 1
     multiEntityTable.subTables.head.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
   }
+
+  it should "support the in-memory version of the JSON dataset, e.g. supporting backward paths" in {
+    val outputSchema = EntitySchema("", IndexedSeq(UntypedPath.parse("\\../rootId")).map(_.asStringTypedPath))
+    val result = executor.execute(task, Seq(inputEntities),
+      output = ExecutorOutput(None, Some(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema)))),
+      execution = LocalExecution(false)
+    )
+    result mustBe defined
+    val values = result.get.entities.flatMap(_.values).flatten
+    values mustBe Seq("1", "1")
+  }
 }

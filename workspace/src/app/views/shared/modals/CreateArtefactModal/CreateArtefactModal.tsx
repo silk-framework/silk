@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { batch, useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
@@ -26,7 +26,7 @@ import {
 } from "@eccenca/gui-elements";
 import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactModal, IPluginDetails, IPluginOverview } from "@ducks/common/typings";
+import { IArtefactModal, IPluginDetails, IPluginOverview, IProjectTaskUpdatePayload } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
@@ -90,7 +90,8 @@ export function CreateArtefactModal() {
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
-    const [toBeAdded, setToBeAdded] = useState<IPluginOverview | undefined>(selectedArtefactFromStore);
+    const toBeAdded = useRef<IPluginOverview | undefined>(selectedArtefactFromStore);
+    const toBeAddedKey = useRef<string | undefined>(selectedArtefactFromStore?.key);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const [autoConfigPending, setAutoConfigPending] = useState(false);
@@ -102,8 +103,6 @@ export function CreateArtefactModal() {
     const selectedArtefact: IPluginOverview | undefined = updateTaskPluginDetails ?? selectedArtefactFromStore;
     const selectedArtefactKey: string | undefined = selectedArtefactFromStore?.key;
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
-
-    const toBeAddedKey: string | undefined = toBeAdded?.key;
     const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
     const [formValueChanges, setFormValueChanges] = React.useState<{
@@ -121,6 +120,10 @@ export function CreateArtefactModal() {
     const templateParameters = React.useRef(new Set<string>());
     const NOTIFICATION_ID = "create-update-dialog";
 
+    const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
+        toBeAdded.current = plugin;
+        toBeAddedKey.current = plugin?.key;
+    }, []);
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
             const timeoutId = setTimeout(() => {
@@ -204,10 +207,10 @@ export function CreateArtefactModal() {
     }, [isOpen]);
 
     const handleAdd = () => {
-        if (toBeAddedKey === DATA_TYPES.PROJECT) {
-            return dispatch(commonOp.selectArtefact(toBeAdded));
-        } else if (toBeAdded) {
-            dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded));
+        if (toBeAddedKey.current === DATA_TYPES.PROJECT) {
+            return dispatch(commonOp.selectArtefact(toBeAdded.current));
+        } else if (toBeAdded.current) {
+            dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded.current));
         } else {
             console.error("No item plugin selected, cannot add new item!");
         }
@@ -248,7 +251,7 @@ export function CreateArtefactModal() {
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
     const handleArtefactSelect = (artefact: IPluginOverview) => {
         if (
-            toBeAddedKey === artefact.key &&
+            toBeAddedKey.current === artefact.key &&
             lastSelectedClick &&
             Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
         ) {
@@ -266,7 +269,7 @@ export function CreateArtefactModal() {
     };
 
     const handleEnter = (e) => {
-        if (e.key === "Enter" && toBeAdded) {
+        if (e.key === "Enter" && toBeAdded.current) {
             handleAdd();
         }
     };
@@ -310,6 +313,7 @@ export function CreateArtefactModal() {
                     await dispatch(
                         commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current)
                     );
+                    setSearchValue("");
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -322,7 +326,6 @@ export function CreateArtefactModal() {
                 }
             }
         } finally {
-            setSearchValue("");
             setActionLoading(false);
         }
     };
@@ -669,6 +672,46 @@ export function CreateArtefactModal() {
         );
     }
 
+    const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
+    const notifications: JSX.Element[] = [];
+
+    if (!!error.detail || !!error.errorMessage) {
+        notifications.push(
+            <Notification
+                message={
+                    error.errorMessage ||
+                    t("common.messages.actionFailed", {
+                        action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
+                        error: error.detail.replace(/^(assertion failed: )/, ""),
+                    })
+                }
+                danger
+            />
+        );
+    }
+
+    if (infoMessage) {
+        notifications.push(<Notification message={infoMessage.message} />);
+    }
+
+    if (projectArtefactSelected) {
+        notifications.push(
+            <Notification
+                message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
+                actions={[
+                    <Button
+                        data-test-id="project-import-link"
+                        key="importProject"
+                        onClick={switchToProjectImport}
+                        href="#import-project"
+                    >
+                        {t("ProjectImportModal.restoreStarter", "Import project file")}
+                    </Button>,
+                ]}
+            />
+        );
+    }
+
     const createDialog = (
         <SimpleDialog
             size="large"
@@ -677,7 +720,9 @@ export function CreateArtefactModal() {
             title={
                 updateExistingTask
                     ? t("CreateModal.updateTitle", {
-                          type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
+                          type: `'${updateModalTitle(updateExistingTask)}' (${
+                              updateExistingTask.taskPluginDetails.title
+                          })`,
                       })
                     : selectedArtefactTitle
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
@@ -720,7 +765,7 @@ export function CreateArtefactModal() {
                             key="add"
                             affirmative={true}
                             onClick={handleAdd}
-                            disabled={!toBeAddedKey}
+                            disabled={!toBeAddedKey.current}
                             data-test-id={"item-add-btn"}
                         >
                             {t("common.action.add")}
@@ -732,36 +777,7 @@ export function CreateArtefactModal() {
                     ]
                 )
             }
-            notifications={
-                ((!!error.detail || !!error.errorMessage) && (
-                    <Notification
-                        message={
-                            error.errorMessage ||
-                            t("common.messages.actionFailed", {
-                                action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
-                                error: error.detail.replace(/^(assertion failed: )/, ""),
-                            })
-                        }
-                        danger
-                    />
-                )) ||
-                (infoMessage && <Notification message={infoMessage.message} />) ||
-                (projectArtefactSelected && (
-                    <Notification
-                        message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
-                        actions={[
-                            <Button
-                                data-test-id="project-import-link"
-                                key="importProject"
-                                onClick={switchToProjectImport}
-                                href="#import-project"
-                            >
-                                {t("ProjectImportModal.restoreStarter", "Import project file")}
-                            </Button>,
-                        ]}
-                    />
-                ))
-            }
+            notifications={notifications}
         >
             {
                 <>
@@ -774,7 +790,12 @@ export function CreateArtefactModal() {
                                     <ArtefactTypesList onSelect={handleSelectDType} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar textQuery={searchValue} focusOnCreation={true} onSearch={handleSearch} />
+                                    <SearchBar
+                                        textQuery={searchValue}
+                                        focusOnCreation={true}
+                                        onSearch={handleSearch}
+                                        onEnter={handleAdd}
+                                    />
                                     <Spacing />
                                     {loading ? (
                                         <Loading
@@ -797,7 +818,7 @@ export function CreateArtefactModal() {
                                                         isOnlyLayout
                                                         key={artefact.key}
                                                         className={
-                                                            toBeAddedKey === artefact.key
+                                                            toBeAddedKey.current === artefact.key
                                                                 ? HelperClasses.Intent.ACCENT
                                                                 : ""
                                                         }

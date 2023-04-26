@@ -18,6 +18,7 @@ import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.validation.ValidationIssue
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.annotation.UiAnnotations
 
@@ -64,6 +65,15 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
       case Some(op) => op.index(entity, sourceOrTarget, limit)
       case None => Index.empty
     }
+  }
+
+  /**
+    * Validates this rule.
+    * This should cover non-fatal issues that should be fixed by the user after rule creation.
+    * Issues that lead to an inconsistent and unusable rule should not be checked here, but instead throw an exception in the constructor.
+    */
+  def validate(): Seq[ValidationIssue] = {
+    operator.toSeq.flatMap(_.validate())
   }
 }
 

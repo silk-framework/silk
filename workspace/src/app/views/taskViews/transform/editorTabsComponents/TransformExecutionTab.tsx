@@ -1,4 +1,4 @@
-import { Card, Grid, GridColumn, GridRow, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
+import { Divider, Grid, GridColumn, GridRow, Button, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -34,39 +34,52 @@ const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
     }, [projectId, taskId]);
 
     return (
-        <Grid fullWidth>
-            <GridRow>
-                <OverviewItem hasSpacing>
-                    <Spacing size="small" vertical />
-                    <Card>
-                        <TaskActivityWidget
-                            projectId={projectId}
-                            taskId={taskId}
-                            activityName="ExecuteTransform"
-                            registerToReceiveUpdates={handleReceivedUpdates}
-                            label="Execute Transform"
+        <div>
+            <Grid>
+                <GridRow>
+                    <GridColumn>
+                        <Toolbar noWrap>
+                            <ToolbarSection canGrow canShrink />
+                            <ToolbarSection canShrink>
+                                <TaskActivityWidget
+                                    projectId={projectId}
+                                    taskId={taskId}
+                                    activityName="ExecuteTransform"
+                                    registerToReceiveUpdates={handleReceivedUpdates}
+                                    label="Execute Transform"
+                                    layoutConfig={{
+                                        border: true,
+                                        small: true,
+                                        hasSpacing: true,
+                                        canShrink: true,
+                                    }}
+                                />
+                            </ToolbarSection>
+                            <ToolbarSection>
+                                <Spacing vertical size="small" />
+                                <Button
+                                    text={t("common.action.download")}
+                                    tooltip={taskDownloadInfo?.info || undefined}
+                                    disabled={!taskDownloadInfo?.downloadSupported}
+                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
+                                />
+                            </ToolbarSection>
+                        </Toolbar>
+                        <Divider addSpacing="small" />
+                        <Spacing size="small" />
+                    </GridColumn>
+                </GridRow>
+                <GridRow>
+                    <GridColumn>
+                        <TransformExecutionReport
+                            project={projectId}
+                            task={taskId}
+                            updateCounter={executionUpdateCounter}
                         />
-                    </Card>
-                    <Spacing size="tiny" vertical />
-                    <IconButton
-                        name="item-download"
-                        text={taskDownloadInfo?.info || t("common.action.download")}
-                        disabled={!taskDownloadInfo?.downloadSupported}
-                        href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
-                    />
-                </OverviewItem>
-            </GridRow>
-            <Spacing size="tiny" vertical />
-            <GridRow>
-                <GridColumn full>
-                    <TransformExecutionReport
-                        project={projectId}
-                        task={taskId}
-                        updateCounter={executionUpdateCounter}
-                    />
-                </GridColumn>
-            </GridRow>
-        </Grid>
+                    </GridColumn>
+                </GridRow>
+            </Grid>
+        </div>
     );
 };
 

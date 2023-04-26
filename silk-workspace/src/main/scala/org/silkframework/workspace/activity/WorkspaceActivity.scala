@@ -1,14 +1,14 @@
 package org.silkframework.workspace.activity
 
-import java.time.Instant
-import java.util.logging.Logger
-import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{ObservableMirror, _}
+import org.silkframework.config.{DefaultConfig, TaskSpec}
+import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext}
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import java.time.Instant
+import java.util.logging.Logger
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -187,6 +187,13 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     val value = control.value()
     removeActivityInstance(id)
     value
+  }
+
+  /**
+    * Starts the current activity instance prioritized.
+    */
+  final def startPrioritized()(implicit user: UserContext): Unit = {
+    currentInstance.startPrioritized()
   }
 
   /**

@@ -65,19 +65,21 @@ const extractOperatorNodeFromTransformInput = (
     const inputs = transformInput.inputs.map((input) =>
         extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator)
     );
+    const op = ruleOperator(transformInput.function, "TransformOperator");
     result.push({
         nodeId: transformInput.id,
         inputs: inputs,
         pluginType: "TransformOperator",
         pluginId: transformInput.function,
-        label: ruleOperator(transformInput.function, "TransformOperator")?.label ?? transformInput.function,
+        label: op?.label ?? transformInput.function,
         parameters: transformInput.parameters,
         portSpecification: {
             minInputPorts: 1,
         },
         tags: ["Transform"],
-        description: ruleOperator(transformInput.function, "TransformOperator")?.description,
+        description: op?.description,
         inputsCanBeSwitched: false,
+        markdownDocumentation: op?.markdownDocumentation,
     });
     return transformInput.id;
 };
@@ -138,6 +140,7 @@ const customInputPathRenderer = (
 const inputPathOperator = (
     pluginId: string,
     label: string,
+    additionalCategories: string[],
     description?: string,
     customAutoCompletionRequest?: (
         textQuery: string,
@@ -171,7 +174,7 @@ const inputPathOperator = (
                     : undefined,
             }),
         },
-        categories: ["Input", "Recommended"],
+        categories: [...additionalCategories, "Recommended"],
         icon: undefined,
         description: description,
         tags: [],

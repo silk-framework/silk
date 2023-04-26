@@ -16,10 +16,11 @@ package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.serialization.XmlSerialization._
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.validation.ValidationIssue
 import org.silkframework.util.DPair
 
-import XmlSerialization._
 import scala.xml.Node
 
 /**
@@ -50,6 +51,15 @@ trait SimilarityOperator extends Operator {
     * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index
+
+  /**
+    * Validates this rule operator.
+    * This should cover non-fatal issues that should be fixed by the user after rule creation.
+    * Issues that lead to an inconsistent and unusable rule should not be checked here, but instead throw an exception in the constructor.
+    */
+  def validate(): Seq[ValidationIssue] = {
+    Seq.empty
+  }
 }
 
 object SimilarityOperator {

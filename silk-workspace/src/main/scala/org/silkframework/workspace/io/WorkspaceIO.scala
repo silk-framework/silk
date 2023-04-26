@@ -1,9 +1,10 @@
 package org.silkframework.workspace.io
 
-import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -45,11 +46,11 @@ object WorkspaceIO {
     if(alsoCopyResources) {
       copyResources(inputResources, outputResources)
     }
-    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
-    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
-    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
-    copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
-    copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id)
+    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
+    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
+    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
+    copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
+    copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
     outputWorkspace.refreshProject(updatedProjectConfig.id, outputResources)
   }
 
@@ -72,9 +73,11 @@ object WorkspaceIO {
                                                   outputWorkspace: WorkspaceProvider,
                                                   inputResources: ResourceManager,
                                                   outputResources: ResourceManager,
-                                                  projectName: Identifier)
+                                                  projectName: Identifier,
+                                                  prefixes: Prefixes)
                                                  (implicit userContext: UserContext): Unit = {
-    for(taskTry <- inputWorkspace.readTasks[T](projectName, inputResources)) {
+    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext)
+    for(taskTry <- inputWorkspace.readTasks[T](projectName)) {
       taskTry.taskOrError match {
         case Right(task) =>
           outputWorkspace.putTask(projectName, task, inputResources)

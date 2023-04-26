@@ -86,9 +86,10 @@ const extractSimilarityOperatorNode = (
                   weight: operator.weight.toString(),
               };
 
+        const op = ruleOperator(pluginId, pluginType);
         result.push({
             nodeId: operator.id,
-            label: ruleOperator(pluginId, pluginType)?.label ?? pluginId,
+            label: op?.label ?? pluginId,
             pluginType,
             pluginId,
             inputs,
@@ -101,8 +102,9 @@ const extractSimilarityOperatorNode = (
                 maxInputPorts: isComparison ? 2 : undefined,
             },
             tags: [operator.type],
-            description: ruleOperator(pluginId, pluginType)?.description,
+            description: op?.description,
             inputsCanBeSwitched,
+            markdownDocumentation: op?.markdownDocumentation,
         });
         return operator.id;
     }

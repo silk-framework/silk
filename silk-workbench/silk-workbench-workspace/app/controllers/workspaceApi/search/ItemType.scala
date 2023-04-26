@@ -60,8 +60,7 @@ object ItemType {
         ItemLink("evaluate", "Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
       )
       case ItemType.linking => Seq(
-        ItemLink("evaluate", "Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
-        ItemLink("referenceLinks", "Reference links", s"$context/linking/$projectId/$itemId/referenceLinks")
+        ItemLink("referenceLinks", "Reference links", s"$context/linking/$projectId/$itemId/referenceLinks"),
       )
       case ItemType.workflow if !WorkbenchConfig().tabs.legacyWorkflowEditor => Seq(
       )

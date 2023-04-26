@@ -13,6 +13,7 @@ import { EvaluationResultType } from "../LinkingRuleEvaluation";
 
 import {
     ConfidenceValue,
+    Divider,
     Highlighter,
     IconButton,
     InteractionGate,
@@ -417,14 +418,15 @@ export const LinkingEvaluationRow = React.memo(
                                 : t("linkingEvaluationTabView.table.expandRow")
                         }
                         className="diapp-linking-evaluation__row-item"
+                        useZebraStyle={rowIdx % 2 === 1}
                     >
-                        <TableCell key={"sourceEntity"}>
+                        <TableCell key={"sourceEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
                         </TableCell>
-                        <TableCell key={"targetEntity"}>
+                        <TableCell key={"targetEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.target} searchValue={searchQuery} />
                         </TableCell>
-                        <TableCell key="confidence">
+                        <TableCell key="confidence" alignVertical="middle">
                             <ConfidenceValue value={linkingEvaluationResult.confidence} />
                         </TableCell>
                         <TableCell key="linkstate">
@@ -461,8 +463,14 @@ export const LinkingEvaluationRow = React.memo(
                             colorless
                         >
                             <TableBody>
+                                <TableRow style={{ height: "1px" }}>
+                                    <TableCell style={{ padding: "0" }}></TableCell>
+                                    <TableCell colSpan={4} style={{ paddingTop: "0" }}>
+                                        <Divider width="half" alignment="center" />
+                                    </TableCell>
+                                </TableRow>
                                 <TableRow>
-                                    <TableCell style={{ paddingLeft: "0", paddingRight: "0" }}>
+                                    <TableCell style={{ padding: "0" }}>
                                         <IconButton
                                             data-test-id="input-table-expand-btn"
                                             id={`input-table-${inputValueTableExpanded ? "expanded" : "collapsed"}`}
@@ -470,7 +478,7 @@ export const LinkingEvaluationRow = React.memo(
                                             name={!inputValueTableExpanded ? "toggler-caretright" : "toggler-caretdown"}
                                         />
                                     </TableCell>
-                                    <TableCell style={{ verticalAlign: "middle" }}>
+                                    <TableCell alignVertical="middle">
                                         {!inputValueTableExpanded && (
                                             <OverflowText>
                                                 {t("linkingEvaluationTabView.table.infoCollapsedInputValue")}

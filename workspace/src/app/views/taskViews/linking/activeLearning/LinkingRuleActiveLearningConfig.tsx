@@ -147,7 +147,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         suggestions: suggestions,
                     };
                 });
-                if (suggestions.length > 0) {
+                if (suggestions.length > 0 || comparisonPairs.finished) {
                     setLoadingSuggestions(false);
                 }
             }, 5);
@@ -389,7 +389,10 @@ const SuggestedPathSelection = ({
     const [t] = useTranslation();
     const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
     return (
-        <ComparisonDataRow className="diapp-linking-learningdata__row-body" data-test-id={"suggested-comparison-pair-row"}>
+        <ComparisonDataRow
+            className="diapp-linking-learningdata__row-body"
+            data-test-id={"suggested-comparison-pair-row"}
+        >
             <SelectedProperty
                 property={pair.source}
                 exampleValues={pair.sourceExamples}
@@ -481,9 +484,9 @@ const SuggestionWidget = ({
         if (!showInfo && suggestions.length === 0) {
             setShowInfo(true);
         }
-        if(pathFilter.current) {
+        if (pathFilter.current) {
             // Suggestions have changed, update filtered suggestions
-            filterSuggestions(pathFilter.current.path, pathFilter.current.isTarget)
+            filterSuggestions(pathFilter.current.path, pathFilter.current.isTarget);
         }
     }, [suggestions]);
 

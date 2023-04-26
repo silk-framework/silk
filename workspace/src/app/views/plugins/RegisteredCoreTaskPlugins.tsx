@@ -36,6 +36,14 @@ export const registerCorePlugins = () => {
         });
 
         pluginRegistry.registerTaskView("linking", {
+            id: "linkingEvaluation",
+            label: "Linking evaluation",
+            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+                return <LinkingEvaluationTabView projectId={projectId} linkingTaskId={taskId} />;
+            },
+        });
+
+        pluginRegistry.registerTaskView("linking", {
             id: "LinkingExecution",
             label: "Linking execution",
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
@@ -63,13 +71,6 @@ export const registerCorePlugins = () => {
             },
         });
 
-        pluginRegistry.registerTaskView("linking", {
-            id: "linkingEvaluation",
-            label: "linking evaluation (new)",
-            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
-                return <LinkingEvaluationTabView projectId={projectId} linkingTaskId={taskId} />;
-            },
-        });
         pluginRegistry.registerTaskView("transform", {
             id: "TransformExecution",
             label: "Transform execution",

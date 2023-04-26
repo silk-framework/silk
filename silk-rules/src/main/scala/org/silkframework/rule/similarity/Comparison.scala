@@ -20,7 +20,7 @@ import org.silkframework.rule.input.Input
 import org.silkframework.rule.similarity.Comparison.distanceToScore
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{ValidationException, ValidationIssue, ValidationWarning}
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.util.Try
@@ -38,7 +38,6 @@ case class Comparison(id: Identifier = Operator.generateId,
                       inputs: DPair[Input]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
-  require(threshold >= 0.0, "threshold >= 0.0")
 
   private val sourceInput = inputs.source
   private val targetInput = inputs.target
@@ -90,9 +89,15 @@ case class Comparison(id: Identifier = Operator.generateId,
     metric.index(values, distanceLimit, sourceOrTarget)
   }
 
-  override def children = inputs.toSeq
+  override def validate(): Seq[ValidationIssue] = {
+    for(message <- metric.validateThreshold(threshold).toSeq) yield {
+      ValidationWarning(message, Some(id), Some("Comparison"))
+    }
+  }
 
-  override def withChildren(newChildren: Seq[Operator]) = {
+  override def children: Seq[Input] = inputs.toSeq
+
+  override def withChildren(newChildren: Seq[Operator]): Comparison = {
     copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
   }
 }

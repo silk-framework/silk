@@ -16,8 +16,9 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.validation.ValidationException
 
 import java.time.{Instant, LocalDate, ZoneOffset, ZonedDateTime}

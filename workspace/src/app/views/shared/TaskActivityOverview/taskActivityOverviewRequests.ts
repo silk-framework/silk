@@ -3,7 +3,10 @@ import { fetch } from "../../../services/fetch/fetch";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { IActivityListEntry } from "./taskActivityOverviewTypings";
 import { DIErrorTypes } from "@ducks/error/typings";
-import { ActivityAction, IActivityExecutionReport } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+import {
+    ActivityAction,
+    IActivityExecutionReport,
+} from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
 
 /** Fetch available activities for the workspace, project or task with optional infos, e.g. characteristics. */
 export const fetchActivityInfos = async (
@@ -42,6 +45,28 @@ export const activityActionCreator = (
             handleError(activityName, action, ex);
         }
     };
+};
+
+/** Start an activity with priority, i.e. it will skip the 'Waiting' state. */
+export const activityStartPrioritized = async (
+    activityName: string,
+    projectId: string | undefined,
+    taskId: string | undefined,
+    handleError: (activityName: string, error: DIErrorTypes) => any
+): Promise<void> => {
+    try {
+        await fetch({
+            url: legacyApiEndpoint("/activities/startPrioritized"),
+            method: "POST",
+            query: {
+                project: projectId,
+                task: taskId,
+                activity: activityName,
+            },
+        });
+    } catch (ex) {
+        handleError(activityName, ex);
+    }
 };
 
 /** Fetches the activity error report if available. */

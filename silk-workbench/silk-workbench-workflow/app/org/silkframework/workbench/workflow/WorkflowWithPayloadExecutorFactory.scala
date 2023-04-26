@@ -108,7 +108,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
     val missingDataSources = allReplaceableDatasets.dataSources.toSet.diff(dataSourceReplacementSet)
     val missingSinks = allReplaceableDatasets.sinks.toSet.diff(sinkReplacementSet)
     if(missingDataSources.nonEmpty || missingSinks.nonEmpty) {
-      val dataSourceErrorString = if(missingSinks.nonEmpty) missingSinks.mkString(" IDs of non-replaced datasets for inputs", ", ", ".") else ""
+      val dataSourceErrorString = if(missingDataSources.nonEmpty) missingDataSources.mkString(" IDs of non-replaced datasets for inputs: ", ", ", ".") else ""
       val sinkErrorString = if(missingSinks.nonEmpty) missingSinks.mkString(" IDs of non-replaced datasets for outputs: ", ", ", ".") else ""
       throw new IllegalArgumentException(s"Not all replaceable datasets in the workflow are replaced by the request payload!$dataSourceErrorString$sinkErrorString")
     }

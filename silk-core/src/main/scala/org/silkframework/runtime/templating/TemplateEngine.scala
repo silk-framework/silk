@@ -2,12 +2,14 @@ package org.silkframework.runtime.templating
 
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.annotations.PluginType
 
 import java.io.Writer
 
 /**
   * A template engine that supports compiling template strings.
   */
+@PluginType()
 trait TemplateEngine extends AnyPlugin {
 
   def compile(templateString: String): CompiledTemplate

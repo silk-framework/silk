@@ -28,7 +28,8 @@ case class InMemoryExecutionReportManager(retentionTime: Duration = ExecutionRep
     }
   }
 
-  override def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport] = synchronized {
+  override def retrieveReport(reportId: ReportIdentifier)
+                             (implicit pluginContext: PluginContext): ActivityExecutionResult[ExecutionReport] = synchronized {
     reports(reportId)
   }
 

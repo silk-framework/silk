@@ -55,6 +55,11 @@ While running, the progress is tracked by the *progress* field (0 to 100 percent
       }
     """
 
+  final val startPrioritizedDoc =
+"""Starts this activity immediately.
+If the activity has already been started, but is not being executed yet, it will skip the waiting queue.
+Prioritized activities will not take a slot in the fork join pool. The call returns immediately without waiting for the activity to complete."""
+
   final val activityErrorReportJsonExample =
   """
 {

@@ -17,7 +17,9 @@ import scala.collection.mutable
   * @param useLocalInternalDatasets If set to true the LocalExecution object will maintain an own map of internal
   *                                 datasets, instead of using the global ones.
   */
-case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionType {
+case class LocalExecution(useLocalInternalDatasets: Boolean,
+                          replaceDataSources: Map[String, Dataset] = Map.empty,
+                          replaceSinks: Map[String, Dataset] = Map.empty) extends ExecutionType {
 
   type DataType = LocalEntities
 

@@ -14,22 +14,24 @@
 
 package org.silkframework.rule.plugins.distance.characterbased
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "jaro",
   categories = Array("Characterbased"),
   label = "Jaro distance",
-  description = "String similarity based on the Jaro distance metric."
+  description = "Matches strings based on the Jaro distance metric.",
+  documentationFile = "JaroDistanceMetric.md"
 )
-case class JaroDistanceMetric() extends SimpleDistanceMeasure {
-  override def evaluate(str1: String, str2: String, threshold: Double) = {
-    JaroDinstanceMetric.jaro(str1, str2)
+case class JaroDistanceMetric() extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
+
+  override def evaluate(str1: String, str2: String, threshold: Double): Double = {
+    JaroDistanceMetric.jaro(str1, str2)
   }
 }
 
-object JaroDinstanceMetric {
+object JaroDistanceMetric {
   def jaro(string1: String, string2: String): Double = {
     //get half the length of the string rounded up - (this is the distance used for acceptable transpositions)
     val halflen: Int = ((math.min(string1.length, string2.length)) / 2) + ((math.min(string1.length, string2.length)) % 2)

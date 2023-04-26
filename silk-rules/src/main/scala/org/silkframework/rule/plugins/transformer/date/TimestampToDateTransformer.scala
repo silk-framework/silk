@@ -16,10 +16,11 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.text.SimpleDateFormat
 import java.util.Date
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import java.time.Instant
 

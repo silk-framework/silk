@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.plugins.distance.asian
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.math.abs
@@ -25,7 +25,7 @@ import scala.math.abs
   label = "Korean translit distance",
   description = "Transliterated Korean distance."
 )
-case class KoreanTranslitDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+case class KoreanTranslitDistance(minChar: Char = '0', maxChar: Char = 'z') extends SingleValueDistanceMeasure {
 
   private val q = 1
 

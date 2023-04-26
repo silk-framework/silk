@@ -10,7 +10,10 @@ import AppliedFacets from "../Workspace/AppliedFacets";
 import Pagination from "../../shared/Pagination";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { connectWebSocket } from "../../../services/websocketUtils";
-import { activityActionCreator } from "../../../views/shared/TaskActivityOverview/taskActivityOverviewRequests";
+import {
+    activityActionCreator,
+    activityStartPrioritized,
+} from "../../../views/shared/TaskActivityOverview/taskActivityOverviewRequests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { activityErrorReportFactory } from "../../../views/shared/TaskActivityOverview/taskActivityUtils";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -18,6 +21,8 @@ import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
 import { SERVE_PATH } from "../../../constants/path";
+import { ActivityControlTranslationKeys } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+import { DIErrorTypes } from "@ducks/error/typings";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -61,7 +66,7 @@ const ActivityList = () => {
     const isEmpty = !isLoading && !data.length;
 
     const translateActions = React.useCallback(
-        (key: string) => t("widget.TaskActivityOverview.activityControl." + key),
+        (key: ActivityControlTranslationKeys) => t("widget.TaskActivityOverview.activityControl." + key),
         [t]
     );
     const emptyListWithoutFilters: boolean = isEmpty && !textQuery && !appliedFacets.length;
@@ -107,6 +112,18 @@ const ActivityList = () => {
     const executeAction = (activityName: string, action: ActivityAction, project, task) => {
         const mainAction = activityActionCreator(activityName, project, task, () => {});
         return mainAction(action);
+    };
+
+    const registerActivityError = (action: string) => (activityName: string, error: DIErrorTypes) => {
+        registerError(
+            `ActivityList.${action}`,
+            `Activity action '${action}' against activity '${activityName}' could not be executed.`,
+            error
+        );
+    };
+
+    const startPrioritized = async (activityName: string, project?: string, task?: string) => {
+        await activityStartPrioritized(activityName, project, task, registerActivityError("Run prioritized"));
     };
 
     // Returns a function that fetches the error report for a particular activity
@@ -243,6 +260,9 @@ const ActivityList = () => {
                                         : undefined
                                 }
                                 translate={translateActions}
+                                executePrioritized={() =>
+                                    startPrioritized(activity.id, activity.project, activity.task)
+                                }
                             />
                         </Card>
                     );

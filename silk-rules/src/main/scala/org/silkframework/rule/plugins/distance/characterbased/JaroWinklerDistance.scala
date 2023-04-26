@@ -14,16 +14,17 @@
 
 package org.silkframework.rule.plugins.distance.characterbased
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.{NormalizedDistanceMeasure, SingleValueDistanceMeasure}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "jaroWinkler",
   categories = Array("Characterbased"),
   label = "Jaro-Winkler distance",
-  description = "String similarity based on the Jaro-Winkler distance measure."
+  description = "Matches strings based on the Jaro-Winkler distance measure.",
+  documentationFile = "JaroWinklerDistance.md"
 )
-case class JaroWinklerDistance() extends SimpleDistanceMeasure {
+case class JaroWinklerDistance() extends SingleValueDistanceMeasure with NormalizedDistanceMeasure {
   // maximum prefix length to use
   private final val MINPREFIXTESTLENGTH: Int = 4 //using value from lingpipe (was 6)
 
@@ -42,7 +43,7 @@ case class JaroWinklerDistance() extends SimpleDistanceMeasure {
    * @return 0 -1 similarity measure of the JaroWinkler metric
    */
   def evaluateDistance(string1: String, string2: String): Double = {
-    val dist = JaroDinstanceMetric.jaro(string1, string2)
+    val dist = JaroDistanceMetric.jaro(string1, string2)
     val prefixLength = getPrefixLength(string1, string2)
     dist - (prefixLength.toDouble * PREFIXADUSTMENTSCALE * dist)
   }

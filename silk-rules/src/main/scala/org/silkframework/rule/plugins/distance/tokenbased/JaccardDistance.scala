@@ -15,7 +15,8 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.rule.annotations.{DistanceMeasureExample, DistanceMeasureExamples}
+import org.silkframework.rule.similarity.{DistanceMeasure, NormalizedDistanceMeasure, TokenBasedDistanceMeasure}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -23,9 +24,35 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "jaccard",
   categories = Array("Tokenbased", PluginCategories.recommended),
   label = "Jaccard",
-  description = "Jaccard similarity coefficient."
+  description = "Jaccard similarity coefficient. Divides the matching tokens by the number of distinct tokens from both inputs."
 )
-case class JaccardDistance() extends DistanceMeasure {
+@DistanceMeasureExamples(Array(
+  new DistanceMeasureExample(
+    description = "Returns 0 for equal sets of values.",
+    input1 = Array("A", "B", "C"),
+    input2 = Array("B", "C", "A"),
+    output = 0.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 1 if there is no overlap between both sets of tokens.",
+    input1 = Array("A", "B", "C"),
+    input2 = Array("D", "E", "F"),
+    output = 1.0
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 0.5 if half of all unique tokens overlap.",
+    input1 = Array("A", "B", "C"),
+    input2 = Array("A", "B", "D"),
+    output = 0.5
+  ),
+  new DistanceMeasureExample(
+    description = "Returns 2/3 if one third of all unique tokens overlap.",
+    input1 = Array("John", "Jane"),
+    input2 = Array("John", "Max"),
+    output = 2.0 / 3.0
+  )
+))
+case class JaccardDistance() extends DistanceMeasure with TokenBasedDistanceMeasure with NormalizedDistanceMeasure {
 
   override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     val set1 = values1.toSet

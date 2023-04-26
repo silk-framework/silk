@@ -192,12 +192,13 @@ class HierarchicalMapping extends React.Component {
     };
 
     // react to rule id changes
-    onRuleNavigation = ({ newRuleId }) => {
+    onRuleNavigation = ({ newRuleId, containerRuleId }) => {
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
             this.setState({
                 currentRuleId: newRuleId,
+                containerRuleId: containerRuleId,
             });
         } else {
             this.toggleAskForDiscard(newRuleId);
@@ -228,8 +229,13 @@ class HierarchicalMapping extends React.Component {
         this.setState({ showMappingEditor: true, mappingEditorRuleId });
     };
 
+    /** Handles changes of the container rule. */
     handleRuleIdChange = (rule) => {
-        this.onRuleNavigation(rule);
+        const containerRuleNavigation = { ...rule };
+        if (!containerRuleNavigation.containerRuleId) {
+            containerRuleNavigation.containerRuleId = rule.newRuleId;
+        }
+        this.onRuleNavigation(containerRuleNavigation);
     };
 
     // template rendering
@@ -250,6 +256,7 @@ class HierarchicalMapping extends React.Component {
                         <MappingEditorModal
                             projectId={this.props.project}
                             transformTaskId={this.props.transformTask}
+                            containerRuleId={this.state.containerRuleId ?? "root"}
                             ruleId={this.state.mappingEditorRuleId}
                             isOpen={showMappingEditor}
                             onClose={() => {

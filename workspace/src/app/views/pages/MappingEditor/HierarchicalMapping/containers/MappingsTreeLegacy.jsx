@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import _ from "lodash";
-import { Button, Info, Icon } from "gui-elements-deprecated";
-import { Card, CardContent, Spinner } from "@eccenca/gui-elements";
+import { Button, Icon } from "gui-elements-deprecated";
+import { InteractionGate, Notification } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -66,7 +66,7 @@ class MappingsTree extends React.Component {
                     }, {}),
                     [rule.id]: true,
                 };
-                this.props.handleRuleNavigation({ newRuleId: searchId });
+                this.props.handleRuleNavigation({ newRuleId: searchId, containerRuleId: rule.id });
                 this.setState({ navigationExpanded });
             },
             () => {
@@ -249,13 +249,13 @@ class MappingsTree extends React.Component {
                             search: `?${new URLSearchParams({ ruleId: id })}`,
                         });
                     }
-                    handleRuleNavigation({ newRuleId: id, parentId: undefined });
+                    handleRuleNavigation({ newRuleId: id, parentId: undefined, containerRuleId: id });
                 }}
             >
                 <span className="ecc-silk-mapping__treenav--item-maintitle">
                     <span>
-                        <RuleTitle rule={parent} />
                         {this.renderRuleIcon(id)}
+                        <RuleTitle rule={parent} />
                     </span>
                 </span>
                 {parentType === MAPPING_RULE_TYPE_OBJECT && (
@@ -321,22 +321,23 @@ class MappingsTree extends React.Component {
 
         return (
             <div className="ecc-silk-mapping__treenav">
-                <Card isOnlyLayout={true}>
-                    <CardContent>
-                        {navigationLoading && <Spinner position={"global"} />}
-                        {navigationLoading && _.isUndefined(data) && (
-                            <Info data-test-id="ecc-silk-mapping__treenav-loading">Loading rules</Info>
-                        )}
-                        {!navigationLoading && _.isEmpty(data) && (
-                            <Info data-test-id="ecc-silk-mapping__treenav-norules">No rules found</Info>
-                        )}
-                        {!_.isEmpty(data) && (
-                            <ul className="ecc-silk-mapping__treenav--maintree">
-                                <li>{NavigationList}</li>
-                            </ul>
-                        )}
-                    </CardContent>
-                </Card>
+                <InteractionGate inert={navigationLoading} showSpinner={navigationLoading}>
+                    {navigationLoading && _.isUndefined(data) && (
+                        <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
+                            Loading rules
+                        </Notification>
+                    )}
+                    {!navigationLoading && _.isEmpty(data) && (
+                        <Notification info data-test-id="ecc-silk-mapping__treenav-norules">
+                            No rules found
+                        </Notification>
+                    )}
+                    {!_.isEmpty(data) && (
+                        <ul className="ecc-silk-mapping__treenav--maintree">
+                            <li>{NavigationList}</li>
+                        </ul>
+                    )}
+                </InteractionGate>
             </div>
         );
     }
