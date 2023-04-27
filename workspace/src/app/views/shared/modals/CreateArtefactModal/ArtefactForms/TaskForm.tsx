@@ -39,7 +39,7 @@ export interface IProps {
 export interface UpdateTaskProps {
     // The existing parameter values
     parameterValues: {
-        [key: string]: string | object;
+        [key: string]: string | boolean | object;
     };
     variableTemplateValues: Record<string, any>;
     dataParameters?: {

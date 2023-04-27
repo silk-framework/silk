@@ -121,7 +121,7 @@ export interface IProjectTaskUpdatePayload {
     taskPluginDetails: IPluginDetails;
     metaData: IMetadata;
     currentParameterValues: {
-        [key: string]: string | object;
+        [key: string]: string | boolean | object;
     };
     currentTemplateValues: TemplateValueType;
     dataParameters?: {
