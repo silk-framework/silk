@@ -56,6 +56,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
             size="small"
             title={t("ReferenceLinks.addLinkModal.title")}
             onClose={cancel}
+            data-test-id="add-reference-links-modal"
             notifications={errorMessage ? <Notification message={errorMessage} warning={true} /> : null}
             actions={[
                 <Button
@@ -63,6 +64,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     hasStatePrimary={true}
                     onClick={handleAddNewReferenceLinks}
                     loading={newLinkCreationLoading}
+                    data-test-id="reference-links-add-submit"
                     disabled={
                         !newSourceReferenceLink ||
                         !newTargetReferenceLink ||
@@ -83,6 +85,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                 }}
             >
                 <TextField
+                    data-test-id="new-source-reference-link"
                     value={newSourceReferenceLink}
                     placeholder={t("ReferenceLinks.addLinkModal.sourceUri")}
                     onChange={(e) => setNewSourceReferenceLink(e.target.value)}
@@ -95,6 +98,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                 }}
             >
                 <TextField
+                    data-test-id="new-target-reference-link"
                     value={newTargetReferenceLink}
                     placeholder={t("ReferenceLinks.addLinkModal.targetUri")}
                     onChange={(e) => setNewTargetReferenceLink(e.target.value)}
@@ -112,6 +116,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                     itemRenderer={(item, props) => {
                         return (
                             <MenuItem
+                                data-test-id={`add-reference-${item.label}`}
                                 text={t(`ReferenceLinks.${LinkTypeMapping[item.label]}`, LinkTypeMapping[item.label])}
                                 onClick={() => setNewLinkType(item.label as ReferenceLinkType)}
                             />
@@ -125,6 +130,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                         fill
                         outlined
                         rightIcon="toggler-showmore"
+                        data-test-id="reference-links-types-select"
                     />
                 </Select>
             </FieldItem>

@@ -615,6 +615,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             togglerText="reference links action"
                         >
                             <MenuItem
+                                data-test-id="add-reference-links"
                                 text={t("ReferenceLinks.contextMenu.add")}
                                 onClick={() => setShowAddLinkModal(true)}
                             />
@@ -639,6 +640,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <SearchField
                 onChange={(e) => debouncedSearch(e.target.value)}
                 onClearanceHandler={() => setSearchQuery("")}
+                data-test-id="linking-evaluation-search"
             />
             <Spacing size="small" />
             {linkStateFilter && (
