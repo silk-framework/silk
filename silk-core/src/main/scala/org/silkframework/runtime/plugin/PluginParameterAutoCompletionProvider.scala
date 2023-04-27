@@ -1,8 +1,9 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{Identifier, StringUtils}
 import org.silkframework.workspace.WorkspaceReadTrait
 
@@ -12,6 +13,7 @@ import org.silkframework.workspace.WorkspaceReadTrait
   *
   * Implementations of this plugin must not have any parameters.
   */
+@PluginType()
 trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   /** Auto-completion based on a text based search query */
   def autoComplete(searchQuery: String,

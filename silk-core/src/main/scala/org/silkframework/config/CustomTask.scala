@@ -1,5 +1,6 @@
 package org.silkframework.config
 
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
@@ -8,6 +9,7 @@ import scala.xml.Node
 /**
   * A custom task provided by a plugin.
   */
+@PluginType()
 trait CustomTask extends TaskSpec with AnyPlugin {
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */

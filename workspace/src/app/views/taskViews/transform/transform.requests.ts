@@ -50,12 +50,12 @@ export const putTransformRule = async (
 export const evaluateTransformRule = async (
     projectId: string,
     transformTaskId: string,
-    ruleId: string,
+    containerRuleId: string,
     rule,
     limit: number = 100
 ): Promise<FetchResponse<any>> => {
     return fetch({
-        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformTaskId}/rule/root/evaluateRule`),
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformTaskId}/rule/${containerRuleId}/evaluateRule`),
         method: "POST",
         body: rule,
         query: {
