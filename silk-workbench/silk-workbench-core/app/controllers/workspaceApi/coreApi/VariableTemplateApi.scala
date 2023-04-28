@@ -7,7 +7,7 @@ import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationError, VariableTemplateValidationResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -225,7 +225,13 @@ object VariableTemplateApi {
   }
 
   @Schema(description = "A list of template variables.")
-  case class TemplateVariablesFormat(variables: Seq[TemplateVariableFormat]) {
+  case class TemplateVariablesFormat(@ArraySchema(
+                                       schema = new Schema(
+                                         description = "List of variables.",
+                                         required = true,
+                                         implementation = classOf[TemplateVariableFormat]
+                                     ))
+                                     variables: Seq[TemplateVariableFormat]) {
     def convert: TemplateVariables = {
       TemplateVariables(variables.map(_.convert))
     }

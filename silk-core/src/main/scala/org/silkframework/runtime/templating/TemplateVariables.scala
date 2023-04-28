@@ -105,8 +105,8 @@ object TemplateVariable {
     override def read(value: Node)(implicit readContext: ReadContext): TemplateVariable = {
       TemplateVariable(
         name = (value \ "@name").text,
-        value =(value \ "value").text,
-        template = Option((value \ "template").text).filter(_.trim.nonEmpty),
+        value =(value \ "Value").text,
+        template = Option((value \ "Template").text).filter(_.trim.nonEmpty),
         isSensitive = (value \ "@isSensitive").text.toBoolean,
         scope = (value \ "@scope").text,
       )
