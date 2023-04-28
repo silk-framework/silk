@@ -92,7 +92,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
     const buildTree = React.useCallback(
         (parent): TreeNodeInfo => {
-            const { id, type: parentType, rules } = parent;
+            const { id, type: parentType, rules = {} } = parent;
 
             let allRules = [] as any[];
             if (rules.uriRule != null) {
