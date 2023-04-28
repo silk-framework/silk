@@ -81,7 +81,7 @@ export const registerCorePlugins = () => {
 
         pluginRegistry.registerTaskView("transform", {
             id: "transformEvaluation",
-            label: "Transform evaluation (new)",
+            label: "Transform evaluation",
             render(
                 projectId: string,
                 taskId: string,
