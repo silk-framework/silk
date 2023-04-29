@@ -42,7 +42,7 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
     inDatasetRelatedItems.items.map(i => (i.id, i.`type`)) mustBe Seq((transformTask, ItemType.transform.label), (workflowTask, ItemType.workflow.label))
     inDatasetRelatedItems.items.head.itemLinks.size must be >= 1
     val transformRelatedItems = relatedItems(transformTask)
-    transformRelatedItems.total mustBe 2
+    transformRelatedItems.total mustBe 3
     transformRelatedItems.items.map(_.id).toSet mustBe Set(inputDataset, outputDataset, workflowTask)
   }
 
