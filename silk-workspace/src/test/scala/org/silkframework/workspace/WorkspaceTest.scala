@@ -3,14 +3,13 @@ package org.silkframework.workspace
 import org.mockito.Mockito._
 import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.validation.ServiceUnavailableException
-import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository

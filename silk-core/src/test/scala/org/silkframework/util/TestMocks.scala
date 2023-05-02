@@ -1,9 +1,13 @@
 package org.silkframework.util
 
+import org.mockito.MockSettings
 import org.mockito.Mockito.when
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.stubbing.Answer
+import org.mockito.Mockito.{mock => mockitoMock}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityContext, ValueHolder}
+
+import scala.reflect.ClassTag
 
 /**
   * Mocks that are probably used in several tests.
@@ -14,5 +18,25 @@ object TestMocks extends MockitoSugar {
     val context = mock[ActivityContext[ExecutionReport]]
     when(context.value).thenReturn(new ValueHolder[ExecutionReport](None))
     context
+  }
+}
+
+
+trait MockitoSugar {
+
+  def mock[T <: AnyRef](implicit classTag: ClassTag[T]): T = {
+    mockitoMock(classTag.runtimeClass.asInstanceOf[Class[T]])
+  }
+
+  def mock[T <: AnyRef](defaultAnswer: Answer[_])(implicit classTag: ClassTag[T]): T = {
+    mockitoMock(classTag.runtimeClass.asInstanceOf[Class[T]], defaultAnswer)
+  }
+
+  def mock[T <: AnyRef](mockSettings: MockSettings)(implicit classTag: ClassTag[T]): T = {
+    mockitoMock(classTag.runtimeClass.asInstanceOf[Class[T]], mockSettings)
+  }
+
+  def mock[T <: AnyRef](name: String)(implicit classTag: ClassTag[T]): T = {
+    mockitoMock(classTag.runtimeClass.asInstanceOf[Class[T]], name)
   }
 }
