@@ -34,7 +34,8 @@ abstract class SimpleTransformer extends Transformer {
     } {
       output += evaluate(value)
     }
-    output
+    //TODO make more efficient, don't use buffer
+    output.toSeq
   }
 
   def evaluate(value: String): String

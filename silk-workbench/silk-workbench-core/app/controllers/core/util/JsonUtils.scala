@@ -54,7 +54,7 @@ object JsonUtils {
     }
   }
 
-  def errorsToString(errors: Seq[(JsPath, Seq[JsonValidationError])]): String = {
+  def errorsToString(errors: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])]): String = {
     val errorStrings = errors map { case (path, validationErrors) =>
         "JSON Path \"" + path.toJsonString + "\" with error(s): " + validationErrors.map('"' + _.message + '"').mkString(", ")
     }

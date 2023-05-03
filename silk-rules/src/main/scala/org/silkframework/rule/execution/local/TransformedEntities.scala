@@ -9,6 +9,7 @@ import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.LegacyTraversable
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -32,7 +33,7 @@ class TransformedEntities(task: Task[TransformSpec],
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
-                          context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) extends Traversable[Entity] {
+                          context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) extends LegacyTraversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 

@@ -94,7 +94,7 @@ object JsonSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): UiAnnotations = {
       val stickyNotesJson = arrayValue(value, STICKY_NOTES)
-      val stickyNotes = stickyNotesJson.value.map(value => fromJson[StickyNote](value))
+      val stickyNotes = stickyNotesJson.value.map(value => fromJson[StickyNote](value)).toIndexedSeq
       UiAnnotations(stickyNotes)
     }
 
@@ -338,10 +338,10 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): MappingRules = {
       val uriRule = optionalValue(value, URI_RULE).map(UriMappingJsonFormat.read)
       val typeRules = mustBeJsArray(mustBeDefined(value, TYPE_RULES)) { array =>
-        array.value.map(TypeMappingJsonFormat.read)
+        array.value.map(TypeMappingJsonFormat.read).toSeq
       }
       val propertyRules = mustBeJsArray(mustBeDefined(value, PROPERTY_RULES)) { array =>
-        array.value.map(TransformRuleJsonFormat.read)
+        array.value.map(TransformRuleJsonFormat.read).toSeq
       }
 
       MappingRules(uriRule, typeRules, propertyRules)
@@ -853,7 +853,7 @@ object JsonSerializers {
         id = identifier(value, "aggregation"),
         weight = numberValue(value, WEIGHT).intValue,
         aggregator = aggregator,
-        operators = inputs
+        operators = inputs.toIndexedSeq
       )
     }
 
@@ -976,8 +976,8 @@ object JsonSerializers {
         rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
         output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
         referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
-        linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
       )
     }
 
@@ -997,7 +997,7 @@ object JsonSerializers {
 
     // Holds all JSON formats for sub classes of TaskSpec.
     private lazy val taskSpecFormats: Seq[JsonFormat[TaskSpec]] = {
-      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+      Serialization.availableFormats.filter(f => f.isInstanceOf[JsonFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f.valueType != classOf[TaskSpec])
         .map(_.asInstanceOf[JsonFormat[TaskSpec]])
     }
 

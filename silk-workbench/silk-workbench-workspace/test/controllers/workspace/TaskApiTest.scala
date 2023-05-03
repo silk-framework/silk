@@ -12,14 +12,14 @@ import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TEMPLATES, TYPE}
+import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TYPE}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
 
-import scala.concurrent.duration._
 import scala.concurrent.Await
+import scala.concurrent.duration._
 
 class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
 
@@ -345,7 +345,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
       val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
           withHttpHeaders("Accept" -> "application/json").
           get()).json.as[JsObject] \ DATA \ PARAMETERS).as[JsObject].fields
-      parameters.map(p => ((p._2 \ "value").as[JsValue], (p._2 \ "label").asOpt[String]))
+      parameters.map(p => ((p._2 \ "value").as[JsValue], (p._2 \ "label").asOpt[String])).toIndexedSeq
     }
     val sparqlSelect = "sparqlSelect"
     val sparqlDataset = "sparqlDataset"
@@ -470,7 +470,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     */
   implicit class JsReadableHelpers(value: JsReadable) {
     def asStringArray: Seq[String] = {
-      value.as[JsArray].value.map(_.as[JsString].value)
+      value.as[JsArray].value.map(_.as[JsString].value).toIndexedSeq
     }
   }
 

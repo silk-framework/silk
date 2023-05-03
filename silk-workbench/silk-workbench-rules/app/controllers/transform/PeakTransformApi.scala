@@ -26,7 +26,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
-import play.api.libs.json.{Format, Json, Writes}
+import play.api.libs.json.{Format, Json}
 import play.api.mvc._
 
 import javax.inject.Inject
@@ -338,7 +338,7 @@ object PeakTransformApi {
           }
       }
     }
-    (tryCounter, errorCounter, errorMessage, resultBuffer)
+    (tryCounter, errorCounter, errorMessage, resultBuffer.toSeq)
   }
 }
 

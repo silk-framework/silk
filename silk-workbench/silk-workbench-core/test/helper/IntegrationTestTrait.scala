@@ -370,7 +370,7 @@ trait IntegrationTestTrait extends TaskApiClient
     */
   def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
     val request = client.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
-    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
+    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).view.mapValues(v => Seq(v)).toMap)
     checkResponse(response)
     workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
   }

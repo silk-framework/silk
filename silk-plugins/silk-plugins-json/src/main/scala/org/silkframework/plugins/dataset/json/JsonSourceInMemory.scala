@@ -8,7 +8,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 import java.net.URLEncoder
@@ -69,8 +69,8 @@ class JsonSourceInMemory(taskId: Identifier, input: JsValue, basePath: String, u
     subSelectedElements
   }
 
-  private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {
-    def foreach[U](f: Entity => U) {
+  private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends LegacyTraversable[Entity] {
+    override def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((node, index) <- elements.zipWithIndex) {
         // Generate URI

@@ -8,7 +8,7 @@ import org.silkframework.rule.execution.methods.StringMap.Mapper
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, LegacyTraversable}
 
 case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThreshold: Int = 2, thresholdPercentage: Double = 0.5) extends ExecutionMethod {
 
@@ -37,8 +37,8 @@ case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThresho
     val mappedThreshold = sm.computeThreshold(sourceValues, thresholdPercentage, targetValues, thresholdPercentage, distThreshold)
 
     // Return a traversable of all pairs which are closer than the mapped threshold
-    new Traversable[DPair[Entity]] {
-      def foreach[U](f: DPair[Entity] => U) {
+    new LegacyTraversable[DPair[Entity]] {
+      override def foreach[U](f: DPair[Entity] => U) {
         for(i <- 0 until sourceValues.size;
             j <- 0 until targetValues.size
             if sm.mappedDistance(sm.coordinates(i), sm.coordinates(sourceValues.size + j)) < mappedThreshold) yield {

@@ -43,15 +43,13 @@ trait EntityCache {
   def read(block: Int, partition: Int): Partition
 
   /**
-   * Reads the complete cache.
-   */
-  def readAll = new Traversable[Entity] {
-    def foreach[U](f: Entity => U) {
-      for (block <- 0 until blockCount;
-           partition <- 0 until partitionCount(block);
-           entity <- read(block, partition).entities) {
-        f(entity)
-      }
+    * Reads the complete cache.
+    */
+  def readAll: Iterable[Entity] = {
+    for (block <- ((0 until blockCount).view);
+         partition <- 0 until partitionCount(block);
+         entity <- read(block, partition).entities) yield {
+      entity
     }
   }
 
@@ -84,22 +82,15 @@ trait EntityCache {
    * Reads entities from XML
    */
   def fromXML(node: Node, entityDesc: EntitySchema) {
-    val entities = new Traversable[Entity] {
       var currentBlock = 0
 
-      override def foreach[U](f: Entity => U) {
-        for (blockNode <- node \ "Block") {
-          currentBlock = (blockNode \ "@id").text.toInt
+      for (blockNode <- node \ "Block") {
+        currentBlock = (blockNode \ "@id").text.toInt
 
-          for (partitionNode <- blockNode \ "Partition";
-               entityNode <- partitionNode \ "_") {
-            f(Entity.fromXML(entityNode, entityDesc))
-          }
+        for (partitionNode <- blockNode \ "Partition";
+             entityNode <- partitionNode \ "_") {
+          write(Entity.fromXML(entityNode, entityDesc))
         }
       }
     }
-
-    for(entity <- entities)
-      write(entity)
-  }
 }

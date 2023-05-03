@@ -42,7 +42,7 @@ class SearchApiIntegrationTest extends FlatSpec
         label = (json \ SearchApiModel.LABEL).as[String],
         description = (json \ SearchApiModel.DESCRIPTION).as[String],
         `type` = facetType,
-        values = facetValues
+        values = facetValues.toSeq
       ))
     }
   }
@@ -350,7 +350,7 @@ class SearchApiIntegrationTest extends FlatSpec
 
   private def resourceSearch(request: ResourceSearchRequest): IndexedSeq[collection.Map[String, JsValue]] = {
     val result = checkResponse(client.url(s"$baseUrl$resourceSearchUrl?${request.queryString}").get()).json
-    result.as[JsArray].value.map(_.asInstanceOf[JsObject].value)
+    result.as[JsArray].value.map(_.asInstanceOf[JsObject].value).toIndexedSeq
   }
 
   private def checkAndGetDatasetFacetValues(response: FacetedSearchResult): Seq[Seq[(String, Int)]] = {

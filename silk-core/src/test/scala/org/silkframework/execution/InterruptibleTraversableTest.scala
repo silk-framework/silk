@@ -1,8 +1,8 @@
 package org.silkframework.execution
 
 import java.util.concurrent.atomic.AtomicBoolean
-
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.util.LegacyTraversable
 
 class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
   behavior of "Interruptible Traversable"
@@ -45,8 +45,8 @@ class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
   }
 
   private def traverseEndlessly(startedIterating: AtomicBoolean): Traversable[Int] = {
-    new InterruptibleTraversable(
-      new Traversable[Int] {
+    new InterruptibleIterable(
+      new LegacyTraversable[Int] {
         override def foreach[U](f: Int => U): Unit = {
           var i = 0
           while (true) {

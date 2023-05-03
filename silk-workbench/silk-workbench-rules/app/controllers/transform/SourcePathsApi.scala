@@ -192,8 +192,8 @@ class SourcePathsApi @Inject() () extends InjectedController with UserContextAct
           subPathMap.mapValues { typedPaths =>
             val (objectPaths, dataPaths) = typedPaths.partition(_.valueType.id == "UriValueType")
             ObjectValueSourcePathInfo(
-              dataTypeSubPaths = dataPaths.map(relativePathString),
-              objectSubPaths = objectPaths.map(relativePathString)
+              dataTypeSubPaths = dataPaths.map(relativePathString).toSeq,
+              objectSubPaths = objectPaths.map(relativePathString).toSeq
             )
           }.toMap
         }

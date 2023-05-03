@@ -176,7 +176,7 @@ object ProjectUtils {
                                (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
     val dataSources = (workflowJson \ propertyName).as[JsArray]
     implicit val readContext: ReadContext = ReadContext(resourceLoader)
-    val datasets = for (dataSource <- dataSources.value) yield {
+    val datasets = for (dataSource <- dataSources.value.toIndexedSeq) yield {
       JsonSerializers.fromJson[Task[GenericDatasetSpec]](dataSource)
     }
     allowedDatasetIds match {

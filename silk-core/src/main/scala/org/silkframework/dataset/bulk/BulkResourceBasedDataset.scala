@@ -3,13 +3,12 @@ package org.silkframework.dataset.bulk
 import java.io.File
 import java.util.logging.Logger
 import java.util.zip.ZipException
-
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
-import org.silkframework.execution.{InterruptibleTraversable, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipInputStreamResourceIterator
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.LegacyTraversable
 
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
@@ -52,7 +51,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(file.name, new MappedTraversable(new InterruptibleTraversable(allResources), createSourceWithName), mergeSchemata)
+        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
     }
   }
 
@@ -110,14 +109,12 @@ object BulkResourceBasedDataset {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log fine s"Zip file Resource found: ${resource.name}"
       try {
-        new InterruptibleTraversable(
-          new Traversable[Resource] {
-            override def foreach[U](f: Resource => U): Unit = {
-              val zipLoader = ZipInputStreamResourceIterator(resource, "")
-              zipLoader.iterateReadOnceResources(filterRegex) foreach f
-            }
+        new LegacyTraversable[Resource] {
+          override def foreach[U](f: Resource => U): Unit = {
+            val zipLoader = ZipInputStreamResourceIterator(resource, "")
+            zipLoader.iterateReadOnceResources(filterRegex) foreach f
           }
-        )
+        }
       } catch {
         case NonFatal(t) =>
           log warning s"Exception for zip resource ${resource.path}: " + t.getMessage

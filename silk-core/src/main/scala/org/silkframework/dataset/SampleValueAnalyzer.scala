@@ -101,7 +101,7 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
     }
     progress(0.8)
     val schemaClasses = for(typ <- types) yield {
-      val extractedSchemaPaths = for(path <- typeMap(typ)) yield {
+      val extractedSchemaPaths = for(path <- typeMap(typ).toSeq) yield {
         val analyzerResult = pathAnalyzerResults(path)
         ExtractedSchemaProperty(UntypedPath(path.last).asStringTypedPath, analyzerResult)
       }

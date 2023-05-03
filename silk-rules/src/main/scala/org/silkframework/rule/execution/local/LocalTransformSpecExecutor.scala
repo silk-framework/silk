@@ -37,7 +37,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       context.status.updateProgress((index + 1.0) / ruleSchemata.size)
     }
 
-    Some(MultiEntityTable(outputTables.head.entities, outputTables.head.entitySchema, task, outputTables.tail, transformContext.value().globalErrors))
+    Some(MultiEntityTable(outputTables.head.entities, outputTables.head.entitySchema, task, outputTables.tail.toSeq, transformContext.value().globalErrors))
   }
 
   def transformEntities(task: Task[TransformSpec],

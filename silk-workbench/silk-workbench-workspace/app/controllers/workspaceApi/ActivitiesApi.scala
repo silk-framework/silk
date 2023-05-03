@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.{Status => ActivityStatus}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
+import org.silkframework.util.LegacyTraversable
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -57,7 +58,7 @@ class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) e
                              schema = new Schema(implementation = classOf[String])
                            )
                            statusFilter: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
-    val activityStatusTraversable: Traversable[JsValue] = new Traversable[JsValue] {
+    val activityStatusTraversable: Traversable[JsValue] = new LegacyTraversable[JsValue] {
       override def foreach[U](f: JsValue => U): Unit = {
         val projects = projectId match {
           case Some(id) =>

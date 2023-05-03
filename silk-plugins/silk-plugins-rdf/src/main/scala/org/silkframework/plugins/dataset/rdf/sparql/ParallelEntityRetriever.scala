@@ -21,7 +21,7 @@ import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, Spar
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.plugins.dataset.rdf.sparql.ParallelEntityRetriever.{ExceptionPathValues, ExistingPathValues, PathValues, QueueEndMarker}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
+import org.silkframework.util.{LegacyTraversable, Uri}
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import java.util.logging.{Level, Logger}
@@ -62,7 +62,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
   private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int])
-                                 (implicit userContext: UserContext)extends Traversable[Entity] {
+                                 (implicit userContext: UserContext) extends LegacyTraversable[Entity] {
     override def foreach[U](f: Entity => U): Unit = {
       var inconsistentOrder = false
       var counter = 0

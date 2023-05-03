@@ -4,6 +4,7 @@ import org.apache.jena.vocabulary.{OWL, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.LegacyTraversable
 
 import scala.collection.immutable.SortedMap
 
@@ -185,7 +186,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     }
   }
 
-  class SequentialGroup(bindings: Traversable[SortedMap[String, RdfNode]]) extends Traversable[(String, Traversable[SortedMap[String, RdfNode]])] {
+  class SequentialGroup(bindings: Traversable[SortedMap[String, RdfNode]]) extends LegacyTraversable[(String, Traversable[SortedMap[String, RdfNode]])] {
 
     override def foreach[U](emit: ((String, Traversable[SortedMap[String, RdfNode]])) => U): Unit = {
       var currentUri: Option[String] = None

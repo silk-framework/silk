@@ -67,7 +67,7 @@ object SpotlightClient {
     for(resource <- root \ "Resources" \ "Resource")
       tempResources += ((resource.text, (resource \ "@similarityScore").text.toDouble))
     var first = true
-    for((resource, score) <- normalize(tempResources)) {
+    for((resource, score) <- normalize(tempResources.toSeq)) {
       if(!first)
         sb.append(";")
       else

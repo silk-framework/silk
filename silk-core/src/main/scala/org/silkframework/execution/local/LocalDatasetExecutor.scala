@@ -9,7 +9,7 @@ import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
+import org.silkframework.util.{LegacyTraversable, Uri}
 
 import java.util
 import java.util.logging.{Level, Logger}
@@ -43,7 +43,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
         val table = source.retrieve(entitySchema = schema)
-        GenericEntityTable(ReportingTraversable(table.entities), entitySchema = schema, dataset, table.globalErrors)
+        GenericEntityTable(ReportingIterable(table.entities), entitySchema = schema, dataset, table.globalErrors)
     }
   }
 
@@ -67,11 +67,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
-      entities = ReportingTraversable(table.entities),
+      entities = ReportingIterable(table.entities),
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(ReportingTraversable(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
+            GenericEntityTable(ReportingIterable(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
       task = dataset,
       globalErrors = table.globalErrors
     )
@@ -230,7 +230,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     *
     * @param bufferSize max size of queries that should be buffered
     */
-  case class SparqlQueryBuffer(bufferSize: Int, entities: Traversable[Entity]) extends Traversable[String] {
+  case class SparqlQueryBuffer(bufferSize: Int, entities: Traversable[Entity]) extends LegacyTraversable[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
     override def foreach[U](f: String => U): Unit = {

@@ -18,7 +18,7 @@ import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
+import org.silkframework.util.{LegacyTraversable, Uri}
 
 import java.util.logging.Logger
 
@@ -122,7 +122,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
   private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]],
                                   entitySchema: EntitySchema,
                                   limit: Option[Int],
-                                  sparqlEntitySchema: SparqlEntitySchema) extends Traversable[Entity] {
+                                  sparqlEntitySchema: SparqlEntitySchema) extends LegacyTraversable[Entity] {
     // If path with a specific index is a language tag special path, also validates the special paths usage
     private val pathCharacteristicsMap: Map[Int, (Boolean, Boolean, Boolean)] = {
       entitySchema.typedPaths.zipWithIndex.map { case (typedPath, idx) =>

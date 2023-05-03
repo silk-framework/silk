@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.MultilineStringParameter
-import org.silkframework.util.{MockitoSugar, TestMocks}
+import org.silkframework.util.{LegacyTraversable, MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
 
@@ -27,7 +27,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
       override def sparqlParams: SparqlParams = ???
       override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = ???
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
-        SparqlResults(new Traversable[SortedMap[String, RdfNode]] {
+        SparqlResults(new LegacyTraversable[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0
             while (i < limit) {
@@ -75,7 +75,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
 
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
         selectCallback(this)
-        SparqlResults(new Traversable[SortedMap[String, RdfNode]] {
+        SparqlResults(new LegacyTraversable[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0
             while (i < limit) {

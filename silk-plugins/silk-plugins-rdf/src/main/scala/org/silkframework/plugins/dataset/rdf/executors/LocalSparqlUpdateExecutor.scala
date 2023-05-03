@@ -11,6 +11,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.LegacyTraversable
 import org.silkframework.workspace.ProjectTask
 
 /**
@@ -46,7 +47,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       }
     }
 
-    val traversable = new Traversable[Entity] {
+    val traversable = new LegacyTraversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)

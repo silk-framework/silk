@@ -154,7 +154,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   private def linkCountMustBe(resultJson: JsValue, expectedCount: Int): Seq[Link] = {
     implicit val readContext: ReadContext = ReadContext()
-    val links = (resultJson \ "links").as[JsArray].value
+    val links = (resultJson \ "links").as[JsArray].value.toSeq
     links must have size expectedCount
     links.map(link => LinkJsonFormat.read(link))
   }

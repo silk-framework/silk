@@ -54,7 +54,7 @@ trait Observable[T] {
    * @return The provided function
    */
   final def subscribe[U](f: T => U): Unit = subscriberMap.synchronized {
-    subscriberMap.update(f, Unit)
+    subscriberMap.update(f, ())
   }
 
   /**

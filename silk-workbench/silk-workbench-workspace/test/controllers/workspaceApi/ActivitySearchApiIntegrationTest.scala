@@ -36,7 +36,7 @@ class ActivitySearchApiIntegrationTest extends FlatSpec
   it should "return all activities for an unrestricted search" in {
     val response = facetedSearchRequest(ActivitySearchRequest(limit = Some(100)))
 
-    val cacheCounts = response.results.groupBy(_.id).mapValues(_.size)
+    val cacheCounts = response.results.groupBy(_.id).view.mapValues(_.size).toMap
     cacheCounts must contain ("GlobalVocabularyCache" -> 1)
     cacheCounts must contain ("TypesCache" -> project.tasks[GenericDatasetSpec].size)
     cacheCounts must contain ("ExecuteTransform" -> project.tasks[TransformSpec].size)

@@ -2,14 +2,12 @@ package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
-import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
+import org.silkframework.util.{LegacyTraversable, Uri}
 
 /**
   * A helper data source to combine several SPARQL sources in order to retrieve entities from them.
@@ -26,7 +24,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val allEntities =
-      new Traversable[Entity] {
+      new LegacyTraversable[Entity] {
         override def foreach[U](f: Entity => U): Unit = {
           for (sparqlSource <- sparqlSources;
                entity <- sparqlSource.retrieve(entitySchema, limit).entities) {

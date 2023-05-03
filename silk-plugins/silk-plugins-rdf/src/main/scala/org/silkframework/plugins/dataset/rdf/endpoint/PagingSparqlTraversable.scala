@@ -4,6 +4,7 @@ import org.apache.jena.query.{QueryFactory, Syntax}
 import org.apache.jena.riot.ResultSetMgr
 import org.apache.jena.riot.resultset.ResultSetLang
 import org.silkframework.dataset.rdf._
+import org.silkframework.util.LegacyTraversable
 
 import java.io.InputStream
 import java.util.logging.Logger
@@ -43,7 +44,7 @@ object PagingSparqlTraversable {
   private class ResultsTraversable(query: String,
                                    queryExecutor: QueryExecutor,
                                    params: SparqlParams,
-                                   limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
+                                   limit: Int) extends LegacyTraversable[SortedMap[String, RdfNode]] {
 
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)

@@ -7,7 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.execution.{EntityHolder, ExecutionException}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
 
 import scala.collection.mutable
 import scala.util.control.Breaks.{break, breakable}
@@ -53,23 +53,21 @@ class BulkDataSource(bulkContainerName: String,
   // indexFn extracts the part of the element that should be distinguished by.
   private def mergePaths[T, U](dataSourcePathFn: DataSource => Traversable[T],
                                indexFn: T => U): Traversable[T] = {
-    new Traversable[T] {
-      override def foreach[V](f: T => V): Unit = {
-        val entrySet = new mutable.HashSet[U]()
-        sources foreach { source =>
-          handleSourceError(source) { dataSource =>
-            for (elem <- dataSourcePathFn(dataSource)) {
-              // Only emit path once, do not distinguish the same path with different weight
-              val valueToIndex = indexFn(elem)
-              if (!entrySet.contains(valueToIndex)) {
-                entrySet.add(valueToIndex)
-                f(elem)
-              }
-            }
+    val entrySet = new mutable.HashSet[U]()
+    var elems = Seq[T]()
+    sources foreach { source =>
+      handleSourceError(source) { dataSource =>
+        for (elem <- dataSourcePathFn(dataSource)) {
+          // Only emit path once, do not distinguish the same path with different weight
+          val valueToIndex = indexFn(elem)
+          if (!entrySet.contains(valueToIndex)) {
+            entrySet.add(valueToIndex)
+            elems = elems :+ elem
           }
         }
       }
     }
+    elems
   }
 
   // Report errors from a data source that happen inside the given block with useful information
@@ -86,7 +84,7 @@ class BulkDataSource(bulkContainerName: String,
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val entities =
-      new Traversable[Entity] {
+      new LegacyTraversable[Entity] {
         override def foreach[U](emitEntity: Entity => U): Unit = {
           var count = 0
           breakable {
@@ -112,15 +110,9 @@ class BulkDataSource(bulkContainerName: String,
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                             (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val retrievedEntities =
-      new Traversable[Entity] {
-        override def foreach[U](f: Entity => U): Unit = {
-          sources foreach { dataSource =>
-            handleSourceError(dataSource) { source =>
-              for(entity <- source.retrieveByUri(entitySchema, entities).entities) {
-                f(entity)
-              }
-            }
-          }
+      sources.flatMap { dataSource =>
+        handleSourceError(dataSource) { source =>
+          source.retrieveByUri(entitySchema, entities).entities
         }
       }
 

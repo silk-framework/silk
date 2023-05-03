@@ -83,7 +83,7 @@ object SearchApiModel {
         label = (json \ SearchApiModel.LABEL).as[String],
         description = (json \ SearchApiModel.DESCRIPTION).as[String],
         `type` = facetType,
-        values = facetValues
+        values = facetValues.toIndexedSeq
       ))
     }
   }
@@ -256,7 +256,7 @@ object SearchApiModel {
           for (it <- ItemType.taskTypes) {
             result.append(fetchTasksOfType(project, it))
           }
-          result
+          result.toSeq
       }
     }
 

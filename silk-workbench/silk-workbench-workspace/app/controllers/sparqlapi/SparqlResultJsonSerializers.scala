@@ -44,8 +44,8 @@ object SparqlResultJsonSerializers extends JsonFormat[SparqlResults] {
     override def read(value: JsValue)(implicit readContext: ReadContext): SparqlResultJsonHeader = {
       val fields = value.as[JsObject].fieldSet.toMap
       SparqlResultJsonHeader(
-        fields("vars").as[JsArray].value.map(_.toString()),
-        fields("link").as[JsArray].value.map(_.toString())
+        fields("vars").as[JsArray].value.map(_.toString()).toIndexedSeq,
+        fields("link").as[JsArray].value.map(_.toString()).toIndexedSeq
       )
     }
 
@@ -58,7 +58,7 @@ object SparqlResultJsonSerializers extends JsonFormat[SparqlResults] {
   case class SparqlResultJsonBindings(bindings: IndexedSeq[SparqlJsonQuerySolution])
   object SparqlResultJsonBindings extends JsonFormat[SparqlResultJsonBindings] {
     override def read(value: JsValue)(implicit readContext: ReadContext): SparqlResultJsonBindings =
-      SparqlResultJsonBindings(value.as[JsArray].value.map(e => SparqlJsonQuerySolution.read(e)))
+      SparqlResultJsonBindings(value.as[JsArray].value.map(e => SparqlJsonQuerySolution.read(e)).toIndexedSeq)
 
     override def write(value: SparqlResultJsonBindings)(implicit writeContext: WriteContext[JsValue]): JsValue =
       JsArray(value.bindings.map(e => SparqlJsonQuerySolution.write(e)))

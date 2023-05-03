@@ -2,7 +2,6 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.InterruptibleTraversable
 
 class GenericEntityTable(genericEntities: Traversable[Entity],
                          override val entitySchema: EntitySchema,
@@ -10,12 +9,7 @@ class GenericEntityTable(genericEntities: Traversable[Entity],
                          override val globalErrors: Seq[String] = Seq.empty) extends LocalEntities {
 
   override def entities: Traversable[Entity] = {
-    genericEntities match {
-      case iterable: Iterable[Entity] =>
-        iterable
-      case _ =>
-        new InterruptibleTraversable(genericEntities)
-    }
+    genericEntities
   }
 
   override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): GenericEntityTable = {

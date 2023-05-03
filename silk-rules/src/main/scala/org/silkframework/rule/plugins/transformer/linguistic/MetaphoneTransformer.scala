@@ -1,6 +1,5 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
-import com.github.halfmatthalfcat.stringmetric.phonetic.MetaphoneAlgorithm
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -13,6 +12,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 case class MetaphoneTransformer() extends SimpleTransformer {
 
   override def evaluate(value: String) = {
-    MetaphoneAlgorithm.compute(value).getOrElse("")
+    //TODO MetaphoneAlgorithm.compute(value).getOrElse("")
+    ???
   }
 }

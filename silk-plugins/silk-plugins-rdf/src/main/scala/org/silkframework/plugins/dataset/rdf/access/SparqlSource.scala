@@ -10,7 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
 
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
@@ -90,7 +90,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   class ValueTraverser(typeUri: Option[Uri],
                        typedPath: TypedPath,
                        limit: Option[Int])
-                      (implicit userContext: UserContext) extends Traversable[String] {
+                      (implicit userContext: UserContext) extends LegacyTraversable[String] {
     override def foreach[U](f: String => U): Unit = {
       val pathQuery = ParallelEntityRetriever.pathQuery(
         "a",

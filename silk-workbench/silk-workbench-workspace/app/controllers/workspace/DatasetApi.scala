@@ -274,7 +274,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
     implicit val context: PluginContext = PluginContext.fromProject(project)
-    val datasetParams = request.queryString.mapValues(_.head)
+    val datasetParams = request.queryString.view.mapValues(_.head).toMap
     val datasetPlugin = Dataset.apply(pluginId, ParameterValues.fromStringMap(datasetParams))
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>

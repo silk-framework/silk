@@ -3,7 +3,7 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.Partition
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, LegacyTraversable}
 
 /**
  * The execution method determines how a linkage rule is executed.
@@ -18,11 +18,11 @@ trait ExecutionMethod {
   /**
    * Generates comparison pairs from two partitions.
    */
-  def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean) = new Traversable[DPair[Entity]] {
+  def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean) = new LegacyTraversable[DPair[Entity]] {
     /**
      * Iterates through all comparison pairs
      */
-    def foreach[U](f: DPair[Entity] => U) {
+    override def foreach[U](f: DPair[Entity] => U) {
       //Iterate over all entities in the source partition
       var s = 0
       while(s < sourcePartition.size) {

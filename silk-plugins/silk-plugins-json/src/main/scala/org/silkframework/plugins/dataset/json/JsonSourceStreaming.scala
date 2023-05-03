@@ -10,7 +10,7 @@ import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
 
 import java.net.URLEncoder
 
@@ -33,7 +33,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends Traversable[Entity] {
+  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends LegacyTraversable[Entity] {
 
     private val entityPath = UntypedPath.parse(basePath) ++ UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
 

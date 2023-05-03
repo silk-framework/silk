@@ -139,7 +139,7 @@ class ReportsApiTest extends FlatSpec with IntegrationTestTrait with ReportsApiC
         configInputs = Seq.empty
       )
 
-    val workflow = Workflow(WorkflowOperatorsParameter(operators), WorkflowDatasetsParameter(datasets))
+    val workflow = Workflow(WorkflowOperatorsParameter(operators.toSeq), WorkflowDatasetsParameter(datasets.toSeq))
     project.addTask[Workflow]("workflow", workflow)
   }
 }

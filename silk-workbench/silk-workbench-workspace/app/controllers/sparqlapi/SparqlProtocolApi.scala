@@ -72,9 +72,9 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
   }
 
   private def executeQuery(query: String, accepts: Seq[MediaRange], context: Context[GenericDatasetSpec])(implicit uc: UserContext): Result = {
-    val acceptableMediaTypes = accepts.map(a => (a.mediaType + "/" + a.mediaSubType, a.qValue.map(_.doubleValue()).getOrElse(0d)))
+    val acceptableMediaTypes = accepts.map(a => (a.mediaType + "/" + a.mediaSubType, a.qValue.map(_.doubleValue).getOrElse(0d)))
       .filter(a => SparqlProtocolApi.SupportedMediaTyped.contains(a._1))
-      .sortBy(a => (a._2, a._1))( Ordering.Tuple2(Ordering.Double.reverse, Ordering.String))
+      .sortBy(a => (a._2, a._1))( Ordering.Tuple2(Ordering.Double.TotalOrdering.reverse, Ordering.String))
     val chosenMediaType = if(acceptableMediaTypes.isEmpty) accepts.headOption.map(a => a.mediaType + "/" + a.mediaSubType) else acceptableMediaTypes.headOption.map(_._1)
 
     context.task.data.plugin match {

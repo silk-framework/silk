@@ -31,7 +31,7 @@
   val pageSize = 100
   val filteredLinks = LinkFilter(links, filter.stripPrefix("filter:"))
   val sortedLinks = sorting(filteredLinks)
-  val pageLinks = sortedLinks.view(page * pageSize, (page + 1) * pageSize)
+  val pageLinks = sortedLinks.view(page * pageSize, (page + 1) * pageSize).toSeq
   pageLinks
 }
 

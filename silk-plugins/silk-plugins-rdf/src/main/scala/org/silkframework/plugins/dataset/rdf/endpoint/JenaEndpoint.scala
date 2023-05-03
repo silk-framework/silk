@@ -15,13 +15,13 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.util.logging.{Level, Logger}
-
 import org.apache.jena.query._
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.LegacyTraversable
 
 import scala.collection.immutable.SortedMap
 
@@ -113,7 +113,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
    */
   private def toSilkResults(resultSet: ResultSet) = {
     val results =
-      new Traversable[SortedMap[String, RdfNode]] {
+      new LegacyTraversable[SortedMap[String, RdfNode]] {
         override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
           JenaResultsReader.read(resultSet, f)
         }

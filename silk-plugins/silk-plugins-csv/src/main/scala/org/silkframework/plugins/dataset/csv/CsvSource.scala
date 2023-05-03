@@ -10,7 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
 
 import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.net.{URI, URLEncoder}
@@ -193,8 +193,8 @@ class CsvSource(file: Resource,
   private def entityTraversable(entityDesc: EntitySchema,
                                 entities: Seq[String],
                                 indices: IndexedSeq[Int]): Traversable[Entity] = {
-    new Traversable[Entity] {
-      def foreach[U](f: Entity => U) {
+    new LegacyTraversable[Entity] {
+      override def foreach[U](f: Entity => U) {
         val parser: CsvParser = csvParser(properties.trim.isEmpty)
 
         // Compile the line regex.
