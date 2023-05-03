@@ -28,12 +28,14 @@ private class LegacyTraversableIterator[T](traversable: LegacyTraversable[T]) ex
   override def hasNext: Boolean = {
     try {
       while (!loadingFuture.isDone) {
+        checkForException()
         if (queue.peek() != null) {
           return true
         } else {
           Thread.sleep(100)
         }
       }
+      checkForException()
       queue.peek() != null
     } catch {
       case ex: InterruptedException =>
