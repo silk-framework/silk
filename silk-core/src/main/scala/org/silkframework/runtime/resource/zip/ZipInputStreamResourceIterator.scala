@@ -39,7 +39,7 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
           ZipInputStreamResourceIterator.listEntries(zipInputStream) foreach { entry =>
             if (!entry.isDirectory && filterRegex.findFirstIn(entry.getName).isDefined) {
               val tempResource = createCompressedResource(entry, zipInputStream)
-              currentResource.foreach(_.delete())
+              //TODO cannot delete this. Should be converted to iterable: currentResource.foreach(_.delete())
               currentResource = Some(tempResource)
               f(tempResource)
             }

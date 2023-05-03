@@ -3,7 +3,7 @@ package org.silkframework.util
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.DoSomethingOnGC
 
-import java.util.concurrent.{ArrayBlockingQueue, Future}
+import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future}
 
 trait LegacyTraversable[T] extends Iterable[T] {
 
@@ -47,11 +47,13 @@ private class LegacyTraversableIterator[T](traversable: LegacyTraversable[T]) ex
       while (!loadingFuture.isDone) {
         val nextElement = queue.poll()
         if (nextElement != null) {
+          checkForException()
           return nextElement
         } else {
           Thread.sleep(100)
         }
       }
+      checkForException()
       val nextElement = queue.poll()
       if(nextElement == null) {
         throw new NoSuchElementException
@@ -62,6 +64,16 @@ private class LegacyTraversableIterator[T](traversable: LegacyTraversable[T]) ex
         loadingFuture.cancel(true)
         throw ex
     }
+  }
+
+  private def checkForException(): Unit = {
+    try {
+      loadingFuture.get()
+    } catch {
+      case ex: ExecutionException =>
+        throw ex.getCause
+    }
+
   }
 
   override def finalAction(): Unit = {
