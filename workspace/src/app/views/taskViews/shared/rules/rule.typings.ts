@@ -30,13 +30,13 @@ export interface ITransformOperator extends IValueInput {
 
 /** Labelled value. In order to show human-readable versions of values, e.g. in auto-completion. */
 export interface IOperatorNodeParameterValueWithLabel {
-    value: string;
+    value: string | boolean;
     label?: string;
 }
 
 /** Parameters of a rule operator. */
 export interface IOperatorNodeParameters {
-    [key: string]: string | IOperatorNodeParameterValueWithLabel;
+    [key: string]: string | boolean | IOperatorNodeParameterValueWithLabel;
 }
 
 /** Rule layout information. */
