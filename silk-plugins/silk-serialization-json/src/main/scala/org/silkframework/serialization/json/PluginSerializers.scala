@@ -15,8 +15,8 @@ object PluginSerializers {
   implicit object ParameterValuesJsonFormat extends JsonFormat[ParameterValues] {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): ParameterValues = {
-      val parameters = ParameterValues((value \ PARAMETERS).as[JsObject].value.mapValues(readParameters).toMap)
-      val templates = ParameterValues((value \ TEMPLATES).asOpt[JsObject].map(_.value.mapValues(readTemplates).toMap).getOrElse(Map.empty))
+      val parameters = ParameterValues((value \ PARAMETERS).as[JsObject].value.view.mapValues(readParameters).toMap)
+      val templates = ParameterValues((value \ TEMPLATES).asOpt[JsObject].map(_.value.view.mapValues(readTemplates).toMap).getOrElse(Map.empty))
       parameters merge templates
     }
 
@@ -40,7 +40,9 @@ object PluginSerializers {
         case boolean: JsBoolean => ParameterStringValue(boolean.value.toString)
         case str: JsString => ParameterStringValue(str.value)
         case number: JsNumber => ParameterStringValue(number.value.toString())
-        case obj: JsObject => ParameterValues(obj.value.mapValues(readParameters).toMap)
+        case obj: JsObject => ParameterValues(obj.value.view.mapValues(readParameters).toMap)
+        case array: JsArray => ParameterValues.empty
+        case JsNull => ParameterValues.empty
         case other: JsValue =>
           throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as parameter values!")
       }
@@ -49,7 +51,7 @@ object PluginSerializers {
     private def readTemplates(value: JsValue): ParameterValue = {
       value match {
         case str: JsString => ParameterTemplateValue(str.value)
-        case obj: JsObject => ParameterValues(obj.value.mapValues(readTemplates).toMap)
+        case obj: JsObject => ParameterValues(obj.value.view.mapValues(readTemplates).toMap)
         case other: JsValue =>
           throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as template values!")
       }

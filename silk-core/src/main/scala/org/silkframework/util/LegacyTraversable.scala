@@ -70,7 +70,9 @@ private class LegacyTraversableIterator[T](traversable: LegacyTraversable[T]) ex
 
   private def checkForException(): Unit = {
     try {
-      loadingFuture.get()
+      if(loadingFuture.isDone) {
+        loadingFuture.get()
+      }
     } catch {
       case ex: ExecutionException =>
         throw ex.getCause
