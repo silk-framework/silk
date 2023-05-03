@@ -20,7 +20,7 @@ import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
@@ -425,6 +425,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     task.synchronized {
       processRule(task, ruleId) { currentRule =>
         handleValidationExceptions {
+          implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project).copy(prefixes = Prefixes.empty)
           implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
           deserializeCompileTime[TransformRule]() { updatedRule =>
             updateRule(currentRule.update(updatedRule))
@@ -869,7 +870,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     TransformSpec.identifierGenerator(transformTask.data)
   }
 
-  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
+  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser)
+                               (implicit writeContext: WriteContext[JsValue]): Request[AnyContent] = {
     request.body.asJson match {
       case Some(requestJson) =>
         val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]
