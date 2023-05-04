@@ -42,7 +42,6 @@ trait TaskApiClient extends ApiClient {
   }
 
   def updateMetaData(projectId: String, taskId: String, metaData: MetaData): Unit = {
-    implicit val writeContext = WriteContext[JsValue](projectId = Some(projectId), resources = EmptyResourceManager())
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/metadata")
     val response = request.put(Json.toJson(MetaDataPlain.fromMetaData(metaData)))
     checkResponse(response)
