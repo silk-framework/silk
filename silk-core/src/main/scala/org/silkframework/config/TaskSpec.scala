@@ -93,7 +93,7 @@ object TaskSpec {
 
     // Holds all XML formats for sub classes of TaskSpec.
     private lazy val taskSpecFormats: Seq[XmlFormat[TaskSpec]] = {
-      Serialization.availableFormats.filter(f => f.isInstanceOf[XmlFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+      Serialization.availableFormats.filter(f => f.isInstanceOf[XmlFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f.valueType != classOf[TaskSpec])
         .map(_.asInstanceOf[XmlFormat[TaskSpec]])
     }
 
