@@ -12,11 +12,11 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{DefaultConfig, MetaData}
+import org.silkframework.config.{DefaultConfig, MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
-import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
+import org.silkframework.runtime.resource.{EmptyResourceManager, FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
@@ -237,12 +237,13 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         }
       }
       val xml = ScalaXML.load(resourceLoader.get(configFile).inputStream)
-      implicit val readContext: ReadContext = ReadContext()
       val prefixes = (xml \ "Prefixes").headOption
       if(prefixes.isEmpty) {
         throw new BadUserInputException("Invalid project XML format. config.xml does not contain Prefixes section.")
       }
       val projectId = (xml \ "@resourceUri").text.split("[/#:]").last
+      // Empty read context only used for MetaData
+      implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
       val metaData = (xml \ "MetaData").headOption.map(MetaData.MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       ProjectImportDetails(projectId, metaData.label.getOrElse(projectId), metaData.description, XmlZipWithResourcesProjectMarshaling.marshallerId,
         projectAlreadyExists = false, None)

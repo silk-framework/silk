@@ -85,14 +85,14 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                    outputTask: Option[Task[_ <: TaskSpec]],
                                    projectResources: ResourceManager): TaskProperties = {
     // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
-    implicit val pluginContext: PluginContext = PluginContext(resources = projectResources)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes= Prefixes.empty, resources = projectResources)
     val inputProperties = inputTask.toSeq.flatMap(_.properties).toMap
     val outputProperties = outputTask.toSeq.flatMap(_.properties).toMap
     TaskProperties(inputProperties, outputProperties)
   }
 
   // Check that expected schema is subset of input schema
-  private def checkInputSchema[U](expectedProperties: Seq[String], inputProperties: Set[String]): Unit = {
+  private def checkInputSchema(expectedProperties: Seq[String], inputProperties: Set[String]): Unit = {
     if (expectedProperties.exists(p => !inputProperties.contains(p))) {
       val missingProperties = expectedProperties.filterNot(inputProperties.contains)
       throw new ValidationException("SPARQL Update executor: The input schema does not match the expected schema. Missing properties: " +

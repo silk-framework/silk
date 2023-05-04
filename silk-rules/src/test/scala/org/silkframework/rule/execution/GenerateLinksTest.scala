@@ -26,7 +26,7 @@ import org.silkframework.rule.plugins.transformer.linguistic.{MetaphoneTransform
 import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 
 import scala.io.{Codec, Source}
@@ -84,7 +84,7 @@ object GenerateLinksTest {
    */
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
-      implicit val readContext = ReadContext()
+      implicit val readContext: ReadContext = TestReadContext()
       val xml = resourceLoader.get(configFile).read(XML.load)
       XmlSerialization.fromXml[LinkingConfig](xml)
     }

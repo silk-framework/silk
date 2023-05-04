@@ -2,7 +2,7 @@ package helper
 
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.resource.EmptyResourceManager
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, WriteContext}
 import org.silkframework.serialization.json.MetaDataSerializers.MetaDataPlain
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSResponse
@@ -34,7 +34,6 @@ trait TaskApiClient extends ApiClient {
   }
 
   def getMetaData(projectId: String, taskId: String): MetaData = {
-    implicit val readContext = ReadContext()
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/metadata")
     val response = request.get()
     val json = checkResponse(response).json

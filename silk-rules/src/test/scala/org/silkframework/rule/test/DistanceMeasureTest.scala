@@ -1,7 +1,7 @@
 package org.silkframework.rule.test
 
 import org.silkframework.rule.similarity.{DistanceMeasure, DistanceMeasureExampleValue}
-import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger
@@ -49,7 +49,7 @@ abstract class DistanceMeasureTest[T <: DistanceMeasure : ClassTag] extends Plug
   }
 
   private class DistanceMeasureTest(example: DistanceMeasureExampleValue) {
-    val distanceMeasure: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(PluginContext.empty)
+    val distanceMeasure: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(TestPluginContext())
 
     def addTest(): Unit = {
       val result = Try(distanceMeasure(example.inputs.source, example.inputs.target))

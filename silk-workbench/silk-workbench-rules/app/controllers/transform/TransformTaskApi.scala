@@ -113,7 +113,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                       createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
@@ -559,7 +559,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  )
                  afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task), validationEnabled = true)
       processRule(task, ruleName) { parentRule =>

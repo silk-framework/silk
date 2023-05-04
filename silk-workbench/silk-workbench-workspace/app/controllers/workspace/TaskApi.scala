@@ -376,7 +376,6 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                       taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    implicit val readContext: ReadContext = ReadContext()
 
     validateJson[MetaDataPlain] { metaData =>
       task.updateMetaData(metaData.toMetaData)

@@ -171,7 +171,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         The 'projectId' provides the project context for parameters that hold values that are project specific, e.g. task references.
         The 'dependsOnParameterValues' parameter contains all the values of other parameters this auto-completion depends on. E.g. if a
         plugin has a parameter 'project' and 'projectTask', the 'projectTask' parameter may depend on 'project',
-        because only when the project is known then the auto-completion of project tasks can be peformed. The list
+        because only when the project is known then the auto-completion of project tasks can be performed. The list
         of parameters are returned in the plugin parameter description.
         The 'textQuery' parameter is a conjunctive multi word query matching against the possible results.
         The 'offset' and 'limit' parameters allow for paging through the result list.
@@ -226,7 +226,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                                       pluginDescription: PluginDescription[_])
                                      (implicit userContext: UserContext): Result = {
     try {
-      implicit val pluginContext: PluginContext = PluginContext(user = userContext, projectId = Some(request.projectId))
+      val project = getProject(request.projectId)
+      implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
       val dependOnParameterValues = ParamValue.createAll(request.dependsOnParameterValues.getOrElse(Seq.empty),
                                                          autoCompletion.autoCompletionDependsOnParameters, pluginDescription)
       val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
