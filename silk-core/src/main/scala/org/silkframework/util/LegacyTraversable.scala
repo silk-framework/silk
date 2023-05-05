@@ -5,25 +5,17 @@ import org.silkframework.runtime.resource.DoSomethingOnGC
 
 import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future}
 
-trait LegacyTraversable[T] extends Iterable[T] {
-
-  def foreach[U](f: T => U): Unit
-
-  override def iterator: Iterator[T] = {
-    new LegacyTraversableIterator[T](this)
-  }
-}
-
-
-private class LegacyTraversableIterator[T](traversable: LegacyTraversable[T]) extends Iterator[T] with DoSomethingOnGC {
+trait LegacyTraversable[T] extends CloseableIterator[T] with DoSomethingOnGC {
 
   private val queue = new ArrayBlockingQueue[T](100)
 
   // Load entities in the background
-  private val loadingFuture: Future[Unit] = LegacyTraversableIterator.threadPool.submit[Unit](() => {
+  private lazy val loadingFuture: Future[Unit] = LegacyTraversable.threadPool.submit[Unit](() => {
     //TODO check for interruption
-    traversable.foreach(queue.put)
+    foreach(queue.put)
   })
+
+  def foreach[U](f: T => U): Unit
 
   override def hasNext: Boolean = {
     try {
@@ -81,12 +73,16 @@ private class LegacyTraversableIterator[T](traversable: LegacyTraversable[T]) ex
   }
 
   override def finalAction(): Unit = {
+    close()
+  }
+
+  override def close(): Unit = {
     loadingFuture.cancel(true)
   }
 }
 
-object LegacyTraversableIterator {
+object LegacyTraversable {
 
-  private val threadPool = Execution.createThreadPool("LegacyTraversableIterator")
+  private val threadPool = Execution.createThreadPool("LegacyTraversable")
 
 }

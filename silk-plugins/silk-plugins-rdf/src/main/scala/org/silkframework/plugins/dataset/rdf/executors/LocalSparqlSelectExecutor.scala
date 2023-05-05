@@ -8,7 +8,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.util.LegacyTraversable
+import org.silkframework.util.{CloseableIterator, LegacyTraversable}
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
@@ -36,7 +36,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                                          sparql: SparqlEndpointEntityTable,
                                          limit: Int = Integer.MAX_VALUE,
                                          executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
-                                        (implicit userContext: UserContext): Traversable[Entity] = {
+                                        (implicit userContext: UserContext): CloseableIterator[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
     val results = select(sparqlSelectTask, sparql, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
@@ -63,7 +63,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   private def createEntities(taskData: SparqlSelectCustomTask,
                              results: SparqlResults,
                              vars: IndexedSeq[String],
-                             executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): Traversable[Entity] = {
+                             executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): CloseableIterator[Entity] = {
     val increase: () => Unit = executionReportUpdater match {
       case Some(updater) => () =>
         updater.increaseEntityCounter()

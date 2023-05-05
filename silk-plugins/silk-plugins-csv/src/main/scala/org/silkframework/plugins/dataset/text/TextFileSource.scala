@@ -8,7 +8,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, Uri}
 
 class TextFileSource(ds: TextFileDataset) extends DataSource {
 
@@ -45,7 +45,7 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
         entitySchema
       )
       GenericEntityTable(
-        entities = Seq(entity),
+        entities = CloseableIterator(Iterator(entity)),
         entitySchema = entitySchema,
         task = underlyingTask,
       )

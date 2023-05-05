@@ -11,9 +11,37 @@ import java.io.Closeable
   */
 trait CloseableIterator[+T] extends Iterator[T] with Closeable { self =>
 
+  def head: T = {
+    headOption.getOrElse(throw new NoSuchElementException())
+  }
+
+  def headOption: Option[T] = {
+    if(hasNext) {
+      val element = next()
+      close()
+      Some(element)
+    } else {
+      None
+    }
+  }
+
+  override def take(n: Int): CloseableIterator[T] = CloseableIterator(super.take(n), this)
+
   override def map[U](f: T => U): CloseableIterator[U] = {
     new MappedCloseableIterator(this, f)
   }
+
+  override def filter(p: T => Boolean): CloseableIterator[T] = CloseableIterator(super.filter(p), this)
+
+  override def flatMap[B](f: T => IterableOnce[B]): CloseableIterator[B] = {
+    CloseableIterator(super.flatMap(f), this)
+  }
+
+  final def use[R](f: (Iterator[T] => R)): R =
+    try f(this) finally close()
+
+  final def use[R](f: => R): R =
+    try f finally close()
 
   /**
     * Return a new CloseableIterator which also closes the supplied Closeable
@@ -42,6 +70,10 @@ object CloseableIterator {
 
   def apply[T](iterator: Iterator[T]): CloseableIterator[T] = {
     new WrappedCloseableIterator[T](iterator)
+  }
+
+  def apply[T](iterable: IterableOnce[T]): CloseableIterator[T] = {
+    new WrappedCloseableIterator[T](iterable.iterator)
   }
 
 }

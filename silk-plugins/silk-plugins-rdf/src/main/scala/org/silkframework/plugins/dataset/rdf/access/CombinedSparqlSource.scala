@@ -7,7 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
 
 /**
   * A helper data source to combine several SPARQL sources in order to retrieve entities from them.
@@ -50,7 +50,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
       val results = for (sparqlSource <- sparqlSources) yield {
         sparqlSource.retrieveByUri(entitySchema, entities).entities
       }
-      GenericEntityTable(results.flatten, entitySchema, underlyingTask)
+      GenericEntityTable(CloseableIterator(results.flatten.iterator), entitySchema, underlyingTask)
     }
   }
 

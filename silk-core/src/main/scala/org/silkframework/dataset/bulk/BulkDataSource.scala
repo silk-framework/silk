@@ -7,7 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.execution.{EntityHolder, ExecutionException}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, LegacyTraversable, Uri}
 
 import scala.collection.mutable
 import scala.util.control.Breaks.{break, breakable}
@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
   *                      If false, the types and paths of the first data source are used.
   */
 class BulkDataSource(bulkContainerName: String,
-                     sources: Traversable[DataSourceWithName],
+                     sources: Iterator[DataSourceWithName],
                      mergeSchemata: Boolean) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])
@@ -33,7 +33,7 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = weightedPath => weightedPath._1 // Make distinct by path name only
       )
     } else {
-      sources.headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
+      sources.toSeq.headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
     }
   }
 
@@ -45,7 +45,7 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = a => a
       ).toIndexedSeq
     } else {
-      sources.headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
+      sources.toSeq.headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
     }
   }
 
@@ -110,13 +110,14 @@ class BulkDataSource(bulkContainerName: String,
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                             (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val retrievedEntities =
-      sources.flatMap { dataSource =>
+      sources.iterator.flatMap { dataSource =>
         handleSourceError(dataSource) { source =>
           source.retrieveByUri(entitySchema, entities).entities
         }
       }
 
-    GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
+    //TODO close source iterators
+    GenericEntityTable(CloseableIterator(retrievedEntities), entitySchema, underlyingTask)
   }
 
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(bulkContainerName), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task

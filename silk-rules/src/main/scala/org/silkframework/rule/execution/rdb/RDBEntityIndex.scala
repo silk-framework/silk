@@ -9,7 +9,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.util.{DPair, Identifier}
+import org.silkframework.util.{CloseableIterator, DPair, Identifier}
 
 import scala.util.Random
 
@@ -217,11 +217,11 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
   }
 
   private def retrieveEntities()
-                              (implicit userContext: UserContext): Traversable[Entity] = {
+                              (implicit userContext: UserContext): CloseableIterator[Entity] = {
     runtimeLinkingConfig.sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random
-        dataSource.sampleEntities(entitySchema, sampleSize, None)
+        CloseableIterator(dataSource.sampleEntities(entitySchema, sampleSize, None).iterator)
       case None =>
         dataSource.retrieve(entitySchema).entities
     }

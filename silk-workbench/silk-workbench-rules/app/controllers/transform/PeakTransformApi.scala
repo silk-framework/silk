@@ -256,7 +256,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
 
   // Generate the HTTP response for the mapping transformation preview
   private def generateMappingPreviewResponse(rule: TransformRule,
-                                             exampleEntities: Traversable[Entity],
+                                             exampleEntities: Iterator[Entity],
                                              limit: Int)
                                             (implicit prefixes: Prefixes) = {
     val (tryCounter, errorCounter, errorMessage, sourceAndTargetResults) = collectTransformationExamples(rule, exampleEntities, limit)
@@ -310,7 +310,7 @@ object PeakTransformApi {
     * @param limit           Limit of examples to return
     * @return
     */
-  def collectTransformationExamples(rule: TransformRule, exampleEntities: Traversable[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
+  def collectTransformationExamples(rule: TransformRule, exampleEntities: Iterator[Entity], limit: Int): (Int, Int, String, Seq[PeakResult]) = {
     // Number of examples collected
     var exampleCounter = 0
     // Number of exceptions occurred
@@ -320,10 +320,9 @@ object PeakTransformApi {
     // Record the first error message
     var errorMessage: String = ""
     val resultBuffer = ArrayBuffer[PeakResult]()
-    val entityIterator = exampleEntities.toIterator
-    while (entityIterator.hasNext && exampleCounter < limit) {
+    while (exampleEntities.hasNext && exampleCounter < limit) {
       tryCounter += 1
-      val entity = entityIterator.next()
+      val entity = exampleEntities.next()
       try {
         val transformResult = rule(entity)
         if (transformResult.nonEmpty) {

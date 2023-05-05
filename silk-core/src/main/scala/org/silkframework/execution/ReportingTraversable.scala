@@ -1,6 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.entity.Entity
+import org.silkframework.util.CloseableIterator
 
 import scala.util.control.NonFatal
 
@@ -10,11 +11,11 @@ import scala.util.control.NonFatal
 case class ReportingIterable(entities: Iterable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Iterable[Entity] {
 
   override def iterator: Iterator[Entity] = {
-    ReportingIterator(entities.iterator)
+    ReportingIterator(CloseableIterator(entities.iterator))
   }
 }
 
-case class ReportingIterator(entities: Iterator[Entity])(implicit executionReport: ExecutionReportUpdater) extends Iterator[Entity] {
+case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater) extends CloseableIterator[Entity] {
 
   override def hasNext: Boolean = {
     if(entities.hasNext) {
@@ -36,6 +37,10 @@ case class ReportingIterator(entities: Iterator[Entity])(implicit executionRepor
       }
     executionReport.increaseEntityCounter()
     entity
+  }
+
+  override def close(): Unit = {
+    entities.close()
   }
 }
 

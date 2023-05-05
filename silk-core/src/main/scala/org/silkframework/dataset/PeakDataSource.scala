@@ -6,6 +6,7 @@ import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.util.CloseableIterator
 
 import scala.util.control.NonFatal
 
@@ -20,7 +21,7 @@ trait PeakDataSource {
   /** Default peak implementation that should work with all sources that offer fast "random access".
     * It filters entities that have no input value for any input path. */
   def peak(entitySchema: EntitySchema, limit: Int)
-          (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
+          (implicit userContext: UserContext, prefixes: Prefixes): CloseableIterator[Entity] = {
     try {
       retrieve(entitySchema, Some(limit)).entities
     } catch {
@@ -32,7 +33,7 @@ trait PeakDataSource {
   protected def peakWithMaximumFileSize(inputResource: Resource,
                                         entitySchema: EntitySchema,
                                         limit: Int)
-                                       (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
+                                       (implicit userContext: UserContext, prefixes: Prefixes): CloseableIterator[Entity] = {
     inputResource.size match {
       case Some(size) =>
         if (size < maxFileSizeForPeak * 1000) {

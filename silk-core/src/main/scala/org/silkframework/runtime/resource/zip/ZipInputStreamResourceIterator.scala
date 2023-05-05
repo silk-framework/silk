@@ -3,7 +3,7 @@ package org.silkframework.runtime.resource.zip
 import java.io.{BufferedInputStream, File}
 import java.util.zip.{ZipEntry, ZipInputStream}
 import org.silkframework.runtime.resource._
-import org.silkframework.util.LegacyTraversable
+import org.silkframework.util.{CloseableIterator, LegacyTraversable}
 
 import scala.util.matching.Regex
 
@@ -30,7 +30,7 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
     *
     * @param filterRegex A regex to filter resources by their path value.
     **/
-  def iterateReadOnceResources(filterRegex: Regex): Traversable[Resource] = {
+  def iterateReadOnceResources(filterRegex: Regex): CloseableIterator[Resource] = {
     new LegacyTraversable[Resource] {
       override def foreach[U](f: Resource => U): Unit = {
         val zipInputStream = ZipInputStreamResourceIterator.this.zip()

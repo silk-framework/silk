@@ -15,11 +15,11 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
-
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.CloseableIterator
 
 /**
  * Retrieves the most frequent paths of a number of random sample entities.
@@ -52,7 +52,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getEntities(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction)
-                         (implicit userContext: UserContext): Traversable[String] = {
+                         (implicit userContext: UserContext): CloseableIterator[String] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT ?" + restrictions.variable
 
@@ -70,7 +70,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     results.bindings.map(_(restrictions.variable).value)
   }
 
-  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Traversable[String], variable: String, limit: Int)
+  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: CloseableIterator[String], variable: String, limit: Int)
                               (implicit userContext: UserContext): Seq[TypedPath] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
@@ -92,7 +92,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)
-                                 (implicit userContext: UserContext): Traversable[UntypedPath] = {
+                                 (implicit userContext: UserContext): CloseableIterator[UntypedPath] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT DISTINCT ?p \n"
 

@@ -5,7 +5,7 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
+import org.silkframework.util.{CloseableIterator, Uri}
 
 class EntityDatasourceTest extends FlatSpec with MustMatchers {
   behavior of "Entity Data Source"
@@ -24,7 +24,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
       entitySchema
     )
   )
-  val entityDatasource = EntityDatasource(alibiTask, entities, entitySchema)
+  val entityDatasource = EntityDatasource(alibiTask, CloseableIterator(entities), entitySchema)
 
   it should "turn its entities into the request schema" in {
     val requestSchema = EntitySchema(typeUri, nrToPaths(IndexedSeq(4, 2)))

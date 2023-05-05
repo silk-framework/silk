@@ -21,7 +21,7 @@ import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, Spar
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.plugins.dataset.rdf.sparql.ParallelEntityRetriever.{ExceptionPathValues, ExistingPathValues, PathValues, QueueEndMarker}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import java.util.logging.{Level, Logger}
@@ -49,7 +49,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    * @return The retrieved entities
    */
   override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): CloseableIterator[Entity] = {
     canceled = false
     if(entitySchema.typedPaths.size <= 1) {
       new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
@@ -180,7 +180,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     private val isSpecialTextPath = specialPaths.isTextSpecialPath(path)
     private val uriRequested = path.valueType == ValueType.URI
 
-    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]]): Unit = {
+    private def parseResults(sparqlResults: CloseableIterator[Map[String, RdfNode]]): Unit = {
       var currentSubject: Option[String] = None
       var currentValues: Seq[String] = Seq.empty
       def addCurrentValue(value: String): Unit = {

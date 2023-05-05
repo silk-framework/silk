@@ -18,7 +18,7 @@ import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
 
 import java.util.logging.Logger
 
@@ -42,7 +42,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @return The retrieved entities
    */
   override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): CloseableIterator[Entity] = {
     retrieveAll(entitySchema, limit, entities)
   }
 
@@ -53,7 +53,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @return The retrieved entities
    */
   private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri])
-                         (implicit userContext: UserContext): Traversable[Entity] = {
+                         (implicit userContext: UserContext): CloseableIterator[Entity] = {
     val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema, entities)
     val sparqlQuery: String = buildSparqlQuery(sparqlEntitySchema, useDistinct = true)
 
@@ -119,7 +119,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]],
+  private class EntityTraversable(sparqlResults: CloseableIterator[Map[String, RdfNode]],
                                   entitySchema: EntitySchema,
                                   limit: Option[Int],
                                   sparqlEntitySchema: SparqlEntitySchema) extends LegacyTraversable[Entity] {

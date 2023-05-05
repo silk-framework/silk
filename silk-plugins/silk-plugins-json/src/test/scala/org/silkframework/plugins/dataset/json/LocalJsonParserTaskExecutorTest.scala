@@ -8,7 +8,7 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.util.MockitoSugar
+import org.silkframework.util.{CloseableIterator, MockitoSugar}
 
 class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
   behavior of "Local JSON Parser Task Executor"
@@ -36,7 +36,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
   private val executor = LocalJsonParserTaskExecutor()
   private val jsonParserTask = JsonParserTask("jsonContent", "persons")
   private val task = PlainTask("JsonParser", jsonParserTask)
-  private val inputEntities = GenericEntityTable(entities, entitySchema, task)
+  private val inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
   private implicit val prefixes = Prefixes.empty
 
   PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])

@@ -26,9 +26,9 @@ trait QuadIterator extends CloseableIterator[Quad] {
   /**
     * Will generate an Entity for each Quad (using the EntitySchema of [[org.silkframework.execution.local.QuadEntityTable]]
     */
-  def asQuadEntities: Traversable[Entity] = {
+  def asQuadEntities: CloseableIterator[Entity] = {
     var count = 0L
-    this.toTraversable.map( quad => {
+    this.map( quad => {
       count += 1
       quad.toQuadEntity(Some(DataSource.URN_NID_PREFIX + count))
     })

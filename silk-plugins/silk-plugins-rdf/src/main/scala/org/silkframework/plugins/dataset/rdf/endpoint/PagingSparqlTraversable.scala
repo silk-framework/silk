@@ -29,9 +29,22 @@ object PagingSparqlTraversable {
     * @param limit The maximum number of SPARQL results returned in total (not per single query)
     */
   def apply(query: String, queryExecutor: QueryExecutor, params: SparqlParams, limit: Int): SparqlResults = {
-    SparqlResults(
-      bindings = new ResultIterable(query, queryExecutor, params, limit)
-    )
+    val parsedQuery = QueryFactory.create(query)
+    // Don't set graph if the query is already containing a GRAPH pattern (not easily possible to check with parsed query)
+    if (graphPatternRegex.findFirstIn(query).isEmpty && parsedQuery.getGraphURIs.size() == 0) {
+      params.graph foreach { graphURI =>
+        parsedQuery.addGraphURI(graphURI)
+      }
+    }
+    // FIXME: Also inject FROM NAMED when GRAPH pattern exists and no FROM NAMED was defined in the original query (breaking change).
+    val bindings =
+      if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
+        queryExecutor.executeAndParse(parsedQuery)
+      } else {
+        new ResultIterator(parsedQuery, queryExecutor, params.pageSize, limit)
+      }
+
+    SparqlResults(bindings)
   }
 
   /**
@@ -44,7 +57,7 @@ object PagingSparqlTraversable {
     def executeAndParse(query: Query): CloseableIterator[SortedMap[String, RdfNode]] = {
       val inputStream = execute(query.serialize(Syntax.syntaxSPARQL_11))
       val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
-      CloseableIterator(JenaResultsReader.read(resultSet), inputStream)
+      JenaResultsReader.read(resultSet).thenClose(inputStream)
     }
   }
 
@@ -74,13 +87,13 @@ object PagingSparqlTraversable {
     }
   }
 
-  private class ResultIterator(parsedQuery: Query, queryExecutor: QueryExecutor, pageSize: Int, limit: Int) extends Iterator[SortedMap[String, RdfNode]] {
+  private class ResultIterator(parsedQuery: Query, queryExecutor: QueryExecutor, pageSize: Int, limit: Int) extends CloseableIterator[SortedMap[String, RdfNode]] {
 
     private var offset = 0
 
     private var count = 0
 
-    private var currentIterator: Iterator[SortedMap[String, RdfNode]] = createIterator()
+    private var currentIterator: CloseableIterator[SortedMap[String, RdfNode]] = createIterator()
 
     override def hasNext: Boolean = {
       if (currentIterator.hasNext) {
@@ -109,12 +122,13 @@ object PagingSparqlTraversable {
         false
       } else {
         count = 0
+        currentIterator.close()
         currentIterator = createIterator()
         true
       }
     }
 
-    private def createIterator(): Iterator[SortedMap[String, RdfNode]] = {
+    private def createIterator(): CloseableIterator[SortedMap[String, RdfNode]] = {
       if (pageSize != Int.MaxValue && limit > pageSize) {
         parsedQuery.setOffset(offset)
       }
@@ -124,5 +138,8 @@ object PagingSparqlTraversable {
       queryExecutor.executeAndParse(parsedQuery)
     }
 
+    override def close(): Unit = {
+      currentIterator.close()
+    }
   }
 }

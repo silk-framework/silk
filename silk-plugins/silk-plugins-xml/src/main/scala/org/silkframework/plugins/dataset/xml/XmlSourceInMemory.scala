@@ -9,7 +9,7 @@ import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, LegacyTraversable, Uri}
 
 import java.util.logging.{Level, Logger}
 
@@ -106,7 +106,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)
-                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
+                   (implicit userContext: UserContext, prefixes: Prefixes): CloseableIterator[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 

@@ -25,7 +25,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, Uri}
 
 import java.util.logging.Logger
 import scala.language.implicitConversions
@@ -174,7 +174,7 @@ object DatasetSpec {
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                               (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if(entities.isEmpty) {
-        GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
+        GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
       } else {
         val adaptedSchema = adaptSchema(entitySchema)
         val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)

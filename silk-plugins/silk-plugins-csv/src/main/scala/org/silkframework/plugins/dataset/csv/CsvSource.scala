@@ -10,7 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, Uri}
 
 import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.net.{URI, URLEncoder}
@@ -18,9 +18,9 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 import scala.io.Codec
-import scala.util.{Success, Try}
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
+import scala.util.{Success, Try}
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -136,7 +136,7 @@ class CsvSource(file: Resource,
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                             (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
-      GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
+      GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
     } else {
       retrieveEntities(entitySchema, entities.map(_.uri))
     }
@@ -144,11 +144,11 @@ class CsvSource(file: Resource,
 
   def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty, limitOpt: Option[Int] = None): EntityHolder = {
     if(!file.exists) {
-      return GenericEntityTable(Seq.empty[Entity], entityDesc, underlyingTask, Seq.empty)
+      return GenericEntityTable(CloseableIterator.empty, entityDesc, underlyingTask, Seq.empty)
     }
 
     if(entityDesc.typeUri.toString.nonEmpty && entityDesc.typeUri != Uri(typeUri))
-      return GenericEntityTable(Traversable.empty, entityDesc, underlyingTask)
+      return GenericEntityTable(CloseableIterator.empty, entityDesc, underlyingTask)
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
@@ -170,8 +170,8 @@ class CsvSource(file: Resource,
         }
       }
 
-    // Return new Traversable that generates an entity for each line
-    val retrievedEntities = entityTraversable(entityDesc, entities, indices)
+    // Return new iterable that generates an entity for each line
+    val retrievedEntities = new EntityIterator(entityDesc, entities.toSet, indices)
 
     val limitedEntities = limitOpt match {
       case Some(limit) =>
@@ -190,97 +190,130 @@ class CsvSource(file: Resource,
     GenericEntityTable(limitedEntities, entityDesc, underlyingTask, missingColumnMessages)
   }
 
-  private def entityTraversable(entityDesc: EntitySchema,
-                                entities: Seq[String],
-                                indices: IndexedSeq[Int]): Traversable[Entity] = {
-    new LegacyTraversable[Entity] {
-      override def foreach[U](f: Entity => U) {
-        val parser: CsvParser = csvParser(properties.trim.isEmpty)
+  private class EntityIterator(entityDesc: EntitySchema,
+                               entities: Set[String],
+                               indices: IndexedSeq[Int]) extends CloseableIterator[Entity] {
 
-        // Compile the line regex.
-        val regex: Pattern = if (!regexFilter.isEmpty) regexFilter.r.pattern else null
+    private val parser: CsvParser = csvParser(properties.trim.isEmpty)
 
-        try {
-          // Iterate through all lines of the source file. If a *regexFilter* has been set, then use it to filter the rows.
+    // Compile the line regex.
+    private val regex: Pattern = if (regexFilter.nonEmpty) regexFilter.r.pattern else null
 
-          var entryOpt = parser.parseNext()
-          var index = 1
-          while (entryOpt.isDefined) {
-            val entry = entryOpt.get
-            if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(entry.mkString(csvSettings.separator.toString)).matches())) {
-              if (propertyList.size <= entry.length) {
-                //Extract requested values
-                val values = collectValues(indices, entry, index)
-                val entityURI = generateEntityUri(index, entry)
-                //Build entity
-                if (entities.isEmpty || entities.contains(entityURI)) {
-                  val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
-                  f(Entity(
-                    uri = entityURI,
-                    values = entityValues,
-                    schema = entityDesc
-                  ))
-                }
-              } else {
-                handleBadLine(index, entry)
-              }
-            }
+    // Cached next entity
+    private var nextEntity: Option[Entity] = None
+
+    // Line index
+    private var index: Int = 0
+
+    // Retrieve first entity
+    retrieveNext()
+
+    override def hasNext: Boolean = {
+      nextEntity.isDefined
+    }
+
+    override def next(): Entity = {
+      val entity = nextEntity.getOrElse(throw new NoSuchElementException("No more entities left."))
+      retrieveNext()
+      entity
+    }
+
+    override def close(): Unit = {
+      parser.stopParsing()
+    }
+
+    private def retrieveNext(): Unit = {
+      do {
+        parser.parseNext() match {
+          case Some(line) =>
+            nextEntity = readEntity(line)
             index += 1
-            entryOpt = parser.parseNext()
-          }
-        } finally {
-          parser.stopParsing()
+          case None =>
+            nextEntity = None
+            // Reached the end of the file
+            return
         }
+      } while(nextEntity.isEmpty)
+    }
+
+    private def readEntity(line: Array[String]): Option[Entity] = {
+      // Check for regex filter
+      if ((properties.trim.nonEmpty || index >= 0) && (regexFilter.isEmpty || regex.matcher(line.mkString(csvSettings.separator.toString)).matches())) {
+        // Check if line provides enough values
+        if (propertyList.size <= line.length) {
+          //Extract requested values
+          val values = collectValues(indices, line, index)
+          val entityURI = generateEntityUri(index, line)
+          //Build entity
+          if (entities.isEmpty || entities.contains(entityURI)) {
+            val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
+            Some(Entity(
+              uri = entityURI,
+              values = entityValues,
+              schema = entityDesc
+            ))
+          } else {
+            // Entity is not part of the entity URI set
+            None
+          }
+        } else {
+          // Bad line
+          handleBadLine(index, line)
+          None
+        }
+      } else {
+        // Line does not match regex
+        None
       }
     }
-  }
 
-  private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
-    indices map {
-      case IDX_PATH_MISSING =>
-        null // splitArrayValue will generate an empty sequence from this.
-      case IDX_PATH_IDX =>
-        entityIdx.toString
-      case idx: Int if idx >= 0 =>
-        entry(idx)
-    }
-  }
-
-  /** Returns a generated entity URI.
-    * The default URI pattern is to use the prefix and the line number.
-    * However the user can specify a different URI pattern (in the *uri* property), which is then used to
-    * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
-    * as defined in the *properties* field. */
-  private def generateEntityUri(index: Int, entry: Array[String]) = {
-    if (uriPattern.isEmpty) {
-      genericEntityIRI(index.toString)
-    } else {
-      "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
-        val propName = m.group(1)
-
-        assert(propertyList.contains(propName))
-        val value = entry(propertyList.indexOf(propName))
-        URLEncoder.encode(value, "UTF-8")
-      })
-    }
-  }
-
-  private def handleBadLine[U](index: Int, entry: Array[String]): Unit = {
-    // Bad line
-    if (!ignoreBadLines) {
-      assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
+    private def handleBadLine[U](index: Int, entry: Array[String]): Unit = {
+      // Bad line
+      if (!ignoreBadLines) {
+        assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
           s"${entry.length} elements. Expected number of elements ${propertyList.size}.")
+      }
     }
-  }
 
-  private def splitArrayValue[U](values: IndexedSeq[String]): IndexedSeq[Seq[String]] = {
-    val entityValues = csvSettings.arraySeparator match {
-      case None =>
-        values.map(v => if (v != null) Seq(v) else Seq.empty[String])
-      case Some(c) =>
-        values.map(v => if (v != null) v.split(c).toSeq else Seq.empty[String])
+    private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
+      indices map {
+        case IDX_PATH_MISSING =>
+          null // splitArrayValue will generate an empty sequence from this.
+        case IDX_PATH_IDX =>
+          entityIdx.toString
+        case idx: Int if idx >= 0 =>
+          entry(idx)
+      }
     }
-    entityValues
+
+    /** Returns a generated entity URI.
+      * The default URI pattern is to use the prefix and the line number.
+      * However the user can specify a different URI pattern (in the *uri* property), which is then used to
+      * build the entity URI. An example of such pattern is 'urn:zyx:{id}' where *id* is a name of a property
+      * as defined in the *properties* field. */
+    private def generateEntityUri(index: Int, entry: Array[String]) = {
+      if (uriPattern.isEmpty) {
+        genericEntityIRI(index.toString)
+      } else {
+        "\\{([^\\}]+)\\}".r.replaceAllIn(uriPattern, m => {
+          val propName = m.group(1)
+
+          assert(propertyList.contains(propName))
+          val value = entry(propertyList.indexOf(propName))
+          URLEncoder.encode(value, "UTF-8")
+        })
+      }
+    }
+
+    private def splitArrayValue[U](values: IndexedSeq[String]): IndexedSeq[Seq[String]] = {
+      val entityValues = csvSettings.arraySeparator match {
+        case None =>
+          values.map(v => if (v != null) Seq(v) else Seq.empty[String])
+        case Some(c) =>
+          values.map(v => if (v != null) v.split(c).toSeq else Seq.empty[String])
+      }
+      entityValues
+    }
   }
 
   private def csvParser(skipFirst: Boolean = false): CsvParser = {

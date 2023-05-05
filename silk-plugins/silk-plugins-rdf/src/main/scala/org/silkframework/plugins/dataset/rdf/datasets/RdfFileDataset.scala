@@ -19,7 +19,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, WritableResource}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, Uri}
 
 @Plugin(
   id = "file",
@@ -75,7 +75,7 @@ case class RdfFileDataset(
     createSparqlEndpoint(allResources)
   }
 
-  private def createSparqlEndpoint(resources: Traversable[Resource]): JenaEndpoint = {
+  private def createSparqlEndpoint(resources: Iterable[Resource]): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
     for(resource <- resources) {
@@ -157,7 +157,7 @@ case class RdfFileDataset(
       val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
         file.checkSizeForInMemory()
-        endpoint = createSparqlEndpoint(Seq(resource))
+        endpoint = createSparqlEndpoint(Iterable(resource))
         lastModificationTime = modificationTime
       }
     }
@@ -179,7 +179,7 @@ case class RdfFileDataset(
     override def sampleValues(typeUri: Option[Uri],
                               typedPaths: Seq[TypedPath],
                               valueSampleLimit: Option[Int])
-                             (implicit userContext: UserContext): Seq[Traversable[String]] = {
+                             (implicit userContext: UserContext): Seq[CloseableIterator[String]] = {
       load()
       sparqlSource.sampleValues(typeUri, typedPaths, valueSampleLimit)
     }

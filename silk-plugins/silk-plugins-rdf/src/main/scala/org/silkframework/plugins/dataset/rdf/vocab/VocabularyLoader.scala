@@ -4,7 +4,7 @@ import org.apache.jena.vocabulary.{OWL, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.LegacyTraversable
+import org.silkframework.util.{CloseableIterator, LegacyTraversable}
 
 import scala.collection.immutable.SortedMap
 
@@ -16,8 +16,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
     Some(Vocabulary(
       info = vocabGenericInfo,
-      classes = classes,
-      properties = retrieveProperties(uri, classes)
+      classes = classes.toSeq,
+      properties = retrieveProperties(uri, classes.toSeq)
     ))
   }
 
@@ -35,7 +35,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
          | }
          | ORDER BY ?v
       """.stripMargin
-    val bindings = endpoint.select(vocabQuery).bindings
+    val bindings = endpoint.select(vocabQuery).bindings.toSeq
     val vocabUri = collectObjectNodes("v", bindings).headOption
     val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
     val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
@@ -83,7 +83,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       |""".stripMargin
 
   def retrieveClasses(uri: String)
-                     (implicit userContext: UserContext): Traversable[VocabularyClass] = {
+                     (implicit userContext: UserContext): Iterator[VocabularyClass] = {
     val classQuery =
       s"""
          | $prefixes
@@ -121,12 +121,12 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
   }
 
   private def collectValues(varName: String,
-                            bindings: Traversable[SortedMap[String, RdfNode]]): Seq[String] = {
+                            bindings: Iterable[SortedMap[String, RdfNode]]): Seq[String] = {
     collectObjectNodes(varName, bindings).map(_.value).distinct
   }
 
   private def collectObjectNodes(varName: String,
-                                 bindings: Traversable[SortedMap[String, RdfNode]]): Seq[RdfNode] = {
+                                 bindings: Iterable[SortedMap[String, RdfNode]]): Seq[RdfNode] = {
     bindings.flatMap(_.get(varName)).toSeq
   }
 
@@ -186,7 +186,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     }
   }
 
-  class SequentialGroup(bindings: Traversable[SortedMap[String, RdfNode]]) extends LegacyTraversable[(String, Traversable[SortedMap[String, RdfNode]])] {
+  class SequentialGroup(bindings: CloseableIterator[SortedMap[String, RdfNode]]) extends LegacyTraversable[(String, Traversable[SortedMap[String, RdfNode]])] {
 
     override def foreach[U](emit: ((String, Traversable[SortedMap[String, RdfNode]])) => U): Unit = {
       var currentUri: Option[String] = None
@@ -224,7 +224,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
     val classMap = classes.map(c => (c.info.uri, c)).toMap
     def getClass(uri: String) = classMap.getOrElse(uri, VocabularyClass(GenericInfo(uri, altLabels = Seq.empty), Seq()))
-    val result = endpoint.select(propertyQuery).bindings
+    val result = endpoint.select(propertyQuery).bindings.toSeq
     val propertiesGrouped = result.groupBy(_("p"))
 
     for((propertyResource, bindings) <- propertiesGrouped if !propertyResource.isInstanceOf[BlankNode]) yield {

@@ -58,7 +58,7 @@ class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) e
                              schema = new Schema(implementation = classOf[String])
                            )
                            statusFilter: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
-    val activityStatusTraversable: Traversable[JsValue] = new LegacyTraversable[JsValue] {
+    val activityStatusTraversable: Iterator[JsValue] = new LegacyTraversable[JsValue] {
       override def foreach[U](f: JsValue => U): Unit = {
         val projects = projectId match {
           case Some(id) =>

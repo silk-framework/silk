@@ -8,7 +8,7 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.util.MockitoSugar
+import org.silkframework.util.{CloseableIterator, MockitoSugar}
 
 class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
 
@@ -72,7 +72,7 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
     val objectEntitySchema = EntitySchema("es", IndexedSeq(UntypedPath("pathB")).map(_.asStringTypedPath))
     val rootEntities = Seq(Entity("uri1", IndexedSeq(Seq("A")), rootEntitySchema))
     val objectEntities = Seq(Entity("uri1", IndexedSeq(Seq("B")), objectEntitySchema))
-    val multiEntitySchema = MultiEntityTable(rootEntities, rootEntitySchema, transformTask, Seq(GenericEntityTable(objectEntities, objectEntitySchema, transformTask)))
+    val multiEntitySchema = MultiEntityTable(CloseableIterator(rootEntities.iterator), rootEntitySchema, transformTask, Seq(GenericEntityTable(objectEntities, objectEntitySchema, transformTask)))
     val rootEntitiesResult = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true)).get
     val subTables = rootEntitiesResult.asInstanceOf[MultiEntityTable].subTables
     subTables must have size 1

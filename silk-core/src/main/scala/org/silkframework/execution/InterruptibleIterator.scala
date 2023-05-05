@@ -1,14 +1,11 @@
 package org.silkframework.execution
 
+import org.silkframework.util.CloseableIterator
+
 /**
   * A wrapper for Traversables that will check for Thread.interrupted and throws an [[InterruptedException]].
   */
-class InterruptibleIterable[T](iterable: Iterable[T]) extends Iterable[T] {
-
-  override def iterator: Iterator[T] = new InterruptibleIterator(iterable.iterator)
-}
-
-class InterruptibleIterator[T](iterator: Iterator[T]) extends Iterator[T] {
+class InterruptibleIterator[T](iterator: CloseableIterator[T]) extends CloseableIterator[T] {
 
   override def hasNext: Boolean = iterator.hasNext
 
@@ -17,5 +14,9 @@ class InterruptibleIterator[T](iterator: Iterator[T]) extends Iterator[T] {
       throw new InterruptedException()
     }
     iterator.next()
+  }
+
+  override def close(): Unit = {
+    iterator.close()
   }
 }

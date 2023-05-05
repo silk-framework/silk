@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.{QuerySolution, ResultSet}
 import org.silkframework.dataset.rdf._
+import org.silkframework.util.CloseableIterator
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
@@ -11,14 +12,19 @@ import scala.collection.immutable.SortedMap
   */
 object JenaResultsReader {
 
-  def read(resultSet: ResultSet): Iterator[SortedMap[String, RdfNode]] = {
-    for (result: QuerySolution <- resultSet.asScala) yield {
-      // Make sure that the reading has not been interrupted in the mean time
-      if(Thread.currentThread().isInterrupted) {
-        throw new InterruptedException()
+  /**
+    * Iterator that reads the result set and closes it afterwards.
+    */
+  def read(resultSet: ResultSet): CloseableIterator[SortedMap[String, RdfNode]] = {
+    val iterator =
+      for (result: QuerySolution <- resultSet.asScala) yield {
+        // Make sure that the reading has not been interrupted in the mean time
+        if(Thread.currentThread().isInterrupted) {
+          throw new InterruptedException()
+        }
+        toSilkBinding(result)
       }
-      toSilkBinding(result)
-    }
+    CloseableIterator(iterator, () => { resultSet.close() })
   }
 
   /**

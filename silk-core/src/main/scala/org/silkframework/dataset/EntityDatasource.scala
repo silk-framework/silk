@@ -7,12 +7,12 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
+import org.silkframework.util.{CloseableIterator, Uri}
 
 /**
   * A data source on [[org.silkframework.entity.Entity]] objects
   */
-case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
+case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: CloseableIterator[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
   override def retrieve(requestSchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(requestSchema.typeUri != entitySchema.typeUri) {

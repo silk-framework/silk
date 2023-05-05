@@ -159,7 +159,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         }
         log.info("Finished execution of " + operator.nodeId)
         workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-        writeErrorOutput(operatorNode, result)
+        writeErrorOutput(operatorNode, executorOutput)
         result
       } else {
         None
@@ -265,16 +265,19 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * Writes the output of a workflow node to a separate error output if configured.
     * Currently only writes error outputs for transformations.
     */
-  def writeErrorOutput(workflowNode: WorkflowDependencyNode,
-                       output: Option[LocalEntities])
+  def writeErrorOutput(operatorNode: WorkflowDependencyNode,
+                       executorOutput: ExecutorOutput)
                       (implicit workflowRunContext: WorkflowRunContext): Unit = {
     implicit val userContext: UserContext = workflowRunContext.userContext
     for {
-      outputTable <- output
-      transformTask <- project.taskOption[TransformSpec](workflowNode.workflowNode.task)
+      transformTask <- project.taskOption[TransformSpec](operatorNode.workflowNode.task)
       errorSink <- transformTask.errorEntitySink
     } {
-      ErrorOutputWriter.write(outputTable, errorSink)
+      val inputResults = executeWorkflowOperatorInputs(operatorNode, transformTask.data.inputSchemataOpt, operatorNode.inputNodes)
+      val result = execute("Executing", operatorNode.nodeId, transformTask, inputResults.flatten, executorOutput)
+      for(output <- result) {
+        ErrorOutputWriter.write(output, errorSink)
+      }
     }
   }
 

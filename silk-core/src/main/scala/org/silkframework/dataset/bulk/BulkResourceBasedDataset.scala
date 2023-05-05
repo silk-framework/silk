@@ -1,15 +1,15 @@
 package org.silkframework.dataset.bulk
 
-import java.io.File
-import java.util.logging.Logger
-import java.util.zip.ZipException
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipInputStreamResourceIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.LegacyTraversable
+import org.silkframework.util.CloseableIterator
 
+import java.io.File
+import java.util.logging.Logger
+import java.util.zip.ZipException
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
@@ -51,7 +51,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
+        new BulkDataSource(file.name, allResources.map(createSourceWithName).iterator, mergeSchemata)
     }
   }
 
@@ -65,9 +65,9 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * If the dataset is based on a bulk file, this returns all sub resources.
     * Otherwise, returns the file itself.
     */
-  def allResources: Traversable[Resource] = {
+  def allResources: Iterable[Resource] = {
     if (BulkResourceBasedDataset.isBulkResource(file)) {
-      BulkResourceBasedDataset.retrieveSubResources(file, internalRegex)
+      BulkResourceBasedDataset.retrieveSubResources(file, internalRegex).toSeq
     } else {
       Seq(file)
     }
@@ -105,16 +105,12 @@ object BulkResourceBasedDataset {
     *
     * Filters the name of the resource via the given filter regex.
     */
-  private def retrieveSubResources(resource: Resource, filterRegex: Regex): Traversable[Resource] = {
+  private def retrieveSubResources(resource: Resource, filterRegex: Regex): CloseableIterator[Resource] = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log fine s"Zip file Resource found: ${resource.name}"
       try {
-        new LegacyTraversable[Resource] {
-          override def foreach[U](f: Resource => U): Unit = {
-            val zipLoader = ZipInputStreamResourceIterator(resource, "")
-            zipLoader.iterateReadOnceResources(filterRegex) foreach f
-          }
-        }
+        val zipLoader = ZipInputStreamResourceIterator(resource, "")
+        zipLoader.iterateReadOnceResources(filterRegex)
       } catch {
         case NonFatal(t) =>
           log warning s"Exception for zip resource ${resource.path}: " + t.getMessage

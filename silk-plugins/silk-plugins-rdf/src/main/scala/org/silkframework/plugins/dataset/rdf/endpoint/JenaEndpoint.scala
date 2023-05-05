@@ -63,12 +63,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     // Execute query
 //    val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
     val qe = createQueryExecution(query)
-    try {
-      toSilkResults(qe.execSelect())
-    }
-    finally {
-      qe.close()
-    }
+    val results = JenaResultsReader.read(qe.execSelect()).thenClose(() => { qe.close() })
+    SparqlResults(results)
   }
 
   /**
@@ -105,13 +101,4 @@ abstract class JenaEndpoint extends SparqlEndpoint {
                      (implicit userContext: UserContext): Unit = synchronized {
     createUpdateExecution(query).execute()
   }
-
-  /**
-   * Converts a Jena ARQ ResultSet to a Silk ResultSet.
-   */
-  private def toSilkResults(resultSet: ResultSet) = {
-    val results = JenaResultsReader.read(resultSet)
-    SparqlResults(results.toList)
-  }
-
 }

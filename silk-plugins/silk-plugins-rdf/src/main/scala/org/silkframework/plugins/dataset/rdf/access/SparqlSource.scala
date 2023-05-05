@@ -10,7 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{CloseableIterator, Identifier, LegacyTraversable, Uri}
 
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
@@ -81,7 +81,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   override def sampleValues(typeUri: Option[Uri],
                             typedPaths: Seq[TypedPath],
                             valueSampleLimit: Option[Int])
-                           (implicit userContext: UserContext): Seq[Traversable[String]] = {
+                           (implicit userContext: UserContext): Seq[CloseableIterator[String]] = {
     typedPaths map { typedPath =>
       new ValueTraverser(typeUri, typedPath, valueSampleLimit)
     }

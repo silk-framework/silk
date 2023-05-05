@@ -2,7 +2,7 @@ package org.silkframework.dataset
 
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
+import org.silkframework.util.{CloseableIterator, Uri}
 
 /**
   * A data source with fast value sampling method.
@@ -19,5 +19,5 @@ trait SamplingDataSource { this: DataSource =>
   def sampleValues(typeUri: Option[Uri],
                    typedPaths: Seq[TypedPath],
                    valueSampleLimit: Option[Int])
-                  (implicit userContext: UserContext): Seq[Traversable[String]]
+                  (implicit userContext: UserContext): Seq[CloseableIterator[String]]
 }

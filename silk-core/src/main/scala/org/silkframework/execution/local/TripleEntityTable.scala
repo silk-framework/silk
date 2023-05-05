@@ -4,21 +4,21 @@ import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.{EntityHolder, InterruptibleIterable}
-import org.silkframework.util.Uri
+import org.silkframework.execution.InterruptibleIterator
+import org.silkframework.util.{CloseableIterator, Uri}
 
 /**
   * Holds RDF triples.
   */
-class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[TaskSpec]) extends LocalEntities {
+class TripleEntityTable(tripleEntities: CloseableIterator[Entity], val task: Task[TaskSpec]) extends LocalEntities {
 
-  override def entities: Traversable[Entity] = {
-    new InterruptibleIterable(tripleEntities)
+  override def entities: CloseableIterator[Entity] = {
+    new InterruptibleIterator(tripleEntities)
   }
 
   override def entitySchema: EntitySchema = TripleEntityTable.schema
 
-  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities = {
+  override def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): LocalEntities = {
     new TripleEntityTable(newEntities, task)
   }
 }
