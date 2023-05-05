@@ -1,10 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.{QueryFactory, Syntax}
+import org.apache.jena.query.{Query, QueryFactory, Syntax}
 import org.apache.jena.riot.ResultSetMgr
 import org.apache.jena.riot.resultset.ResultSetLang
 import org.silkframework.dataset.rdf._
-import org.silkframework.util.LegacyTraversable
+import org.silkframework.util.CloseableIterator
 
 import java.io.InputStream
 import java.util.logging.Logger
@@ -30,7 +30,7 @@ object PagingSparqlTraversable {
     */
   def apply(query: String, queryExecutor: QueryExecutor, params: SparqlParams, limit: Int): SparqlResults = {
     SparqlResults(
-      bindings = new ResultsTraversable(query, queryExecutor, params, limit)
+      bindings = new ResultIterable(query, queryExecutor, params, limit)
     )
   }
 
@@ -38,15 +38,22 @@ object PagingSparqlTraversable {
     * Executes a query and passes the result to a processing function.
     */
   trait QueryExecutor {
-    def execute(query: String, processResult: InputStream => Unit): Unit
+
+    def execute(query: String): InputStream
+
+    def executeAndParse(query: Query): CloseableIterator[SortedMap[String, RdfNode]] = {
+      val inputStream = execute(query.serialize(Syntax.syntaxSPARQL_11))
+      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
+      CloseableIterator(JenaResultsReader.read(resultSet), inputStream)
+    }
   }
 
-  private class ResultsTraversable(query: String,
-                                   queryExecutor: QueryExecutor,
-                                   params: SparqlParams,
-                                   limit: Int) extends LegacyTraversable[SortedMap[String, RdfNode]] {
+  private class ResultIterable(query: String,
+                               queryExecutor: QueryExecutor,
+                               params: SparqlParams,
+                               limit: Int) extends Iterable[SortedMap[String, RdfNode]] {
 
-    override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
+    override def iterator: Iterator[SortedMap[String, RdfNode]] = {
       val parsedQuery = QueryFactory.create(query)
       // Don't set graph if the query is already containing a GRAPH pattern (not easily possible to check with parsed query)
       if(graphPatternRegex.findFirstIn(query).isEmpty && parsedQuery.getGraphURIs.size() == 0) {
@@ -56,36 +63,66 @@ object PagingSparqlTraversable {
       }
       // FIXME: Also inject FROM NAMED when GRAPH pattern exists and no FROM NAMED was defined in the original query (breaking change).
       if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
-        queryExecutor.execute(parsedQuery.serialize(Syntax.syntaxSPARQL_11), is => outputResults(is, f))
+        queryExecutor.executeAndParse(parsedQuery)
       } else {
-        for (offset <- 0 until limit by params.pageSize) {
-          if (Thread.currentThread().isInterrupted) {
-            return
-          }
-          if (params.pageSize != Int.MaxValue && limit > params.pageSize) {
-            parsedQuery.setOffset(offset)
-          }
-          if (limit != Int.MaxValue || params.pageSize != Int.MaxValue) {
-            parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
-          }
-          queryExecutor.execute(parsedQuery.serialize(Syntax.syntaxSPARQL_11), { inputStream =>
-            val resultCount = outputResults(inputStream, f)
-            logger.fine("Run: " + offset + ", " + limit + ", " + params.pageSize)
-            if (resultCount < params.pageSize) {
-              return
-            }
-          })
-        }
+        new ResultIterator(parsedQuery, queryExecutor, params.pageSize, limit)
       }
-    }
-
-    def outputResults[U](inputStream: InputStream, f: SortedMap[String, RdfNode] => U): Int = {
-      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
-      JenaResultsReader.read(resultSet, f)
     }
 
     override def toString(): String = {
       s"Results of query: $query"
     }
+  }
+
+  private class ResultIterator(parsedQuery: Query, queryExecutor: QueryExecutor, pageSize: Int, limit: Int) extends Iterator[SortedMap[String, RdfNode]] {
+
+    private var offset = 0
+
+    private var count = 0
+
+    private var currentIterator: Iterator[SortedMap[String, RdfNode]] = createIterator()
+
+    override def hasNext: Boolean = {
+      if (currentIterator.hasNext) {
+        currentIterator.hasNext
+      } else {
+        nextPage()
+      }
+    }
+
+    override def next(): SortedMap[String, RdfNode] = {
+      if(currentIterator.hasNext) {
+        count += 1
+        currentIterator.next()
+      } else {
+        if(!nextPage()) {
+          throw new NoSuchElementException("no more results")
+        }
+        currentIterator.next()
+      }
+    }
+
+    private def nextPage(): Boolean = {
+      offset += pageSize
+      if (count < pageSize) {
+        count = 0
+        false
+      } else {
+        count = 0
+        currentIterator = createIterator()
+        true
+      }
+    }
+
+    private def createIterator(): Iterator[SortedMap[String, RdfNode]] = {
+      if (pageSize != Int.MaxValue && limit > pageSize) {
+        parsedQuery.setOffset(offset)
+      }
+      if (limit != Int.MaxValue || pageSize != Int.MaxValue) {
+        parsedQuery.setLimit(math.min(pageSize, limit - offset))
+      }
+      queryExecutor.executeAndParse(parsedQuery)
+    }
+
   }
 }

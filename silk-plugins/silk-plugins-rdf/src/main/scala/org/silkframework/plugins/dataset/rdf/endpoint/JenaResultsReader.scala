@@ -11,13 +11,14 @@ import scala.collection.immutable.SortedMap
   */
 object JenaResultsReader {
 
-  def read[U](resultSet: ResultSet, f: SortedMap[String, RdfNode] => U): Int = {
-    var count = 0
-    for (result: QuerySolution <- resultSet.asScala) {
-      f(toSilkBinding(result))
-      count += 1
+  def read(resultSet: ResultSet): Iterator[SortedMap[String, RdfNode]] = {
+    for (result: QuerySolution <- resultSet.asScala) yield {
+      // Make sure that the reading has not been interrupted in the mean time
+      if(Thread.currentThread().isInterrupted) {
+        throw new InterruptedException()
+      }
+      toSilkBinding(result)
     }
-    count
   }
 
   /**

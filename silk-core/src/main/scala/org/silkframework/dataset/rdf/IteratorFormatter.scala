@@ -1,5 +1,7 @@
 package org.silkframework.dataset.rdf
 
+import org.silkframework.util.CloseableIterator
+
 import java.io.{File, FileOutputStream, OutputStreamWriter, Writer}
 
 /**
@@ -9,7 +11,7 @@ object IteratorFormatter {
   /**
     * Will serialize the entire content of the Iterator using the defined formatter, thereby using it up and finally closing it
     */
-  def serialize[T](iterator: ClosableIterator[T], formatter: ElementFormatter[T]): String = {
+  def serialize[T](iterator: CloseableIterator[T], formatter: ElementFormatter[T]): String = {
     val sb = new StringBuilder()
     sb.append(formatter.header)
     while(iterator.hasNext){
@@ -28,7 +30,7 @@ object IteratorFormatter {
     * NOTE: file will be overwritten
     * @param file - the file to write to
     */
-  def saveToFile[T](file: File, iterator: ClosableIterator[T], formatter: ElementFormatter[T]): Unit ={
+  def saveToFile[T](file: File, iterator: CloseableIterator[T], formatter: ElementFormatter[T]): Unit ={
     var writer: Writer = null
     try {
       file.createNewFile()

@@ -2,11 +2,12 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
+import org.silkframework.util.CloseableIterator
 
 /**
   * Provides an Iterator interface for [[Quad]] containing serialization and [[Entity]] transformation
   */
-trait QuadIterator extends ClosableIterator[Quad] {
+trait QuadIterator extends CloseableIterator[Quad] {
   /**
     * Should close and clean up all used resources. This will be called at most once.
     */

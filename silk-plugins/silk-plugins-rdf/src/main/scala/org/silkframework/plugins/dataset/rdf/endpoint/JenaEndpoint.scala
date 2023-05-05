@@ -14,16 +14,14 @@
 
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.util.logging.{Level, Logger}
 import org.apache.jena.query._
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.LegacyTraversable
 
-import scala.collection.immutable.SortedMap
+import java.util.logging.{Level, Logger}
 
 /**
  * A SPARQL endpoint which executes all queries using Jena.
@@ -112,13 +110,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
    * Converts a Jena ARQ ResultSet to a Silk ResultSet.
    */
   private def toSilkResults(resultSet: ResultSet) = {
-    val results =
-      new LegacyTraversable[SortedMap[String, RdfNode]] {
-        override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
-          JenaResultsReader.read(resultSet, f)
-        }
-      }
-
+    val results = JenaResultsReader.read(resultSet)
     SparqlResults(results.toList)
   }
 

@@ -25,7 +25,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   private final val EMPTY_LITERAL = "emptyLiteral"
 
   private def sparqlResults(nrResults: Int) = new QueryExecutor {
-    override def execute(query: String, processResult: InputStream => Unit): Unit = {
+    override def execute(query: String): InputStream = {
       val result = <sparql xmlns="http://www.w3.org/2005/sparql-results#">
         <head>
           <variable name={URI}/>
@@ -60,7 +60,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
         }}
         </results>
       </sparql>
-      processResult(new ByteArrayInputStream(("<?xml version=\"1.0\"?>\n" + result.toString()).getBytes(StandardCharsets.UTF_8)))
+      new ByteArrayInputStream(("<?xml version=\"1.0\"?>\n" + result.toString()).getBytes(StandardCharsets.UTF_8))
     }
   }
 
@@ -79,9 +79,9 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   it should "handle graph parameter" in {
     val queries = ArrayBuffer[String]()
     val queryCollector = new QueryExecutor {
-      def execute(query: String, processResult: InputStream => Unit): Unit = {
+      def execute(query: String): InputStream = {
         queries.append(query)
-        sparqlResults(1).execute(query, processResult) // just a dummy
+        sparqlResults(1).execute(query) // just a dummy
       }
     }
     val GRAPH_URI = "http://graph.com/graph"
@@ -89,8 +89,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", queryCollector, sparqlParams, Int.MaxValue)
     val results = result.bindings.take(3).toArray
     val requestedQueries = queries.toList
-    //TODO re-enable after Iterable is used instead of LegacyTraversable
-    //requestedQueries.size mustBe 3
+    requestedQueries.size mustBe 3
     for(i <- 0 to 2) {
       requestedQueries(i).contains(s"OFFSET $i LIMIT 1")
     }
@@ -100,9 +99,9 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   it should "not set limit and offset if already in query" in {
     val queries = ArrayBuffer[String]()
     val queryCollector = new QueryExecutor {
-      def execute(query: String, processResult: InputStream => Unit): Unit = {
+      def execute(query: String): InputStream = {
         queries.append(query)
-        sparqlResults(1) // just a dummy
+        sparqlResults(1).execute(query) // just a dummy
       }
     }
     val sparqlParams = SparqlParams(pageSize = 1)
@@ -118,9 +117,9 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     val lowLimit = 42
     val queries = ArrayBuffer[String]()
     val queryCollector = new QueryExecutor {
-      def execute(query: String, processResult: InputStream => Unit): Unit = {
+      def execute(query: String): InputStream = {
         queries.append(query)
-        sparqlResults(1).execute(query, processResult) // just a dummy
+        sparqlResults(1).execute(query) // just a dummy
       }
     }
     val sparqlParams = SparqlParams(pageSize = 1000000)
@@ -159,9 +158,9 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     @volatile var inInputStream = false
     @volatile var interruptedInStream = false
     val blockingExecutor = new QueryExecutor {
-      override def execute(query: String, processResult: InputStream => Unit): Unit = {
+      override def execute(query: String): InputStream = {
         if(count.get() <= 2) {
-          sparqlResults(1).execute(query, processResult)
+          sparqlResults(1).execute(query)
         } else {
           val blockingInputStream = new InputStream {
             override def read(): Int = {
@@ -176,7 +175,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
               fail("Reading should have been interrupted")
             }
           }
-          processResult(blockingInputStream)
+          blockingInputStream
         }
       }
     }
@@ -205,7 +204,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
       var actualQuery = ""
       val expectedQuery = QueryFactory.create(query).serialize(Syntax.syntaxSPARQL_11)
       def queryExecutor = new QueryExecutor {
-        def execute(query: String, processResult: InputStream => Unit): Unit = {
+        def execute(query: String): InputStream = {
           actualQuery = query
           // Return value doesn't matter, will be ignored
           new ByteArrayInputStream(
