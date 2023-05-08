@@ -48,7 +48,7 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
       TypedPath(UntypedPath("urn:prop:label"), deVT, isAttribute = false),
       TypedPath(UntypedPath("urn:prop:label"), ValueType.STRING, isAttribute = false)
     )
-    result.get.entities.map(_.values) mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
+    result.get.entities.map(_.values).toSeq mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
   }
 
   it should "output the correct entity schemas and entities" in {
@@ -79,11 +79,13 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
     val objectEntitiesResult = subTables.head
     // Check entities
     objectEntitiesResult.entitySchema.typeUri.toString mustBe "TypeObject"
-    objectEntitiesResult.entities.flatMap(e => e.values).flatten mustBe Seq("B")
-    val objectEntityUri = objectEntitiesResult.entities.head.uri
+    val objectEntitiesSeq = objectEntitiesResult.entities.toSeq
+    objectEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("B")
+    val objectEntityUri = objectEntitiesSeq.head.uri
     rootEntitiesResult.entitySchema.typeUri.toString mustBe "TypeRoot"
-    rootEntitiesResult.entities.flatMap(e => e.values).flatten mustBe Seq("A", objectEntityUri.toString)
-    val rootEntityUri = rootEntitiesResult.entities.head.uri
+    val rootEntitiesSeq = rootEntitiesResult.entities.toSeq
+    rootEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("A", objectEntityUri.toString)
+    val rootEntityUri = rootEntitiesSeq.head.uri
     rootEntityUri must not be objectEntityUri
 
   }

@@ -3,6 +3,7 @@ package controllers.sparqlapi
 import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
+import org.silkframework.util.CloseableIterator
 import play.api.libs.json._
 
 import scala.collection.immutable.SortedMap
@@ -21,7 +22,7 @@ object SparqlResultJsonSerializers extends JsonFormat[SparqlResults] {
     else{
       val results = resultSet("results").as[JsObject]
       val bindings = SparqlResultJsonBindings.read(results("bindings"))
-      val sortedMaps = bindings.bindings.map(b => SortedMap(b.map.map(y => y._1 -> SparqlJsonVariableBinding.toRdfNode(y._2)).toSeq:_*))
+      val sortedMaps = bindings.bindings.map(b => SortedMap(b.map.map(y => y._1 -> SparqlJsonVariableBinding.toRdfNode(y._2)).toSeq:_*)).toSeq
       SparqlResults(sortedMaps)
     }
   }
@@ -34,7 +35,7 @@ object SparqlResultJsonSerializers extends JsonFormat[SparqlResults] {
     case select: SparqlResults => JsObject(Map(
       "head" -> SparqlResultJsonHeader.write(SparqlResultJsonHeader(select.variables.toIndexedSeq, IndexedSeq.empty)),
       "results" -> JsObject(Map(
-        "bindings" -> SparqlResultJsonBindings.write(SparqlResultJsonBindings(select.bindings.toIndexedSeq.map(e =>
+        "bindings" -> SparqlResultJsonBindings.write(SparqlResultJsonBindings(select.bindings.map(e =>
           SparqlJsonQuerySolution(e.map(y => y._1 -> SparqlJsonVariableBinding.fromRdfNode(y._2))))))))
     ))
   }
@@ -55,13 +56,14 @@ object SparqlResultJsonSerializers extends JsonFormat[SparqlResults] {
     ))
   }
 
-  case class SparqlResultJsonBindings(bindings: IndexedSeq[SparqlJsonQuerySolution])
+  case class SparqlResultJsonBindings(bindings: CloseableIterator[SparqlJsonQuerySolution])
+
   object SparqlResultJsonBindings extends JsonFormat[SparqlResultJsonBindings] {
     override def read(value: JsValue)(implicit readContext: ReadContext): SparqlResultJsonBindings =
-      SparqlResultJsonBindings(value.as[JsArray].value.map(e => SparqlJsonQuerySolution.read(e)).toIndexedSeq)
+      SparqlResultJsonBindings(CloseableIterator(value.as[JsArray].value.map(e => SparqlJsonQuerySolution.read(e)).iterator))
 
     override def write(value: SparqlResultJsonBindings)(implicit writeContext: WriteContext[JsValue]): JsValue =
-      JsArray(value.bindings.map(e => SparqlJsonQuerySolution.write(e)))
+      JsArray(value.bindings.map(e => SparqlJsonQuerySolution.write(e)).toIndexedSeq)
   }
 
   case class SparqlJsonQuerySolution(map: Map[String, SparqlJsonVariableBinding])

@@ -36,7 +36,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
   private val executor = LocalJsonParserTaskExecutor()
   private val jsonParserTask = JsonParserTask("jsonContent", "persons")
   private val task = PlainTask("JsonParser", jsonParserTask)
-  private val inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
+  private def inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
   private implicit val prefixes = Prefixes.empty
 
   PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])
@@ -47,7 +47,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
       execution = LocalExecution(false)
     )
     result mustBe defined
-    result.get.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+    result.get.entities.map(_.values.flatten.head).toSeq mustBe Seq("John", "Max")
   }
 
   it should "produce multi schema entities" in {
@@ -59,9 +59,9 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
     result mustBe defined
     result.get mustBe a[MultiEntityTable]
     val multiEntityTable = result.get.asInstanceOf[MultiEntityTable]
-    multiEntityTable.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+    multiEntityTable.entities.map(_.values.flatten.head).toSeq mustBe Seq("John", "Max")
     multiEntityTable.subTables.size mustBe 1
-    multiEntityTable.subTables.head.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+    multiEntityTable.subTables.head.entities.map(_.values.flatten.head).toSeq mustBe Seq("John", "Max")
   }
 
   it should "support the in-memory version of the JSON dataset, e.g. supporting backward paths" in {
@@ -71,7 +71,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
       execution = LocalExecution(false)
     )
     result mustBe defined
-    val values = result.get.entities.flatMap(_.values).flatten
+    val values = result.get.entities.flatMap(_.values).flatten.toSeq
     values mustBe Seq("1", "1")
   }
 }

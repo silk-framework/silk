@@ -22,7 +22,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     uriSuffixPattern = "/someSuffix"
   )
   val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(UntypedPath("http://prop1").asStringTypedPath, UntypedPath("http://prop2").asStringTypedPath))
-  val inputs = Seq(GenericEntityTable(
+  def inputs = Seq(GenericEntityTable(
     entities = Seq(Entity(
       "http://entity1",
       IndexedSeq(
@@ -42,7 +42,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath)))
     val result = exec.execute(PlainTask(Identifier("id"), task), inputs = inputs, ExecutorOutput(None, outputSchema), execution = localExecutionContext)
     result mustBe defined
-    val entities = result.get.entities
+    val entities = result.get.entities.toSeq
     entities.size mustBe 1
     val entity = entities.head
     entity.values mustBe IndexedSeq(Seq("some value"))
@@ -54,7 +54,7 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath)))
     val result = exec.execute(PlainTask(Identifier("id"), adaptedTask), inputs = inputs, ExecutorOutput(None, outputSchema), execution = localExecutionContext)
     result mustBe defined
-    val entities = result.get.entities
+    val entities = result.get.entities.toSeq
     entities.size mustBe 1
     entities.head.values mustBe IndexedSeq(Seq("some value2"))
   }
@@ -68,9 +68,9 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     result mustBe defined
     result.get mustBe a[MultiEntityTable]
     val multiEntityTable = result.get.asInstanceOf[MultiEntityTable]
-    multiEntityTable.entities.map(_.values.flatten.head) mustBe Seq("some value")
+    multiEntityTable.entities.map(_.values.flatten.head).toSeq mustBe Seq("some value")
     multiEntityTable.subTables.size mustBe 1
-    multiEntityTable.subTables.head.entities.map(_.values.flatten.head) mustBe Seq("some value")
+    multiEntityTable.subTables.head.entities.map(_.values.flatten.head).toSeq mustBe Seq("some value")
   }
 
   it should "load from the registry" in {

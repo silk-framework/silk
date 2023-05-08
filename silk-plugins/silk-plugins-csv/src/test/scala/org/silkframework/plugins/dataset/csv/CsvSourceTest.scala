@@ -228,7 +228,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val s = source
     val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("#idx").asStringTypedPath))
     val entities = s.retrieve(schema, limitOpt = Some(3)).entities
-    entities.map(_.values.flatten.head) shouldBe Seq("1", "2", "3")
+    entities.map(_.values.flatten.head).toSeq shouldBe Seq("1", "2", "3")
   }
 
   it should "respect the limit parameter" in {
@@ -257,7 +257,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "Csv Source" should "fetch entities by URI" in {
     val es = EntitySchema("", IndexedSeq())
-    val entities = source.retrieve(es).entities
+    val entities = source.retrieve(es).entities.toSeq
     entities.size shouldBe 3
     source.retrieveByUri(es, Seq(entities.head.uri)).entities.size shouldBe 1
   }

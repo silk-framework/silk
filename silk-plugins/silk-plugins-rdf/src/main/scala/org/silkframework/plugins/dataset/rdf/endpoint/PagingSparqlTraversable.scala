@@ -9,6 +9,7 @@ import org.silkframework.util.CloseableIterator
 import java.io.InputStream
 import java.util.logging.Logger
 import scala.collection.immutable.SortedMap
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.matching.Regex
 
 /**
@@ -37,14 +38,12 @@ object PagingSparqlTraversable {
       }
     }
     // FIXME: Also inject FROM NAMED when GRAPH pattern exists and no FROM NAMED was defined in the original query (breaking change).
-    val bindings =
-      if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
-        queryExecutor.executeAndParse(parsedQuery)
-      } else {
-        new ResultIterator(parsedQuery, queryExecutor, params.pageSize, limit)
-      }
-
-    SparqlResults(bindings)
+    if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
+      queryExecutor.executeAndParse(parsedQuery)
+    } else {
+      val resultIterator = new ResultIterator(parsedQuery, queryExecutor, params.pageSize, limit)
+      SparqlResults(resultIterator.variables, resultIterator)
+    }
   }
 
   /**
@@ -54,10 +53,11 @@ object PagingSparqlTraversable {
 
     def execute(query: String): InputStream
 
-    def executeAndParse(query: Query): CloseableIterator[SortedMap[String, RdfNode]] = {
+    def executeAndParse(query: Query): SparqlResults = {
       val inputStream = execute(query.serialize(Syntax.syntaxSPARQL_11))
       val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
-      JenaResultsReader.read(resultSet).thenClose(inputStream)
+      val results = JenaResultsReader.read(resultSet).thenClose(inputStream)
+      SparqlResults(resultSet.getResultVars.asScala.toSeq, results)
     }
   }
 
@@ -67,7 +67,11 @@ object PagingSparqlTraversable {
 
     private var count = 0
 
-    private var currentIterator: CloseableIterator[SortedMap[String, RdfNode]] = executeQuery()
+    private var currentResults: SparqlResults = executeQuery()
+
+    private def currentIterator: CloseableIterator[SortedMap[String, RdfNode]] = currentResults.bindings
+
+    def variables: Seq[String] = currentResults.variables
 
     override def hasNext: Boolean = {
       if (currentIterator.hasNext) {
@@ -102,7 +106,7 @@ object PagingSparqlTraversable {
       } else {
         count = 0
         currentIterator.close()
-        currentIterator = executeQuery()
+        currentResults = executeQuery()
         currentIterator.hasNext
       }
     }
@@ -110,7 +114,7 @@ object PagingSparqlTraversable {
     /**
       * Executes the query with the current offset.
       */
-    private def executeQuery(): CloseableIterator[SortedMap[String, RdfNode]] = {
+    private def executeQuery(): SparqlResults = {
       if (pageSize != Int.MaxValue && limit > pageSize) {
         parsedQuery.setOffset(offset)
       }

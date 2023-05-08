@@ -38,7 +38,7 @@ class TextFileDatasetTest extends FlatSpec with Matchers {
     source.retrieveTypes().map(_._1) shouldBe Seq(dataset.typeName)
     source.retrievePaths(dataset.typeName) shouldBe Seq(dataset.path)
 
-    val entities = source.retrieve(EntitySchema(dataset.typeName, IndexedSeq(dataset.path))).entities
+    val entities = source.retrieve(EntitySchema(dataset.typeName, IndexedSeq(dataset.path))).entities.toSeq
     entities.size shouldBe 1
     entities.head.values shouldBe Seq(Seq(testValue))
   }

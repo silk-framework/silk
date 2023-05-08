@@ -75,7 +75,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Test
 
   it should "output only one UPDATE query when the template contains no placeholders" in {
     val staticTemplate = """INSERT DATA { <urn:s> <urn:prop> "" } ;"""
-    val entities = executeTask(staticTemplate, Seq(mockInputTable())).entities
+    val entities = executeTask(staticTemplate, Seq(mockInputTable())).entities.toSeq
     entities.size mustBe 1
     entities.head.values mustBe IndexedSeq(Seq(staticTemplate))
   }

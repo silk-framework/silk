@@ -22,6 +22,7 @@ import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryE
 import org.silkframework.runtime.activity.UserContext
 
 import java.util.logging.{Level, Logger}
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * A SPARQL endpoint which executes all queries using Jena.
@@ -63,8 +64,9 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     // Execute query
 //    val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
     val qe = createQueryExecution(query)
-    val results = JenaResultsReader.read(qe.execSelect()).thenClose(() => { qe.close() })
-    SparqlResults(results)
+    val resultSet = qe.execSelect()
+    val results = JenaResultsReader.read(resultSet).thenClose(() => { qe.close() })
+    SparqlResults(resultSet.getResultVars.asScala.toSeq, results)
   }
 
   /**

@@ -35,8 +35,8 @@ class InMemoryDatasetTest extends FlatSpec with MustMatchers with MockitoSugar {
     )
     entitySink.closeTable()
     entitySink.close()
-    val result = dataset.sparqlEndpoint.select(s"SELECT ?s ?o WHERE { ?s $propertyUri ?o } ORDER BY ?s")
-    result.bindings.flatMap(_.get("s")) mustBe entities.map(Resource)
-    result.bindings.flatMap(_.get("o")) mustBe Seq(Resource(subject), Resource(subject))
+    val result = dataset.sparqlEndpoint.select(s"SELECT ?s ?o WHERE { ?s $propertyUri ?o } ORDER BY ?s").bindings.toSeq
+    result.flatMap(_.get("s")) mustBe entities.map(Resource)
+    result.flatMap(_.get("o")) mustBe Seq(Resource(subject), Resource(subject))
   }
 }
