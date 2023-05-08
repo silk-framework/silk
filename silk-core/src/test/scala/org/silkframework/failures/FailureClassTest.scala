@@ -1,5 +1,6 @@
 package org.silkframework.failures
-
+
+
 import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -19,7 +20,7 @@ class FailureClassTest extends AnyFlatSpec with Matchers {
     val genericExecutionFailure = GenericExecutionFailure(new RuntimeException("runtime", new IllegalArgumentException("causing")))
     val failure = failureClass(genericExecutionFailure)
     failure.getRootClass mustBe thisClassName
-    failure.getRootLine mustBe 18
+    failure.getRootLine mustBe 20
   }
 
   it should "return the correct root class name when a stacktrace is not available" in {
@@ -33,7 +34,7 @@ class FailureClassTest extends AnyFlatSpec with Matchers {
   it should "return the correct root class name when the exception was created in a nested class" in {
     val failure = SomeInnerClass().executionFailure
     failure.getRootClass mustBe thisClassName
-    failure.getRootLine mustBe 13
+    failure.getRootLine mustBe 15
   }
 
   private def failureClass(genericExecutionFailure: GenericExecutionFailure): FailureClass = {

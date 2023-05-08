@@ -29,7 +29,6 @@ trait CloseableIterator[+T] extends Iterator[T] with Closeable { self =>
     } finally {
       close()
     }
-
   }
 
   override def take(n: Int): CloseableIterator[T] = wrap(super.take(n))
