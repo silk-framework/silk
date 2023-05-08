@@ -117,7 +117,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
 
     request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
-        val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
+        val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).view.mapValues(_.mkString).toMap
         val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes),
           Restriction.custom(values.getOrElse("restriction", "")))
         val output = values.get("output").filter(_.nonEmpty).map(Identifier(_))
