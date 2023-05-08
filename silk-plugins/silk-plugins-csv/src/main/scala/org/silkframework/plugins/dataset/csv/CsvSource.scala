@@ -17,6 +17,7 @@ import java.net.{URI, URLEncoder}
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
+import scala.collection.immutable.ArraySeq
 import scala.io.Codec
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
@@ -310,7 +311,7 @@ class CsvSource(file: Resource,
         case None =>
           values.map(v => if (v != null) Seq(v) else Seq.empty[String])
         case Some(c) =>
-          values.map(v => if (v != null) v.split(c).toSeq else Seq.empty[String])
+          values.map(v => if (v != null) ArraySeq.unsafeWrapArray(v.split(c)) else Seq.empty[String])
       }
       entityValues
     }
