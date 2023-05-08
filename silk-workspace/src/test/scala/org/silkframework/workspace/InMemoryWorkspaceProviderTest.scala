@@ -1,8 +1,8 @@
 package org.silkframework.workspace
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
-class InMemoryWorkspaceProviderTest extends FlatSpec with WorkspaceProviderTestTrait {
+class InMemoryWorkspaceProviderTest extends AnyFlatSpec with WorkspaceProviderTestTrait {
 
   override def createWorkspaceProvider(): WorkspaceProvider = new InMemoryWorkspaceProvider()
 }

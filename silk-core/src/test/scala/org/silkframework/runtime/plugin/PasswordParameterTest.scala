@@ -1,9 +1,10 @@
 package org.silkframework.runtime.plugin
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PasswordParameterTest extends FlatSpec with MustMatchers {
+class PasswordParameterTest extends AnyFlatSpec with Matchers {
 
   behavior of "password parameter"
 

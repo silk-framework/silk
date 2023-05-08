@@ -1,10 +1,11 @@
 package org.silkframework.execution
 
-import java.util.concurrent.atomic.AtomicBoolean
-import org.scalatest.{FlatSpec, MustMatchers}
+import java.util.concurrent.atomic.AtomicBoolean
 import org.silkframework.util.{CloseableIterator, LegacyTraversable}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
+class InterruptibleTraversableTest extends AnyFlatSpec with Matchers {
   behavior of "Interruptible Traversable"
 
   private val SHORT_TIME = 50

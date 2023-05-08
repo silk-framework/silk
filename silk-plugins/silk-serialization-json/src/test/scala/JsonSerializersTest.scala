@@ -1,4 +1,4 @@
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
@@ -15,8 +15,10 @@ import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json.Json
 
 import scala.reflect.ClassTag
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonSerializersTest  extends FlatSpec with Matchers {
+class JsonSerializersTest  extends AnyFlatSpec with Matchers {
 
   "JsonDatasetSpecFormat" should "serialize JsonTaskFormats" in {
     PluginRegistry.registerPlugin(classOf[SomeDatasetPlugin])

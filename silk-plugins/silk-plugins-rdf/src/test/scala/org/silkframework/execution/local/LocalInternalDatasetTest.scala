@@ -1,16 +1,17 @@
 package org.silkframework.execution.local
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.InternalDatasetTrait
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.InMemoryWorkspaceTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Tests the internal dataset. This test is located in this module as the default is to use the RDF-based one from this module.
   */
-class LocalInternalDatasetTest extends FlatSpec with MustMatchers with InMemoryWorkspaceTestTrait {
+class LocalInternalDatasetTest extends AnyFlatSpec with Matchers with InMemoryWorkspaceTestTrait {
 
   private implicit val userContext: UserContext = UserContext.Empty
   private implicit val prefixes: Prefixes = Prefixes.empty

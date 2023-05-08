@@ -1,7 +1,6 @@
 package controllers.transform
 
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
@@ -15,11 +14,13 @@ import org.silkframework.serialization.json.{JsonHelpers, JsonSerialization}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import test.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   *
   */
-class PeakTransformApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers with IntegrationTestTrait {
+class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with Matchers with IntegrationTestTrait {
 
   behavior of "TransformTask API"
 

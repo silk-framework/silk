@@ -2,9 +2,10 @@ package org.silkframework.runtime.serialization
 
 import java.io.{File, FileInputStream, FileOutputStream}
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class StreamXmlFormatTest extends FlatSpec with MustMatchers {
+class StreamXmlFormatTest extends AnyFlatSpec with Matchers {
   behavior of "Stream XML Format"
 
   it should "write and read to/from XML in streaming mode" in {

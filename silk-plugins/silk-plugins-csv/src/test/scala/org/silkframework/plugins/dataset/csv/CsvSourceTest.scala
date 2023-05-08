@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.csv
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
@@ -11,8 +10,10 @@ import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryReso
 import org.silkframework.util.Uri
 
 import java.io.StringReader
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CsvSourceTest extends FlatSpec with Matchers {
+class CsvSourceTest extends AnyFlatSpec with Matchers {
 
   behavior of "CSV Source"
 

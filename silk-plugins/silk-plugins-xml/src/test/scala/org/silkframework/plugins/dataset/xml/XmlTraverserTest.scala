@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class XmlTraverserTest extends FlatSpec with MustMatchers {
+class XmlTraverserTest extends AnyFlatSpec with Matchers {
   behavior of "XML Traverser"
 
   it should "evaluate paths as requested" in {

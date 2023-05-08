@@ -3,19 +3,20 @@ package controllers.workspace
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
 import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PARAMETERS, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
 import testWorkspace.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SearchApiIntegrationTest extends FlatSpec
+class SearchApiIntegrationTest extends AnyFlatSpec
     with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with MustMatchers{
+    with Matchers{
   behavior of "Search API"
 
   override def workspaceProviderId: String = "inMemory"

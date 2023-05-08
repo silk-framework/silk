@@ -1,13 +1,14 @@
 package org.silkframework.runtime.serialization
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.CustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   *
   */
-class XmlSerializationTest extends FlatSpec with MustMatchers {
+class XmlSerializationTest extends AnyFlatSpec with Matchers {
   behavior of "XML serialization"
 
   it should "serialize and read parameters" in {

@@ -4,19 +4,20 @@ import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, 
 import controllers.workspaceApi.search._
 import controllers.workspaceApi.search.activity.ActivitySearchRequest
 import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json._
 import testWorkspace.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ActivitySearchApiIntegrationTest extends FlatSpec
+class ActivitySearchApiIntegrationTest extends AnyFlatSpec
     with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with MustMatchers {
+    with Matchers {
 
   behavior of "Search API"
 

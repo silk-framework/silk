@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
@@ -12,8 +11,10 @@ import org.silkframework.runtime.validation.ValidationException
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.time.Instant
 import scala.util.Try
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrait {
+class XmlDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
 
   behavior of "XML dataset"
 

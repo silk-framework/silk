@@ -1,7 +1,6 @@
 package org.silkframework.workbench.workspace
 
-import java.time.Duration
-import org.scalatest.{FlatSpec, Matchers}
+import java.time.Duration
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult}
 import org.silkframework.runtime.plugin.PluginContext
@@ -10,11 +9,13 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.Json
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Base class for ExecutionReportManager implementation tests.
   */
-abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
+abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
 
   private implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
 

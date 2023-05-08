@@ -1,8 +1,9 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class StartsWithDistanceTest extends FlatSpec with MustMatchers {
+class StartsWithDistanceTest extends AnyFlatSpec with Matchers {
   behavior of "starts with distance"
 
   val distance = StartsWithDistance(minLength = 2)

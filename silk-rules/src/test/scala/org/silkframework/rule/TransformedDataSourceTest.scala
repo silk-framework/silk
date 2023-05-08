@@ -1,6 +1,5 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
@@ -8,8 +7,10 @@ import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class TransformedDataSourceTest extends FlatSpec with MustMatchers {
+class TransformedDataSourceTest extends AnyFlatSpec with Matchers {
   behavior of "Transformed Data Source"
 
   implicit val userContext: UserContext = UserContext.Empty

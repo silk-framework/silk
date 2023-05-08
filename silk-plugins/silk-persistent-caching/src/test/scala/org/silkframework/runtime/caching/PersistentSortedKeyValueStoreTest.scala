@@ -1,6 +1,5 @@
 package org.silkframework.runtime.caching
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.util.TestFileUtils
 
 import java.nio.ByteBuffer
@@ -8,8 +7,10 @@ import java.util
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PersistentSortedKeyValueStoreTest extends FlatSpec with MustMatchers {
+class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
   behavior of "Persistent sorted key value store"
 
   val values = Seq("", " ", "123", "abc", "something longer with unicode char ඔ" * 10)

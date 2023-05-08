@@ -1,13 +1,14 @@
 package controllers.transform
 
 import controllers.transform.routes.EvaluateTransformApi
-import helper.{ApiClient, IntegrationTestTrait}
-import org.scalatest.{FlatSpec, Matchers}
+import helper.{ApiClient, IntegrationTestTrait}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.routing.Router
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class EvaluateTransformApiTest extends FlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with ActiveLearningApiClient {
+class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with ActiveLearningApiClient {
 
   override def projectPathInClasspath: String = "controllers/transform/evaluateTransformTest.zip"
 

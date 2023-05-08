@@ -4,18 +4,19 @@ import org.apache.jena.query.{QueryFactory, Syntax}
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
-import java.util.concurrent.atomic.AtomicInteger
-import org.scalatest.{FlatSpec, MustMatchers}
+import java.util.concurrent.atomic.AtomicInteger
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.endpoint.PagingSparqlTraversable.QueryExecutor
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Paging SPARQL Traversable tests
   */
-class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
+class PagingSparqlTraversableTest extends AnyFlatSpec with Matchers {
   behavior of "Paging SPARQL Traversable"
   private final val URI = "uri"
   private final val BNODE = "bNode"

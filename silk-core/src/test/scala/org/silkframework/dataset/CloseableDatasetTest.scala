@@ -1,10 +1,11 @@
 package org.silkframework.dataset
-
-import org.scalatest.{FlatSpec, Matchers, MustMatchers}
+
 import org.silkframework.runtime.activity.UserContext
 import CloseableDataset.using
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class CloseableDatasetTest extends FlatSpec with MustMatchers {
+class CloseableDatasetTest extends AnyFlatSpec with Matchers {
 
   behavior of "CloseableDataset"
 

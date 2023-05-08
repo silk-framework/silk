@@ -1,8 +1,7 @@
 package controllers.util
 
 import controllers.util.SerializationUtilsTest._
-import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.mockito.Mockito._
 import org.silkframework.config.MetaData
 import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -12,11 +11,13 @@ import org.silkframework.util.MockitoSugar
 import org.silkframework.workspace.{Project, ProjectConfig}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc.{AnyContent, AnyContentAsJson, Request}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   *
   */
-class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSugar {
+class SerializationUtilsTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "Serialization Utils"
 
   private val APPLICATION_JSON = "application/json"

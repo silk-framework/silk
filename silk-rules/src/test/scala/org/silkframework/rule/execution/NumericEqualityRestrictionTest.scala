@@ -1,9 +1,10 @@
 package org.silkframework.rule.execution
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.paths.UntypedPath
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class NumericEqualityRestrictionTest extends FlatSpec with MustMatchers {
+class NumericEqualityRestrictionTest extends AnyFlatSpec with Matchers {
   behavior of "Numeric Equality Restriction"
 
   private val oneHopPath = UntypedPath.parse("<http://prop1>")

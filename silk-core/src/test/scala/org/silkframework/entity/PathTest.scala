@@ -1,12 +1,13 @@
 package org.silkframework.entity
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class PathTest extends FlatSpec with Matchers {
+class PathTest extends AnyFlatSpec with Matchers {
 
   behavior of "Path"
 

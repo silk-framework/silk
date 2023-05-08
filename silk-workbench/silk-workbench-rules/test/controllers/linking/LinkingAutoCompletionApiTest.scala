@@ -3,15 +3,17 @@ package controllers.linking
 import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
 import controllers.transform.autoCompletion.PartialSourcePathAutoCompletionRequest
 import helper.IntegrationTestTrait
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.rule.LinkSpec
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
 import play.api.libs.json.Json
 import test.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class LinkingAutoCompletionApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers with BeforeAndAfterAll {
+class LinkingAutoCompletionApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
   override def workspaceProviderId = "inMemory"
 
   override def projectPathInClasspath: String = "diProjects/423a27b9-c6e6-45e5-84d2-26d94fce3d1b_Partialauto-completionproject.zip"

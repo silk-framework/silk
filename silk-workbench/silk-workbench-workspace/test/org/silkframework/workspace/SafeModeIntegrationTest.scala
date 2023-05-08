@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import helper.IntegrationTestTrait
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpec, MustMatchers}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.SafeModeException
 import org.silkframework.rule.TransformSpec
@@ -12,15 +12,17 @@ import org.silkframework.util.{ConfigTestTrait, SparqlMockServerTrait}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 
 import scala.util.Try
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SafeModeIntegrationTest extends FlatSpec
+class SafeModeIntegrationTest extends AnyFlatSpec
     with ConfigTestTrait
     with SparqlMockServerTrait
     with BeforeAndAfterAll
     with BeforeAndAfterEach
     with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with MustMatchers {
+    with Matchers {
 
   behavior of "safe production mode"
 

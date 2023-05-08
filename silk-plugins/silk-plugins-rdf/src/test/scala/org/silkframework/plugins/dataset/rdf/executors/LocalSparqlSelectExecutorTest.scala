@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf.executors
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -9,9 +8,11 @@ import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.util.{LegacyTraversable, MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class LocalSparqlSelectExecutorTest extends FlatSpec
-    with MustMatchers
+class LocalSparqlSelectExecutorTest extends AnyFlatSpec
+    with Matchers
     with TestUserContextTrait
     with MockitoSugar {
   behavior of "Local SPARQL Select executor"

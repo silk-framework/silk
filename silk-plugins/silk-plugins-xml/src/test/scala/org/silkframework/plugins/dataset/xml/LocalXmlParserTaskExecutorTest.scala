@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
@@ -8,8 +7,10 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry {
+class LocalXmlParserTaskExecutorTest extends AnyFlatSpec with Matchers with ExecutorRegistry {
 
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty

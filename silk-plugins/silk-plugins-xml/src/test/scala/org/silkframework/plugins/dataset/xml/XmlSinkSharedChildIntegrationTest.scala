@@ -1,13 +1,14 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
 import scala.xml.{Utility, XML}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class XmlSinkSharedChildIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+class XmlSinkSharedChildIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "XML Sink"
 
   override def projectPathInClasspath = "org/silkframework/plugins/dataset/xml/cmem-1023-xmlSharedChild.zip"

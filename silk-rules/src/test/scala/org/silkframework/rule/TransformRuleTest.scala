@@ -1,14 +1,15 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.value.ConstantUriTransformer
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class TransformRuleTest extends FlatSpec with MustMatchers {
+class TransformRuleTest extends AnyFlatSpec with Matchers {
   behavior of "Transform Rule"
 
   val duplicated1 = "duplicated1"

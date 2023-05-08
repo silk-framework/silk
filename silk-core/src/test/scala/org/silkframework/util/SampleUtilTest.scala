@@ -1,13 +1,14 @@
 package org.silkframework.util
-
-import org.scalatest.{FlatSpec, Matchers}
+
 
 import scala.util.Random
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  * Created by andreas on 1/12/16.
  */
-class SampleUtilTest extends FlatSpec with Matchers {
+class SampleUtilTest extends AnyFlatSpec with Matchers {
   behavior of "SampleUtil"
 
   private implicit val random: Random = Random

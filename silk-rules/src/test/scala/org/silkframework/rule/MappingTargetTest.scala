@@ -1,14 +1,15 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.{CustomValueType, FloatValueType, UriValueType, ValueType}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Created on 11/22/16.
   */
-class MappingTargetTest extends FlatSpec with MustMatchers {
+class MappingTargetTest extends AnyFlatSpec with Matchers {
   behavior of "MatchingTarget"
 
   private val PROP_URI = "http://uri"

@@ -1,6 +1,5 @@
 package org.silkframework.workspace
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -22,9 +21,11 @@ import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
+trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"

@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.filter.FilterByRegex
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class FilterByRegexTest extends FlatSpec with Matchers {
+class FilterByRegexTest extends AnyFlatSpec with Matchers {
   // Filters all strings consisting of three letters
   val threeLettersFilter = new FilterByRegex(regex = "\\w\\w\\w")
 

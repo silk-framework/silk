@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, _}
@@ -10,8 +9,10 @@ import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryReso
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-abstract class JsonSourceTest extends FlatSpec with MustMatchers {
+abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty

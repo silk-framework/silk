@@ -3,14 +3,15 @@ package org.silkframework.config
 import javax.inject.Inject
 import com.google.inject.Guice
 import com.typesafe.config.{Config => TypesafeConfig}
-import net.codingwell.scalaguice.ScalaModule
-import org.scalatest.{FlatSpec, MustMatchers}
+import net.codingwell.scalaguice.ScalaModule
 
 import java.time.Instant
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 /**
   * Created on 9/27/16.
   */
-class ConfigTest extends FlatSpec with MustMatchers {
+class ConfigTest extends AnyFlatSpec with Matchers {
   behavior of "Config dependency injection"
   it should "inject into Scala objects" in {
     Guice.createInjector(new ScalaModule() {

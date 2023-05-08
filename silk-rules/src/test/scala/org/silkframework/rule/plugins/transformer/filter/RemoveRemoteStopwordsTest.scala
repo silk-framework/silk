@@ -1,12 +1,13 @@
 package org.silkframework.rule.plugins.transformer.filter
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.util.{MockServerTestTrait, ServedContent}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created by Christian Wartner on 12.08.2016.
   */
-class RemoveRemoteStopwordsTest extends FlatSpec with Matchers with MockServerTestTrait {
+class RemoveRemoteStopwordsTest extends AnyFlatSpec with Matchers with MockServerTestTrait {
 
   "RemoveRemoteStopwordsTransformer" should "return 'x'" in {
     withAdditionalServer(Seq(

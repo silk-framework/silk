@@ -1,14 +1,15 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResource, ResourceTooLargeException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class JsonSourceStreamingMaxMemoryTest extends FlatSpec with MustMatchers with ConfigTestTrait {
+class JsonSourceStreamingMaxMemoryTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
 
   behavior of "JsonSourceStreaming"
 

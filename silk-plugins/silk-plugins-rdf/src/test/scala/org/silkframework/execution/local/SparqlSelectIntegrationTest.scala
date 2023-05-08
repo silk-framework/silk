@@ -1,13 +1,14 @@
 package org.silkframework.execution.local
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Tests the SPARQL select task in a workflow.
   */
-class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+class SparqlSelectIntegrationTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with Matchers {
   override def projectPathInClasspath: String = "org/silkframework/execution/SPARQLselect.zip"
 
   override def workspaceProviderId: String = "inMemory"

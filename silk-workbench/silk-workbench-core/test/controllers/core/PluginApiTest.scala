@@ -1,7 +1,6 @@
 package controllers.core
 
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -11,8 +10,10 @@ import org.silkframework.runtime.plugin._
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginDescriptionSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsObject, JsValue, Json}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
+class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers {
   behavior of "Plugin API"
 
   override def workspaceProviderId = "inMemory"

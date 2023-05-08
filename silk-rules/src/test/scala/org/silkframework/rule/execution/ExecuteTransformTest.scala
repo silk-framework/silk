@@ -1,8 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, Matchers}
+import org.mockito.Mockito._
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
@@ -12,8 +11,10 @@ import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
 import org.silkframework.util.{CloseableIterator, Identifier, MockitoSugar, Uri}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
+class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
 
   implicit val userContext: UserContext = UserContext.Empty

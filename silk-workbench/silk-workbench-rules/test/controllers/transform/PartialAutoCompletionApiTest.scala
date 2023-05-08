@@ -2,8 +2,7 @@ package controllers.transform
 
 import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, CompletionBase, ReplacementInterval, ReplacementResults}
 import controllers.transform.autoCompletion._
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
@@ -17,8 +16,10 @@ import play.api.libs.json.Json
 import test.Routes
 
 import scala.xml.{Node, XML}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait {
+class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait {
 
   behavior of "Partial source path auto-complete endpoint"
 

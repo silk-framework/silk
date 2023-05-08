@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkflowReconfigurationIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+class WorkflowReconfigurationIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "Workflow reconfiguration"
 
   override def projectPathInClasspath: String = "diProjects/configProject.zip"

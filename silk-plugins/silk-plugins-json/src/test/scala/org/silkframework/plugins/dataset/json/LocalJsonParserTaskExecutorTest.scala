@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
@@ -9,8 +8,10 @@ import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatase
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.{CloseableIterator, MockitoSugar}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
+class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
   behavior of "Local JSON Parser Task Executor"
 
   private val entitySchema = EntitySchema("type", IndexedSeq(UntypedPath("id"), UntypedPath("jsonContent")).map(_.asStringTypedPath))

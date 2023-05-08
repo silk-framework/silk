@@ -1,9 +1,10 @@
 package org.silkframework.entity
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ValueTypeTest extends FlatSpec with MustMatchers {
+class ValueTypeTest extends AnyFlatSpec with Matchers {
   behavior of "ValueType"
 
   implicit val readContext = ReadContext()

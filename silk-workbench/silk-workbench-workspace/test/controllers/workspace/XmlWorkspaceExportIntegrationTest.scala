@@ -1,11 +1,11 @@
 package controllers.workspace
 
-import org.scalatest.FlatSpec
+import org.scalatest.flatspec.AnyFlatSpec
 
 /**
   * Tests the workspace and project export features.
   */
-class XmlWorkspaceExportIntegrationTest extends FlatSpec with ExportIntegrationTestTrait {
+class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrationTestTrait {
 
   behavior of "XML workspace export"
 

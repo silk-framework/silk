@@ -1,15 +1,16 @@
 package org.silkframework.workbench.utils
 
-import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.mockito.Mockito._
 import org.silkframework.util.MockitoSugar
 import play.api.http.MediaRange
 import play.api.mvc.RequestHeader
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Silk error test handler tests
   */
-class SilkErrorHandlerTest extends FlatSpec with MustMatchers with MockitoSugar {
+class SilkErrorHandlerTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "Silk Error Handler"
 
   it should "return the right content type if JSON and HTML are requested and JSON is coming first" in {

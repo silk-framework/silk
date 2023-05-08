@@ -1,9 +1,10 @@
 package org.silkframework.util
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import StringUtils._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class StringUtilsTest extends FlatSpec with Matchers {
+class StringUtilsTest extends AnyFlatSpec with Matchers {
 
   behavior of "StringUtils.toSentenceCase"
 

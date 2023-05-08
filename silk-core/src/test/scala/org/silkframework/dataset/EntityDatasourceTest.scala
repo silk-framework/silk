@@ -1,13 +1,14 @@
 package org.silkframework.dataset
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{CloseableIterator, Uri}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class EntityDatasourceTest extends FlatSpec with MustMatchers {
+class EntityDatasourceTest extends AnyFlatSpec with Matchers {
   behavior of "Entity Data Source"
 
   implicit val userContext: UserContext = UserContext.Empty

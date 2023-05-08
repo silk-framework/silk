@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.plugins.dataset.rdf.tasks._
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.validation.ValidationException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SparqlUpdateTemplatingEngineSimpleTest extends FlatSpec with MustMatchers {
+class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Update Simple Templating Engine"
 
   private val sparqlUpdateTemplate =

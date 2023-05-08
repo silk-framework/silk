@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{CustomTask, PlainTask, Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -14,8 +13,10 @@ import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, TestMocks}
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with TestWorkspaceProviderTestTrait {
+class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"
 
   implicit val uc: UserContext = UserContext.Empty

@@ -1,8 +1,9 @@
 package org.silkframework.openapi
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class OpenApiGeneratorTest extends FlatSpec with Matchers {
+class OpenApiGeneratorTest extends AnyFlatSpec with Matchers {
 
   "OpenApiGenerator" should "sort paths hierarchically" in {
     val paths =

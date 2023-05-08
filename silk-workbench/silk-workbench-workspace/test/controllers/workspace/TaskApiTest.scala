@@ -1,8 +1,7 @@
 package controllers.workspace
 
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
-import helper.IntegrationTestTrait
-import org.scalatest.MustMatchers
+import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
@@ -20,8 +19,9 @@ import play.api.libs.json._
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import org.scalatest.matchers.must.Matchers
 
-class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
+class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
 
   private val project = "project"
 

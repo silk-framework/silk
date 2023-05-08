@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.plugins.dataset.rdf.executors.CrossProductIterator
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class CrossProductIteratorTest extends FlatSpec with MustMatchers {
+class CrossProductIteratorTest extends AnyFlatSpec with Matchers {
   behavior of "Cross Product Matcher"
 
   it should "calculate the cross product" in {

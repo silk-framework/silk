@@ -1,9 +1,10 @@
 package org.silkframework.failures
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.metadata.GenericExecutionFailure
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class FailureClassTest extends FlatSpec with MustMatchers {
+class FailureClassTest extends AnyFlatSpec with Matchers {
   behavior of "FailureClass"
 
   private val thisClassName = this.getClass.getName

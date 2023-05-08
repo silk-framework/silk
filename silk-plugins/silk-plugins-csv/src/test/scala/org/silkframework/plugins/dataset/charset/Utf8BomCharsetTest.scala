@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.charset
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class Utf8BomCharsetTest extends FlatSpec with Matchers {
+class Utf8BomCharsetTest extends AnyFlatSpec with Matchers {
 
   behavior of "Utf8BomCharset"
 

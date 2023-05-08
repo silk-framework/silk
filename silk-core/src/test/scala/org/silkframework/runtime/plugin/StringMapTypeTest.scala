@@ -1,10 +1,11 @@
 package org.silkframework.runtime.plugin
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.StringParameterType.StringMapType
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class StringMapTypeTest extends FlatSpec with MustMatchers {
+class StringMapTypeTest extends AnyFlatSpec with Matchers {
 
   behavior of "Map[String] plugin parameter"
 
