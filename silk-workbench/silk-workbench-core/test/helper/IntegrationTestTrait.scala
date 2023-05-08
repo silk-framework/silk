@@ -7,7 +7,7 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.{MappingRules, TransformSpec}
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
-import org.silkframework.util.{CloseableIterator, StatusCodeTestTrait, StreamUtils}
+import org.silkframework.util.{StatusCodeTestTrait, StreamUtils}
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -470,8 +470,8 @@ trait IntegrationTestTrait extends TaskApiClient
   }
 
   def getVariableValues(variableName: String,
-                        results: CloseableIterator[SortedMap[String, RdfNode]]): CloseableIterator[String] = {
-    results.map(_(variableName).value)
+                        results: IterableOnce[SortedMap[String, RdfNode]]): Seq[String] = {
+    results.iterator.map(_(variableName).value).toSeq
   }
 
   def createWorkflow(projectId: String, workflowId: String, workflow: Workflow): WSResponse = {
