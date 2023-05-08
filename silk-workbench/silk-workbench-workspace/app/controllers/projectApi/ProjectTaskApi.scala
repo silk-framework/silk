@@ -4,7 +4,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils.serializeCompileTime
 import controllers.util.{SerializationUtils, TextSearchUtils}
-import controllers.workspace.doc.DatasetApiDoc
+import controllers.workspace.doc.{LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn

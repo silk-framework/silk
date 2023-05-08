@@ -6,7 +6,7 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
 import controllers.workspace.DatasetApi.TypeCacheFailedException
-import controllers.workspace.doc.DatasetApiDoc
+import controllers.workspace.doc.{LegacyDatasetApiDoc => DatasetApiDoc}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -36,7 +36,7 @@ import java.net.HttpURLConnection
 import javax.inject.Inject
 
 @Tag(name = "Datasets", description = "Manage datasets.")
-class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
