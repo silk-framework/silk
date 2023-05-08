@@ -34,6 +34,7 @@ import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -48,12 +49,12 @@ const Project = () => {
     const [t] = useTranslation();
 
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
-    const [searchInitialized, setSearchInitialized] = React.useState(false)
-    const effectiveSearchQuery = searchInitialized ? textQuery : ""
+    const [searchInitialized, setSearchInitialized] = React.useState(false);
+    const effectiveSearchQuery = searchInitialized ? textQuery : "";
 
     React.useEffect(() => {
-        setSearchInitialized(true)
-    }, [])
+        setSearchInitialized(true);
+    }, []);
 
     /**
      * Get available Datatypes
@@ -171,6 +172,8 @@ const Project = () => {
                     <WarningWidget />
                     <Spacing />
                     <ActivityInfoWidget />
+                    <Spacing />
+                    <VariablesWidget projectId={projectId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
