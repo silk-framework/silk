@@ -6,56 +6,68 @@ import java.io.Closeable
 
 /**
   * An iterator that must be closed after finishing consuming it.
-  *
-  * Implementers must close the data source when `hasNext` returns `false`.
   */
 trait CloseableIterator[+T] extends Iterator[T] with Closeable { self =>
 
+  /**
+    * Returns the first element and closes this iterator.
+    */
   def head: T = {
     headOption.getOrElse(throw new NoSuchElementException())
   }
 
+  /**
+    * Returns the first element (if any) and closes this iterator.
+    */
   def headOption: Option[T] = {
-    if(hasNext) {
-      val element = next()
+    try {
+      if (hasNext) {
+        Some(next())
+      } else {
+        None
+      }
+    } finally {
       close()
-      Some(element)
-    } else {
-      None
+    }
+
+  }
+
+  override def take(n: Int): CloseableIterator[T] = wrap(super.take(n))
+
+  override def map[U](f: T => U): CloseableIterator[U] = wrap(super.map(f))
+
+  override def filter(p: T => Boolean): CloseableIterator[T] = wrap(super.filter(p))
+
+  override def flatMap[B](f: T => IterableOnce[B]): CloseableIterator[B] = wrap(super.flatMap(f))
+
+  /**
+    * Returns a new closeable iterator that also closes the supplied Closeable.
+    */
+  final def thenClose(c: Closeable): CloseableIterator[T] = new CloseableIterator[T] {
+    def hasNext: Boolean = self.hasNext
+    def next(): T = self.next()
+    def close(): Unit = {
+      try {
+        self.close()
+      } finally {
+        c.close()
+      }
     }
   }
 
-  override def take(n: Int): CloseableIterator[T] = CloseableIterator(super.take(n), this)
-
-  override def map[U](f: T => U): CloseableIterator[U] = {
-    new MappedCloseableIterator(this, f)
-  }
-
-  override def filter(p: T => Boolean): CloseableIterator[T] = CloseableIterator(super.filter(p), this)
-
-  override def flatMap[B](f: T => IterableOnce[B]): CloseableIterator[B] = {
-    CloseableIterator(super.flatMap(f), this)
-  }
-
-  final def use[R](f: (Iterator[T] => R)): R =
-    try f(this) finally close()
-
-  final def use[R](f: => R): R =
-    try f finally close()
-
   /**
-    * Return a new CloseableIterator which also closes the supplied Closeable
-    * object when itself gets closed.
+    * Wraps a modified version of this iterator into a new closeable iterator.
     */
-  final def thenClose(c: Closeable): CloseableIterator[T] = new CloseableIterator[T] {
-    def hasNext = self.hasNext
-    def next() = self.next()
-    def close() = try self.close() finally c.close()
+  protected def wrap[B](iterator: Iterator[B]): CloseableIterator[B] = {
+    new AutoCloseableIterator[B](iterator, this)
   }
 }
 
 object CloseableIterator {
 
+  /**
+    * Empty closeable iterator.
+    */
   def empty: CloseableIterator[Nothing] = CloseableIterator(Iterator.empty)
 
   /**
@@ -68,16 +80,25 @@ object CloseableIterator {
     new AutoCloseableIterator[T](iterator, closeable)
   }
 
+  /**
+    * Creates a closeable iterator from an ordinary iterator that does not require any cleanup on close.
+    */
   def apply[T](iterator: Iterator[T]): CloseableIterator[T] = {
     new WrappedCloseableIterator[T](iterator)
   }
 
+  /**
+    * Creates a closeable iterator from an iterable that does not require any cleanup on close.
+    */
   def apply[T](iterable: IterableOnce[T]): CloseableIterator[T] = {
     new WrappedCloseableIterator[T](iterable.iterator)
   }
 
 }
 
+/**
+  * Iterator that closes another resource after iteration.
+  */
 private class AutoCloseableIterator[+T](iterator: Iterator[T], closeable: Closeable) extends CloseableIterator[T] with DoSomethingOnGC {
 
   override def hasNext: Boolean = {
@@ -103,6 +124,9 @@ private class AutoCloseableIterator[+T](iterator: Iterator[T], closeable: Closea
   }
 }
 
+/**
+  * Closeable iterator that does nothing on close.
+  */
 private class WrappedCloseableIterator[+T](iterator: Iterator[T]) extends CloseableIterator[T] {
 
   override def hasNext: Boolean = iterator.hasNext
@@ -112,14 +136,4 @@ private class WrappedCloseableIterator[+T](iterator: Iterator[T]) extends Closea
   override def close(): Unit = {
     // nothing to close
   }
-}
-
-private class MappedCloseableIterator[+T, +U](iterator: CloseableIterator[T], f: T => U) extends CloseableIterator[U] {
-
-  def hasNext: Boolean = iterator.hasNext
-
-  def next(): U = f(iterator.next())
-
-  def close(): Unit = iterator.close()
-
 }
