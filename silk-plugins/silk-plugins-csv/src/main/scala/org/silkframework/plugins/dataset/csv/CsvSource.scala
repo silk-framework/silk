@@ -226,8 +226,8 @@ class CsvSource(file: Resource,
       do {
         parser.parseNext() match {
           case Some(line) =>
-            nextEntity = readEntity(line)
             index += 1
+            nextEntity = readEntity(line)
           case None =>
             nextEntity = None
             // Reached the end of the file

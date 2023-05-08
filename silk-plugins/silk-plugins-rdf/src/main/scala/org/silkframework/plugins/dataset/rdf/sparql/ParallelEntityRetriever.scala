@@ -186,6 +186,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       def addCurrentValue(value: String): Unit = {
         currentValues = currentValues :+ value
       }
+      val nonEmptyResults = sparqlResults.nonEmpty
 
       for (result <- sparqlResults) {
         if (canceled) {
@@ -209,7 +210,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
       }
 
-      for (s <- currentSubject if sparqlResults.nonEmpty) {
+      for (s <- currentSubject if nonEmptyResults) {
         queueElement(ExistingPathValues(s, currentValues))
       }
       queueElement(QueueEndMarker)
