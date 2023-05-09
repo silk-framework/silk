@@ -2,10 +2,10 @@ package org.silkframework.dataset.bulk
 
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipInputStreamResourceIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.CloseableIterator
 
 import java.io.File
 import java.util.logging.Logger
@@ -51,7 +51,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(file.name, allResources.map(createSourceWithName).iterator, mergeSchemata)
+        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
     }
   }
 

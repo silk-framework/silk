@@ -17,7 +17,8 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.silkframework.dataset.rdf.{BlankNode, DataTypeLiteral, EntityRetrieverStrategy, LanguageLiteral, Literal, PlainLiteral, RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.Uri
 
 import java.net.URLEncoder
 import java.nio.charset.Charset

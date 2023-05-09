@@ -4,7 +4,7 @@ import org.apache.jena.query.{Query, QueryFactory, Syntax}
 import org.apache.jena.riot.ResultSetMgr
 import org.apache.jena.riot.resultset.ResultSetLang
 import org.silkframework.dataset.rdf._
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 
 import java.io.InputStream
 import java.util.logging.Logger
@@ -63,51 +63,45 @@ object PagingSparqlTraversable {
 
   private class ResultIterator(parsedQuery: Query, queryExecutor: QueryExecutor, pageSize: Int, limit: Int) extends CloseableIterator[SortedMap[String, RdfNode]] {
 
-    private var offset = 0
-
     private var count = 0
 
-    private var currentResults: SparqlResults = executeQuery()
+    private var offset = 0
 
-    private def currentIterator: CloseableIterator[SortedMap[String, RdfNode]] = currentResults.bindings
+    private var currentVariables: Seq[String] = Seq.empty
 
-    def variables: Seq[String] = currentResults.variables
+    private val entityIterator = new RepeatedIterator(nextPage)
 
     override def hasNext: Boolean = {
-      if (currentIterator.hasNext) {
-        currentIterator.hasNext
-      } else {
-        nextPage()
-      }
+      entityIterator.hasNext
     }
 
     override def next(): SortedMap[String, RdfNode] = {
-      if(currentIterator.hasNext) {
-        count += 1
-        currentIterator.next()
-      } else {
-        if(!nextPage()) {
-          throw new NoSuchElementException("no more results")
-        }
-        currentIterator.next()
-      }
+      val entity = entityIterator.next()
+      count += 1
+      entity
+    }
+
+    override def close(): Unit = {
+      entityIterator.close()
+    }
+
+    def variables: Seq[String] = {
+      currentVariables
     }
 
     /**
       * Retrieves the next page.
-      *
-      * @return True, if there are more results. False, otherwise.
       */
-    private def nextPage(): Boolean = {
-      offset += pageSize
-      if (count < pageSize) {
+    private def nextPage(): Option[CloseableIterator[SortedMap[String, RdfNode]]] = {
+      if (offset > 0 && count < pageSize) {
         count = 0
-        false
+        None
       } else {
+        val results = executeQuery()
         count = 0
-        currentIterator.close()
-        currentResults = executeQuery()
-        currentIterator.hasNext
+        offset += pageSize
+        currentVariables = results.variables
+        Some(results.bindings)
       }
     }
 
@@ -122,10 +116,6 @@ object PagingSparqlTraversable {
         parsedQuery.setLimit(math.min(pageSize, limit - offset))
       }
       queryExecutor.executeAndParse(parsedQuery)
-    }
-
-    override def close(): Unit = {
-      currentIterator.close()
     }
   }
 }

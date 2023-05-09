@@ -5,8 +5,9 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.annotations.Param
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.util.Uri
 
 /**
   * Mock dataset for tests. The main methods for retrieving and writing can be defined as parameter.

@@ -7,10 +7,10 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.execution.{EntityHolder, ExecutionException}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, Identifier, LegacyTraversable, Uri}
+import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
-import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
 /**
@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
   *                      If false, the types and paths of the first data source are used.
   */
 class BulkDataSource(bulkContainerName: String,
-                     sources: Iterator[DataSourceWithName],
+                     sources: Iterable[DataSourceWithName],
                      mergeSchemata: Boolean) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])
@@ -83,42 +83,64 @@ class BulkDataSource(bulkContainerName: String,
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
-    val entities =
-      new LegacyTraversable[Entity] {
-        override def foreach[U](emitEntity: Entity => U): Unit = {
-          var count = 0
-          breakable {
-            for (dataSource <- sources) {
-              handleSourceError(dataSource) { source =>
-                for (entity <- source.retrieve(entitySchema, limit.map(_ - count)).entities) {
-                  emitEntity(entity)
-                  count += 1
-                }
-                // break if limit has been reached
-                for (l <- limit if count >= l) {
-                  break
-                }
-              }
-            }
-          }
-        }
-      }
-
-    GenericEntityTable(entities, entitySchema, underlyingTask)
+    GenericEntityTable(new BulkEntitiesIterator(entitySchema, limit), entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                             (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val retrievedEntities =
-      sources.iterator.flatMap { dataSource =>
+      sources.iterator.map { dataSource =>
         handleSourceError(dataSource) { source =>
           source.retrieveByUri(entitySchema, entities).entities
         }
       }
 
-    //TODO close source iterators
-    GenericEntityTable(CloseableIterator(retrievedEntities), entitySchema, underlyingTask)
+    GenericEntityTable(new RepeatedIterator[Entity](retrievedEntities.nextOption), entitySchema, underlyingTask)
   }
 
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(bulkContainerName), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
+
+  /**
+    * Iterates through all entities of all sources.
+    */
+  private class BulkEntitiesIterator(entitySchema: EntitySchema, limit: Option[Int])
+                                    (implicit userContext: UserContext, prefixes: Prefixes) extends CloseableIterator[Entity] {
+
+    private val sourceIterator = sources.iterator
+
+    private val entityIterator = new RepeatedIterator(nextIterator)
+
+    private var count = 0
+
+    override def hasNext: Boolean = {
+      !limitReached && entityIterator.hasNext
+    }
+
+    override def next(): Entity = {
+      if(limitReached) {
+        throw new NoSuchElementException("Limit reached")
+      }
+      val entity = entityIterator.next()
+      count += 1
+      entity
+    }
+
+    override def close(): Unit = {
+      entityIterator.close()
+    }
+
+    @inline
+    private def limitReached: Boolean = {
+      limit.exists(count >= _)
+    }
+
+    private def nextIterator(): Option[CloseableIterator[Entity]] = {
+      for(dataSource <- sourceIterator.nextOption()) yield {
+        handleSourceError(dataSource) { source =>
+          source.retrieve(entitySchema, limit.map(_ - count)).entities
+        }
+      }
+    }
+  }
 }
+

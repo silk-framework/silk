@@ -4,7 +4,8 @@ import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.InterruptibleIterator
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.Uri
 
 /** Entity table that holds SPARQL Update queries */
 class SparqlUpdateEntityTable(entityTraversable: CloseableIterator[Entity], val task: Task[TaskSpec]) extends LocalEntities {

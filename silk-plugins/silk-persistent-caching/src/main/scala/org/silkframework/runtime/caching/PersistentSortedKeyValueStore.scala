@@ -6,8 +6,9 @@ import org.lmdbjava.Env.create
 import org.lmdbjava._
 import org.silkframework.config.{ConfigValue, DefaultConfig}
 import org.silkframework.runtime.caching.PersistentSortedKeyValueStore.byteBufferToString
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.FileUtils.toFileUtils
-import org.silkframework.util.{CloseableIterator, Identifier}
+import org.silkframework.util.Identifier
 
 import java.io.{File, IOException}
 import java.nio.{Buffer, ByteBuffer}

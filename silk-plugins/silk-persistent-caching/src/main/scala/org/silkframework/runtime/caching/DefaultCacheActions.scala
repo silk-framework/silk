@@ -1,7 +1,6 @@
 package org.silkframework.runtime.caching
 
-import org.silkframework.util.CloseableIterator
-
+import org.silkframework.runtime.iterator.CloseableIterator
 import java.nio.ByteBuffer
 
 /**

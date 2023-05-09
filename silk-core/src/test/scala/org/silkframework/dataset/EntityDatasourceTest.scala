@@ -1,12 +1,14 @@
 package org.silkframework.dataset
-
+
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.CloseableIterator
 
 class EntityDatasourceTest extends AnyFlatSpec with Matchers {
   behavior of "Entity Data Source"

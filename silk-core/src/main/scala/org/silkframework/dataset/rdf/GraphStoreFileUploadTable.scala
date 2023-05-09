@@ -3,8 +3,8 @@ package org.silkframework.dataset.rdf
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.LocalEntities
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.FileResource
-import org.silkframework.util.CloseableIterator
 
 /** A number of files that should be uploaded via the GraphStore protocol. */
 trait GraphStoreFileUploadTable {

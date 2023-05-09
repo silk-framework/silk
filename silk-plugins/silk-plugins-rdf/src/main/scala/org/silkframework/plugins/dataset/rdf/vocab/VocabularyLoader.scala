@@ -4,7 +4,7 @@ import org.apache.jena.vocabulary.{OWL, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, LegacyTraversable}
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
 
 import scala.collection.immutable.SortedMap
 

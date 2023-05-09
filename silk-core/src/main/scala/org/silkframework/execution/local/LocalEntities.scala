@@ -3,7 +3,8 @@ package org.silkframework.execution.local
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.{EmptyEntityHolder, EntityHolder, EntityHolderWithEntityIterator}
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.Uri
 
 /**
   * A local table of entities.

@@ -7,9 +7,10 @@ import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{CloseableIterator, Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.{Level, Logger}
 

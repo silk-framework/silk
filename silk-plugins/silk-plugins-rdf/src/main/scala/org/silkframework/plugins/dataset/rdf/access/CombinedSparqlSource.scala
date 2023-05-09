@@ -7,7 +7,8 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.util.Uri
 
 /**
   * A helper data source to combine several SPARQL sources in order to retrieve entities from them.

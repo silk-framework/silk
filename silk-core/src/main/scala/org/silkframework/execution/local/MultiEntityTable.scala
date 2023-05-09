@@ -2,7 +2,7 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 case class MultiEntityTable(entities: CloseableIterator[Entity],
                             entitySchema: EntitySchema,

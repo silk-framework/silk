@@ -21,7 +21,8 @@ import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, Spar
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.plugins.dataset.rdf.sparql.ParallelEntityRetriever.{ExceptionPathValues, ExistingPathValues, PathValues, QueueEndMarker}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.util.Uri
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import java.util.logging.{Level, Logger}

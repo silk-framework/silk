@@ -1,5 +1,6 @@
 package org.silkframework.rule.execution.local
-
+
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -7,9 +8,10 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.util.{CloseableIterator, MockitoSugar}
+import org.silkframework.util.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.CloseableIterator
 
 class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
 

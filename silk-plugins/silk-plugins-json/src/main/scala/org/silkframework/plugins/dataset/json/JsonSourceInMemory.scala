@@ -7,8 +7,9 @@ import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.LegacyTraversable
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 import java.net.URLEncoder

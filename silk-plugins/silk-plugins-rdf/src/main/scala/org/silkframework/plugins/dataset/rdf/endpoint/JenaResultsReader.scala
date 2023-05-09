@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.{QuerySolution, ResultSet}
 import org.silkframework.dataset.rdf._
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap

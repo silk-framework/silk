@@ -14,10 +14,11 @@ import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.LinkingSerializers.ValueJsonFormat
-import org.silkframework.util.{CloseableIterator, Identifier}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}

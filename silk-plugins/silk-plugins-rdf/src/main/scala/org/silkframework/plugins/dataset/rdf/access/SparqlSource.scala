@@ -10,7 +10,8 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, Identifier, LegacyTraversable, Uri}
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable

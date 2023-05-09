@@ -8,10 +8,10 @@ import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, Exe
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.iterator.LegacyTraversable
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.LegacyTraversable
 import org.silkframework.workspace.ProjectTask
 
 /**

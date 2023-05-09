@@ -9,8 +9,9 @@ import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.{AutoClose, CloseableIterator}
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.{AutoClose, CloseableIterator, Identifier, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.net.{URI, URLEncoder}

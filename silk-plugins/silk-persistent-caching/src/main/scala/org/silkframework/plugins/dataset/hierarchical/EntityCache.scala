@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.hierarchical
 
 import org.silkframework.runtime.caching.{HandleTooLargeKeyStrategy, PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 import java.io._
 import java.nio.ByteBuffer

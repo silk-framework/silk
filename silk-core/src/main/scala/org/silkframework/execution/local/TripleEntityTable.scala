@@ -5,7 +5,8 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.InterruptibleIterator
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.Uri
 
 /**
   * Holds RDF triples.

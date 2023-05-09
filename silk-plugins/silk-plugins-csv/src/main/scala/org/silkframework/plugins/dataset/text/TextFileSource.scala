@@ -7,8 +7,9 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{CloseableIterator, Identifier, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 class TextFileSource(ds: TextFileDataset) extends DataSource {
 

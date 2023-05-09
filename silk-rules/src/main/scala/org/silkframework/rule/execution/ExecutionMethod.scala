@@ -3,7 +3,8 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.Partition
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.util.{DPair, LegacyTraversable}
+import org.silkframework.runtime.iterator.LegacyTraversable
+import org.silkframework.util.DPair
 
 /**
  * The execution method determines how a linkage rule is executed.

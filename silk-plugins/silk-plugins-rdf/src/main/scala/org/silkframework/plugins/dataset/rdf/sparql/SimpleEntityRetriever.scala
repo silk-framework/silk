@@ -18,7 +18,8 @@ import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.util.Uri
 
 import java.util.logging.Logger
 

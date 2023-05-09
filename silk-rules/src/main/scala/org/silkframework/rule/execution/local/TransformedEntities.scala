@@ -8,8 +8,8 @@ import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.CloseableIterator
 
 import java.util.logging.Logger
 import scala.collection.mutable

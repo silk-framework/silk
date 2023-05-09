@@ -5,8 +5,8 @@ import java.util.Locale
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.CloseableIterator
 
 import scala.util.control.NonFatal
 

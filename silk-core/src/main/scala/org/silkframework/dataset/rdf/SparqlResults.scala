@@ -1,7 +1,6 @@
 package org.silkframework.dataset.rdf
 
-import org.silkframework.util.CloseableIterator
-
+import org.silkframework.runtime.iterator.CloseableIterator
 import scala.collection.immutable.SortedMap
 
 case class SparqlResults(variables: Seq[String], bindings: CloseableIterator[SortedMap[String, RdfNode]])

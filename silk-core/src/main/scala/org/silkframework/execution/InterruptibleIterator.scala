@@ -1,6 +1,6 @@
 package org.silkframework.execution
 
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 /**
   * A wrapper for Traversables that will check for Thread.interrupted and throws an [[InterruptedException]].

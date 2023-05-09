@@ -1,7 +1,6 @@
 package org.silkframework.dataset.rdf
 
-import org.silkframework.util.CloseableIterator
-
+import org.silkframework.runtime.iterator.CloseableIterator
 import java.io.{File, FileOutputStream, OutputStreamWriter, Writer}
 
 /**

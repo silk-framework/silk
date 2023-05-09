@@ -2,7 +2,8 @@ package org.silkframework.dataset
 
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{CloseableIterator, Uri}
+import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.Uri
 
 /**
   * A data source with fast value sampling method.

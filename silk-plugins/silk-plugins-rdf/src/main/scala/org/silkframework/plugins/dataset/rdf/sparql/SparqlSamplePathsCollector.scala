@@ -19,7 +19,7 @@ import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 /**
  * Retrieves the most frequent paths of a number of random sample entities.

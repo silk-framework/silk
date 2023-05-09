@@ -8,7 +8,8 @@ import org.silkframework.rule.execution.methods.StringMap.Mapper
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.util.{DPair, LegacyTraversable}
+import org.silkframework.runtime.iterator.LegacyTraversable
+import org.silkframework.util.DPair
 
 case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThreshold: Int = 2, thresholdPercentage: Double = 0.5) extends ExecutionMethod {
 

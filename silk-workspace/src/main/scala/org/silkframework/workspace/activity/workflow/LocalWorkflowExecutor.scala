@@ -1,6 +1,5 @@
 package org.silkframework.workspace.activity.workflow
 
-import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
@@ -13,6 +12,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
+import java.util.logging.{Level, Logger}
 import scala.collection.immutable.Seq
 import scala.util.control.NonFatal
 
@@ -192,6 +192,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
     def executeOnInputs(inputs: Seq[(WorkflowDependencyNode, Option[EntitySchema])])(processAll: Seq[Option[LocalEntities]] => T): T = {
       inputs match {
+        case Seq() =>
+          processAll(Seq.empty)
         case Seq(input) =>
           executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
             processAll(Seq(result))

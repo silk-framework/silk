@@ -3,14 +3,15 @@ package org.silkframework.plugins.dataset.json
 import com.fasterxml.jackson.core.{JsonFactoryBuilder, JsonParser, JsonToken, StreamReadFeature}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.{UntypedPath, _}
+import org.silkframework.entity.paths._
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.LegacyTraversable
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{Identifier, LegacyTraversable, Uri}
+import org.silkframework.util.{Identifier, Uri}
 
 import java.net.URLEncoder
 

@@ -1,9 +1,9 @@
 package controllers.sparqlapi
 
 import org.silkframework.dataset.rdf._
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
-import org.silkframework.util.CloseableIterator
 import play.api.libs.json._
 
 import scala.collection.immutable.SortedMap

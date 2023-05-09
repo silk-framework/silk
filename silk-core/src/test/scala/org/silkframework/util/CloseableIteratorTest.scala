@@ -2,6 +2,7 @@ package org.silkframework.util
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.iterator.{AutoClose, CloseableIterator}
 
 class CloseableIteratorTest extends AnyFlatSpec with Matchers {
 

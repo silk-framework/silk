@@ -8,8 +8,9 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.{CloseableIterator, LegacyTraversable, Uri}
+import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}

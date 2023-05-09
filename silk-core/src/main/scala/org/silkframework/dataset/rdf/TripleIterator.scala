@@ -2,7 +2,7 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 trait TripleIterator extends QuadIterator with CloseableIterator[Triple] {
   def asTripleEntities: CloseableIterator[Entity] = {

@@ -1,9 +1,9 @@
 package org.silkframework.execution
 
-import java.util.concurrent.atomic.AtomicBoolean
-import org.silkframework.util.{CloseableIterator, LegacyTraversable}
+import java.util.concurrent.atomic.AtomicBoolean
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
 
 class InterruptibleTraversableTest extends AnyFlatSpec with Matchers {
   behavior of "Interruptible Traversable"

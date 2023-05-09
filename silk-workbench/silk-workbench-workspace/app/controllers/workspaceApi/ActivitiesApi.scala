@@ -12,9 +12,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.{Status => ActivityStatus}
+import org.silkframework.runtime.iterator.LegacyTraversable
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
-import org.silkframework.util.LegacyTraversable
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}

@@ -1,10 +1,10 @@
 package org.silkframework.runtime.resource.zip
 
+import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.resource._
+
 import java.io.{BufferedInputStream, File}
 import java.util.zip.{ZipEntry, ZipInputStream}
-import org.silkframework.runtime.resource._
-import org.silkframework.util.{CloseableIterator, LegacyTraversable}
-
 import scala.util.matching.Regex
 
 /**
@@ -31,24 +31,18 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
     * @param filterRegex A regex to filter resources by their path value.
     **/
   def iterateReadOnceResources(filterRegex: Regex): CloseableIterator[Resource] = {
-    new LegacyTraversable[Resource] {
-      override def foreach[U](f: Resource => U): Unit = {
-        val zipInputStream = ZipInputStreamResourceIterator.this.zip()
-        var currentResource: Option[WritableResource with ResourceWithKnownTypes] = None
-        try {
-          ZipInputStreamResourceIterator.listEntries(zipInputStream) foreach { entry =>
-            if (!entry.isDirectory && filterRegex.findFirstIn(entry.getName).isDefined) {
-              val tempResource = createCompressedResource(entry, zipInputStream)
-              //TODO cannot delete this. Should be converted to iterable: currentResource.foreach(_.delete())
-              currentResource = Some(tempResource)
-              f(tempResource)
-            }
-          }
-        } finally {
-          zipInputStream.close()
-        }
+    val zipInputStream = ZipInputStreamResourceIterator.this.zip()
+    var currentResource: Option[WritableResource with ResourceWithKnownTypes] = None
+    val iterator =
+      ZipInputStreamResourceIterator.listEntries(zipInputStream)
+                                    .filter(entry => !entry.isDirectory && filterRegex.findFirstIn(entry.getName).isDefined)
+                                    .map { entry =>
+        val tempResource = createCompressedResource(entry, zipInputStream)
+        currentResource.foreach(_.delete())
+        currentResource = Some(tempResource)
+        tempResource
       }
-    }
+    CloseableIterator(iterator, zipInputStream).thenClose(() => currentResource.foreach(_.delete()))
   }
 
   // Creates a compressed, in-memory or file based resource from the ZIP input stream.

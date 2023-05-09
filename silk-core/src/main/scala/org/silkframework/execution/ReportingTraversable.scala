@@ -1,7 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.entity.Entity
-import org.silkframework.util.CloseableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 
 import scala.util.control.NonFatal
 

@@ -1,4 +1,4 @@
-package org.silkframework.util
+package org.silkframework.runtime.iterator
 
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.DoSomethingOnGC

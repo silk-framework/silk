@@ -1,4 +1,4 @@
-package org.silkframework.util
+package org.silkframework.runtime.iterator
 
 import org.silkframework.runtime.resource.DoSomethingOnGC
 
@@ -93,7 +93,7 @@ object CloseableIterator {
     * Creates a iterator that closes another resource after iteration.
     *
     * @param iterator The iterator.
-    * @param closeable Resource to be close after iteration.
+    * @param closeable Resource close after iteration.
     */
   def apply[T](iterator: Iterator[T], closeable: Closeable): CloseableIterator[T] = {
     new CloseResourceIterator[T](iterator, closeable) with AutoClose[T]
