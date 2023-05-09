@@ -37,7 +37,7 @@ object GlobalTemplateVariablesConfig {
     if(config.hasPath(variablesConfigVar)) {
       val variables =
         for (entry <- config.getConfig(variablesConfigVar).entrySet().asScala.toSeq) yield {
-          TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, None, isSensitive = false, globalScope)
+          TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, None, None, isSensitive = false, globalScope)
         }
       TemplateVariables(variables)
     } else {

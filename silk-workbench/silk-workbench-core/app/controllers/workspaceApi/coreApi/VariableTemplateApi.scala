@@ -199,6 +199,12 @@ object VariableTemplateApi {
                                     )
                                     template: Option[String],
                                     @Schema(
+                                      description = "Optional description for documentation.",
+                                      example = "Example description",
+                                      required = false
+                                    )
+                                    description: Option[String],
+                                    @Schema(
                                       description = "True, if this is a sensitive variable that should not be exposed to the user.",
                                       example = "false",
                                       required = true
@@ -214,13 +220,13 @@ object VariableTemplateApi {
       if(value.isEmpty && template.isEmpty) {
         throw new BadUserInputException("Either the variable value or its template has to be defined.")
       }
-      TemplateVariable(name, value.getOrElse(""), template, isSensitive, scope)
+      TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope)
     }
   }
 
   object TemplateVariableFormat {
     def apply(variable: TemplateVariable): TemplateVariableFormat = {
-      TemplateVariableFormat(variable.name, Some(variable.value), variable.template, variable.isSensitive, variable.scope)
+      TemplateVariableFormat(variable.name, Some(variable.value), variable.template, variable.description, variable.isSensitive, variable.scope)
     }
   }
 

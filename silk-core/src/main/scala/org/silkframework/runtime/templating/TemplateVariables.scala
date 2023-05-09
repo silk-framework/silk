@@ -89,7 +89,12 @@ object TemplateVariables {
 /**
   * A single template variable.
   */
-case class TemplateVariable(name: String, value: String, template: Option[String], isSensitive: Boolean, scope: String)
+case class TemplateVariable(name: String,
+                            value: String,
+                            template: Option[String],
+                            description: Option[String],
+                            isSensitive: Boolean,
+                            scope: String)
 
 object TemplateVariable {
 
@@ -107,6 +112,7 @@ object TemplateVariable {
         name = (value \ "@name").text,
         value =(value \ "Value").text,
         template = Option((value \ "Template").text).filter(_.trim.nonEmpty),
+        description = Option((value \ "Description").text).filter(_.trim.nonEmpty),
         isSensitive = (value \ "@isSensitive").text.toBoolean,
         scope = (value \ "@scope").text,
       )
@@ -118,6 +124,7 @@ object TemplateVariable {
                 scope={value.scope}>
         <Value xml:space="preserve">{PCData(value.value)}</Value>
         { value.template.toSeq.map(template => <Template xml:space="preserve">{PCData(template)}</Template>) }
+        <Description xml:space="preserve">{value.description.getOrElse("")}</Description>
       </Variable>
     }
   }
