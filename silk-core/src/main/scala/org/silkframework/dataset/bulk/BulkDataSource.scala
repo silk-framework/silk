@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
   *                      If false, the types and paths of the first data source are used.
   */
 class BulkDataSource(bulkContainerName: String,
-                     sources: Iterable[DataSourceWithName],
+                     sources: () => CloseableIterator[DataSourceWithName],
                      mergeSchemata: Boolean) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])
@@ -33,7 +33,7 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = weightedPath => weightedPath._1 // Make distinct by path name only
       )
     } else {
-      sources.toSeq.headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
+      sources().headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
     }
   }
 
@@ -45,17 +45,17 @@ class BulkDataSource(bulkContainerName: String,
         indexFn = a => a
       ).toIndexedSeq
     } else {
-      sources.toSeq.headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
+      sources().headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
     }
   }
 
   // Merge the paths with memory foot print max. the size of the number of paths in the result.
   // indexFn extracts the part of the element that should be distinguished by.
-  private def mergePaths[T, U](dataSourcePathFn: DataSource => Traversable[T],
-                               indexFn: T => U): Traversable[T] = {
+  private def mergePaths[T, U](dataSourcePathFn: DataSource => Iterable[T],
+                               indexFn: T => U): Iterable[T] = {
     val entrySet = new mutable.HashSet[U]()
     var elems = Seq[T]()
-    sources foreach { source =>
+    sources().use { _.foreach { source =>
       handleSourceError(source) { dataSource =>
         for (elem <- dataSourcePathFn(dataSource)) {
           // Only emit path once, do not distinguish the same path with different weight
@@ -66,7 +66,7 @@ class BulkDataSource(bulkContainerName: String,
           }
         }
       }
-    }
+    }}
     elems
   }
 
@@ -76,9 +76,13 @@ class BulkDataSource(bulkContainerName: String,
       dataSourceFn(source.source)
     } catch {
       case NonFatal(ex) =>
-        throw new ExecutionException(s"Encountered error reading resource '${source.resourceName}' from inside container resource '$bulkContainerName'." +
-            s" Error message: ${ex.getMessage}", Some(ex), abortExecution = true)
+        throw generateSourceError(source.resourceName, ex)
     }
+  }
+
+  private def generateSourceError(resourceName: String, ex: Throwable): ExecutionException = {
+    new ExecutionException(s"Encountered error reading resource '${resourceName}' from inside container resource '$bulkContainerName'." +
+      s" Error message: ${ex.getMessage}", Some(ex), abortExecution = true)
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
@@ -88,14 +92,15 @@ class BulkDataSource(bulkContainerName: String,
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                             (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
-    val retrievedEntities =
-      sources.iterator.map { dataSource =>
+    val sourceIterator =
+      sources().map { dataSource =>
         handleSourceError(dataSource) { source =>
           source.retrieveByUri(entitySchema, entities).entities
         }
       }
+    val entityIterator = new RepeatedIterator[Entity](sourceIterator.nextOption).thenClose(sourceIterator)
 
-    GenericEntityTable(new RepeatedIterator[Entity](retrievedEntities.nextOption), entitySchema, underlyingTask)
+    GenericEntityTable(entityIterator, entitySchema, underlyingTask)
   }
 
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(bulkContainerName), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
@@ -106,27 +111,33 @@ class BulkDataSource(bulkContainerName: String,
   private class BulkEntitiesIterator(entitySchema: EntitySchema, limit: Option[Int])
                                     (implicit userContext: UserContext, prefixes: Prefixes) extends CloseableIterator[Entity] {
 
-    private val sourceIterator = sources.iterator
+    private val sourceIterator = sources()
 
     private val entityIterator = new RepeatedIterator(nextIterator)
 
+    private var currentSource: Option[DataSourceWithName] = None
+    
     private var count = 0
 
     override def hasNext: Boolean = {
-      !limitReached && entityIterator.hasNext
+      !limitReached && handleError(() => entityIterator.hasNext)
     }
 
     override def next(): Entity = {
       if(limitReached) {
         throw new NoSuchElementException("Limit reached")
       }
-      val entity = entityIterator.next()
+      val entity = handleError(() => entityIterator.next())
       count += 1
       entity
     }
 
     override def close(): Unit = {
-      entityIterator.close()
+      try {
+        entityIterator.close()
+      } finally {
+        sourceIterator.close()
+      }
     }
 
     @inline
@@ -135,10 +146,20 @@ class BulkDataSource(bulkContainerName: String,
     }
 
     private def nextIterator(): Option[CloseableIterator[Entity]] = {
-      for(dataSource <- sourceIterator.nextOption()) yield {
+      currentSource = sourceIterator.nextOption()
+      for(dataSource <- currentSource) yield {
         handleSourceError(dataSource) { source =>
           source.retrieve(entitySchema, limit.map(_ - count)).entities
         }
+      }
+    }
+
+    private def handleError[T](f: () => T): T = {
+      try {
+        f()
+      } catch {
+        case NonFatal(ex) =>
+          throw generateSourceError(currentSource.map(_.resourceName).getOrElse("unknown resource"), ex)
       }
     }
   }

@@ -47,12 +47,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * Returns a data source for reading entities from the data set.
     */
   override final def source(implicit userContext: UserContext): DataSource = {
-    allResources match {
-      case Seq(singleResource) =>
-        createSource(singleResource)
-      case _ =>
-        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
-    }
+    new BulkDataSource(file.name, () => retrieveResources().map(createSourceWithName), mergeSchemata)
   }
 
   /**
@@ -65,11 +60,11 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * If the dataset is based on a bulk file, this returns all sub resources.
     * Otherwise, returns the file itself.
     */
-  def allResources: Iterable[Resource] = {
+  def retrieveResources(): CloseableIterator[Resource] = {
     if (BulkResourceBasedDataset.isBulkResource(file)) {
-      BulkResourceBasedDataset.retrieveSubResources(file, internalRegex).toSeq
+      BulkResourceBasedDataset.retrieveSubResources(file, internalRegex)
     } else {
-      Seq(file)
+      CloseableIterator(Seq(file))
     }
   }
 
@@ -79,8 +74,14 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     *
     * @throws ValidationException If this is a bulk file and the bulk file is empty.
     */
-  def firstResource: Resource = {
-    allResources.headOption.getOrElse(throw new ValidationException(s"Bulk file ${file.name} is empty"))
+  def useFirstResource[T](f: Resource => T): T = {
+    retrieveResources().use { iterator =>
+      if(iterator.hasNext) {
+        f(iterator.next())
+      } else {
+        throw new ValidationException(s"Bulk file ${file.name} is empty")
+      }
+    }
   }
 }
 

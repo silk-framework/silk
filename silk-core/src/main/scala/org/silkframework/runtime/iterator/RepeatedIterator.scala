@@ -55,7 +55,14 @@ class RepeatedIterator[T](nextIterator: () => Option[CloseableIterator[T]]) exte
       current.close()
     }
     currentIterator = nextIterator()
-    currentIterator.exists(_.hasNext)
+    currentIterator match {
+      case Some(iterator) if iterator.hasNext =>
+        true
+      case Some(_) =>
+        updateNextIterator()
+      case None =>
+        false
+    }
   }
 }
 

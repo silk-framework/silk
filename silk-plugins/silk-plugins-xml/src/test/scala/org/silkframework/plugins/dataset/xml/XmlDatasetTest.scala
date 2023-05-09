@@ -1,5 +1,8 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
@@ -11,8 +14,6 @@ import org.silkframework.runtime.validation.ValidationException
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.time.Instant
 import scala.util.Try
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
 class XmlDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
 
@@ -75,11 +76,8 @@ class XmlDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait
       override def inputStream: InputStream = new ByteArrayInputStream(Array.emptyByteArray)
     }
 
-    val streamingDataset = XmlDataset(resource, streaming = true)
-    noException should be thrownBy streamingDataset.source
-
     val nonStreamingDataset = XmlDataset(resource, streaming = false)
-    an[ResourceTooLargeException] should be thrownBy nonStreamingDataset.source
+    an[ResourceTooLargeException] should be thrownBy retrieveIDs(nonStreamingDataset)
   }
 
   private def retrieveIDs(dataset: XmlDataset) = {

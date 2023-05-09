@@ -73,19 +73,21 @@ case class RdfFileDataset(
   override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
-    createSparqlEndpoint(allResources)
+    createSparqlEndpoint(retrieveResources())
   }
 
-  private def createSparqlEndpoint(resources: Iterable[Resource]): JenaEndpoint = {
+  private def createSparqlEndpoint(resources: CloseableIterator[Resource]): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    for(resource <- resources) {
-      if (resource.exists) {
-        val inputStream = resource.inputStream
-        try {
-          RDFDataMgr.read(dataset, inputStream, lang)
-        } finally {
-          inputStream.close()
+    resources.use { res =>
+      for (resource <- res) {
+        if (resource.exists) {
+          val inputStream = resource.inputStream
+          try {
+            RDFDataMgr.read(dataset, inputStream, lang)
+          } finally {
+            inputStream.close()
+          }
         }
       }
     }
@@ -158,7 +160,7 @@ case class RdfFileDataset(
       val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
         file.checkSizeForInMemory()
-        endpoint = createSparqlEndpoint(Iterable(resource))
+        endpoint = createSparqlEndpoint(CloseableIterator(resource))
         lastModificationTime = modificationTime
       }
     }

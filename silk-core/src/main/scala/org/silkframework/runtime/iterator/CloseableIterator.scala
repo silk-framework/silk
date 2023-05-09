@@ -113,6 +113,13 @@ object CloseableIterator {
     new WrappedCloseableIterator[T](iterable.iterator)
   }
 
+  /**
+    * Creates a closeable iterator for a single element.
+    */
+  def apply[T](element: T): CloseableIterator[T] = {
+    new WrappedCloseableIterator[T](Iterator(element))
+  }
+
 }
 
 /**
