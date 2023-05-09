@@ -9,11 +9,16 @@ import { ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typing
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
-import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
+import {
+    ParameterAutoCompletion,
+    ParameterAutoCompletionProps,
+} from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
+import { PathInputOperator } from "./PathInputOperator";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -71,6 +76,28 @@ export const RuleParameterInput = ({
             return [];
         }
     };
+
+    const autoCompleteProps: (autoComplete: IPropertyAutocomplete) => ParameterAutoCompletionProps = (
+        autoComplete
+    ) => ({
+        projectId: ruleEditorContext.projectId,
+        paramId: ruleParameter.parameterId,
+        pluginId: pluginId,
+        onChange: inputAttributes.onChange,
+        initialValue: defaultValue
+            ? {
+                  value: defaultValue,
+                  label: (defaultValueWithLabel as IOperatorNodeParameterValueWithLabel)?.label,
+              }
+            : undefined,
+        autoCompletion: autoComplete,
+        intent: hasValidationError ? Intent.DANGER : Intent.NONE,
+        formParamId: uniqueId,
+        dependentValue: dependentValue,
+        required: ruleParameter.parameterSpecification.required,
+        readOnly: inputAttributes.readOnly,
+        hasBackDrop: !insideModal,
+    });
 
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":
@@ -133,32 +160,24 @@ export const RuleParameterInput = ({
                     insideModal={insideModal}
                 />
             );
+        case "pathInput":
         case "int":
         case "float":
         case "textField":
         default:
             if (ruleParameter.parameterSpecification.autoCompletion) {
+                if (ruleParameter.parameterSpecification.type === "pathInput") {
+                    return (
+                        <PathInputOperator
+                            parameterAutoCompletionProps={autoCompleteProps(
+                                ruleParameter.parameterSpecification.autoCompletion
+                            )}
+                        />
+                    );
+                }
                 return (
                     <ParameterAutoCompletion
-                        projectId={ruleEditorContext.projectId}
-                        paramId={ruleParameter.parameterId}
-                        pluginId={pluginId}
-                        onChange={inputAttributes.onChange}
-                        initialValue={
-                            defaultValue
-                                ? {
-                                      value: defaultValue,
-                                      label: (defaultValueWithLabel as IOperatorNodeParameterValueWithLabel)?.label,
-                                  }
-                                : undefined
-                        }
-                        autoCompletion={ruleParameter.parameterSpecification.autoCompletion}
-                        intent={hasValidationError ? Intent.DANGER : Intent.NONE}
-                        formParamId={uniqueId}
-                        dependentValue={dependentValue}
-                        required={ruleParameter.parameterSpecification.required}
-                        readOnly={inputAttributes.readOnly}
-                        hasBackDrop={!insideModal}
+                        {...autoCompleteProps(ruleParameter.parameterSpecification.autoCompletion)}
                     />
                 );
             } else {

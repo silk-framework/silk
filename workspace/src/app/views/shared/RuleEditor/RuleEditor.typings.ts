@@ -116,7 +116,7 @@ export interface RuleOperatorNodeParameters {
 
 /** Rule editor node with required business data. For convenience. */
 export interface NodeContentPropsWithBusinessData<T> extends Omit<NodeContentProps<T, RuleNodeContentProps>, "label"> {
-    label: string; // NodeContent now also allows JSX.ELement, lead to TS error in DI because this interface was used directly
+    label: string; // NodeContent now also allows JSX.Element, lead to TS error in DI because this interface was used directly
     businessData: T & { stickyNote?: string | undefined };
 }
 
