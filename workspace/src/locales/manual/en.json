@@ -789,6 +789,16 @@
             "reloadAllCaches": "Reload all caches",
             "title": "Activity overview"
         },
+        "VariableWidget": {
+            "title": "Variables",
+            "actions": {
+                "add": "Add new variable",
+                "edit": "Edit variable"
+            },
+            "errorMessages": {
+                "loadingVariables": "Could not load variables for project {{projectId}}"
+            }
+        },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
