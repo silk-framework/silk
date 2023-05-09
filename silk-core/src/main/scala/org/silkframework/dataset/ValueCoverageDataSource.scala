@@ -39,21 +39,23 @@ trait ValueCoverageDataSource {
                              (implicit userContext: UserContext, prefixes: Prefixes): Set[(String, Option[String])] = {
     val dataSourceValuePath = dataSourcePath
     val dataSourceIdPath = convertToIdPath(dataSourcePath).map(_.asStringTypedPath)
-    val noneStream = Stream.continually(None)
+    val noneStream = Iterator.continually(None)
     val entitySchemaForOverallValues = EntitySchema(Uri(""), typedPaths = IndexedSeq(dataSourceValuePath.asStringTypedPath) ++ dataSourceIdPath.toIndexedSeq)
-    val completeValues = retrieve(entitySchemaForOverallValues).entities.flatMap { e =>
-      val values = e.values
-      val ids = if (values.size > 1) {
-        e.values.last.map(Some(_))
-      } else {
-        noneStream
+    retrieve(entitySchemaForOverallValues).use { entities =>
+      val completeValues = entities.flatMap { e =>
+        val values = e.values
+        val ids = if (values.size > 1) {
+          e.values.last.map(Some(_))
+        } else {
+          noneStream
+        }
+        e.values.head zip ids
       }
-      e.values.head zip ids
+      completeValues.toSet
     }
-    completeValues.toSet
   }
 
-  private def noneStream = Stream.continually(None)
+  private def noneStream = Iterator.continually(None)
 
   def valuesForInputPaths(inputPaths: Traversable[UntypedPath])
                          (implicit userContext: UserContext, prefixes: Prefixes): Set[(String, Option[String])] = {

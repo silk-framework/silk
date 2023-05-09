@@ -5,10 +5,15 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities}
 import org.silkframework.util.CloseableIterator
 
+import java.io.Closeable
+
 /**
   * Holds entities that are exchanged between tasks.
+  *
+  * Must be closed after usage.
+  * It's recommended to call `use` for reading the entities, which will close after usage.
   */
-trait EntityHolder {
+trait EntityHolder extends Closeable {
 
   /**
     * The schema of the entities
@@ -19,6 +24,17 @@ trait EntityHolder {
     * The entities in this table.
     */
   def entities: CloseableIterator[Entity]
+
+  /**
+    * Process entities and close.
+    */
+  def use[T](processEntities: CloseableIterator[Entity] => T): T = {
+    try {
+      processEntities(entities)
+    } finally {
+      close()
+    }
+  }
 
   def globalErrors: Seq[String] = Seq.empty
 

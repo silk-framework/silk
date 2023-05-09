@@ -11,7 +11,6 @@ trait LegacyTraversable[T] extends CloseableIterator[T] with DoSomethingOnGC {
 
   // Load entities in the background
   private lazy val loadingFuture: Future[Unit] = LegacyTraversable.threadPool.submit[Unit](() => {
-    //TODO check for interruption
     foreach(queue.put)
   })
 
@@ -69,7 +68,6 @@ trait LegacyTraversable[T] extends CloseableIterator[T] with DoSomethingOnGC {
       case ex: ExecutionException =>
         throw ex.getCause
     }
-
   }
 
   override def finalAction(): Unit = {

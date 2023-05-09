@@ -197,8 +197,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
         DataSource.pluginSource(dataset) match {
           case peakDataSource: PeakDataSource =>
             try {
-              val exampleEntities = peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities)
-              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+              peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
+                generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+              }
             } catch {
               case pe: PeakException =>
                 Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input dataset '$inputTaskLabel'" +
@@ -240,8 +241,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
-            val exampleEntities = entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities)
-            generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+            entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
+              generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+            }
           } catch {
             case pe: PeakException =>
               Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel'" +

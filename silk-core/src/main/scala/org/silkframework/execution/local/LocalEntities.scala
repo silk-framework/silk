@@ -28,6 +28,14 @@ trait LocalEntities extends EntityHolder {
   def filter(f: Entity => Boolean): EntityHolder = {
     updateEntities(CloseableIterator(entities.filter(f), entities), entitySchema)
   }
+
+  /**
+    * Closes the entities iterator.
+    */
+  override final def close(): Unit = {
+    entities.close()
+  }
+
 }
 
 trait LocalEntitiesWithIterator extends LocalEntities with EntityHolderWithEntityIterator

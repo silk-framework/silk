@@ -10,7 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.{CloseableIterator, Identifier, Uri}
+import org.silkframework.util.{AutoClose, CloseableIterator, Identifier, Uri}
 
 import java.io.{BufferedReader, IOException, InputStreamReader}
 import java.net.{URI, URLEncoder}
@@ -172,7 +172,7 @@ class CsvSource(file: Resource,
       }
 
     // Return new iterable that generates an entity for each line
-    val retrievedEntities = new EntityIterator(entityDesc, entities.toSet, indices)
+    val retrievedEntities = new EntityIterator(entityDesc, entities.toSet, indices) with AutoClose[Entity]
 
     val limitedEntities = limitOpt match {
       case Some(limit) =>
