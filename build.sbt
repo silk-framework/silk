@@ -111,7 +111,6 @@ lazy val core = (project in file("silk-core"))
   .settings(
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
-    //TODO does not support Scala 2.13: libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
