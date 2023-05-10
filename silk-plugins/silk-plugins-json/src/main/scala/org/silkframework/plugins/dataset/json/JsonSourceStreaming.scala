@@ -8,7 +8,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.LegacyTraversable
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -34,7 +34,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends LegacyTraversable[Entity] {
+  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends CloseableIterator[Entity] {
 
     private val entityPath = UntypedPath.parse(basePath) ++ UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
 
@@ -45,40 +45,73 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     // checkPaths only allows forward operators
     private val entityPathSegments = entityPath.operators.collect{ case op: ForwardOperator => op }.toIndexedSeq
 
-    override def foreach[U](f: Entity => U): Unit = {
-      val reader = new JsonReader(createParser())
-      try {
-        var hasNext = goToFirstEntity(reader, entityPathSegments)
-        var count = 0
-        while(hasNext && limit.forall(count < _)) {
-          val node = JsonTraverser(taskId, reader.buildNode())
+    private var count = 0
 
-          // Generate URI
-          val uri =
-            if (uriPattern.isEmpty) {
-              DataSource.generateEntityUri(taskId, node.nodeId(node.value))
+    private val reader = new JsonReader(createParser())
 
-            } else {
-              uriRegex.replaceAllIn(uriPattern, m => {
-                val path = UntypedPath.parse(m.group(1)).asStringTypedPath
-                val string = node.evaluate(path).mkString
-                URLEncoder.encode(string, "UTF8")
-              })
-            }
+    // The next entity
+    private var nextEntity: Option[Entity] = None
 
-          // Check if this URI should be extracted
-          if (allowedUris.isEmpty || allowedUris.contains(uri)) {
-            // Extract values
-            val values = for (path <- entitySchema.typedPaths) yield node.evaluate(path)
-            f(Entity(uri, values, entitySchema))
+    // True, if there are unread entities
+    private var hasMoreEntities: Boolean = true
+
+    // Read the first entity
+    readEntity()
+
+    override def hasNext: Boolean = {
+      nextEntity.isDefined
+    }
+
+    override def next(): Entity = {
+      nextEntity match {
+        case Some(entity) =>
+          readEntity()
+          entity
+        case None =>
+          throw new NoSuchElementException("No more entities")
+      }
+    }
+
+    override def close(): Unit = {
+      reader.close()
+    }
+
+    /**
+      * Reads to the next entity.
+      * Sets `nextEntity` and `hasMoreEntities`.
+      */
+    private def readEntity(): Unit = {
+      if(count == 0) {
+        // Read until first entity
+        hasMoreEntities = goToFirstEntity(reader, entityPathSegments)
+      }
+
+      nextEntity = None
+      while (nextEntity.isEmpty && hasMoreEntities && limit.forall(count < _)) {
+        val node = JsonTraverser(taskId, reader.buildNode())
+
+        // Generate URI
+        val uri =
+          if (uriPattern.isEmpty) {
+            DataSource.generateEntityUri(taskId, node.nodeId(node.value))
+
+          } else {
+            uriRegex.replaceAllIn(uriPattern, m => {
+              val path = UntypedPath.parse(m.group(1)).asStringTypedPath
+              val string = node.evaluate(path).mkString
+              URLEncoder.encode(string, "UTF8")
+            })
           }
 
-          hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.size - 1)
-          count += 1
-
+        // Check if this URI should be extracted
+        if (allowedUris.isEmpty || allowedUris.contains(uri)) {
+          // Extract values
+          val values = for (path <- entitySchema.typedPaths) yield node.evaluate(path)
+          nextEntity = Some(Entity(uri, values, entitySchema))
         }
-      } finally {
-        reader.close()
+
+        hasMoreEntities = goToNextEntity(reader, entityPathSegments, entityPathSegments.size - 1)
+        count += 1
       }
     }
   }

@@ -8,7 +8,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
@@ -69,7 +69,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         updater.increaseEntityCounter()
       case None => () => {} // no-op
     }
-    new LegacyTraversable[Entity] {
+    new TraversableIterator[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
         var count = 0
         results.bindings foreach { binding =>

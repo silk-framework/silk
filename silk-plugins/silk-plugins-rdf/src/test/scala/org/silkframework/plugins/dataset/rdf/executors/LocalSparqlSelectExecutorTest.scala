@@ -11,7 +11,7 @@ import org.silkframework.util.{MockitoSugar, TestMocks}
 import scala.collection.immutable.SortedMap
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.runtime.iterator.LegacyTraversable
+import org.silkframework.runtime.iterator.TraversableIterator
 
 class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     with Matchers
@@ -30,7 +30,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       override def sparqlParams: SparqlParams = ???
       override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = ???
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
-        SparqlResults(Seq("s", "p", "o"), new LegacyTraversable[SortedMap[String, RdfNode]] {
+        SparqlResults(Seq("s", "p", "o"), new TraversableIterator[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0
             while (i < limit) {
@@ -78,7 +78,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
         selectCallback(this)
-        SparqlResults(Seq("s", "p", "o"), new LegacyTraversable[SortedMap[String, RdfNode]] {
+        SparqlResults(Seq("s", "p", "o"), new TraversableIterator[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0
             while (i < limit) {

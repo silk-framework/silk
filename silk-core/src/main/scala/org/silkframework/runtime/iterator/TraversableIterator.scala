@@ -5,12 +5,19 @@ import org.silkframework.runtime.resource.DoSomethingOnGC
 
 import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future}
 
-trait LegacyTraversable[T] extends CloseableIterator[T] with DoSomethingOnGC {
+/**
+  * A closable iterator that is implemented by a single foreach function.
+  * This class is to support legacy code that was based on the obsolete Scala Traversable classes.
+  * New code should preferably implement CloseableIterator directly.
+  */
+trait TraversableIterator[T] extends CloseableIterator[T] with DoSomethingOnGC {
 
-  private val queue = new ArrayBlockingQueue[T](100)
+  protected val bufferSize = 100
+
+  private val queue = new ArrayBlockingQueue[T](bufferSize)
 
   // Load entities in the background
-  private lazy val loadingFuture: Future[Unit] = LegacyTraversable.threadPool.submit[Unit](() => {
+  private lazy val loadingFuture: Future[Unit] = TraversableIterator.threadPool.submit[Unit](() => {
     foreach(queue.put)
   })
 
@@ -79,8 +86,8 @@ trait LegacyTraversable[T] extends CloseableIterator[T] with DoSomethingOnGC {
   }
 }
 
-object LegacyTraversable {
+object TraversableIterator {
 
-  private val threadPool = Execution.createThreadPool("LegacyTraversable")
+  private val threadPool = Execution.createThreadPool("TraversableIterator")
 
 }

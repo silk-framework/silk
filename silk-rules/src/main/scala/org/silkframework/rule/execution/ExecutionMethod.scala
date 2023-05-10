@@ -3,7 +3,6 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.Partition
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.iterator.LegacyTraversable
 import org.silkframework.util.DPair
 
 /**
@@ -19,26 +18,13 @@ trait ExecutionMethod {
   /**
    * Generates comparison pairs from two partitions.
    */
-  def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean) = new LegacyTraversable[DPair[Entity]] {
-    /**
-     * Iterates through all comparison pairs
-     */
-    override def foreach[U](f: DPair[Entity] => U) {
-      //Iterate over all entities in the source partition
-      var s = 0
-      while(s < sourcePartition.size) {
-        //Iterate over all entities in the target partition
-        var t = if (full) 0 else s + 1
-        while(t < targetPartition.size) {
-          //Check if the indices match
-          if((sourcePartition.indices(s) matches targetPartition.indices(t))) {
-            //Yield entity pair
-            f(DPair(sourcePartition.entities(s), targetPartition.entities(t)))
-          }
-          t += 1
-        }
-        s += 1
-      }
+  def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean): Iterable[DPair[Entity]] = {
+    for {
+      s <- 0 until sourcePartition.size
+      t <- 0 until (if (full) 0 else s + 1)
+      if sourcePartition.indices(s) matches targetPartition.indices(t)
+    } yield {
+      DPair(sourcePartition.entities(s), targetPartition.entities(t))
     }
   }
 }

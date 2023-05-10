@@ -3,7 +3,7 @@ package org.silkframework.execution
 import java.util.concurrent.atomic.AtomicBoolean
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 
 class InterruptibleTraversableTest extends AnyFlatSpec with Matchers {
   behavior of "Interruptible Traversable"
@@ -47,7 +47,7 @@ class InterruptibleTraversableTest extends AnyFlatSpec with Matchers {
 
   private def traverseEndlessly(startedIterating: AtomicBoolean): CloseableIterator[Int] = {
     new InterruptibleIterator[Int](
-      new LegacyTraversable[Int] {
+      new TraversableIterator[Int] {
         override def foreach[U](f: Int => U): Unit = {
           var i = 0
           while (true) {

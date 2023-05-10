@@ -7,7 +7,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.LegacyTraversable
+import org.silkframework.runtime.iterator.TraversableIterator
 import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -95,7 +95,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
 
     val entities =
-      new LegacyTraversable[Entity] {
+      new TraversableIterator[Entity] {
         override def foreach[U](f: Entity => U): Unit = {
           val inputStream = file.inputStream
           try {

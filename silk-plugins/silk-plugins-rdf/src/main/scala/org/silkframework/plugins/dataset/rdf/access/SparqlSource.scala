@@ -10,7 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.{Level, Logger}
@@ -84,15 +84,6 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
                             valueSampleLimit: Option[Int])
                            (implicit userContext: UserContext): Seq[CloseableIterator[String]] = {
     typedPaths map { typedPath =>
-      new ValueTraverser(typeUri, typedPath, valueSampleLimit)
-    }
-  }
-
-  class ValueTraverser(typeUri: Option[Uri],
-                       typedPath: TypedPath,
-                       limit: Option[Int])
-                      (implicit userContext: UserContext) extends LegacyTraversable[String] {
-    override def foreach[U](f: String => U): Unit = {
       val pathQuery = ParallelEntityRetriever.pathQuery(
         "a",
         typeUri.map(SparqlRestriction.forType).getOrElse(SparqlRestriction.empty),
@@ -103,10 +94,10 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         varPrefix = "v",
         useOptional = false
       )
-      val results = sparqlEndpoint.select(pathQuery, limit = limit.getOrElse(Int.MaxValue))
-      for(result <- results.bindings;
-          value <- result.get("v0")) {
-        f(value.value)
+      val results = sparqlEndpoint.select(pathQuery, limit = valueSampleLimit.getOrElse(Int.MaxValue))
+      for (result <- results.bindings;
+           value <- result.get("v0")) yield {
+        value.value
       }
     }
   }

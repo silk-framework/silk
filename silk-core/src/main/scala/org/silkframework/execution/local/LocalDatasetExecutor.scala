@@ -8,7 +8,7 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -231,7 +231,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     *
     * @param bufferSize max size of queries that should be buffered
     */
-  case class SparqlQueryBuffer(bufferSize: Int, entities: CloseableIterator[Entity]) extends LegacyTraversable[String] {
+  case class SparqlQueryBuffer(bufferSize: Int, entities: CloseableIterator[Entity]) extends TraversableIterator[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
     override def foreach[U](f: String => U): Unit = {
