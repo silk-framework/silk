@@ -67,7 +67,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       sparql ++= "GROUP BY ?propertyToAggregateBySAPC\n"
       sparql ++= "ORDER BY DESC (?count)"
 
-      val results = endpoint.select(sparql.toString(), limit).bindings.toList
+      val results = endpoint.select(sparql.toString(), limit).bindings.use(_.toList)
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
@@ -105,7 +105,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       sparql ++= "GROUP BY ?propertyToAggregateBySAPC\n"
       sparql ++= "ORDER BY DESC (?count)"
 
-      val results = endpoint.select(sparql.toString(), limit).bindings.toList
+      val results = endpoint.select(sparql.toString(), limit).bindings.use(_.toList)
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {

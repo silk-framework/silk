@@ -30,7 +30,7 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
            (implicit userContext: UserContext): Traversable[(String, Double)] = {
     Timer("Retrieving types in '" + endpoint + "'") {
       val query = buildQuery(graph)
-      val results = endpoint.select(query, limit.getOrElse(defaultLimit)).bindings.toList
+      val results = endpoint.select(query, limit.getOrElse(defaultLimit)).bindings.use(_.toList)
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("t")) yield {

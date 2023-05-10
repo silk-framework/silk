@@ -159,8 +159,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     override def run() {
       try {
         //Query for all entities
-        val sparqlResults = queryPath()
-        parseResults(sparqlResults.bindings)
+        queryPath().bindings.use { bindings =>
+          parseResults(bindings)
+        }
       }
       catch {
         case ex: Throwable =>
@@ -181,7 +182,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     private val isSpecialTextPath = specialPaths.isTextSpecialPath(path)
     private val uriRequested = path.valueType == ValueType.URI
 
-    private def parseResults(sparqlResults: CloseableIterator[Map[String, RdfNode]]): Unit = {
+    private def parseResults(sparqlResults: Iterator[Map[String, RdfNode]]): Unit = {
       var currentSubject: Option[String] = None
       var currentValues: Seq[String] = Seq.empty
       def addCurrentValue(value: String): Unit = {

@@ -34,6 +34,7 @@ import play.api.mvc._
 
 import java.net.HttpURLConnection
 import javax.inject.Inject
+import scala.util.Using
 
 @Tag(name = "Datasets", description = "Manage datasets.")
 class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {

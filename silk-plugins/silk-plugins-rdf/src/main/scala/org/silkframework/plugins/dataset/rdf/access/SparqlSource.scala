@@ -131,13 +131,16 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         |  ?v ?property ?s
         |} GROUP BY ?class ?property
       """.stripMargin)
-    for (binding <- backwardResults.bindings;
-         classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
-      val classUri = binding("class").value
-      val propertyUri = binding("property").value
-      val propertyType = valueType(binding("valueSample"))
-      val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, currentProperties :+ TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+
+    backwardResults.bindings.use { bindings =>
+      for (binding <- bindings;
+           classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
+        val classUri = binding("class").value
+        val propertyUri = binding("property").value
+        val propertyType = valueType(binding("valueSample"))
+        val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
+        classProperties.put(classUri, currentProperties :+ TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+      }
     }
   }
 
@@ -151,13 +154,16 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         |     ?property ?v
         |} GROUP BY ?class ?property
       """.stripMargin)
-    for (binding <- forwardResults.bindings;
-         classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
-      val classUri = binding("class").value
-      val propertyUri = binding("property").value
-      val propertyType = valueType(binding("valueSample"))
-      val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, currentProperties :+ TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+
+    forwardResults.bindings.use { bindings =>
+      for (binding <- bindings;
+           classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
+        val classUri = binding("class").value
+        val propertyUri = binding("property").value
+        val propertyType = valueType(binding("valueSample"))
+        val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
+        classProperties.put(classUri, currentProperties :+ TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+      }
     }
   }
 

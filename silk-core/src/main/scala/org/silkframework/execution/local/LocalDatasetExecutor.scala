@@ -231,7 +231,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     *
     * @param bufferSize max size of queries that should be buffered
     */
-  case class SparqlQueryBuffer(bufferSize: Int, entities: CloseableIterator[Entity]) extends TraversableIterator[String] {
+  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[Entity]) extends TraversableIterator[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
     override def foreach[U](f: String => U): Unit = {
@@ -239,7 +239,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         assert(entity.values.size == 1 && entity.values.head.size == 1)
         val query = entity.values.head.head
         queryBuffer.push(query)
-        if(queryBuffer.size() > bufferSize) {
+        if(queryBuffer.size() > queryBufferSize) {
           f(queryBuffer.remove())
         }
       }
