@@ -4,7 +4,8 @@ import {
 } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { Button } from "@eccenca/gui-elements";
+import { Button, IconButton, MenuItem, Select } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
 
 interface Props {
     parameterAutoCompletionProps: ParameterAutoCompletionProps;
@@ -12,18 +13,36 @@ interface Props {
 }
 
 /** Extracts the language part from a language filter operator string. */
-const languageFilterRegex = /\[@lang\s*=\s*'([a-zA-Z-]+)']$/;
+const languageFilterRegex = /\[@lang\s*=\s*'([a-zA-Z0-9-]+)']$/;
+
+const languageTagRegex = /^[a-zA-Z]+(?:-[a-zA-Z0-9]+)*$/;
+const StringSelect = Select.ofType<string>();
+const NO_LANG = "-";
 
 export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilterSupport = true }: Props) => {
+    const [t] = useTranslation();
     const [activeProps, setActiveProps] = React.useState<ParameterAutoCompletionProps>(parameterAutoCompletionProps);
-    const [languageFilter, setLanguageFilter] = React.useState<string | undefined>(undefined);
-    const activeOnChangeHandler = React.useRef<(value: IAutocompleteDefaultResponse) => any>();
-    const activeInitialValue = React.useRef<string | undefined>();
-    // This onChange handler uses the up-to-date language filter
-    activeOnChangeHandler.current = (value) => {
+    const [languageFilter, _setLanguageFilter] = React.useState<string | undefined>(undefined);
+    const internalState = React.useRef<{
+        initialized: boolean;
+        // The current value without the added language filter
+        currentValue?: IAutocompleteDefaultResponse;
+        // The current filter language
+        currentLanguageFilter?: string;
+        // This onChange handler uses the up-to-date language filter
+        activeOnChangeHandler?: (value: IAutocompleteDefaultResponse) => any;
+    }>({ initialized: false, currentValue: parameterAutoCompletionProps.initialValue });
+
+    const setLanguageFilter = (string) => {
+        internalState.current.currentLanguageFilter = string;
+        _setLanguageFilter(string);
+    };
+
+    internalState.current.activeOnChangeHandler = (value) => {
+        internalState.current.currentValue = value;
         const fullValue = {
             ...value,
-            value: value.value + languageFilterExpression(languageFilter),
+            value: value.value + languageFilterExpression(internalState.current.currentLanguageFilter),
         };
         return parameterAutoCompletionProps.onChange(fullValue);
     };
@@ -31,34 +50,100 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
     const overwrittenProps: Partial<ParameterAutoCompletionProps> = languageFilterSupport
         ? {
               inputProps: {
-                  rightElement: <Button>{languageFilter ?? "Select"}</Button>,
+                  rightElement: (
+                      <StringSelect
+                          items={["en", "de", "fr", NO_LANG]}
+                          filterable={true}
+                          itemPredicate={(query, item) => item.toLowerCase().includes(query.toLowerCase().trim())}
+                          createNewItemFromQuery={(query) => {
+                              return query;
+                          }}
+                          createNewItemRenderer={(
+                              query: string,
+                              active: boolean,
+                              handleClick: React.MouseEventHandler<HTMLElement>
+                          ) => {
+                              if (languageTagRegex.test(query)) {
+                                  return (
+                                      <MenuItem
+                                          icon={"item-add-artefact"}
+                                          active={active}
+                                          key={query}
+                                          onClick={handleClick}
+                                          text={query}
+                                      />
+                                  );
+                              }
+                          }}
+                          itemRenderer={(lang, { handleClick }) => {
+                              return lang === NO_LANG ? (
+                                  <MenuItem
+                                      icon={"operation-filterRemove"}
+                                      text={t("PathInputOperator.noFilter")}
+                                      onClick={handleClick}
+                                  />
+                              ) : (
+                                  <MenuItem icon={"operation-filter"} text={lang} onClick={handleClick} />
+                              );
+                          }}
+                          onItemSelect={(lang) => {
+                              const langValue = lang === "-" ? undefined : lang;
+                              internalState.current.currentLanguageFilter = langValue;
+                              // Need to call onChange handler with changed language filter
+                              internalState.current.activeOnChangeHandler!(
+                                  internalState.current.currentValue ?? { value: "" }
+                              );
+                              setLanguageFilter(langValue);
+                          }}
+                          disabled={!!parameterAutoCompletionProps.readOnly}
+                          fill={false}
+                          popoverTargetProps={{
+                              style: { display: "inline-block" },
+                          }}
+                      >
+                          {languageFilter ? (
+                              <Button tooltip={t("PathInputOperator.languageButtonTooltip")} outlined={true}>
+                                  {languageFilter}
+                              </Button>
+                          ) : (
+                              <IconButton
+                                  text={t("PathInputOperator.languageButtonTooltip")}
+                                  name={"operation-translate"}
+                                  outlined={true}
+                              />
+                          )}
+                      </StringSelect>
+                  ),
               },
           }
         : {};
 
-    if (languageFilterSupport && activeInitialValue.current == null) {
+    // Initialize language filter and modify original props, e.g. onChange handler and initialValue
+    if (languageFilterSupport && !internalState.current.initialized) {
+        internalState.current.initialized = true;
         const initialValue = parameterAutoCompletionProps.initialValue?.value ?? "";
+        const onChange = (value: IAutocompleteDefaultResponse) => {
+            return internalState.current.activeOnChangeHandler!(value);
+        };
+        const newProps: ParameterAutoCompletionProps = {
+            ...parameterAutoCompletionProps,
+            onChange,
+        };
         const match = languageFilterRegex.exec(initialValue);
         if (match) {
+            // Extract current language filter
             const lang = match[1];
             const pathWithoutLangFilter = initialValue.substring(0, match.index);
-            const onChange = (value: IAutocompleteDefaultResponse) => {
-                return activeOnChangeHandler.current!(value);
-            };
             const newInitialValue = {
                 value: pathWithoutLangFilter,
                 label: parameterAutoCompletionProps.initialValue!.label,
             };
-            const newProps: ParameterAutoCompletionProps = {
-                ...parameterAutoCompletionProps,
-                initialValue: newInitialValue,
-                onChange,
-            };
-            setActiveProps(newProps);
+            internalState.current.currentValue = newInitialValue;
+            newProps.initialValue = newInitialValue;
             setLanguageFilter(lang);
             overwrittenProps.initialValue = newInitialValue;
-            activeInitialValue.current = pathWithoutLangFilter;
         }
+        setActiveProps(newProps);
     }
 
     return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} />;
