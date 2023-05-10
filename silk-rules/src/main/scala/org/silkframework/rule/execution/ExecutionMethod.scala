@@ -21,7 +21,7 @@ trait ExecutionMethod {
   def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean): Iterable[DPair[Entity]] = {
     for {
       s <- 0 until sourcePartition.size
-      t <- 0 until (if (full) 0 else s + 1)
+      t <- (if (full) 0 else s + 1) until targetPartition.size
       if sourcePartition.indices(s) matches targetPartition.indices(t)
     } yield {
       DPair(sourcePartition.entities(s), targetPartition.entities(t))
