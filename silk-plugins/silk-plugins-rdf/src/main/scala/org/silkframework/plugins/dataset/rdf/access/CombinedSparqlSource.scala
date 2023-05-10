@@ -7,7 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.{CloseableIterator, LegacyTraversable}
+import org.silkframework.runtime.iterator.RepeatedIterator
 import org.silkframework.util.Uri
 
 /**
@@ -24,15 +24,8 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
-    val allEntities =
-      new LegacyTraversable[Entity] {
-        override def foreach[U](f: Entity => U): Unit = {
-          for (sparqlSource <- sparqlSources;
-               entity <- sparqlSource.retrieve(entitySchema, limit).entities) {
-            f(entity)
-          }
-        }
-      }
+    val sourceIterator = sparqlSources.iterator
+    val allEntities = new RepeatedIterator[Entity](() => sourceIterator.nextOption().map(_.retrieve(entitySchema, limit).entities))
     GenericEntityTable(allEntities, entitySchema, underlyingTask)
   }
 
@@ -48,10 +41,9 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
-      val results = for (sparqlSource <- sparqlSources) yield {
-        sparqlSource.retrieveByUri(entitySchema, entities).entities
-      }
-      GenericEntityTable(CloseableIterator(results.flatten.iterator), entitySchema, underlyingTask)
+      val sourceIterator = sparqlSources.iterator
+      val allEntities = new RepeatedIterator[Entity](() => sourceIterator.nextOption().map(_.retrieveByUri(entitySchema, entities).entities))
+      GenericEntityTable(allEntities, entitySchema, underlyingTask)
     }
   }
 

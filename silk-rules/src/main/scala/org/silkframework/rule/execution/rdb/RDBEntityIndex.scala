@@ -103,32 +103,33 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
   def loadTables(indexProfile: RdbIndexProfile)
                 (implicit userContext: UserContext,
                  connection: Connection): Unit = {
-    val entities = retrieveEntities()
-//    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
-    val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
-    val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
-    var entityId = 1
-//    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
-    val bulkUpdater = BulkUpdater(BULK_UPDATE_SIZE)
-    for(entity <- entities) {
-      val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
-//      if(mainTableColumns.nonEmpty) {
-//        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
-//            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
-//        bulkUpdater.addQueryForExecution(query)
-//      }
-      val separateIndexTableComparisons = indexProfile.indexProfiles.toSeq.map(_._1.toString)
-      for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
-           indexValue <- sepIndexTableValues) {
-        val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
-        // TODO: Use COPY operator for Postgres instead of loading the data via UPDATE because there are problems with the memory foot print and performance
-        bulkUpdater.addQueryForExecution(query)
+    retrieveEntities().use { entities =>
+      //    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
+      val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
+      val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
+      var entityId = 1
+      //    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
+      val bulkUpdater = BulkUpdater(BULK_UPDATE_SIZE)
+      for (entity <- entities) {
+        val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
+        //      if(mainTableColumns.nonEmpty) {
+        //        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
+        //            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
+        //        bulkUpdater.addQueryForExecution(query)
+        //      }
+        val separateIndexTableComparisons = indexProfile.indexProfiles.toSeq.map(_._1.toString)
+        for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
+             indexValue <- sepIndexTableValues) {
+          val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
+          // TODO: Use COPY operator for Postgres instead of loading the data via UPDATE because there are problems with the memory foot print and performance
+          bulkUpdater.addQueryForExecution(query)
+        }
+        // TODO: Create relevant indexes after loading the entities
+        entityId += 1
       }
-      // TODO: Create relevant indexes after loading the entities
-      entityId += 1
+      bulkUpdater.execute()
+      RdbIndexProfile(pathProfiles, indexProfiles)
     }
-    bulkUpdater.execute()
-    RdbIndexProfile(pathProfiles, indexProfiles)
   }
 
   /** Collects and executes queries as bulk */
@@ -195,26 +196,27 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
 
   private def profileEntities(entitySchema: EntitySchema)
                              (implicit userContext: UserContext): RdbIndexProfile = {
-    val entities = retrieveEntities()
-    val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
-    val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
-    for(entity <- entities) {
-      val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
-      linkageRuleIndex.comparisons.foreach { c =>
-        val indexProfile = indexProfiles.getOrElse(
-          c.id,
-          throw new RuntimeException("Index profile for comparison ID " + c.id + " not found!"))
-        indexProfile.update(c.indexValues.indexValues)
+    retrieveEntities().use { entities =>
+      val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
+      val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
+      for (entity <- entities) {
+        val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
+        linkageRuleIndex.comparisons.foreach { c =>
+          val indexProfile = indexProfiles.getOrElse(
+            c.id,
+            throw new RuntimeException("Index profile for comparison ID " + c.id + " not found!"))
+          indexProfile.update(c.indexValues.indexValues)
+        }
+        entitySchema.typedPaths.foreach { typedPath =>
+          val pathProfile = pathProfiles.getOrElse(
+            typedPath,
+            throw new RuntimeException("Path profile for typed path " + typedPath.toString + " not found!")
+          )
+          pathProfile.update(entity.valueOfTypedPath(typedPath))
+        }
       }
-      entitySchema.typedPaths.foreach { typedPath =>
-        val pathProfile = pathProfiles.getOrElse(
-          typedPath,
-          throw new RuntimeException("Path profile for typed path " + typedPath.toString + " not found!")
-        )
-        pathProfile.update(entity.valueOfTypedPath(typedPath))
-      }
+      RdbIndexProfile(pathProfiles, indexProfiles)
     }
-    RdbIndexProfile(pathProfiles, indexProfiles)
   }
 
   private def retrieveEntities()

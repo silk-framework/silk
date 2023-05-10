@@ -79,7 +79,7 @@ object EntitySerializers {
 
       // Convert entity values to a nested JSON array
       val valuesJson = JsArray(
-        for(entity <- value.entities.toSeq) yield {
+        for(entity <- value.entities.use(_.toSeq)) yield {
           val values = entity.values.map(values => JsArray(values.map(JsString)))
           JsArray(values)
         }

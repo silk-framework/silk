@@ -15,6 +15,9 @@ case class ReportingIterable(entities: Iterable[Entity])(implicit executionRepor
   }
 }
 
+/**
+  * An entity iterator that forwards all entity traversals to an execution report.
+  */
 case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater) extends CloseableIterator[Entity] {
 
   override def hasNext: Boolean = {

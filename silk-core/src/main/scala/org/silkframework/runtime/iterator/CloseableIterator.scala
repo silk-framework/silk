@@ -33,6 +33,19 @@ trait CloseableIterator[+T] extends Iterator[T] with Closeable {
   }
 
   /**
+    * Iterates all elements and closes the iterator.
+    */
+  override def foreach[U](f: T => U): Unit = {
+    try {
+      while (hasNext) {
+        f(next())
+      }
+    } finally {
+      close()
+    }
+  }
+
+  /**
     * Selects the first ''n'' elements.
     * The returned iterable will also close the original iterator.
     */

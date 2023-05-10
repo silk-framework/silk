@@ -96,11 +96,8 @@ trait DataSource {
                      size: Int,
                      filterOpt: Option[Entity => Boolean] = None)
                     (implicit userContext: UserContext, prefixes: Prefixes, random: Random): Seq[Entity] = {
-    val entities = retrieve(entityDesc).entities
-    try {
+    retrieve(entityDesc).entities.use { entities =>
       SampleUtil.sample(entities, size, filterOpt)
-    } finally {
-      entities.close()
     }
   }
 

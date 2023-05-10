@@ -14,7 +14,7 @@ trait LocalEntities extends EntityHolder {
   /**
     * get head Entity
     */
-  override def headOption: Option[Entity] = if(entities.hasNext) Some(entities.next()) else None
+  override def headOption: Option[Entity] = entities.headOption
 
   def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): LocalEntities
 

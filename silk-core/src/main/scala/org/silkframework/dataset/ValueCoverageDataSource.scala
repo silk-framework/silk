@@ -76,7 +76,7 @@ trait ValueCoverageDataSource {
         throw new RuntimeException("Could not get IDs for all paths.")
       }
     }
-    collectedValues.toSet
+    collectedValues.use(_.toSet)
   }
 }
 

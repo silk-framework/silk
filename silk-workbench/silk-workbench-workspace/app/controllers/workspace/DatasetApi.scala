@@ -304,7 +304,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
     val entityDesc = EntitySchema(firstTypes, paths)
-    val entities = source.retrieve(entityDesc).entities.take(maxEntities).toList
+    val entities = source.retrieve(entityDesc).entities.use(_.take(maxEntities).toList)
 
     Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
   }

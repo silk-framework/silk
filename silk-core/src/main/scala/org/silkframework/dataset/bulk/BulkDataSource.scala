@@ -55,7 +55,7 @@ class BulkDataSource(bulkContainerName: String,
                                indexFn: T => U): Iterable[T] = {
     val entrySet = new mutable.HashSet[U]()
     var elems = Seq[T]()
-    sources().use { _.foreach { source =>
+    sources().use {_.foreach { source =>
       handleSourceError(source) { dataSource =>
         for (elem <- dataSourcePathFn(dataSource)) {
           // Only emit path once, do not distinguish the same path with different weight
