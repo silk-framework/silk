@@ -15,7 +15,7 @@ object EmptySource extends DataSource {
 
   override def retrieveTypes(limit: Option[Int] = None)
                             (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
-    Traversable.empty
+    Iterable.empty
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
