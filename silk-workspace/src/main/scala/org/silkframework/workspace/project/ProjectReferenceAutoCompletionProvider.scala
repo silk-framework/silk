@@ -10,7 +10,7 @@ import org.silkframework.workspace.WorkspaceReadTrait
 case class ProjectReferenceAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     implicit val userContext: UserContext = context.user
     filterResults(searchQuery, results(workspace))
   }

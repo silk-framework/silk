@@ -16,9 +16,9 @@ case class StandardMetaDataPlugin() extends PathMetaDataPlugin[StandardMetaDataP
     * @return Path meta data for each input path. None if no meta data could be fetched.
     */
   override def fetchMetaData(sourcePlugin: StandardMetaDataPlugin,
-                             paths: Traversable[TypedPath],
+                             paths: Iterable[TypedPath],
                              preferredLanguage: String)
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[PathMetaData] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[PathMetaData] = {
     paths.map(p => PathMetaData(p.serialize(), None, p.valueType.label))
   }
 }

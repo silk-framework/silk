@@ -26,7 +26,7 @@ class BulkDataSource(bulkContainerName: String,
                      mergeSchemata: Boolean) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     if(mergeSchemata) {
       mergePaths[(String, Double), String](
         _.retrieveTypes(limit),

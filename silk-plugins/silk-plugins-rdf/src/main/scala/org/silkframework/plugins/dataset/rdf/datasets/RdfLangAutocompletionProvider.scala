@@ -15,7 +15,7 @@ case class RdfLangAutocompletionProvider() extends PluginParameterAutoCompletion
 
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     supportedLanguages
       .filter(_.matches(multiSearchWords))

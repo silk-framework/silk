@@ -47,7 +47,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Seq(entitySchema.typeUri.uri -> 1.0)
   }
 

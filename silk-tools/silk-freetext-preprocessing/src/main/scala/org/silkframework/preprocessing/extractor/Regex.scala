@@ -17,7 +17,7 @@ case class Regex(override  val id: String,
     if(regex.hasNext) regex.subgroups(0) else ""
   }
 
-  override def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity]= {
+  override def apply(dataset:Dataset, findNewProperty: String => String): Iterable[Entity]= {
 
     val filteredEntities = dataset.filter(propertyToExtractFrom)
 

@@ -43,15 +43,15 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   /** True, if positive and negative entities are available. */
   def isDefined = positiveLinks.nonEmpty && negativeLinks.nonEmpty
 
-  def positiveEntities: Traversable[DPair[Entity]] = {
+  def positiveEntities: Iterable[DPair[Entity]] = {
     linksToEntities(positiveLinks)
   }
 
-  def negativeEntities: Traversable[DPair[Entity]] = {
+  def negativeEntities: Iterable[DPair[Entity]] = {
     linksToEntities(negativeLinks)
   }
 
-  def unlabeledEntities: Traversable[DPair[Entity]] = {
+  def unlabeledEntities: Iterable[DPair[Entity]] = {
     linksToEntities(unlabeledLinks)
   }
 
@@ -145,8 +145,8 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     unlabeledLinks ++ ref.unlabeledLinks
   )
 
-  def update(newSourceEntities: Traversable[Entity] = Traversable.empty,
-             newTargetEntities: Traversable[Entity] = Traversable.empty,
+  def update(newSourceEntities: Iterable[Entity] = Iterable.empty,
+             newTargetEntities: Iterable[Entity] = Iterable.empty,
              newPositiveLinks: Set[Link] = Set.empty,
              newNegativeLinks: Set[Link] = Set.empty,
              newUnlabeledLinks: Set[Link] = Set.empty): ReferenceEntities = {
@@ -175,11 +175,11 @@ object ReferenceEntities {
 
   def empty = ReferenceEntities(Map.empty, Map.empty)
 
-  def fromEntities(positiveEntities: Traversable[DPair[Entity]],
-                   negativeEntities: Traversable[DPair[Entity]],
-                   unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty): ReferenceEntities = {
-    def srcEnt(e: Traversable[DPair[Entity]]) = e.map(_.source).toSet
-    def tgtEnt(e: Traversable[DPair[Entity]]) = e.map(_.target).toSet
+  def fromEntities(positiveEntities: Iterable[DPair[Entity]],
+                   negativeEntities: Iterable[DPair[Entity]],
+                   unlabeledEntities: Iterable[DPair[Entity]] = Iterable.empty): ReferenceEntities = {
+    def srcEnt(e: Iterable[DPair[Entity]]) = e.map(_.source).toSet
+    def tgtEnt(e: Iterable[DPair[Entity]]) = e.map(_.target).toSet
 
     val sourceEntities = srcEnt(positiveEntities) ++ srcEnt(negativeEntities) ++ srcEnt(unlabeledEntities)
     val targetEntities = tgtEnt(positiveEntities) ++ tgtEnt(negativeEntities) ++ tgtEnt(unlabeledEntities)

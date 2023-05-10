@@ -118,7 +118,7 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
     * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
     */
   override def retrieveTypes(limit: Option[Int] = None)
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
     val types = for(schemaClass <- schema.classes) yield {
       val operators = UntypedPath.parse(schemaClass.sourceType)

@@ -18,7 +18,7 @@ import scala.util.Random
 
 object RandomUtils {
 
-  def randomElement[T](traversable: Traversable[T]) = {
+  def randomElement[T](traversable: Iterable[T]) = {
     val seq = traversable.toIndexedSeq
     seq(Random.nextInt(seq.size))
   }

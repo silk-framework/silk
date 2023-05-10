@@ -578,7 +578,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
   }
 
   private def transformationInputPaths(project: Project)
-                                      (implicit userContext: UserContext): Traversable[CoveragePathInput] = {
+                                      (implicit userContext: UserContext): Iterable[CoveragePathInput] = {
     val transformationTasks = project.tasks[TransformSpec]
     for (transformation <- transformationTasks) yield {
       val typeUri = transformation.selection.typeUri

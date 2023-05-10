@@ -74,7 +74,7 @@ trait Observable[T] {
   /**
     * Retrieves all subscribers.
     */
-  final def subscribers: Traversable[T => _] = subscriberMap.synchronized {
+  final def subscribers: Iterable[T => _] = subscriberMap.synchronized {
     subscriberMap.keys
   }
 

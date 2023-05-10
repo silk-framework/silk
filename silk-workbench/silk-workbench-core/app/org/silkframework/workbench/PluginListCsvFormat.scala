@@ -51,7 +51,7 @@ case class PluginListCsvFormat() extends CsvFormat[PluginList] {
     "\"" + value.replace("\"", "\"\"") + "\""
   }
 
-  def escape(values: Traversable[String]): String = {
+  def escape(values: Iterable[String]): String = {
     escape(values.mkString(arraySep.toString))
   }
 }

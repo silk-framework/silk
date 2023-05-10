@@ -15,7 +15,7 @@ import scala.xml.Node
  */
 case class Config(trainigDatasetSource : InputConfig,
                   datasetSource: InputConfig,
-                  extractorConfigs: Traversable[ExtractorConfig],
+                  extractorConfigs: Iterable[ExtractorConfig],
                   outputSource: Option[OutputConfig]){
 
 

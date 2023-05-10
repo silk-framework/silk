@@ -27,7 +27,7 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
   private implicit val logger = Logger.getLogger(getClass.getName)
 
   def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int])
-           (implicit userContext: UserContext): Traversable[(String, Double)] = {
+           (implicit userContext: UserContext): Iterable[(String, Double)] = {
     Timer("Retrieving types in '" + endpoint + "'") {
       val query = buildQuery(graph)
       val results = endpoint.select(query, limit.getOrElse(defaultLimit)).bindings.use(_.toList)

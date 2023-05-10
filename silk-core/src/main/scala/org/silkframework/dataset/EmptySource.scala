@@ -14,7 +14,7 @@ import org.silkframework.util.Uri
 object EmptySource extends DataSource {
 
   override def retrieveTypes(limit: Option[Int] = None)
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Traversable.empty
   }
 

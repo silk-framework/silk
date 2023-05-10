@@ -144,12 +144,12 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
   }
 
   private def collectLanguageRankedValueOpt(varName: String,
-                                            bindings: Traversable[SortedMap[String, RdfNode]]): Option[String] = {
+                                            bindings: Iterable[SortedMap[String, RdfNode]]): Option[String] = {
     collectLanguageRankedValues(varName, bindings).headOption
   }
 
   private def collectLanguageRankedValues(varName: String,
-                                          bindings: Traversable[SortedMap[String, RdfNode]]): Seq[String] = {
+                                          bindings: Iterable[SortedMap[String, RdfNode]]): Seq[String] = {
     val values = bindings.flatMap(_.get(varName).toSeq).toSeq.distinct
     rankValues(values)
   }
@@ -224,8 +224,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     OWL.ObjectProperty.getURI
   )
 
-  def retrieveProperties(uri: String, classes: Traversable[VocabularyClass])
-                        (implicit userContext: UserContext): Traversable[VocabularyProperty] = {
+  def retrieveProperties(uri: String, classes: Iterable[VocabularyClass])
+                        (implicit userContext: UserContext): Iterable[VocabularyProperty] = {
     val propertyQuery = propertiesOfClassQuery(uri)
 
     val classMap = classes.map(c => (c.info.uri, c)).toMap
@@ -279,7 +279,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       """.stripMargin
   }
 
-  private def firstValue(variable: String, bindings: Traversable[SortedMap[String, RdfNode]]): Option[String] = {
+  private def firstValue(variable: String, bindings: Iterable[SortedMap[String, RdfNode]]): Option[String] = {
     bindings.flatMap(_.get(variable)).headOption.map(_.value)
   }
 }

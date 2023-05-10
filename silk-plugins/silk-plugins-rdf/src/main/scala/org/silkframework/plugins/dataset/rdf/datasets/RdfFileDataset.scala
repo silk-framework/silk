@@ -147,7 +147,7 @@ case class RdfFileDataset(
     }
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
       load()
       sparqlSource.retrieveTypes(limit)
     }

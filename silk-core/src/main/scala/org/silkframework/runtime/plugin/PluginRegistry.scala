@@ -51,7 +51,7 @@ object PluginRegistry {
     */
   def lastUpdateTimestamp: Long = timestamp
 
-  def allPlugins: Traversable[PluginDescription[_]] = {
+  def allPlugins: Iterable[PluginDescription[_]] = {
     pluginsById.values.flatten
   }
 

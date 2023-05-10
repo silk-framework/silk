@@ -393,7 +393,7 @@ class CsvSource(file: Resource,
   }
 
   override def retrieveTypes(limit: Option[Int] = None)
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Seq((typeUri, 1.0))
   }
 

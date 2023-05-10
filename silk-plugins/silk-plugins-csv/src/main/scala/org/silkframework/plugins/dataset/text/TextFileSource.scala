@@ -14,7 +14,7 @@ import org.silkframework.util.{Identifier, Uri}
 class TextFileSource(ds: TextFileDataset) extends DataSource {
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Seq((ds.typeName, 1.0))
   }
 

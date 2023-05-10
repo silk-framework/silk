@@ -11,7 +11,7 @@ case class CharsetAutocompletionProvider() extends PluginParameterAutoCompletion
 
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     CharsetUtils.charsetNames
       .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))

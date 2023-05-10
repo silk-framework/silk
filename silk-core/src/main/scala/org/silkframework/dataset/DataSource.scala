@@ -44,7 +44,7 @@ trait DataSource {
    *
    */
   def retrieveTypes(limit: Option[Int] = None)
-                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)]
+                   (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)]
 
   /**
    * Retrieves the most frequent paths in this source.

@@ -48,7 +48,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   }
 
   private def getForwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
-                             (implicit userContext: UserContext): Traversable[(TypedPath, Double)] = {
+                             (implicit userContext: UserContext): Iterable[(TypedPath, Double)] = {
     Timer("Retrieving forward paths for '" + restrictions + "'") {
       val variable = restrictions.variable
 
@@ -85,7 +85,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   }
 
   private def getBackwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
-                              (implicit userContext: UserContext): Traversable[(TypedPath, Double)] = {
+                              (implicit userContext: UserContext): Iterable[(TypedPath, Double)] = {
     Timer("Retrieving backward paths for '" + restrictions + "'") {
       val variable = restrictions.variable
 

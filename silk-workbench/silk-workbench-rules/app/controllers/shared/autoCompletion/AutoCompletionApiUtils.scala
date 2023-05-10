@@ -19,7 +19,7 @@ object AutoCompletionApiUtils {
   def pathsCacheCompletions(datasetSelection: DatasetSelection,
                             cachedEntitySchema: Option[CachedEntitySchemata],
                             preferUntypedSchema: Boolean,
-                            pathMetaData: Option[Traversable[TypedPath] => Traversable[PathMetaData]] = None)
+                            pathMetaData: Option[Iterable[TypedPath] => Iterable[PathMetaData]] = None)
                            (implicit userContext: UserContext,
                             project: Project): Completions = {
     implicit val prefixes: Prefixes = project.config.prefixes

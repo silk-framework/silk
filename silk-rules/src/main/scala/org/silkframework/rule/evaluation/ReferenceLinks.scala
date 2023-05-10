@@ -86,7 +86,7 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
     </rdf:RDF>
   }
 
-  private def serializeLinks(links: Traversable[Link], relation: String): Seq[Node] = {
+  private def serializeLinks(links: Iterable[Link], relation: String): Seq[Node] = {
     for (link <- links.toList) yield {
       <map>
         <Cell>

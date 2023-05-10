@@ -106,7 +106,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     copy(plugin = plugin.withParameters(updatedParameters, dropExistingValues))
   }
 
-  def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
+  def assertUriAttributeUniqueness(attributes: Iterable[String]): Unit = {
     for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
       throw UriAttributeNotUniqueException(uriColumn)
     }
@@ -142,7 +142,7 @@ object DatasetSpec {
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
     override def retrieveTypes(limit: Option[Int] = None)
-                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
       source.retrieveTypes(limit)
     }
 

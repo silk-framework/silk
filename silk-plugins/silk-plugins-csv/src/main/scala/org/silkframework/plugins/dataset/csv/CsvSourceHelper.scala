@@ -15,7 +15,7 @@ object CsvSourceHelper {
     CsvSettings(quote = Some('"'))
   )
 
-  def serialize(fields: Traversable[String]): String = {
+  def serialize(fields: Iterable[String]): String = {
     fields.map { field =>
       if (field.contains("\"") || field.contains(",")) {
         escapeString(field)

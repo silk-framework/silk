@@ -199,7 +199,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     }
   }
 
-  private def checkPaths(paths: Traversable[Path], isEntitySelectionPath: Boolean): Unit = {
+  private def checkPaths(paths: Iterable[Path], isEntitySelectionPath: Boolean): Unit = {
     for(path <- paths; op <- path.operators) {
       op match {
         case _: BackwardOperator =>
