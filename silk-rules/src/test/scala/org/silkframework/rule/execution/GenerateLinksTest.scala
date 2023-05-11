@@ -46,11 +46,11 @@ object GenerateLinksTest {
   /** Directory of the data set */
   private val dataset = Dataset("Names", "config.xml", "links.nt")
 
-  private val sourceKey = UntypedPath.parse("?a/<label>")
-  private val targetKey = UntypedPath.parse("?b/<label>")
-
   private implicit val userContext: UserContext = UserContext.Empty
   private implicit val prefixes: Prefixes = Prefixes.empty
+
+  private val sourceKey = UntypedPath.parse("?a/<label>")
+  private val targetKey = UntypedPath.parse("?b/<label>")
 
   private val tests =
     Test("Full", Full()) ::

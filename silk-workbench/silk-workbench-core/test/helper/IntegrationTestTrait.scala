@@ -111,7 +111,7 @@ trait IntegrationTestTrait extends TaskApiClient
 
   def listResources(projectId: String): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources")
-    val response = request.get
+    val response = request.get()
     checkResponse(response)
   }
 
@@ -136,19 +136,19 @@ trait IntegrationTestTrait extends TaskApiClient
 
   def resourceExists(projectId: String, resourceId: String): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
-    val response = request.get
+    val response = request.get()
     checkResponse(response)
   }
 
   def getResourcesJson(projectId: String): String = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources")
-    val response = request.get
+    val response = request.get()
     checkResponse(response).body
   }
 
   def getResource(projectId: String, resourceId: String): String = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
-    val response = request.get
+    val response = request.get()
     checkResponse(response).body
   }
 

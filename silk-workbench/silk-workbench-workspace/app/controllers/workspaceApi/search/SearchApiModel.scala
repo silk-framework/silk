@@ -152,7 +152,7 @@ object SearchApiModel {
       * @param matchProject         If the project should also be searched in, e.g. the project is displayed in the
       *                             search results.
       **/
-    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String],
                                     task: ProjectTask[_ <: TaskSpec],
                                     matchTaskProperties: Boolean,
                                     matchProject: Boolean)(implicit userContext: UserContext): Boolean = {
@@ -168,7 +168,7 @@ object SearchApiModel {
     }
 
     /** Match search terms against project. */
-    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String], project: Project): Boolean = {
       val id = project.config.id
       val label = project.config.metaData.label.getOrElse("")
       val description = project.config.metaData.description.getOrElse("")
@@ -179,7 +179,7 @@ object SearchApiModel {
       TextSearchUtils.extractSearchTerms(term)
     }
 
-    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String*): Boolean = {
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String], searchIn: String*): Boolean = {
       TextSearchUtils.matchesSearchTerm(lowerCaseSearchTerms, searchIn :_*)
     }
   }
@@ -452,7 +452,7 @@ object SearchApiModel {
     }
 
     private def filterTasksByTextQuery(typedTasks: TypedTasks,
-                                       lowerCaseTerms: Seq[String])(implicit userContext: UserContext): TypedTasks = {
+                                       lowerCaseTerms: Iterable[String])(implicit userContext: UserContext): TypedTasks = {
       typedTasks.copy(tasks = typedTasks.tasks.filter { task =>
           // Project is shown in search results when not restricting by project. Task properties are not shown.
         matchesSearchTerm(lowerCaseTerms, task, matchTaskProperties = false, matchProject = project.isEmpty) })

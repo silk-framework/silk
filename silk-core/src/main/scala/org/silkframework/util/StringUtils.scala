@@ -100,7 +100,7 @@ object StringUtils {
   }
 
   /** Match search terms against string. Returns only true if all search terms match. */
-  def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+  def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String],
                         searchIn: String,
                         convertTextToLowercase: Boolean = true): Boolean = {
     if(lowerCaseSearchTerms.isEmpty) {
@@ -112,7 +112,7 @@ object StringUtils {
   }
 
   /** Counts how many search words match the text. Search text is expected to be in lower case. */
-  def matchCount(lowerCaseSearchTerms: Seq[String],
+  def matchCount(lowerCaseSearchTerms: Iterable[String],
                  searchIn: String): Int = {
     if(lowerCaseSearchTerms.isEmpty) {
       0

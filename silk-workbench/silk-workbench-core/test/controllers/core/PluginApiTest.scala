@@ -25,7 +25,7 @@ class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers 
     for(addMarkdown <- Seq(false, true);
         endpoint <- Seq("plugins", "plugins/org.silkframework.dataset.Dataset")) {
       val request = client.url(s"$baseUrl/core/$endpoint?addMarkdownDocumentation=$addMarkdown")
-      val response = request.get
+      val response = request.get()
       val markdownDocs = (checkResponse(response).json \\ PluginDescriptionSerializers.MARKDOWN_DOCUMENTATION_PARAMETER).map(_.as[String])
       val markdownExists = markdownDocs.size > 0
       assert(!(markdownExists ^ addMarkdown), s"For endpoint '$endpoint' markdown was ${if(addMarkdown) "" else "not "}" +

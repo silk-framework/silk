@@ -34,7 +34,7 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
                   (implicit context: PluginContext): Option[String]
 
   /** Match search terms against string. Returns only true if all search terms match. */
-  protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+  protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String],
                                   searchIn: String): Boolean = {
     StringUtils.matchesSearchTerm(lowerCaseSearchTerms, searchIn)
   }
