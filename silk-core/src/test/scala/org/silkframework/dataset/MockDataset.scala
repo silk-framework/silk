@@ -49,7 +49,7 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => CloseableI
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = Traversable.empty
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = Iterable.empty
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = EmptySource.underlyingTask
 }

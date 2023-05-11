@@ -6,7 +6,8 @@ import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, Plugi
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceReadTrait
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.ListHasAsScala
+
 
 /**
   * Autocompletion provider that completes all RDF languages that we support when reading/writing RDF files.

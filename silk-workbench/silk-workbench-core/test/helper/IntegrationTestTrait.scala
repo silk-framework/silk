@@ -105,7 +105,7 @@ trait IntegrationTestTrait extends TaskApiClient
       // The CMEM integration test maps to these URIs, which result in the same URIs as the schema extraction
       "loans" -> Seq("http://eccenca.com/ds/loans/"),
       "unemployment" -> Seq("http://eccenca.com/ds/unemployment/")
-    ) ++ extraPrefixes.mapValues(Seq(_)))
+    ) ++ extraPrefixes.view.mapValues(Seq(_)))
     checkResponse(response)
   }
 
@@ -330,7 +330,7 @@ trait IntegrationTestTrait extends TaskApiClient
   def createDefaultMapping(projectId: String,
                            datasetId: String,
                            uriPrefix: String,
-                           propertyUris: Traversable[String] = Seq()): WSResponse = {
+                           propertyUris: Iterable[String] = Seq()): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DefaultMappingGenerator/startBlocking")
     val response = request.post(Map(
       "pathSelection" -> Seq(propertyUris.mkString(" ")),

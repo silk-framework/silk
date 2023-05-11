@@ -3,7 +3,8 @@ package controllers.workspace
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
 import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PARAMETERS, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -80,7 +81,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
   }
   private def resultAsMap(searchResultObject: JsObject): Map[String, String] = searchResultObject.value
       .filter(v => v._1 != "itemLinks" && v._1 != "tags") // Filter out item links and tags, since they are no string
-      .mapValues(_.as[String]).toMap
+      .view.mapValues(_.as[String]).toMap
 
   it should "return all tasks (pages) for a unrestricted search" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest())

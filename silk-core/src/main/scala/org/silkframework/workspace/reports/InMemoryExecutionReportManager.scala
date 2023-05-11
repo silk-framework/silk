@@ -1,13 +1,13 @@
 package org.silkframework.workspace.reports
 
-import java.time.Duration
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Identifier
 
-import scala.collection.mutable
+import java.time.Duration
+import scala.collection.immutable.ListMap
 
 @Plugin(
   id = "inMemory",
@@ -16,7 +16,7 @@ import scala.collection.mutable
 )
 case class InMemoryExecutionReportManager(retentionTime: Duration = ExecutionReportManager.DEFAULT_RETENTION_TIME) extends ExecutionReportManager {
 
-  private val reports = mutable.ListMap[ReportIdentifier, ActivityExecutionResult[ExecutionReport]]()
+  private var reports = ListMap[ReportIdentifier, ActivityExecutionResult[ExecutionReport]]()
 
   override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
     for {

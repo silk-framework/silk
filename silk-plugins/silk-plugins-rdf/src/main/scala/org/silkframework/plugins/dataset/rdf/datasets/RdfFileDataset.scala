@@ -160,7 +160,7 @@ case class RdfFileDataset(
       val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
         file.checkSizeForInMemory()
-        endpoint = createSparqlEndpoint(CloseableIterator(resource))
+        endpoint = createSparqlEndpoint(CloseableIterator.single(resource))
         lastModificationTime = modificationTime
       }
     }

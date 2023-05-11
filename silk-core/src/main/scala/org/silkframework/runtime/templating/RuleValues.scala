@@ -1,7 +1,7 @@
 package org.silkframework.runtime.templating
 
 import java.util
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.IteratorHasAsJava
 
 /**
   * A wrapper around the values passed between rule operators, such as transformers.

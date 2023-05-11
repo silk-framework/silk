@@ -89,7 +89,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   def pushLinkingTask(project: String, task: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val values = request.body.asFormUrlEncoded.getOrElse(request.queryString).mapValues(_.head)
+    val values = request.body.asFormUrlEncoded.getOrElse(request.queryString).view.mapValues(_.head).toMap
 
     val proj: Project = WorkspaceFactory().workspace.project(project)
     implicit val prefixes: Prefixes = proj.config.prefixes

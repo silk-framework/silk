@@ -9,9 +9,9 @@ import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
 import javax.inject.Inject
-import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.collection.parallel.CollectionConverters.ImmutableSeqIsParallelizable
+import scala.jdk.CollectionConverters.{IteratorHasAsScala, SetHasAsScala}
 import scala.reflect.ClassTag
 
 /**

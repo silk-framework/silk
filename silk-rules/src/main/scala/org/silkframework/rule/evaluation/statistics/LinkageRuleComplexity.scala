@@ -42,8 +42,8 @@ object LinkageRuleComplexity {
 
     LinkageRuleComplexity(
       size = ops.size,
-      comparisonCount = ops.filter(_.isInstanceOf[Comparison]).size,
-      transformationCount = ops.filter(_.isInstanceOf[TransformInput]).size
+      comparisonCount = ops.count(_.isInstanceOf[Comparison]),
+      transformationCount = ops.count(_.isInstanceOf[TransformInput])
     )
   }
 
@@ -51,7 +51,7 @@ object LinkageRuleComplexity {
    * Collects all operators of the linkage rule.
    */
   private def collectOperators(linkageRule: LinkageRule): Iterable[Operator] = {
-    linkageRule.operator.toTraversable.flatMap(collectOperators)
+    linkageRule.operator.toSeq.flatMap(collectOperators)
   }
 
   /**

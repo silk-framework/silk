@@ -259,7 +259,7 @@ object StringParameterType {
     override def fromString(str: String)
                            (implicit context: PluginContext): StringTraversableParameter = {
       if(str.isEmpty) {
-        StringTraversableParameter(Traversable.empty)
+        StringTraversableParameter(Iterable.empty)
       } else {
         StringTraversableParameter(str.split("\\s*,\\s*"))
       }

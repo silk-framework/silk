@@ -34,8 +34,8 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
   override def evaluate(str1: String, str2: String, limit: Double) = {
 
     var kpd=0.0
-    var src = str1.replaceAllLiterally(" ","")
-    var tgt = str2.replaceAllLiterally(" ","")
+    var src = str1.replace(" ","")
+    var tgt = str2.replace(" ","")
 
     var qu = (limit/3).toInt
     var th=0

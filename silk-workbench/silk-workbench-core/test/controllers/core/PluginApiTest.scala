@@ -1,6 +1,7 @@
 package controllers.core
 
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -100,7 +101,7 @@ case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionPro
   val values = Seq("val1" -> "First value", "val2" -> "Second value", "val3" -> "Third value")
 
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue], workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiWordQuery = extractSearchTerms(searchQuery)
     values.filter(v => matchesSearchTerm(multiWordQuery, v._2)).map{ case (value, label) => AutoCompletionResult(value, Some(label))}
   }

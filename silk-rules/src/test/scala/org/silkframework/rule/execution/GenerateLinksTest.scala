@@ -154,7 +154,7 @@ object GenerateLinksTest {
     }
 
     private def fromSources(id: Identifier,
-                            datasets: Traversable[Task[DatasetSpec[org.silkframework.dataset.Dataset]]],
+                            datasets: Iterable[Task[DatasetSpec[org.silkframework.dataset.Dataset]]],
                             linkSpec: LinkSpec,
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)

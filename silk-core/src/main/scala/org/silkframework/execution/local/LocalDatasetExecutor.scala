@@ -195,7 +195,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
     private def estimatedRuntimeStat: String = {
       if (runtime > 0) {
-        val estimation = (remainingQueries / throughput).formatted("%.2f") + " seconds"
+        val estimation = String.format("%.2f", remainingQueries / throughput) + " seconds"
         if (remainingQueries >= remainingSparqlUpdateQueryBufferSize) {
           "> " + estimation
         } else {

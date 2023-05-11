@@ -101,6 +101,6 @@ object ParameterValues {
   def empty: ParameterValues = ParameterValues(Map.empty)
 
   def fromStringMap(values: Map[String, String] = Map.empty, templates: Map[String, String] = Map.empty): ParameterValues = {
-    ParameterValues(values.mapValues(ParameterStringValue).toMap) merge ParameterValues(templates.mapValues(ParameterTemplateValue).toMap)
+    ParameterValues(values.view.mapValues(ParameterStringValue).toMap) merge ParameterValues(templates.view.mapValues(ParameterTemplateValue).toMap)
   }
 }

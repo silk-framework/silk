@@ -4,8 +4,8 @@ import org.apache.jena.query.{QuerySolution, ResultSet}
 import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.iterator.CloseableIterator
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 /**
   * Reads Jena ResultSets into Silk SPARQL results.
