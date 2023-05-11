@@ -35,6 +35,8 @@ interface RuleParameterInputProps {
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
+    /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
+    languageFilterEnabled: boolean;
 }
 
 /** An input widget for a parameter value. */
@@ -46,6 +48,7 @@ export const RuleParameterInput = ({
     dependentValue,
     large,
     insideModal,
+    languageFilterEnabled,
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -172,6 +175,7 @@ export const RuleParameterInput = ({
                             parameterAutoCompletionProps={autoCompleteProps(
                                 ruleParameter.parameterSpecification.autoCompletion
                             )}
+                            languageFilterSupport={languageFilterEnabled}
                         />
                     );
                 }

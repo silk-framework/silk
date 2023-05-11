@@ -1,6 +1,7 @@
 import { IInputSource, IStickyNote } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
+import { ILinkingRule, IResourceLink, OptionallyLabelledParameter } from "../linking/linking.types";
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -65,4 +66,18 @@ export interface EvaluatedTransformEntity {
     values: string[];
     error: string | null;
     children: EvaluatedTransformEntity[];
+}
+
+export interface ITransformTaskParameters {
+    /** The mapping rule*/
+    mappingRule: any;
+    abortIfErrorsOccur: string | boolean;
+    /** Error output task ID */
+    errorOutput: string;
+    /** Selected target vocabularies. All, none or a list of vocabulary URIs. */
+    targetVocabularies: "all installed vocabularies" | "no vocabularies" | string;
+    /** The input task data. */
+    selection: IInputSource;
+    /** The output task ID */
+    output: string;
 }

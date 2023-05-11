@@ -70,6 +70,8 @@ export interface IOperatorCreateContext {
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
+    /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
+    languageFilterEnabled: (nodeId: string) => boolean;
 }
 
 /** Creates a new react-flow rule operator node. */

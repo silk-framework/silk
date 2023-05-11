@@ -1,6 +1,6 @@
 import React from "react";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
+import { ILinkingRule, ILinkingTaskParameters, optionallyLabelledParameterToValue } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
@@ -19,11 +19,13 @@ import { commonSel } from "@ducks/common";
 import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
-import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
 import { IStickyNote } from "../shared/task.typings";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { DatasetCharacteristics } from "../../shared/typings";
+import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -229,6 +231,42 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             inputPathAutoCompletion("target")
         );
 
+    const fetchDatasetCharacteristics = async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
+        const result = new Map<string, DatasetCharacteristics>();
+        if (taskData) {
+            const parameters = taskData.parameters;
+            const sourceTaskId = optionallyLabelledParameterToValue(
+                optionallyLabelledParameterToValue(parameters.source).inputId
+            );
+            const targetTaskId = optionallyLabelledParameterToValue(
+                optionallyLabelledParameterToValue(parameters.target).inputId
+            );
+            const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
+            const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
+            const handleRequest = async (
+                requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
+                pathPluginId: "sourcePathInput" | "targetPathInput"
+            ) => {
+                try {
+                    const response = await requestFuture;
+                    result.set(pathPluginId, response.data);
+                } catch (ex) {
+                    // Return 404 if the dataset does not exist or the task is not a dataset
+                    if (ex.httpStatus !== 404) {
+                        registerError(
+                            "LinkingRuleEditor-fetchDatasetCharacteristics",
+                            "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
+                            ex
+                        );
+                    }
+                }
+            };
+            await handleRequest(sourceDatasetRequest, "sourcePathInput");
+            await handleRequest(targetDatasetRequest, "targetPathInput");
+        }
+        return result;
+    };
+
     return (
         <LinkingRuleEvaluation
             projectId={projectId}
@@ -288,6 +326,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                 instanceId={instanceId}
+                fetchDatasetCharacteristics={fetchDatasetCharacteristics}
             />
         </LinkingRuleEvaluation>
     );

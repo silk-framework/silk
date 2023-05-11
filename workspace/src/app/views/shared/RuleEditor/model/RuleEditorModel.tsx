@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import {
     Edge,
-    Node,
     Elements,
+    Node,
     OnLoadParams,
     removeElements,
     useStoreActions,
@@ -1470,6 +1470,19 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
 
+    const languageFilterEnabled = (nodeId: string) => {
+        const node = nodeMap.get(nodeId);
+        if (node) {
+            return (
+                node.node.pluginType === "PathInputOperator" &&
+                !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
+                    .languageFilter
+            );
+        } else {
+            return false;
+        }
+    };
+
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
@@ -1484,6 +1497,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
+        languageFilterEnabled,
     });
 
     /** Auto-layout the rule nodes.

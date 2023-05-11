@@ -10,6 +10,7 @@ import {
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
+import { DatasetCharacteristics } from "../../typings";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -72,6 +73,8 @@ export interface RuleEditorContextProps {
     initialFitToViewZoomLevel?: number;
     /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
     instanceId: string;
+    /** Dataset characteristics, e.g. used for the 'PathInputOperator' type. The key is the corresponding plugin ID. */
+    datasetCharacteristics: Map<string, DatasetCharacteristics>;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -92,4 +95,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     zoomRange: [0.25, 1.5],
     initialFitToViewZoomLevel: 0.75,
     instanceId: "uniqueId",
+    datasetCharacteristics: new Map(),
 });
