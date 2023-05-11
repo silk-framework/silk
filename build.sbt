@@ -31,10 +31,11 @@ val buildReactExternally = {
   result
 }
 
-val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
-  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
+// Additional compiler (javac, scalac) parameters
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 17) {
+  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
 } else {
-  (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
+  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
@@ -75,7 +76,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.4" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
-  libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % "test",
+  libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
@@ -100,6 +101,15 @@ lazy val commonSettings = Seq(
   },
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
+
+  Test / javaOptions ++= Seq(
+    // Needed by Play 2.8.x for JDK 17 support
+    "--add-exports=java.base/sun.security.x509=ALL-UNNAMED",
+    "--add-opens=java.base/sun.security.ssl=ALL-UNNAMED",
+    // Needed by ldmb for JDK 17 support
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
 )
 
 //////////////////////////////////////////////////////////////////////////////
