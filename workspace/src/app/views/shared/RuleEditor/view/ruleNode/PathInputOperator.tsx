@@ -103,11 +103,16 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
                           }}
                       >
                           {languageFilter ? (
-                              <Button tooltip={t("PathInputOperator.languageButtonTooltip")} outlined={true}>
+                              <Button
+                                  data-test-id={"language-filter-btn"}
+                                  tooltip={t("PathInputOperator.languageButtonTooltip")}
+                                  outlined={true}
+                              >
                                   {languageFilter}
                               </Button>
                           ) : (
                               <IconButton
+                                  data-test-id={"language-filter-btn"}
                                   text={t("PathInputOperator.languageButtonTooltip")}
                                   name={"operation-translate"}
                                   outlined={true}
