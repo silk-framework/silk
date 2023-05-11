@@ -37,7 +37,7 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
           (result("t").value, result("count").value.toDouble / maxCount)
         }
       } else {
-        Traversable.empty
+        Iterable.empty
       }
     }
   }

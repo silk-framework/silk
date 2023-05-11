@@ -32,7 +32,7 @@ object StringUtils {
           """[eE][-+]?[0-9]+""" + // or without, but obligatory exponent
         """)""" +
         """\s*$""").
-      replaceAllLiterally("\n", "").
+      replace("\n", "").
       replaceAll("\r", "").
       r
 
@@ -132,10 +132,10 @@ class StringUtils(str: String) {
   /**
     * Returns a stream of all q-grams in this string.
     */
-  def qGrams(q: Int): Stream[String] = {
+  def qGrams(q: Int): LazyList[String] = {
     val boundary = "#" * (q - 1)
 
-    (boundary + str + boundary).sliding(q).toStream
+    (boundary + str + boundary).sliding(q).to(LazyList)
   }
 
   /**

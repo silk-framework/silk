@@ -37,7 +37,7 @@ sealed trait Value {
     */
   def formattedErrorMessage: Option[String] = {
     for(ex <- error) yield {
-      val messages = Stream.iterate(ex)(_.getCause).takeWhile(_ != null).map(_.getMessage)
+      val messages = LazyList.iterate(ex)(_.getCause).takeWhile(_ != null).map(_.getMessage)
       messages.reduce { (msg, cause) => if(msg.contains(cause)) msg else msg + "\nCause: " + cause }
     }
   }

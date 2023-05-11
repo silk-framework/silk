@@ -25,7 +25,7 @@ import scala.xml.{Elem, XML}
 )
 case class SpotlightTextVectorTransformer() extends Transformer {
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val stringSet = values.reduce(_ union _)
+    val stringSet = values.reduce(_ concat _)
     if(stringSet.isEmpty)
       return Seq[String]()
     val query = if(stringSet.size>1)

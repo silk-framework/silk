@@ -79,7 +79,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
           (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {
-        Traversable.empty
+        Iterable.empty
       }
     }
   }
@@ -114,7 +114,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
           (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {
-        Traversable.empty
+        Iterable.empty
       }
     }
   }

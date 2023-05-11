@@ -82,7 +82,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
       }
     }
 
-    private def format(traversable: Traversable[_]): String = {
+    private def format(traversable: Iterable[_]): String = {
       traversable.mkString("[", ", ", "]")
     }
   }

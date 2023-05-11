@@ -1,5 +1,6 @@
 package org.silkframework.entity
-
+
+
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -26,7 +27,7 @@ class ValueTypeTest extends AnyFlatSpec with Matchers {
   }
 
   // Test all value types without parameters for now
-  for(valueType <- ValueType.allValueType.flatMap(_.right.toOption)) {
+  for(valueType <- ValueType.allValueType.flatMap(_.toOption)) {
     testValueType(valueType)
   }
 

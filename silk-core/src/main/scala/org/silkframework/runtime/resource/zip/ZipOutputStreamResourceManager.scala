@@ -1,14 +1,13 @@
 package org.silkframework.runtime.resource.zip
 
-import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
-import java.net.{URI, URL}
-import java.nio.file.{Path, Paths}
-import java.util.concurrent.ConcurrentHashMap
-import java.util.zip.{Deflater, ZipEntry, ZipOutputStream}
-
 import org.silkframework.runtime.resource.{ResourceManager, WritableResource}
 
-import scala.collection.JavaConverters._
+import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
+import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.{Deflater, ZipEntry, ZipOutputStream}
+import scala.jdk.CollectionConverters.EnumerationHasAsScala
+
 
 /**
   * A resource manager that writes all data to a ZIP output stream.
