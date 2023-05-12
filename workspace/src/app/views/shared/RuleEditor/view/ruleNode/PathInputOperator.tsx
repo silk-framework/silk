@@ -54,6 +54,9 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
               inputProps: {
                   rightElement: (
                       <StringSelect
+                          inputProps={{
+                              id: "language-filter-input",
+                          }}
                           items={languageFilterItems}
                           filterable={true}
                           itemPredicate={(query, item) => item.toLowerCase().includes(query.toLowerCase().trim())}
@@ -68,6 +71,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
                               if (languageTagRegex.test(query)) {
                                   return (
                                       <MenuItem
+                                          data-test-id={"language-filter-custom"}
                                           icon={"item-add-artefact"}
                                           active={active}
                                           key={query}
@@ -81,6 +85,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
                               return lang === NO_LANG ? (
                                   internalState.current.currentLanguageFilter ? (
                                       <MenuItem
+                                          data-test-id={"language-filter-remove"}
                                           active={modifiers.active}
                                           icon={"operation-filterRemove"}
                                           text={t("PathInputOperator.noFilter")}
@@ -89,6 +94,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
                                   ) : null
                               ) : (
                                   <MenuItem
+                                      data-test-id={`language-filter-${lang}`}
                                       active={modifiers.active}
                                       icon={"operation-filter"}
                                       text={lang}
