@@ -47,13 +47,14 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
         };
         return parameterAutoCompletionProps.onChange(fullValue);
     };
+    const languageFilterItems = ["en", "de", "fr", NO_LANG];
 
     const overwrittenProps: Partial<ParameterAutoCompletionProps> = languageFilterSupport
         ? {
               inputProps: {
                   rightElement: (
                       <StringSelect
-                          items={["en", "de", "fr", NO_LANG]}
+                          items={languageFilterItems}
                           filterable={true}
                           itemPredicate={(query, item) => item.toLowerCase().includes(query.toLowerCase().trim())}
                           createNewItemFromQuery={(query) => {
@@ -76,15 +77,23 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
                                   );
                               }
                           }}
-                          itemRenderer={(lang, { handleClick }) => {
+                          itemRenderer={(lang, { handleClick, modifiers }) => {
                               return lang === NO_LANG ? (
+                                  internalState.current.currentLanguageFilter ? (
+                                      <MenuItem
+                                          active={modifiers.active}
+                                          icon={"operation-filterRemove"}
+                                          text={t("PathInputOperator.noFilter")}
+                                          onClick={handleClick}
+                                      />
+                                  ) : null
+                              ) : (
                                   <MenuItem
-                                      icon={"operation-filterRemove"}
-                                      text={t("PathInputOperator.noFilter")}
+                                      active={modifiers.active}
+                                      icon={"operation-filter"}
+                                      text={lang}
                                       onClick={handleClick}
                                   />
-                              ) : (
-                                  <MenuItem icon={"operation-filter"} text={lang} onClick={handleClick} />
                               );
                           }}
                           onItemSelect={(lang) => {
@@ -100,6 +109,9 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
                           fill={false}
                           popoverTargetProps={{
                               style: { display: "inline-block" },
+                          }}
+                          popoverProps={{
+                              hasBackdrop: true,
                           }}
                       >
                           {languageFilter ? (
