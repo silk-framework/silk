@@ -7,7 +7,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.TraversableIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -94,54 +94,103 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
 
-    val entities =
-      new TraversableIterator[Entity] {
-        override def foreach[U](f: Entity => U): Unit = {
-          val inputStream = file.inputStream
-          try {
-            val reader: XMLStreamReader = initStreamReader(inputStream)
-            val typeUri = entitySchema.typeUri.uri
-            val typeUriPart = if (typeUri.isEmpty) { ""
-            } else if(typeUri.startsWith("\\") || typeUri.startsWith("/") || typeUri.startsWith("[")) {
-              typeUri
-            } else {
-              "/" + typeUri
-            }
-            val pathStr = basePath + typeUriPart
-            val entityPath = UntypedPath.parse(pathStr) ++ entitySchema.subPath
-            val entityPathSegments = PathSegments(entityPath)
-            var hasNext = goToFirstEntity(reader, entityPath)
-            var count = 0
-            while(hasNext && limit.forall(count < _)) {
-              val node = if(entityPathSegments.endsWithAttribute) {
-                buildAttributeNode(reader, entityPathSegments.pathSegment(entityPathSegments.nrPathSegments - 1).forwardOp.get.property.uri)
-              } else {
-                NodeBuilder(reader).buildNode()
-              }
-              val traverser = XmlTraverser(node)
-
-              val uri = traverser.generateUri(uriPattern)
-              val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
-
-              f(Entity(uri, values, entitySchema))
-
-              hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
-              count += 1
-
-            }
-          } catch {
-            case _: PathNotFoundException =>
-              // do nothing, no entity will be output
-          } finally {
-            inputStream.close()
-          }
-        }
-      }
-
+    val entities = new Entities(entitySchema, limit)
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  def buildNode(): InMemoryXmlElem = {
+  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None) extends CloseableIterator[Entity] {
+
+    // The next entity
+    private var nextEntity: Option[Entity] = None
+
+    // True, if there are unread entities
+    private var hasMoreEntities: Boolean = true
+
+    private var count = 0
+
+    private val inputStream = file.inputStream
+
+    private val reader: XMLStreamReader = initStreamReader(inputStream)
+
+    private val entityPath = {
+      val typeUri = entitySchema.typeUri.uri
+      val typeUriPart = if (typeUri.isEmpty) {
+        ""
+      } else if (typeUri.startsWith("\\") || typeUri.startsWith("/") || typeUri.startsWith("[")) {
+        typeUri
+      } else {
+        "/" + typeUri
+      }
+      val pathStr = basePath + typeUriPart
+
+      UntypedPath.parse(pathStr) ++ entitySchema.subPath
+    }
+
+    private val entityPathSegments = PathSegments(entityPath)
+
+    // Read the first entity
+    readEntity()
+
+    override def hasNext: Boolean = {
+      nextEntity.isDefined
+    }
+
+    override def next(): Entity = {
+      nextEntity match {
+        case Some(entity) =>
+          readEntity()
+          entity
+        case None =>
+          throw new NoSuchElementException("No more entities")
+      }
+    }
+
+    override def close(): Unit = {
+      try {
+        reader.close()
+      } finally {
+        inputStream.close()
+      }
+    }
+
+    /**
+      * Reads to the next entity.
+      * Sets `nextEntity` and `hasMoreEntities`.
+      */
+    private def readEntity(): Unit = {
+      try {
+        if (count == 0) {
+          // Read until first entity
+          hasMoreEntities = goToFirstEntity(reader, entityPath)
+        }
+
+        nextEntity = None
+        while (nextEntity.isEmpty && hasMoreEntities && limit.forall(count < _)) {
+          val node = if (entityPathSegments.endsWithAttribute) {
+            buildAttributeNode(reader, entityPathSegments.pathSegment(entityPathSegments.nrPathSegments - 1).forwardOp.get.property.uri)
+          } else {
+            NodeBuilder(reader).buildNode()
+          }
+          val traverser = XmlTraverser(node)
+
+          val uri = traverser.generateUri(uriPattern)
+          val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
+
+          nextEntity = Some(Entity(uri, values, entitySchema))
+
+          hasMoreEntities = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
+          count += 1
+        }
+      } catch {
+        case _: PathNotFoundException =>
+          // do nothing, no entity will be output
+          hasMoreEntities = false
+      }
+    }
+
+  }
+
+    def buildNode(): InMemoryXmlElem = {
     file.read { inputStream => {
       val reader = initStreamReader(inputStream)
       NodeBuilder(reader).buildNode()
