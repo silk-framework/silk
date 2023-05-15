@@ -387,7 +387,8 @@
             "header": {
                 "transformEntities": "Transformed Entities"
             }
-        }
+        },
+        "couldNotLoad": "Could not load evaluation."
     },
     "linkingEvaluationTabView": {
         "toolbar": {

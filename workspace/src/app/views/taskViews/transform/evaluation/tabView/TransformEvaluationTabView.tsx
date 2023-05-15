@@ -136,12 +136,14 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                         </TableBody>
                                     )) ||
                                     (loading && <Spinner size="small" />) || (
-                                        <>
-                                            <Spacing />
-                                            <Notification danger data-test-id="notification-unknown-problem">
-                                                {error}
-                                            </Notification>
-                                        </>
+                                        <tr>
+                                            <td colSpan={2}>
+                                                <Spacing />
+                                                <Notification warning={true} data-test-id="notification-unknown-problem">
+                                                    {t("transformEvaluationTabView.couldNotLoad")} {error}
+                                                </Notification>
+                                            </td>
+                                        </tr>
                                     )}
                             </Table>
                         )}
