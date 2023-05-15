@@ -79,7 +79,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                         if (tree?.nodeData?.root && tree.nodeData.label) {
                             tree.label = (
                                 <>
-                                    <span>{tree.nodeData.label}</span>
+                                    <span className="tree-nodeData-label">{tree.nodeData.label}</span>
                                     {!tree.isExpanded ? (
                                         <NodeTagValues values={entityValue.values} error={entityValue.error} />
                                     ) : null}
