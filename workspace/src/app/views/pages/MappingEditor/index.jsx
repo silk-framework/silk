@@ -8,7 +8,6 @@ import HierarchicalMappingComponent from "./HierarchicalMapping/HierarchicalMapp
 import ExecutionReport from "./ExecutionReport/ExecutionReport";
 import TransformExecutionReport from "./ExecutionReport/TransformExecutionReport";
 import WorkflowExecutionReport from "./ExecutionReport/WorkflowExecutionReport";
-// import EvaluateMapping from "./HierarchicalMapping/EvaluateMapping";
 import WorkflowReportManager from "./ExecutionReport/WorkflowReportManager";
 
 // eslint-disable-next-line
@@ -20,12 +19,6 @@ const silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {
         ReactDom.render(<HierarchicalMappingComponent {...apiSettings} />, document.getElementById(containerId));
     },
-    // evaluateMapping: (containerId, apiSettings) => {
-    //     ReactDom.render(
-    //         <EvaluateMapping {...apiSettings} />,
-    //         document.getElementById(containerId)
-    //     );
-    // },
     executionReport: (containerId, apiSettings) => {
         ReactDom.render(<ExecutionReport {...apiSettings} />, document.getElementById(containerId));
     },

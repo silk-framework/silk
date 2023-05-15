@@ -385,7 +385,7 @@
     "transformEvaluationTabView": {
         "table": {
             "header": {
-                "transformEntities": "Transform Entities"
+                "transformEntities": "Transformed Entities"
             }
         }
     },
@@ -974,5 +974,9 @@
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
+    },
+    "MappingTree": {
+        "loadingRules": "Loading rules",
+        "noRulesFound": "No rules found"
     }
 }

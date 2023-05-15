@@ -98,15 +98,6 @@ export const registerCorePlugins = () => {
                 );
             },
         });
-
-        // Mapping evaluation // FIXME: Does not render well when not in i-frame
-        // pluginRegistry.registerTaskView("transform", {
-        //     id: "hierarchicalMappingEvaluation",
-        //     label: "Mapping evaluation",
-        //     render(projectId: string, taskId: string): JSX.Element {
-        //         return <EvaluateMapping project={projectId} transformTask={taskId} initialRule={"root"}  limit={50} offset={0}/>;
-        //     },
-        // });
     }
     registered = true;
 };

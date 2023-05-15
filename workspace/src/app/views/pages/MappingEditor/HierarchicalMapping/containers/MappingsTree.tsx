@@ -10,6 +10,7 @@ import { getApiDetails, getHierarchyAsync, getRuleAsync } from "../store";
 import EventEmitter from "../utils/EventEmitter";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "../utils/constants";
 import { getHistory } from "../../../../../store/configureStore";
+import {useTranslation} from "react-i18next";
 
 interface MappingTreeProps {
     currentRuleId: string;
@@ -25,6 +26,7 @@ interface MappingTreeProps {
     startFullScreen?: boolean;
 }
 
+/** Tree structure of nested object mapping rules of a transform task. */
 const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     ruleTree,
     currentRuleId,
@@ -38,6 +40,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<string, boolean>>(new Map());
     const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo[]>([]);
     const [data, setData] = React.useState();
+    const [t] = useTranslation()
 
     React.useEffect(() => {
         updateNavigationTree();
@@ -205,15 +208,15 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
     return (
         <div className="ecc-silk-mapping__treenav">
-            <InteractionGate inert={navigationLoading} showSpinner={navigationLoading}>
+            <InteractionGate inert={navigationLoading} showSpinner={navigationLoading} spinnerProps={{position: "inline", size: "small", delay: 50}}>
                 {navigationLoading && _.isUndefined(data) && (
                     <Notification neutral data-test-id="ecc-silk-mapping__treenav-loading">
-                        Loading rules
+                        {t("MappingTree.loadingRules")}
                     </Notification>
                 )}
                 {!navigationLoading && _.isEmpty(data) && (
                     <Notification warning data-test-id="ecc-silk-mapping__treenav-norules">
-                        No rules found
+                        {t("MappingTree.noRulesFound")}
                     </Notification>
                 )}
                 {!_.isEmpty(data) && (

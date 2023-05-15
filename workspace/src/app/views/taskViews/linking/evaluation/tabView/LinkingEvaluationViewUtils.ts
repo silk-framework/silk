@@ -94,7 +94,7 @@ export const getLinkRuleInputPaths = (operatorInput: any) =>
         { source: {}, target: {} } as EvaluationLinkInputValue<string>
     );
 
-export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[]): string | undefined => {
+export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[], emptyPathLabel: string): string | undefined => {
     switch (operator.type) {
         case "Aggregation":
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as IAggregationOperator).aggregator)
@@ -106,7 +106,7 @@ export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as ITransformOperator).function)
                 ?.title;
         case "pathInput":
-            return (operator as IPathInput).path || "<Empty path>";
+            return (operator as IPathInput).path || emptyPathLabel;
         default:
             return undefined;
     }
