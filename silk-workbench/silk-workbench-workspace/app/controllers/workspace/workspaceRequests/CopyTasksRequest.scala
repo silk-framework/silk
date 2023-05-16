@@ -68,7 +68,7 @@ object CopyTasksRequest {
                targetProject: String,
                isDryRun: Boolean,
                overwriteConfirmed: Boolean,
-               taskRenameMap: Map[String, String] = Map.empty)
+               taskRenameMap: Map[Identifier, Identifier] = Map.empty)
               (implicit userContext: UserContext): CopyTasksResponse = {
     val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
     val tasksToCopy = collectTasks(sourceProj, taskName)
@@ -84,7 +84,7 @@ object CopyTasksRequest {
                         targetProject: Project,
                         isDryRun: Boolean,
                         overwriteConfirmed: Boolean,
-                        taskRenameMap: Map[Identifier, Identifier])
+                        taskRenameMap: Map[Identifier, Identifier] = Map.empty)
                        (implicit userContext: UserContext): CopyTasksResponse = {
     sourceProj.synchronized {
       targetProject.synchronized {
