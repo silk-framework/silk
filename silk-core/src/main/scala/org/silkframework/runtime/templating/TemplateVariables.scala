@@ -33,7 +33,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     }
   }
 
-  def resolve(): TemplateVariables = {
+  def resolved: TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
     for(variable <- variables) {
       variable.template match {

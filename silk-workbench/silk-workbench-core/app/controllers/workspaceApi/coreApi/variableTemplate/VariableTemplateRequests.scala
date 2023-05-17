@@ -1,11 +1,13 @@
 package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.GlobalTemplateVariables
 import org.silkframework.util.StringUtils
+import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
 
-case class ValidateVariableTemplateRequest(templateString: String)
+case class ValidateVariableTemplateRequest(templateString: String, project: Option[String] = None)
 
 object ValidateVariableTemplateRequest {
   implicit val validateVariableTemplateRequestFormat: Format[ValidateVariableTemplateRequest] = Json.format[ValidateVariableTemplateRequest]
@@ -33,9 +35,16 @@ object VariableTemplateValidationResponse {
 /** Variable template auto-completion request. */
 case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                cursorPosition: Int,
-                                               maxSuggestions: Option[Int]) extends AutoSuggestAutoCompletionRequest {
-  def execute(): AutoSuggestAutoCompletionResponse = {
-    val variables = GlobalTemplateVariables.all.variableNames
+                                               maxSuggestions: Option[Int],
+                                               project: Option[String] = None) extends AutoSuggestAutoCompletionRequest {
+  def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
+    val variables = project match {
+      case Some(projectName) =>
+        val project = WorkspaceFactory().workspace.project(projectName)
+        project.templateVariables.all.variableNames
+      case None =>
+        GlobalTemplateVariables.all.variableNames
+    }
     AutoCompleteVariableTemplateRequest.suggestions(this, variables)
   }
 }

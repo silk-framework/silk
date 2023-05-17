@@ -6,7 +6,8 @@ object VariableTemplateApiDoc {
     {
         "inputString": "{{",
         "cursorPosition": 2,
-        "maxSuggestions": 50
+        "maxSuggestions": 50,
+        "project": "movies"
     }
     """
 
@@ -38,7 +39,8 @@ object VariableTemplateApiDoc {
   final val validateVariableTemplateRequest =
     """
       {
-        "templateString": "{{var}}"
+        "templateString": "{{var}}",
+        "project": "movies"
       }
     """
 
