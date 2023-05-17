@@ -1,6 +1,6 @@
 import React from "react";
 import { IPluginDetails } from "@ducks/common/typings";
-import { TableCell, TableExpandedRow, TableExpandRow, TreeNodeInfo } from "@eccenca/gui-elements";
+import { TableCell, TableExpandedRow, TableExpandRow, TreeNodeInfo, Spacing } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { newNode, NodeTagValues } from "./TransformEvaluationTabViewUtils";
 import {
@@ -82,7 +82,10 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                                 <>
                                     <span className="tree-nodeData-label">{tree.nodeData.label}</span>
                                     {!tree.isExpanded ? (
-                                        <NodeTagValues values={entityValue.values} error={entityValue.error} />
+                                        <>
+                                            <Spacing vertical size="small" />
+                                            <NodeTagValues values={entityValue.values} error={entityValue.error} />
+                                        </>
                                     ) : null}
                                 </>
                             );
