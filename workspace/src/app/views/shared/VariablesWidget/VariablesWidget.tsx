@@ -10,8 +10,10 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
+    OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
     Spacing,
@@ -84,10 +86,16 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                             {variables.map((variable, i) => (
                                 <OverviewItem key={i}>
                                     <OverviewItemLine>
-                                        <p>{variable.name}</p>
-                                        <Spacing vertical />
-                                        <code>{variable.value}</code>
+                                        <OverflowText>{variable.name}</OverflowText>
                                     </OverviewItemLine>
+                                    <OverviewItemDescription>
+                                        <OverviewItemLine>
+                                            <code>{variable.value}</code>
+                                        </OverviewItemLine>
+                                        <OverviewItemLine>
+                                            <OverflowText>{variable.description}</OverflowText>
+                                        </OverviewItemLine>
+                                    </OverviewItemDescription>
                                     <OverviewItemActions>
                                         <IconButton
                                             name="item-edit"
