@@ -7,7 +7,7 @@ import org.silkframework.entity.metadata.{EntityMetadata, GenericExecutionFailur
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Restriction}
 import org.silkframework.failures.{EntityException, FailureClass}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.serialization.json.JsonHelpers._
@@ -96,8 +96,8 @@ class JsonMetadataTest extends FlatSpec with Matchers {
         TestSerializerCategoryName -> LazyMetadataJson(new DPair("s", "t"), serializer)
       )
     )
-    val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(WriteContext.empty[JsValue])
-    val readMetadata = newMetadata.serializer.fromString(stringVers, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext())
+    val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(TestWriteContext[JsValue]())
+    val readMetadata = newMetadata.serializer.fromString(stringVers, JsonFormat.MIME_TYPE_APPLICATION)(TestReadContext())
     val ex = readMetadata.getLazyMetadata[FailureClass](EntityMetadata.FAILURE_KEY).metadata.get
     val pair = readMetadata.getLazyMetadata[DPair[String]](TestSerializerCategoryName).metadata.get
     pair.source + pair.target shouldEqual "st"    //test the DPair
@@ -106,9 +106,9 @@ class JsonMetadataTest extends FlatSpec with Matchers {
 
   it should "deal correctly with empty metadata objects" in{
     val emptyMap = EntityMetadataJson()
-    val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(WriteContext.empty[JsValue])
+    val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(TestWriteContext[JsValue]())
     stringVal shouldBe ""
-    val parsed = EntityMetadataJson.JsonSerializer.fromString(stringVal, "")(ReadContext())
+    val parsed = EntityMetadataJson.JsonSerializer.fromString(stringVal, "")(TestReadContext())
     parsed shouldBe EntityMetadataJson()
   }
 }

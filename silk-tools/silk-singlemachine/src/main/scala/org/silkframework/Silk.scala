@@ -113,7 +113,7 @@ object Silk {
    */
   def executeFile(configFile: File, linkSpecID: String = null, numThreads: Int = DefaultThreads, reload: Boolean = true)
                  (implicit userContext: UserContext): Unit = {
-    implicit val readContext: ReadContext = ReadContext(new FileResourceManager(configFile.getAbsoluteFile.getParentFile))
+    implicit val readContext: ReadContext = ReadContext(FileResourceManager(configFile.getAbsoluteFile.getParentFile), Prefixes.default)
     val config = XmlSerialization.fromXml[LinkingConfig](XML.loadFile(configFile))
     executeConfig(config, linkSpecID, numThreads, reload)
   }

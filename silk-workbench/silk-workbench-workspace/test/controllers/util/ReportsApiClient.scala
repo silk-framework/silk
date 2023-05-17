@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.ws.{Message, WebSocketRequest, WebSocketUpgradeR
 import akka.stream.scaladsl.{Flow, Keep, Sink, SinkQueueWithCancel, Source}
 import controllers.workspaceApi.ReportUpdates
 import helper.ApiClient
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import controllers.workspaceApi.routes.ReportsApi
 import org.silkframework.execution.ExecutionReport
@@ -23,7 +23,7 @@ trait ReportsApiClient extends ApiClient {
     val request = createRequest(ReportsApi.currentReport(projectId, taskId))
     val response = request.get()
     val responseJson = checkResponse(response).body[JsValue]
-    implicit val readFormat: ReadContext = ReadContext()
+    implicit val readFormat: ReadContext = TestReadContext()
     ExecutionReportJsonFormat.read(responseJson)
   }
 

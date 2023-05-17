@@ -1,9 +1,10 @@
 package org.silkframework.workspace.activity
 
-import java.util.logging.Level
+import org.silkframework.config.Prefixes
 
+import java.util.logging.Level
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
-import org.silkframework.runtime.resource.{ResourceNotFoundException, WritableResource}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.XMLUtils._
@@ -94,12 +95,12 @@ trait CachedActivity[T] extends Activity[T] {
   protected def readValue(context: ActivityContext[T]): Option[T] = {
     try {
       val xml = resource.read(XML.load)
-      implicit val readContext = ReadContext()
+      implicit val readContext: ReadContext = ReadContext(prefixes = Prefixes.empty, resources = EmptyResourceManager())
       val value = fromXml[T](xml)
       context.log.info(s"Cache read from $resource")
       Some(value)
     } catch {
-      case ex: ResourceNotFoundException =>
+      case _: ResourceNotFoundException =>
         context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
         None
       case NonFatal(ex) =>

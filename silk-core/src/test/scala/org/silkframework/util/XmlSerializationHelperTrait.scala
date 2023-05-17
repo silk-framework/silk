@@ -18,7 +18,7 @@ trait XmlSerializationHelperTrait extends MustMatchers {
   def testRoundTripSerialization[T <: AnyRef](obj: T,
                                               extraTests: (T, T) => Unit = (a: T, b: T) => {})
                                              (implicit format: XmlFormat[T]): Unit = {
-    implicit val readContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     val xmlNode = XmlSerialization.toXml[T](obj)
     val roundTripObjType = XmlSerialization.fromXml[T](xmlNode)
     roundTripObjType mustBe obj
@@ -27,7 +27,7 @@ trait XmlSerializationHelperTrait extends MustMatchers {
 
   def testRoundTripSerializationStreaming[T <: AnyRef](obj: T)
                                                       (implicit format: StreamXmlFormat[T]): Unit = {
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     val tempFile = File.createTempFile("xmlSerializationTest", ".xml")
     tempFile.deleteOnExit()
     val outputStream = new FileOutputStream(tempFile)
