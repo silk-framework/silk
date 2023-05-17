@@ -90,8 +90,8 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
      *  3. table needs padding to the right
      */
     return (
-        <div>
-            <Grid condensed className="transform-evaluation">
+        <section className="diapp-transform-evaluation">
+            <Grid>
                 <GridRow>
                     <GridColumn medium>
                         <MappingsTree
@@ -103,7 +103,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                     <GridColumn className="diapp-linking-evaluation">
                         <TableContainer rows={rows} headers={headers}>
                             {({ getTableProps }: DataTableCustomRenderProps) => (
-                                <Table {...getTableProps()} size="compact" useZebraStyles>
+                                <Table {...getTableProps()} size={"medium"}>
                                     <TableHead>
                                         <TableRow>
                                             <TableExpandHeader
@@ -119,45 +119,57 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                             <TableHeader>{headers[0].header}</TableHeader>
                                         </TableRow>
                                     </TableHead>
-                                    {(!loading &&
-                                        rows.length &&
-                                        evaluatedEntityResults.current &&
-                                        evaluatedEntityResults.current.evaluatedEntities.length && (
-                                            <TableBody>
-                                                {rows.map((rowItem, rowIdx) => (
-                                                    <TransformEvaluationTabRow
-                                                        rowExpandedByParent={allRowsExpanded}
-                                                        rowItem={rowItem}
-                                                        colSpan={headers.length * 2}
-                                                        operatorPlugins={operatorPlugins.current}
-                                                        entity={
-                                                            evaluatedEntityResults.current!.evaluatedEntities[rowIdx]
-                                                        }
-                                                        rules={evaluatedEntityResults.current!.rules}
-                                                    />
-                                                ))}
-                                            </TableBody>
-                                        )) ||
-                                        (loading && <Spinner size="small" />) || (
-                                            <tr>
-                                                <td colSpan={2}>
-                                                    <Spacing />
-                                                    <Notification
-                                                        warning={true}
-                                                        data-test-id="notification-unknown-problem"
-                                                    >
-                                                        {t("transformEvaluationTabView.couldNotLoad")} {error}
-                                                    </Notification>
-                                                </td>
-                                            </tr>
-                                        )}
+                                    <TableBody>
+                                        {(!loading &&
+                                            rows.length &&
+                                            evaluatedEntityResults.current &&
+                                            evaluatedEntityResults.current.evaluatedEntities.length && (
+                                                <>
+                                                    {rows.map((rowItem, rowIdx) => (
+                                                        <TransformEvaluationTabRow
+                                                            zebra={rowIdx % 2 === 1}
+                                                            key={rowIdx}
+                                                            rowExpandedByParent={allRowsExpanded}
+                                                            rowItem={rowItem}
+                                                            colSpan={headers.length * 2}
+                                                            operatorPlugins={operatorPlugins.current}
+                                                            entity={
+                                                                evaluatedEntityResults.current!.evaluatedEntities[
+                                                                    rowIdx
+                                                                ]
+                                                            }
+                                                            rules={evaluatedEntityResults.current!.rules}
+                                                        />
+                                                    ))}
+                                                </>
+                                            )) ||
+                                            (loading && (
+                                                <tr>
+                                                    <td colSpan={2}>
+                                                        <Spinner size="small" />
+                                                    </td>
+                                                </tr>
+                                            )) || (
+                                                <tr>
+                                                    <td colSpan={2}>
+                                                        <Spacing />
+                                                        <Notification
+                                                            warning={true}
+                                                            data-test-id="notification-unknown-problem"
+                                                        >
+                                                            {t("transformEvaluationTabView.couldNotLoad")} {error}
+                                                        </Notification>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                    </TableBody>
                                 </Table>
                             )}
                         </TableContainer>
                     </GridColumn>
                 </GridRow>
             </Grid>
-        </div>
+        </section>
     );
 };
 

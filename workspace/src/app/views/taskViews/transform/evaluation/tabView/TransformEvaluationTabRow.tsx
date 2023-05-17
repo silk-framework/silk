@@ -19,10 +19,11 @@ interface TransformEvaluationTabRowProps {
     colSpan: number;
     operatorPlugins: Array<IPluginDetails>;
     rules: Array<EvaluatedURIRule | EvaluatedComplexRule>;
+    zebra?: boolean;
 }
 
 const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = React.memo(
-    ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins }) => {
+    ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins, zebra = false }) => {
         const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowExpandedByParent);
         const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<string, boolean>>(new Map());
         const [multipleTrees, setMultipleTrees] = React.useState<TreeNodeInfo[]>([]);
@@ -118,8 +119,9 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
         }, [treeExpansionMap]);
 
         return (
-            <React.Fragment key={rowItem.id}>
+            <>
                 <TableExpandRow
+                    useZebraStyle={zebra}
                     isExpanded={rowIsExpanded}
                     onExpand={handleRowExpansion}
                     togglerText={
@@ -134,7 +136,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
                         {multipleTrees.map((tree) => (
                             <TableTree
-                                columnWidths={["30px", "40%"]}
+                                columnWidths={["30px", "100%"]}
                                 treeIsExpanded={!!treeExpansionMap.get(tree.id as string)}
                                 key={tree.id}
                                 nodes={[tree]}
@@ -144,7 +146,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     </TableExpandedRow>
                 )) ||
                     null}
-            </React.Fragment>
+            </>
         );
     }
 );

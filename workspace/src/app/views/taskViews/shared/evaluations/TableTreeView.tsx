@@ -33,7 +33,7 @@ const TableTree: React.FC<TableTreeProps> = React.memo(
                                 name={!rowIsExpanded ? "toggler-caretright" : "toggler-caretdown"}
                             />
                         </TableCell>
-                        <TableCell colSpan={4}>
+                        <TableCell colSpan={columnWidths ? columnWidths.length - 1 : undefined}>
                             <Divider width="half" alignment="center" />
                             <Tree contents={nodes} />
                         </TableCell>
