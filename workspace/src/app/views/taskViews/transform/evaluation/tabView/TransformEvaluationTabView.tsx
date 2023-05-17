@@ -90,67 +90,74 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
      *  3. table needs padding to the right
      */
     return (
-        <Grid useAbsoluteSpace condensed className="transform-evaluation">
-            <GridRow fullHeight>
-                <GridColumn medium>
-                    <MappingsTree
-                        currentRuleId={currentRuleId}
-                        handleRuleNavigation={handleRuleNavigation}
-                        startFullScreen={startFullScreen}
-                    />
-                </GridColumn>
-                <GridColumn className="diapp-linking-evaluation">
-                    <TableContainer rows={rows} headers={headers}>
-                        {({ getTableProps }: DataTableCustomRenderProps) => (
-                            <Table {...getTableProps()} size="compact" useZebraStyles>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableExpandHeader
-                                            enableToggle
-                                            isExpanded={allRowsExpanded}
-                                            onExpand={expandAllRows}
-                                            togglerText={
-                                                allRowsExpanded
-                                                    ? t("linkingEvaluationTabView.table.header.collapseRows")
-                                                    : t("linkingEvaluationTabView.table.header.expandRows")
-                                            }
-                                        />
-                                        <TableHeader>{headers[0].header}</TableHeader>
-                                    </TableRow>
-                                </TableHead>
-                                {(!loading &&
-                                    rows.length &&
-                                    evaluatedEntityResults.current &&
-                                    evaluatedEntityResults.current.evaluatedEntities.length && (
-                                        <TableBody>
-                                            {rows.map((rowItem, rowIdx) => (
-                                                <TransformEvaluationTabRow
-                                                    rowExpandedByParent={allRowsExpanded}
-                                                    rowItem={rowItem}
-                                                    colSpan={headers.length * 2}
-                                                    operatorPlugins={operatorPlugins.current}
-                                                    entity={evaluatedEntityResults.current!.evaluatedEntities[rowIdx]}
-                                                    rules={evaluatedEntityResults.current!.rules}
-                                                />
-                                            ))}
-                                        </TableBody>
-                                    )) ||
-                                    (loading && <Spinner size="small" />) || (
-                                        <tr>
-                                            <td colSpan={2}>
-                                                <Spacing />
-                                                <Notification warning={true} data-test-id="notification-unknown-problem">
-                                                    {t("transformEvaluationTabView.couldNotLoad")} {error}
-                                                </Notification>
-                                            </td>
-                                        </tr>
-                                    )}
-                            </Table>
-                        )}
-                    </TableContainer>
-                </GridColumn>
-            </GridRow>
-        </Grid>
+        <div>
+            <Grid condensed className="transform-evaluation">
+                <GridRow>
+                    <GridColumn medium>
+                        <MappingsTree
+                            currentRuleId={currentRuleId}
+                            handleRuleNavigation={handleRuleNavigation}
+                            startFullScreen={startFullScreen}
+                        />
+                    </GridColumn>
+                    <GridColumn className="diapp-linking-evaluation">
+                        <TableContainer rows={rows} headers={headers}>
+                            {({ getTableProps }: DataTableCustomRenderProps) => (
+                                <Table {...getTableProps()} size="compact" useZebraStyles>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableExpandHeader
+                                                enableToggle
+                                                isExpanded={allRowsExpanded}
+                                                onExpand={expandAllRows}
+                                                togglerText={
+                                                    allRowsExpanded
+                                                        ? t("linkingEvaluationTabView.table.header.collapseRows")
+                                                        : t("linkingEvaluationTabView.table.header.expandRows")
+                                                }
+                                            />
+                                            <TableHeader>{headers[0].header}</TableHeader>
+                                        </TableRow>
+                                    </TableHead>
+                                    {(!loading &&
+                                        rows.length &&
+                                        evaluatedEntityResults.current &&
+                                        evaluatedEntityResults.current.evaluatedEntities.length && (
+                                            <TableBody>
+                                                {rows.map((rowItem, rowIdx) => (
+                                                    <TransformEvaluationTabRow
+                                                        rowExpandedByParent={allRowsExpanded}
+                                                        rowItem={rowItem}
+                                                        colSpan={headers.length * 2}
+                                                        operatorPlugins={operatorPlugins.current}
+                                                        entity={
+                                                            evaluatedEntityResults.current!.evaluatedEntities[rowIdx]
+                                                        }
+                                                        rules={evaluatedEntityResults.current!.rules}
+                                                    />
+                                                ))}
+                                            </TableBody>
+                                        )) ||
+                                        (loading && <Spinner size="small" />) || (
+                                            <tr>
+                                                <td colSpan={2}>
+                                                    <Spacing />
+                                                    <Notification
+                                                        warning={true}
+                                                        data-test-id="notification-unknown-problem"
+                                                    >
+                                                        {t("transformEvaluationTabView.couldNotLoad")} {error}
+                                                    </Notification>
+                                                </td>
+                                            </tr>
+                                        )}
+                                </Table>
+                            )}
+                        </TableContainer>
+                    </GridColumn>
+                </GridRow>
+            </Grid>
+        </div>
     );
 };
 
