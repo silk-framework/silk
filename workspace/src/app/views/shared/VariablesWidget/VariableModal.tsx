@@ -78,9 +78,9 @@ const VariableModal: React.FC<VariableModalProps> = ({
                     ...variables,
                     {
                         name,
-                        value: valueState.current.currentInputValue,
+                        value: valueState.current.currentInputValue || null,
                         description,
-                        template: valueState.current.currentTemplateValue,
+                        template: valueState.current.currentTemplateValue || null,
                         isSensitive: false,
                         scope: taskId ? "task" : "project",
                     },

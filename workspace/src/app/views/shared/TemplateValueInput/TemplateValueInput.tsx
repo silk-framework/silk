@@ -38,6 +38,8 @@ const TemplateValueInput = React.forwardRef(
         const showRareElementState = React.useRef<{ timeout?: number }>({});
         const [t] = useTranslation();
 
+        console.log({ valueStateRef });
+
         const switchShowVariableTemplateInput = React.useCallback(() => {
             setShowVariableTemplateInput((old) => {
                 const becomesTemplate = !old;
@@ -114,6 +116,7 @@ const TemplateValueInput = React.forwardRef(
                             <TextField
                                 id="value"
                                 intent={!!messageText ? "danger" : "none"}
+                                key={valueStateRef.current.inputValueBeforeSwitch}
                                 defaultValue={valueStateRef.current.inputValueBeforeSwitch}
                                 onChange={onElementValueChange}
                             />

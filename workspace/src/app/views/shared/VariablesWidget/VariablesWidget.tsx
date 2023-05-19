@@ -16,6 +16,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
+    Spacing,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { getVariables } from "./requests";
@@ -83,20 +84,24 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     ) : !variables.length ? (
                         <p>No Variables set</p>
                     ) : (
-                        <OverviewItemList hasDivider>
+                        <OverviewItemList hasDivider hasSpacing>
                             {variables.map((variable, i) => (
                                 <OverviewItem key={i}>
                                     <OverviewItemLine>
                                         <OverflowText>{variable.name}</OverflowText>
                                     </OverviewItemLine>
+                                    <Spacing size="tiny" vertical />
                                     <OverviewItemDescription>
                                         <OverviewItemLine>
-                                            <code>{variable.value}</code>
+                                            <OverflowText>
+                                                <code>{variable.value}</code>
+                                            </OverflowText>
                                         </OverviewItemLine>
                                         <OverviewItemLine>
                                             <OverflowText>{variable.description}</OverflowText>
                                         </OverviewItemLine>
                                     </OverviewItemDescription>
+                                    <Spacing size="tiny" vertical />
                                     <OverviewItemActions>
                                         <IconButton
                                             name="item-edit"
