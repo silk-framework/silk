@@ -16,7 +16,6 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
-    Spacing,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { getVariables } from "./requests";
@@ -48,6 +47,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         })();
     }, [refetch]);
 
+    const handleModalOpen = React.useCallback((variable = undefined) => {
+        setSelectedVariable(variable);
+        setModalOpen(true);
+    }, []);
+
     return (
         <>
             <VariableModal
@@ -68,10 +72,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                         <IconButton
                             name={"item-add-artefact"}
                             text={t("widget.VariableWidget.actions.add", "Add")}
-                            onClick={() => {
-                                setSelectedVariable(undefined);
-                                setModalOpen(true);
-                            }}
+                            onClick={() => handleModalOpen()}
                         />
                     </CardOptions>
                 </CardHeader>
@@ -100,10 +101,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                         <IconButton
                                             name="item-edit"
                                             text={t("widget.VariableWidget.actions.add", "Edit")}
-                                            onClick={() => {
-                                                setSelectedVariable(variable);
-                                                setModalOpen(true);
-                                            }}
+                                            onClick={() => handleModalOpen(variable)}
                                         />
                                     </OverviewItemActions>
                                 </OverviewItem>

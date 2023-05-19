@@ -21,10 +21,16 @@ import { ValueStateRef } from "../VariablesWidget/VariableModal";
 interface TemplateValueInputProps {
     disabled?: boolean;
     helperText?: string;
+    messageText?: string;
+    hasStateDanger?: boolean;
+    projectId: string;
 }
 
 const TemplateValueInput = React.forwardRef(
-    ({ disabled, helperText }: TemplateValueInputProps, valueStateRef: MutableRefObject<ValueStateRef>) => {
+    (
+        { disabled, helperText, projectId, hasStateDanger, messageText }: TemplateValueInputProps,
+        valueStateRef: MutableRefObject<ValueStateRef>
+    ) => {
         const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(false);
         const [validationError, setValidationError] = React.useState<string>();
         const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string>();
@@ -78,8 +84,8 @@ const TemplateValueInput = React.forwardRef(
                     htmlFor: "value",
                     text: "Value",
                 }}
-                hasStateDanger={!!validationError}
-                messageText={validationError || templateInfoMessage}
+                hasStateDanger={hasStateDanger || !!validationError}
+                messageText={messageText || validationError || templateInfoMessage}
                 disabled={disabled}
                 helperText={helperText}
             >
@@ -102,9 +108,12 @@ const TemplateValueInput = React.forwardRef(
                                 onTemplateValueChange={onTemplateValueChange}
                                 setValidationError={setValidationError}
                                 evaluatedValueMessage={setTemplateInfoMessage}
+                                projectId={projectId}
                             />
                         ) : (
                             <TextField
+                                id="value"
+                                intent={!!messageText ? "danger" : "none"}
                                 defaultValue={valueStateRef.current.inputValueBeforeSwitch}
                                 onChange={onElementValueChange}
                             />
@@ -143,6 +152,7 @@ interface TemplateInputComponentProps {
     setValidationError: (error?: string) => any;
     /** Called with a message that contains the currently evaluated template. */
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
+    projectId: string;
 }
 
 const TemplateInputComponent = React.memo(
@@ -151,6 +161,7 @@ const TemplateInputComponent = React.memo(
         onTemplateValueChange,
         setValidationError,
         evaluatedValueMessage,
+        projectId,
     }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
         const [t] = useTranslation();
@@ -179,7 +190,7 @@ const TemplateInputComponent = React.memo(
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition)).data;
+                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId)).data;
             } catch (error) {
                 registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
             }
@@ -188,7 +199,7 @@ const TemplateInputComponent = React.memo(
         const checkTemplate = React.useCallback(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
-                    const validationResponse = (await requestValidateTemplateString(inputString)).data;
+                    const validationResponse = (await requestValidateTemplateString(inputString, projectId)).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
                             ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })

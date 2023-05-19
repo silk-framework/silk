@@ -1,4 +1,4 @@
-import { Button, FieldItem, SimpleDialog, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Variable } from "./typing";
@@ -38,6 +38,9 @@ const VariableModal: React.FC<VariableModalProps> = ({
     const [loading, setLoading] = React.useState<boolean>(false);
     const [name, setName] = React.useState<string>("");
     const [description, setDescription] = React.useState<string>("");
+    const [validationError, setValidationError] = React.useState<
+        Partial<{ name: string; valueOrTemplate: string }> | undefined
+    >();
     const [t] = useTranslation();
 
     const valueState = React.useRef<ValueStateRef>({
@@ -53,7 +56,21 @@ const VariableModal: React.FC<VariableModalProps> = ({
         valueState.current.templateValueBeforeSwitch = targetVariable?.template ?? "";
     }, [targetVariable]);
 
+    const validationChecker = React.useCallback(() => {
+        const error = {
+            name: !name.length ? "Name must be specified" : undefined,
+            valueOrTemplate:
+                !valueState.current.currentInputValue?.length && !valueState.current.currentTemplateValue?.length
+                    ? "Must provide value or template"
+                    : undefined,
+        };
+        setValidationError(error);
+        return error;
+    }, [name, valueState]);
+
     const addNewVariable = React.useCallback(async () => {
+        const error = validationChecker();
+        if (error?.name || error?.valueOrTemplate) return;
         try {
             setLoading(true);
             const updatedVariables = {
@@ -86,13 +103,7 @@ const VariableModal: React.FC<VariableModalProps> = ({
             isOpen={modalOpen}
             onClose={closeModal}
             actions={[
-                <Button
-                    key="copy"
-                    affirmative
-                    onClick={addNewVariable}
-                    disabled={loading || !(name.length && valueState.current.currentInputValue?.length)}
-                    loading={loading}
-                >
+                <Button key="copy" affirmative onClick={addNewVariable} disabled={loading} loading={loading}>
                     {t("widget.VariableWidget.actions.add", "Add")}
                 </Button>,
                 <Button key="cancel" onClick={closeModal}>
@@ -101,21 +112,33 @@ const VariableModal: React.FC<VariableModalProps> = ({
             ]}
         >
             <FieldItem
+                hasStateDanger={!!validationError?.name}
+                messageText={validationError?.name}
                 labelProps={{
                     htmlFor: "name",
                     text: "Name",
                 }}
             >
-                <TextField id="name" onChange={(e) => setName(e.target.value)} value={name} />
+                <TextField
+                    id="name"
+                    intent={!!validationError?.name ? "danger" : "none"}
+                    onChange={(e) => setName(e.target.value)}
+                    value={name}
+                />
             </FieldItem>
-            <TemplateValueInput ref={valueState} />
+            <TemplateValueInput
+                messageText={validationError?.valueOrTemplate}
+                hasStateDanger={!!validationError?.valueOrTemplate}
+                ref={valueState}
+                projectId={projectId}
+            />
             <FieldItem
                 labelProps={{
                     htmlFor: "description",
                     text: "Description",
                 }}
             >
-                <TextField id="description" onChange={(e) => setDescription(e.target.value)} value={description} />
+                <TextArea id="description" onChange={(e) => setDescription(e.target.value)} value={description} />
             </FieldItem>
         </SimpleDialog>
     );
