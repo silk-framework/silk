@@ -58,3 +58,4 @@ GET           /tasks/:project/:task/rule/:rule/valueSourcePaths                 
 GET           /tasks/:project/:task/rule/:rule/valueSourcePathsInfo                controllers.transform.SourcePathsApi.valueSourcePathsFullInfo(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, objectInfo: Boolean ?= false)
 
 POST          /tasks/:project/:task/rule/:rule/evaluateRule                        controllers.transform.EvaluateTransformApi.evaluateRule(project: String, task:String, rule: String, limit: Int ?= 3)
+GET           /tasks/:project/:task/rule/:rule/evaluated                           controllers.transform.EvaluateTransformApi.evaluateSpecificRule(project: String, task:String, rule: String, limit: Int ?= 50, showOnlyEntitiesWithUris: Boolean ?= false)

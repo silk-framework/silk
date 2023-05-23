@@ -1,0 +1,21 @@
+.diapp-transform-evaluation {
+    /*
+        FIXME:
+        Some of this data tabel tweaks may need to be moved to the GUI Elements directly.
+        Then it need more time to do this correct.
+        Most of the values are specialized on the current state of the table layout parameters.
+    */
+    .#{$eccgui}-simpletable__cell {
+        height: calc(1rem + 30px);
+
+        .#{$eccgui}-separation__divider-horizontal {
+            position: relative;
+            top: -0.25rem;
+        }
+    }
+
+    // TODO: remove this when mapping editor is updated
+    .ecc-silk-mapping__treenav {
+        margin: 0px;
+    }
+}
