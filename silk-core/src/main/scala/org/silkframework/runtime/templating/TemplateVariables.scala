@@ -8,7 +8,7 @@ import java.io.StringWriter
 import java.util
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.collection.mutable
-import scala.xml.{Node, PCData}
+import scala.xml.Node
 
 /**
   * Holds a set of variables that can be used in parameter value templates.
@@ -28,7 +28,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   }
 
   /**
-    * Lists all available variable names.
+    * Lists all available scoped variable names.
     */
   def variableNames: Seq[String] = {
     for (variable <- variables.sortBy(_.name)) yield {
@@ -97,52 +97,6 @@ object TemplateVariables {
       <Variables>
         { value.variables.map(TemplateVariableFormat.write) }
       </Variables>
-    }
-  }
-
-}
-
-
-/**
-  * A single template variable.
-  */
-case class TemplateVariable(name: String,
-                            value: String,
-                            template: Option[String],
-                            description: Option[String],
-                            isSensitive: Boolean,
-                            scope: String)
-
-object TemplateVariable {
-
-  /**
-    * XML serialization format.
-    */
-  implicit object TemplateVariableFormat extends XmlFormat[TemplateVariable] {
-
-    val tagName = "Variable"
-
-    override def tagNames: Set[String] = Set(tagName)
-
-    override def read(value: Node)(implicit readContext: ReadContext): TemplateVariable = {
-      TemplateVariable(
-        name = (value \ "@name").text,
-        value =(value \ "Value").text,
-        template = Option((value \ "Template").text).filter(_.trim.nonEmpty),
-        description = Option((value \ "Description").text).filter(_.trim.nonEmpty),
-        isSensitive = (value \ "@isSensitive").text.toBoolean,
-        scope = (value \ "@scope").text,
-      )
-    }
-
-    override def write(value: TemplateVariable)(implicit writeContext: WriteContext[Node]): Node = {
-      <Variable name={value.name}
-                isSensitive={value.isSensitive.toString}
-                scope={value.scope}>
-        <Value xml:space="preserve">{PCData(value.value)}</Value>
-        { value.template.toSeq.map(template => <Template xml:space="preserve">{PCData(template)}</Template>) }
-        <Description xml:space="preserve">{value.description.getOrElse("")}</Description>
-      </Variable>
     }
   }
 
