@@ -2,6 +2,7 @@ package org.silkframework.runtime.templating
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.templating.TemplateVariable.TemplateVariableFormat
+import org.silkframework.runtime.validation.BadUserInputException
 
 import java.io.StringWriter
 import java.util
@@ -15,6 +16,8 @@ import scala.xml.{Node, PCData}
 case class TemplateVariables(variables: Seq[TemplateVariable]) {
 
   val map: Map[String, TemplateVariable] = variables.map(v => (v.name, v)).toMap
+
+  validate()
 
   /**
     * Returns variables as a map to be used in template evaluation.
@@ -56,6 +59,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     val writer = new StringWriter()
     GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(variableMap, writer)
     writer.toString
+  }
+
+  private def validate(): Unit = {
+    val duplicateNames = variables.groupBy(_.name).filter(_._2.size > 1).keys
+    if (duplicateNames.nonEmpty) {
+      throw new BadUserInputException("Duplicate variable names: " + duplicateNames.mkString(", "))
+    }
   }
 
 }
