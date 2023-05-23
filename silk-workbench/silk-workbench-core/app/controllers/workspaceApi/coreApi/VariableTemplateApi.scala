@@ -89,7 +89,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variables = Json.fromJson[TemplateVariablesFormat](request.body).get.convert
-    project.templateVariables.put(variables.resolved)
+    project.templateVariables.put(variables.resolved(GlobalTemplateVariables.all))
     Ok
   }
 
@@ -126,7 +126,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         validationRequest.project match {
           case Some(projectName) =>
             val project = WorkspaceFactory().workspace.project(projectName)
-            Left(project.templateVariables.all.resolveTemplateValue(validationRequest.templateString))
+            Left(project.templateVariables.all.resolveTemplateValue(validationRequest.templateString, GlobalTemplateVariables.all))
           case None =>
             Left(GlobalTemplateVariables.all.resolveTemplateValue(validationRequest.templateString))
         }

@@ -8,6 +8,8 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer)
 
   private val projectScope = "project"
 
+  private var variables: TemplateVariables = serializer.readVariables()
+
   /**
     * The available variable scopes.
     */
@@ -16,13 +18,15 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer)
   /**
     * Retrieves all template variables.
     */
-  //TODO cache variables
-  override def all: TemplateVariables = serializer.readVariables()
+  override def all: TemplateVariables = {
+    variables
+  }
 
   /**
     * Updates all template variables.
     */
   override def put(variables: TemplateVariables): Unit = {
     serializer.putVariables(variables)
+    this.variables = variables
   }
 }

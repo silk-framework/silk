@@ -41,7 +41,7 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
     val variables = project match {
       case Some(projectName) =>
         val project = WorkspaceFactory().workspace.project(projectName)
-        project.templateVariables.all.variableNames
+        GlobalTemplateVariables.all.variableNames ++ project.templateVariables.all.variableNames
       case None =>
         GlobalTemplateVariables.all.variableNames
     }
