@@ -1,4 +1,5 @@
 import React from "react";
+import { Draggable, DragDropContext, Droppable } from "react-beautiful-dnd";
 
 //typing
 import { Variable, VariableWidgetProps } from "./typing";
@@ -29,6 +30,7 @@ import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
 import DeleteVariablePrompt from "./modals/DeleteVariablePrompt";
 import { createNewVariable } from "./requests";
+import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
@@ -85,6 +87,31 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         }
     }, [selectedVariable]);
 
+    const handleVariableDragStart = React.useCallback(() => {}, []);
+
+    const handleVariableDragEnd = React.useCallback(
+        async (result) => {
+            // dropped outside the list
+            if (!result.destination) {
+                return;
+            }
+            const fromPos = result.source.index;
+            const toPos = result.destination.index;
+            // no actual movement
+            if (fromPos === toPos) {
+                return;
+            }
+
+            const reorderedVariables = { variables: reorderArray(variables, fromPos, toPos) };
+
+            try {
+                await createNewVariable(reorderedVariables, projectId);
+                setRefetch((f) => ++f);
+            } catch (err) {}
+        },
+        [variables]
+    );
+
     return (
         <>
             <NewVariableModal
@@ -123,54 +150,88 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     ) : !variables.length ? (
                         <p>No Variables set</p>
                     ) : (
-                        <PropertyValueList>
-                            {variables.map((variable, i) => (
-                                <PropertyValuePair hasDivider key={variable.name}>
-                                    <PropertyName>
-                                        <OverviewItem>
-                                            <OverviewItemDescription>
-                                                <OverviewItemLine>
-                                                    <OverflowText>{variable.name}</OverflowText>
-                                                </OverviewItemLine>
-                                            </OverviewItemDescription>
-                                        </OverviewItem>
-                                    </PropertyName>
-                                    <PropertyValue>
-                                        <OverviewItem>
-                                            <OverviewItemDescription>
-                                                <OverviewItemLine>
-                                                    <code>{variable.value}</code>
-                                                    {variable.description && (
-                                                        <>
-                                                            <Spacing vertical size="large" hasDivider />
-                                                            <Icon
-                                                                name="item-info"
-                                                                small
-                                                                tooltipText={variable.description}
-                                                            />
-                                                        </>
+                        <DragDropContext onDragStart={handleVariableDragStart} onDragEnd={handleVariableDragEnd}>
+                            <Droppable droppableId="variableDroppable">
+                                {(provided) => (
+                                    <div ref={provided.innerRef} {...provided.droppableProps}>
+                                        <PropertyValueList>
+                                            {variables.map((variable, i) => (
+                                                <Draggable pos={i} key={variable.name} index={i} draggableId={`${i}`}>
+                                                    {(provided) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                        >
+                                                            <PropertyValuePair hasDivider>
+                                                                <PropertyName>
+                                                                    <OverviewItem>
+                                                                        <OverviewItemActions>
+                                                                            <Icon small name="item-draggable" />
+                                                                        </OverviewItemActions>
+                                                                        <Spacing size="tiny" vertical />
+                                                                        <OverviewItemDescription>
+                                                                            <OverviewItemLine>
+                                                                                <OverflowText>
+                                                                                    {variable.name}
+                                                                                </OverflowText>
+                                                                            </OverviewItemLine>
+                                                                        </OverviewItemDescription>
+                                                                    </OverviewItem>
+                                                                </PropertyName>
+                                                                <PropertyValue>
+                                                                    <OverviewItem>
+                                                                        <OverviewItemDescription>
+                                                                            <OverviewItemLine>
+                                                                                <code>{variable.value}</code>
+                                                                                {variable.description && (
+                                                                                    <>
+                                                                                        <Spacing
+                                                                                            vertical
+                                                                                            size="large"
+                                                                                            hasDivider
+                                                                                        />
+                                                                                        <Icon
+                                                                                            name="item-info"
+                                                                                            small
+                                                                                            tooltipText={
+                                                                                                variable.description
+                                                                                            }
+                                                                                        />
+                                                                                    </>
+                                                                                )}
+                                                                            </OverviewItemLine>
+                                                                        </OverviewItemDescription>
+                                                                        <OverviewItemActions>
+                                                                            <IconButton
+                                                                                small
+                                                                                name="item-edit"
+                                                                                onClick={() =>
+                                                                                    handleModalOpen(variable)
+                                                                                }
+                                                                            />
+                                                                            <Spacing vertical hasDivider />
+                                                                            <IconButton
+                                                                                small
+                                                                                name="item-remove"
+                                                                                onClick={() =>
+                                                                                    handleDeleteModalOpen(variable)
+                                                                                }
+                                                                                disruptive
+                                                                            />
+                                                                        </OverviewItemActions>
+                                                                    </OverviewItem>
+                                                                </PropertyValue>
+                                                            </PropertyValuePair>
+                                                        </div>
                                                     )}
-                                                </OverviewItemLine>
-                                            </OverviewItemDescription>
-                                            <OverviewItemActions>
-                                                <IconButton
-                                                    small
-                                                    name="item-edit"
-                                                    onClick={() => handleModalOpen(variable)}
-                                                />
-                                                <Spacing vertical hasDivider />
-                                                <IconButton
-                                                    small
-                                                    name="item-remove"
-                                                    onClick={() => handleDeleteModalOpen(variable)}
-                                                    disruptive
-                                                />
-                                            </OverviewItemActions>
-                                        </OverviewItem>
-                                    </PropertyValue>
-                                </PropertyValuePair>
-                            ))}
-                        </PropertyValueList>
+                                                </Draggable>
+                                            ))}
+                                        </PropertyValueList>
+                                    </div>
+                                )}
+                            </Droppable>
+                        </DragDropContext>
                     )}
                 </CardContent>
             </Card>

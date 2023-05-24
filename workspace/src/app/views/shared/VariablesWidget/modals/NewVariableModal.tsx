@@ -89,7 +89,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     },
                 ],
             };
-            await createNewVariable(updatedVariables, projectId);
+            await createNewVariable(updatedVariables, projectId, taskId);
             refresh();
             closeModal();
         } catch (err) {

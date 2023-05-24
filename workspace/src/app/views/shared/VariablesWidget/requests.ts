@@ -11,11 +11,16 @@ export const getVariables = (project: string): Promise<FetchResponse<{ variables
         },
     });
 
-export const createNewVariable = (payload, project: string): Promise<FetchResponse<{ variables: Variable[] }>> =>
+export const createNewVariable = (
+    payload,
+    project: string,
+    task?: string
+): Promise<FetchResponse<{ variables: Variable[] }>> =>
     fetch({
         url: coreApi("/variableTemplate/variables"),
         query: {
             project,
+            task,
         },
         method: "post",
         body: payload,
