@@ -1,5 +1,7 @@
 package org.silkframework.runtime.iterator
 
+import scala.annotation.tailrec
+
 /**
   * Combines multiple closeable iterators into a single closeable iterator.
   *
@@ -50,6 +52,7 @@ class RepeatedIterator[T](nextIterator: () => Option[CloseableIterator[T]]) exte
     *
     * @return True, if there are more elements. False, otherwise.
     */
+  @tailrec
   private def updateNextIterator(): Boolean = {
     for(current <- currentIterator) {
       current.close()
