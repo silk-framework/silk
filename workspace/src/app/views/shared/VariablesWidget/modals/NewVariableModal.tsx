@@ -1,9 +1,9 @@
 import { Button, FieldItem, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Variable } from "./typing";
-import { createNewVariable } from "./requests";
-import TemplateValueInput from "../TemplateValueInput/TemplateValueInput";
+import { Variable } from "../typing";
+import { createNewVariable } from "../requests";
+import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
 
 interface VariableModalProps {
     variables: Variable[];
@@ -26,7 +26,7 @@ export interface ValueStateRef {
     templateValueBeforeSwitch?: string;
 }
 
-const VariableModal: React.FC<VariableModalProps> = ({
+const NewVariableModal: React.FC<VariableModalProps> = ({
     variables,
     projectId,
     taskId,
@@ -144,4 +144,4 @@ const VariableModal: React.FC<VariableModalProps> = ({
     );
 };
 
-export default VariableModal;
+export default NewVariableModal;

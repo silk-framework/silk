@@ -16,7 +16,7 @@ import {
 import { requestAutoCompleteTemplateString } from "../modals/CreateArtefactModal/CreateArtefactModal.requests";
 import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ValueStateRef } from "../VariablesWidget/VariableModal";
+import { ValueStateRef } from "../VariablesWidget/modals/NewVariableModal";
 
 interface TemplateValueInputProps {
     disabled?: boolean;
@@ -37,8 +37,6 @@ const TemplateValueInput = React.forwardRef(
         const [showRareActions, setShowRareActions] = React.useState(false);
         const showRareElementState = React.useRef<{ timeout?: number }>({});
         const [t] = useTranslation();
-
-        console.log({ valueStateRef });
 
         const switchShowVariableTemplateInput = React.useCallback(() => {
             setShowVariableTemplateInput((old) => {

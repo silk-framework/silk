@@ -9,20 +9,26 @@ import {
     CardOptions,
     CardTitle,
     Divider,
+    Icon,
     IconButton,
     OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemList,
+    PropertyName,
+    PropertyValue,
+    PropertyValueList,
+    PropertyValuePair,
     Spacing,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { getVariables } from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
-import VariableModal from "./VariableModal";
+import NewVariableModal from "./modals/NewVariableModal";
+import DeleteVariablePrompt from "./modals/DeleteVariablePrompt";
+import { createNewVariable } from "./requests";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
@@ -31,6 +37,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [selectedVariable, setSelectedVariable] = React.useState<Variable>();
     const [modalOpen, setModalOpen] = React.useState<boolean>(false);
     const [refetch, setRefetch] = React.useState<number>(0);
+    const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
+    const [deleteModalOpen, setDeleteModalOpen] = React.useState<boolean>(false);
     const [t] = useTranslation();
 
     // initial loading of variables
@@ -53,9 +61,29 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setModalOpen(true);
     }, []);
 
+    const handleDeleteModalOpen = React.useCallback((variable: Variable) => {
+        setSelectedVariable(variable);
+        setDeleteModalOpen(true);
+    }, []);
+
+    const handleDeleteVariable = React.useCallback(async () => {
+        setIsDeleting(true);
+        try {
+            const filteredVariables = {
+                variables: variables.filter((variable) => variable.name !== selectedVariable?.name),
+            };
+            await createNewVariable(filteredVariables, projectId);
+            setRefetch((r) => ++r);
+            setDeleteModalOpen(false);
+        } catch (err) {
+        } finally {
+            setIsDeleting(false);
+        }
+    }, [selectedVariable]);
+
     return (
         <>
-            <VariableModal
+            <NewVariableModal
                 modalOpen={modalOpen}
                 closeModal={() => setModalOpen(false)}
                 variables={variables}
@@ -63,6 +91,12 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 projectId={projectId}
                 taskId={taskId}
                 refresh={() => setRefetch((r) => ++r)}
+            />
+            <DeleteVariablePrompt
+                isOpen={deleteModalOpen}
+                closeModal={() => setDeleteModalOpen(false)}
+                isDeletingVariable={isDeleting}
+                deleteVariable={handleDeleteVariable}
             />
             <Card>
                 <CardHeader>
@@ -84,34 +118,54 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     ) : !variables.length ? (
                         <p>No Variables set</p>
                     ) : (
-                        <OverviewItemList hasDivider hasSpacing>
+                        <PropertyValueList>
                             {variables.map((variable, i) => (
-                                <OverviewItem key={i}>
-                                    <OverviewItemLine>
-                                        <OverflowText>{variable.name}</OverflowText>
-                                    </OverviewItemLine>
-                                    <Spacing size="tiny" vertical />
-                                    <OverviewItemDescription>
-                                        <OverviewItemLine>
-                                            <OverflowText>
-                                                <code>{variable.value}</code>
-                                            </OverflowText>
-                                        </OverviewItemLine>
-                                        <OverviewItemLine>
-                                            <OverflowText>{variable.description}</OverflowText>
-                                        </OverviewItemLine>
-                                    </OverviewItemDescription>
-                                    <Spacing size="tiny" vertical />
-                                    <OverviewItemActions>
-                                        <IconButton
-                                            name="item-edit"
-                                            text={t("widget.VariableWidget.actions.add", "Edit")}
-                                            onClick={() => handleModalOpen(variable)}
-                                        />
-                                    </OverviewItemActions>
-                                </OverviewItem>
+                                <PropertyValuePair hasDivider key={variable.name}>
+                                    <PropertyName>
+                                        <OverviewItem>
+                                            <OverviewItemDescription>
+                                                <OverviewItemLine>
+                                                    <OverflowText>{variable.name}</OverflowText>
+                                                </OverviewItemLine>
+                                            </OverviewItemDescription>
+                                        </OverviewItem>
+                                    </PropertyName>
+                                    <PropertyValue>
+                                        <OverviewItem>
+                                            <OverviewItemDescription>
+                                                <OverviewItemLine>
+                                                    <code>{variable.value}</code>
+                                                    {variable.description && (
+                                                        <>
+                                                            <Spacing vertical size="large" hasDivider />
+                                                            <Icon
+                                                                name="item-info"
+                                                                small
+                                                                tooltipText={variable.description}
+                                                            />
+                                                        </>
+                                                    )}
+                                                </OverviewItemLine>
+                                            </OverviewItemDescription>
+                                            <OverviewItemActions>
+                                                <IconButton
+                                                    small
+                                                    name="item-edit"
+                                                    onClick={() => handleModalOpen(variable)}
+                                                />
+                                                <Spacing vertical hasDivider />
+                                                <IconButton
+                                                    small
+                                                    name="item-remove"
+                                                    onClick={() => handleDeleteModalOpen(variable)}
+                                                    disruptive
+                                                />
+                                            </OverviewItemActions>
+                                        </OverviewItem>
+                                    </PropertyValue>
+                                </PropertyValuePair>
                             ))}
-                        </OverviewItemList>
+                        </PropertyValueList>
                     )}
                 </CardContent>
             </Card>
