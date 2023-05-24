@@ -95,8 +95,7 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     * Access to project variables.
     */
   override def projectVariables(projectName: Identifier)(implicit userContext: UserContext): TemplateVariablesSerializer = {
-    //TODO push variables to secondary workspace
-    primaryWorkspace.projectVariables(projectName)
+    executeOnBackends(_.projectVariables(projectName), s"Updating variables in project $projectName")
   }
 
   /**
@@ -154,10 +153,11 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Executes an operation on both backends, e.g., updating a task.
     */
-  private def executeOnBackends(operation: WorkspaceProvider => Unit, description: String): Unit = {
-    operation(primaryWorkspace)
+  private def executeOnBackends[T](operation: WorkspaceProvider => T, description: String): T = {
+    val result = operation(primaryWorkspace)
     try {
       operation(secondaryWorkspace)
+      result
     } catch {
       case NonFatal(ex) =>
         val message = s"$description was successful on $primaryWorkspace, but failed on $secondaryWorkspace"
@@ -165,6 +165,7 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
           throw new RuntimeException(message, ex)
         } else {
           log.log(Level.WARNING, message, ex)
+          result
         }
     }
   }

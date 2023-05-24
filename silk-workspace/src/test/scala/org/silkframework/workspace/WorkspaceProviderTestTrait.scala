@@ -623,8 +623,6 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     refreshTest {
       variables.readVariables() shouldBe templateVariables2
     }
-
-    //TODO re add project and make sure that variables are empty
   }
 
   /** Executes the block before and after project refresh */
