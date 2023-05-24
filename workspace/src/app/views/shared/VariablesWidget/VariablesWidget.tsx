@@ -39,6 +39,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [refetch, setRefetch] = React.useState<number>(0);
     const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
     const [deleteModalOpen, setDeleteModalOpen] = React.useState<boolean>(false);
+    const [deleteErrorMsg, setDeleteErrMsg] = React.useState<string>("");
     const [t] = useTranslation();
 
     // initial loading of variables
@@ -64,10 +65,12 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const handleDeleteModalOpen = React.useCallback((variable: Variable) => {
         setSelectedVariable(variable);
         setDeleteModalOpen(true);
+        setDeleteErrMsg("");
     }, []);
 
     const handleDeleteVariable = React.useCallback(async () => {
         setIsDeleting(true);
+        setDeleteErrMsg("");
         try {
             const filteredVariables = {
                 variables: variables.filter((variable) => variable.name !== selectedVariable?.name),
@@ -76,6 +79,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             setRefetch((r) => ++r);
             setDeleteModalOpen(false);
         } catch (err) {
+            setDeleteErrMsg(err?.body?.detail);
         } finally {
             setIsDeleting(false);
         }
@@ -97,6 +101,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 closeModal={() => setDeleteModalOpen(false)}
                 isDeletingVariable={isDeleting}
                 deleteVariable={handleDeleteVariable}
+                errorMessage={deleteErrorMsg}
             />
             <Card>
                 <CardHeader>

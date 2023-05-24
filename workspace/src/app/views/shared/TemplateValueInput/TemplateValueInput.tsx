@@ -31,7 +31,9 @@ const TemplateValueInput = React.forwardRef(
         { disabled, helperText, projectId, hasStateDanger, messageText }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
-        const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(false);
+        const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(
+            !!valueStateRef.current.templateValueBeforeSwitch
+        );
         const [validationError, setValidationError] = React.useState<string>();
         const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string>();
         const [showRareActions, setShowRareActions] = React.useState(false);

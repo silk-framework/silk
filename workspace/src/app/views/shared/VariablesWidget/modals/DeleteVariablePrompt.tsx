@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import { Button, Notification, SimpleDialog } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface DeleteVariablePromptProps {
@@ -7,6 +7,7 @@ interface DeleteVariablePromptProps {
     closeModal: () => void;
     deleteVariable: () => void;
     isDeletingVariable: boolean;
+    errorMessage: string;
 }
 
 const DeleteVariablePrompt: React.FC<DeleteVariablePromptProps> = ({
@@ -14,16 +15,17 @@ const DeleteVariablePrompt: React.FC<DeleteVariablePromptProps> = ({
     closeModal,
     deleteVariable,
     isDeletingVariable,
+    errorMessage,
 }) => {
     const [t] = useTranslation();
 
     return (
         <SimpleDialog
-            data-test-id={"copy-item-to-modal"}
             size="small"
             title="Delete Variable"
             isOpen={isOpen}
             onClose={closeModal}
+            notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
             actions={[
                 <Button
                     key="copy"

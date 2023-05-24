@@ -1,4 +1,4 @@
-import { Button, FieldItem, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, Notification, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
@@ -41,6 +41,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const [validationError, setValidationError] = React.useState<
         Partial<{ name: string; valueOrTemplate: string }> | undefined
     >();
+    const [errorMessage, setErrorMessage] = React.useState<string>("");
     const [t] = useTranslation();
 
     const valueState = React.useRef<ValueStateRef>({
@@ -54,6 +55,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         setDescription(targetVariable?.description ?? "");
         valueState.current.inputValueBeforeSwitch = targetVariable?.value ?? "";
         valueState.current.templateValueBeforeSwitch = targetVariable?.template ?? "";
+        setErrorMessage("");
     }, [targetVariable]);
 
     const validationChecker = React.useCallback(() => {
@@ -73,6 +75,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         if (error?.name || error?.valueOrTemplate) return;
         try {
             setLoading(true);
+            setErrorMessage("");
             const updatedVariables = {
                 variables: [
                     ...variables,
@@ -90,6 +93,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             refresh();
             closeModal();
         } catch (err) {
+            setErrorMessage(err?.body?.detail);
         } finally {
             setLoading(false);
         }
@@ -97,11 +101,11 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
 
     return (
         <SimpleDialog
-            data-test-id={"copy-item-to-modal"}
             size="small"
             title={`${targetVariable ? "Edit" : "Add"} Variable`}
             isOpen={modalOpen}
             onClose={closeModal}
+            notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
             actions={[
                 <Button key="copy" affirmative onClick={addNewVariable} disabled={loading} loading={loading}>
                     {t("widget.VariableWidget.actions.add", "Add")}
