@@ -180,7 +180,6 @@ class TransformedEntities(task: Task[TransformSpec],
         true
       } else {
         context.value() = report.build(isDone = true)
-        //context.status.updateMessage(s"Finished transforming $count entities")
         false
       }
     }

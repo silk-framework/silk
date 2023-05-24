@@ -7,7 +7,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.iterator.BufferingIterator
 import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -98,7 +98,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None) extends CloseableIterator[Entity] {
+  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None) extends BufferingIterator[Entity] {
 
     // The next entity
     private var nextEntity: Option[Entity] = None
@@ -128,36 +128,11 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     private val entityPathSegments = PathSegments(entityPath)
 
-    // Read the first entity
-    readEntity()
-
-    override def hasNext: Boolean = {
-      nextEntity.isDefined
-    }
-
-    override def next(): Entity = {
-      nextEntity match {
-        case Some(entity) =>
-          readEntity()
-          entity
-        case None =>
-          throw new NoSuchElementException("No more entities")
-      }
-    }
-
-    override def close(): Unit = {
-      try {
-        reader.close()
-      } finally {
-        inputStream.close()
-      }
-    }
-
     /**
       * Reads to the next entity.
       * Sets `nextEntity` and `hasMoreEntities`.
       */
-    private def readEntity(): Unit = {
+    override def retrieveNext(): Option[Entity] = {
       try {
         if (count == 0) {
           // Read until first entity
@@ -181,10 +156,20 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
           hasMoreEntities = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
           count += 1
         }
+        nextEntity
       } catch {
         case _: PathNotFoundException =>
           // do nothing, no entity will be output
           hasMoreEntities = false
+          None
+      }
+    }
+
+    override def close(): Unit = {
+      try {
+        reader.close()
+      } finally {
+        inputStream.close()
       }
     }
 

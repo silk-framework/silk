@@ -3,14 +3,14 @@ package org.silkframework.runtime.iterator
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.DoSomethingOnGC
 
-import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future}
+import java.util.concurrent.{ArrayBlockingQueue, ExecutionException, Future, TimeUnit}
 
 /**
   * A closable iterator that is implemented by a single foreach function.
   * This class is to support legacy code that was based on the obsolete Scala Traversable classes.
   * New code should preferably implement CloseableIterator directly.
   */
-trait TraversableIterator[T] extends CloseableIterator[T] with DoSomethingOnGC {
+trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
 
   protected val bufferSize = 100
 
@@ -23,42 +23,17 @@ trait TraversableIterator[T] extends CloseableIterator[T] with DoSomethingOnGC {
 
   def foreach[U](f: T => U): Unit
 
-  override def hasNext: Boolean = {
+  override def retrieveNext(): Option[T] = {
     try {
       while (!loadingFuture.isDone) {
-        checkForException()
-        if (queue.peek() != null) {
-          return true
-        } else {
-          Thread.sleep(100)
-        }
-      }
-      checkForException()
-      queue.peek() != null
-    } catch {
-      case ex: InterruptedException =>
-        loadingFuture.cancel(true)
-        throw ex
-    }
-  }
-
-  override def next(): T = {
-    try {
-      while (!loadingFuture.isDone) {
-        val nextElement = queue.poll()
+        val nextElement = queue.poll(100, TimeUnit.MILLISECONDS)
         if (nextElement != null) {
           checkForException()
-          return nextElement
-        } else {
-          Thread.sleep(100)
+          return Some(nextElement)
         }
       }
       checkForException()
-      val nextElement = queue.poll()
-      if(nextElement == null) {
-        throw new NoSuchElementException
-      }
-      nextElement
+      Option(queue.poll())
     } catch {
       case ex: InterruptedException =>
         loadingFuture.cancel(true)

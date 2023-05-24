@@ -8,7 +8,7 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.iterator.BufferingIterator
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -34,7 +34,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends CloseableIterator[Entity] {
+  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends BufferingIterator[Entity] {
 
     private val entityPath = UntypedPath.parse(basePath) ++ UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
 
@@ -55,32 +55,11 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     // True, if there are unread entities
     private var hasMoreEntities: Boolean = true
 
-    // Read the first entity
-    readEntity()
-
-    override def hasNext: Boolean = {
-      nextEntity.isDefined
-    }
-
-    override def next(): Entity = {
-      nextEntity match {
-        case Some(entity) =>
-          readEntity()
-          entity
-        case None =>
-          throw new NoSuchElementException("No more entities")
-      }
-    }
-
-    override def close(): Unit = {
-      reader.close()
-    }
-
     /**
       * Reads to the next entity.
       * Sets `nextEntity` and `hasMoreEntities`.
       */
-    private def readEntity(): Unit = {
+    override def retrieveNext(): Option[Entity] = {
       if(count == 0) {
         // Read until first entity
         hasMoreEntities = goToFirstEntity(reader, entityPathSegments)
@@ -113,6 +92,11 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
         hasMoreEntities = goToNextEntity(reader, entityPathSegments, entityPathSegments.size - 1)
         count += 1
       }
+      nextEntity
+    }
+
+    override def close(): Unit = {
+      reader.close()
     }
   }
 
