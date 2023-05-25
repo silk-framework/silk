@@ -2,13 +2,11 @@ package controllers.transform
 
 import controllers.transform.routes.EvaluateTransformApi
 import helper.{ApiClient, IntegrationTestTrait}
-
-import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import controllers.transform.routes.EvaluateTransformApi
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
-import play.api.routing.Router
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.routing.Router
 
 class EvaluateTransformApiTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait
   with IntegrationTestTrait with ActiveLearningApiClient {
@@ -97,8 +95,8 @@ trait ActiveLearningApiClient extends ApiClient {
     val request = createRequest(EvaluateTransformApi.evaluateSpecificRule(projectId, taskId, ruleId, limit, showOnlyEntitiesWithUris))
     val response = checkResponse(request.get())
     val results = response.json
-    val rules = (results \ "rules").as[JsArray].value
-    val entities = (results \ "evaluatedEntities").as[JsArray].value
+    val rules = (results \ "rules").as[JsArray].value.toSeq
+    val entities = (results \ "evaluatedEntities").as[JsArray].value.toSeq
     (rules, entities)
   }
 }
