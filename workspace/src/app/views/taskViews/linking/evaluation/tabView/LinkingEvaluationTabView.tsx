@@ -111,6 +111,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
     const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
     const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
+    // Tracks if in the current view there has been a link state change. This will prevent re-rendering when changing the state.
+    const manualLinkChange = React.useRef<boolean>(false);
 
     const [tableSortDirection, setTableSortDirection] = React.useState<
         Map<typeof headerData[number]["key"], keyof typeof sortDirectionMapping>
@@ -147,6 +149,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         async (pagination, searchQuery = "", filters, linkSortBy, showReferenceLinks) => {
             try {
                 setLoading(true);
+                // New view is rendered, reset manual link change
+                manualLinkChange.current = false;
                 const results = (
                     await getEvaluatedLinks(
                         projectId,
@@ -196,7 +200,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     //initial loads of links
     React.useEffect(() => {
         let shouldCancel = false;
-        if (!shouldCancel && (showReferenceLinks || taskEvaluationStatus === "Successful")) {
+        if (!shouldCancel && taskEvaluationStatus === "Successful") {
             fetchEvaluatedLinks(
                 pagination,
                 searchQuery,
@@ -328,6 +332,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             if (currentLinkType === linkType) return false;
 
             try {
+                // Link state will trigger a reference entity cache update. Prevent re-rendering by setting this flag.
+                manualLinkChange.current = true;
                 const updateResp = await updateReferenceLink(projectId, linkingTaskId, source, target, linkType);
                 if (updateResp.axiosResponse.status === 200 && evaluationResults.current) {
                     //update one
@@ -432,11 +438,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         };
     }, []);
 
-    const registerForTaskUpdates = React.useCallback((status: IActivityStatus) => {
+    const handleActivityUpdates = React.useCallback((status: IActivityStatus) => {
         if (status.concreteStatus !== "Successful") {
             setLoading(false);
         }
-        setTaskEvaluationStatus(status.concreteStatus);
+        if (!manualLinkChange.current) {
+            // Only change status when there has not been a manual link state change before, else this will trigger a re-render
+            setTaskEvaluationStatus(status.concreteStatus);
+        }
     }, []);
 
     const refreshIfNecessary = async (needsRefresh: boolean) => {
@@ -467,6 +476,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     }, []);
 
     const handleLinkingTabSwitch = React.useCallback((tabId: number) => {
+        manualLinkChange.current = false;
         evaluationResults.current = undefined;
         const history = getHistory();
         history.replace({
@@ -474,6 +484,19 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         });
         setShowReferenceLinks(!!tabId);
     }, []);
+
+    const resetManualLinkStateFlag = async (originalAction: () => Promise<void>) => {
+        // Reset when manually running the activities
+        manualLinkChange.current = false;
+        await originalAction();
+    };
+    const activityPreAction = React.useMemo(
+        () => ({
+            start: resetManualLinkStateFlag,
+            restart: resetManualLinkStateFlag,
+        }),
+        []
+    );
 
     return (
         <section className="diapp-linking-evaluation">
@@ -597,13 +620,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         label={showReferenceLinks ? "Reference Links Cache" : "Evaluate Linking"}
                         activityName={showReferenceLinks ? "ReferenceEntitiesCache" : "EvaluateLinking"}
                         isCacheActivity={showReferenceLinks}
-                        registerToReceiveUpdates={registerForTaskUpdates}
+                        updateCallback={handleActivityUpdates}
                         layoutConfig={{
                             small: true,
                             border: true,
                             hasSpacing: true,
                             canShrink: true,
                         }}
+                        activityActionPreAction={activityPreAction}
                     />
                 </ToolbarSection>
                 {showReferenceLinks ? (
