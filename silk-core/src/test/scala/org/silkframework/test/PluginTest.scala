@@ -3,8 +3,7 @@ package org.silkframework.test
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import org.scalatest._
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry, TestPluginContext}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -31,7 +30,7 @@ abstract class PluginTest extends AnyFlatSpec with Matchers {
 
   it should "be a valid plugin" in {
     // Will throw an exception if the plugin is invalid
-    PluginRegistry.reflect(obj)(PluginContext.empty)
+    PluginRegistry.reflect(obj)(TestPluginContext())
   }
 
   private def serialize(obj: Any): Array[Byte] = {

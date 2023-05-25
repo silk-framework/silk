@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 
 import { ruleRemoveAsync, setApiDetails } from "./store";
 
-import MappingsTree from "./containers/MappingsTree";
+import MappingsTree from "./containers/MappingsTreeLegacy";
 import MappingsWorkview from "./containers/MappingsWorkview";
 import MessageHandler from "./components/MessageHandler";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";

@@ -1,9 +1,10 @@
 package org.silkframework.workbench.workspace
 
-import java.time.Duration
+import java.time.Duration
+import org.silkframework.config.Prefixes
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
@@ -17,7 +18,7 @@ import org.scalatest.matchers.should.Matchers
   */
 abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
 
-  private implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
+  private implicit val pluginContext: PluginContext = TestPluginContext(resources = InMemoryResourceManager())
 
   private val projectId = "4e371d98-3de7-4986-ab7d-979612f1ac29_project"
   private val taskId = "4150f4a9-4104-4681-90f5-9fc64d4ecce0_workflow"

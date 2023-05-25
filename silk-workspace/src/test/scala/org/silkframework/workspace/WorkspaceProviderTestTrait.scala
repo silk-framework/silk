@@ -1,5 +1,6 @@
 package org.silkframework.workspace
-
+
+
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -13,7 +14,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.users.DefaultUserManager
@@ -60,7 +61,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
   private val projectResources = repository.get(PROJECT_NAME)
 
-  protected implicit val pluginContext: PluginContext = PluginContext(resources = projectResources)
+  protected implicit val pluginContext: PluginContext = TestPluginContext(resources = projectResources)
 
   private def project(implicit userContext: UserContext) = workspace.project(PROJECT_NAME)
 

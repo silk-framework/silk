@@ -28,7 +28,7 @@ class StreamXmlFormatTest extends AnyFlatSpec with Matchers {
 
   private def testRoundTrip(entities: TestXmlStreamEntities): Unit = {
     // Check serialization of item works
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     val tempFile = File.createTempFile("xmlSerializationTest", ".xml")
     tempFile.deleteOnExit()
     val outputStream = new FileOutputStream(tempFile)

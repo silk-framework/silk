@@ -1,5 +1,6 @@
 package org.silkframework.runtime.plugin
-
+
+
 import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -8,7 +9,7 @@ class PasswordParameterTest extends AnyFlatSpec with Matchers {
 
   behavior of "password parameter"
 
-  implicit val context: PluginContext = PluginContext.empty
+  implicit val context: PluginContext = TestPluginContext()
 
   it should "store the encrypted password" in {
     val password = "some secret password"

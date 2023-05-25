@@ -94,8 +94,24 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
+    .ecc-silk-mapping__treenav--maintree.#{$ns}-tree {
+        overflow: auto !important;
+    }
+
     .ecc-silk-mapping__treenav--maintree {
         box-sizing: border-box;
+
+        .#{$ns}-tree-node-content:hover {
+            // Remove background highlight when tree node is hovered
+            background-color: transparent;
+        }
+        .#{$ns}-tree-node-content {
+            margin-bottom: $ecc-size-block-whitespace;
+        }
+
+        .#{$ns}-tree-node-caret-none {
+            min-width: 0;
+        }
     }
 
     .ecc-silk-mapping__treenav--item {
@@ -153,7 +169,8 @@ ul.ecc-hierarchical-mapping-error-list {
         white-space: nowrap;
     }
 
-    .ecc-silk-mapping__treenav--item-subtitle {
+    .ecc-silk-mapping__treenav--item-subtitle,
+    .ecc-silk-mapping__treenav--item-rule-subtitle {
         @include typo-caption();
     }
 }
@@ -754,4 +771,11 @@ ul.ecc-hierarchical-mapping-error-list {
         background-color: darken($ecc-color-info-background, 30%);
         color: $ecc-color-info-text;
     }
+}
+
+.ecc-silk-mapping__tree-label-wrapper {
+    cursor: pointer;
+    flex-grow: 1;
+    flex-shrink: 1;
+    padding: $ecc-size-block-whitespace * 0.25 $ecc-size-block-whitespace * 0.5;
 }

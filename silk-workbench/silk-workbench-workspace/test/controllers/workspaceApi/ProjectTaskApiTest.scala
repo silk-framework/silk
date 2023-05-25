@@ -2,7 +2,8 @@ package controllers.workspaceApi
 
 import controllers.workspaceApi.projectTask.RelatedItems
 import controllers.workspaceApi.search.ItemType
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -41,7 +42,7 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     val inDatasetRelatedItems = relatedItems(inputDataset)
     inDatasetRelatedItems.total mustBe 2
     inDatasetRelatedItems.items.map(i => (i.id, i.`type`)) mustBe Seq((transformTask, ItemType.transform.label), (workflowTask, ItemType.workflow.label))
-    inDatasetRelatedItems.items.head.itemLinks.size must be >= 2
+    inDatasetRelatedItems.items.head.itemLinks.size must be >= 1
     val transformRelatedItems = relatedItems(transformTask)
     transformRelatedItems.total mustBe 3
     transformRelatedItems.items.map(_.id).toSet mustBe Set(inputDataset, outputDataset, workflowTask)

@@ -165,7 +165,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
-  .dependsOn(core)
+  .dependsOn(core % "test->test;compile->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",

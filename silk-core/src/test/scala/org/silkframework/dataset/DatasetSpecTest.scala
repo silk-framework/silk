@@ -1,9 +1,10 @@
 package org.silkframework.dataset
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,7 +14,7 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
   behavior of "DatasetSpec"
 
   implicit val prefixes: Prefixes = Prefixes.empty
-  implicit val pluginContext: PluginContext = PluginContext.empty
+  implicit val pluginContext: PluginContext = TestPluginContext()
 
   it should "generate URI properties" in {
     val dataset = MockDataset()

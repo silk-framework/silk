@@ -1,9 +1,10 @@
 package org.silkframework.workspace.activity
-
+
+
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 
 import java.io.{InputStream, OutputStream}
 import java.time.Instant
@@ -88,7 +89,7 @@ class CachedActivityTest extends AnyFlatSpec with Matchers with TestUserContextT
     */
   private def loadWrittenValue: MetaData = {
     val xml = CacheResource.read(XML.load)
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     MetaData.MetaDataXmlFormat.read(xml)
   }
 
