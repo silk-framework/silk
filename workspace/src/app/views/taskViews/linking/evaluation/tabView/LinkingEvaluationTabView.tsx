@@ -57,6 +57,7 @@ import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { getHistory } from "../../../../../store/configureStore";
+import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -654,7 +655,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             />
                             <MenuItem
                                 text={t("ReferenceLinks.contextMenu.export")}
-                                href={`/linking/tasks/${projectId}/${linkingTaskId}/referenceLinks`}
+                                href={legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinks`)}
                             />
                         </ContextMenu>
                     </ToolbarSection>
