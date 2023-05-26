@@ -2,7 +2,7 @@ package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity.{CustomValueType, FloatValueType, UriValueType, ValueType}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
 import org.silkframework.util.Uri
 
 /**
@@ -25,7 +25,7 @@ class MappingTargetTest extends FlatSpec with MustMatchers {
   }
 
   private def roundTripTest(mappingTarget: MappingTarget): Unit = {
-    implicit val readContext = ReadContext()
+    implicit val readContext = TestReadContext()
     val mappingTargetRoundTrip = XmlSerialization.fromXml[MappingTarget](XmlSerialization.toXml(mappingTarget))
     mappingTarget mustBe mappingTargetRoundTrip
   }

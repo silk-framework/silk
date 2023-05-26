@@ -6,7 +6,7 @@ import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, Pr
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataPlain}
@@ -28,7 +28,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
   def projectPrefixesUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.fetchProjectPrefixes(projectId).url
   def projectPrefixUrl(projectId: String, prefixName: String): String = controllers.projectApi.routes.ProjectApi.addProjectPrefix(projectId, prefixName).url
   private def projectsMetaDataUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.updateProjectMetaData(projectId).url
-  implicit val readContext: ReadContext = ReadContext()
+  implicit val readContext: ReadContext = TestReadContext()
 
   it should "allow to create a new project by label" in {
     val projectIds = for(i <- 1 to 10) yield {

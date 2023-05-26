@@ -34,7 +34,7 @@ import scala.xml.Node
 /**
   * A dataset of entities.
   *
-  * @param pluging      The concrete plugin/implementation of a dataset.
+  * @param plugin       The concrete plugin/implementation of a dataset.
   * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
                         The additional attribute contains the URI of each entity.
   */

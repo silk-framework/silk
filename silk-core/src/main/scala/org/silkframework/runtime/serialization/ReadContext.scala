@@ -16,8 +16,8 @@ import org.silkframework.workspace.ProjectTrait
   *                            If set to false then no explicit/additional validation is done. Validation done inside the constructors
   *                            of business objects is of course still executed.
   */
-case class ReadContext(resources: ResourceManager = EmptyResourceManager(),
-                       prefixes: Prefixes = Prefixes.empty,
+case class ReadContext(resources: ResourceManager,
+                       prefixes: Prefixes,
                        identifierGenerator: IdentifierGenerator = new IdentifierGenerator(),
                        validationEnabled: Boolean = false,
                        user: UserContext = UserContext.Empty,

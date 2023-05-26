@@ -2,6 +2,7 @@ package controllers.linking.linkingTask
 
 import controllers.linking.evaluation.LinkageRuleEvaluationResult
 import controllers.workspace.taskApi.TaskApiUtils
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.ReferenceLink
 import org.silkframework.plugins.path.PathMetaDataPlugin
 import org.silkframework.rule.evaluation.{EvaluationResult, LinkageRuleEvaluator, ReferenceEntities}
@@ -135,6 +136,7 @@ object LinkingTaskApiUtils {
     PluginRegistry.pluginDescriptionsById(pluginId, assignableTo = Some(Seq(pluginParentClass))).headOption match {
       case Some(pluginDescription) =>
         val parameters = JsonHelpers.objectValue(operatorJson, PARAMETERS)
+        implicit val prefixes: Prefixes = project.config.prefixes
         val updatedParameters = TaskApiUtils.addLabelsToValues(project.id, parameters.value, pluginDescription)
         operatorJson ++ Json.obj(
           PARAMETERS -> JsObject(updatedParameters)

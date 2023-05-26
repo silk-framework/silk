@@ -55,7 +55,7 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
   /**
     * Generates a play Reads instance.
     */
-  def reader(implicit readContext: ReadContext = ReadContext()): Reads[T] = {
+  def reader(implicit readContext: ReadContext): Reads[T] = {
     new Reads[T] {
       def reads(json: JsValue): JsResult[T] = {
         try {

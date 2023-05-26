@@ -138,8 +138,6 @@ object PluginParameterAutoCompletionProvider {
   /** Get an auto-completion plugin by class. */
   def get(providerClass: Class[_ <: PluginParameterAutoCompletionProvider]): PluginParameterAutoCompletionProvider = {
     checkPluginClass(providerClass)
-    implicit val prefixes: Prefixes = Prefixes.empty
-    implicit val resourceManager: ResourceManager = EmptyResourceManager()
     try {
       providerClass.getConstructor().newInstance()
     } catch {

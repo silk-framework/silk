@@ -22,7 +22,7 @@ class CustomTasks @Inject() () extends InjectedController with UserContextAction
 
   def pushTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     request.body.asXml match {
       case Some(xml) =>
         try {

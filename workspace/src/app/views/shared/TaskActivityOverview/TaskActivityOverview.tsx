@@ -32,7 +32,7 @@ import {
     IActivityControlFunctions,
     IActivityListEntry,
 } from "./taskActivityOverviewTypings";
-import {activityActionCreator, activityStartPrioritized, fetchActivityInfos} from "./taskActivityOverviewRequests";
+import { activityActionCreator, activityStartPrioritized, fetchActivityInfos } from "./taskActivityOverviewRequests";
 import Loading from "../Loading";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
@@ -304,10 +304,14 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
     const startPrioritized = React.useCallback(async (activityName: string, project: string, task: string) => {
         const registerActivityError = (activityName: string, error: DIErrorTypes) => {
-            registerError(`TaskActivityOverview.startPrioritized`, `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`, error)
-        }
-        await activityStartPrioritized(activityName, project, task, registerActivityError)
-    }, [])
+            registerError(
+                `TaskActivityOverview.startPrioritized`,
+                `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`,
+                error
+            );
+        };
+        await activityStartPrioritized(activityName, project, task, registerActivityError);
+    }, []);
 
     // A single activity control
     const activityControl = (activity: IActivityListEntry, layoutConfig: IActivityControlLayoutProps): JSX.Element => {

@@ -300,6 +300,7 @@
             "createFirstItems": "Create your first {{items}} now.",
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
+            "noValuesAvailable": "No values available",
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
@@ -380,6 +381,14 @@
             "server": "Server error",
             "timeout": "Timeout"
         }
+    },
+    "transformEvaluationTabView": {
+        "table": {
+            "header": {
+                "transformEntities": "Transformed Entities"
+            }
+        },
+        "couldNotLoad": "Could not load evaluation."
     },
     "linkingEvaluationTabView": {
         "toolbar": {
@@ -966,5 +975,9 @@
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
+    },
+    "MappingTree": {
+        "loadingRules": "Loading rules",
+        "noRulesFound": "No rules found"
     }
 }

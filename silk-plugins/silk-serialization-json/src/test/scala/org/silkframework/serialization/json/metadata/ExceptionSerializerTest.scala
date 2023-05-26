@@ -2,7 +2,7 @@ package org.silkframework.serialization.json.metadata
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.metadata.{ExceptionSerializer, GenericExecutionFailure}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 
 class ExceptionSerializerTest extends FlatSpec with Matchers {
 
@@ -40,7 +40,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
       </Cause>
       <StackTrace>
       </StackTrace>
-    </Exception>)(ReadContext())
+    </Exception>)(TestReadContext())
     throwable.getMessage shouldBe message
   }
 
@@ -72,8 +72,8 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   def serializeThrowable(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializer
     try {
-      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext.empty)
-      val res = serializer.read(nde)(ReadContext())
+      val nde = serializer.write(GenericExecutionFailure(exception))(TestWriteContext())
+      val res = serializer.read(nde)(TestReadContext())
       res
     }
     catch {
@@ -89,8 +89,8 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   def serializeThrowableJson(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializerJson
     try {
-      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext.empty)
-      val res = serializer.read(nde)(ReadContext())
+      val nde = serializer.write(GenericExecutionFailure(exception))(TestWriteContext())
+      val res = serializer.read(nde)(TestReadContext())
       res
     }
     catch {

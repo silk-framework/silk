@@ -12,7 +12,7 @@ class XmlSerializationTest extends FlatSpec with MustMatchers {
 
   it should "serialize and read parameters" in {
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     val task = TestCustomTask("Some\nString\n  \t!!", 42)
     val node = XmlSerialization.toXml[CustomTask](task)
     val roundTripTask = XmlSerialization.fromXml[CustomTask](node)

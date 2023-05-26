@@ -5,7 +5,7 @@ import org.silkframework.rule.vocab._
 import org.silkframework.rule.{MappingTarget, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
@@ -24,8 +24,8 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
   }
 
   val mime = "application/json"
-  private implicit val readContext: ReadContext = ReadContext()
-  private implicit val writeContext: WriteContext[Any] = WriteContext.empty[Any]
+  private implicit val readContext: ReadContext = TestReadContext()
+  private implicit val writeContext: WriteContext[Any] = TestWriteContext[Any]()
 
   private def verify[T: ClassTag](value: T) = {
     val format = Serialization.formatForMime[T](mime)
