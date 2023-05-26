@@ -21,11 +21,18 @@ case class ReportingIterable(entities: Iterable[Entity])(implicit executionRepor
 case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater) extends CloseableIterator[Entity] {
 
   override def hasNext: Boolean = {
-    if(entities.hasNext) {
-      true
-    } else {
-      executionReport.executionDone()
-      false
+    try {
+      if (entities.hasNext) {
+        true
+      } else {
+        executionReport.executionDone()
+        false
+      }
+    } catch {
+      case NonFatal(ex) =>
+        executionReport.setExecutionError(Some(ex.getMessage))
+        executionReport.executionDone()
+        throw ex
     }
   }
 
@@ -36,6 +43,7 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
       } catch {
         case NonFatal(ex) =>
           executionReport.setExecutionError(Some(ex.getMessage))
+          executionReport.executionDone()
           throw ex
       }
     executionReport.increaseEntityCounter()

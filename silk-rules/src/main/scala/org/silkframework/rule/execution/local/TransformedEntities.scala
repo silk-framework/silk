@@ -176,11 +176,18 @@ class TransformedEntities(task: Task[TransformSpec],
   private class TransformReportIterator(iterator: CloseableIterator[Entity], report: TransformReportBuilder) extends CloseableIterator[Entity] {
 
     override def hasNext: Boolean = {
-      if (iterator.hasNext) {
-        true
-      } else {
-        context.value() = report.build(isDone = true)
-        false
+      try {
+        if (iterator.hasNext) {
+          true
+        } else {
+          context.value() = report.build(isDone = true)
+          false
+        }
+      } catch {
+        case NonFatal(ex) =>
+          report.setExecutionError(ex.getMessage)
+          context.value() = report.build(isDone = true)
+          throw ex
       }
     }
 
@@ -190,6 +197,7 @@ class TransformedEntities(task: Task[TransformSpec],
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
+          context.value() = report.build(isDone = true)
           throw ex
       }
     }
