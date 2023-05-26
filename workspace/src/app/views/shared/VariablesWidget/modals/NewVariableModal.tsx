@@ -120,7 +120,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 messageText={validationError?.name}
                 labelProps={{
                     htmlFor: "name",
-                    text: "Name",
+                    text: t("widget.VariableWidget.form.name", "Name"),
                 }}
             >
                 <TextField
@@ -139,7 +139,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             <FieldItem
                 labelProps={{
                     htmlFor: "description",
-                    text: "Description",
+                    text: t("widget.VariableWidget.form.description", "Description"),
                 }}
             >
                 <TextArea id="description" onChange={(e) => setDescription(e.target.value)} value={description} />

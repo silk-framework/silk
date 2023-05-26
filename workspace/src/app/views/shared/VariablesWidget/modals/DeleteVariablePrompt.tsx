@@ -22,13 +22,13 @@ const DeleteVariablePrompt: React.FC<DeleteVariablePromptProps> = ({
     return (
         <SimpleDialog
             size="small"
-            title="Delete Variable"
+            title={t("widget.VariableWidget.modalMessages.deleteModalTitle")}
             isOpen={isOpen}
             onClose={closeModal}
             notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
             actions={[
                 <Button
-                    key="copy"
+                    key="delete"
                     disruptive
                     onClick={deleteVariable}
                     disabled={isDeletingVariable}
@@ -37,11 +37,11 @@ const DeleteVariablePrompt: React.FC<DeleteVariablePromptProps> = ({
                     {t("widget.VariableWidget.actions.delete", "Delete")}
                 </Button>,
                 <Button key="cancel" onClick={closeModal}>
-                    No, thanks
+                    {t("widget.VariableWidget.actions.noThanks", "No, Thanks")}
                 </Button>,
             ]}
         >
-            <p>Are you sure you want to delete this variable?</p>
+            <p>{t("widget.VariableWidget.modalMessages.deletePrompt")}</p>
         </SimpleDialog>
     );
 };

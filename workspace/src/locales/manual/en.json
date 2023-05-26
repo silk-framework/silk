@@ -791,9 +791,21 @@
         },
         "VariableWidget": {
             "title": "Variables",
+            "noVariables": "No  Variables set",
+            "form": {
+                "name": "Name",
+                "value": "Value",
+                "description": "Description"
+            },
+            "modalMessages": {
+                "deleteModalTitle": "Delete Variable",
+                "deletePrompt": "Are you sure you want to delete this variable?"
+            },
             "actions": {
                 "add": "Add new variable",
-                "edit": "Edit variable"
+                "edit": "Edit variable",
+                "delete": "Delete variable",
+                "noThanks": "No, Thanks"
             },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project {{projectId}}"

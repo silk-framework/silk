@@ -148,7 +148,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     {loadingVariables ? (
                         <Loading />
                     ) : !variables.length ? (
-                        <p>No Variables set</p>
+                        <p>{t("widget.VariableWidget.noVariables", "No  Variables set")}</p>
                     ) : (
                         <DragDropContext onDragStart={handleVariableDragStart} onDragEnd={handleVariableDragEnd}>
                             <Droppable droppableId="variableDroppable">
