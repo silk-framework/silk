@@ -143,8 +143,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   private def reconfigureTask[T <: TaskSpec](workflowNode: WorkflowDependencyNode,
                                              task: Task[T])
                                             (implicit workflowRunContext: WorkflowRunContext): Task[T] = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = workflowTask.project.resources,
-                                                              user = workflowRunContext.userContext) // TODO: propagate prefixes?
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)(workflowRunContext.userContext)
     try {
       workflowRunContext.reconfiguredTasks.getOrElseUpdate(
         workflowNode.workflowNode, {

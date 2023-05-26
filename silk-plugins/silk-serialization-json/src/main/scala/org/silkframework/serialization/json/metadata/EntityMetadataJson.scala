@@ -1,7 +1,9 @@
 package org.silkframework.serialization.json.metadata
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata._
 import org.silkframework.failures.FailureClass
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
@@ -62,7 +64,7 @@ object EntityMetadataJson{
 
   def apply(base: EntityMetadata[JsValue]): EntityMetadataJson = EntityMetadataJson(base.metadata)
 
-  def apply(value: String): EntityMetadataJson = apply(JsonSerializer.fromString(value, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext()))
+  def apply(value: String): EntityMetadataJson = apply(JsonSerializer.fromString(value, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext(EmptyResourceManager(), Prefixes.empty)))
 
   EntityMetadata.registerNewEntityMetadataFormat(EntityMetadataJson())
 

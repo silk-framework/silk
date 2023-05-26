@@ -2,7 +2,7 @@ package helper
 
 import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.Idle
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import org.silkframework.serialization.json.ActivitySerializers.StatusJsonFormat
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
@@ -37,7 +37,7 @@ trait ActivityApiClient extends ApiClient {
   def taskActivityStatus(projectId: String, taskId: String, activityId: String): Status = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/status")
     val response = request.get()
-    implicit val readFormat = ReadContext()
+    implicit val readFormat: ReadContext = TestReadContext()
     StatusJsonFormat.read(checkResponse(response).body[JsValue])
   }
 

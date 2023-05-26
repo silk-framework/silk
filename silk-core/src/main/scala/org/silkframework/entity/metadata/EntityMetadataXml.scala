@@ -1,8 +1,10 @@
 package org.silkframework.entity.metadata
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.EntityMetadata.{FAILURE_KEY, METADATA_KEY}
-import org.silkframework.entity.metadata.EntityMetadataXml.XmlSerializer
+import org.silkframework.entity.metadata.EntityMetadataXml.{XmlSerializer, emptyReadContext}
 import org.silkframework.failures.FailureClass
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext, XmlFormat}
 
 import scala.xml.Node
@@ -11,7 +13,7 @@ import scala.xml.Node
 case class EntityMetadataXml(override val metadata: Map[String, LazyMetadata[_, Node]] = Map[String, LazyMetadata[_, Node]]()) extends EntityMetadata[Node] {
 
   def this(rawMetadata: String) = {
-    this(XmlSerializer.fromString(rawMetadata, XmlFormat.MIME_TYPE_TEXT)(ReadContext()))
+    this(XmlSerializer.fromString(rawMetadata, XmlFormat.MIME_TYPE_TEXT)(emptyReadContext))
   }
 
   override def addFailure(failure: FailureClass): EntityMetadata[Node] = {
@@ -56,9 +58,11 @@ object EntityMetadataXml{
     EntityMetadataXml(resMap)
   }
 
+  val emptyReadContext: ReadContext = ReadContext(prefixes = Prefixes.empty, resources = EmptyResourceManager())
+
   def apply(t: FailureClass): EntityMetadata[Node] = apply(Map(FAILURE_KEY -> t))(classOf[FailureClass])
 
-  def apply(value: String): EntityMetadata[Node] = XmlSerializer.fromString(value, XmlFormat.MIME_TYPE_TEXT)(ReadContext())
+  def apply(value: String): EntityMetadata[Node] = XmlSerializer.fromString(value, XmlFormat.MIME_TYPE_TEXT)(emptyReadContext)
 
   /**
     * The XML serializer used to serialize EntityMetadataXml

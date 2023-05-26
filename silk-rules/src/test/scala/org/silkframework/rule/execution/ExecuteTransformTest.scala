@@ -3,7 +3,6 @@ package org.silkframework.rule.execution
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, Matchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
@@ -12,7 +11,7 @@ import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 
 class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"

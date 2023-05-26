@@ -8,9 +8,6 @@ import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat,
 import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json._
 
-/**
-  *
-  */
 object LinkingSerializers {
 
   class LinkJsonFormat(rule: Option[LinkageRule],
@@ -152,6 +149,18 @@ object LinkingSerializers {
         POSITIVE -> JsArray(value.positive.toSeq.map(LinkJsonFormat.write)),
         NEGATIVE -> JsArray(value.negative.toSeq.map(LinkJsonFormat.write)),
         UNLABELED -> JsArray(value.unlabeled.toSeq.map(LinkJsonFormat.write))
+      )
+    }
+  }
+
+  implicit object DetailedEntityJsonFormat extends WriteOnlyJsonFormat[DetailedEntity] {
+    final val URIS = "uris"
+    final val VALUES = "values"
+
+    override def write(detailedEntity: DetailedEntity)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        URIS -> detailedEntity.uris,
+        VALUES -> detailedEntity.values.map(ValueJsonFormat.write)
       )
     }
   }

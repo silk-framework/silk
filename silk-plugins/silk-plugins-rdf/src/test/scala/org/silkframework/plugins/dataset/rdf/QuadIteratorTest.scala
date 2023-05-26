@@ -1,16 +1,15 @@
 package org.silkframework.plugins.dataset.rdf
 
 import java.io.StringReader
-
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.rdf.model.impl.StatementImpl
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
+import org.silkframework.util.MockitoSugar
 
 class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
 

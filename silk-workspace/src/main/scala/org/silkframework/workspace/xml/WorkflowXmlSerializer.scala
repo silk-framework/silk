@@ -51,7 +51,7 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
    */
   override def writeTask(task: Task[Workflow], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
     val workflowXml = toXml(task)
     resources.get(task.id.toString + ".xml").write() { os => workflowXml.write(os) }
   }

@@ -1057,7 +1057,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val includeReferenceLinks = request.includeReferenceLinks.getOrElse(false)
     val includeEvaluationLinks = request.includeEvaluationLinks.getOrElse(true)
     val project = linkTask.project
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, resources = project.resources)
     val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     var links: Seq[EvaluatedLinkWithDecision] = Seq.empty

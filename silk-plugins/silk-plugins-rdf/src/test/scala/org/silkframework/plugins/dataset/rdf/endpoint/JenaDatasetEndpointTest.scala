@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.DatasetFactory
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.MockitoSugar
 
 /**
   * Created on 3/14/16.

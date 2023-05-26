@@ -72,17 +72,17 @@ lazy val commonSettings = Seq(
   (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.4" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
-  libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
-  libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
+  libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % "test",
+  libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.7",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.7.1",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.5",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5",
 
   // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
   // Can be removed as soon as there are newer stable versions of logback
@@ -113,11 +113,11 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.2"
   )
@@ -127,7 +127,7 @@ lazy val rules = (project in file("silk-rules"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Rules",
-    libraryDependencies += "org.postgresql" % "postgresql" % "42.2.5",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.5.4",
     libraryDependencies += "org.apache.jena" % "jena-core" % "4.7.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % "4.7.0" exclude("org.slf4j", "slf4j-log4j12")
   )
@@ -151,15 +151,15 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(
     name := "Silk Plugins RDF",
     libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.7.0" % "test",
-    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.3"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
-  .dependsOn(core)
+  .dependsOn(core % "test->test;compile->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
-    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.8.3",
+    libraryDependencies += "com.univocity" % "univocity-parsers" % "2.9.1",
     libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.4.0"
   )
 
@@ -168,7 +168,7 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins XML",
-    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "9.8.0-6"
+    libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "11.5"
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
@@ -176,8 +176,8 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.7",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.13.5",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -207,8 +207,8 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.0"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4",
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.8"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -216,7 +216,7 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
   .settings(commonSettings: _*)
   .settings(
     name := "Persistent caching",
-    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.2"
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.3"
   )
 
 // Aggregate all plugins
@@ -358,7 +358,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -395,10 +395,10 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench OpenAPI",
-    libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.3",
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.0.32",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.62",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "4.10.3"
+    libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.4",
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.12",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.78",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "4.18.1"
   )
 
 lazy val workbench = (project in file("silk-workbench"))

@@ -6,7 +6,7 @@ class ClassPluginDescriptionTest extends FlatSpec with MustMatchers {
 
   behavior of "PluginDescription"
 
-  private implicit val pluginContext: PluginContext = PluginContext.empty
+  private implicit val pluginContext: PluginContext = TestPluginContext()
   private val pluginDesc = ClassPluginDescription(classOf[TestPlugin])
 
   it should "create plugin instances with provided parameter values" in {

@@ -6,7 +6,7 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsArray, JsObject, JsValue}
 import JsonHelpers._
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.serialization.{TestWriteContext, WriteContext}
 import JsonSerializers._
 
 class PluginSerializersTest extends FlatSpec with MustMatchers {
@@ -54,7 +54,7 @@ class PluginSerializersTest extends FlatSpec with MustMatchers {
                         overviewOnly: Boolean = false,
                         taskType: Option[String] = None): (JsObject, PluginDescription[_]) = {
     val pluginDescription = ClassPluginDescription(pluginClass)
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+    implicit val writeContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
     val json = PluginDescriptionSerializers.PluginListJsonFormat.serializePlugin(pluginDescription, markdown, overviewOnly, taskType, withLabels = false)
     (json, pluginDescription)
   }
