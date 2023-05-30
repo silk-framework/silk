@@ -72,7 +72,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)
                                                 (implicit userContext: UserContext): Unit = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = resources, user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = Prefixes.empty, resources = resources, user = userContext)
     val taskType = implicitly[ClassTag[T]].runtimeClass
     val inMemoryTask =
       task.data match {

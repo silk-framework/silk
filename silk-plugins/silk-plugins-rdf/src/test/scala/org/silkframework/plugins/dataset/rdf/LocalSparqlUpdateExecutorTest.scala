@@ -10,7 +10,7 @@ import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, TestMocks}
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
@@ -20,7 +20,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Test
 
   implicit val uc: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
-  implicit val pluginContext: PluginContext = PluginContext.empty
+  implicit val pluginContext: PluginContext = TestPluginContext()
 
   // execution data
   private val executor = LocalSparqlUpdateExecutor()

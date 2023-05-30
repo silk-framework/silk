@@ -1,6 +1,8 @@
 package org.silkframework.serialization.json.metadata
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.{LazyMetadata, MetadataSerializer}
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
@@ -27,7 +29,7 @@ class LazyMetadataJson[Typ] private[metadata](
     */
   override lazy val metadata: Option[Typ] = obj match{
     case Some(x) => Some(x)
-    case None => Option(serializer.read(serialized)(ReadContext()))
+    case None => Option(serializer.read(serialized)(ReadContext(EmptyResourceManager(), Prefixes.empty)))
   }
 
   /**

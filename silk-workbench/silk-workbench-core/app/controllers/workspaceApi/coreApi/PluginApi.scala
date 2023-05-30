@@ -16,6 +16,7 @@ import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
@@ -133,7 +134,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
              withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
-        implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext)
+        implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext, resources = EmptyResourceManager())
         var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
           taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
         val autoConfigurable = classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(pluginDesc.pluginClass)
@@ -278,7 +279,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)
     }
-    implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = user)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = user, resources = EmptyResourceManager())
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
       val withTaskType = PluginApiCache.taskType(pluginId) match {

@@ -23,10 +23,10 @@ trait PluginContext {
 
 object PluginContext {
 
-  def empty: PluginContext = PlainPluginContext()
+  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None)
 
-  def apply(prefixes: Prefixes = Prefixes.empty,
-            resources: ResourceManager = EmptyResourceManager(),
+  def apply(prefixes: Prefixes,
+            resources: ResourceManager,
             user: UserContext = UserContext.Empty,
             projectId: Option[Identifier] = None): PluginContext = {
     PlainPluginContext(prefixes, resources, user, projectId)
@@ -40,10 +40,10 @@ object PluginContext {
     PlainPluginContext(config.prefixes, projectResource, user, Some(config.id))
   }
 
-  private case class PlainPluginContext(prefixes: Prefixes = Prefixes.empty,
-                                        resources: ResourceManager = EmptyResourceManager(),
-                                        user: UserContext = UserContext.Empty,
-                                        projectId: Option[Identifier] = None) extends PluginContext
+  private case class PlainPluginContext(prefixes: Prefixes,
+                                        resources: ResourceManager,
+                                        user: UserContext,
+                                        projectId: Option[Identifier]) extends PluginContext
 
 }
 

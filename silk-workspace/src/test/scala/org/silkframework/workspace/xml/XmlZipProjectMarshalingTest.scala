@@ -1,11 +1,11 @@
 package org.silkframework.workspace.xml
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.Tag
+import org.silkframework.config.{Prefixes, Tag}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource._
 import org.silkframework.util.Uri
 import org.silkframework.workspace.resources.InMemoryResourceRepository
@@ -70,7 +70,7 @@ class XmlZipProjectMarshalingTest extends FlatSpec with Matchers {
       resources.list shouldBe empty
     }
 
-    implicit val pluginContext: PluginContext = PluginContext(resources = resources)
+    implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources)
 
     // Project
     val project = workspace.readProject(projectName).get

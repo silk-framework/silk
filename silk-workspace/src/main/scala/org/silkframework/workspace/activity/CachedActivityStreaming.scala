@@ -1,10 +1,11 @@
 package org.silkframework.workspace.activity
 
+import org.silkframework.config.Prefixes
+
 import java.io.BufferedInputStream
 import java.util.logging.Level
-
 import org.silkframework.runtime.activity.ActivityContext
-import org.silkframework.runtime.resource.ResourceNotFoundException
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceNotFoundException}
 import org.silkframework.runtime.serialization.{ReadContext, StreamXml, StreamXmlFormat}
 
 import scala.util.Try
@@ -28,7 +29,7 @@ trait CachedActivityStreaming[T] extends CachedActivity[T] {
 
   override protected def readValue(context: ActivityContext[T]): Option[T] = {
     try {
-      implicit val readContext: ReadContext = ReadContext()
+      implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty)
       val inputStream = new BufferedInputStream(resource.inputStream)
       val value = StreamXml.read[T](inputStream)
       context.log.info(s"Cache read from $resource")

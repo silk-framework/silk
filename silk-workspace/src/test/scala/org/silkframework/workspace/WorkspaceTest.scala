@@ -7,7 +7,7 @@ import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, TestResourceManager}
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
@@ -58,12 +58,12 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     val project1 = Identifier("project1")
     val task1 = Identifier("task1")
     workspaceProvider.putProject(ProjectConfig(project1, metaData = MetaData(Some(project1))))
-    workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()), EmptyResourceManager())
+    workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()), TestResourceManager())
 
     val project2 = Identifier("project2")
     val task2 = Identifier("task2")
     workspaceProvider.putProject(ProjectConfig(project2, metaData = MetaData(Some(project2))))
-    workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()), EmptyResourceManager())
+    workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()), TestResourceManager())
 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 
@@ -94,7 +94,7 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     val project = Identifier("project")
     val task = Identifier("task")
     workspaceProvider.putProject(ProjectConfig(project, metaData = MetaData(Some(project))))
-    workspaceProvider.putTask(project, PlainTask(task,  TestTask()), EmptyResourceManager())
+    workspaceProvider.putTask(project, PlainTask(task,  TestTask()), TestResourceManager())
 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 

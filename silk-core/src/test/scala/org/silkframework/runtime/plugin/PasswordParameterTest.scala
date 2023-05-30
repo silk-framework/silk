@@ -7,7 +7,7 @@ class PasswordParameterTest extends FlatSpec with MustMatchers {
 
   behavior of "password parameter"
 
-  implicit val context: PluginContext = PluginContext.empty
+  implicit val context: PluginContext = TestPluginContext()
 
   it should "store the encrypted password" in {
     val password = "some secret password"

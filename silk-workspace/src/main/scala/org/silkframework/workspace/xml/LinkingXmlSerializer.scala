@@ -65,7 +65,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
    */
   def writeTask(data: Task[LinkSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
 
     // Write resources
     val linkSpecXml = toXml(data)
