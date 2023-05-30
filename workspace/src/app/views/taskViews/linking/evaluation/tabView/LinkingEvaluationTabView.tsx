@@ -476,7 +476,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setShowAddLinkModal(false);
     }, []);
 
-    const handleLinkingTabSwitch = React.useCallback((tabId: number) => {
+    const handleLinkingTabSwitch = React.useCallback((tabId: number, prevTabId: number) => {
+        if(prevTabId === tabId) {
+            return
+        }
         manualLinkChange.current = false;
         evaluationResults.current = undefined;
         const history = getHistory();
