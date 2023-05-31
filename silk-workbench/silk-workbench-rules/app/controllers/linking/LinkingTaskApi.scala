@@ -1073,8 +1073,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val overallLinkCount = links.size
     val searchTerms = StringUtils.extractSearchTerms(query)
     if (searchTerms.nonEmpty) {
+      val (usedPathsSource, usedPathTarget) = schemaPathFunctions(linkTask.data)
       links = links.filter(link => {
-        val searchText = searchStringFromLink(link)
+        val searchText = searchStringFromLink(link, usedPathsSource, usedPathTarget)
         StringUtils.matchesSearchTerm(searchTerms, searchText)
       })
     }
@@ -1087,6 +1088,20 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val resultStats = ResultStats(overallLinkCount, links.size)
     links = links.slice(offset, offset + limit)
     linkEvaluationJsonResult(evaluationStats, linkingRule, links, resultStats, inputTaskLabel(linkTask))
+  }
+
+  private def schemaPathFunctions(linkSpec: LinkSpec): (String => Boolean, String => Boolean) = {
+    linkSpec.inputSchemataOpt match {
+      case Some(Seq(sourceSchema, targetSchema)) =>
+        val sourcePaths = sourceSchema.typedPaths.map(_.normalizedSerialization).toSet
+        val targetPaths = targetSchema.typedPaths.map(_.normalizedSerialization).toSet
+        (sourcePaths.contains, targetPaths.contains)
+      case _ =>
+        def alwaysTrue(path: String): Boolean = {
+          true
+        }
+        (alwaysTrue, alwaysTrue)
+    }
   }
 
   private def retrieveEvaluationLinks(linkTask: ProjectTask[LinkSpec])
@@ -1172,12 +1187,15 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     )
   }
 
-  private def searchStringFromLink(link: Link): String = {
-    val valueString = link.entities.map(e => s" ${searchStringFromEntity(e.source)} ${searchStringFromEntity(e.target)}").getOrElse("")
+  private def searchStringFromLink(link: Link, usedSourcePath: String => Boolean, usedTargetPath: String => Boolean): String = {
+    val valueString = link.entities.map(e => s" ${searchStringFromEntity(e.source, usedSourcePath)} ${searchStringFromEntity(e.target, usedTargetPath)}").getOrElse("")
     s"${link.source} ${link.target} $valueString".toLowerCase
   }
 
-  private def searchStringFromEntity(entity: Entity): String = {
-    entity.values.flatten.mkString(" ")
+  private def searchStringFromEntity(entity: Entity, usedPath: String => Boolean): String = {
+    entity.schema.typedPaths.zip(entity.values)
+      .filter(pathAndValues => usedPath(pathAndValues._1.normalizedSerialization))
+      .flatMap(_._2)
+      .mkString(" ")
   }
 }
