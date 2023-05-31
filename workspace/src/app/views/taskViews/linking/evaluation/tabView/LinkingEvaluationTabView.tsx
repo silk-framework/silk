@@ -58,6 +58,7 @@ import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { getHistory } from "../../../../../store/configureStore";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
+import {extractSearchWords, createMultiWordRegex} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -502,6 +503,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         []
     );
 
+    // To check if only the row body matches
+    const multiWordSearchRegex = createMultiWordRegex(extractSearchWords(searchQuery, true), false);
+
     return (
         <section className="diapp-linking-evaluation">
             {showDeleteReferenceLinkModal && (
@@ -752,22 +756,25 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         {(evaluationResults.current && evaluationResults.current.links.length && !loading && (
                             <TableBody>
                                 {rowData.map((row, rowIdx) => {
+                                    const result = evaluationResults.current?.links[rowIdx]!;
+                                    const resultString = `${result.source} ${result.target}`.toLowerCase()
+                                    const expandedBecauseOfStringMatch = !!searchQuery.trim() && !multiWordSearchRegex.test(resultString)
                                     return (
                                         <LinkingEvaluationRow
                                             key={rowIdx}
                                             colSpan={headers.length + 3}
                                             rowIdx={rowIdx}
                                             inputValues={inputValues[rowIdx]}
-                                            linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
+                                            linkingEvaluationResult={result}
                                             rowIsExpandedByParent={allRowsExpanded}
                                             handleReferenceLinkTypeUpdate={handleReferenceLinkTypeUpdate}
                                             searchQuery={searchQuery}
-                                            // carbonRowProps={getRowProps({ row })} // TODO: What is this needed for? This leads to unnecessary re-renders even though it didn't change
                                             linkRuleOperatorTree={evaluationResults.current?.linkRule.operator}
                                             inputValuesExpandedByDefault={showInputValues}
                                             operatorTreeExpandedByDefault={showOperators}
                                             evaluationMap={linksToValueMap.current[rowIdx]}
                                             operatorPlugins={operatorPlugins}
+                                            expandedBySearch={expandedBecauseOfStringMatch}
                                         />
                                     );
                                 })}

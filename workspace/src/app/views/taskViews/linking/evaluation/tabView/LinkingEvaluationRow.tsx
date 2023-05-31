@@ -49,6 +49,8 @@ interface ExpandedEvaluationRowProps {
     inputValuesExpandedByDefault: boolean;
     operatorPlugins: Array<IPluginDetails>;
     evaluationMap?: Map<string, EvaluationResultType[number]>;
+    /** If the row is expanded because of a search match. Only the row values should be shown in that case. */
+    expandedBySearch: boolean
 }
 
 const operatorInputMapping = {
@@ -77,6 +79,7 @@ export const LinkingEvaluationRow = React.memo(
         inputValuesExpandedByDefault,
         operatorPlugins,
         evaluationMap,
+        expandedBySearch
     }: ExpandedEvaluationRowProps) => {
         const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo | undefined>(undefined);
         const [valueToHighlight, setValueToHighlight] = React.useState<HoveredValuedType | undefined>(undefined);
@@ -102,19 +105,20 @@ export const LinkingEvaluationRow = React.memo(
         }, []);
 
         React.useEffect(() => {
-            setRowIsExpanded(rowIsExpandedByParent);
-        }, [rowIsExpandedByParent]);
+            setRowIsExpanded(rowIsExpandedByParent || expandedBySearch);
+        }, [rowIsExpandedByParent, expandedBySearch]);
 
         React.useEffect(() => {
             if (rowIsExpanded) {
                 if (inputValuesExpandedByDefault !== inputValueTableExpanded) {
                     setInputValueTableExpanded(inputValuesExpandedByDefault);
                 }
-                if (operatorTreeExpandedByDefault !== operatorTreeExpansion.expanded) {
-                    setOperatorTreeExpansion({ ...operatorTreeExpansion, expanded: operatorTreeExpandedByDefault });
+                const treeExpanded = operatorTreeExpandedByDefault && (!expandedBySearch || rowIsExpandedByParent)
+                if (treeExpanded !== operatorTreeExpansion.expanded) {
+                    setOperatorTreeExpansion({ ...operatorTreeExpansion, expanded: treeExpanded });
                 }
             }
-        }, [rowIsExpanded]);
+        }, [rowIsExpanded, expandedBySearch, rowIsExpandedByParent]);
 
         const toggleRuleTreeExpand = React.useCallback(() => {
             setOperatorTreeExpansion((old) => ({
