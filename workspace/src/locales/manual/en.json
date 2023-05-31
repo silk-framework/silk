@@ -4,7 +4,7 @@
         "createTitleGeneric": "Create new item",
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
-        "updateTitle": "Update item of type {{type}}",
+        "updateTitle": "Update item {{type}}",
         "autoConfigButton": "Auto-config",
         "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
         "autoConfigParametersUpdated": "Auto-configuration has changed {{number}} parameter values.",
@@ -178,7 +178,8 @@
     "ParameterWidget": {
         "AutoComplete": {
             "createNewItem": "Custom entry: '{{query}}'",
-            "fetchErrorTitle": "Could not fetch auto-completion suggestions. "
+            "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
+            "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
         }
     },
     "PrefixDialog": {
@@ -288,6 +289,7 @@
         },
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
+            "anErrorHasOccurred": "An error has occurred.",
             "allTypes": "All types",
             "cloneModalTitle": "New name of cloned {{item}}",
             "cloneOf": "Copy of {{item}}",
@@ -298,6 +300,7 @@
             "createFirstItems": "Create your first {{items}} now.",
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
+            "noValuesAvailable": "No values available",
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
@@ -328,6 +331,7 @@
             "itemType": "Item type",
             "less": "less",
             "more": "more",
+            "loading": "Loading",
             "required": "required",
             "sortOptions": "Sort options",
             "summary": "Summary",
@@ -377,6 +381,14 @@
             "server": "Server error",
             "timeout": "Timeout"
         }
+    },
+    "transformEvaluationTabView": {
+        "table": {
+            "header": {
+                "transformEntities": "Transformed Entities"
+            }
+        },
+        "couldNotLoad": "Could not load evaluation."
     },
     "linkingEvaluationTabView": {
         "toolbar": {
@@ -476,6 +488,8 @@
             "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links.",
             "scoreWidget": {
+                "title": "Evaluation",
+                "notStarted": "Click button to run evaluation",
                 "showExamples": "Show Examples",
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
@@ -549,7 +563,8 @@
                 }
             },
             "startEvaluation": "Start evaluation",
-            "showEvaluation": "Show evaluation"
+            "showEvaluation": "Show evaluation examples",
+            "hideEvaluation": "Hide evaluation examples"
         }
     },
     "taskViews": {
@@ -960,5 +975,9 @@
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
+    },
+    "MappingTree": {
+        "loadingRules": "Loading rules",
+        "noRulesFound": "No rules found"
     }
 }

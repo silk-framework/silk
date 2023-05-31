@@ -3,6 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
@@ -93,15 +94,14 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Version of readTasks that returns a Seq[Try[Task[T]]]
     **/
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
-                                                   projectResources: ResourceManager)
-                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    primaryWorkspace.readTasks[T](project, projectResources)
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = {
+    primaryWorkspace.readTasks[T](project)
   }
 
-  override def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
-    primaryWorkspace.readAllTasks(project, projectResources)
+  override def readAllTasks(project: Identifier)
+                           (implicit context: PluginContext): Seq[LoadedTask[_]] = {
+    primaryWorkspace.readAllTasks(project)
   }
 
   /**

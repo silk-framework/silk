@@ -15,12 +15,9 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
-import org.silkframework.test.PluginTest
+import org.silkframework.rule.test.DistanceMeasureTest
 
-
-
-
-class LevenshteinDistanceTest extends PluginTest {
+class LevenshteinDistanceTest extends DistanceMeasureTest[LevenshteinDistance] {
 
   lazy val metric = new LevenshteinDistance()
 
@@ -36,11 +33,6 @@ class LevenshteinDistanceTest extends PluginTest {
     metric.evaluate("sitting", "kitten", 3.0) should equal(3)
   }
 
-  it should "return distance 3 (Saturday, Sunday)" in {
-    metric.evaluate("Saturday", "Sunday") should equal(3)
-    metric.evaluate("Sunday", "Saturday") should equal(3)
-  }
-
   it should "index correctly" in {
     (metric.indexValue("Sunday", 3, sourceOrTarget = false) matches metric.indexValue("Saturday", 2, sourceOrTarget = false)) should equal(false)
     (metric.indexValue("Sunday", 3, sourceOrTarget = false) matches metric.indexValue("Saturday", 3, sourceOrTarget = false)) should equal(true)
@@ -50,6 +42,4 @@ class LevenshteinDistanceTest extends PluginTest {
     LevenshteinDistance(qGramsSize = 1).indexValue("test", 1.0, sourceOrTarget = false) should not equal Index.default
     LevenshteinDistance(qGramsSize = 0).indexValue("test", 1.0, sourceOrTarget = false) shouldBe Index.default
   }
-
-  override def pluginObject: LevenshteinDistance = metric
 }

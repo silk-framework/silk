@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.json
 
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.UntypedPath
@@ -9,6 +8,7 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.util.MockitoSugar
 
 class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
   behavior of "Local JSON Parser Task Executor"
@@ -62,5 +62,16 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
     multiEntityTable.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
     multiEntityTable.subTables.size mustBe 1
     multiEntityTable.subTables.head.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+  }
+
+  it should "support the in-memory version of the JSON dataset, e.g. supporting backward paths" in {
+    val outputSchema = EntitySchema("", IndexedSeq(UntypedPath.parse("\\../rootId")).map(_.asStringTypedPath))
+    val result = executor.execute(task, Seq(inputEntities),
+      output = ExecutorOutput(None, Some(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema)))),
+      execution = LocalExecution(false)
+    )
+    result mustBe defined
+    val values = result.get.entities.flatMap(_.values).flatten
+    values mustBe Seq("1", "1")
   }
 }

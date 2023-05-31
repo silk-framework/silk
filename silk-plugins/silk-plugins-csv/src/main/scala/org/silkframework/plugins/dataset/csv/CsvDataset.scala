@@ -97,6 +97,8 @@ case class CsvDataset (
     }
     quote
   }
+
+  def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(supportsMultipleTables = false)
 }
 
 object CsvDataset {

@@ -1,6 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
@@ -12,6 +13,7 @@ import scala.xml.Node
 /**
   * Base trait of all task specifications.
   */
+@PluginType()
 trait TaskSpec {
 
   /**

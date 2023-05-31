@@ -105,8 +105,8 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
-                     time: String): Action[AnyContent] = Action(parse.json) {
-    implicit val wc: WriteContext[JsValue] = WriteContext.empty[JsValue]
+                     time: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val wc: WriteContext[JsValue] = WriteContext.fromProject(WorkspaceFactory().workspace.project(projectId))
     val report = ExecutionReportManager().retrieveReport(ReportIdentifier(projectId, taskId, Instant.parse(time)))
     val jsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
     Ok(jsonFormat.write(report))
@@ -140,7 +140,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                       schema = new Schema(implementation = classOf[String])
                     )
                     taskId: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+    implicit val wc: WriteContext[JsValue] = WriteContext.fromProject(WorkspaceFactory().workspace.project(projectId))
     val report = retrieveCurrentReport(projectId, taskId).apply().report
     Ok(ExecutionReportJsonFormat.write(report))
   }
@@ -181,11 +181,12 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                                   schema = new Schema(implementation = classOf[String])
                                 )
                                 nodeId: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+    val project = WorkspaceFactory().workspace.project(projectId)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject(project)
     val workflowReport = retrieveCurrentReport(projectId, taskId).apply().report
     var taskReports = workflowReport.retrieveReports(nodeId)
     if(taskReports.isEmpty) {
-      val task = WorkspaceFactory().workspace.project(projectId).task[Workflow](taskId)
+      val task = project.task[Workflow](taskId)
       taskReports = Seq(
         SimpleExecutionReport(
           task = task,
@@ -239,7 +240,6 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                              schema = new Schema(implementation = classOf[String])
                            )
                            timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     val startTime = System.currentTimeMillis()
     val report = retrieveCurrentReport(projectId, taskId).apply().report
 
@@ -283,7 +283,6 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                                     )
                                     taskId: String): WebSocket = {
     implicit val userContext: UserContext = UserContext.Empty
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     val currentReport = retrieveCurrentReport(projectId, taskId)
 
     var previousVersion = -1

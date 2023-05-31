@@ -14,9 +14,10 @@
 
 package org.silkframework.rule.plugins.transformer.tokenization
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "tokenize",
@@ -25,10 +26,12 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExa
   description = "Tokenizes all input values.")
 @TransformExamples(Array(
   new TransformExample(
+    description = "By default, splits values at whitespaces.",
     input1 = Array("Hello World"),
     output = Array("Hello", "World")
   ),
   new TransformExample(
+    description = "Optionally, splits values at the provided regex.",
     parameters = Array("regex", ","),
     input1 = Array(".175,.050"),
     output = Array(".175", ".050")

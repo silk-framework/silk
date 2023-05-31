@@ -1,7 +1,8 @@
 package org.silkframework.rule.plugins.transformer.selection
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @TransformExamples(Array(
   new TransformExample(

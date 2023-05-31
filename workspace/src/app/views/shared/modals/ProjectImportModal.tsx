@@ -146,8 +146,16 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         errorCounter = errorCounter + 1;
                     }
                 }
-                close();
-                dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+                if (status.success) {
+                    close();
+                    dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+                } else {
+                    setStartProjectImportExecutionError([
+                        status.failureMessage ?? "Project could not be imported.",
+                        generateNewProjectId,
+                        overWriteExistingProject,
+                    ]);
+                }
             } catch (ex) {
                 setStartProjectImportExecutionError([
                     " " + errorDetails(ex),
@@ -383,9 +391,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             () => projectImportId && loadProjectImportDetails(projectImportId)
         )
     ) : startProjectImportExecutionError ? (
-        errorRetryElement(
-            "Failed to start execution of the project import! " + startProjectImportExecutionError[0],
-            () => startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
+        errorRetryElement(`${t("common.messages.anErrorHasOccurred")} ${startProjectImportExecutionError[0]}`, () =>
+            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
         )
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)

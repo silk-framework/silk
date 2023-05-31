@@ -6,8 +6,8 @@ import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource, ReadOnlyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.resource._
 import org.silkframework.util.Uri
 
 import java.io.StringReader
@@ -20,7 +20,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
-  implicit val pluginContext: PluginContext = PluginContext(resources = resources)
+  implicit val pluginContext: PluginContext = TestPluginContext(prefixes, resources)
 
   val settings =
     CsvSettings(

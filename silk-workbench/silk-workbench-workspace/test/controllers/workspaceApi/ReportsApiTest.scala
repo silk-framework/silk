@@ -1,34 +1,24 @@
 package controllers.workspaceApi
 
-import akka.Done
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.ws.{Message, TextMessage, WebSocketRequest}
-import akka.stream.Graph
-import akka.stream.scaladsl.Keep
-import akka.stream.scaladsl.{Flow, Sink, Source}
-import config.WorkbenchConfig
 import controllers.util.ReportsApiClient
 import helper.IntegrationTestTrait
+import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.{CustomTask, PlainTask, Prefixes, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, SimpleExecutionReport}
-import org.silkframework.runtime.activity.{ActivityContext, Observable, UserContext, ValueHolder}
+import org.silkframework.runtime.activity.{ActivityContext, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.routing.Router
-import controllers.workspaceApi.routes.ReportsApi
-import org.scalatest.concurrent.Eventually.eventually
-import play.api.libs.json.Json
 
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, MINUTES}
-import scala.concurrent.{Await, Future, Promise}
 
 class ReportsApiTest extends FlatSpec with IntegrationTestTrait with ReportsApiClient with MustMatchers {
 
@@ -63,7 +53,9 @@ class ReportsApiTest extends FlatSpec with IntegrationTestTrait with ReportsApiC
 
     // Wait until first task is being executed
     eventually {
-      activity.value().report.taskReports must not be empty
+      val taskReports = activity.value().report.taskReports
+      taskReports must not be empty
+      taskReports.head.report.task.data.asInstanceOf[TestCustomTask].reportHolder must not be null
     }
 
     // Check the initial execution report
@@ -154,11 +146,14 @@ class ReportsApiTest extends FlatSpec with IntegrationTestTrait with ReportsApiC
 
 case class TestCustomTask() extends CustomTask {
 
+  @volatile
   var entityCount: Int = 0
 
+  @volatile
   var finish: Boolean = false
 
   // Will be set by the executor
+  @volatile
   var reportHolder: ValueHolder[ExecutionReport] = null
 
   def updateReport(entityCount: Int, isDone: Boolean = false): Unit = {

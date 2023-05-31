@@ -376,7 +376,6 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                       taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    implicit val readContext: ReadContext = ReadContext()
 
     validateJson[MetaDataPlain] { metaData =>
       task.updateMetaData(metaData.toMetaData)
@@ -494,7 +493,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         includeSchemata = Some(true)
       )
     val taskFormat = new TaskJsonFormat[TaskSpec](formatOptions, Some(userContext), dependentTaskFormatter)
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = Some(task.project.config.id), resources = task.project.resources)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject(task.project)
     val taskJson = taskFormat.write(task)
     val metaDataJson = JsonSerializers.toJson(task.metaData)
     val mergedJson = metaDataJson.as[JsObject].deepMerge(taskJson.as[JsObject])

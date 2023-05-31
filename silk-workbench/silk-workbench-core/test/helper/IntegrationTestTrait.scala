@@ -486,6 +486,7 @@ trait IntegrationTestTrait extends TaskApiClient
   def reloadVocabularyCache(project: Project, transformTaskId: String)
                            (implicit userContext: UserContext): Unit = {
     val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
+    control.waitUntilFinished()
     control.reset()
     control.startBlocking()
   }

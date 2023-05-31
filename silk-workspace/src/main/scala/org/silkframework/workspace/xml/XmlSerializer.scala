@@ -1,14 +1,15 @@
 package org.silkframework.workspace.xml
 
 import org.silkframework.config.{MetaData, Task, TaskSpec}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 
-import java.io.InputStream
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, XML}
 
@@ -25,8 +26,8 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
   /**
     * Loads all tasks of this module in a safe way. Invalid tasks can be handled separately this way.
     */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager)
-               (implicit userContext: UserContext): Seq[LoadedTask[TaskType]]
+  def loadTasks(resources: ResourceLoader)
+               (implicit context: PluginContext): Seq[LoadedTask[TaskType]]
 
   /**
     * Removes a specific task.
@@ -42,11 +43,24 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
   def writeTask(task: Task[TaskType], resources: ResourceManager, projectResourceManager: ResourceManager)
 
   /**
+    * Loads a file resource as XML.
+    */
+  protected def loadResourceAsXml(resources: ResourceLoader, resourceName: String): Elem = {
+    val resource = resources.get(resourceName)
+    try {
+      resource.read(XML.load)
+    } catch {
+      case NonFatal(ex) =>
+        throw new ValidationException(s"'${resource.path}' is not a valid XML file: " + ex.getMessage, ex)
+    }
+  }
+
+  /**
     * Extracts task meta data from input stream and also returns the parsed XML element.
     */
-  private def extractTaskMetaData(is: InputStream)(implicit readContext: ReadContext): Try[(Option[MetaData], Elem)] = {
+  private def extractTaskMetaData(resources: ResourceLoader, resourceName: String)(implicit readContext: ReadContext): Try[(Option[MetaData], Elem)] = {
     Try {
-      XML.load(is)
+      loadResourceAsXml(resources, resourceName)
     } flatMap { elem =>
       extractTaskMetaData(elem)
     }
@@ -73,23 +87,18 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
     */
   protected def loadTaskSafelyFromXML(resourceName: String,
                                       alternativeTaskId: Option[String],
-                                      resources: ResourceLoader,
-                                      projectResources: ResourceManager)
-                                     (implicit xmlFormat: XmlFormat[TaskType], userContext: UserContext): LoadedTask[TaskType] = {
-    implicit val res: ResourceManager = projectResources
-    implicit val readContext: ReadContext = ReadContext(projectResources, user = userContext)
-    val resource = resources.get(resourceName)
-    loadTaskSafelyFromXML(extractTaskMetaData(resource.inputStream), resourceName, alternativeTaskId)
+                                      resources: ResourceLoader)
+                                     (implicit xmlFormat: XmlFormat[TaskType], context: PluginContext): LoadedTask[TaskType] = {
+    implicit val readContext = ReadContext.fromPluginContext()
+    loadTaskSafelyFromXML(extractTaskMetaData(resources, resourceName), resourceName, alternativeTaskId)
   }
 
   protected def loadTaskSafelyFromXML(taskXml: Elem,
                                       resourceName: String,
                                       alternativeTaskId: Option[String],
-                                      resources: ResourceLoader,
-                                      projectResources: ResourceManager)
-                                     (implicit xmlFormat: XmlFormat[TaskType], userContext: UserContext): LoadedTask[TaskType] = {
-    implicit val res: ResourceManager = projectResources
-    implicit val readContext: ReadContext = ReadContext(projectResources)
+                                      resources: ResourceLoader)
+                                     (implicit xmlFormat: XmlFormat[TaskType], context: PluginContext): LoadedTask[TaskType] = {
+    implicit val readContext = ReadContext.fromPluginContext()
     loadTaskSafelyFromXML(extractTaskMetaData(taskXml), resourceName, alternativeTaskId)
   }
 

@@ -6,6 +6,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.local._
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
+import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KEY}
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -29,12 +30,19 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       entitySource(inputs.head, task.dataSelections.source.typeUri),
       entitySource(inputs.tail.head, task.dataSelections.target.typeUri)
     )
+    val adaptedLinkLimit = LinkSpec.adaptLinkLimit(task.linkLimit)
     val linkConfig = RuntimeLinkingConfig(
-      linkLimit = Some(LinkSpec.adaptLinkLimit(task.linkLimit)),
+      linkLimit = Some(adaptedLinkLimit),
       executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
     )
     val activity = new GenerateLinks(task, sources, None, linkConfig)
-    val linking = context.child(activity, progressContribution = 1.0).startBlockingAndGetValue()
+    var linking = context.child(activity, progressContribution = 1.0).startBlockingAndGetValue()
+    if(adaptedLinkLimit < task.linkLimit) {
+      linking = linking.copy(matcherWarnings = linking.matcherWarnings ++ Seq(
+        s"The link limit has been decreased to $MAX_LINK_LIMIT according to the configuration of '$MAX_LINK_LIMIT_CONFIG_KEY', since the" +
+          s" value for this linking task has been set to a higher value: ${task.linkLimit}."
+      ))
+    }
     context.value() = linking
     Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
   }

@@ -2,6 +2,8 @@ package org.silkframework.workspace.activity.workflow
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.execution.TransformReport
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.reports.ExecutionReportManager
@@ -10,6 +12,8 @@ import org.silkframework.workspace.reports.ExecutionReportManager
   * Tests if the workflow report is generated and errors are written to the error output.
   */
 class LocalWorkflowExecutorTest extends FlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait with ConfigTestTrait {
+
+  private implicit val pluginContext: PluginContext = TestPluginContext(resources = InMemoryResourceManager())
 
   override def projectPathInClasspath: String = "org/silkframework/workspace/activity/workflow/executionReportTest.zip"
 

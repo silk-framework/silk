@@ -1,10 +1,8 @@
 package org.silkframework.rule.plugins.distance.equality
 
-import org.silkframework.runtime.plugin.AnyPlugin
-import org.silkframework.test.PluginTest
+import org.silkframework.rule.test.DistanceMeasureTest
 
-class NumericEqualityMetricTest extends PluginTest {
-  behavior of "Numeric Equality Metric"
+class NumericEqualityMetricTest extends DistanceMeasureTest[NumericEqualityMetric] {
 
   it should "match numbers with exact precision" in {
     implicit val numericEquality: NumericEqualityMetric = NumericEqualityMetric()
@@ -103,6 +101,4 @@ class NumericEqualityMetricTest extends PluginTest {
       s"Numeric values matched, but should not match: ($numericString1, $numericString2)"
     )
   }
-
-  override protected def pluginObject: AnyPlugin = NumericEqualityMetric()
 }

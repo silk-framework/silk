@@ -90,7 +90,7 @@ case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSiz
               rowMethodsWithPathParameter.contains(astMethod.getMethodName) &&
               validStringRowMethodParameter(astMethod) =>
             // Collect parameter values from the specified methods of the 'row' object, since only these must all be input paths.
-            val parameterValue = astMethod.jjtGetChild(1).jjtGetChild(0).asInstanceOf[ASTStringLiteral].literal()
+            val parameterValue = astMethod.jjtGetChild(1).jjtGetChild(0).asInstanceOf[ASTStringLiteral].literal().stripPrefix("\"").stripSuffix("\"")
             List(TemplateVariableMethodUsage(astMethod.getMethodName, parameterValue))
           case _ =>
             List.empty

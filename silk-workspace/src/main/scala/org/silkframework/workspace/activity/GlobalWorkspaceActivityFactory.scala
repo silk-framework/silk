@@ -1,12 +1,14 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.runtime.activity.{Activity, HasValue}
+import org.silkframework.runtime.plugin.annotations.PluginType
 
 import scala.reflect.ClassTag
 
 /**
   * Base class for all global workspace activity factories.
   */
+@PluginType()
 abstract class GlobalWorkspaceActivityFactory[ActivityType <: HasValue : ClassTag]
     extends WorkspaceActivityFactory {
   def apply(): Activity[ActivityType#ValueType]

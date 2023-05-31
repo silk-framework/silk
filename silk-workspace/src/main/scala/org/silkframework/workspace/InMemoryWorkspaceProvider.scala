@@ -72,7 +72,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)
                                                 (implicit userContext: UserContext): Unit = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = resources, user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = Prefixes.empty, resources = resources, user = userContext)
     val taskType = implicitly[ClassTag[T]].runtimeClass
     val inMemoryTask =
       task.data match {
@@ -89,9 +89,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Reads all tasks of a specific type from a project.
     */
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = projectResources, user = user)
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
+                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
 
     for(task <- projects(project).tasks.values.toSeq if requestedClass.isAssignableFrom(task.taskType)) yield {
@@ -102,9 +101,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Reads all tasks of all types from a project.
     **/
-  override def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = projectResources, user = user)
+  override def readAllTasks(project: Identifier)
+                           (implicit context: PluginContext): Seq[LoadedTask[_]] = {
     for (task <- projects(project).tasks.values.toSeq) yield {
       task.load(project)
     }

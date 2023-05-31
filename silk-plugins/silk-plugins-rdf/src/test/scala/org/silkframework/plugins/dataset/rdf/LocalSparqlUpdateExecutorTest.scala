@@ -1,9 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{CustomTask, PlainTask, Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.ExecutorOutput
@@ -11,18 +9,18 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
-import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.TestMocks
+import org.silkframework.util.{Identifier, TestMocks}
+import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 
-class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with MockitoSugar {
+class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"
 
   implicit val uc: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
-  implicit val pluginContext: PluginContext = PluginContext.empty
+  implicit val pluginContext: PluginContext = TestPluginContext()
 
   // execution data
   private val executor = LocalSparqlUpdateExecutor()
@@ -38,14 +36,16 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
   )
   private def mockInputTable(properties: Seq[(String, String)] = Seq.empty,
                              schema: EntitySchema = schema): GenericEntityTable = {
-    val inputTaskMock = mock[PlainTask[TransformSpec]]
-    val specMock = mock[TransformSpec]
-    when(inputTaskMock.data).thenReturn(specMock)
-    when(specMock.properties).thenReturn(properties)
+    val inputTaskMock = PlainTask("mockTask", new DummyTaskSpec(properties.toMap))
     GenericEntityTable(inputEntities, schema, inputTaskMock)
   }
 
   private val context = TestMocks.activityContextMock()
+
+  override def workspaceProviderId: String = "inMemory"
+
+  private val projectName: Identifier = "LocalSparqlUpdateExecutorTest"
+  private val project = retrieveOrCreateProject(projectName)
 
   it should "generate the correct batches" in {
     val result = executeTask(sparqlUpdateTemplate, Seq(mockInputTable()))
@@ -84,8 +84,8 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     val templateWithInputPropertyPlaceholders = """INSERT DATA { $inputProperties.uri("graph") <urn:prop:label> $inputProperties.plainLiteral("graph") };"""
     val result = executeTask(templateWithInputPropertyPlaceholders, Seq(mockInputTable(Seq("graph" -> "g1")),
       mockInputTable(Seq("graph" -> "g2"))), SparqlUpdateTemplatingMode.velocity)
-    result.entities.map(_.values.flatten.head).toList mustBe List("""INSERT DATA { <g1> <urn:prop:label> "g1" };
-                                                                    |INSERT DATA { <g2> <urn:prop:label> "g2" };""".stripMargin)
+    result.entities.map(_.values.flatten.head).toList mustBe List("INSERT DATA { <g1> <urn:prop:label> \"g1\" };\n" +
+                                                                  "INSERT DATA { <g2> <urn:prop:label> \"g2\" };")
   }
 
   it should "output one UPDATE query overall even for multiple inputs when no placeholder is used at all" in {
@@ -97,7 +97,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
 
   private def sparqlUpdateTask(template: String,
                                mode: SparqlUpdateTemplatingMode): Task[SparqlUpdateCustomTask] = {
-    PlainTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = mode))
+    project.updateTask("task", SparqlUpdateCustomTask(template, batchSize = batchSize, templatingMode = mode))
   }
 
   private def executeTask(template: String,
@@ -107,4 +107,14 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     result mustBe defined
     result.get
   }
+}
+
+class DummyTaskSpec(params: Map[String, String]) extends CustomTask {
+
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+
+  override def outputSchemaOpt: Option[EntitySchema] = None
+
+  override def parameters(implicit pluginContext: PluginContext): ParameterValues = ParameterValues.fromStringMap(params)
+
 }

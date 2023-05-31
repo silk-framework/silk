@@ -46,7 +46,8 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
     }
   }
 
-  override def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport] = synchronized {
+  override def retrieveReport(reportId: ReportIdentifier)
+                             (implicit pluginContext: PluginContext): ActivityExecutionResult[ExecutionReport] = synchronized {
     val file = reportFile(reportId)
     if(!file.exists) {
       throw new NoSuchElementException(s"No report found for project ${reportId.projectId} and task ${reportId.taskId} at ${reportId.time}.")
@@ -54,7 +55,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
     val inputStream = new FileInputStream(file)
     try {
-      implicit val rc: ReadContext = ReadContext()
+      implicit val rc = ReadContext.fromPluginContext()
       reportJsonFormat.read(Json.parse(inputStream))
     } finally {
       inputStream.close()

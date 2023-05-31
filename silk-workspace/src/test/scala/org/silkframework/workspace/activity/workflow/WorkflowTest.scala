@@ -2,14 +2,16 @@ package org.silkframework.workspace.activity.workflow
 
 import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, ProjectTask}
-import WorkflowTest._
+import org.silkframework.plugins.dataset.csv.CsvDataset
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
+import org.silkframework.util.{Identifier, MockitoSugar}
+import org.silkframework.workspace.activity.workflow.WorkflowTest._
+import org.silkframework.workspace.resources.InMemoryResourceRepository
+import org.silkframework.workspace._
 
-class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
+class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers with TestUserContextTrait {
   behavior of "Workflow"
 
   it should "support sorting its workflow operators topologically" in {
@@ -114,26 +116,32 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   }
 
   it should "resolve replaceable datasets correctly" in {
+    val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectA"))
+    val resource = project.resources.get("doesntMatter")
+    for(op <- testWorkflow.operators) {
+      project.addTask[GenericDatasetSpec](op.task, DatasetSpec(CsvDataset(resource)))
+    }
     testWorkflow.copy(
       replaceableInputs = Seq(),
       replaceableOutputs = Seq()
-    ).markedVariableDatasets() mustBe AllReplaceableDatasets(Seq(), Seq())
+    ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(), Seq())
     intercept[IllegalArgumentException] {
       testWorkflow.copy(
         replaceableInputs = Seq(),
         replaceableOutputs = Seq(DS_B)
-      ).markedVariableDatasets()
+      ).markedReplaceableDatasets(project)
     }
     intercept[IllegalArgumentException] {
       testWorkflow.copy(
         replaceableInputs = Seq(DS_B),
         replaceableOutputs = Seq()
-      ).markedVariableDatasets()
+      ).markedReplaceableDatasets(project)
     }
     testWorkflow.copy(
       replaceableInputs = Seq(DS_A1),
       replaceableOutputs = Seq(OUTPUT)
-    ).markedVariableDatasets() mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
+    ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
   }
 }
 

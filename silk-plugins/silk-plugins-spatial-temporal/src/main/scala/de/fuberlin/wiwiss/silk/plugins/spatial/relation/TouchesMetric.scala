@@ -16,7 +16,7 @@ package org.silkframework.plugins.spatial.relation
 
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils._
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 
@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Spatial"),
   label = "Touches",
   description = "Computes the relation \"touches\" between two geometries.")
-case class TouchesMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
+case class TouchesMetric(blockingParameter: Double = 1.0) extends SingleValueDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, limit: Double): Double = {
     Utils.evaluateRelation(str1, str2, limit, Constants.TOUCHES)

@@ -15,9 +15,10 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
 import org.silkframework.rule.similarity.{SimilarityScore, SimpleAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "average",
@@ -27,10 +28,12 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
 )
 @AggregatorExamples(Array(
   new AggregatorExample(
+    description = "Computes the arithmetic mean of all similarity scores.",
     inputs = Array(0.4, 0.5, 0.9),
     output = 0.6
   ),
   new AggregatorExample(
+    description = "Multiplies individual similarity scores with their weight before averaging.",
     inputs = Array(0.3, 0.5, 0.6),
     weights = Array(1, 1, 2),
     output = 0.5

@@ -11,15 +11,15 @@ import org.silkframework.workspace.ProjectTrait
   * Holds context information when serializing data.
   */
 case class WriteContext[U](parent: Option[U] = None,
-                           prefixes: Prefixes = Prefixes.empty,
+                           prefixes: Prefixes,
                            projectId: Option[Identifier] = None,
                            projectUri: Option[String] = None,
-                           resources: ResourceManager = EmptyResourceManager(),
+                           resources: ResourceManager,
                            user: UserContext = UserContext.Empty) extends PluginContext
 
 object WriteContext {
 
-  def empty[U]: WriteContext[U] = WriteContext(resources = EmptyResourceManager(), user = UserContext.Empty)
+  def empty[U]: WriteContext[U] = WriteContext(resources = EmptyResourceManager(), user = UserContext.Empty, prefixes = Prefixes.empty)
 
   def fromProject[U](project: ProjectTrait, parent: Option[U] = None)(implicit user: UserContext): WriteContext[U] = {
     WriteContext[U](

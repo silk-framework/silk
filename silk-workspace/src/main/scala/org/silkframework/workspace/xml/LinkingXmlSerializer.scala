@@ -14,11 +14,10 @@
 
 package org.silkframework.workspace.xml
 
-import java.util.logging.Logger
 import org.silkframework.config._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceLinksReader
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -26,6 +25,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 
+import java.util.logging.Logger
 import scala.xml.Node
 
 /**
@@ -40,11 +40,10 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   /**
    * Loads a specific task in this module.
    */
-  private def loadTask(taskResources: ResourceLoader,
-                       projectResources: ResourceManager)
-                      (implicit user: UserContext): LoadedTask[LinkSpec] = {
+  private def loadTask(taskResources: ResourceLoader)
+                      (implicit context: PluginContext): LoadedTask[LinkSpec] = {
     val taskOrError =
-      loadTaskSafelyFromXML("linkSpec.xml", None, taskResources, projectResources).taskOrError match {
+      loadTaskSafelyFromXML("linkSpec.xml", None, taskResources).taskOrError match {
         case Right(linkSpec) => // TODO: Fix alternative ID
           val referenceLinks = taskResources.get("alignment.xml").read(ReferenceLinksReader.readReferenceLinks)
           Right(PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks), linkSpec.metaData))
@@ -66,7 +65,7 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
    */
   def writeTask(data: Task[LinkSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
 
     // Write resources
     val linkSpecXml = toXml(data)
@@ -76,11 +75,11 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
     taskResources.get("alignment.xml").write(){ os => referenceLinksXml.write(os) }
   }
 
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager)
-                        (implicit user: UserContext): Seq[LoadedTask[LinkSpec]] = {
+  override def loadTasks(resources: ResourceLoader)
+                        (implicit context: PluginContext): Seq[LoadedTask[LinkSpec]] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        loadTask(resources.child(name), projectResources)
+        loadTask(resources.child(name))
     tasks
   }
 }

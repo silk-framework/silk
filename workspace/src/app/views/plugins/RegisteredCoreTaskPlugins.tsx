@@ -5,6 +5,8 @@ import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/Hier
 import LinkingEvaluationTabView from "../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabView";
 import LinkingExecutionTab from "../../views/taskViews/linking/editorTabsComponents/LinkingExecutionTab";
 import TransformExecutionTab from "../../views/taskViews/transform/editorTabsComponents/TransformExecutionTab";
+import TransformEvaluationTabView from "../taskViews/transform/evaluation/tabView/TransformEvaluationTabView";
+import { setApiDetails } from "../../views/pages/MappingEditor/HierarchicalMapping/store";
 
 let registered = false;
 export const registerCorePlugins = () => {
@@ -30,6 +32,14 @@ export const registerCorePlugins = () => {
                         />
                     </LinkingRuleEditorOptionalContext.Provider>
                 );
+            },
+        });
+
+        pluginRegistry.registerTaskView("linking", {
+            id: "linkingEvaluation",
+            label: "Linking evaluation",
+            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+                return <LinkingEvaluationTabView projectId={projectId} linkingTaskId={taskId} />;
             },
         });
 
@@ -61,13 +71,6 @@ export const registerCorePlugins = () => {
             },
         });
 
-        pluginRegistry.registerTaskView("linking", {
-            id: "linkingEvaluation",
-            label: "linking evaluation (new)",
-            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
-                return <LinkingEvaluationTabView projectId={projectId} linkingTaskId={taskId} />;
-            },
-        });
         pluginRegistry.registerTaskView("transform", {
             id: "TransformExecution",
             label: "Transform execution",
@@ -76,14 +79,25 @@ export const registerCorePlugins = () => {
             },
         });
 
-        // Mapping evaluation // FIXME: Does not render well when not in i-frame
-        // pluginRegistry.registerTaskView("transform", {
-        //     id: "hierarchicalMappingEvaluation",
-        //     label: "Mapping evaluation",
-        //     render(projectId: string, taskId: string): JSX.Element {
-        //         return <EvaluateMapping project={projectId} transformTask={taskId} initialRule={"root"}  limit={50} offset={0}/>;
-        //     },
-        // });
+        pluginRegistry.registerTaskView("transform", {
+            id: "transformEvaluation",
+            label: "Transform evaluation",
+            render(
+                projectId: string,
+                taskId: string,
+                viewActions: IViewActions | undefined,
+                startFullScreen: boolean
+            ): JSX.Element {
+                setApiDetails({ project: projectId, transformTask: taskId });
+                return (
+                    <TransformEvaluationTabView
+                        transformTaskId={taskId}
+                        projectId={projectId}
+                        startFullScreen={startFullScreen}
+                    />
+                );
+            },
+        });
     }
     registered = true;
 };

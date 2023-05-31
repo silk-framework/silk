@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.asian
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
+import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.StringUtils._
 
@@ -28,7 +28,7 @@ import scala.math.{abs, max, min}
   label = "Korean phoneme distance",
   description = "Korean phoneme distance."
 )
-case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') extends SingleValueDistanceMeasure {
 	private val q = 1
 
   override def evaluate(str1: String, str2: String, limit: Double) = {

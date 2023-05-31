@@ -251,8 +251,8 @@ case class NumericEqualityRestriction(path: Path, value: Double, precision: Doub
   **/
 case class SparqlFilterRestriction(sparqlPattern: String, filterExpression: String) {
   def toSparql: String = {
-    s"""$sparqlPattern
-       |FILTER ($filterExpression)""".stripMargin
+    s"$sparqlPattern\n" +
+    s"FILTER ($filterExpression)"
   }
 }
 

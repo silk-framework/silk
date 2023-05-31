@@ -56,7 +56,7 @@ private class ActivityExecution[T](activity: Activity[T],
     // Execute activity
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
-    if (parent.isDefined) {
+    if (parent.isDefined && runningInDefaultPool) {
       forkJoin.fork()
     } else {
       ActivityExecution.forkJoinPool.execute(forkJoin)
@@ -110,6 +110,7 @@ private class ActivityExecution[T](activity: Activity[T],
         throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
       }
     }
+    forkJoinRunner = None
     ActivityExecution.priorityThreadPool.execute(() => runActivity())
   }
 
@@ -126,10 +127,14 @@ private class ActivityExecution[T](activity: Activity[T],
     if(cancelling) {
       // cancel children outside of lock to not run into dead locks
       children().foreach(_.cancel())
-        activity.cancelExecution()
-      ThreadLock.synchronized {
-        runningThread foreach { thread =>
-          thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+      activity.cancelExecution()
+      interruptEnabled.synchronized {
+        if (interruptEnabled.get()) {
+          ThreadLock.synchronized {
+            runningThread foreach { thread =>
+              thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+            }
+          }
         }
       }
     }

@@ -1,10 +1,11 @@
 package org.silkframework.workspace.xml
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.Tag
+import org.silkframework.config.{Prefixes, Tag}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource._
 import org.silkframework.util.Uri
 import org.silkframework.workspace.resources.InMemoryResourceRepository
@@ -69,18 +70,20 @@ class XmlZipProjectMarshalingTest extends FlatSpec with Matchers {
       resources.list shouldBe empty
     }
 
+    implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources)
+
     // Project
     val project = workspace.readProject(projectName).get
 
     // Datasets
-    val datasets = workspace.readTasks[GenericDatasetSpec](projectName, resources)
+    val datasets = workspace.readTasks[GenericDatasetSpec](projectName)
     datasets.map(_.task.id.toString) should contain allOf("DBpedia", "linkedmdb")
     val dbpediaDataset = datasets.find(_.task.id.toString == "DBpedia").get.task
     val linkedmdbDataset = datasets.find(_.task.id.toString == "linkedmdb").get.task
 
 
     // Linking task
-    val linkingTask = workspace.readTasks[LinkSpec](projectName, resources)
+    val linkingTask = workspace.readTasks[LinkSpec](projectName)
     linkingTask.map(_.task.id.toString) should contain("movies")
 
     // Tags

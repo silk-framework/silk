@@ -7,12 +7,20 @@ import play.api.libs.json.{Format, Json}
 
 case class EvaluateCurrentLinkageRuleRequest(@Parameter(
                                                 name = "includeReferenceLinks",
-                                                description = "When true, this will return an evaluation of the reference links in addition to freshly matched links.",
+                                                description = "When true, this will return the reference links in the evaluation result. These will come before the links of the evaluation activity.",
                                                 required = false,
                                                 in = ParameterIn.QUERY,
                                                 schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                                               )
                                               includeReferenceLinks: Option[Boolean] = None,
+                                             @Parameter(
+                                               name = "includeEvaluationLinks",
+                                               description = "When true, this will return links from the evaluation activity, i.e. positive links that were matched with the then existing linking rule.",
+                                               required = false,
+                                               in = ParameterIn.QUERY,
+                                               schema = new Schema(implementation = classOf[Boolean], defaultValue = "true")
+                                             )
+                                             includeEvaluationLinks: Option[Boolean] = Some(true),
                                             /** Paging parameters */
                                               offset: Option[Int] = None,
                                               limit: Option[Int] = None,

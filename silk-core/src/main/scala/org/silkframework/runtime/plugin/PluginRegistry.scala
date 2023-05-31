@@ -1,7 +1,7 @@
 package org.silkframework.runtime.plugin
 
 import com.typesafe.config.{Config => TypesafeConfig}
-import org.silkframework.config.{Config, ConfigValue, DefaultConfig, Prefixes}
+import org.silkframework.config.{Config, ConfigValue, DefaultConfig}
 import org.silkframework.util.Identifier
 
 import java.io.File
@@ -24,7 +24,7 @@ object PluginRegistry {
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   @volatile
-  private var pluginTypes = Map[String, PluginType]()
+  private var pluginTypes = Map[String, PluginTypeHolder]()
 
   /** Map holding all plugins by their class name */
   @volatile
@@ -255,9 +255,9 @@ object PluginRegistry {
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
     if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !(plugins.contains(pluginDesc.pluginClass.getName) && pluginsById.contains(pluginDesc.id))) {
-      for (superType <- getSuperTypes(pluginDesc.pluginClass)) {
-        val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
-        pluginTypes += ((superType.getName, pluginType))
+      for (superType <- pluginDesc.pluginTypes) {
+        val pluginType = pluginTypes.getOrElse(superType.name, new PluginTypeHolder)
+        pluginTypes += ((superType.name, pluginType))
         pluginType.register(pluginDesc)
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
@@ -279,8 +279,8 @@ object PluginRegistry {
     * Removes a plugin from the registry.
     */
   def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
-    for  { superType <- getSuperTypes(pluginDesc.pluginClass)
-           pluginType <- pluginTypes.get(superType.getName)} {
+    for  { superType <- pluginDesc.pluginTypes
+           pluginType <- pluginTypes.get(superType.name)} {
       pluginType.unregister(pluginDesc.id)
     }
     plugins -= pluginDesc.pluginClass.getName
@@ -304,21 +304,15 @@ object PluginRegistry {
     unregisterPlugin(ClassPluginDescription.create(implementingClass))
   }
 
-  private def getSuperTypes(clazz: Class[_]): Set[Class[_]] = {
-    val superTypes = clazz.getInterfaces ++ Option(clazz.getSuperclass)
-    val nonStdTypes = superTypes.filterNot(c => c.getName.startsWith("java") || c.getName.startsWith("scala"))
-    nonStdTypes.toSet ++ nonStdTypes.flatMap(getSuperTypes)
-  }
-
-  private def pluginType[T: ClassTag]: PluginType = {
-    val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
-    pluginTypes.getOrElse(pluginClass, new PluginType)
+  private def pluginType[T: ClassTag]: PluginTypeHolder = {
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass
+    pluginTypes.getOrElse(pluginClass.getName, new PluginTypeHolder)
   }
 
   /**
    * Holds all plugins that share a specific base type.
    */
-  private class PluginType {
+  private class PluginTypeHolder {
 
     /** Map from plugin id to plugin description */
     @volatile

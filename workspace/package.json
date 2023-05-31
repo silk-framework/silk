@@ -17,7 +17,7 @@
         "build-di-dev": "node scripts/build-di.dev.js",
         "build-di-prod": "node --max_old_space_size=2048 scripts/build-di.prod.js",
         "test": "node scripts/test.js",
-        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors",
+        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors -ci --silent",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
         "trace-resolution": "tsc --traceResolution",
@@ -26,19 +26,19 @@
     "dependencies": {
         "@blueprintjs/core": "^4.9.0",
         "@blueprintjs/select": "^4.6.0",
-        "@eccenca/gui-elements": "^23.0.0",
+        "@eccenca/gui-elements": "^23.1.0-rc.3",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.4.0",
         "@uppy/core": "1.17.0",
-        "@uppy/react": "1.11.6",
-        "@uppy/xhr-upload": "1.7.2",
+        "@uppy/react": "1.11.10",
+        "@uppy/xhr-upload": "1.7.5",
         "axios": "^0.25.0",
         "bfj": "6.1.1",
         "codemirror": "^5.52.2",
         "connected-react-router": "^6.5.2",
         "dagre": "^0.8.5",
-        "dexie": "^2.0.4",
+        "dexie": "^3.2.3",
         "ecc-messagebus": "^3.6.0",
         "ecc-utils": "^1.4.0",
         "gui-elements-deprecated": "npm:@eccenca/gui-elements@^5.1.1",
@@ -218,7 +218,7 @@
         "file-loader": "^5.1.0",
         "fs-extra": "^8.1.0",
         "html-webpack-plugin": "^4.5.2",
-        "husky": "^4.2.5",
+        "husky": "^4.3.8",
         "i18next-json-sync": "^2.3.1",
         "i18next-scanner": "^2.11.0",
         "identity-obj-proxy": "^3.0.0",
@@ -265,11 +265,13 @@
         "webpack": "^4.46.0",
         "webpack-bundle-analyzer": "^4.5.0",
         "webpack-cli": "^3.3.12",
-        "webpack-dev-server": "^4.6.0",
+        "webpack-dev-server": "^4.13.3",
         "webpack-manifest-plugin": "^2.2.0",
         "workbox-webpack-plugin": "^4.3.1"
     },
     "resolutions": {
-        "sanitize.css": "12.0.1"
+        "sanitize.css": "12.0.1",
+        "**/minimist": "^1.2.8",
+        "**/url-parse": "1.5.9"
     }
 }

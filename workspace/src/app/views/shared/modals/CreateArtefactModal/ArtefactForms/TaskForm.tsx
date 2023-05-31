@@ -76,13 +76,14 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
-    const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
+    const dependentValues: React.MutableRefObject<Record<string, any>> = React.useRef<Record<string, any>>({});
     const [doChange, setDoChange] = useState<boolean>(false);
     const { registerError } = useErrorHandler();
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
     const [t] = useTranslation();
+    const parameterLabels = React.useRef(new Map<string, string>());
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
@@ -93,10 +94,15 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         [updateTask]
     );
 
+    const parameterLabel = React.useCallback((fullParameterId: string) => {
+        return parameterLabels.current.get(fullParameterId) ?? "N/A";
+    }, []);
+
     const extendedCallbacks = React.useMemo(() => {
         return {
             ...parameterCallbacks,
             initialTemplateFlag,
+            parameterLabel,
         };
     }, [initialTemplateFlag]);
 
@@ -158,6 +164,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             );
             params.forEach(([paramId, param]) => {
                 const fullParameterId = prefix + paramId;
+                parameterLabels.current.set(fullParameterId, param.title);
                 if (param.type === "object") {
                     // Nested type, only register nested atomic values
                     if (param.properties) {
@@ -184,7 +191,8 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             name: fullParameterId,
                         },
                         {
-                            required: requiredParameters.includes(paramId),
+                            // Boolean is by default set to false
+                            required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
                             ...valueRestrictions(fullParameterId, param),
                         }
                     );
@@ -200,9 +208,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         }
                     }
                     setValue(fullParameterId, currentValue);
-                    // Add dependent values, the object state needs to be mutably changed, see comments in handleChange()
+                    // Add dependent values
                     if (dependsOnParameters.includes(paramId)) {
-                        dependentValues[fullParameterId] = currentValue;
+                        dependentValues.current[fullParameterId] = currentValue;
                     }
                 }
             });
@@ -239,13 +247,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             const { triggerValidation } = form;
             const value = e.target ? e.target.value : e;
 
-            if (dependentValues[key] !== undefined) {
-                // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
-                dependentValues[key] = value;
-                // We still need to update the state with a new object to trigger re-render though.
-                setDependentValues({
-                    ...dependentValues,
-                });
+            if (dependentValues.current[key] !== undefined) {
+                // We need to update the state with a new object to trigger re-render.
+                dependentValues.current[key] = value;
             }
             const oldValue = getValues()[key];
             setValue(key, value);
@@ -289,7 +293,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             parameterId={LABEL}
                             label={t("form.field.label")}
                             required={true}
-                            errorMessage={errorMessage("Label", errors.label)}
+                            infoMessage={errorMessage("Label", errors.label)}
                             inputElementFactory={() => (
                                 <TextField
                                     id={LABEL}

@@ -30,16 +30,16 @@ import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
-import org.silkframework.util.{CollectLogs, DPair, Identifier, StringUtils, Uri}
+import org.silkframework.util.{DPair, Identifier, StringUtils, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{Format, JsArray, JsString, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc._
 
-import java.util.logging.{Level, LogRecord, Logger}
+import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 import scala.collection.mutable
 
@@ -143,12 +143,16 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val readContext: ReadContext = ReadContext(resources, prefixes)
 
     try {
-      val (updatedRule, warnings) = linkageRule(request)
-      //Update linking task
-      val updatedLinkSpec = task.data.copy(rule = updatedRule)
-      project.updateTask(taskName, updatedLinkSpec)
-      // Return warnings
-      ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
+      val updatedRule = linkageRule(request)
+      val validationIssues = updatedRule.validate()
+      if(validationIssues.isEmpty) {
+        // Commit rule
+        project.updateTask(taskName, task.data.copy(rule = updatedRule))
+        ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
+      } else {
+        // Return issues
+        ErrorResult.validation(BAD_REQUEST, "Linkage rule with warnings", issues = validationIssues)
+      }
     } catch {
       case ex: BadUserInputException =>
         throw ex
@@ -162,25 +166,18 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def linkageRule(request: Request[AnyContent])
-                         (implicit readContext: ReadContext,
-                          prefixes: Prefixes,
-                          resources: ResourceManager): (LinkageRule, Seq[LogRecord]) = {
-    var linkageRule: LinkageRule = null
-    //Collect warnings while parsing linkage rule
-    val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
-      request.body.asXml match {
-        case Some(xml) =>
-          linkageRule = XmlSerialization.fromXml[LinkageRule](xml.head)
-        case None =>
-          request.body.asJson match {
-            case Some(json) =>
-              linkageRule = JsonSerialization.fromJson[LinkageRule](json)
-            case None =>
-              throw BadUserInputException("Expecting text/xml or application/json request body")
-          }
-      }
+                         (implicit readContext: ReadContext): LinkageRule = {
+    request.body.asXml match {
+      case Some(xml) =>
+        XmlSerialization.fromXml[LinkageRule](xml.head)
+      case None =>
+        request.body.asJson match {
+          case Some(json) =>
+            JsonSerialization.fromJson[LinkageRule](json)
+          case None =>
+            throw BadUserInputException("Expecting text/xml or application/json request body")
+        }
     }
-    (linkageRule, warnings)
   }
 
   def getLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -202,15 +199,16 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     request.body.asXml match {
       case Some(xml) => {
         try {
-          //Collect warnings while parsing link spec
-          val warnings = CollectLogs(Level.WARNING, "org.silkframework.linkspec") {
-            //Load link specification
-            val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
+          //Load link specification
+          val newLinkSpec = XmlSerialization.fromXml[LinkSpec](xml.head)
+          val issues = newLinkSpec.rule.validate()
+          if(issues.isEmpty) {
             //Update linking task
             project.updateTask(taskName, newLinkSpec.copy(referenceLinks = task.data.referenceLinks))
+            ErrorResult.validation(OK, "Linkage rule committed successfully", issues = Seq.empty)
+          } else {
+            ErrorResult.validation(OK, "Linkage rule with warnings", issues = issues)
           }
-
-          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
         } catch {
           case ex: ValidationException =>
             log.log(Level.INFO, "Invalid linkage rule")
@@ -1055,41 +1053,46 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val sortBy = request.sortBy.getOrElse(List.empty)
     val query = request.query.getOrElse("")
     val includeReferenceLinks = request.includeReferenceLinks.getOrElse(false)
+    val includeEvaluationLinks = request.includeEvaluationLinks.getOrElse(true)
     val project = linkTask.project
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, resources = project.resources)
     val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
-    val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache]
-    if (evaluationActivity.control.status.get.isEmpty) {
-      evaluationActivity.control.startBlocking()
+    val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value.get
+    var links: Seq[Link] = Seq.empty
+    var evaluationStats: Option[LinkRuleEvaluationStats] = None
+    if(includeEvaluationLinks) {
+      if (evaluationActivity.control.status.get.isEmpty) {
+        evaluationActivity.control.startBlocking()
+      }
+      evaluationActivity.value.get foreach { evaluationResult =>
+        links = evaluationResult.links
+        evaluationStats = Some(linkEvaluationStats(evaluationResult))
+      }
     }
-    evaluationActivity.value.get match {
-      case Some(evaluationResult) =>
-        val referenceEntitiesCache = referenceEntityCache.value.get
-        val linkingRule = linkTask.data.rule
-        var links: Seq[Link] = evaluationResult.links
-        if(includeReferenceLinks) {
-          links = (referenceEntitiesCache.map(_.toReferenceLinks).getOrElse(Seq.empty) ++ links).distinct
-        }
-        val overallLinkCount = links.size
-        val searchTerms = StringUtils.extractSearchTerms(query)
-        if (searchTerms.nonEmpty) {
-          links = links.filter(link => {
-            val searchText = searchStringFromLink(link)
-            StringUtils.matchesSearchTerm(searchTerms, searchText)
-          })
-        }
-        if (filters.nonEmpty) {
-          links = filterLinks(links, referenceEntitiesCache, filters)
-        }
-        if(sortBy.nonEmpty) {
-          links = sortLinks(links, sortBy)
-        }
-        val resultStats = ResultStats(overallLinkCount, links.size)
-        links = links.slice(offset, offset + limit)
-        linkEvaluationJsonResult(evaluationResult, linkingRule, links, referenceEntitiesCache, resultStats, inputTaskLabel(linkTask))
-      case None =>
-        throw NotFoundException("No evaluation results available.")
+    if (includeReferenceLinks) {
+      links = (referenceEntityCache.map(_.toReferenceLinks).getOrElse(Seq.empty) ++ links).distinct
     }
+    if(links.isEmpty) {
+      throw NotFoundException("No evaluation results available.")
+    }
+    val linkingRule = linkTask.data.rule
+    val overallLinkCount = links.size
+    val searchTerms = StringUtils.extractSearchTerms(query)
+    if (searchTerms.nonEmpty) {
+      links = links.filter(link => {
+        val searchText = searchStringFromLink(link)
+        StringUtils.matchesSearchTerm(searchTerms, searchText)
+      })
+    }
+    if (filters.nonEmpty) {
+      links = filterLinks(links, referenceEntityCache, filters)
+    }
+    if (sortBy.nonEmpty) {
+      links = sortLinks(links, sortBy)
+    }
+    val resultStats = ResultStats(overallLinkCount, links.size)
+    links = links.slice(offset, offset + limit)
+    linkEvaluationJsonResult(evaluationStats, linkingRule, links, referenceEntityCache, resultStats, inputTaskLabel(linkTask))
   }
 
   /** Labels of the source and target input tasks. */
@@ -1115,7 +1118,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val resultStatsFormat: Format[ResultStats] = Json.format[ResultStats]
   }
 
-  private def linkEvaluationJsonResult(evaluationResult: EvaluateLinkingActivity#ValueType,
+  private def linkEvaluationJsonResult(evaluationActivityStats: Option[LinkRuleEvaluationStats],
                                        linkingRule: LinkageRule,
                                        links: Seq[Link],
                                        referenceEntitiesCache: Option[ReferenceEntitiesCache#ValueType],
@@ -1134,7 +1137,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       "links" -> linkJson,
       "linkRule" -> JsonSerialization.toJson(linkingRule),
       "resultStats" -> Json.toJson(resultStats),
-      "evaluationActivityStats" -> linkEvaluationStats(evaluationResult),
+      "evaluationActivityStats" -> evaluationActivityStats.map(stats => Json.toJson(stats)),
       "metaData" -> Json.obj(
         "sourceInputLabel" -> inputTaskLabels._1,
         "targetInputLabel" -> inputTaskLabels._2
@@ -1142,12 +1145,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     ))
   }
 
-  private def linkEvaluationStats(evaluationResult: Linking): JsValue = {
-    Json.toJson(LinkRuleEvaluationStats(
+  private def linkEvaluationStats(evaluationResult: Linking): LinkRuleEvaluationStats = {
+    LinkRuleEvaluationStats(
       evaluationResult.statistics.entityCount.source,
       evaluationResult.statistics.entityCount.target,
       evaluationResult.links.size
-    ))
+    )
   }
 
   private def searchStringFromLink(link: Link): String = {

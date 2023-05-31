@@ -1,10 +1,11 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
+import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import java.text.{DecimalFormat, NumberFormat}
 import java.util.Locale
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 

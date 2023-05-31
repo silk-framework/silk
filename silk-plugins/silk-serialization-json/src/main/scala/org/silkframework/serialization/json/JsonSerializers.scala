@@ -1369,7 +1369,12 @@ object JsonSerializers {
     }
   }
 
-  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]): JsValue = {
+  def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue]): JsValue = {
+    format.write(value)
+  }
+
+  def toJsonEmptyContext[T](value: T)(implicit format: JsonFormat[T]): JsValue = {
+    implicit val emptyWriteContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
     format.write(value)
   }
 

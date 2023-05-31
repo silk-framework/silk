@@ -1,9 +1,10 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
+import org.silkframework.rule.annotations.{AggregatorExample, AggregatorExamples}
 import org.silkframework.rule.similarity.{SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "handleMissingValues",
@@ -14,10 +15,12 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
 )
 @AggregatorExamples(Array(
   new AggregatorExample(
+    description = "Forwards input similarity scores.",
     inputs = Array(0.1),
     output = 0.1
   ),
   new AggregatorExample(
+    description = "Outputs the default score, if no input score is provided.",
     parameters = Array("defaultValue", "1.0"),
     inputs = Array(Double.NaN),
     output = 1.0

@@ -56,12 +56,8 @@ object ItemType {
   /** All links for a specific item type */
   def itemTypeLinks(itemType: ItemType, projectId: String, itemId: String, taskSpec: Option[TaskSpec]): Seq[ItemLink] = {
     val itemTypeSpecificLinks = itemType match {
-      case ItemType.transform => Seq(
-        ItemLink("evaluate", "Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
-      )
       case ItemType.linking => Seq(
-        ItemLink("evaluate", "Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
-        ItemLink("referenceLinks", "Reference links", s"$context/linking/$projectId/$itemId/referenceLinks")
+        ItemLink("referenceLinks", "Reference links", s"$context/linking/$projectId/$itemId/referenceLinks"),
       )
       case ItemType.workflow if !WorkbenchConfig().tabs.legacyWorkflowEditor => Seq(
       )

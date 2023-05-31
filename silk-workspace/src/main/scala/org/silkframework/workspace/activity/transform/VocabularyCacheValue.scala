@@ -69,7 +69,9 @@ object VocabularyCacheValue {
         }
         new VocabularyCacheValue(vocabularies, None)
       case TargetVocabularyListParameter(_) =>
-        transformTask.activity[VocabularyCache].value()
+        val vocabularyCache = transformTask.activity[VocabularyCache].control
+        vocabularyCache.waitUntilFinished()
+        vocabularyCache.value()
     }
     targetVocabularySelection match {
       case Some(selection) =>

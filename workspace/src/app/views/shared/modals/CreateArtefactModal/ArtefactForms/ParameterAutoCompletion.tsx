@@ -107,8 +107,8 @@ export const ParameterAutoCompletion = ({
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
-            if (value) {
-                return [value];
+            if (dependentValueIsSet(value)) {
+                return [`${value}`];
             } else {
                 return [];
             }
@@ -258,3 +258,6 @@ export const labelAndOrValueItemRenderer = (
         </OverviewItem>
     );
 };
+
+/** At the moment a dependent value must be non-empty, else it is not considered to be set. */
+export const dependentValueIsSet = (value: any): boolean => value != null && `${value}` !== "";
