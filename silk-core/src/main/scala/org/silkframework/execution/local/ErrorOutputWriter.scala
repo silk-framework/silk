@@ -28,8 +28,7 @@ object ErrorOutputWriter {
            (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     entities match {
       case tables: MultiEntityTable =>
-        writeErrorEntities(errorSink, tables)
-        for(table <- tables.subTables) {
+        for(table <- tables.allTables) {
           writeErrorEntities(errorSink, table)
         }
       case _ =>
