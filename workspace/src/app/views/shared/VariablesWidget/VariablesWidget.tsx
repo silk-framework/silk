@@ -12,6 +12,7 @@ import {
     Divider,
     Icon,
     IconButton,
+    Label,
     OverflowText,
     OverviewItem,
     OverviewItemActions,
@@ -156,14 +157,14 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                     <div ref={provided.innerRef} {...provided.droppableProps}>
                                         <PropertyValueList>
                                             {variables.map((variable, i) => (
-                                                <Draggable pos={i} key={variable.name} index={i} draggableId={`${i}`}>
-                                                    {(provided) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                        >
-                                                            <PropertyValuePair hasDivider>
+                                                <PropertyValuePair key={variable.name} hasDivider>
+                                                    <Draggable pos={i} index={i} draggableId={`${i}`}>
+                                                        {(provided) => (
+                                                            <div
+                                                                ref={provided.innerRef}
+                                                                {...provided.draggableProps}
+                                                                {...provided.dragHandleProps}
+                                                            >
                                                                 <PropertyName>
                                                                     <OverviewItem>
                                                                         <OverviewItemActions>
@@ -172,8 +173,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         <Spacing size="tiny" vertical />
                                                                         <OverviewItemDescription>
                                                                             <OverviewItemLine>
-                                                                                <OverflowText>
-                                                                                    {variable.name}
+                                                                                <OverflowText passDown>
+                                                                                    <Label
+                                                                                        text={variable.name}
+                                                                                        tooltip={variable.description}
+                                                                                    />
                                                                                 </OverflowText>
                                                                             </OverviewItemLine>
                                                                         </OverviewItemDescription>
@@ -184,22 +188,6 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         <OverviewItemDescription>
                                                                             <OverviewItemLine>
                                                                                 <code>{variable.value}</code>
-                                                                                {variable.description && (
-                                                                                    <>
-                                                                                        <Spacing
-                                                                                            vertical
-                                                                                            size="large"
-                                                                                            hasDivider
-                                                                                        />
-                                                                                        <Icon
-                                                                                            name="item-info"
-                                                                                            small
-                                                                                            tooltipText={
-                                                                                                variable.description
-                                                                                            }
-                                                                                        />
-                                                                                    </>
-                                                                                )}
                                                                             </OverviewItemLine>
                                                                         </OverviewItemDescription>
                                                                         <OverviewItemActions>
@@ -210,7 +198,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                     handleModalOpen(variable)
                                                                                 }
                                                                             />
-                                                                            <Spacing vertical hasDivider />
+                                                                            <Spacing vertical size="tiny" />
                                                                             <IconButton
                                                                                 small
                                                                                 name="item-remove"
@@ -222,10 +210,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         </OverviewItemActions>
                                                                     </OverviewItem>
                                                                 </PropertyValue>
-                                                            </PropertyValuePair>
-                                                        </div>
-                                                    )}
-                                                </Draggable>
+                                                            </div>
+                                                        )}
+                                                    </Draggable>
+                                                </PropertyValuePair>
                                             ))}
                                         </PropertyValueList>
                                     </div>
