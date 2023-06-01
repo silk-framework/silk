@@ -1,9 +1,10 @@
 package controllers.transform.autoCompletion
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatchers {
+class PartialSourcePathAutocompletionHelperTest extends AnyFlatSpec with Matchers {
   behavior of "PartialSourcePathAutocompletionHelper"
 
   def replace(inputString: String,

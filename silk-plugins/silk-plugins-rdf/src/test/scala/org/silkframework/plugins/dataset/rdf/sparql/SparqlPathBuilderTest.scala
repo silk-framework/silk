@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.sparql
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.SparqlPathBuilder
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.testutil.equalIgnoringWhitespace
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SparqlPathBuilderTest extends FlatSpec with Matchers {
+class SparqlPathBuilderTest extends AnyFlatSpec with Matchers {
 
   // Example properties
   val p1 = "<1>"

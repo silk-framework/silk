@@ -46,7 +46,7 @@ object Server {
    * The datasets held by this server.
    * Each link specification in the configuration is represented by one dataset.
    */
-  def datasets : Traversable[Dataset] = {
+  def datasets: Iterable[Dataset] = {
     require(server != null, "Server must be initialized")
     server.datasets
   }
@@ -60,7 +60,7 @@ object Server {
     server.process(source)
   }
 
-  def processAndReturnLinks(instanceSource : Source) : Traversable[MatchResult] =
+  def processAndReturnLinks(instanceSource : Source): Iterable[MatchResult] =
   {
     require(server != null, "Server must be initialized")
     server.processAndReturnLinks(instanceSource)
@@ -83,7 +83,7 @@ private class Server {
    * The datasets held by this server.
    * Each link specification in the configuration is represented by one dataset.
    */
-  val datasets : Traversable[Dataset] = {
+  val datasets : Iterable[Dataset] = {
     val resourceLoader = new FileResourceManager(serverConfig.configDir)
     //Iterate through all configuration files and create a dataset for each link spec
     for( file <- serverConfig.configDir.listFiles if file.getName.endsWith("xml");
@@ -103,7 +103,7 @@ private class Server {
 
   private val unknownEntitiyUri = silkUriPrefix + "UnknownEntity"
 
-  def processAndReturnLinks(source : Source) : Traversable[MatchResult] =
+  def processAndReturnLinks(source : Source) : Iterable[MatchResult] =
   {
     Logger.getLogger("org.silkframework").setLevel(Level.WARNING)
     val results = datasets.map(m => m(source))
@@ -120,7 +120,7 @@ private class Server {
     formatResults(matchResults)
   }
 
-  private def formatResults(matchResults : Traversable[MatchResult]) = {
+  private def formatResults(matchResults : Iterable[MatchResult]) = {
     val formatter = new NTriplesFormatter()
 
     //Format matchResults

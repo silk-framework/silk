@@ -37,7 +37,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       context.status.updateProgress((index + 1.0) / ruleSchemata.size)
     }
 
-    Some(MultiEntityTable(outputTables.head.entities, outputTables.head.entitySchema, task, outputTables.tail, transformContext.value().globalErrors))
+    Some(MultiEntityTable(outputTables.head.entities, outputTables.head.entitySchema, task, outputTables.tail.toSeq, transformContext.value().globalErrors))
   }
 
   def transformEntities(task: Task[TransformSpec],
@@ -60,13 +60,13 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
         addInputErrorsToTransformReport(inputTable, context)
         val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel, rule.withChildren(requestedRules), activeOutputSchema,
-          isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
+          isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context).iterator
         GenericEntityTable(transformedEntities, activeOutputSchema, task)
       case _ =>
         // Else execute the complete mapping
         addInputErrorsToTransformReport(input, context)
         val transformedEntities = new TransformedEntities(task, input.entities, ruleLabel, rule, schemata.outputSchema,
-          isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
+          isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context).iterator
         GenericEntityTable(transformedEntities, schemata.outputSchema, task)
     }
   }

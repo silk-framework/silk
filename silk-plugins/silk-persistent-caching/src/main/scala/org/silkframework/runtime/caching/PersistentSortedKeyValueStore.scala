@@ -5,8 +5,8 @@ import org.lmdbjava.DbiFlags.MDB_CREATE
 import org.lmdbjava.Env.create
 import org.lmdbjava._
 import org.silkframework.config.{ConfigValue, DefaultConfig}
-import org.silkframework.dataset.rdf.ClosableIterator
 import org.silkframework.runtime.caching.PersistentSortedKeyValueStore.byteBufferToString
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.FileUtils.toFileUtils
 import org.silkframework.util.Identifier
 
@@ -192,7 +192,7 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
     * @return An iterator over the stored key and the value as [[ByteBuffer]].
     *         The iterator must be closed when finished using it.
     */
-  def iterateEntries(): ClosableIterator[(ByteBuffer, ByteBuffer)] = {
+  def iterateEntries(): CloseableIterator[(ByteBuffer, ByteBuffer)] = {
     val txn = env.txnRead()
     val cursor = new CursorWrapper(db.openCursor(txn))
     // LMDB's cursor supports no hasNext function, so we need to implement it on our own.
@@ -201,7 +201,7 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
     } else {
       None
     }
-    new ClosableIterator[(ByteBuffer, ByteBuffer)] {
+    new CloseableIterator[(ByteBuffer, ByteBuffer)] {
       var closed = false
       override def close(): Unit = synchronized {
         if(!closed) {
@@ -246,10 +246,11 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
 
   /** Iterator over all entries interpreting both the key and the value as UTF-8 Strings.
     * This */
-  def iterateStringEntries(): ClosableIterator[(String, String)] = {
+  def iterateStringEntries(): CloseableIterator[(String, String)] = {
     val byteIterator = iterateEntries()
-    ClosableIterator.mappedClosableIterator(byteIterator, (keyValue: (ByteBuffer, ByteBuffer)) =>
-      PersistentSortedKeyValueStore.byteBufferToString(keyValue._1) -> PersistentSortedKeyValueStore.byteBufferToString(keyValue._2))
+    byteIterator.map { (keyValue: (ByteBuffer, ByteBuffer)) =>
+      PersistentSortedKeyValueStore.byteBufferToString(keyValue._1) -> PersistentSortedKeyValueStore.byteBufferToString(keyValue._2)
+    }
   }
 
   private def cursorKeyValue(cursor: CursorWrapper): (ByteBuffer, ByteBuffer) = {

@@ -6,7 +6,7 @@ import org.silkframework.util.Identifier
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
-import scala.xml._
+import scala.xml.{Attribute, Elem, Node, Null, Text}
 
 /**
   * A task, such as a dataset or a transformation task.

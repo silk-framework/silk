@@ -1,6 +1,5 @@
 package org.silkframework.rule.plugins.transformer.conditional
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.test.PluginTest
 
 /**

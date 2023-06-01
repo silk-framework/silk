@@ -21,7 +21,7 @@ object EntitySerializers {
       implicit val prefixes: Prefixes = readContext.prefixes
       EntitySchema(
         typeUri = new Uri(stringValue(value, "typeUri")),
-        typedPaths = mustBeJsArray(requiredValue(value, "paths"))(_.value.map(pathStr => TypedPath(pathStr.as[String], ValueType.STRING))),
+        typedPaths = mustBeJsArray(requiredValue(value, "paths"))(_.value.map(pathStr => TypedPath(pathStr.as[String], ValueType.STRING))).toIndexedSeq,
         filter = Restriction.parse(stringValue(value, "filter")),
         subPath = UntypedPath.parse(stringValue(value, "subPath")),
         singleEntity = booleanValueOption(value, "singleEntity").getOrElse(false)
@@ -79,7 +79,7 @@ object EntitySerializers {
 
       // Convert entity values to a nested JSON array
       val valuesJson = JsArray(
-        for(entity <- value.entities.toSeq) yield {
+        for(entity <- value.entities.use(_.toSeq)) yield {
           val values = entity.values.map(values => JsArray(values.map(JsString)))
           JsArray(values)
         }
@@ -95,12 +95,12 @@ object EntitySerializers {
       Entity(
         uri = stringValue(value, "uri"),
         values = mustBeJsArray(requiredValue(value, "values"))(value => value.value.map(v => {
-          var values = mustBeJsArray(v)(innerValue => innerValue.value.map(_.as[String]))
+          var values = mustBeJsArray(v)(innerValue => innerValue.value.map(_.as[String])).toSeq
           if(distinctValues) {
             values = values.distinct
           }
           values
-        })),
+        })).toIndexedSeq,
         schema = EntitySchemaJsonFormat.read(requiredValue(value, "schema"))
       )
     }

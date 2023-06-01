@@ -6,7 +6,7 @@ package org.silkframework.preprocessing.dataset
  * @param id The dataset id (same with the source)
  * @param entities The data
  */
-class Dataset(id: String, entities:Traversable[Entity]){
+class Dataset(id: String, entities: Iterable[Entity]){
 
   private val paths = loadPaths
 
@@ -15,7 +15,7 @@ class Dataset(id: String, entities:Traversable[Entity]){
 
   def pathSet = paths
 
-  def filter(path:String):Traversable[Entity] = {
+  def filter(path:String): Iterable[Entity] = {
     for(entity <- entities) yield {
       new Entity(entity.uri, entity.properties.filter(p => solvePath(p.path, path)))
     }

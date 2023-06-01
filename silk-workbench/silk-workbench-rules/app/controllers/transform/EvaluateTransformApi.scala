@@ -14,6 +14,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
 import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.LinkingSerializers.{DetailedEntityJsonFormat, ValueJsonFormat}
@@ -220,7 +221,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
-                          (implicit userContext: UserContext): Traversable[Value] = {
+                          (implicit userContext: UserContext): CloseableIterator[Value] = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)

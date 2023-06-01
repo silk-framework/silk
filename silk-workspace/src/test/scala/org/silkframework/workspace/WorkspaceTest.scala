@@ -1,8 +1,7 @@
 package org.silkframework.workspace
 
 import org.mockito.Mockito._
-import org.scalatest.Matchers.convertToAnyShouldWrapper
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
@@ -13,15 +12,16 @@ import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.ClassTag
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with MockitoSugar with TestUserContextTrait {
+class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with MockitoSugar with TestUserContextTrait {
   behavior of "Workspace"
 
   it should "throw a 503 if it is loading and reaching its timeout" in {
@@ -100,14 +100,14 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
 
     // Activity should have been started automatically
     val sleepActivity = workspace.project(project).anyTask(task).activity[SleepActivity]
-    sleepActivity.status() shouldBe 'isRunning
+    sleepActivity.status() mustBe  'isRunning
 
     workspace.reload()
 
     // After reload the current activity should have been cancelled and a new one started.
-    sleepActivity.status() should not be 'isRunning
+    sleepActivity.status() must not be 'isRunning
     val newSleepActivity = workspace.project(project).anyTask(task).activity[SleepActivity]
-    newSleepActivity.status() shouldBe 'isRunning
+    newSleepActivity.status() mustBe 'isRunning
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(

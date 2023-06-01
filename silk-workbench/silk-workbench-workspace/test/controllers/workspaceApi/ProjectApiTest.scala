@@ -4,7 +4,7 @@ import controllers.projectApi.ProjectApi.{CreateTag, CreateTagsRequest}
 import controllers.util.ProjectApiClient
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import org.silkframework.serialization.json.JsonSerializers
@@ -13,9 +13,11 @@ import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDa
 import play.api.libs.json.{JsResult, Json}
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 
-class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with ProjectApiClient {
+class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with ProjectApiClient {
   behavior of "Project API"
 
   private def projects: Seq[String] = workspaceProvider.readProjects().map(_.id.toString)

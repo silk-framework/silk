@@ -1,8 +1,9 @@
 package org.silkframework.runtime.plugin
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ClassPluginDescriptionTest extends FlatSpec with MustMatchers {
+class ClassPluginDescriptionTest extends AnyFlatSpec with Matchers {
 
   behavior of "PluginDescription"
 

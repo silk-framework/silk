@@ -1,10 +1,11 @@
 package org.silkframework.runtime.plugin
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.plugin.StringParameterType.StringType
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PluginRegistryTest extends FlatSpec with MustMatchers {
+class PluginRegistryTest extends AnyFlatSpec with Matchers {
 
   behavior of "PluginRegistry"
 

@@ -7,6 +7,7 @@ import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -19,7 +20,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   private val logger = Logger.getLogger(getClass.getName)
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     new XmlSourceStreaming(file, basePath, uriPattern).retrieveTypes(limit)
   }
 
@@ -42,7 +43,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
-    val entities = new Entities(entitySchema)
+    val entities = retrieveEntities(entitySchema)
 
     val limitedEntities =
       limit match {
@@ -77,22 +78,20 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
   }
 
-  private class Entities(entitySchema: EntitySchema) extends Traversable[Entity] {
-    def foreach[U](f: Entity => U) {
-      // Load xml
-      logger.fine("Loading XML")
-      val nodes = loadXmlNodes(entitySchema.typeUri.uri)
-      val xml = if(entitySchema.subPath.operators.nonEmpty) {
-        nodes.flatMap(_.evaluatePath(entitySchema.subPath))
-      } else { nodes }
+  private def retrieveEntities(entitySchema: EntitySchema): Seq[Entity] = {
+    // Load xml
+    logger.fine("Loading XML")
+    val nodes = loadXmlNodes(entitySchema.typeUri.uri)
+    val xml = if(entitySchema.subPath.operators.nonEmpty) {
+      nodes.flatMap(_.evaluatePath(entitySchema.subPath))
+    } else { nodes }
 
-      // Enumerate entities
-      logger.fine("Reading XML")
-      for ((traverser, index) <- xml.zipWithIndex) {
-        val uri = traverser.generateUri(uriPattern)
-        val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
-        f(Entity(uri, values, entitySchema))
-      }
+    // Enumerate entities
+    logger.fine("Reading XML")
+    for (traverser <- xml) yield {
+      val uri = traverser.generateUri(uriPattern)
+      val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
+      Entity(uri, values, entitySchema)
     }
   }
 
@@ -106,7 +105,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)
-                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
+                   (implicit userContext: UserContext, prefixes: Prefixes): CloseableIterator[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 

@@ -1,14 +1,15 @@
 package org.silkframework
 
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+
 import java.io.File
 import java.net.URLDecoder
-
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.runtime.activity.UserContext
 
 import scala.io.Source
 
-class SilkTest extends FlatSpec with Matchers {
+class SilkTest extends AnyFlatSpec with Matchers {
   implicit val userContext: UserContext = UserContext.Empty
 
   val exampleDir = URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/example/").getFile, "UTF-8")

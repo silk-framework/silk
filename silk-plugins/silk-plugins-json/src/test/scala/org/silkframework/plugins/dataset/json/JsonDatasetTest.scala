@@ -1,13 +1,14 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.resource.{ResourceTooLargeException, WritableResource}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.time.Instant
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonDatasetTest extends FlatSpec with Matchers with TestUserContextTrait {
+class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
 
   behavior of "JSON dataset"
 

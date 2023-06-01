@@ -21,9 +21,9 @@ trait PathMetaDataPlugin[T] extends AnyPlugin {
     * @return Path meta data for each input path. None if no meta data could be fetched.
     */
   def fetchMetaData(sourcePlugin: T,
-                    paths: Traversable[TypedPath],
+                    paths: Iterable[TypedPath],
                     preferredLanguage: String)
-                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[PathMetaData]
+                   (implicit userContext: UserContext, prefixes: Prefixes): Iterable[PathMetaData]
 }
 
 /** The path meta data.

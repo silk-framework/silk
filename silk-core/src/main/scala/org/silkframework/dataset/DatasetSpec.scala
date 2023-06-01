@@ -22,6 +22,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -105,7 +106,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     copy(plugin = plugin.withParameters(updatedParameters, dropExistingValues))
   }
 
-  def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
+  def assertUriAttributeUniqueness(attributes: Iterable[String]): Unit = {
     for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
       throw UriAttributeNotUniqueException(uriColumn)
     }
@@ -141,7 +142,7 @@ object DatasetSpec {
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
     override def retrieveTypes(limit: Option[Int] = None)
-                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
       source.retrieveTypes(limit)
     }
 
@@ -174,7 +175,7 @@ object DatasetSpec {
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                               (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if(entities.isEmpty) {
-        GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
+        GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
       } else {
         val adaptedSchema = adaptSchema(entitySchema)
         val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)

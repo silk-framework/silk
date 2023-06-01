@@ -954,10 +954,10 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   private def activityConfig(request: Request[AnyContent], includeQueryParameters: Boolean = true): Map[String, String] = {
     request.body match {
       case AnyContentAsFormUrlEncoded(values) =>
-        values.mapValues(_.head)
+        values.view.mapValues(_.head).toMap
       case _ if includeQueryParameters =>
         val ignoredQueryParameters = Set("project", "task", "activity")
-        request.queryString.filterKeys(!ignoredQueryParameters.contains(_)).mapValues(_.head)
+        request.queryString.view.filterKeys(!ignoredQueryParameters.contains(_)).mapValues(_.head).toMap
       case _ =>
         Map.empty
     }

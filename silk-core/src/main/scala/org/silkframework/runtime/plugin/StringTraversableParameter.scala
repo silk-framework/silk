@@ -5,12 +5,12 @@ import scala.language.implicitConversions
 /**
   * A string representation of a Traversable[String]
   */
-case class StringTraversableParameter(value: Traversable[String])
+case class StringTraversableParameter(value: Iterable[String])
 
 object StringTraversableParameter {
-  implicit def fromStringTraversable(i: Traversable[String]): StringTraversableParameter = {
+  implicit def fromStringTraversable(i: Iterable[String]): StringTraversableParameter = {
     StringTraversableParameter(i)
   }
 
-  implicit def toStringTraversable(i: StringTraversableParameter): Traversable[String] = i.value
+  implicit def toStringTraversable(i: StringTraversableParameter): Iterable[String] = i.value
 }

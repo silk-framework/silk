@@ -2,13 +2,12 @@ package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
-import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.RepeatedIterator
 import org.silkframework.util.Uri
 
 /**
@@ -25,15 +24,8 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
-    val allEntities =
-      new Traversable[Entity] {
-        override def foreach[U](f: Entity => U): Unit = {
-          for (sparqlSource <- sparqlSources;
-               entity <- sparqlSource.retrieve(entitySchema, limit).entities) {
-            f(entity)
-          }
-        }
-      }
+    val sourceIterator = sparqlSources.iterator
+    val allEntities = new RepeatedIterator[Entity](() => sourceIterator.nextOption().map(_.retrieve(entitySchema, limit).entities))
     GenericEntityTable(allEntities, entitySchema, underlyingTask)
   }
 
@@ -49,15 +41,14 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
-      val results = for (sparqlSource <- sparqlSources) yield {
-        sparqlSource.retrieveByUri(entitySchema, entities).entities
-      }
-      GenericEntityTable(results.flatten, entitySchema, underlyingTask)
+      val sourceIterator = sparqlSources.iterator
+      val allEntities = new RepeatedIterator[Entity](() => sourceIterator.nextOption().map(_.retrieveByUri(entitySchema, entities).entities))
+      GenericEntityTable(allEntities, entitySchema, underlyingTask)
     }
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = Iterable.empty
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = IndexedSeq.empty

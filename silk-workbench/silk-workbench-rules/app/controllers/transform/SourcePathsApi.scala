@@ -189,11 +189,11 @@ class SourcePathsApi @Inject() () extends InjectedController with UserContextAct
             }
           }
           def relativePathString(tp: TypedPath) = UntypedPath(tp.operators.takeRight(1)).serialize()
-          subPathMap.mapValues { typedPaths =>
+          subPathMap.view.mapValues { typedPaths =>
             val (objectPaths, dataPaths) = typedPaths.partition(_.valueType.id == "UriValueType")
             ObjectValueSourcePathInfo(
-              dataTypeSubPaths = dataPaths.map(relativePathString),
-              objectSubPaths = objectPaths.map(relativePathString)
+              dataTypeSubPaths = dataPaths.map(relativePathString).toSeq,
+              objectSubPaths = objectPaths.map(relativePathString).toSeq
             )
           }.toMap
         }

@@ -5,7 +5,7 @@ import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.{BeforeAndAfterAll, MustMatchers}
+import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
@@ -27,11 +27,12 @@ import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.libs.json.Json
 import testWorkspace.Routes
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Workspace API integration tests.
   */
-class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers with BeforeAndAfterAll {
+class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
 
   private val project = "project"
 

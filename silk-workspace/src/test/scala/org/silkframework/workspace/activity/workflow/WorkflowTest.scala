@@ -1,7 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.mockito.Mockito._
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -10,8 +9,10 @@ import org.silkframework.util.{Identifier, MockitoSugar}
 import org.silkframework.workspace.activity.workflow.WorkflowTest._
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers with TestUserContextTrait {
+class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with TestUserContextTrait {
   behavior of "Workflow"
 
   it should "support sorting its workflow operators topologically" in {

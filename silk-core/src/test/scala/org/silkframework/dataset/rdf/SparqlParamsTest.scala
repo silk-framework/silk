@@ -1,8 +1,9 @@
 package org.silkframework.dataset.rdf
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SparqlParamsTest extends FlatSpec with MustMatchers {
+class SparqlParamsTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Params"
   
   val namespace = "https://www.eccenca.com/test"

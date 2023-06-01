@@ -3,8 +3,7 @@ package controllers.workspaceApi
 import akka.stream.scaladsl.{FileIO, Source}
 import controllers.workspaceApi.ProjectImportApi.ProjectImportDetails
 import helper.IntegrationTestTrait
-import org.scalatest.concurrent.PatienceConfiguration
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.concurrent.PatienceConfiguration
 import org.silkframework.runtime.resource.ClasspathResource
 import org.silkframework.util.{Identifier, StreamUtils, TestFileUtils}
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
@@ -15,9 +14,11 @@ import play.api.mvc.MultipartFormData.FilePart
 import play.api.routing.Router
 
 import java.io.FileOutputStream
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait
-    with MustMatchers with PatienceConfiguration {
+class ProjectImportApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait
+    with Matchers with PatienceConfiguration {
   behavior of "project import API"
 
   override def projectPathInClasspath: String = "diProjects/configProject.zip"

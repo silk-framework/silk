@@ -33,10 +33,10 @@ import scala.xml.Node
  */
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeLinkingConfig,
-                         sources: Traversable[Task[DatasetSpec[Dataset]]],
-                         linkSpecs: Traversable[Task[LinkSpec]],
+                         sources: Iterable[Task[DatasetSpec[Dataset]]],
+                         linkSpecs: Iterable[Task[LinkSpec]],
                          output: Option[Task[DatasetSpec[Dataset]]] = None,
-                         transforms: Traversable[Task[TransformSpec]] = Seq.empty) {
+                         transforms: Iterable[Task[TransformSpec]] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap

@@ -1,8 +1,9 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class IsSubstringDistanceTest extends FlatSpec with MustMatchers {
+class IsSubstringDistanceTest extends AnyFlatSpec with Matchers {
 
   behavior of "IsSubstringDistance"
 

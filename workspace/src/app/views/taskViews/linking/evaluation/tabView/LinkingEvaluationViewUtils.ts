@@ -94,7 +94,11 @@ export const getLinkRuleInputPaths = (operatorInput: any) =>
         { source: {}, target: {} } as EvaluationLinkInputValue<string>
     );
 
-export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[], emptyPathLabel: string): string | undefined => {
+export const getOperatorLabel = (
+    operator: any,
+    operatorPlugins: IPluginDetails[],
+    emptyPathLabel: string
+): string | undefined => {
     switch (operator.type) {
         case "Aggregation":
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as IAggregationOperator).aggregator)

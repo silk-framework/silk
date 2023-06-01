@@ -1,9 +1,10 @@
 package org.silkframework.runtime.activity
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.users.User
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SimpleUserContextTest extends FlatSpec with MustMatchers {
+class SimpleUserContextTest extends AnyFlatSpec with Matchers {
   behavior of "Simple user context"
 
   it should "update its execution context" in {

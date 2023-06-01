@@ -71,7 +71,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   def dataSelections: DPair[DatasetSelection] = DPair(source, target)
 
-  def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]])
+  def findSources(datasets: Iterable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {
     DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
   }

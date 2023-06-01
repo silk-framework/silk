@@ -14,8 +14,6 @@
 
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.util.logging.{Level, Logger}
-
 import org.apache.jena.query._
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
@@ -23,7 +21,8 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator}
 import org.silkframework.runtime.activity.UserContext
 
-import scala.collection.immutable.SortedMap
+import java.util.logging.{Level, Logger}
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
  * A SPARQL endpoint which executes all queries using Jena.
@@ -65,12 +64,9 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     // Execute query
 //    val query = if(limit < Int.MaxValue) sparql + " LIMIT " + limit else sparql
     val qe = createQueryExecution(query)
-    try {
-      toSilkResults(qe.execSelect())
-    }
-    finally {
-      qe.close()
-    }
+    val resultSet = qe.execSelect()
+    val results = JenaResultsReader.read(resultSet).thenClose(() => { qe.close() })
+    SparqlResults(resultSet.getResultVars.asScala.toSeq, results)
   }
 
   /**
@@ -107,19 +103,4 @@ abstract class JenaEndpoint extends SparqlEndpoint {
                      (implicit userContext: UserContext): Unit = synchronized {
     createUpdateExecution(query).execute()
   }
-
-  /**
-   * Converts a Jena ARQ ResultSet to a Silk ResultSet.
-   */
-  private def toSilkResults(resultSet: ResultSet) = {
-    val results =
-      new Traversable[SortedMap[String, RdfNode]] {
-        override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
-          JenaResultsReader.read(resultSet, f)
-        }
-      }
-
-    SparqlResults(results.toList)
-  }
-
 }

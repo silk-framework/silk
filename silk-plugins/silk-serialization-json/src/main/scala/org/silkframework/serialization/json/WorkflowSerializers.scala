@@ -26,12 +26,12 @@ object WorkflowSerializers {
       }
       Workflow(
         operators =  WorkflowOperatorsParameter(
-          arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read)).getOrElse(Seq.empty)),
+          arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read).toSeq).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(
-          arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty)),
+          arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read).toSeq).getOrElse(Seq.empty)),
         uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
-        replaceableInputs = arrayValueOption(parameterObject, REPLACEABLE_INPUTS).getOrElse(JsArray()).value.map(_.as[String]),
-        replaceableOutputs = arrayValueOption(parameterObject, REPLACEABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String])
+        replaceableInputs = arrayValueOption(parameterObject, REPLACEABLE_INPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq,
+        replaceableOutputs = arrayValueOption(parameterObject, REPLACEABLE_OUTPUTS).getOrElse(JsArray()).value.map(_.as[String]).toIndexedSeq
       )
     }
 
@@ -52,7 +52,7 @@ object WorkflowSerializers {
 
   implicit object WorkflowOperatorsParameterFormat extends JsonFormat[WorkflowOperatorsParameter] {
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowOperatorsParameter = {
-      mustBeJsArray(value)(_.value.map(WorkflowOperatorJsonFormat.read))
+      mustBeJsArray(value)(_.value.map(WorkflowOperatorJsonFormat.read).toSeq)
     }
 
     override def write(value: WorkflowOperatorsParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -62,7 +62,7 @@ object WorkflowSerializers {
 
   implicit object WorkflowDatasetsParameterFormat extends JsonFormat[WorkflowDatasetsParameter] {
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowDatasetsParameter = {
-      mustBeJsArray(value)(_.value.map(WorkflowDatasetJsonFormat.read))
+      mustBeJsArray(value)(_.value.map(WorkflowDatasetJsonFormat.read).toSeq)
     }
 
     override def write(value: WorkflowDatasetsParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -72,7 +72,7 @@ object WorkflowSerializers {
 
   implicit object TaskIdentifierParameterFormat extends JsonFormat[TaskIdentifierParameter] {
     override def read(value: JsValue)(implicit readContext: ReadContext): TaskIdentifierParameter = {
-      TaskIdentifierParameter(mustBeJsArray(value)(_.value.map(_.as[String])))
+      TaskIdentifierParameter(mustBeJsArray(value)(_.value.map(_.as[String])).toSeq)
     }
 
     override def write(value: TaskIdentifierParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -97,7 +97,7 @@ object WorkflowSerializers {
         inputs = inputs(value),
         task = task(value),
         outputs = outputs(value),
-        errorOutputs = mustBeJsArray(requiredValue(value, ERROR_OUTPUTS))(_.value.map(_.as[JsString].value)),
+        errorOutputs = mustBeJsArray(requiredValue(value, ERROR_OUTPUTS))(_.value.map(_.as[JsString].value).toSeq),
         position = nodePosition(value),
         nodeId = nodeId(value),
         outputPriority = outputPriority(value),
@@ -165,11 +165,11 @@ object WorkflowSerializers {
     }
 
     protected def inputs(value: JsValue): IndexedSeq[String] = {
-      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value))
+      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value).toIndexedSeq)
     }
 
     protected def outputs(value: JsValue): IndexedSeq[String] = {
-      mustBeJsArray(requiredValue(value, OUTPUTS))(_.value.map(_.as[JsString].value))
+      mustBeJsArray(requiredValue(value, OUTPUTS))(_.value.map(_.as[JsString].value).toIndexedSeq)
     }
 
     protected def configInputs(value: JsValue): Seq[String] = {

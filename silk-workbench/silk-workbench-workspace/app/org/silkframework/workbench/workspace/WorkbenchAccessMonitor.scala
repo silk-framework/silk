@@ -2,12 +2,11 @@ package org.silkframework.workbench.workspace
 
 import java.util
 import java.util.logging.Logger
-
 import javax.inject.Singleton
 import org.silkframework.runtime.activity.UserContext
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.IterableHasAsScala
 
 /**
   * Stores project and task accesses by users, e.g. used for "recently viewed items".

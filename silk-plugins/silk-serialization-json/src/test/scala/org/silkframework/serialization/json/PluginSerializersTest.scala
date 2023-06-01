@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, PluginDescription}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json.{JsArray, JsObject, JsValue}
@@ -8,8 +8,10 @@ import JsonHelpers._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.serialization.{TestWriteContext, WriteContext}
 import JsonSerializers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PluginSerializersTest extends FlatSpec with MustMatchers {
+class PluginSerializersTest extends AnyFlatSpec with Matchers {
   behavior of "Plugin Serializers"
   private final val PROPERTIES = "properties"
 

@@ -15,12 +15,13 @@
 package org.silkframework.rule.plugins.transformer
 
 
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.linguistic.NormalizeCharsTransformer
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class NormalizeCharsTransformerTest extends FlatSpec with Matchers {
+class NormalizeCharsTransformerTest extends AnyFlatSpec with Matchers {
   val transformer = new NormalizeCharsTransformer()
 
   "NormalizeCharsTransformer" should "replace diacritical characters with non-diacritical ones" in {

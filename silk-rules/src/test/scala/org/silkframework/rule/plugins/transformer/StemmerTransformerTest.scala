@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.linguistic.StemmerTransformer
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class StemmerTransformerTest extends FlatSpec with Matchers {
+class StemmerTransformerTest extends AnyFlatSpec with Matchers {
 
   val transformer = new StemmerTransformer()
 

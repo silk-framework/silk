@@ -56,31 +56,28 @@ class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) e
                              in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[String])
                            )
-                           statusFilter: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
-    val activityStatusTraversable: Traversable[JsValue] = new Traversable[JsValue] {
-      override def foreach[U](f: JsValue => U): Unit = {
-        val projects = projectId match {
-          case Some(id) =>
-            Seq(workspace.project(id))
-          case None =>
-            workspace.projects
-        }
-        implicit val writeContext: WriteContext[JsValue] = WriteContext.empty
-        for(project <- projects;
-            task <- project.allTasks;
-            activity <- task.activities;
-            status <- activity.status.get
-            if statusMatches(status, statusFilter)) {
-          val extendedJsonFormat = new ExtendedStatusJsonFormat(project.config.id, task.id, activity.name, activity.label, activity.startTime)
-          f(extendedJsonFormat.write(status))
-        }
+                           statusFilter: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val projects = projectId match {
+      case Some(id) =>
+        Seq(workspace.project(id))
+      case None =>
+        workspace.projects
+    }
+    def statusMatches(status: ActivityStatus, statusFilter: Option[String]): Boolean = {
+      statusFilter.isEmpty || statusFilter.contains(status.name) || statusFilter.contains(status.concreteStatus)
+    }
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty
+    val activityStatuses =
+      for(project <- projects;
+          task <- project.allTasks;
+          activity <- task.activities;
+          status <- activity.status.get
+          if statusMatches(status, statusFilter)) yield {
+        val extendedJsonFormat = new ExtendedStatusJsonFormat(project.config.id, task.id, activity.name, activity.label, activity.startTime)
+        extendedJsonFormat.write(status)
       }
 
-      def statusMatches(status: ActivityStatus, statusFilter: Option[String]): Boolean = {
-        statusFilter.isEmpty || statusFilter.contains(status.name) || statusFilter.contains(status.concreteStatus)
-      }
-    }
-    Ok(Json.toJson(activityStatusTraversable.toSeq))
+    Ok(Json.toJson(activityStatuses))
   }
 
   /** Faceted search API for the activity search */

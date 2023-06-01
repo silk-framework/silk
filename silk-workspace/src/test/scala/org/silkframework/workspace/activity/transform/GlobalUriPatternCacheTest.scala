@@ -1,12 +1,13 @@
 package org.silkframework.workspace.activity.transform
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule._
 
 import scala.collection.mutable
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class GlobalUriPatternCacheTest extends FlatSpec with MustMatchers {
+class GlobalUriPatternCacheTest extends AnyFlatSpec with Matchers {
   it should "extract URI patterns from existing mapping rules" in {
     val rootUriPattern = "https://root.org/{id}"
     def uriPattern(suffix: String): String = s"urn:someUriPattern:suffix$suffix"

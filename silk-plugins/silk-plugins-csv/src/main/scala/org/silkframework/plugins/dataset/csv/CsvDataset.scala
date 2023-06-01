@@ -74,14 +74,16 @@ case class CsvDataset (
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured(implicit pluginContext: PluginContext): CsvDataset = {
-    val source = csvSource(firstResource, ignoreMalformed = true)
-    val autoConfig = source.autoConfigure()
-    this.withParameters(ParameterValues(Map(
-      "file" -> ParameterObjectValue(file),
-      "separator" -> ParameterStringValue(if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator),
-      "charset" -> ParameterStringValue(autoConfig.codecName),
-      "linesToSkip" -> ParameterStringValue(autoConfig.linesToSkip.getOrElse(linesToSkip).toString)
-    )))
+    useFirstResource { firstResource =>
+      val source = csvSource(firstResource, ignoreMalformed = true)
+      val autoConfig = source.autoConfigure()
+      this.withParameters(ParameterValues(Map(
+        "file" -> ParameterObjectValue(file),
+        "separator" -> ParameterStringValue(if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator),
+        "charset" -> ParameterStringValue(autoConfig.codecName),
+        "linesToSkip" -> ParameterStringValue(autoConfig.linesToSkip.getOrElse(linesToSkip).toString)
+      )))
+    }
   }
 
   override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {

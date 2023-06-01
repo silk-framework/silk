@@ -5,6 +5,7 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.annotations.Param
 import org.silkframework.util.Uri
 
@@ -13,8 +14,8 @@ import org.silkframework.util.Uri
   */
 case class MockDataset(@Param(label = "person name", value = "The full name of a person")
                        name: String = "dummy") extends Dataset {
-  var retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity] = (_, _) => Seq.empty
-  var retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity] = (_, _) => Seq.empty
+  var retrieveFn: (EntitySchema, Option[Int]) => CloseableIterator[Entity] = (_, _) => CloseableIterator.empty
+  var retrieveByUriFn: (EntitySchema, Seq[Uri]) => CloseableIterator[Entity] = (_, _) => CloseableIterator.empty
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}
   var writeEntityFn: (String, Seq[Seq[String]]) => Unit = (_, _) => {}
   var clearFn: () => Unit = () => {}
@@ -29,8 +30,8 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }
 
-case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],
-                           retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity],
+case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => CloseableIterator[Entity],
+                           retrieveByUriFn: (EntitySchema, Seq[Uri]) => CloseableIterator[Entity],
                            retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
@@ -48,7 +49,7 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = Iterable.empty
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = EmptySource.underlyingTask
 }

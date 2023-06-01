@@ -47,7 +47,7 @@ sealed trait RuleTraverser {
   }
 
   /** Returns the root operator */
-  def root: RuleTraverser = iterate(_.moveUp).toTraversable.last
+  def root: RuleTraverser = iterate(_.moveUp).toSeq.last
 
   /** Iterates through all direct children */
   def iterateChildren = moveDown match {

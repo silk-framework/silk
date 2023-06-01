@@ -47,7 +47,7 @@ class FeatureValuePairs(override val id:String,
   }
 
 
-  def apply(dataset:Dataset, findNewProperty: String=>String):Traversable[Entity]= {
+  def apply(dataset:Dataset, findNewProperty: String=>String): Iterable[Entity]= {
 
     val filteredEntities = dataset.filter(propertyToExtractFrom)
 

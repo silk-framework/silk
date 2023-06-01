@@ -23,7 +23,7 @@ trait CachedActivity[T] extends Activity[T] {
   def resource: WritableResource
 
   // Implicit parameters for traits solution from https://stackoverflow.com/questions/6983759/how-to-declare-traits-as-taking-implicit-constructor-parameters
-  protected case class WrappedXmlFormat(implicit val wrapped: XmlFormat[T])
+  protected case class WrappedXmlFormat()(implicit val wrapped: XmlFormat[T])
 
   // normally defined by caller as val wrappedXmlFormat = WrappedXmlFormat()
   protected val wrappedXmlFormat: WrappedXmlFormat

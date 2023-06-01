@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}
@@ -9,8 +8,10 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.xml.{Node, PrettyPrinter, XML}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class XmlSinkTest extends FlatSpec with Matchers {
+class XmlSinkTest extends AnyFlatSpec with Matchers {
 
   behavior of "XmlSink"
 

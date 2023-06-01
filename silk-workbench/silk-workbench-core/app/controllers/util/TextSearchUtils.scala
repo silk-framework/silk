@@ -10,7 +10,7 @@ object TextSearchUtils {
   }
 
   /** Match search terms against string. Returns only true if all search terms match at least one of the provided strings. */
-  def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String*): Boolean = {
+  def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String], searchIn: String*): Boolean = {
     val lowerCaseTexts = searchIn.map(_.toLowerCase)
     lowerCaseSearchTerms forall (searchTerm => lowerCaseTexts.exists(_.contains(searchTerm)))
   }

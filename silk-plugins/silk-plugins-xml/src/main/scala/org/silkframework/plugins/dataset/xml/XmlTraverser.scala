@@ -26,7 +26,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
       }
       idx += 1
     }
-    arrayResult
+    arrayResult.toSeq
   }
 
   /**
@@ -35,7 +35,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
   def childrenRecursive: Seq[XmlTraverser] = {
     val results = new ArrayBuffer[XmlTraverser]()
     childrenRecursiveBuild(results)
-    results
+    results.toSeq
   }
 
   private def childrenRecursiveBuild(arrayBuffer: ArrayBuffer[XmlTraverser]): Unit = {
@@ -187,7 +187,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
       next = temp
       next.clear()
     }
-    current
+    current.toIndexedSeq
   }
 
   private def evaluateOperator(op: PathOperator, buffer: ArrayBuffer[XmlTraverser]): Unit = {
