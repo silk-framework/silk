@@ -14,15 +14,14 @@ import {
     IconButton,
     Label,
     OverflowText,
-    OverviewItem,
-    OverviewItemActions,
-    OverviewItemDescription,
-    OverviewItemLine,
+    OverviewItemList,
     PropertyName,
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
     Spacing,
+    Toolbar,
+    ToolbarSection,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { getVariables } from "./requests";
@@ -155,67 +154,67 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                             <Droppable droppableId="variableDroppable">
                                 {(provided) => (
                                     <div ref={provided.innerRef} {...provided.droppableProps}>
-                                        <PropertyValueList>
+                                        <OverviewItemList hasDivider>
                                             {variables.map((variable, i) => (
-                                                <PropertyValuePair key={variable.name} hasDivider>
-                                                    <Draggable pos={i} index={i} draggableId={`${i}`}>
-                                                        {(provided) => (
-                                                            <div
-                                                                ref={provided.innerRef}
-                                                                {...provided.draggableProps}
-                                                                {...provided.dragHandleProps}
-                                                            >
-                                                                <PropertyName>
-                                                                    <OverviewItem>
-                                                                        <OverviewItemActions>
-                                                                            <Icon small name="item-draggable" />
-                                                                        </OverviewItemActions>
-                                                                        <Spacing size="tiny" vertical />
-                                                                        <OverviewItemDescription>
-                                                                            <OverviewItemLine>
-                                                                                <OverflowText passDown>
-                                                                                    <Label
-                                                                                        text={variable.name}
-                                                                                        tooltip={variable.description}
-                                                                                    />
-                                                                                </OverflowText>
-                                                                            </OverviewItemLine>
-                                                                        </OverviewItemDescription>
-                                                                    </OverviewItem>
-                                                                </PropertyName>
-                                                                <PropertyValue>
-                                                                    <OverviewItem>
-                                                                        <OverviewItemDescription>
-                                                                            <OverviewItemLine>
+                                                <Draggable key={variable.name} pos={i} index={i} draggableId={`${i}`}>
+                                                    {(provided) => (
+                                                        <div
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                        >
+                                                            <Toolbar noWrap>
+                                                                <ToolbarSection>
+                                                                    <Icon small name="item-draggable" />
+                                                                    <Spacing size="tiny" vertical />
+                                                                </ToolbarSection>
+                                                                <ToolbarSection canGrow canShrink>
+                                                                    <PropertyValuePair>
+                                                                        <PropertyName
+                                                                            style={{
+                                                                                whiteSpace: "nowrap",
+                                                                                overflow: "visible",
+                                                                            }}
+                                                                        >
+                                                                            <Label
+                                                                                text={
+                                                                                    <OverflowText inline>
+                                                                                        {variable.name}
+                                                                                    </OverflowText>
+                                                                                }
+                                                                                tooltip={variable.description}
+                                                                            />
+                                                                        </PropertyName>
+                                                                        <PropertyValue
+                                                                            style={{
+                                                                                marginLeft: "calc(18.75% + 14px)",
+                                                                            }}
+                                                                        >
+                                                                            <OverflowText>
                                                                                 <code>{variable.value}</code>
-                                                                            </OverviewItemLine>
-                                                                        </OverviewItemDescription>
-                                                                        <OverviewItemActions>
-                                                                            <IconButton
-                                                                                small
-                                                                                name="item-edit"
-                                                                                onClick={() =>
-                                                                                    handleModalOpen(variable)
-                                                                                }
-                                                                            />
-                                                                            <Spacing vertical size="tiny" />
-                                                                            <IconButton
-                                                                                small
-                                                                                name="item-remove"
-                                                                                onClick={() =>
-                                                                                    handleDeleteModalOpen(variable)
-                                                                                }
-                                                                                disruptive
-                                                                            />
-                                                                        </OverviewItemActions>
-                                                                    </OverviewItem>
-                                                                </PropertyValue>
-                                                            </div>
-                                                        )}
-                                                    </Draggable>
-                                                </PropertyValuePair>
+                                                                            </OverflowText>
+                                                                        </PropertyValue>
+                                                                    </PropertyValuePair>
+                                                                </ToolbarSection>
+                                                                <ToolbarSection>
+                                                                    <IconButton
+                                                                        small
+                                                                        name="item-edit"
+                                                                        onClick={() => handleModalOpen(variable)}
+                                                                    />
+                                                                    <IconButton
+                                                                        small
+                                                                        name="item-remove"
+                                                                        onClick={() => handleDeleteModalOpen(variable)}
+                                                                        disruptive
+                                                                    />
+                                                                </ToolbarSection>
+                                                            </Toolbar>
+                                                        </div>
+                                                    )}
+                                                </Draggable>
                                             ))}
-                                        </PropertyValueList>
+                                        </OverviewItemList>
                                     </div>
                                 )}
                             </Droppable>
