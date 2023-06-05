@@ -27,33 +27,35 @@ object DetailedEvaluator {
   /**
    * Evaluates a linkage rule.
    */
-  def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double): Option[DetailedLink] = {
+  def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double): Option[EvaluatedLink] = {
     rule.operator match {
       case Some(op) =>
         val confidence = evaluateOperator(op, entities, limit)
-        if (confidence.score.getOrElse(-1.0) >= limit)
-          Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(confidence)))
-        else
+        if (confidence.score.getOrElse(-1.0) >= limit) {
+          Some(new EvaluatedLink(entities.source.uri, entities.target.uri, entities, confidence))
+        } else {
           None
+        }
 
       case None =>
-        if (limit == -1.0)
-          Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(SimpleConfidence(Some(-1.0)))))
-        else
+        if (limit == -1.0) {
+          Some(new EvaluatedLink(entities.source.uri, entities.target.uri, entities, SimpleConfidence(Some(-1.0))))
+        } else {
           None
+        }
     }
   }
 
   /**
     * Evaluates a linkage rule.
     */
-  def apply(rule: LinkageRule, entities: DPair[Entity]): DetailedLink = {
+  def apply(rule: LinkageRule, entities: DPair[Entity]): EvaluatedLink = {
     rule.operator match {
       case Some(op) =>
         val confidence = evaluateOperator(op, entities, -1.0)
-        new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(confidence))
+        new EvaluatedLink(entities.source.uri, entities.target.uri, entities, confidence)
       case None =>
-        new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(SimpleConfidence(Some(-1.0))))
+        new EvaluatedLink(entities.source.uri, entities.target.uri, entities, SimpleConfidence(Some(-1.0)))
     }
   }
 

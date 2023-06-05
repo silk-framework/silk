@@ -100,14 +100,19 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   }
 
   def toReferenceLinks: Seq[ReferenceLink] = {
-    asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE) ++ asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
+    positiveReferenceLinks ++ negativeReferenceLinks
   }
 
-  def positiveReferenceLinks: Seq[ReferenceLink] = {
+  def toReferenceLinksSafe(sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): Seq[ReferenceLink] = {
+    asReferenceLinksSafe(positiveLinks.toSeq, LinkDecision.POSITIVE, sourceEntitySchema, targetEntitySchema) ++
+      asReferenceLinksSafe(negativeLinks.toSeq, LinkDecision.NEGATIVE, sourceEntitySchema, targetEntitySchema)
+  }
+
+  private def positiveReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE)
   }
 
-  def negativeReferenceLinks: Seq[ReferenceLink] = {
+  private def negativeReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
   }
 
@@ -123,17 +128,49 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
 
   private def asReferenceLinks(links: Seq[Link], linkDecision: LinkDecision): Seq[ReferenceLink] = {
     for (link <- links) yield {
-      new ReferenceLink(
-        source = link.source,
-        target = link.target,
-        linkEntities = DPair(
-          source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
-          target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
-        ),
-        decision = linkDecision,
-        confidence = link.confidence
-      )
+      asReferenceLink(link, linkDecision)
     }
+  }
+
+  private def asReferenceLinksSafe(links: Seq[Link], linkDecision: LinkDecision, sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): Seq[ReferenceLink] = {
+    for (link <- links) yield {
+      asReferenceLinkSafe(link, linkDecision, sourceEntitySchema, targetEntitySchema)
+    }
+  }
+
+  /** Adds entities with no values to the link if the entity could not be found. */
+  private def asReferenceLinkSafe(link: Link, linkDecision: LinkDecision, sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): ReferenceLink = {
+    new ReferenceLink(
+      source = link.source,
+      target = link.target,
+      linkEntities = DPair(
+        source = sourceEntities.getOrElse(link.source, emptyEntity(link.source, sourceEntitySchema)),
+        target = targetEntities.getOrElse(link.target, emptyEntity(link.target, targetEntitySchema)),
+      ),
+      decision = linkDecision,
+      confidence = link.confidence
+    )
+  }
+
+  private def emptyEntity(uri: String, entitySchema: EntitySchema): Entity = {
+    Entity(
+      uri,
+      values = entitySchema.typedPaths.map(_ => Seq()),
+      schema = entitySchema
+    )
+  }
+
+  private def asReferenceLink(link: Link, linkDecision: LinkDecision): ReferenceLink = {
+    new ReferenceLink(
+      source = link.source,
+      target = link.target,
+      linkEntities = DPair(
+        source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
+        target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
+      ),
+      decision = linkDecision,
+      confidence = link.confidence
+    )
   }
 
   /** Merges this reference set with another reference set. */

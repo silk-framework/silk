@@ -159,6 +159,16 @@ export function ProjectTaskTabView({
         setDisplayFullscreen(!displayFullscreen);
     };
 
+    function getTabRoute(tabItem: IItemLink | string): Partial<IProjectTaskView & IItemLink> | undefined {
+        return viewsAndItemLink.find((itemView) => {
+            if (typeof tabItem === "string") {
+                return itemView.id === tabItem;
+            } else {
+                return tabItem.id === itemView.id;
+            }
+        });
+    }
+
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string, overwrite = false) => {
         if (unsavedChanges && !overwrite) {
@@ -166,13 +176,7 @@ export function ProjectTaskTabView({
             setOpenTabSwitchPrompt(true);
             setBlockedTab(tabItem);
         } else {
-            const tabRoute = viewsAndItemLink.find((itemView) => {
-                if (typeof tabItem === "string") {
-                    return itemView.id === tabItem;
-                } else {
-                    return tabItem.id === itemView.id;
-                }
-            });
+            const tabRoute = getTabRoute(tabItem);
             setUnsavedChanges(false);
             setOpenTabSwitchPrompt(false);
             setTabRouteChangeRequest(tabRoute?.id);
@@ -305,22 +309,27 @@ export function ProjectTaskTabView({
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
-                            viewsAndItemLink.map((tabItem, idx) => (
-                                <Button
-                                    data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
-                                    key={tabItem.id ?? tabItem.path}
-                                    onClick={() => {
-                                        changeTab(tabItem.id ?? (tabItem as IItemLink));
-                                    }}
-                                    minimal={true}
-                                    disabled={
-                                        !!selectedTab &&
-                                        (tabItem.path ?? tabItem.id) === ((selectedTab as any)?.path ?? selectedTab)
-                                    }
-                                >
-                                    {tLabel(tabItem.label as string)}
-                                </Button>
-                            ))}
+                            viewsAndItemLink.map((tabItem, idx) => {
+                                const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
+                                return (
+                                    <Button
+                                        data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
+                                        key={tabItem.id ?? tabItem.path}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            changeTab(tabItem.id ?? (tabItem as IItemLink));
+                                        }}
+                                        href={calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)}
+                                        minimal={true}
+                                        disabled={
+                                            !!selectedTab &&
+                                            (tabItem.path ?? tabItem.id) === ((selectedTab as any)?.path ?? selectedTab)
+                                        }
+                                    >
+                                        {tLabel(tabItem.label as string)}
+                                    </Button>
+                                );
+                            })}
                         {!!handlerRemoveModal ? (
                             <IconButton name="navigation-close" onClick={handlerRemoveModal} />
                         ) : (
