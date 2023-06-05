@@ -168,7 +168,6 @@ const Project = () => {
                     <FileWidget />
                     <Spacing />
                     <ConfigurationWidget />
-                    <Spacing />
                     <WarningWidget />
                     <Spacing />
                     <ActivityInfoWidget />
