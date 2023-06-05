@@ -43,6 +43,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     >();
     const [errorMessage, setErrorMessage] = React.useState<string>("");
     const [t] = useTranslation();
+    const isEditMode = targetVariable;
 
     const valueState = React.useRef<ValueStateRef>({
         // Input value needs to be undefined, so it gets set to the default value
@@ -69,6 +70,17 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         setValidationError(error);
         return error;
     }, [name, valueState]);
+
+    const handleVariableNameChange = React.useCallback(
+        (e) => {
+            const newName = e.target.value;
+            setName(newName);
+            if (variables.find((v) => v.name === newName)) {
+                setValidationError((prevError) => ({ ...prevError, name: "Name already exist" }));
+            }
+        },
+        [variables]
+    );
 
     const addNewVariable = React.useCallback(async () => {
         const error = validationChecker();
@@ -126,8 +138,9 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 <TextField
                     id="name"
                     intent={!!validationError?.name ? "danger" : "none"}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={handleVariableNameChange}
                     value={name}
+                    disabled={!!isEditMode}
                 />
             </FieldItem>
             <TemplateValueInput

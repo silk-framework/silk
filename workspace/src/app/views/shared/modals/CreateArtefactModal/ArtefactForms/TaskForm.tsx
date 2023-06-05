@@ -290,6 +290,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                     <>
                         <ArtefactFormParameter
                             key={LABEL}
+                            projectId={projectId}
                             parameterId={LABEL}
                             label={t("form.field.label")}
                             required={true}
@@ -311,6 +312,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             )}
                         />
                         <ArtefactFormParameter
+                            projectId={projectId}
                             key={DESCRIPTION}
                             parameterId={DESCRIPTION}
                             label={t("form.field.description")}
@@ -324,6 +326,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             )}
                         />
                         <ArtefactFormParameter
+                            projectId={projectId}
                             key={TAGS}
                             parameterId={TAGS}
                             label={t("form.field.tags")}

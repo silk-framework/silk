@@ -803,9 +803,7 @@
             },
             "actions": {
                 "add": "Add variable",
-                "edit": "Edit variable",
-                "delete": "Delete variable",
-                "noThanks": "No, Thanks"
+                "edit": "Edit variable"
             },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project {{projectId}}"

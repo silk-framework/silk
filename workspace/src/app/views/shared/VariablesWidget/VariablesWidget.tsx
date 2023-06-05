@@ -13,6 +13,7 @@ import {
     Icon,
     IconButton,
     Label,
+    Notification,
     OverflowText,
     OverviewItemList,
     PropertyName,
@@ -27,9 +28,9 @@ import { getVariables } from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
-import DeleteVariablePrompt from "./modals/DeleteVariablePrompt";
 import { createNewVariable } from "./requests";
 import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
+import DeleteModal from "../modals/DeleteModal";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
@@ -111,6 +112,14 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         [variables]
     );
 
+    const renderDeleteVariable = React.useCallback(() => {
+        return (
+            <div>
+                Are you sure you want to delete variable <strong>{selectedVariable?.name}</strong>?
+            </div>
+        );
+    }, [selectedVariable]);
+
     return (
         <>
             <NewVariableModal
@@ -122,12 +131,13 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 taskId={taskId}
                 refresh={() => setRefetch((r) => ++r)}
             />
-            <DeleteVariablePrompt
+            <DeleteModal
+                onConfirm={handleDeleteVariable}
                 isOpen={deleteModalOpen}
-                closeModal={() => setDeleteModalOpen(false)}
-                isDeletingVariable={isDeleting}
-                deleteVariable={handleDeleteVariable}
+                onDiscard={() => setDeleteModalOpen(false)}
+                removeLoading={isDeleting}
                 errorMessage={deleteErrorMsg}
+                render={renderDeleteVariable}
             />
             <Card>
                 <CardHeader>
@@ -147,7 +157,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     {loadingVariables ? (
                         <Loading />
                     ) : !variables.length ? (
-                        <p>{t("widget.VariableWidget.noVariables", "No  Variables set")}</p>
+                        <Notification message={t("widget.VariableWidget.noVariables", "No  Variables set")} />
                     ) : (
                         <DragDropContext onDragStart={handleVariableDragStart} onDragEnd={handleVariableDragEnd}>
                             <Droppable droppableId="variableDroppable">
