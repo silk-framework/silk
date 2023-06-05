@@ -17,6 +17,13 @@ case class TemplateVariable(name: String,
 
   validate()
 
+  /**
+    * The variable name including its scope, e.g., `project.var`
+    */
+  def scopedName: String = {
+    scope + "." + name
+  }
+
   private def validate(): Unit = {
     if(!isAllowedChar(name.head, firstChar = true) || !name.tail.forall(isAllowedChar(_, firstChar = false))) {
       throw new BadUserInputException(s"Invalid variable name '$name'. " +

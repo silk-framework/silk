@@ -37,7 +37,7 @@ object PluginContext {
   }
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PluginContext = {
-    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.templateVariables)
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables)
   }
 
   def fromProjectConfig(config: ProjectConfig,

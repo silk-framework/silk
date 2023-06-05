@@ -31,7 +31,7 @@ object WriteContext {
       projectUri = project.config.projectResourceUriOpt,
       resources = project.resources,
       user = user,
-      templateVariables = project.templateVariables
+      templateVariables = project.combinedTemplateVariables
     )
   }
 

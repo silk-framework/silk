@@ -33,7 +33,7 @@ object ReadContext {
       prefixes = project.config.prefixes,
       user = user,
       projectId = Some(project.id),
-      templateVariables = project.templateVariables
+      templateVariables = project.combinedTemplateVariables
     )
   }
 

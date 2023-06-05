@@ -32,7 +32,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     */
   def variableNames: Seq[String] = {
     for (variable <- variables.sortBy(_.name)) yield {
-      variable.scope + "." + variable.name
+      variable.scopedName
     }
   }
 
@@ -69,7 +69,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   }
 
   private def validate(): Unit = {
-    val duplicateNames = variables.groupBy(_.name).filter(_._2.size > 1).keys
+    val duplicateNames = variables.groupBy(_.scopedName).filter(_._2.size > 1).keys
     if (duplicateNames.nonEmpty) {
       throw new BadUserInputException("Duplicate variable names: " + duplicateNames.mkString(", "))
     }
