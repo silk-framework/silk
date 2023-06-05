@@ -131,7 +131,7 @@ export function TaskConfig(props: IProps) {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !labelledTaskData ? (
                     <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (

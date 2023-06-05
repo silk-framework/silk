@@ -173,7 +173,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !parameters ? (
                     <Loading />
                 ) : (

@@ -95,7 +95,7 @@ export const FileWidget = () => {
                     </CardTitle>
                 </CardHeader>
                 <Divider />
-                <CardContent>
+                <CardContent style={{ maxHeight: "25vh" }}>
                     {isLoading ? (
                         <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : (
