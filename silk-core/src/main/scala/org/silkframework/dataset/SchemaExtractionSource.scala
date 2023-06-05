@@ -54,7 +54,7 @@ trait ValueAnalyzer[T] {
   /** Update the analyzer */
   def update(value: String): Unit
 
-  def update(values: Traversable[String]): Unit = values foreach update
+  def update(values: Iterable[String]): Unit = values foreach update
 }
 
 trait ValueAnalyzerFactory[T] {

@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.numeric.NumReduceTransformer
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class NumReduceTransformerTest extends FlatSpec with Matchers {
+class NumReduceTransformerTest extends AnyFlatSpec with Matchers {
   val transformer = new NumReduceTransformer()
 
   "NumReduceTransformer" should "return '10'" in {

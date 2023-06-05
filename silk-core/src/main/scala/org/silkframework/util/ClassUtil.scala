@@ -34,7 +34,7 @@ object ClassUtil {
       case c: Class[_] => c
       case tv: TypeVariable[_] =>
         val actualType = for (descendent <- inheritanceTrail;
-                              interface <- descendent.getGenericInterfaces ++ Option(descendent.getGenericSuperclass) if interface.isInstanceOf[ParameterizedType];
+                              interface <- descendent.getGenericInterfaces.toSeq ++ Option(descendent.getGenericSuperclass) if interface.isInstanceOf[ParameterizedType];
                               paramType = interface.asInstanceOf[ParameterizedType];
                               rawType = paramType.getRawType.asInstanceOf[Class[_]];
                               (typeParam, idx) <- rawType.getTypeParameters.zipWithIndex

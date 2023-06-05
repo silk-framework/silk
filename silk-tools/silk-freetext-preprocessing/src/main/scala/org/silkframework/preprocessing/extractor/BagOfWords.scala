@@ -48,7 +48,7 @@ class BagOfWords(override val id:String,
     }
 
 
-    override def apply(dataset:Dataset, findNewProperty: String =>String):Traversable[Entity]= {
+    override def apply(dataset:Dataset, findNewProperty: String =>String): Iterable[Entity]= {
 
       val filteredEntities = dataset.filter(propertyToExtractFrom)
 

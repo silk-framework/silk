@@ -21,7 +21,7 @@ trait LinkSink extends DataSink {
   /**
    * Writes a set of links.
    */
-  def writeLinks(links: Traversable[Link], predicateUri: String)
+  def writeLinks(links: Iterable[Link], predicateUri: String)
                 (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     init()
     for (link <- links) writeLink(link, predicateUri)

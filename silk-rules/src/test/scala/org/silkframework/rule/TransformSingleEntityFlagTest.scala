@@ -1,6 +1,5 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.UntypedPath
@@ -11,11 +10,13 @@ import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Uri
 import play.api.libs.json.{JsArray, JsNumber, JsValue, Json}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Tests if transformations check the isAttribute/singleEntity flag.
   */
-class TransformSingleEntityFlagTest extends FlatSpec with Matchers {
+class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
 
   behavior of "TransformedEntities"
 

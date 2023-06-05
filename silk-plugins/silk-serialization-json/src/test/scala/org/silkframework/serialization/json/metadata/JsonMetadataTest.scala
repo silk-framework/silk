@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.metadata
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.{config, dataset}
 import org.silkframework.dataset.EmptyDataset
 import org.silkframework.entity.metadata.{EntityMetadata, GenericExecutionFailure}
@@ -12,8 +12,10 @@ import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json.{JsObject, JsString, JsValue}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonMetadataTest extends FlatSpec with Matchers {
+class JsonMetadataTest extends AnyFlatSpec with Matchers {
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
   implicit val throwableTag = classOf[FailureClass]

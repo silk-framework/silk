@@ -40,11 +40,11 @@ trait Listener[T] extends (T => Unit) {
     }
   }
 
-  protected def onUpdate(value: T)
+  protected def onUpdate(value: T): Unit
 
-  private def delayedUpdate(delay: Long) {
+  private def delayedUpdate(delay: Long): Unit = {
     Listener.executor.schedule(new Runnable {
-      def run() {
+      def run(): Unit = {
         try {
           scheduled = false
           lastUpdateTime = System.currentTimeMillis()

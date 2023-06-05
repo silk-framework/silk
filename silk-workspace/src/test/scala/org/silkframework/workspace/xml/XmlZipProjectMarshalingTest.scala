@@ -1,6 +1,6 @@
 package org.silkframework.workspace.xml
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.{Prefixes, Tag}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
@@ -13,11 +13,13 @@ import org.silkframework.workspace.{InMemoryWorkspaceProvider, Workspace}
 
 import java.io.{File, FileOutputStream}
 import java.nio.file.Files
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Tests for the XML zip based project marshalling
   */
-class XmlZipProjectMarshalingTest extends FlatSpec with Matchers {
+class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers {
 
   behavior of "Xml Zip project marshaling"
 

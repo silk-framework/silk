@@ -3,7 +3,7 @@ import { Spacing, Tag, TagList } from "@eccenca/gui-elements";
 import { IPluginDetails } from "@ducks/common/typings";
 import { getOperatorLabel } from "../../../../views/taskViews/linking/evaluation/tabView/LinkingEvaluationViewUtils";
 import { tagColor } from "../../../../views/shared/RuleEditor/view/sidebar/RuleOperator";
-import {useTranslation} from "react-i18next";
+import { useTranslation } from "react-i18next";
 
 interface OperatorLabelProps {
     tagPluginType: "Input" | "Transform" | "Comparison" | "Aggregation" | "Source path" | "Target path";
@@ -13,14 +13,16 @@ interface OperatorLabelProps {
 
 export const OperatorLabel: React.FC<OperatorLabelProps> = React.memo(
     ({ tagPluginType, operator, operatorPlugins, children }) => {
-        const [t] = useTranslation()
-        const emptyPathLabel = `<${t("common.words.emptyPath")}>`
-        return <TagList>
-            <Tag key={operator.id} backgroundColor={tagColor(tagPluginType)}>
-                {getOperatorLabel(operator, operatorPlugins, emptyPathLabel)}
-            </Tag>
-            <Spacing vertical size="tiny" />
-            {children}
-        </TagList>
+        const [t] = useTranslation();
+        const emptyPathLabel = `<${t("common.words.emptyPath")}>`;
+        return (
+            <TagList>
+                <Tag key={operator.id} backgroundColor={tagColor(tagPluginType)}>
+                    {getOperatorLabel(operator, operatorPlugins, emptyPathLabel)}
+                </Tag>
+                <Spacing vertical size="tiny" />
+                {children}
+            </TagList>
+        );
     }
 );

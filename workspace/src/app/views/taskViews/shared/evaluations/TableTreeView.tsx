@@ -22,7 +22,7 @@ const TableTree: React.FC<TableTreeProps> = React.memo(
         }, []);
 
         return (
-            <Table columnWidths={columnWidths} hasDivider={false} colorless>
+            <Table size="small" columnWidths={columnWidths} hasDivider={false} colorless>
                 <TableBody>
                     <TableRow>
                         <TableCell style={{ paddingLeft: "0", paddingRight: "0" }}>

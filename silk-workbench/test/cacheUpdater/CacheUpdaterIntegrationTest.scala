@@ -2,8 +2,9 @@ package cacheUpdater
 
 import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.Span
-import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonSink}
@@ -11,9 +12,10 @@ import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.activity.transform.TransformPathsCache
+
 import scala.concurrent.duration._
 
-class CacheUpdaterIntegrationTest() extends FlatSpec with IntegrationTestTrait with MustMatchers with ConfigTestTrait with Eventually {
+class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait with Eventually {
   behavior of "Cache updater"
 
   override def workspaceProviderId: String = "inMemory"

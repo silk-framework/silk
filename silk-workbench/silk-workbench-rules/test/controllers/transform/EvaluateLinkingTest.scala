@@ -1,11 +1,12 @@
 package controllers.transform
 
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+class EvaluateLinkingTest extends AnyFlatSpec with IntegrationTestTrait with SingleProjectWorkspaceProviderTestTrait with Matchers {
 
   behavior of "EvaluateLinking"
 

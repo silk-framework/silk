@@ -1,15 +1,16 @@
 package controllers.workspaceApi
 
 import controllers.errorReporting.ErrorReport.ErrorReportItem
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.config.MetaData
 import org.silkframework.plugins.dataset.json.JsonParserTask
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
+class ProjectLoadingErrorIntegrationTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers {
   behavior of "Project failure report API"
 
   override def projectPathInClasspath: String = "diProjects/projectFailure.zip" // XML project file with manually inserted errors

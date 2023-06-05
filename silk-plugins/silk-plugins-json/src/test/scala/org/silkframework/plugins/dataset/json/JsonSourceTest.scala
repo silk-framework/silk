@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, _}
@@ -10,8 +9,10 @@ import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryReso
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-abstract class JsonSourceTest extends FlatSpec with MustMatchers {
+abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
@@ -62,7 +63,7 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
         |{"data":{"entities":[{"id":"ID"}]}}
       """.stripMargin)
     val source = createSource(resource, "data/entities", "http://blah/{id}")
-    val entities = source.retrieve(EntitySchema.empty).entities
+    val entities = source.retrieve(EntitySchema.empty).entities.toSeq
     entities.size mustBe 1
     entities.head.uri.toString mustBe "http://blah/ID"
   }
@@ -132,7 +133,7 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "return JSON null values as missing values" in {
     val source: DataSource = jsonSource(jsonWithNull)
     val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath("values").asStringTypedPath))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("val")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("val")))
   }
 
   private val jsonWithNullObject =
@@ -146,7 +147,7 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     val source: DataSource = jsonSource(jsonWithNullObject)
 
     val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("objects/value").asStringTypedPath))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("val", "val2")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("val", "val2")))
   }
 
   private val jsonComplex =
@@ -198,25 +199,25 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     val source: DataSource = jsonSource(jsonWithNullObject)
 
     val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("value").asStringTypedPath))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("val")), Seq(Seq("val2")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("val")), Seq(Seq("val2")))
   }
 
   it should "retrieve path values with base path and type URI set" in {
     val source: DataSource = jsonSource(jsonComplex, basePath = "objects")
     val entities = source.retrieve(EntitySchema("nestedObject", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("nested")))
   }
 
   it should "handle entity schema with sub paths and type URI" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
     val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath), subPath = UntypedPath("nestedObject"))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("nested")))
   }
 
   it should "handle nested arrays" in {
     val source: DataSource = createSource(resources.get("example3.json"), "", "#id")
     val entities = source.retrieve(EntitySchema("person", typedPaths = IndexedSeq(UntypedPath.parse("name").asStringTypedPath))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("Peter")), Seq(Seq("John")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("Peter")), Seq(Seq("John")))
   }
 
   class TestAnalyzer extends ValueAnalyzer[String] {
@@ -288,7 +289,7 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     source2.retrievePaths("values+with+spaces").map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("space+value")
 
     val entities = source2.retrieve(EntitySchema("values+with+spaces", typedPaths = IndexedSeq(UntypedPath.parse("space+value").asStringTypedPath))).entities
-    entities.map(_.values) mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
+    entities.map(_.values).toSeq mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
   }
 
   it should "generate consistent URIs for array values" in {

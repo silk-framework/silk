@@ -5,12 +5,12 @@ import org.silkframework.runtime.activity.UserContext
 
 trait SparqlTypesCollector {
   def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int])
-           (implicit userContext: UserContext): Traversable[(String, Double)]
+           (implicit userContext: UserContext): Iterable[(String, Double)]
 }
 
 object SparqlTypesCollector {
   def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int])
-           (implicit userContext: UserContext): Traversable[(String, Double)] = {
+           (implicit userContext: UserContext): Iterable[(String, Double)] = {
     SparqlAggregateTypesCollector(endpoint, graph, limit)
   }
 }

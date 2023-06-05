@@ -17,6 +17,7 @@ import org.silkframework.workspace.reports.ExecutionReportManager.DEFAULT_RETENT
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsValue, Json}
 
+import scala.collection.immutable.ArraySeq
 import scala.util.Try
 
 @Plugin(
@@ -37,7 +38,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
   override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
     for {
-      reportFile <- reportDirectory.listFiles()
+      reportFile <- ArraySeq.unsafeWrapArray(reportDirectory.listFiles())
       report <- fromReportFile(reportFile)
       if projectId.forall(_ == report.projectId)
       if taskId.forall(_ == report.taskId)

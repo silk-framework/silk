@@ -1,10 +1,10 @@
 package org.silkframework.entity
-
-import org.scalatest.FlatSpec
+
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.util.{Uri, XmlSerializationHelperTrait}
+import org.scalatest.flatspec.AnyFlatSpec
 
-class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
+class TypedPathTest extends AnyFlatSpec with XmlSerializationHelperTrait {
   behavior of "TypePath"
 
   it should "serialize and deserialize correctly" in {

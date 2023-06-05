@@ -1,6 +1,5 @@
 package controllers.workspaceApi.coreApi
 
-import controllers.autoCompletion.AutoSuggestAutoCompletionResponse
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
@@ -57,7 +56,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
       }
       val response = VariableTemplateValidationResponse(
         valid = resultOrError.isLeft,
-        parseError = resultOrError.right.toOption.map(errorMessage => VariableTemplateValidationError(
+        parseError = resultOrError.toOption.map(errorMessage => VariableTemplateValidationError(
           message = errorMessage,
           start = 0,
           end = validationRequest.templateString.length

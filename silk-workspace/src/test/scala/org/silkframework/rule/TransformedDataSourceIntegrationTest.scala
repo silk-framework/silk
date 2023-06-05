@@ -1,10 +1,11 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class TransformedDataSourceIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+class TransformedDataSourceIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "Transformed DataSource used as input for a linking task evaluation"
 
   override def projectPathInClasspath: String = "diProjects/brokenLinkEvaluationWithTransformationAsInputSource.zip"

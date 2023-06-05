@@ -48,7 +48,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   }
 
   private def getForwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
-                             (implicit userContext: UserContext): Traversable[(TypedPath, Double)] = {
+                             (implicit userContext: UserContext): Iterable[(TypedPath, Double)] = {
     Timer("Retrieving forward paths for '" + restrictions + "'") {
       val variable = restrictions.variable
 
@@ -67,7 +67,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       sparql ++= "GROUP BY ?propertyToAggregateBySAPC\n"
       sparql ++= "ORDER BY DESC (?count)"
 
-      val results = endpoint.select(sparql.toString(), limit).bindings.toList
+      val results = endpoint.select(sparql.toString(), limit).bindings.use(_.toList)
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
@@ -79,13 +79,13 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
           (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {
-        Traversable.empty
+        Iterable.empty
       }
     }
   }
 
   private def getBackwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
-                              (implicit userContext: UserContext): Traversable[(TypedPath, Double)] = {
+                              (implicit userContext: UserContext): Iterable[(TypedPath, Double)] = {
     Timer("Retrieving backward paths for '" + restrictions + "'") {
       val variable = restrictions.variable
 
@@ -105,7 +105,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       sparql ++= "GROUP BY ?propertyToAggregateBySAPC\n"
       sparql ++= "ORDER BY DESC (?count)"
 
-      val results = endpoint.select(sparql.toString(), limit).bindings.toList
+      val results = endpoint.select(sparql.toString(), limit).bindings.use(_.toList)
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
@@ -114,7 +114,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
           (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {
-        Traversable.empty
+        Iterable.empty
       }
     }
   }

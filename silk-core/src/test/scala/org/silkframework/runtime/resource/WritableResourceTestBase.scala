@@ -1,11 +1,12 @@
 package org.silkframework.runtime.resource
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Base trait for [[Resource]] tests.
   */
-trait WritableResourceTestBase extends FlatSpec with MustMatchers {
+trait WritableResourceTestBase extends AnyFlatSpec with Matchers {
   def freshResource(): WritableResource
 
   it should "allow writing multiple string via append" in {

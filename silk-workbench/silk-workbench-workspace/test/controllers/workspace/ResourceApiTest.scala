@@ -1,15 +1,17 @@
 package controllers.workspace
 
 import helper.IntegrationTestTrait
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.workspace.ProjectConfig
 import play.api.libs.json.JsArray
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ResourceApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with BeforeAndAfterAll {
+class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
   behavior of "Resource API"
 
   val projectId = "resourcesProject"

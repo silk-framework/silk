@@ -15,7 +15,7 @@ case class DatasetTaskReferenceAutoCompletionProvider() extends PluginParameterA
     */
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     implicit val userContext: UserContext = context.user
     val allDatasets = workspace.project(getProject(dependOnParameterValues)).tasks[GenericDatasetSpec].map(spec => AutoCompletionResult(spec.id, spec.metaData.label))
     filterResults(searchQuery, allDatasets)

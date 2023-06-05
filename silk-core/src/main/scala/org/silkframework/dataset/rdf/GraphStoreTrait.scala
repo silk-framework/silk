@@ -247,6 +247,18 @@ case class ConnectionClosingInputStream(createConnection: () => HttpURLConnectio
 
   override def read(): Int = inputStream.read()
 
+  override def read(b: Array[Byte], off: Int, len: Int): Int = inputStream.read(b, off, len)
+
+  override def read(b: Array[Byte]): Int = inputStream.read(b)
+
+  override def readAllBytes(): Array[Byte] = inputStream.readAllBytes()
+
+  override def readNBytes(b: Array[Byte], off: Int, len: Int): Int = inputStream.readNBytes(b, off, len)
+
+  override def readNBytes(len: Int): Array[Byte] = inputStream.readNBytes(len)
+
+  override def skip(n: Long): Long = inputStream.skip(n)
+
   override def close(): Unit = {
     if(connection != null) {
       try {

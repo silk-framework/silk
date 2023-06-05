@@ -1,9 +1,10 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class UriPatternTest extends FlatSpec with Matchers {
+class UriPatternTest extends AnyFlatSpec with Matchers {
 
   behavior of "UriPattern"
 

@@ -1,10 +1,11 @@
 package org.silkframework.execution
 
 import java.util.concurrent.atomic.AtomicBoolean
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 
-import org.scalatest.{FlatSpec, MustMatchers}
-
-class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
+class InterruptibleTraversableTest extends AnyFlatSpec with Matchers {
   behavior of "Interruptible Traversable"
 
   private val SHORT_TIME = 50
@@ -27,7 +28,7 @@ class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
     ended.get() mustBe true
   }
 
-  private def traversableConsumingThread(unlimitedTraversable: Traversable[Int],
+  private def traversableConsumingThread(unlimitedTraversable: CloseableIterator[Int],
                                          ended: AtomicBoolean): Thread = {
     new Thread {
       override def run(): Unit = {
@@ -44,9 +45,9 @@ class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
     }
   }
 
-  private def traverseEndlessly(startedIterating: AtomicBoolean): Traversable[Int] = {
-    new InterruptibleTraversable(
-      new Traversable[Int] {
+  private def traverseEndlessly(startedIterating: AtomicBoolean): CloseableIterator[Int] = {
+    new InterruptibleIterator[Int](
+      new TraversableIterator[Int] {
         override def foreach[U](f: Int => U): Unit = {
           var i = 0
           while (true) {

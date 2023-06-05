@@ -1,8 +1,9 @@
 package org.silkframework.util
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class IdentifierGeneratorTest extends FlatSpec with MustMatchers {
+class IdentifierGeneratorTest extends AnyFlatSpec with Matchers {
 
   behavior of "IdentifierGenerator"
 

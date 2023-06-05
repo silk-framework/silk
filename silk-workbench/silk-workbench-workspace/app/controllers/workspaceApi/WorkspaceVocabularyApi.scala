@@ -6,17 +6,17 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.doc.WorkspaceApiDoc
 import controllers.workspace.workspaceRequests.{VocabularyInfo, VocabularyInfos}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.vocab.VocabularyProperty
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import scala.collection.mutable.ArrayBuffer
@@ -120,9 +120,9 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
         results.append(property)
       }
       if (results.size >= limit) {
-        return results
+        return results.toSeq
       }
     }
-    results
+    results.toSeq
   }
 }

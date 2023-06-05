@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
-
-  import org.scalatest.{FlatSpec, MustMatchers}
+
   import org.silkframework.config.{PlainTask, Prefixes}
   import org.silkframework.dataset.DatasetSpec
   import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
@@ -17,8 +16,10 @@ package org.silkframework.plugins.dataset.rdf
   import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 
   import java.io.File
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-  class LocalSparqlCopyOperatorTest extends FlatSpec with MustMatchers with MockitoSugar with SingleProjectWorkspaceProviderTestTrait  {
+  class LocalSparqlCopyOperatorTest extends AnyFlatSpec with Matchers with MockitoSugar with SingleProjectWorkspaceProviderTestTrait  {
     behavior of "Local SPARQL Copy Executor"
 
     implicit val uc: UserContext = UserContext.Empty

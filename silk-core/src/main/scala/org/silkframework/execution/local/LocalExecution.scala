@@ -8,8 +8,8 @@ import org.silkframework.util.Identifier
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.{Level, Logger}
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
 
 /**
   * Tasks are executed on a local machine.

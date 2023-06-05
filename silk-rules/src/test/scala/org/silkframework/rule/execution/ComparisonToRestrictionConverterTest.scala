@@ -1,6 +1,5 @@
 package org.silkframework.rule.execution
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.Restriction
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}
@@ -10,8 +9,10 @@ import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.similarity.{Aggregation, Comparison, DistanceMeasure, SimilarityOperator}
 import org.silkframework.rule.{BooleanLinkageRule, LinkageRule}
 import org.silkframework.util.{ConfigTestTrait, DPair}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers with ConfigTestTrait {
+class ComparisonToRestrictionConverterTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
   behavior of "Comparison to Restriction Converter"
 
   private lazy val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()

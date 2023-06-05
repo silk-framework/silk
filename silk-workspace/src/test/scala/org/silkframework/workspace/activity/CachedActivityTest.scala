@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
@@ -9,8 +9,10 @@ import org.silkframework.runtime.serialization.{ReadContext, TestReadContext}
 import java.io.{InputStream, OutputStream}
 import java.time.Instant
 import scala.xml.XML
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContextTrait {
+class CachedActivityTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
 
   behavior of "CachedActivity"
 

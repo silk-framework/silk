@@ -93,7 +93,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
       entityBuffer.append(entity)
       placeOnNextTag()
     }
-    entityBuffer
+    entityBuffer.toSeq
   }
 
   /** Reads multiple objects from the XML stream that follow each other and have the same tag if defined.
@@ -106,7 +106,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
       entityBuffer.append(convert(node))
       placeOnNextTag()
     }
-    entityBuffer
+    entityBuffer.toSeq
   }
 
   /** Read a single object from the XML stream, i.e. it turns the current XML element into a DOM node and then converts this DOM node into a Scala object. */

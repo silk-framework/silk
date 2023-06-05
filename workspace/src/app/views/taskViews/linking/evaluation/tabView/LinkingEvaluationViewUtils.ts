@@ -8,7 +8,7 @@ import {
     LinkRuleEvaluationResult,
     ReferenceLinkType,
 } from "./typings";
-import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
+import { IAggregationOperator, IComparisonOperator, ISimilarityOperator } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
 import { TreeNodeInfo } from "@blueprintjs/core";
@@ -31,7 +31,8 @@ export const getEvaluatedLinks = async (
     query: string = "",
     filters: Array<keyof typeof LinkEvaluationFilters> = [],
     sortBy: LinkEvaluationSortBy[] = [],
-    includeReferenceLinks: boolean = false
+    includeReferenceLinks = false,
+    includeEvaluationLinks = true
 ): Promise<FetchResponse<LinkRuleEvaluationResult>> =>
     fetch({
         method: "POST",
@@ -43,6 +44,7 @@ export const getEvaluatedLinks = async (
             filters,
             sortBy,
             includeReferenceLinks,
+            includeEvaluationLinks,
         },
     });
 
@@ -64,6 +66,25 @@ export const updateReferenceLink = async (
         },
     });
 
+export const referenceLinksChangeRequest = async (
+    projectId: string,
+    taskId: string,
+    query: {
+        positive?: boolean;
+        negative?: boolean;
+        unlabeled?: boolean;
+        generateNegative?: boolean;
+    },
+    method: "DELETE" | "PUT",
+    body?: any
+): Promise<FetchResponse<any>> =>
+    fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/referenceLinks`),
+        method,
+        query,
+        body,
+    });
+
 export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: string }> => {
     if (operatorInput.path) {
         return [{ path: operatorInput.path, id: operatorInput.id }];
@@ -75,7 +96,7 @@ export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: s
     }, [] as Array<{ id: string; path: string }>);
 };
 
-export const getLinkRuleInputPaths = (operatorInput: any) =>
+export const getLinkRuleInputPaths = (operatorInput: ISimilarityOperator) =>
     ["sourceInput", "targetInput"].reduce(
         (linkRuleInputPaths, inputPathType) => {
             const label = inputPathType.replace("Input", "");
@@ -94,7 +115,11 @@ export const getLinkRuleInputPaths = (operatorInput: any) =>
         { source: {}, target: {} } as EvaluationLinkInputValue<string>
     );
 
-export const getOperatorLabel = (operator: any, operatorPlugins: IPluginDetails[], emptyPathLabel: string): string | undefined => {
+export const getOperatorLabel = (
+    operator: any,
+    operatorPlugins: IPluginDetails[],
+    emptyPathLabel: string
+): string | undefined => {
     switch (operator.type) {
         case "Aggregation":
             return operatorPlugins.find((plugin) => plugin.pluginId === (operator as IAggregationOperator).aggregator)

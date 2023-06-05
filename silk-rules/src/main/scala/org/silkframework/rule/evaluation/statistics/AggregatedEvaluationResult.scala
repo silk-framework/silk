@@ -27,7 +27,7 @@ case class AggregatedEvaluationResult(fMeasure: VariableStatistic, mcc: Variable
  * Aggregates multiple evaluation results.
  */
 object AggregatedEvaluationResult {
-  def apply(results: Traversable[EvaluationResult]): AggregatedEvaluationResult = {
+  def apply(results: Iterable[EvaluationResult]): AggregatedEvaluationResult = {
     AggregatedEvaluationResult(
       fMeasure = VariableStatistic(results.map(_.fMeasure)),
       mcc = VariableStatistic(results.map(_.mcc)),

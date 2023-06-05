@@ -14,14 +14,15 @@
 
 package org.silkframework.rule.execution.methods
 
-import org.scalatest.matchers.{BeMatcher, MatchResult}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.matchers.{BeMatcher, MatchResult}
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.test.TestTags.CoverageIncompatibleTest
 
 import scala.io.Source
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class StringMapTest extends FlatSpec with Matchers {
+class StringMapTest extends AnyFlatSpec with Matchers {
 
   /** Load the source files used by the original authors from http://flamingo.ics.uci.edu/releases/4.1/ */
   val source1 = loadSource("names/source1.txt")

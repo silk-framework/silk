@@ -2,13 +2,14 @@ package org.silkframework.util
 
 import java.io.{File, FileInputStream, FileOutputStream}
 
-import org.scalatest.MustMatchers
+
 import org.silkframework.runtime.serialization._
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Helper methods for testing XML serialoization and deserialization.
   */
-trait XmlSerializationHelperTrait extends MustMatchers {
+trait XmlSerializationHelperTrait extends Matchers {
   /**
     * Checks for equality of an object after it has been serialized and deserialized again.
     *

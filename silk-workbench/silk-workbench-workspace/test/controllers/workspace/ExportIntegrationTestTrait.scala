@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import helper.IntegrationTestTrait
-import org.scalatest.{MustMatchers, TestSuite}
+import org.scalatest.TestSuite
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
@@ -14,6 +14,7 @@ import java.util.UUID
 import java.util.zip.ZipInputStream
 import scala.io.{Codec, Source}
 import scala.reflect.ClassTag
+import org.scalatest.matchers.must.Matchers
 
 
 /**
@@ -22,7 +23,7 @@ import scala.reflect.ClassTag
 trait ExportIntegrationTestTrait
     extends IntegrationTestTrait
         with SingleProjectWorkspaceProviderTestTrait
-        with MustMatchers {
+        with Matchers {
   this: TestSuite =>
 
   override def projectPathInClasspath: String = "controllers/workspace/miniProject.zip"

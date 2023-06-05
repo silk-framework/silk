@@ -298,7 +298,7 @@ object ClassPluginDescription {
     override def autoComplete(searchQuery: String,
                               dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                             (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
       filterResults(searchQuery, enumValues)
     }
 

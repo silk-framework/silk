@@ -12,7 +12,7 @@ import play.api.libs.json.Json
 import play.api.mvc.RequestHeader
 
 import java.util
-import scala.jdk.CollectionConverters.{asScalaBufferConverter, asScalaSetConverter}
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
   * Validates OpenAPI specifications.
@@ -41,7 +41,7 @@ object OpenApiValidator {
   // Validate our own spec
   private def validateLocal(contents: String, validateJsonSchema: Boolean): ValidationResult = {
     val parser = new OpenAPIV3Parser()
-    val parserMessages = parser.readContents(contents).getMessages.asScala
+    val parserMessages = parser.readContents(contents).getMessages.asScala.toSeq
     val schemaMessages = if(validateJsonSchema) validateSchema(contents) else Seq.empty
     ValidationResult(parserMessages ++ schemaMessages)
   }
@@ -51,7 +51,7 @@ object OpenApiValidator {
     val parser = new OpenAPIV3Parser()
     val parseOptions = new ParseOptions()
     val result = parser.readLocation(url, new util.ArrayList(), parseOptions)
-    ValidationResult(result.getMessages.asScala)
+    ValidationResult(result.getMessages.asScala.toSeq)
   }
 
   private def validateSchema(contents: String): Seq[String] = {

@@ -1,7 +1,6 @@
 package controllers.transform
 
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
@@ -15,11 +14,13 @@ import org.silkframework.serialization.json.{JsonHelpers, JsonSerialization}
 import org.silkframework.util.Uri
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import test.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   *
   */
-class PeakTransformApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers with IntegrationTestTrait {
+class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with Matchers with IntegrationTestTrait {
 
   behavior of "TransformTask API"
 
@@ -38,7 +39,7 @@ class PeakTransformApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
       entity(Seq(), Seq("bValue2")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3)
     tries mustBe 4
     errors mustBe 0
     errorMsg mustBe ""
@@ -57,7 +58,7 @@ class PeakTransformApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
 
   it should "collect transformation examples skipping empty transformation results" in {
     val rule = transformRule(ConcatTransformer(" "))
-    val entities = Seq(
+    val entities = Iterator(
       entity(Seq("aValue"), Seq("bValue")),
       entity(Seq("aValue1"), Seq()),
       entity(Seq(), Seq()),
@@ -77,7 +78,7 @@ class PeakTransformApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
 
   it should "return exception count and message when collecting transformation examples" in {
     val rule = transformRule(DateToTimestampTransformer())
-    val entities = Seq(
+    val entities = Iterator(
       entity(Seq("2015"), Seq("no date")),
       entity(Seq("123"), Seq("also no date"))
     )
@@ -95,7 +96,7 @@ class PeakTransformApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
       counter += 1
       entity(Seq("UPPER" + i), Seq("UPPER" + i))
     }
-    val (tries, errors, _, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, _, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities.iterator, limit = 3)
     tries mustBe 3
     errors mustBe 0
     counter mustBe 3

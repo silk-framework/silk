@@ -16,6 +16,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEn
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, WritableResource}
@@ -72,19 +73,21 @@ case class RdfFileDataset(
   override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
-    createSparqlEndpoint(allResources)
+    createSparqlEndpoint(retrieveResources())
   }
 
-  private def createSparqlEndpoint(resources: Traversable[Resource]): JenaEndpoint = {
+  private def createSparqlEndpoint(resources: CloseableIterator[Resource]): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    for(resource <- resources) {
-      if (resource.exists) {
-        val inputStream = resource.inputStream
-        try {
-          RDFDataMgr.read(dataset, inputStream, lang)
-        } finally {
-          inputStream.close()
+    resources.use { res =>
+      for (resource <- res) {
+        if (resource.exists) {
+          val inputStream = resource.inputStream
+          try {
+            RDFDataMgr.read(dataset, inputStream, lang)
+          } finally {
+            inputStream.close()
+          }
         }
       }
     }
@@ -144,7 +147,7 @@ case class RdfFileDataset(
     }
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
       load()
       sparqlSource.retrieveTypes(limit)
     }
@@ -157,7 +160,7 @@ case class RdfFileDataset(
       val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
         file.checkSizeForInMemory()
-        endpoint = createSparqlEndpoint(Seq(resource))
+        endpoint = createSparqlEndpoint(CloseableIterator.single(resource))
         lastModificationTime = modificationTime
       }
     }
@@ -179,7 +182,7 @@ case class RdfFileDataset(
     override def sampleValues(typeUri: Option[Uri],
                               typedPaths: Seq[TypedPath],
                               valueSampleLimit: Option[Int])
-                             (implicit userContext: UserContext): Seq[Traversable[String]] = {
+                             (implicit userContext: UserContext): Seq[CloseableIterator[String]] = {
       load()
       sparqlSource.sampleValues(typeUri, typedPaths, valueSampleLimit)
     }

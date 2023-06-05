@@ -3,7 +3,7 @@ package controllers.workspaceApi
 import controllers.workspaceApi.projectTask.RelatedItems
 import controllers.workspaceApi.search.ItemType
 import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -13,10 +13,12 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.{JsValue, Json}
 import testWorkspace.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait
+class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with MustMatchers{
+    with Matchers{
   behavior of "Project Task API"
 
   override def workspaceProviderId: String = "inMemory"

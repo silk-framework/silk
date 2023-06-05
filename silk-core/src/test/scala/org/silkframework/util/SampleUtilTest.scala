@@ -1,13 +1,14 @@
 package org.silkframework.util
-
-import org.scalatest.{FlatSpec, Matchers}
+
 
 import scala.util.Random
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
  * Created by andreas on 1/12/16.
  */
-class SampleUtilTest extends FlatSpec with Matchers {
+class SampleUtilTest extends AnyFlatSpec with Matchers {
   behavior of "SampleUtil"
 
   private implicit val random: Random = Random
@@ -18,7 +19,7 @@ class SampleUtilTest extends FlatSpec with Matchers {
     }).flatten
     isCloseToUniform(values)
     println("")
-    val sample = SampleUtil.sample(values, 10000, None)
+    val sample = SampleUtil.sample(values.iterator, 10000, None)
     isCloseToUniform(sample)
   }
 
@@ -37,13 +38,13 @@ class SampleUtilTest extends FlatSpec with Matchers {
         false
       }
     }
-    val sample = SampleUtil.sample(values, 10000, Some(filter))
+    val sample = SampleUtil.sample(values.iterator, 10000, Some(filter))
     isCloseToUniform(sample)
   }
 
   it should "take all values if the input set is smaller" in {
     val input = 1 to 10
-    val sample = SampleUtil.sample(input, 20, None)
+    val sample = SampleUtil.sample(input.iterator, 20, None)
     sample.size shouldBe 10
     sample shouldBe (1 to 10)
   }

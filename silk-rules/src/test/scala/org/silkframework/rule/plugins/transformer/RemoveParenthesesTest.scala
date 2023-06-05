@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.normalize.RemoveParentheses
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class RemoveParenthesesTest extends FlatSpec with Matchers {
+class RemoveParenthesesTest extends AnyFlatSpec with Matchers {
 
   val transformer = new RemoveParentheses()
 

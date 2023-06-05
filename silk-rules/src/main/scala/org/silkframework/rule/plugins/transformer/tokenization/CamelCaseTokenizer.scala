@@ -56,6 +56,6 @@ case class CamelCaseTokenizer() extends Transformer {
     if(sb.nonEmpty) {
       tokens += sb.toString
     }
-    tokens
+    tokens.toSeq
   }
 }

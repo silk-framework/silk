@@ -1,13 +1,14 @@
 package org.silkframework.workbench.workspace
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.execution.Execution
 
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkbenchAccessMonitorTest extends FlatSpec with MustMatchers with TestUserContextTrait {
+class WorkbenchAccessMonitorTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
   behavior of "Workspace access monitor"
 
   it should "allow parallel access" in {

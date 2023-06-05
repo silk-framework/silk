@@ -16,11 +16,13 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.runtime.activity.UserContext
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SparqlAggregateTypesCollectorTest extends FlatSpec with Matchers with BeforeAndAfterAll {
+class SparqlAggregateTypesCollectorTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
 
   private val graphDBpedia = "http://example.org/dbpedia"
   private val graphSchemaOrg = "http://example.org/schemaOrg"

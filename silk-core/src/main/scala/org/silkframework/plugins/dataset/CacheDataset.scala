@@ -17,12 +17,13 @@ package org.silkframework.plugins.dataset
 import java.io.File
 import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.{PlainTask, Prefixes, RuntimeConfig, Task}
-import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetCharacteristics, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Uri
 
@@ -43,15 +44,15 @@ case class CacheDataset(dir: String) extends Dataset {
     override def retrieve(entityDesc: EntitySchema, limit: Option[Int])
                          (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
-      val entities = entityCache.readAll
-      GenericEntityTable(entities, entityDesc, underlyingTask)
+      val entities = entityCache.readAll.iterator
+      GenericEntityTable(CloseableIterator(entities), entityDesc, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
                               (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = EmptyEntityTable(underlyingTask)
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
+                              (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = Iterable.empty
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
                               (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = IndexedSeq.empty

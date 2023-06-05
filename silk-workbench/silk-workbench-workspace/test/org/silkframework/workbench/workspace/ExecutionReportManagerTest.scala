@@ -1,7 +1,6 @@
 package org.silkframework.workbench.workspace
 
 import java.time.Duration
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult}
@@ -11,11 +10,13 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.Json
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Base class for ExecutionReportManager implementation tests.
   */
-abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
+abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
 
   private implicit val pluginContext: PluginContext = TestPluginContext(resources = InMemoryResourceManager())
 
@@ -38,7 +39,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
       val reports = reportManager.listReports(Some(projectId), Some(taskId))
       reports should have size 1
       val retrievedReport = reportManager.retrieveReport(reports.head).resultValue.get
-      retrievedReport.toString.replaceAll("ArrayBuffer", "List") shouldEqual testReport.toString.replaceAll("ArrayBuffer", "List")
+      retrievedReport.toString.replaceAll("Vector", "List") shouldEqual testReport.toString.replaceAll("Vector", "List")
     }
   }
 

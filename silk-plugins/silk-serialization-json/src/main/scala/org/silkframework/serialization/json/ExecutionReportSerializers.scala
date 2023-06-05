@@ -42,8 +42,8 @@ object ExecutionReportSerializers {
       } else {
         SimpleExecutionReport(
           task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
-          summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
-          warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
+          summary = arrayValue(value, SUMMARY).value.map(deserializeValue).toIndexedSeq,
+          warnings = arrayValue(value, WARNINGS).value.map(_.as[String]).toIndexedSeq,
           error = stringValueOption(value, ERROR),
           operation = stringValueOption(value, OPERATION),
           operationDesc = stringValueOption(value, OPERATION_DESC).getOrElse(ExecutionReport.DEFAULT_OPERATION_DESC),
@@ -121,7 +121,7 @@ object ExecutionReportSerializers {
         entityCount = numberValue(value, ENTITY_COUNTER).intValue,
         entityErrorCount = numberValue(value, ENTITY_ERROR_COUNTER).intValue,
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
-        globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]),
+        globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]).toIndexedSeq,
         error = stringValueOption(value, ERROR)
       )
     }
@@ -150,7 +150,7 @@ object ExecutionReportSerializers {
     private def readRuleResult(value: JsValue): RuleResult = {
       RuleResult(
         errorCount = numberValue(value, ERROR_COUNT).longValue,
-        sampleErrors = arrayValue(value, SAMPLE_ERRORS).value.map(readRuleError)
+        sampleErrors = arrayValue(value, SAMPLE_ERRORS).value.map(readRuleError).toIndexedSeq
       )
     }
 
@@ -224,7 +224,7 @@ object ExecutionReportSerializers {
 
       WorkflowExecutionReport(
         task = taskFormat.read(requiredValue(value, TASK)),
-        taskReports = IndexedSeq(taskReports: _*)
+        taskReports = taskReports.toIndexedSeq
       )
     }
   }

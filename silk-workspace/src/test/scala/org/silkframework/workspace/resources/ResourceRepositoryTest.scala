@@ -1,12 +1,13 @@
 package org.silkframework.workspace.resources
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.resource.ResourceNotFoundException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Executes basic tests on a given resource repository.
   */
-abstract class ResourceRepositoryTest extends FlatSpec with MustMatchers  {
+abstract class ResourceRepositoryTest extends AnyFlatSpec with Matchers  {
 
   protected def repository: ResourceRepository
 

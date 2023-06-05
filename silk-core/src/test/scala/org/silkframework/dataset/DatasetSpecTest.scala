@@ -1,13 +1,15 @@
 package org.silkframework.dataset
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DatasetSpecTest extends FlatSpec with Matchers {
+class DatasetSpecTest extends AnyFlatSpec with Matchers {
 
   behavior of "DatasetSpec"
 

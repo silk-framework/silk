@@ -1,10 +1,12 @@
 package org.silkframework.serialization.json.metadata
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.entity.metadata.{ExceptionSerializer, GenericExecutionFailure}
 import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ExceptionSerializerTest extends FlatSpec with Matchers {
+class ExceptionSerializerTest extends AnyFlatSpec with Matchers {
 
   "Exception Serializer" should "not fail when exceptions miss a string constructor or have an empty cause" in {
     val cau = new Throwable("cause")

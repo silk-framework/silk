@@ -70,7 +70,7 @@ trait ApiClient {
   protected def checkResponse(futureResponse: Future[WSResponse],
                     responseCodePrefix: Char = '2'): WSResponse = {
     val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status.toString.head == responseCodePrefix, s"Expected status: ${responseCodePrefix + "XX"}, received status: ${response.status}. Response Body: ${response.body}")
+    assert(response.status.toString.head == responseCodePrefix, s"Expected status: ${responseCodePrefix}XX, received status: ${response.status}. Response Body: ${response.body}")
     response
   }
 

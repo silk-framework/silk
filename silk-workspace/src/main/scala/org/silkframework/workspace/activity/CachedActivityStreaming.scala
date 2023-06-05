@@ -16,7 +16,7 @@ import scala.util.control.NonFatal
   */
 trait CachedActivityStreaming[T] extends CachedActivity[T] {
   // Implicit parameters for traits solution from https://stackoverflow.com/questions/6983759/how-to-declare-traits-as-taking-implicit-constructor-parameters
-  protected case class WrappedStreamXmlFormat(implicit val wrapped: StreamXmlFormat[T])
+  protected case class WrappedStreamXmlFormat()(implicit val wrapped: StreamXmlFormat[T])
 
   override protected lazy val wrappedXmlFormat: WrappedXmlFormat = {
     throw new RuntimeException("wrappedXmlFormat should not be accessed in a class implementing the CachedActivityStreaming trait")

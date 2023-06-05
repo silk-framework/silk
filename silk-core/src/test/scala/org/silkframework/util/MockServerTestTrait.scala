@@ -17,7 +17,7 @@ trait MockServerTestTrait extends StatusCodeTestTrait {
   var servers: List[HttpServer] = List.empty
 
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
-  def withAdditionalServer(servedContent: Traversable[ContentHandler])(withPort: Int => Unit): Unit = {
+  def withAdditionalServer(servedContent: Iterable[ContentHandler])(withPort: Int => Unit): Unit = {
     val server = startServerWithContent(servedContent)
     try {
       withPort(server.getAddress.getPort)
@@ -27,13 +27,13 @@ trait MockServerTestTrait extends StatusCodeTestTrait {
   }
 
   /** Starts a server that delivers the specified content and returns the port the server runs on. */
-  def startServer(servedContents: Traversable[ContentHandler]): Int = {
+  def startServer(servedContents: Iterable[ContentHandler]): Int = {
     val server = startServerWithContent(servedContents)
     servers ::= server
     server.getAddress.getPort
   }
 
-  private def startServerWithContent(servedContents: Traversable[ContentHandler]): HttpServer = {
+  private def startServerWithContent(servedContents: Iterable[ContentHandler]): HttpServer = {
     val server: HttpServer = createHttpServer
     for (servedContent <- servedContents) {
       val handler = new HttpHandler {

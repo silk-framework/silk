@@ -1,8 +1,9 @@
 package org.silkframework.runtime.resource
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class InMemoryResourceManagerTest extends FlatSpec with Matchers {
+class InMemoryResourceManagerTest extends AnyFlatSpec with Matchers {
 
   "InMemoryResourceManager" should "allow retrieval of stored values" in {
     val res = InMemoryResourceManager()

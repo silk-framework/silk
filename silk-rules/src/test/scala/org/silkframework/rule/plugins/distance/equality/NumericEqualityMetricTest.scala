@@ -2,6 +2,8 @@ package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.test.DistanceMeasureTest
 
+import scala.math.BigDecimal.double2bigDecimal
+
 class NumericEqualityMetricTest extends DistanceMeasureTest[NumericEqualityMetric] {
 
   it should "match numbers with exact precision" in {
@@ -60,11 +62,11 @@ class NumericEqualityMetricTest extends DistanceMeasureTest[NumericEqualityMetri
     for(i <- 0.0 until 0.0015 by 0.000001) {
       val baseNumber = 23.424242
       val precision = 0.0015
-      indexMatches(baseNumber, baseNumber + i, precision)
-      indexMatches(baseNumber, baseNumber - i, precision)
+      indexMatches(baseNumber, baseNumber + i.doubleValue, precision)
+      indexMatches(baseNumber, baseNumber - i.doubleValue, precision)
       // Precision of 3 is needed because both numbers are normalized, rounded and precision added/removed, so else they could overlap
-      indexShouldNotMatch(baseNumber, baseNumber + (precision * 3 + i), precision)
-      indexShouldNotMatch(baseNumber, baseNumber - (precision * 3 + i), precision)
+      indexShouldNotMatch(baseNumber, baseNumber + (precision * 3 + i.doubleValue), precision)
+      indexShouldNotMatch(baseNumber, baseNumber - (precision * 3 + i.doubleValue), precision)
     }
   }
 

@@ -5,7 +5,7 @@ import org.silkframework.config.ConfigValue
 
 import java.io.StringWriter
 import java.util
-import scala.collection.JavaConverters.{asScalaSetConverter, mapAsJavaMapConverter}
+import scala.jdk.CollectionConverters.{MapHasAsJava, SetHasAsScala}
 
 /**
   * Global template variables, which are defined in the configuration.

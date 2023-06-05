@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.substring.StripPostfixTransformer
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class StripPostfixTransformerTest extends FlatSpec with Matchers {
+class StripPostfixTransformerTest extends AnyFlatSpec with Matchers {
 
   val transformer = new StripPostfixTransformer(postfix = "abc")
 

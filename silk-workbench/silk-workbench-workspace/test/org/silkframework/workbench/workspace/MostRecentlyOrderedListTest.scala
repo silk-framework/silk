@@ -1,8 +1,9 @@
 package org.silkframework.workbench.workspace
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class MostRecentlyOrderedListTest extends FlatSpec with MustMatchers {
+class MostRecentlyOrderedListTest extends AnyFlatSpec with Matchers {
   behavior of "most recently ordered list"
 
   val capacity = 10

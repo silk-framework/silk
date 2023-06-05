@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.filter.FilterByLength
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class FilterByLengthTest extends FlatSpec with Matchers {
+class FilterByLengthTest extends AnyFlatSpec with Matchers {
   val transformer = new FilterByLength(min = 3, max = 5)
 
   "FilterByLength" should "retain strings inside the range" in {
