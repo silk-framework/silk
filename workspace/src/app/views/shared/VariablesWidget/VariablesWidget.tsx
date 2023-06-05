@@ -17,7 +17,6 @@ import {
     OverviewItemList,
     PropertyName,
     PropertyValue,
-    PropertyValueList,
     PropertyValuePair,
     Spacing,
     Toolbar,
@@ -133,7 +132,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h3>{t("widget.VariableWidget.title", "Variables")}</h3>
+                        <h2>{t("widget.VariableWidget.title", "Variables")}</h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton

@@ -15,7 +15,9 @@ const ActivityInfoWidget = () => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>{t("widget.ActivityInfoWidget.title", "Activities")}</CardTitle>
+                <CardTitle>
+                    <h2>{t("widget.ActivityInfoWidget.title", "Activities")}</h2>
+                </CardTitle>
                 <CardOptions>
                     <IconButton
                         onClick={(e) => {
