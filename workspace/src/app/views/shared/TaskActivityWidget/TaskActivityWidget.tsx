@@ -36,6 +36,8 @@ interface TaskActivityWidgetProps {
      * callback executed when an update is received.
      */
     updateCallback?: (status: IActivityStatus) => void;
+    /** Optional test ID. */
+    testId?: string
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
@@ -53,6 +55,7 @@ export const useTaskActivityWidget = ({
     activityActionPreAction = {},
     updateCallback,
     isCacheActivity = false,
+    testId = `activity-control-workflow-editor`
 }: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -131,7 +134,7 @@ export const useTaskActivityWidget = ({
 
     return useSilkActivityControl({
         label,
-        "data-test-id": `activity-control-workflow-editor`,
+        "data-test-id": testId,
         executeActivityAction: executeAction,
         registerForUpdates: registerForUpdate,
         unregisterFromUpdates: () => {},

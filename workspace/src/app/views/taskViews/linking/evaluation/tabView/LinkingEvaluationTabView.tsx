@@ -636,6 +636,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             canShrink: true,
                         }}
                         activityActionPreAction={activityPreAction}
+                        testId={`${showReferenceLinks ? "referenceLinks" : "evaluateLinking"}-task-activity-widget`}
                     />
                 </ToolbarSection>
                 {showReferenceLinks ? (
