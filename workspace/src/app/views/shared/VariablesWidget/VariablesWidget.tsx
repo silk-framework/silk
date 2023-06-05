@@ -177,12 +177,14 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                             title={variable.name}
                                                                         >
                                                                             <Label
+                                                                                isLayoutForElement="span"
                                                                                 text={
                                                                                     <OverflowText inline>
                                                                                         {variable.name}
                                                                                     </OverflowText>
                                                                                 }
                                                                                 tooltip={variable.description}
+                                                                                style={{ lineHeight: "normal" }}
                                                                             />
                                                                         </PropertyName>
                                                                         <PropertyValue
