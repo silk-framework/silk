@@ -143,7 +143,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     </CardOptions>
                 </CardHeader>
                 <Divider />
-                <CardContent>
+                <CardContent style={{ maxHeight: "25vh" }}>
                     {loadingVariables ? (
                         <Loading />
                     ) : !variables.length ? (
@@ -174,6 +174,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                 whiteSpace: "nowrap",
                                                                                 overflow: "visible",
                                                                             }}
+                                                                            title={variable.name}
                                                                         >
                                                                             <Label
                                                                                 text={
