@@ -19,6 +19,7 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization._
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.LoadedTask
 
 import scala.xml.Node
 
@@ -97,8 +98,8 @@ object LinkingConfig {
     }
 
     private def readWithPrefixes(node: Node)(implicit readContext: ReadContext) = {
-      val oldSources = (node \ "DataSources" \ "DataSource").map(fromXml[Task[DatasetSpec[Dataset]]]).toSet
-      val newSources = (node \ "DataSources" \ "Dataset").map(fromXml[Task[DatasetSpec[Dataset]]]).toSet
+      val oldSources = (node \ "DataSources" \ "DataSource").map(n => fromXml[Task[DatasetSpec[Dataset]]](n)).toSet
+      val newSources = (node \ "DataSources" \ "Dataset").map(n => fromXml[Task[DatasetSpec[Dataset]]](n)).toSet
       val sources = oldSources ++ newSources
       val blocking = (node \ "Blocking").headOption match {
         case Some(blockingNode) => Blocking.fromXML(blockingNode)

@@ -14,7 +14,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.users.DefaultUserManager
@@ -24,6 +24,7 @@ import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.workspace.WorkspaceProviderTestPlugins.{FailingCustomTask, FailingTaskException}
 
 
 trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar {
@@ -48,6 +49,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   private lazy val fileBasedDatasetWithHierarchicalFilePath = CsvDataset(project(emptyUserContext).resources.getInPath("some/nested/file.csv"))
 
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
+  PluginRegistry.registerPlugin(classOf[FailingCustomTask])
 
   def createWorkspaceProvider(): WorkspaceProvider
 
@@ -595,6 +597,50 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     }
   }
 
+  it should "load tasks safely and allow to fix them" in {
+    implicit val us: UserContext = emptyUserContext
+    val failingTaskId = "failingTask1"
+    WorkspaceProviderTestPlugins.synchronized {
+      try {
+        WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+        val failingCustomTask = PlainTask(
+          id = failingTaskId,
+          data = FailingCustomTask()
+        )
+        workspaceProvider.putTask(PROJECT_NAME, failingCustomTask, projectResources)
+        refreshTest {
+          workspaceProvider.readTasks[CustomTask](PROJECT_NAME).filter(_.id.toString == failingTaskId) shouldBe Seq(LoadedTask(Right(failingCustomTask)))
+          workspaceProvider.readAllTasks(PROJECT_NAME).filter(_.task.id.toString == failingTaskId) shouldBe Seq(LoadedTask(Right(failingCustomTask)))
+        }
+        WorkspaceProviderTestPlugins.failingCustomTaskFailing = true
+        refreshTest {
+          // Test that the loading error contains a factory function that creates a new instance of the task.
+          def testLoadedTask(loadedTasks: Seq[LoadedTask[_]], shouldFail: Boolean): Unit = {
+            val loadingError = loadedTasks.filter(_.error.isDefined)
+            if(shouldFail) {
+              loadingError should have size 1
+              val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
+              factoryFunctionOpt shouldBe defined
+              intercept[FailingTaskException] {
+                factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext)
+              }
+              WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+              factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).data shouldBe a[FailingCustomTask]
+            } else {
+              loadingError should have size 0
+            }
+          }
+          testLoadedTask(workspaceProvider.readTasks[CustomTask](PROJECT_NAME), shouldFail = WorkspaceProviderTestPlugins.failingCustomTaskFailing)
+          testLoadedTask(workspaceProvider.readAllTasks(PROJECT_NAME), shouldFail = WorkspaceProviderTestPlugins.failingCustomTaskFailing)
+          WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+        }
+        // TODO: CMEM-4608: Test fixing of task via new parameters
+      } finally {
+        WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+      }
+    }
+  }
+
   /** Executes the block before and after project refresh */
   private def withRefresh(projectName: String)(ex: => Unit)(implicit userContext: UserContext): Unit = {
     ex
@@ -619,4 +665,24 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
   override def outputSchemaOpt: Option[EntitySchema] = None
+}
+
+object WorkspaceProviderTestPlugins {
+  class FailingTaskException(msg: String) extends RuntimeException(msg)
+  /** Plugin to test task loading failures. */
+  @volatile
+  var failingCustomTaskFailing = false
+  object failingCustomTaskLock
+
+  @Plugin(id = "failTask", label = "Task that always fails loading")
+  case class FailingCustomTask(alwaysFail: Boolean = false) extends CustomTask {
+    if(failingCustomTaskFailing || alwaysFail) {
+      throw new FailingTaskException("Failed!")
+    }
+
+    override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+
+    override def outputSchemaOpt: Option[EntitySchema] = None
+  }
+
 }

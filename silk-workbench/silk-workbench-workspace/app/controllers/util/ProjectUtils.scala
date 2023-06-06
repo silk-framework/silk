@@ -15,7 +15,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
-import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{LoadedTask, Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
@@ -177,7 +177,7 @@ object ProjectUtils {
     val dataSources = (workflowJson \ propertyName).as[JsArray]
     implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
     val datasets = for (dataSource <- dataSources.value.toIndexedSeq) yield {
-      JsonSerializers.fromJson[Task[GenericDatasetSpec]](dataSource)
+      JsonSerializers.fromJson[LoadedTask[GenericDatasetSpec]](dataSource).task
     }
     allowedDatasetIds match {
       case Some(ids) =>
