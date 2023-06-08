@@ -102,6 +102,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 ],
             };
             await createNewVariable(updatedVariables, projectId, taskId);
+            setName("");
+            setDescription("");
             refresh();
             closeModal();
         } catch (err) {
