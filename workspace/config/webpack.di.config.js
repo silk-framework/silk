@@ -24,6 +24,7 @@ const getClientEnvironment = require("./env");
 const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
 const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpackPlugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const { CycloneDxWebpackPlugin } = require("@cyclonedx/webpack-plugin");
 
 // Some apps do not need the benefits of saving a web request, so not inlining the chunk
 // makes for a smoother build process.
@@ -593,7 +594,11 @@ module.exports = function (webpackEnv, isWatch) {
                 ),
             // isEnvProduction && new BundleAnalyzerPlugin({
             //     generateStatsFile: true
-            // })
+            // }),
+            isEnvProduction &&
+                new CycloneDxWebpackPlugin({
+                    outputLocation: "./artifacts",
+                })
         ].filter(Boolean),
         // Some libraries import Node modules but don't use them in the browser.
         // Tell Webpack to provide empty mocks for them so importing them works.
