@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config._
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.PluginType
@@ -14,7 +14,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.xml.{Attribute, Elem, Node, Null, Text}
+import scala.xml.{Attribute, Elem, Node, Text, Null}
 
 @PluginType()
 trait WorkspaceProvider extends AnyPlugin {
@@ -228,11 +228,15 @@ object LoadedTask {
                                         taskId: Identifier,
                                         label: Option[String] = None,
                                         description: Option[String] = None): LoadedTask[T] = {
-    def loadInternal(parameterValueOverwrites: ParameterValues, alternativePluginContext: PluginContext): Task[T] = {
-      // TODO: Merge parameters
-      // TODO: CMEM-4608: Use updated parameter values
-      val mergedParameters = originalParameters
-      taskFactory(mergedParameters, alternativePluginContext)
+    def loadInternal(parameterValueOverwrites: ParameterValues, alternativePluginContext: PluginContext): LoadedTask[T] = {
+      try {
+        val mergedParameters = originalParameters.merge(parameterValueOverwrites)
+        val task = taskFactory(mergedParameters, alternativePluginContext)
+        LoadedTask.success[T](task)
+      } catch {
+        case NonFatal(ex) =>
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal)))
+      }
     }
     try {
       LoadedTask(Right(loadInternal(originalParameters, originalPluginContext)))
@@ -303,4 +307,4 @@ case class TaskLoadingError(projectId: Option[Identifier],
                             throwable: Throwable,
                             label: Option[String] = None,
                             description: Option[String] = None,
-                            factoryFunction: Option[(ParameterValues, PluginContext) => Task[_ <: TaskSpec]])
+                            factoryFunction: Option[(ParameterValues, PluginContext) => LoadedTask[_ <: TaskSpec]])

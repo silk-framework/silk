@@ -31,7 +31,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
     val is = try {
       new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
     } catch {
-      case npe: NullPointerException =>
+      case _: NullPointerException =>
         throw new RuntimeException(s"Project file '$projectPathInClasspath' does not exist!")
     }
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)

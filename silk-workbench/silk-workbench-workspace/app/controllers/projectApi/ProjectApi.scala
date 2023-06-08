@@ -5,6 +5,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse, ProjectUriResponse}
 import controllers.projectApi.doc.ProjectApiDoc
+import controllers.projectApi.requests.ReloadFailedTaskRequest
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors
@@ -19,15 +20,16 @@ import io.swagger.v3.oas.annotations.tags.{Tag => OpenApiTag}
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
 import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.{Project, ProjectConfig}
-import play.api.libs.json.{Format, JsValue, Json}
+import org.silkframework.workspace.{Project, ProjectConfig, TaskLoadingError}
+import play.api.libs.json.{Format, JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import java.net.URI
@@ -617,6 +619,65 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       case None =>
         NotFound
     }
+  }
+
+  @Operation(
+    summary = "Reload failed task",
+    description = "Reload a task that has failed loading before. It is possible to overwrite some of the original parameters of the task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success"
+      )
+    ))
+  @RequestBody(
+    description = "Request to reload a failed task.",
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ReloadFailedTaskRequest]),
+        examples = Array(new ExampleObject(ProjectApiDoc.reloadFailedTaskRequestExample))
+      )
+    )
+  )
+  def reloadFailedTask(@Parameter(
+                        name = "projectId",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      val project = getProject(projectId)
+      implicit val readContext: ReadContext = ReadContext.fromProject(project)
+      validateJsonFromJsonFormat[ReloadFailedTaskRequest] { request =>
+        project.loadingErrors.find(_.taskId.toString == request.taskId) match {
+          case Some(loadingError) =>
+            loadingError.factoryFunction match {
+              case Some(reloadFunction) =>
+                reloadFunction(request.parameterValues.getOrElse(ParameterValues.empty), PluginContext.fromProject(project)).taskOrError match {
+                  case Left(error) =>
+                    val taskLoadingError = ProjectLoadingErrors.fromTaskLoadingError(error)
+                    val taskLoadingErrorJson = Json.toJson(taskLoadingError)
+                    val response = Json.obj(
+                      "title" -> "Task loading error",
+                      "detail"-> s"The task could not be loaded. Summary: ${taskLoadingError.errorSummary}",
+                      "taskLoadingError" -> taskLoadingErrorJson
+                    )
+                    BadRequest(response)
+                  case Right(task) =>
+                    project.updateAnyTask(task.id, task.data)
+                    project.removeLoadingError(task.id)
+                    NoContent
+                }
+              case None =>
+                NotFound("The task cannot be reloaded.")
+            }
+          case None =>
+            NotFound
+        }
+      }
   }
 
   /** Get an error report for tasks that failed loading. */

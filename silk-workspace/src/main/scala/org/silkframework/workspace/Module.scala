@@ -45,6 +45,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     */
   private[workspace] def loadingError: List[TaskLoadingError] = errors
 
+  private[workspace] def removeLoadingError(taskId: Identifier): Unit = synchronized {
+    errors = errors.filterNot(_.taskId == taskId)
+  }
+
   def hasTaskType[T : ClassTag]: Boolean = {
     implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }

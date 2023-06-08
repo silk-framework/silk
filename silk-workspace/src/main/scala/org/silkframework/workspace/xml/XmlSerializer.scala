@@ -114,10 +114,12 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
           (elem \ "@id").headOption.map(att => Identifier(att.text)).orElse(alternativeTaskId) match {
             case Some(taskId) =>
               def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[TaskType] = {
-                // TODO: CMEM-4608: Use updated parameter values
                 implicit val taskXmlFormat: XmlFormat[Task[TaskType]] = Task.taskFormat[TaskType]
                 val updatedReadContext = ReadContext.fromPluginContext()(pluginContext).copy(validationEnabled = readContext.validationEnabled, identifierGenerator = readContext.identifierGenerator)
-                XmlSerialization.fromXml[Task[TaskType]](elem)(taskXmlFormat, updatedReadContext)
+                val newParameterValues = XmlSerialization.serializeParameters(parameterValues)
+                // TODO CMEM-4608: Parameters are not merged if they are nested
+                val updatedElem = new Elem(elem.prefix, elem.label, elem.attributes, elem.scope, false, elem.child ++ newParameterValues : _*)
+                XmlSerialization.fromXml[Task[TaskType]](updatedElem)(taskXmlFormat, updatedReadContext)
               }
 
               LoadedTask.factory[TaskType](loadInternal, ParameterValues(Map.empty), PluginContext.fromReadContext(readContext),

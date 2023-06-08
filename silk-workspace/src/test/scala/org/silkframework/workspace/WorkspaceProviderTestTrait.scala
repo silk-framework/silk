@@ -14,7 +14,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.users.DefaultUserManager
@@ -621,9 +621,11 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               loadingError should have size 1
               val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
               factoryFunctionOpt shouldBe defined
-              intercept[FailingTaskException] {
-                factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext)
-              }
+              factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
+                .map(_.throwable).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
+              // Test with fixing parameters
+              factoryFunctionOpt.get(ParameterValues(Map("alwaysFail" -> ParameterStringValue("false"))), pluginContext).
+                task.data shouldBe a[FailingCustomTask]
               WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
               factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).data shouldBe a[FailingCustomTask]
             } else {
@@ -634,7 +636,6 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
           testLoadedTask(workspaceProvider.readAllTasks(PROJECT_NAME), shouldFail = WorkspaceProviderTestPlugins.failingCustomTaskFailing)
           WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
         }
-        // TODO: CMEM-4608: Test fixing of task via new parameters
       } finally {
         WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
       }
@@ -675,8 +676,8 @@ object WorkspaceProviderTestPlugins {
   object failingCustomTaskLock
 
   @Plugin(id = "failTask", label = "Task that always fails loading")
-  case class FailingCustomTask(alwaysFail: Boolean = false) extends CustomTask {
-    if(failingCustomTaskFailing || alwaysFail) {
+  case class FailingCustomTask(alwaysFail: Boolean = true) extends CustomTask {
+    if(failingCustomTaskFailing && alwaysFail) {
       throw new FailingTaskException("Failed!")
     }
 

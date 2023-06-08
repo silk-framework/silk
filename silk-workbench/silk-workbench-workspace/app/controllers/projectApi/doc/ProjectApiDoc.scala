@@ -35,4 +35,20 @@ In project 'cmem' 2 tasks could not be loaded.
  ```
 """
 
+  final val reloadFailedTaskRequestExample =
+    """{
+  "taskId": "<CURRENTLY_BROKEN_TASK>",
+  "parameterValues": {
+    "parameters": {
+      "paramA": "New value",
+      "paramB": {
+        "nestedParameter": "New nested value"
+      }
+    },
+    "templates": {
+      "paramB": "Template value {{variable}}"
+    }
+  }
+}"""
+
 }
