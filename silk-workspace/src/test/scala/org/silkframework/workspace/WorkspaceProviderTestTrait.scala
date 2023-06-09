@@ -1,6 +1,7 @@
 package org.silkframework.workspace
 
 
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -27,7 +28,7 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.workspace.WorkspaceProviderTestPlugins.{FailingCustomTask, FailingTaskException}
 
 
-trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar {
+trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
@@ -282,9 +283,14 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       createdByUser = creationUserContext.user.map(u => Uri(u.uri)), lastModifiedByUser = updateUserContext.user.map(u => Uri(u.uri)))
   }
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    createProject(PROJECT_NAME)(specificUserContext)
+  }
+
   it should "read and write projects" in {
     val projectConfig2 = createProject(PROJECT_NAME_OTHER)(emptyUserContext)
-    val projectConfig = createProject(PROJECT_NAME)(specificUserContext)
+    val projectConfig = getProject(PROJECT_NAME).getOrElse(ProjectConfig("wrong"))
     val project = getProject(projectConfig.id).get
     val project2 = getProject(projectConfig2.id).get
     project.prefixes shouldBe projectConfig.prefixes
