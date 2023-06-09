@@ -132,7 +132,9 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         }
       } catch {
         case NonFatal(ex) =>
-          Right(ex.getMessage)
+          var errorMessage = ex.getMessage
+          errorMessage = errorMessage.replace("token", "variable")
+          Right(errorMessage)
       }
       val response = VariableTemplateValidationResponse(
         valid = resultOrError.isLeft,
