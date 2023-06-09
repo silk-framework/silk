@@ -613,16 +613,20 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
           workspaceProvider.readAllTasks(PROJECT_NAME).filter(_.task.id.toString == failingTaskId) shouldBe Seq(LoadedTask(Right(failingCustomTask)))
         }
         WorkspaceProviderTestPlugins.failingCustomTaskFailing = true
+        // Refresh the workspace to make sure that the loading error comes from the workspace provider and not the import workspace provider (XML workspace)
         refreshTest {
-          // Test that the loading error contains a factory function that creates a new instance of the task.
+          // Test that the loading error contains a factory function that creates a new instance of the task and the original parameters.
           def testLoadedTask(loadedTasks: Seq[LoadedTask[_]], shouldFail: Boolean): Unit = {
             val loadingError = loadedTasks.filter(_.error.isDefined)
             if(shouldFail) {
               loadingError should have size 1
+              // Check factory function
               val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
               factoryFunctionOpt shouldBe defined
               factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
                 .map(_.throwable).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
+              // Check that original parameters are included
+              loadingError.head.error.get.originalParameterValues shouldBe Some(ParameterValues(Map("alwaysFail" -> ParameterStringValue("true"))))
               // Test with fixing parameters
               factoryFunctionOpt.get(ParameterValues(Map("alwaysFail" -> ParameterStringValue("false"))), pluginContext).
                 task.data shouldBe a[FailingCustomTask]

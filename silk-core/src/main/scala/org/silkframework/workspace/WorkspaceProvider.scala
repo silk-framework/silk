@@ -234,16 +234,13 @@ object LoadedTask {
         val task = taskFactory(mergedParameters, alternativePluginContext)
         LoadedTask.success[T](task)
       } catch {
+        case ex: TaskLoadingException =>
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex.cause, label, description, Some(loadInternal), Some(ex.originalParameterValues)))
         case NonFatal(ex) =>
-          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal)))
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal), None))
       }
     }
-    try {
-      LoadedTask(Right(loadInternal(originalParameters, originalPluginContext)))
-    } catch {
-      case NonFatal(ex) =>
-        LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal)))
-    }
+    loadInternal(originalParameters, originalPluginContext)
   }
 
   implicit def convertTaskToLoadedTask[T <: TaskSpec : ClassTag](task: Task[T]): LoadedTask[T] = LoadedTask.success(task)
@@ -301,10 +298,32 @@ object LoadedTask {
   * @param label           Optional label of the task for display purposes.
   * @param description     Optional description of the task for display purposes.
   * @param factoryFunction Optional function that tries to create the task instance.
+  * @param originalParameterValues The original parameter values, if those could extracted.
   */
 case class TaskLoadingError(projectId: Option[Identifier],
                             taskId: Identifier,
                             throwable: Throwable,
                             label: Option[String] = None,
                             description: Option[String] = None,
-                            factoryFunction: Option[(ParameterValues, PluginContext) => LoadedTask[_ <: TaskSpec]])
+                            factoryFunction: Option[(ParameterValues, PluginContext) => LoadedTask[_ <: TaskSpec]],
+                            originalParameterValues: Option[ParameterValues])
+
+/** An exception that carries the original parameter (simple parameters only!) values of a task if available.
+  * Do not use directly. Use withTaskLoadingException instead. */
+case class TaskLoadingException(msg: String, originalParameterValues: ParameterValues, cause: Throwable) extends RuntimeException(msg, cause)
+
+object TaskLoadingException {
+  /** This should be used where a TaskLoadingException should be thrown. */
+  def withTaskLoadingException[T](originalParameterValues: => ParameterValues)(create: ParameterValues => T): T = {
+    val params = originalParameterValues
+    try {
+      create(params)
+    } catch {
+      case ex: TaskLoadingException =>
+        // TaskLoadingException was thrown, just pass on
+        throw ex
+      case NonFatal(ex) =>
+        throw TaskLoadingException("Task has failed loading.", params, ex)
+    }
+  }
+}

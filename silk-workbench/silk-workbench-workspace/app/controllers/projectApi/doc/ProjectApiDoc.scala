@@ -51,4 +51,12 @@ In project 'cmem' 2 tasks could not be loaded.
   }
 }"""
 
+  final val failedTaskParameterValuesResponseExample =
+    """{
+  "paramA": "New value",
+  "paramB": {
+    "nestedParameter": "New nested value"
+  }
+}"""
+
 }

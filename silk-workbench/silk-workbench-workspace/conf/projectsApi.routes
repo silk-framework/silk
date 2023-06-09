@@ -20,6 +20,7 @@ GET           /:projectId/uri                                          controlle
 
 GET           /:projectId/failedTasksReport                            controllers.projectApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
 GET           /:projectId/failedTasksReport/:taskId                    controllers.projectApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)
+GET           /:projectId/failedTaskParameters/:taskId                 controllers.projectApi.ProjectApi.failedTaskParameterValues(projectId: String, taskId: String)
 POST          /:projectId/reloadFailedTask                             controllers.projectApi.ProjectApi.reloadFailedTask(projectId: String)
 
 #################

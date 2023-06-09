@@ -127,12 +127,13 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
             case None =>
               // Nothing we can do here. XML element currently cannot be reloaded. This should only happen if a user actively removes the ID from the XML file.
               Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),
-                new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName${alternativeTaskId.map(n => s" for task '$n'").getOrElse("")}."), factoryFunction = None))
+                new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName${alternativeTaskId.map(n => s" for task '$n'").getOrElse("")}."),
+                factoryFunction = None, originalParameterValues = None))
           }
 
         case Failure(ex) =>
           // Nothing we can do here. XML element currently cannot be reloaded. This should only happen if a user actively removes the ID from the XML file.
-          Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex, factoryFunction = None))
+          Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex, factoryFunction = None, originalParameterValues = None))
       }
     LoadedTask[TaskType](taskOrError)
   }

@@ -21,9 +21,10 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
+import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
 import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
@@ -601,7 +602,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                     )
                                     taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectId)
-    project.loadingErrors.find(_.taskId == taskId) match {
+    project.loadingErrors.find(_.taskId.toString == taskId) match {
       case Some(loadingError) =>
         val failedTask = ProjectLoadingErrors.fromTaskLoadingError(loadingError)
         val taskLabel = failedTask.taskLabel.filter(_.trim != "").getOrElse(failedTask.taskId)
@@ -677,6 +678,57 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           case None =>
             NotFound
         }
+      }
+  }
+
+  @Operation(
+    summary = "Failed tasks parameters values",
+    description = "Get the parameters of a failed task if available. Only simple parameters are returned.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(ProjectApiDoc.failedTaskParameterValuesResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or failed task does not exist or no parameter values were found."
+      )
+    ))
+  def failedTaskParameterValues(@Parameter(
+                                  name = "projectId",
+                                  description = "The project identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                projectId: String,
+                                @Parameter(
+                                  name = "taskId",
+                                  description = "The task identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request =>
+    implicit userContext =>
+      val project = getProject(projectId)
+      project.loadingErrors.find(_.taskId.toString == taskId) match {
+        case Some(loadingError) =>
+          loadingError.originalParameterValues match {
+            case Some(parameterValues) =>
+              implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
+              Ok(ParameterValuesJsonFormat.write(parameterValues))
+            case None =>
+              NotFound("Original parameter values are not available for this task failing error.")
+          }
+        case None =>
+          NotFound(s"No task loading error found for project '${project.fullLabel}' and task '$taskId'")
       }
   }
 

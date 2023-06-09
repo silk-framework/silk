@@ -32,6 +32,7 @@ import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
+import org.silkframework.workspace.TaskLoadingException
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import java.util.logging.Logger
@@ -247,7 +248,9 @@ object LinkSpec {
         )
 
       // Apply templates
-      linkSpec.withParameters(XmlSerialization.deserializeParameters(node))
+      TaskLoadingException.withTaskLoadingException(XmlSerialization.deserializeParameters(node)) { params =>
+        linkSpec.withParameters(params)
+      }
     }
 
     /**
