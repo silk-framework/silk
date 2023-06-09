@@ -245,7 +245,9 @@ export const ArtefactFormParameter = ({
 };
 
 interface TemplateInputComponentProps {
+    /** If a project ID is defined, also project variables will be auto-completed. */
     projectId?: string;
+    /** ID for the input field. */
     parameterId: string;
     initialValue: string;
     onTemplateValueChange: (any) => any;
@@ -254,7 +256,8 @@ interface TemplateInputComponentProps {
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
 }
 
-const TemplateInputComponent = memo(
+/** The input component for the template value. */
+export const TemplateInputComponent = memo(
     ({
         parameterId,
         initialValue,

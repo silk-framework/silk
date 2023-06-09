@@ -1,22 +1,8 @@
-import {
-    AutoSuggestion,
-    FieldItem,
-    IconButton,
-    Spacing,
-    TextField,
-    Toolbar,
-    ToolbarSection,
-} from "@eccenca/gui-elements";
-import React, { MouseEventHandler, MutableRefObject } from "react";
-import { useTranslation } from "react-i18next";
-import {
-    ValidateTemplateResponse,
-    requestValidateTemplateString,
-} from "../modals/CreateArtefactModal/CreateArtefactModal.requests";
-import { requestAutoCompleteTemplateString } from "../modals/CreateArtefactModal/CreateArtefactModal.requests";
-import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ValueStateRef } from "../VariablesWidget/modals/NewVariableModal";
+import {FieldItem, IconButton, Spacing, TextField, Toolbar, ToolbarSection,} from "@eccenca/gui-elements";
+import React, {MouseEventHandler, MutableRefObject} from "react";
+import {useTranslation} from "react-i18next";
+import {ValueStateRef} from "../VariablesWidget/modals/NewVariableModal";
+import {TemplateInputComponent} from "../modals/CreateArtefactModal/ArtefactForms/ArtefactFormParameter";
 
 interface TemplateValueInputProps {
     disabled?: boolean;
@@ -24,11 +10,13 @@ interface TemplateValueInputProps {
     messageText?: string;
     hasStateDanger?: boolean;
     projectId: string;
+    /** ID of the input component. */
+    parameterId?: string
 }
 
 const TemplateValueInput = React.forwardRef(
     (
-        { disabled, helperText, projectId, hasStateDanger, messageText }: TemplateValueInputProps,
+        { disabled, helperText, projectId, hasStateDanger, messageText, parameterId = "template-value-input" }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
         const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(
@@ -111,6 +99,7 @@ const TemplateValueInput = React.forwardRef(
                                 setValidationError={setValidationError}
                                 evaluatedValueMessage={setTemplateInfoMessage}
                                 projectId={projectId}
+                                parameterId={parameterId}
                             />
                         ) : (
                             <TextField
@@ -145,88 +134,6 @@ const TemplateValueInput = React.forwardRef(
                     </ToolbarSection>
                 </Toolbar>
             </FieldItem>
-        );
-    }
-);
-
-interface TemplateInputComponentProps {
-    initialValue: string;
-    onTemplateValueChange: (any) => any;
-    setValidationError: (error?: string) => any;
-    /** Called with a message that contains the currently evaluated template. */
-    evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
-    projectId: string;
-}
-
-const TemplateInputComponent = React.memo(
-    ({
-        initialValue,
-        onTemplateValueChange,
-        setValidationError,
-        evaluatedValueMessage,
-        projectId,
-    }: TemplateInputComponentProps) => {
-        const { registerError } = useErrorHandler();
-        const [t] = useTranslation();
-
-        const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
-            let errorMessage = validationResult.parseError?.message;
-            const adaptedValidationResult = { ...validationResult };
-            if (errorMessage) {
-                if (errorMessage.includes("error at position")) {
-                    // Parse position from error message
-                    const result = /error at position (\d+)/.exec(errorMessage);
-                    if (result && Number.isInteger(Number.parseInt(result[1]))) {
-                        const errorPosition = Number.parseInt(result[1]);
-                        adaptedValidationResult.parseError = {
-                            start: errorPosition,
-                            end: errorPosition + 2,
-                            message: validationResult.parseError!.message,
-                        };
-                        errorMessage = `${t("ArtefactFormParameter.invalidTemplate")}: ${errorMessage}`;
-                    }
-                }
-            }
-            setValidationError(errorMessage);
-            return adaptedValidationResult;
-        }, []);
-
-        const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
-            try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId)).data;
-            } catch (error) {
-                registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
-            }
-        }, []);
-
-        const checkTemplate = React.useCallback(
-            async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
-                try {
-                    const validationResponse = (await requestValidateTemplateString(inputString, projectId)).data;
-                    evaluatedValueMessage?.(
-                        validationResponse.evaluatedTemplate
-                            ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })
-                            : undefined
-                    );
-                    return processValidationError(validationResponse);
-                } catch (error) {
-                    registerError("ArtefactFormParameter.checkTemplate", "Validating template has failed.", error);
-                    evaluatedValueMessage?.(undefined);
-                }
-            },
-            [processValidationError]
-        );
-
-        return (
-            <>
-                <AutoSuggestion
-                    initialValue={initialValue}
-                    onChange={onTemplateValueChange}
-                    fetchSuggestions={autoComplete}
-                    checkInput={checkTemplate}
-                    autoCompletionRequestDelay={200}
-                />
-            </>
         );
     }
 );
