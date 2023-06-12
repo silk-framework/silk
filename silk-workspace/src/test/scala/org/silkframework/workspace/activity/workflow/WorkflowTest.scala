@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.mockito.Mockito._
+import org.mockito.Mockito._
+
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -144,6 +145,16 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
       replaceableOutputs = Seq(OUTPUT)
     ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
   }
+
+  it should "not return a re-configured input dataset as output dataset" in {
+    val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectA"))
+    for(datasetId <- Seq(DS_A, DS_B)) {
+      val dataset = CsvDataset(project.resources.get("file.csv"))
+      project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+    }
+    reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+  }
 }
 
 object WorkflowTest {
@@ -237,6 +248,19 @@ object WorkflowTest {
     )
   }
 
+  val reConfiguredDatasetWorkflow: Workflow = {
+    Workflow(
+      operators = Seq(
+        operator(task = TRANSFORM_1, inputs = Seq(), outputs = Seq(DS_A, DS_B), TRANSFORM_1),
+        operator(task = TRANSFORM_2, inputs = Seq(), outputs = Seq(DS_B), TRANSFORM_2),
+      ),
+      datasets = Seq(
+        dataset(DS_A, DS_A, outputs = Seq(), configInputs = Seq(TRANSFORM_1)),
+        dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_2), outputs = Seq(), configInputs = Seq(TRANSFORM_1))
+      )
+    )
+  }
+
   def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None): WorkflowOperator = {
     WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty)
   }
@@ -245,7 +269,8 @@ object WorkflowTest {
               nodeId: String,
               outputPriority: Option[Double] = None,
               inputs: Seq[String] = Seq(),
-              outputs: Seq[String] = Seq()): WorkflowDataset = {
-    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority, Seq.empty)
+              outputs: Seq[String] = Seq(),
+              configInputs: Seq[String] = Seq.empty): WorkflowDataset = {
+    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority, configInputs)
   }
 }

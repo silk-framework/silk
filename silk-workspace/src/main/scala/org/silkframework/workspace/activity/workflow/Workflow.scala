@@ -13,6 +13,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.xml.{Node, Text}
 
@@ -244,7 +245,13 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /** Returns all Dataset tasks that are used as outputs in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
-    for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
+    val configInputs = new mutable.HashMap[String, String]()
+    for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
+      configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
+    }
+    for (datasetNodeId <- operators.flatMap(op => {
+      op.outputs.filter(output => !configInputs.get(output).contains(op.nodeId))
+    }).distinct;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
     }
