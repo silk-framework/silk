@@ -18,7 +18,7 @@ const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
     const [executionUpdateCounter, setExecutionUpdateCounter] = React.useState<number>(0);
     const [taskDownloadInfo, setTaskDownloadInfo] = React.useState<ProjectTaskDownloadInfo | undefined>();
 
-    const handleReceivedUpdates = React.useCallback((status) => {
+    const handleActivityUpdates = React.useCallback((status) => {
         if (status.statusName === "Finished") {
             setExecutionUpdateCounter((n) => ++n);
         }
@@ -45,7 +45,7 @@ const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
                                     projectId={projectId}
                                     taskId={taskId}
                                     activityName="ExecuteTransform"
-                                    registerToReceiveUpdates={handleReceivedUpdates}
+                                    updateCallback={handleActivityUpdates}
                                     label="Execute Transform"
                                     layoutConfig={{
                                         border: true,
