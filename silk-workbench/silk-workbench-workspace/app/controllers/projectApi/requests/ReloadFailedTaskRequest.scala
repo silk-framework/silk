@@ -1,11 +1,16 @@
 package controllers.projectApi.requests
 
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.runtime.plugin.ParameterValues
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
 import org.silkframework.serialization.json.{JsonFormat, JsonHelpers}
 import play.api.libs.json.{JsValue, Json}
 
+@Schema(
+  description = "Request object to reload a failed task.",
+  implementation = classOf[Object],
+)
 case class ReloadFailedTaskRequest(taskId: String,
                                    parameterValues: Option[ParameterValues])
 
