@@ -1,4 +1,4 @@
-FROM openjdk:11-jdk as builder
+FROM openjdk:17-jdk as builder
 
 COPY ./silk-workbench/target/universal /build
 COPY ./conf /build/conf
@@ -16,7 +16,7 @@ ENV \
   # provide a random env better suited for headless work such as docker images \
   # http:\/\/www.labouisse.com\/misc\/2014\/06\/19\/tomcat-startup-time-surprises \
   DEFAULT_JAVA_OPTS="-server -Djava.security.egd=file:/dev/./urandom" \
-  JAVA_OPTS="-Xms1g -Xmx2g" \
+  JAVA_OPTS="-Xms1g -Xmx4g" \
   # configure application port and expose it
   PORT=80 \
   SERVER_CONTEXTPATH="/"
