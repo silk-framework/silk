@@ -163,7 +163,7 @@ function customTransform(file, enc, done) {
 }
 
 // Init temp locales dir
-fs.rmdirSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true, force: true });
+fs.rmSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true, force: true });
 fs.mkdirSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true });
 const manualLangFiles = fs.readdirSync("./src/locales/manual/").map((file) => "./src/locales/manual/" + file);
 // Copy and merge lang files. String values for keys are overwritten by the additional lang files.
