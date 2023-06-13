@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
 import { createNewVariable } from "../requests";
 import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
+import { current } from "@reduxjs/toolkit";
 
 interface VariableModalProps {
     /*
@@ -79,8 +80,12 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     React.useEffect(() => {
         setName(targetVariable?.name ?? "");
         setDescription(targetVariable?.description ?? "");
-        valueState.current.inputValueBeforeSwitch = targetVariable?.value ?? "";
-        valueState.current.templateValueBeforeSwitch = targetVariable?.template ?? "";
+        valueState.current = {
+            inputValueBeforeSwitch: targetVariable?.value ?? "",
+            templateValueBeforeSwitch: targetVariable?.template ?? "",
+            currentTemplateValue: targetVariable?.template ?? "",
+            currentInputValue: targetVariable?.value ?? "",
+        };
         setErrorMessage("");
     }, [targetVariable]);
 
@@ -122,16 +127,21 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         try {
             setLoading(true);
             setErrorMessage("");
+            const newVar = {
+                name,
+                value: valueState.current.currentInputValue || null,
+                description,
+                template: valueState.current.currentTemplateValue || null,
+                isSensitive: false,
+                scope: taskId ? "task" : "project",
+            } as const;
+
             const { variableAlreadyExist, newVariables } = variables.reduce(
                 (acc, variable) => {
                     if (variable.name === name) {
                         acc.newVariables.push({
                             ...variable,
-                            value: valueState.current.currentInputValue || null,
-                            description,
-                            template: valueState.current.currentTemplateValue || null,
-                            isSensitive: false,
-                            scope: taskId ? "task" : "project",
+                            ...newVar,
                         });
                         acc.variableAlreadyExist = true;
                     } else {
@@ -143,14 +153,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             );
 
             if (!variableAlreadyExist) {
-                newVariables.push({
-                    name,
-                    value: valueState.current.currentInputValue || null,
-                    description,
-                    template: valueState.current.currentTemplateValue || null,
-                    isSensitive: false,
-                    scope: taskId ? "task" : "project",
-                });
+                newVariables.push(newVar);
             }
 
             const updatedVariables = {
@@ -159,6 +162,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             await createNewVariable(updatedVariables, projectId, taskId);
             setName("");
             setDescription("");
+            valueState.current.inputValueBeforeSwitch = "";
+            valueState.current.templateValueBeforeSwitch = "";
             refresh();
             closeModal();
         } catch (err) {

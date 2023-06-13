@@ -26,23 +26,27 @@ const TemplateValueInput = React.forwardRef(
         }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
-        const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(
-            !!valueStateRef.current.templateValueBeforeSwitch
-        );
+        const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(false);
         const [validationError, setValidationError] = React.useState<string>();
         const [templateInfoMessage, setTemplateInfoMessage] = React.useState<string>();
         const [showRareActions, setShowRareActions] = React.useState(false);
         const showRareElementState = React.useRef<{ timeout?: number }>({});
         const [t] = useTranslation();
 
+        React.useEffect(() => {
+            setShowVariableTemplateInput(!!valueStateRef.current.templateValueBeforeSwitch);
+        }, [valueStateRef.current.templateValueBeforeSwitch]);
+
         const switchShowVariableTemplateInput = React.useCallback(() => {
             setShowVariableTemplateInput((old) => {
                 const becomesTemplate = !old;
                 //false  means currently input to become template
                 if (becomesTemplate) {
-                    valueStateRef.current.inputValueBeforeSwitch = valueStateRef.current.currentInputValue;
+                    valueStateRef.current.inputValueBeforeSwitch =
+                        valueStateRef.current.currentInputValue || valueStateRef.current.inputValueBeforeSwitch;
                 } else {
-                    valueStateRef.current.templateValueBeforeSwitch = valueStateRef.current.currentTemplateValue;
+                    valueStateRef.current.templateValueBeforeSwitch =
+                        valueStateRef.current.currentTemplateValue || valueStateRef.current.currentTemplateValue;
                 }
                 setValidationError(undefined);
                 setTemplateInfoMessage(undefined);
@@ -127,10 +131,7 @@ const TemplateValueInput = React.forwardRef(
                                 placement: "top",
                             }}
                             text={
-                                valueStateRef.current.templateValueBeforeSwitch
-                                    ? t("widget.TaskConfigWidget.templateValueInfo") +
-                                      `\n\n\`\`\`${valueStateRef.current.templateValueBeforeSwitch}\`\`\``
-                                    : showVariableTemplateInput
+                                showVariableTemplateInput
                                     ? t("ArtefactFormParameter.switchToValue").replace("EXAMPLE", "{{global.myVar}}")
                                     : t("ArtefactFormParameter.switchToTemplate").replace("EXAMPLE", "{{global.myVar}}")
                             }
