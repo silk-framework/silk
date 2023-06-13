@@ -211,6 +211,25 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         </PropertyValue>
                                                                     </PropertyValuePair>
                                                                 </ToolbarSection>
+                                                                {variable.template != null && (
+                                                                    <ToolbarSection>
+                                                                        <Icon
+                                                                            name={"form-template"}
+                                                                            intent={"info"}
+                                                                            tooltipText={
+                                                                                t(
+                                                                                    "widget.TaskConfigWidget.templateValueInfo"
+                                                                                ) +
+                                                                                `\n\n\`\`\`${variable.template}\`\`\``
+                                                                            }
+                                                                            tooltipProps={{
+                                                                                placement: "top",
+                                                                                markdownEnabler: "```",
+                                                                            }}
+                                                                        />
+                                                                        <Spacing size="tiny" vertical />
+                                                                    </ToolbarSection>
+                                                                )}
                                                                 <ToolbarSection>
                                                                     <IconButton
                                                                         small
