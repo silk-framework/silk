@@ -45,7 +45,7 @@ object SafeModeSink extends DataSink with LinkSink with EntitySink {
     SafeModeException.throwSafeModeException()
   }
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     SafeModeException.throwSafeModeException()
   }

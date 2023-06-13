@@ -35,9 +35,9 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     write(formatter.header)
   }
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    write(formatter.formatLink(link, predicateUri))
+    write(formatter.formatLink(link, predicateUri, inversePredicateUri))
   }
 
   override def close()(implicit userContext: UserContext): Unit = {

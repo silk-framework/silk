@@ -126,7 +126,7 @@ class GenerateLinks(task: Task[LinkSpec],
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
-    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, output)
+    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, linkSpec.rule.inverseLinkType, output)
     context.child(outputTask, 0.02).startBlocking()
     logStatistics(context)
   }

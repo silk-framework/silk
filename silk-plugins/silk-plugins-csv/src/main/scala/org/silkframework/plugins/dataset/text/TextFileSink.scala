@@ -35,7 +35,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   }
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writeEntity("", IndexedSeq(Seq(link.source), Seq(link.target)))
   }

@@ -58,7 +58,7 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
                          clearFn: () => Unit) extends LinkSink {
   override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writeLinkFn(link, predicateUri)
   }

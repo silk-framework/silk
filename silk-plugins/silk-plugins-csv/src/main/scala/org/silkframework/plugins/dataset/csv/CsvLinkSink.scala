@@ -20,7 +20,7 @@ class CsvLinkSink(file: WritableResource, settings: CsvSettings) extends CsvSink
         TypedProperty("link_target", ValueType.STRING, isBackwardProperty = false)))
   }
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes){
     write(Seq(link.source, link.target))
   }

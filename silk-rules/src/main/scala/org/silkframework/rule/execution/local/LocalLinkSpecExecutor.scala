@@ -44,7 +44,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       ))
     }
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
+    Some(LinksTable(linking.links, linkSpec.rule.linkType, linkSpec.rule.inverseLinkType, task))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {

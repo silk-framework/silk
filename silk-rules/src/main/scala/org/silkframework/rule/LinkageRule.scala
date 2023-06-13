@@ -30,6 +30,7 @@ import scala.xml.Node
 case class LinkageRule(operator: Option[SimilarityOperator] = None,
                        filter: LinkFilter = LinkFilter(),
                        linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs"),
+                       inverseLinkType: Option[Uri] = None,
                        layout: RuleLayout = RuleLayout(),
                        uiAnnotations: UiAnnotations = UiAnnotations()
                       ) extends PluginObjectParameterNoSchema {

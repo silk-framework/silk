@@ -16,15 +16,16 @@ trait LinkSink extends DataSink {
   /**
    * Writes a new link to this writer.
    */
-  def writeLink(link: Link, predicateUri: String)(implicit userContext: UserContext, prefixes: Prefixes): Unit
+  def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String] = None)
+               (implicit userContext: UserContext, prefixes: Prefixes): Unit
 
   /**
    * Writes a set of links.
    */
-  def writeLinks(links: Iterable[Link], predicateUri: String)
+  def writeLinks(links: Iterable[Link], predicateUri: String, inversePredicateUri: Option[String] = None)
                 (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     init()
-    for (link <- links) writeLink(link, predicateUri)
+    for (link <- links) writeLink(link, predicateUri, inversePredicateUri)
     close()
   }
 }
