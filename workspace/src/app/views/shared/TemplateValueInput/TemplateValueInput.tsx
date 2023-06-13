@@ -1,8 +1,8 @@
-import {FieldItem, IconButton, Spacing, TextField, Toolbar, ToolbarSection,} from "@eccenca/gui-elements";
-import React, {MouseEventHandler, MutableRefObject} from "react";
-import {useTranslation} from "react-i18next";
-import {ValueStateRef} from "../VariablesWidget/modals/NewVariableModal";
-import {TemplateInputComponent} from "../modals/CreateArtefactModal/ArtefactForms/ArtefactFormParameter";
+import { FieldItem, IconButton, Spacing, TextField, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import React, { MouseEventHandler, MutableRefObject } from "react";
+import { useTranslation } from "react-i18next";
+import { ValueStateRef } from "../VariablesWidget/modals/NewVariableModal";
+import { TemplateInputComponent } from "../modals/CreateArtefactModal/ArtefactForms/ArtefactFormParameter";
 
 interface TemplateValueInputProps {
     disabled?: boolean;
@@ -11,12 +11,19 @@ interface TemplateValueInputProps {
     hasStateDanger?: boolean;
     projectId: string;
     /** ID of the input component. */
-    parameterId?: string
+    parameterId?: string;
 }
 
 const TemplateValueInput = React.forwardRef(
     (
-        { disabled, helperText, projectId, hasStateDanger, messageText, parameterId = "template-value-input" }: TemplateValueInputProps,
+        {
+            disabled,
+            helperText,
+            projectId,
+            hasStateDanger,
+            messageText,
+            parameterId = "template-value-input",
+        }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
         const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(
@@ -120,7 +127,10 @@ const TemplateValueInput = React.forwardRef(
                                 placement: "top",
                             }}
                             text={
-                                showVariableTemplateInput
+                                valueStateRef.current.templateValueBeforeSwitch
+                                    ? t("widget.TaskConfigWidget.templateValueInfo") +
+                                      `\n\n\`\`\`${valueStateRef.current.templateValueBeforeSwitch}\`\`\``
+                                    : showVariableTemplateInput
                                     ? t("ArtefactFormParameter.switchToValue").replace("EXAMPLE", "{{global.myVar}}")
                                     : t("ArtefactFormParameter.switchToTemplate").replace("EXAMPLE", "{{global.myVar}}")
                             }

@@ -70,6 +70,9 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setDeleteErrMsg("");
     }, []);
 
+    /**
+     * upon acceptance on the delete prompt, it deletes the selected variable.
+     */
     const handleDeleteVariable = React.useCallback(async () => {
         setIsDeleting(true);
         setDeleteErrMsg("");

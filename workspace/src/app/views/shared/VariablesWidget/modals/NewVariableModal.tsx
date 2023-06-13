@@ -6,12 +6,37 @@ import { createNewVariable } from "../requests";
 import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
 
 interface VariableModalProps {
+    /*
+       All the existing variables for the project,
+       this is tenable because first iteration expects a max of 7 variables 
+     */
     variables: Variable[];
+    /**
+     * id for the project, variables are per project.
+     */
     projectId: string;
+    /**
+     * id for the project's task
+     */
     taskId?: string;
+    /**
+     * delimiter that determines if the modal is shown or not
+     */
     modalOpen: boolean;
+    /**
+     * control handler that closes the modal
+     */
     closeModal: () => void;
+    /**
+     * in the case of editing an existing variable,
+     * this is the variable in particular that is getting edited.
+     * for creating a new variable, this is undefined.
+     */
     targetVariable?: Variable;
+    /**
+     * control trigger that notifies parent component to refetch all the variables,
+     * usually after creating a new variable or editing an existing one
+     */
     refresh: () => void;
 }
 
@@ -47,7 +72,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
 
     const valueState = React.useRef<ValueStateRef>({
         // Input value needs to be undefined, so it gets set to the default value
-        currentInputValue: targetVariable?.value,
+        currentInputValue: targetVariable?.value ?? "",
         currentTemplateValue: targetVariable?.template ?? "",
     });
 
@@ -59,6 +84,9 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         setErrorMessage("");
     }, [targetVariable]);
 
+    /**
+     * checks that the value or template input fields are not empty
+     */
     const validationChecker = React.useCallback(() => {
         const error = {
             name: !name.length ? "Name must be specified" : undefined,
@@ -71,6 +99,9 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         return error;
     }, [name, valueState]);
 
+    /**
+     * handles name input changes and ensures no duplicated variable names
+     */
     const handleVariableNameChange = React.useCallback(
         (e) => {
             const newName = e.target.value;
@@ -82,24 +113,48 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         [variables]
     );
 
+    /**
+     * adds new variable or updates existing variable
+     */
     const addNewVariable = React.useCallback(async () => {
         const error = validationChecker();
         if (error?.name || error?.valueOrTemplate) return;
         try {
             setLoading(true);
             setErrorMessage("");
+            const { variableAlreadyExist, newVariables } = variables.reduce(
+                (acc, variable) => {
+                    if (variable.name === name) {
+                        acc.newVariables.push({
+                            ...variable,
+                            value: valueState.current.currentInputValue || null,
+                            description,
+                            template: valueState.current.currentTemplateValue || null,
+                            isSensitive: false,
+                            scope: taskId ? "task" : "project",
+                        });
+                        acc.variableAlreadyExist = true;
+                    } else {
+                        acc.newVariables.push(variable);
+                    }
+                    return acc;
+                },
+                { newVariables: [] as Variable[], variableAlreadyExist: false }
+            );
+
+            if (!variableAlreadyExist) {
+                newVariables.push({
+                    name,
+                    value: valueState.current.currentInputValue || null,
+                    description,
+                    template: valueState.current.currentTemplateValue || null,
+                    isSensitive: false,
+                    scope: taskId ? "task" : "project",
+                });
+            }
+
             const updatedVariables = {
-                variables: [
-                    ...variables,
-                    {
-                        name,
-                        value: valueState.current.currentInputValue || null,
-                        description,
-                        template: valueState.current.currentTemplateValue || null,
-                        isSensitive: false,
-                        scope: taskId ? "task" : "project",
-                    },
-                ],
+                variables: newVariables,
             };
             await createNewVariable(updatedVariables, projectId, taskId);
             setName("");
@@ -116,16 +171,16 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     return (
         <SimpleDialog
             size="small"
-            title={`${targetVariable ? "Edit" : "Add"} Variable`}
+            title={`${isEditMode ? "Edit" : "Add"} Variable`}
             isOpen={modalOpen}
             onClose={closeModal}
             notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
             actions={[
-                <Button key="copy" affirmative onClick={addNewVariable} disabled={loading} loading={loading}>
-                    {t("widget.VariableWidget.actions.add", "Add")}
+                <Button key="add" affirmative onClick={addNewVariable} disabled={loading} loading={loading}>
+                    {!isEditMode ? t("common.action.add") : t("common.action.update")}
                 </Button>,
                 <Button key="cancel" onClick={closeModal}>
-                    No, thanks
+                    {t("common.action.cancel", "Cancel")}
                 </Button>,
             ]}
         >

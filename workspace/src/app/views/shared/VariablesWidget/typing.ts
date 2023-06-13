@@ -1,7 +1,8 @@
+// see docs here https://jinja.palletsprojects.com/en/3.1.x/ for jinja convention
 export interface Variable {
     name: string;
-    value: string;
-    template: string;
+    value: string | null;
+    template: string | null;
     isSensitive: boolean;
     description?: string;
     scope: "project" | "task";
