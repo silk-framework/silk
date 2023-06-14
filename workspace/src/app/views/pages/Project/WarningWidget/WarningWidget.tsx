@@ -113,7 +113,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
         refreshProjectPage();
     };
 
-    const handleInitFixTask = async (taskId: string, projectId: string) => {
+    const handleInitFixTask = async (taskId: string, projectId: string, taskLabel: string) => {
         setShowNotFoundModal({ show: false });
         try {
             // Open the fix modal for the task
@@ -143,7 +143,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     dataParameters: dataParameters,
                     currentTemplateValues: templates,
                     // FIXME: Add label to failedTaskData in order to display task label
-                    alternativeTitle: t("widget.WarningWidget.fixTaskModalTitle", { taskLabel: taskId }),
+                    alternativeTitle: t("widget.WarningWidget.fixTaskModalTitle", { taskLabel: taskLabel }),
                     alternativeUpdateFunction: fixTask,
                 })
             );
@@ -184,7 +184,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                             ? [
                                   <FixTaskButton
                                       text={t("widget.WarningWidget.fixTask")}
-                                      handleClick={() => handleInitFixTask(warn.taskId, projectId)}
+                                      handleClick={() => handleInitFixTask(warn.taskId, projectId, warn.taskLabel)}
                                   />,
                                   <IconButton
                                       name={"artefact-report"}
