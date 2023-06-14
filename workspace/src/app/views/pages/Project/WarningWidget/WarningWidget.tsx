@@ -136,12 +136,14 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                 commonOp.updateProjectTask({
                     projectId,
                     taskId,
-                    metaData: { label: "TODO" },
+                    // The label of the task is not displayed, since we use a custom modal title, see below
+                    metaData: { label: taskId },
                     taskPluginDetails: taskPluginDetails,
                     currentParameterValues: parameters,
                     dataParameters: dataParameters,
                     currentTemplateValues: templates,
-                    alternativeTitle: t("widget.WarningWidget.fixTaskModalTitle", { taskLabel: "TODO" }),
+                    // FIXME: Add label to failedTaskData in order to display task label
+                    alternativeTitle: t("widget.WarningWidget.fixTaskModalTitle", { taskLabel: taskId }),
                     alternativeUpdateFunction: fixTask,
                 })
             );

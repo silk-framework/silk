@@ -127,6 +127,7 @@ export interface IProjectTaskUpdatePayload {
     projectId: string;
     taskId: string;
     taskPluginDetails: IPluginDetails;
+    /** Needed to display the task label in the modal title. */
     metaData: IMetadata;
     currentParameterValues: {
         [key: string]: string | object;
