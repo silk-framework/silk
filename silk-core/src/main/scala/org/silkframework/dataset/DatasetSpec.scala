@@ -27,7 +27,7 @@ import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
-import org.silkframework.workspace.TaskLoadingException
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
 import java.util.logging.Logger
 import scala.language.implicitConversions
@@ -338,9 +338,10 @@ object DatasetSpec {
       if (node.label == "DataSource" || node.label == "Output") {
         // Read old format
         val id = (node \ "@id").text
-        TaskLoadingException.withTaskLoadingException(XmlSerialization.deserializeParameters(node)) { params =>
+        val pluginId = (node \ "@type").text
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginId, XmlSerialization.deserializeParameters(node))) { params =>
           new DatasetSpec(
-            plugin = Dataset((node \ "@type").text, params)
+            plugin = Dataset(pluginId, params)
           )
         }
       } else {
@@ -350,9 +351,10 @@ object DatasetSpec {
         val readOnly: Boolean = (node \ "@readOnly").headOption.exists(_.text.toBoolean)
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
-        TaskLoadingException.withTaskLoadingException(XmlSerialization.deserializeParameters(sourceNode)) { params =>
+        val pluginId = (sourceNode \ "@type").text
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginId, XmlSerialization.deserializeParameters(sourceNode))) { params =>
           new DatasetSpec(
-            plugin = Dataset((sourceNode \ "@type").text, params),
+            plugin = Dataset(pluginId, params),
             uriAttribute = uriProperty,
             readOnly = readOnly
           )

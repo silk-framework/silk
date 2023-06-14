@@ -3,7 +3,7 @@ package org.silkframework.config
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.workspace.TaskLoadingException
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
 import scala.util.control.NonFatal
 import scala.xml.Node
@@ -32,7 +32,7 @@ object CustomTask extends PluginFactory[CustomTask] {
 
     def read(node: Node)(implicit readContext: ReadContext): CustomTask = {
       val pluginType = (node \ "@type").text
-      val taskPlugin = TaskLoadingException.withTaskLoadingException(XmlSerialization.deserializeParameters(node)) { params =>
+      val taskPlugin = TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginType, XmlSerialization.deserializeParameters(node))) { params =>
         PluginRegistry.create[CustomTask](pluginType, params)
       }
 

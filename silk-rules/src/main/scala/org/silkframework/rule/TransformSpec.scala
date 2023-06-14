@@ -16,7 +16,7 @@ import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
-import org.silkframework.workspace.{TaskLoadingException, WorkspaceReadTrait}
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.collection.mutable
@@ -419,7 +419,7 @@ object TransformSpec {
       val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
 
       // Apply templates
-      TaskLoadingException.withTaskLoadingException(XmlSerialization.deserializeParameters(node)) { params =>
+      TaskLoadingException.withTaskLoadingException(OriginalTaskData("transform", XmlSerialization.deserializeParameters(node))) { params =>
         transformSpec.withParameters(params)
       }
     }

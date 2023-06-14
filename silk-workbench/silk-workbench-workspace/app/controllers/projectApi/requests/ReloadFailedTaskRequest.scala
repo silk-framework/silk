@@ -5,7 +5,8 @@ import org.silkframework.runtime.plugin.ParameterValues
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
 import org.silkframework.serialization.json.{JsonFormat, JsonHelpers}
-import play.api.libs.json.{JsValue, Json}
+import org.silkframework.workspace.OriginalTaskData
+import play.api.libs.json.{Format, JsValue, Json}
 
 @Schema(
   description = "Request object to reload a failed task.",
@@ -29,6 +30,26 @@ object ReloadFailedTaskRequest {
       Json.obj(
         TASK_ID -> value.taskId,
         PARAMETER_VALUES -> ParameterValuesJsonFormat.write(value.parameterValues.getOrElse(ParameterValues.empty))
+      )
+    }
+  }
+}
+
+object OriginalTaskDataResponse {
+  final val PLUGIN_ID = "pluginId"
+  final val PARAMETER_VALUES = "parameterValues"
+
+  val OriginalTaskDataJsonFormat: JsonFormat[OriginalTaskData] = new JsonFormat[OriginalTaskData] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): OriginalTaskData = {
+      val pluginId = JsonHelpers.stringValue(value, PLUGIN_ID)
+      val parameterValues = ParameterValuesJsonFormat.read(JsonHelpers.requiredValue(value, PARAMETER_VALUES))
+      OriginalTaskData(pluginId, parameterValues)
+    }
+
+    override def write(value: OriginalTaskData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        PLUGIN_ID -> value.pluginId,
+        PARAMETER_VALUES -> ParameterValuesJsonFormat.write(value.parameterValues)
       )
     }
   }

@@ -8,7 +8,7 @@ import {
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
-import { IPluginOverview } from "@ducks/common/typings";
+import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
@@ -335,7 +335,9 @@ const fetchUpdateTaskAsync = (
     formData: any,
     dataParameters: ArtefactDataParameters | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** Function that is called instead of the task PATCH endpoint. */
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
@@ -357,7 +359,11 @@ const fetchUpdateTaskAsync = (
         };
         dispatch(setModalError({}));
         try {
-            await requestUpdateProjectTask(projectId, itemId, payload);
+            if (alternativeUpdateFunction) {
+                await alternativeUpdateFunction(projectId, itemId, parameterData, variableTemplateData, dataParameters);
+            } else {
+                await requestUpdateProjectTask(projectId, itemId, payload);
+            }
             dispatch(closeArtefactModal());
         } catch (e) {
             dispatch(setModalError(e));

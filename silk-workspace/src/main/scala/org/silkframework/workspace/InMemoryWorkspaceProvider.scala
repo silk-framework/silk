@@ -171,7 +171,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
       def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
         val mergedParameters = parameters.merge(parameterValues)
-        TaskLoadingException.withTaskLoadingException(mergedParameters) { params =>
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginDesc.id, mergedParameters)) { params =>
           LoadedTask.success[T](PlainTask(id, pluginDesc(params)(pluginContext).asInstanceOf[T], metaData)).task
         }
       }

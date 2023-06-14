@@ -5,6 +5,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse, ProjectUriResponse}
 import controllers.projectApi.doc.ProjectApiDoc
+import controllers.projectApi.requests.OriginalTaskDataResponse.OriginalTaskDataJsonFormat
 import controllers.projectApi.requests.ReloadFailedTaskRequest
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
@@ -24,13 +25,12 @@ import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
-import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
 import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.{Project, ProjectConfig, TaskLoadingError}
-import play.api.libs.json.{Format, JsValue, Json, Writes}
+import org.silkframework.workspace.{Project, ProjectConfig}
+import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import java.net.URI
@@ -723,7 +723,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           loadingError.originalParameterValues match {
             case Some(parameterValues) =>
               implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
-              Ok(ParameterValuesJsonFormat.write(parameterValues))
+              Ok(OriginalTaskDataJsonFormat.write(parameterValues))
             case None =>
               NotFound("Original parameter values are not available for this task failing error.")
           }

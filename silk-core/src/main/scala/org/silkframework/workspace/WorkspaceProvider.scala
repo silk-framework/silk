@@ -235,7 +235,7 @@ object LoadedTask {
         LoadedTask.success[T](task)
       } catch {
         case ex: TaskLoadingException =>
-          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex.cause, label, description, Some(loadInternal), Some(ex.originalParameterValues)))
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex.cause, label, description, Some(loadInternal), Some(ex.originalTaskData)))
         case NonFatal(ex) =>
           LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal), None))
       }
@@ -306,24 +306,28 @@ case class TaskLoadingError(projectId: Option[Identifier],
                             label: Option[String] = None,
                             description: Option[String] = None,
                             factoryFunction: Option[(ParameterValues, PluginContext) => LoadedTask[_ <: TaskSpec]],
-                            originalParameterValues: Option[ParameterValues])
+                            originalParameterValues: Option[OriginalTaskData])
+
+/** Data necessary to restore a task that has failed loading. */
+case class OriginalTaskData(pluginId: String,
+                            parameterValues: ParameterValues)
 
 /** An exception that carries the original parameter (simple parameters only!) values of a task if available.
   * Do not use directly. Use withTaskLoadingException instead. */
-case class TaskLoadingException(msg: String, originalParameterValues: ParameterValues, cause: Throwable) extends RuntimeException(msg, cause)
+case class TaskLoadingException(msg: String, originalTaskData: OriginalTaskData, cause: Throwable) extends RuntimeException(msg, cause)
 
 object TaskLoadingException {
   /** This should be used where a TaskLoadingException should be thrown. */
-  def withTaskLoadingException[T](originalParameterValues: => ParameterValues)(create: ParameterValues => T): T = {
-    val params = originalParameterValues
+  def withTaskLoadingException[T](getOriginalTaskData: => OriginalTaskData)(create: ParameterValues => T): T = {
+    val originalTaskData = getOriginalTaskData
     try {
-      create(params)
+      create(originalTaskData.parameterValues)
     } catch {
       case ex: TaskLoadingException =>
         // TaskLoadingException was thrown, just pass on
         throw ex
       case NonFatal(ex) =>
-        throw TaskLoadingException("Task has failed loading.", params, ex)
+        throw TaskLoadingException("Task has failed loading.", originalTaskData, ex)
     }
   }
 }

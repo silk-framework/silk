@@ -305,7 +305,8 @@ export function CreateArtefactModal() {
                             updateExistingTask.taskId,
                             formValues,
                             dataParameters,
-                            templateParameters.current
+                            templateParameters.current,
+                            updateExistingTask?.alternativeUpdateFunction
                         )
                     );
                 } else {
@@ -489,7 +490,7 @@ export function CreateArtefactModal() {
                 updateTask={{
                     parameterValues: updateExistingTask.currentParameterValues,
                     dataParameters: updateExistingTask.dataParameters,
-                    variableTemplateValues: objectToFlatRecord(updateExistingTask.currentTemplateValues, {}),
+                    variableTemplateValues: objectToFlatRecord(updateExistingTask.currentTemplateValues, {}, false),
                 }}
                 parameterCallbacks={{
                     setTemplateFlag,
@@ -675,10 +676,15 @@ export function CreateArtefactModal() {
     const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
     const notifications: JSX.Element[] = [];
 
-    if (!!error.detail || !!error.errorMessage) {
+    if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage) {
+        // Special case for fix task loading error
+        const taskLoadingError = error.body?.taskLoadingError?.errorMessage
+            ? `${error.body.detail} ${error.body?.taskLoadingError?.errorMessage}`
+            : undefined;
         notifications.push(
             <Notification
                 message={
+                    taskLoadingError ||
                     error.errorMessage ||
                     t("common.messages.actionFailed", {
                         action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
@@ -719,11 +725,13 @@ export function CreateArtefactModal() {
             hasBorder
             title={
                 updateExistingTask
-                    ? t("CreateModal.updateTitle", {
-                          type: `'${updateModalTitle(updateExistingTask)}' (${
-                              updateExistingTask.taskPluginDetails.title
-                          })`,
-                      })
+                    ? updateExistingTask.alternativeTitle
+                        ? updateExistingTask.alternativeTitle
+                        : t("CreateModal.updateTitle", {
+                              type: `'${updateModalTitle(updateExistingTask)}' (${
+                                  updateExistingTask.taskPluginDetails.title
+                              })`,
+                          })
                     : selectedArtefactTitle
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
