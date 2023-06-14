@@ -188,7 +188,7 @@ export default class ExecutionReport extends React.Component {
     }
 
     generateIcons() {
-        let ruleIcons = {};
+        let ruleIcons = Object.create(null);
         for (let [ruleId, ruleResults] of Object.entries(this.props.executionReport.ruleResults)) {
             if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";

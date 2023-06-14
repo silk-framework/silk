@@ -43,7 +43,7 @@ export const objectToFlatRecord = (
     replacementValues: Record<string, any>,
     labelValueFormat: boolean
 ): Record<string, any> => {
-    const result: any = {};
+    const result: any = Object.create(null);
     const objToFlatRec = (obj: object, prefix: string) => {
         Object.entries(obj).forEach(([paramName, paramLabelAndValue]) => {
             const fullParameterId = `${prefix}${paramName}`;

@@ -444,7 +444,7 @@ const findCycles = (
 
 /** Extract rule layout from rule operator nodes. */
 const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
-    const nodePositions: { [key: string]: [number, number] } = {};
+    const nodePositions: { [key: string]: [number, number] } = Object.create(null);
     nodes.forEach((node) => {
         if (node.position) {
             nodePositions[node.nodeId] = [Math.round(node.position.x), Math.round(node.position.y)];

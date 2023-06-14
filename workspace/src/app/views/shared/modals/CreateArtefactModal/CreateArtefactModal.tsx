@@ -390,7 +390,7 @@ export function CreateArtefactModal() {
 
     // reset to defaults, if label/description already existed they remain.
     const resetFormOnConfirmation = () => {
-        const resetValue = {};
+        const resetValue = Object.create(null);
         Object.keys(formValueChanges).forEach((field) => {
             if (!ignorableFields.has(field)) {
                 delete formValueChanges[field];
@@ -678,9 +678,11 @@ export function CreateArtefactModal() {
 
     if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage) {
         // Special case for fix task loading error
-        const taskLoadingError = error.body?.taskLoadingError?.errorMessage
-            ? `${error.body.detail} ${error.body?.taskLoadingError?.errorMessage}`
-            : undefined;
+        const taskLoadingError = error.body?.taskLoadingError?.errorMessage ? (
+            <div
+                data-test-id={"action-error-notification"}
+            >{`${error.body.detail} ${error.body?.taskLoadingError?.errorMessage}`}</div>
+        ) : undefined;
         notifications.push(
             <Notification
                 message={

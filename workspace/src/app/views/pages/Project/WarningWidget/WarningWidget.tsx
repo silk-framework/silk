@@ -194,7 +194,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                               ]
                             : [];
                         return (
-                            <li key={"notification_" + id}>
+                            <li key={"notification_" + id} data-test-id={"project-task-loading-error-notification"}>
                                 <Notification danger actions={actions}>
                                     {warn.errorSummary}
                                 </Notification>

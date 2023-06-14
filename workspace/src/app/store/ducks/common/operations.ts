@@ -148,7 +148,7 @@ const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
 
 /** Splits the form data into normal parameters/values and variable template parameters/values. */
 const splitParameterAndVariableTemplateParameters = (formData: any, variableTemplateParameterSet: Set<string>) => {
-    const parameters: Record<string, any> = {};
+    const parameters: Record<string, any> = Object.create(null);
     const variableTemplateParameters: Record<string, any> = {};
     Object.entries(formData).forEach(([key, value]) => {
         if (variableTemplateParameterSet.has(key)) {
@@ -165,7 +165,7 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 
 /** Builds a request object for project/task create call. */
 const buildTaskObject = (formData: Record<string, any>): object => {
-    const returnObject = {};
+    const returnObject = Object.create(null);
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
     // Add direct parameters
@@ -254,8 +254,8 @@ const createTagsAndAddToMetadata = async (payload: {
 
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
 const extractDataAttributes = (formData): ArtefactDataParameters => {
-    let returnValue: ArtefactDataParameters = {};
-    returnValue = {};
+    let returnValue: ArtefactDataParameters = Object.create(null);
+    returnValue = Object.create(null);
     returnValue[URI_PROPERTY_PARAMETER_ID] = formData[URI_PROPERTY_PARAMETER_ID];
     returnValue[READ_ONLY_PARAMETER] = formData[READ_ONLY_PARAMETER];
     return returnValue;

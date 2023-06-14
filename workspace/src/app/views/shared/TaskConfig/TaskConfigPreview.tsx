@@ -43,7 +43,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     const taskValues = (parameters: any): Record<string, ParameterConfigValue> => {
         if (parameters) {
             const templates = objectToFlatRecord(taskData.data.templates ?? {}, {}, false);
-            const result: Record<string, ParameterConfigValue> = {};
+            const result: Record<string, ParameterConfigValue> = Object.create(null);
             // Recursively extracts (nested) parameter display values.
             const taskValuesRec = (
                 obj: object,

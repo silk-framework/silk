@@ -81,7 +81,7 @@ const setupFiltersFromQs = (queryString: string) => {
             const batchQueue: { payload: any; type: string }[] = [];
 
             // setup filters
-            const filters: any = {};
+            const filters: any = Object.create(null);
             if (parsedQs.textQuery) {
                 filters.textQuery = parsedQs.textQuery;
             }

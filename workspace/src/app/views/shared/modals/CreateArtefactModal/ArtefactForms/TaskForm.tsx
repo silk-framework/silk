@@ -66,7 +66,7 @@ const datasetConfigPreview = (
     };
 };
 
-const intRegex = /^[0-9]*$/;
+const intRegex = /^-?[1-9][0-9]*$/;
 const isInt = (value) => {
     return intRegex.test(`${value}`);
 };
@@ -274,7 +274,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
      * All change handlers that will be passed to the ParameterWidget components.
      */
     const changeHandlers = useMemo(() => {
-        const handlers = {};
+        const handlers = Object.create(null);
         formValueKeys.forEach((key) => {
             handlers[key] = handleChange(key);
         });
