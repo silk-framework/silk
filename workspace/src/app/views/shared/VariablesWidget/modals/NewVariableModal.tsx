@@ -175,13 +175,21 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
 
     return (
         <SimpleDialog
+            data-test-id="variable-modal"
             size="small"
             title={`${isEditMode ? "Edit" : "Add"} Variable`}
             isOpen={modalOpen}
             onClose={closeModal}
             notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
             actions={[
-                <Button key="add" affirmative onClick={addNewVariable} disabled={loading} loading={loading}>
+                <Button
+                    key="add"
+                    data-test-id="variable-modal-submit-btn"
+                    affirmative
+                    onClick={addNewVariable}
+                    disabled={loading}
+                    loading={loading}
+                >
                     {!isEditMode ? t("common.action.add") : t("common.action.update")}
                 </Button>,
                 <Button key="cancel" onClick={closeModal}>

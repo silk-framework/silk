@@ -135,6 +135,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 refresh={() => setRefetch((r) => ++r)}
             />
             <DeleteModal
+                data-test-id="delete-variable-modal"
                 onConfirm={handleDeleteVariable}
                 isOpen={deleteModalOpen}
                 onDiscard={() => setDeleteModalOpen(false)}
@@ -149,6 +150,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     </CardTitle>
                     <CardOptions>
                         <IconButton
+                            data-test-id="variable-add"
                             name={"item-add-artefact"}
                             text={t("widget.VariableWidget.actions.add", "Add")}
                             onClick={() => handleModalOpen()}
@@ -171,6 +173,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                 <Draggable key={variable.name} pos={i} index={i} draggableId={`${i}`}>
                                                     {(provided) => (
                                                         <div
+                                                            data-test-id="variable-list-item"
                                                             ref={provided.innerRef}
                                                             {...provided.draggableProps}
                                                             {...provided.dragHandleProps}
@@ -216,6 +219,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         <Icon
                                                                             name={"form-template"}
                                                                             intent={"info"}
+                                                                            data-test-id="template-variable-delimiter"
                                                                             tooltipText={
                                                                                 t(
                                                                                     "widget.TaskConfigWidget.templateValueInfo"
@@ -234,11 +238,13 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                     <IconButton
                                                                         small
                                                                         name="item-edit"
+                                                                        data-test-id="variable-edit-btn"
                                                                         onClick={() => handleModalOpen(variable)}
                                                                     />
                                                                     <IconButton
                                                                         small
                                                                         name="item-remove"
+                                                                        data-test-id="variable-delete-btn"
                                                                         onClick={() => handleDeleteModalOpen(variable)}
                                                                         disruptive
                                                                     />
