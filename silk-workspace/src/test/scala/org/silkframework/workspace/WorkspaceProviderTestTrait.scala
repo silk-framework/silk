@@ -632,7 +632,12 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
                 .map(_.throwable).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
               // Check that original parameters are included
-              loadingError.head.error.get.originalParameterValues shouldBe Some(ParameterValues(Map("alwaysFail" -> ParameterStringValue("true"))))
+              loadingError.head.error.get.originalParameterValues shouldBe Some(
+                OriginalTaskData(
+                  "failTask",
+                  ParameterValues(Map("alwaysFail" -> ParameterStringValue("true")))
+                )
+              )
               // Test with fixing parameters
               factoryFunctionOpt.get(ParameterValues(Map("alwaysFail" -> ParameterStringValue("false"))), pluginContext).
                 task.data shouldBe a[FailingCustomTask]
