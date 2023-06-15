@@ -26,7 +26,7 @@ import org.silkframework.rule.plugins.transformer.linguistic.{MetaphoneTransform
 import org.silkframework.rule.{LinkSpec, LinkingConfig, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ClasspathResourceLoader
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 
 import scala.io.{Codec, Source}
@@ -46,11 +46,11 @@ object GenerateLinksTest {
   /** Directory of the data set */
   private val dataset = Dataset("Names", "config.xml", "links.nt")
 
-  private val sourceKey = UntypedPath.parse("?a/<label>")
-  private val targetKey = UntypedPath.parse("?b/<label>")
-
   private implicit val userContext: UserContext = UserContext.Empty
   private implicit val prefixes: Prefixes = Prefixes.empty
+
+  private val sourceKey = UntypedPath.parse("?a/<label>")
+  private val targetKey = UntypedPath.parse("?b/<label>")
 
   private val tests =
     Test("Full", Full()) ::
@@ -84,7 +84,7 @@ object GenerateLinksTest {
    */
   private case class Dataset(name: String, configFile: String, referenceLinksFile: String) {
     lazy val config: LinkingConfig = {
-      implicit val readContext = ReadContext()
+      implicit val readContext: ReadContext = TestReadContext()
       val xml = resourceLoader.get(configFile).read(XML.load)
       XmlSerialization.fromXml[LinkingConfig](xml)
     }
@@ -154,7 +154,7 @@ object GenerateLinksTest {
     }
 
     private def fromSources(id: Identifier,
-                            datasets: Traversable[Task[DatasetSpec[org.silkframework.dataset.Dataset]]],
+                            datasets: Iterable[Task[DatasetSpec[org.silkframework.dataset.Dataset]]],
                             linkSpec: LinkSpec,
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)

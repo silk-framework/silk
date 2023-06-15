@@ -3,22 +3,23 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
-import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
+import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
 import { evaluateTransformRule } from "../transform.requests";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
-import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
+import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import ruleUtils from "../../shared/rules/rule.utils";
 import { transformToValueMap } from "../transformEditor.utils";
-import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
-import { EvaluationResultType } from "../../../../views/taskViews/linking/evaluation/LinkingRuleEvaluation";
+import { LinkRuleNodeEvaluation } from "../../linking/evaluation/LinkRuleNodeEvaluation";
+import { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
 interface TransformRuleEvaluationProps {
     projectId: string;
     transformTaskId: string;
-    ruleId: string;
+    /** The rule ID of the container rule, e.g. "root". */
+    containerRuleId: string;
     /** The number of links that should be shown inline. */
     numberOfLinkToShow: number;
     /** The children that should be able to use this linking rule evaluation component. */
@@ -29,12 +30,13 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     projectId,
     transformTaskId,
     numberOfLinkToShow,
-    ruleId,
+    containerRuleId,
     children,
 }) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
+    const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [nodeUpdateCallbacks] = React.useState(
         new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
     );
@@ -73,13 +75,20 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 updateCallback(undefined);
             });
         }
+        setEvaluationResultsShown(show);
     };
 
     const fetchReferenceLinksEvaluation: (
         rule: IComplexMappingRule
     ) => Promise<EvaluatedTransformEntity[] | undefined> = async (rule: IComplexMappingRule) => {
         try {
-            const result = await evaluateTransformRule(projectId, transformTaskId, ruleId, rule, numberOfLinkToShow);
+            const result = await evaluateTransformRule(
+                projectId,
+                transformTaskId,
+                containerRuleId,
+                rule,
+                numberOfLinkToShow
+            );
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
@@ -171,7 +180,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 toggleEvaluationResults,
                 evaluationScore: undefined,
                 // There is no evaluation result for mapping rules
-                evaluationResultsShown: false,
+                evaluationResultsShown: evaluationResultsShown,
                 ruleValidationError,
                 clearRuleValidationError,
             }}

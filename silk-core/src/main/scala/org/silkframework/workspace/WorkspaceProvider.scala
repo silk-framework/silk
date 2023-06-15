@@ -3,6 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
@@ -11,6 +12,7 @@ import org.silkframework.workspace.resources.ResourceRepository
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
+@PluginType()
 trait WorkspaceProvider extends AnyPlugin {
 
   /**
@@ -181,7 +183,7 @@ case class LoadedTask[T <: TaskSpec : ClassTag](taskOrError: Either[TaskLoadingE
     * Retrieves the task if it could be loaded or throws an exception containing the tasks loading error.
     */
   def task: Task[T] = {
-    taskOrError.right.getOrElse(throw taskOrError.left.get.throwable)
+    taskOrError.getOrElse(throw taskOrError.left.get.throwable)
   }
 
   /**

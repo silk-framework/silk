@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
@@ -8,8 +7,10 @@ import org.silkframework.plugins.dataset.hierarchical.MaxDepthExceededException
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import play.api.libs.json.Json
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonSinkTest extends FlatSpec with Matchers {
+class JsonSinkTest extends AnyFlatSpec with Matchers {
 
   behavior of "JsonSink"
 

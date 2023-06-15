@@ -37,7 +37,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 case class MergeTransformer() extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     if(values.nonEmpty) {
-      values.reduce(_ union _)
+      values.reduce(_ concat _)
     } else {
       Seq.empty
     }

@@ -70,6 +70,23 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     result
   }
 
+  protected def executeAndClose[TaskType <: TaskSpec, ResultType](operation: String,
+                                                                  nodeId: Identifier,
+                                                                  task: Task[TaskType],
+                                                                  inputs: Seq[ExecType#DataType],
+                                                                  output: ExecutorOutput)
+                                                                 (process: Option[ExecType#DataType] => ResultType)
+                                                                 (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): ResultType = {
+    val result = execute(operation, nodeId, task, inputs, output)
+    try {
+      process(result)
+    } finally {
+      for(r <- result) {
+        r.close()
+      }
+    }
+  }
+
   /**
     * Update the progress and write a log message.
     *
@@ -128,9 +145,10 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * @param workflowDependencyNode The workflow node for which entities should be computed.
     * @param outputTask             The output task for the workflow node.
     */
-  protected def workflowNodeEntities(workflowDependencyNode: WorkflowDependencyNode,
-                                     outputTask: Task[_ <: TaskSpec])
-                                    (implicit workflowRunContext: WorkflowRunContext): Option[EntityHolder]
+  protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,
+                                        outputTask: Task[_ <: TaskSpec])
+                                       (process: Option[EntityHolder] => T)
+                                       (implicit workflowRunContext: WorkflowRunContext): T
 
   /**
     * Fetches the re-configuration parameters for a workflow node.
@@ -143,16 +161,15 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   private def reconfigureTask[T <: TaskSpec](workflowNode: WorkflowDependencyNode,
                                              task: Task[T])
                                             (implicit workflowRunContext: WorkflowRunContext): Task[T] = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = workflowTask.project.resources,
-                                                              user = workflowRunContext.userContext) // TODO: propagate prefixes?
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)(workflowRunContext.userContext)
     try {
       workflowRunContext.reconfiguredTasks.getOrElseUpdate(
         workflowNode.workflowNode, {
           // Calculate the parameters
-          val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task))
+          val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task) { entities => entities.flatMap(_.headOption) })
           // Merge parameters, config parameters of later inputs overwrite those of earlier inputs
           val configParameters = configInputEntities.
-              flatMap(_.headOption.map(extractConfigParameterMap)).
+            map(extractConfigParameterMap).
               foldLeft(Map.empty[String, String])(_ ++ _)
           if (configParameters.isEmpty) {
             task

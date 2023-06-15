@@ -1,12 +1,11 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.rdf.{Quad, _}
 import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.IteratorHasAsJava
 
 class NTriplesQuadFormatter() extends QuadFormatter {
 

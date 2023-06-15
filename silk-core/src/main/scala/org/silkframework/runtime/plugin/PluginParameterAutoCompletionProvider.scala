@@ -1,8 +1,9 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{Identifier, StringUtils}
 import org.silkframework.workspace.WorkspaceReadTrait
 
@@ -12,12 +13,13 @@ import org.silkframework.workspace.WorkspaceReadTrait
   *
   * Implementations of this plugin must not have any parameters.
   */
+@PluginType()
 trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   /** Auto-completion based on a text based search query */
   def autoComplete(searchQuery: String,
                    dependOnParameterValues: Seq[ParamValue],
                    workspace: WorkspaceReadTrait)
-                  (implicit context: PluginContext): Traversable[AutoCompletionResult]
+                  (implicit context: PluginContext): Iterable[AutoCompletionResult]
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
     * be presented to the user and the actual internal value is e.g. not human-readable.
@@ -32,7 +34,7 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
                   (implicit context: PluginContext): Option[String]
 
   /** Match search terms against string. Returns only true if all search terms match. */
-  protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+  protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String],
                                   searchIn: String): Boolean = {
     StringUtils.matchesSearchTerm(lowerCaseSearchTerms, searchIn)
   }
@@ -48,13 +50,13 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
                    workspace: WorkspaceReadTrait,
                    limit: Int,
                    offset: Int)
-                  (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                  (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     autoComplete(searchQuery, dependOnParameterValues, workspace).slice(offset, offset + limit)
   }
 
   /** Filters an auto-completion result list by the search query. */
   protected def filterResults(searchQuery: String,
-                              results: Traversable[AutoCompletionResult]): Traversable[AutoCompletionResult] = {
+                              results: Iterable[AutoCompletionResult]): Iterable[AutoCompletionResult] = {
     val multiWordSearchQuery = extractSearchTerms(searchQuery)
     results filter { case AutoCompletionResult(value, labelOpt) =>
       val filterBy = labelOpt.getOrElse(value)
@@ -63,7 +65,7 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   }
 
   protected def filterStringResults(searchQuery: String,
-                              results: Traversable[String]): Traversable[AutoCompletionResult] = {
+                              results: Iterable[String]): Iterable[AutoCompletionResult] = {
     val multiWordSearchQuery = extractSearchTerms(searchQuery)
     results filter (r => matchesSearchTerm(multiWordSearchQuery, r)) map(r => AutoCompletionResult(r, None))
   }
@@ -123,7 +125,7 @@ case class AutoCompletionResult(value: String, label: Option[String]) {
 case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                            (implicit context: PluginContext): Traversable[AutoCompletionResult] = Seq.empty
+                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = Seq.empty
 
   override def valueToLabel(value: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
@@ -136,8 +138,6 @@ object PluginParameterAutoCompletionProvider {
   /** Get an auto-completion plugin by class. */
   def get(providerClass: Class[_ <: PluginParameterAutoCompletionProvider]): PluginParameterAutoCompletionProvider = {
     checkPluginClass(providerClass)
-    implicit val prefixes: Prefixes = Prefixes.empty
-    implicit val resourceManager: ResourceManager = EmptyResourceManager()
     try {
       providerClass.getConstructor().newInstance()
     } catch {
@@ -178,7 +178,7 @@ trait ReferencePluginParameterAutoCompletionProvider extends PluginParameterAuto
   override def autoComplete(searchQuery: String,
                             dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                            (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     autoCompletionProvider.toSeq.flatMap(_.autoComplete(searchQuery, dependOnParameterValues, workspace))
   }
 

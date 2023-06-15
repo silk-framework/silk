@@ -1,8 +1,9 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class PhysicalQuantityExtractorTest extends FlatSpec with Matchers {
+class PhysicalQuantityExtractorTest extends AnyFlatSpec with Matchers {
 
   behavior of "Physical Quantity Extractor"
 

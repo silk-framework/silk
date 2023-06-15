@@ -1,9 +1,10 @@
 package org.silkframework.runtime.plugin
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.util.ConfigTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class PluginRegistryConfigTest extends FlatSpec with Matchers with ConfigTestTrait {
+class PluginRegistryConfigTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
 
   behavior of "PluginRegistry.Config"
 

@@ -1,10 +1,11 @@
 package org.silkframework.runtime.plugin
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.plugin.StringParameterType.StringType
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PluginRegistryTest extends FlatSpec with MustMatchers {
+class PluginRegistryTest extends AnyFlatSpec with Matchers {
 
   behavior of "PluginRegistry"
 
@@ -41,4 +42,4 @@ case class TestObjectParameterInner(param: Int) extends PluginObjectParameter
 
 @Plugin(id = "invalid", label = "invalid")
 case class InvalidInvisiblePluginParameterClass(@Param(value = "invisible", visibleInDialog = false)
-                                                invisible: String) extends AnyPlugin
+                                                invisible: String) extends TestPluginType

@@ -1,13 +1,14 @@
 package org.silkframework.cache
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-import org.scalatest.{FlatSpec, Matchers}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 import org.silkframework.entity.{Entity, EntitySchema, Restriction}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class PartitionTest extends FlatSpec with Matchers {
+class PartitionTest extends AnyFlatSpec with Matchers {
 
   private val schema =
     EntitySchema(

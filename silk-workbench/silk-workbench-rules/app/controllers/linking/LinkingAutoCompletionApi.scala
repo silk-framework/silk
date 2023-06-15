@@ -19,12 +19,12 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.paths.{PathOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaData, PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, LinkSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
-import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, TransformPathsCache}
+import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -118,12 +118,12 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
   private def pathsMetaDataFactory(datasetSelection: DatasetSelection,
                                    langPref: String)
                                   (implicit project: Project,
-                                   userContext: UserContext): Option[Traversable[TypedPath] => Traversable[PathMetaData]] = {
+                                   userContext: UserContext): Option[Iterable[TypedPath] => Iterable[PathMetaData]] = {
     implicit val prefixes: Prefixes = project.config.prefixes
     project.taskOption[GenericDatasetSpec](datasetSelection.inputId) match {
       case Some(dataset) =>
         datasetPathMetaDataPlugin(dataset).map(plugin=> {
-          (paths: Traversable[TypedPath]) => plugin.fetchMetaData(dataset.data.plugin, paths, langPref)
+          (paths: Iterable[TypedPath]) => plugin.fetchMetaData(dataset.data.plugin, paths, langPref)
         })
       case None =>
         None

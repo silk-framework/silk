@@ -120,7 +120,7 @@ object Restriction {
   /**
    * Evaluates to true if all provided operators evaluate to true.
    */
-  case class And(children: Traversable[Operator]) extends LogicalOperator {
+  case class And(children: Iterable[Operator]) extends LogicalOperator {
 
     def paths: Set[UntypedPath] = children.flatMap(_.paths).toSet
 
@@ -130,7 +130,7 @@ object Restriction {
   /**
    * Evaluates to true if at least one of the provided operators evaluate to true.
    */
-  case class Or(children: Traversable[Operator]) extends LogicalOperator {
+  case class Or(children: Iterable[Operator]) extends LogicalOperator {
 
     def paths: Set[UntypedPath] = children.flatMap(_.paths).toSet
 

@@ -1,15 +1,16 @@
 package org.silkframework.runtime.activity
 
 import org.scalatest.concurrent.Eventually
-import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.time.{Seconds, Span}
 import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
 import org.silkframework.runtime.users.User
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ActivityExecutionTest extends FlatSpec with MustMatchers with Eventually  {
+class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
   behavior of "Activity Execution"
 
   private val testUser = new User {

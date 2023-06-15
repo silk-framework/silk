@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr}
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -12,8 +12,10 @@ import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with BeforeAndAfterAll {
+abstract class EntityRetrieverBaseTest extends AnyFlatSpec with Matchers with BeforeAndAfterAll {
   def entityRetriever(endpoint: SparqlEndpoint,
                       graphUri: Option[String] = None,
                       useOrderBy: Boolean = true): EntityRetriever

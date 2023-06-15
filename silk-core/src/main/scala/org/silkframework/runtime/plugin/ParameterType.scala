@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.{DefaultConfig, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
@@ -82,6 +83,7 @@ object ParameterType {
 
 /** Trait that marks a class as a plugin parameter.
   * There will be done additional tests on start-up for all plugins implementing this trait, e.g. if JSON and XML formats are registered etc. */
+@PluginType()
 trait PluginObjectParameter extends AnyPlugin {
   /** defines if the parameter type has a schema definition, i.e. is composed completely from [[ParameterType]] elements. */
   def hasSchemaDefinition: Boolean = true
@@ -141,6 +143,7 @@ case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]
 }
 
 /** Parameter type that implements a PluginStringParameter parameter. */
+@PluginType()
 abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T] with AnyPlugin
 
 /**
@@ -149,6 +152,7 @@ abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] 
   *
   * @tparam T The underlying type of this datatype, e.g., Int
   */
+@PluginType()
 abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
   /**
     * Parses a value from its string representation.
@@ -255,7 +259,7 @@ object StringParameterType {
     override def fromString(str: String)
                            (implicit context: PluginContext): StringTraversableParameter = {
       if(str.isEmpty) {
-        StringTraversableParameter(Traversable.empty)
+        StringTraversableParameter(Iterable.empty)
       } else {
         StringTraversableParameter(str.split("\\s*,\\s*"))
       }

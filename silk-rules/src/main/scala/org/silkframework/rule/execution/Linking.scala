@@ -39,7 +39,7 @@ case class Linking(task: Task[LinkSpec],
       warnings += "No links have been generated."
     }
     warnings ++= matcherWarnings
-    warnings
+    warnings.toSeq
   }
 
   override def entityCount: Int = links.size

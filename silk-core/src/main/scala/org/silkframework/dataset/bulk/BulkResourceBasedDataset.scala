@@ -1,16 +1,15 @@
 package org.silkframework.dataset.bulk
 
-import java.io.File
-import java.util.logging.Logger
-import java.util.zip.ZipException
-
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
-import org.silkframework.execution.{InterruptibleTraversable, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipInputStreamResourceIterator
 import org.silkframework.runtime.validation.ValidationException
 
+import java.io.File
+import java.util.logging.Logger
+import java.util.zip.ZipException
 import scala.util.control.NonFatal
 import scala.util.matching.Regex
 
@@ -48,11 +47,10 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * Returns a data source for reading entities from the data set.
     */
   override final def source(implicit userContext: UserContext): DataSource = {
-    allResources match {
-      case Seq(singleResource) =>
-        createSource(singleResource)
-      case _ =>
-        new BulkDataSource(file.name, new MappedTraversable(new InterruptibleTraversable(allResources), createSourceWithName), mergeSchemata)
+    if(BulkResourceBasedDataset.isBulkResource(file)) {
+      new BulkDataSource(file.name, () => retrieveResources().map(createSourceWithName), mergeSchemata)
+    } else {
+      createSource(file)
     }
   }
 
@@ -66,11 +64,11 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * If the dataset is based on a bulk file, this returns all sub resources.
     * Otherwise, returns the file itself.
     */
-  def allResources: Traversable[Resource] = {
+  def retrieveResources(): CloseableIterator[Resource] = {
     if (BulkResourceBasedDataset.isBulkResource(file)) {
       BulkResourceBasedDataset.retrieveSubResources(file, internalRegex)
     } else {
-      Seq(file)
+      CloseableIterator(Seq(file))
     }
   }
 
@@ -80,8 +78,14 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     *
     * @throws ValidationException If this is a bulk file and the bulk file is empty.
     */
-  def firstResource: Resource = {
-    allResources.headOption.getOrElse(throw new ValidationException(s"Bulk file ${file.name} is empty"))
+  def useFirstResource[T](f: Resource => T): T = {
+    retrieveResources().use { iterator =>
+      if(iterator.hasNext) {
+        f(iterator.next())
+      } else {
+        throw new ValidationException(s"Bulk file ${file.name} is empty")
+      }
+    }
   }
 }
 
@@ -106,18 +110,12 @@ object BulkResourceBasedDataset {
     *
     * Filters the name of the resource via the given filter regex.
     */
-  private def retrieveSubResources(resource: Resource, filterRegex: Regex): Traversable[Resource] = {
+  private def retrieveSubResources(resource: Resource, filterRegex: Regex): CloseableIterator[Resource] = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log fine s"Zip file Resource found: ${resource.name}"
       try {
-        new InterruptibleTraversable(
-          new Traversable[Resource] {
-            override def foreach[U](f: Resource => U): Unit = {
-              val zipLoader = ZipInputStreamResourceIterator(resource, "")
-              zipLoader.iterateReadOnceResources(filterRegex) foreach f
-            }
-          }
-        )
+        val zipLoader = ZipInputStreamResourceIterator(resource, "")
+        zipLoader.iterateReadOnceResources(filterRegex)
       } catch {
         case NonFatal(t) =>
           log warning s"Exception for zip resource ${resource.path}: " + t.getMessage

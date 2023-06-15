@@ -1,8 +1,9 @@
 package controllers.workspace.taskApi
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParamValue, ParameterAutoCompletion, PluginContext, PluginDescription, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.workspace.{ProjectTask, Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsString, JsValue}
 
@@ -21,12 +22,13 @@ object TaskApiUtils {
                          (implicit userContext: UserContext): JsObject = {
     try {
       val pluginDescription = PluginDescription.forTask(task)
-      implicit val workspace = WorkspaceFactory().workspace
+      implicit val workspace: Workspace = WorkspaceFactory().workspace
+      implicit val prefixes: Prefixes = task.project.config.prefixes
       JsObject(addLabelsToValues(projectName, parameterValues, pluginDescription))
     } catch {
       case NonFatal(ex) =>
         log.warning(s"Could not get labels of plugin parameters for task '${task.label()}' in project '$projectName'. Details: " + ex.getMessage)
-        JsObject(parameterValues.mapValues(value => JsObject(Seq("value" -> value))))
+        JsObject(parameterValues.view.mapValues(value => JsObject(Seq("value" -> value))).toMap)
     }
   }
 
@@ -40,7 +42,8 @@ object TaskApiUtils {
                         parameterValues: collection.Map[String, JsValue],
                         pluginDescription: PluginDescription[_])
                        (implicit userContext: UserContext,
-                        workspace: Workspace): Map[String, JsValue] = {
+                        workspace: Workspace,
+                        prefixes: Prefixes): Map[String, JsValue] = {
     val parameterDescription = pluginDescription.parameters.map(p => (p.name, p)).toMap
     val updatedParameters = for ((parameterName, parameterValue) <- parameterValues) yield {
       val pd = parameterDescription.getOrElse(parameterName,
@@ -51,7 +54,8 @@ object TaskApiUtils {
           val updatedInnerValues = addLabelsToValues(projectName, valueObj.value, paramPluginDescription)
           JsObject(Seq("value" -> JsObject(updatedInnerValues))) // Nested objects cannot have a label
         case jsString: JsString if pd.autoCompletion.isDefined && pd.autoCompletion.get.autoCompleteValueWithLabels && jsString.value != "" =>
-          implicit val pluginContext: PluginContext = PluginContext(user = userContext, projectId = Some(projectName))
+          implicit val pluginContext: PluginContext = PluginContext(prefixes = prefixes, resources = EmptyResourceManager(),
+            user = userContext, projectId = Some(projectName))
           val autoComplete = pd.autoCompletion.get
           val dependsOnParameterValues = ParamValue.createAll(fetchDependsOnValues(autoComplete, parameterValues),
                                                               autoComplete.autoCompletionDependsOnParameters, pluginDescription)

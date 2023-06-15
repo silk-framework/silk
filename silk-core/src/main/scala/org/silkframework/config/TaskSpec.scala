@@ -1,6 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
@@ -12,6 +13,7 @@ import scala.xml.Node
 /**
   * Base trait of all task specifications.
   */
+@PluginType()
 trait TaskSpec {
 
   /**
@@ -91,7 +93,7 @@ object TaskSpec {
 
     // Holds all XML formats for sub classes of TaskSpec.
     private lazy val taskSpecFormats: Seq[XmlFormat[TaskSpec]] = {
-      Serialization.availableFormats.filter(f => f.isInstanceOf[XmlFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f != this)
+      Serialization.availableFormats.filter(f => f.isInstanceOf[XmlFormat[_]] && classOf[TaskSpec].isAssignableFrom(f.valueType) && f.valueType != classOf[TaskSpec])
         .map(_.asInstanceOf[XmlFormat[TaskSpec]])
     }
 

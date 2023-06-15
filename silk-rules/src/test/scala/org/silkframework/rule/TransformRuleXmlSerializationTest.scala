@@ -1,13 +1,15 @@
 package org.silkframework.rule
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.entity.{StringValueType, ValueType}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, XmlSerialization}
 import TransformRule.TransformRuleFormat
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class TransformRuleXmlSerializationTest extends FlatSpec with Matchers {
+class TransformRuleXmlSerializationTest extends AnyFlatSpec with Matchers {
 
   behavior of "TransformRule.XmlFormat"
 
@@ -29,7 +31,7 @@ class TransformRuleXmlSerializationTest extends FlatSpec with Matchers {
   }
 
   def testSerialzation(obj: TransformRule): Unit = {
-    implicit val readContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     val xml = XmlSerialization.toXml(obj)
     val deserializedObj = XmlSerialization.fromXml[TransformRule](xml)
 

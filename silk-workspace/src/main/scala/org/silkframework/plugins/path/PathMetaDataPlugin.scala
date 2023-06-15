@@ -4,9 +4,11 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.annotations.PluginType
 import play.api.libs.json.{Format, Json}
 
 /** (Maybe temporary solution) Plugin to resolve various meta data of Silk paths that are otherwise not available. */
+@PluginType()
 trait PathMetaDataPlugin[T] extends AnyPlugin {
   /** The plugin ID of the data source/task the paths originated from and this path meta data plugin can then be applied to. */
   def sourcePluginClass: Class[T]
@@ -19,9 +21,9 @@ trait PathMetaDataPlugin[T] extends AnyPlugin {
     * @return Path meta data for each input path. None if no meta data could be fetched.
     */
   def fetchMetaData(sourcePlugin: T,
-                    paths: Traversable[TypedPath],
+                    paths: Iterable[TypedPath],
                     preferredLanguage: String)
-                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[PathMetaData]
+                   (implicit userContext: UserContext, prefixes: Prefixes): Iterable[PathMetaData]
 }
 
 /** The path meta data.

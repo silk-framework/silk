@@ -14,7 +14,7 @@ import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.DPair
@@ -153,8 +153,8 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def linkCountMustBe(resultJson: JsValue, expectedCount: Int): Seq[Link] = {
-    implicit val readContext: ReadContext = ReadContext()
-    val links = (resultJson \ "links").as[JsArray].value
+    implicit val readContext: ReadContext = TestReadContext()
+    val links = (resultJson \ "links").as[JsArray].value.toSeq
     links must have size expectedCount
     links.map(link => LinkJsonFormat.read(link))
   }
@@ -195,7 +195,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
       Comparison(metric = EqualityMetric(), inputs = DPair(inputPath(), inputPath()))
     ))
     // Make request
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.empty[JsValue]
+    implicit val writeContext: WriteContext[JsValue] = TestWriteContext[JsValue]()
     val linkageRuleJson = LinkageRuleJsonFormat.write(alternativeLinkingRule)
     val linkLimitQuery = linkLimit.map(ll => s"?linkLimit=$ll").getOrElse("")
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + linkLimitQuery)
@@ -204,7 +204,6 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
         post(linkageRuleJson)
     // Check results
     val json = checkResponse(response).json
-    implicit val readContext: ReadContext = ReadContext()
     val jsLinks = json.as[JsArray].value
     jsLinks.size mustBe expectedLinks
     val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption

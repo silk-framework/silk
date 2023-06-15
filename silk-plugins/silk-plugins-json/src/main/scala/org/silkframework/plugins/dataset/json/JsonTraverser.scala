@@ -24,7 +24,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
         obj.value.get(decodedProp).toSeq.map(value => asNewParent(prop, value))
       case array: JsArray if array.value.nonEmpty =>
-        array.value.flatMap(v => keepParent(v).children(prop))
+        array.value.flatMap(v => keepParent(v).children(prop)).toSeq
       case _ =>
         Nil
     }
@@ -73,7 +73,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
       case _: JsObject if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
       case array: JsArray if array.value.nonEmpty =>
-        array.value.flatMap(value => keepParent(value).select(path))
+        array.value.flatMap(value => keepParent(value).select(path)).toSeq
       case _: JsArray =>
         Seq()
       case _: JsValue if path.isEmpty =>
@@ -89,7 +89,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         selectOnObject(path)
       case array: JsArray if array.value.nonEmpty =>
         val t = array.value.map(value => keepParent(value).select(path))
-        t.flatten
+        t.flatten.toSeq
       case JsNull =>
         Seq() // JsNull is a JsValue, so it has to be handled before JsValue
       case _: JsValue if path.isEmpty =>
@@ -144,12 +144,12 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     }
   }
 
-  private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator], generateUris: Boolean) = {
+  private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator], generateUris: Boolean): Seq[String] = {
     this.value match {
       case obj: JsObject if filter.evaluate("\"" + nodeToString(obj.value(filter.property.uri)) + "\"") =>
         evaluate(tail, generateUris)
       case array: JsArray if array.value.nonEmpty =>
-        array.value.flatMap(v => keepParent(v).evaluate(path, generateUris))
+        array.value.flatMap(v => keepParent(v).evaluate(path, generateUris)).toSeq
       case _ =>
         Nil
     }
@@ -158,7 +158,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   def nodeToValue(jsValue: JsValue, generateUris: Boolean): Seq[String] = {
     jsValue match {
       case array: JsArray =>
-        array.value.flatMap(nodeToValue(_, generateUris))
+        array.value.flatMap(nodeToValue(_, generateUris)).toSeq
       case jsObject: JsObject =>
         Seq(generateUri(jsObject))
       case JsNull =>

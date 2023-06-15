@@ -132,7 +132,7 @@ case class SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate: String, batc
           }
       }
     }
-    templateParts
+    templateParts.toSeq
   }
 
   override def inputSchema: EntitySchema = {

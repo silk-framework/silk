@@ -2,9 +2,10 @@ package org.silkframework.runtime.resource
 
 import java.io.File
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class FileResourceManagerTest extends FlatSpec with MustMatchers {
+class FileResourceManagerTest extends AnyFlatSpec with Matchers {
   behavior of "file resource manager"
 
   it should "not allow access below its base path" in {

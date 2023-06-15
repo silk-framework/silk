@@ -4,7 +4,7 @@ import org.apache.jena.graph.{Node, NodeFactory, Triple => JenaTriple}
 import org.apache.jena.riot.RDFDataMgr
 
 import java.io.ByteArrayOutputStream
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.IteratorHasAsJava
 
 /**
   * Some helper methods to serialize Jena objects to strings.
@@ -20,7 +20,7 @@ object JenaSerializationUtil {
     */
   def serializeTriple(subject: String, property: String, node: Node): String = {
     val output = new ByteArrayOutputStream()
-    val triple = new JenaTriple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
+    val triple = JenaTriple.create(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
     output.toString("UTF-8")
   }
@@ -29,7 +29,7 @@ object JenaSerializationUtil {
     val subjectPropertyLength = 8
     val spaceDotNewLineLength = 3
     val output = new ByteArrayOutputStream()
-    val triple = new JenaTriple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
+    val triple = JenaTriple.create(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
     output.toString("UTF-8").drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
   }

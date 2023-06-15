@@ -13,8 +13,7 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.replace.RegexReplaceTransformer
 import org.silkframework.test.PluginTest
 

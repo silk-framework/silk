@@ -208,26 +208,30 @@ object ClassPluginDescription {
   }
 
   private def getPluginTypes(pluginClass: Class[_]): Seq[PluginTypeDescription] = {
-    val superTypes = getSuperTypes(pluginClass)
-
     // Find the PluginType annotation(s)
     val pluginTypes =
       for {
-        superType <- superTypes.toSeq
-        typeAnnotation <- superType.getAnnotationsByType(classOf[PluginType])
+        superType <- getSuperTypes(pluginClass).toSeq
+        typeAnnotation <- getPluginType(superType)
       } yield {
-        val customDescriptionGenerator = typeAnnotation.customDescription().getDeclaredConstructor().newInstance()
-        PluginTypeDescription(superType, customDescriptionGenerator)
+        typeAnnotation
       }
 
-    // If no PluginType annotation has been found, we need to generate plugin types for all super classes.
     if(pluginTypes.nonEmpty) {
       pluginTypes
     } else {
-      for {
-        superType <- superTypes.toSeq
-      } yield {
-        PluginTypeDescription(superType)
+      throw new IllegalArgumentException(s"Class $pluginClass does not inherit from a class that is a plugin type.")
+    }
+  }
+
+  private def getPluginType(pluginClass: Class[_]): Option[PluginTypeDescription] = {
+    val typeAnnotations = pluginClass.getAnnotationsByType(classOf[PluginType])
+    if(typeAnnotations.length > 1) {
+      throw new IllegalArgumentException(s"Class ${pluginClass.getName} has multiple ${classOf[PluginType].getName} annotations.")
+    } else {
+      for(typeAnnotation <- typeAnnotations.headOption) yield {
+        val customDescriptionGenerator = typeAnnotation.customDescription().getDeclaredConstructor().newInstance()
+        PluginTypeDescription(pluginClass, customDescriptionGenerator)
       }
     }
   }
@@ -294,7 +298,7 @@ object ClassPluginDescription {
     override def autoComplete(searchQuery: String,
                               dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                             (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
       filterResults(searchQuery, enumValues)
     }
 

@@ -5,7 +5,7 @@ import org.silkframework.runtime.resource.WritableResource
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /** Tracks updated files written to by this file-based sink. */
 trait DirtyTrackingFileDataSink extends DataSink {

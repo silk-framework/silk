@@ -10,7 +10,7 @@ import scala.util.Try
 /**
  * Holds the current status of an activity.
  */
-class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
+class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName),
                    parent: Option[StatusHolder] = None,
                    progressContribution: Double = 0.0,
                    val projectAndTaskId: Option[ProjectAndTaskIds] = None) extends Observable[Status] {

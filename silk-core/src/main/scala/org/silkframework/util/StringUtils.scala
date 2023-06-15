@@ -31,7 +31,7 @@ object StringUtils {
           """[eE][-+]?[0-9]+""" + // or without, but obligatory exponent
         """)""" +
         """\s*$""").
-      replaceAllLiterally("\n", "").
+      replace("\n", "").
       replaceAll("\r", "").
       r
 
@@ -105,7 +105,7 @@ object StringUtils {
   }
 
   /** Match search terms against string. Returns only true if all search terms match. */
-  def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+  def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String],
                         searchIn: String,
                         convertTextToLowercase: Boolean = true): Boolean = {
     if(lowerCaseSearchTerms.isEmpty) {
@@ -117,7 +117,7 @@ object StringUtils {
   }
 
   /** Counts how many search words match the text. Search text is expected to be in lower case. */
-  def matchCount(lowerCaseSearchTerms: Seq[String],
+  def matchCount(lowerCaseSearchTerms: Iterable[String],
                  searchIn: String): Int = {
     if(lowerCaseSearchTerms.isEmpty) {
       0
@@ -137,10 +137,10 @@ class StringUtils(str: String) {
   /**
     * Returns a stream of all q-grams in this string.
     */
-  def qGrams(q: Int): Stream[String] = {
+  def qGrams(q: Int): LazyList[String] = {
     val boundary = "#" * (q - 1)
 
-    (boundary + str + boundary).sliding(q).toStream
+    (boundary + str + boundary).sliding(q).to(LazyList)
   }
 
   /**

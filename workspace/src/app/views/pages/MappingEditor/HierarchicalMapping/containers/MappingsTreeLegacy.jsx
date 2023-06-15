@@ -66,7 +66,7 @@ class MappingsTree extends React.Component {
                     }, {}),
                     [rule.id]: true,
                 };
-                this.props.handleRuleNavigation({ newRuleId: searchId });
+                this.props.handleRuleNavigation({ newRuleId: searchId, containerRuleId: rule.id });
                 this.setState({ navigationExpanded });
             },
             () => {
@@ -248,7 +248,7 @@ class MappingsTree extends React.Component {
                             search: `?${new URLSearchParams({ ruleId: id })}`,
                         });
                     }
-                    handleRuleNavigation({ newRuleId: id, parentId: undefined });
+                    handleRuleNavigation({ newRuleId: id, parentId: undefined, containerRuleId: id });
                 }}
             >
                 <span className="ecc-silk-mapping__treenav--item-maintitle">
@@ -315,7 +315,6 @@ class MappingsTree extends React.Component {
 
     render() {
         const { data, navigationLoading } = this.state;
-
         const tree = this.markTree(data);
         const NavigationList = this.navigationList(tree);
 

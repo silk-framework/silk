@@ -1,9 +1,10 @@
 package org.silkframework.workspace.activity.workflow
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.workspace.{ProjectTask, SingleProjectWorkspaceProviderTestTrait}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-abstract class NestedWorkflowExecutionTest extends FlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
+abstract class NestedWorkflowExecutionTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
 
   override def projectPathInClasspath: String = "org/silkframework/workspace/activity/workflow/nestedWorkflowsProject.zip"
 

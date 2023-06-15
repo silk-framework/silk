@@ -10,7 +10,7 @@ import io.swagger.v3.oas.models.{OpenAPI, PathItem, Paths}
 import java.util
 import java.util.logging.{Level, Logger}
 import scala.io.Source
-import scala.jdk.CollectionConverters.mapAsScalaMapConverter
+import scala.jdk.CollectionConverters.MapHasAsScala
 import scala.util.control.NonFatal
 
 /**

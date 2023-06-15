@@ -44,7 +44,7 @@ trait DataSource {
    *
    */
   def retrieveTypes(limit: Option[Int] = None)
-                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)]
+                   (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)]
 
   /**
    * Retrieves the most frequent paths in this source.
@@ -96,8 +96,9 @@ trait DataSource {
                      size: Int,
                      filterOpt: Option[Entity => Boolean] = None)
                     (implicit userContext: UserContext, prefixes: Prefixes, random: Random): Seq[Entity] = {
-    val entities = retrieve(entityDesc).entities
-    SampleUtil.sample(entities, size, filterOpt)
+    retrieve(entityDesc).entities.use { entities =>
+      SampleUtil.sample(entities, size, filterOpt)
+    }
   }
 
   /**

@@ -43,14 +43,16 @@ object ErrorOutputWriter {
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     sink.openTable(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths.map(_.property.get) :+ errorProperty, singleEntity = false)
-    for (entity <- entityTable.entities if entity.hasFailed) {
-      sink.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error")))
-      entityCount += 1
-      if(entityCount % 10000 == 0) {
-        val currentTime = System.currentTimeMillis()
-        if(currentTime - 2000 > lastLog) {
-          log.info("Writing error entities: " + entityCount)
-          lastLog = currentTime
+    entityTable.use { entities =>
+      for (entity <- entities if entity.hasFailed) {
+        sink.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error")))
+        entityCount += 1
+        if (entityCount % 10000 == 0) {
+          val currentTime = System.currentTimeMillis()
+          if (currentTime - 2000 > lastLog) {
+            log.info("Writing error entities: " + entityCount)
+            lastLog = currentTime
+          }
         }
       }
     }

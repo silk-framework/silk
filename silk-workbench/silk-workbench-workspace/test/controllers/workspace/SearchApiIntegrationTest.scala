@@ -4,18 +4,20 @@ import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
 import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PARAMETERS, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
 import testWorkspace.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SearchApiIntegrationTest extends FlatSpec
+class SearchApiIntegrationTest extends AnyFlatSpec
     with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with MustMatchers{
+    with Matchers{
   behavior of "Search API"
 
   override def workspaceProviderId: String = "inMemory"
@@ -42,7 +44,7 @@ class SearchApiIntegrationTest extends FlatSpec
         label = (json \ SearchApiModel.LABEL).as[String],
         description = (json \ SearchApiModel.DESCRIPTION).as[String],
         `type` = facetType,
-        values = facetValues
+        values = facetValues.toSeq
       ))
     }
   }
@@ -79,7 +81,7 @@ class SearchApiIntegrationTest extends FlatSpec
   }
   private def resultAsMap(searchResultObject: JsObject): Map[String, String] = searchResultObject.value
       .filter(v => v._2.isInstanceOf[JsString]) // Filter out non-string values
-      .mapValues(_.as[String]).toMap
+      .view.mapValues(_.as[String]).toMap
 
   it should "return all tasks (pages) for a unrestricted search" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest())
@@ -350,7 +352,7 @@ class SearchApiIntegrationTest extends FlatSpec
 
   private def resourceSearch(request: ResourceSearchRequest): IndexedSeq[collection.Map[String, JsValue]] = {
     val result = checkResponse(client.url(s"$baseUrl$resourceSearchUrl?${request.queryString}").get()).json
-    result.as[JsArray].value.map(_.asInstanceOf[JsObject].value)
+    result.as[JsArray].value.map(_.asInstanceOf[JsObject].value).toIndexedSeq
   }
 
   private def checkAndGetDatasetFacetValues(response: FacetedSearchResult): Seq[Seq[(String, Int)]] = {

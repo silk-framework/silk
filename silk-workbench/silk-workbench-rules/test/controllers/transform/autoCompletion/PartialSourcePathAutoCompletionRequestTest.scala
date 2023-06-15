@@ -1,8 +1,9 @@
 package controllers.transform.autoCompletion
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PartialSourcePathAutoCompletionRequestTest extends FlatSpec with MustMatchers {
+class PartialSourcePathAutoCompletionRequestTest extends AnyFlatSpec with Matchers {
   behavior of "partial source path auto-completion request"
 
   it should "compute the index of the last path operator before the cursor position correctly" in {

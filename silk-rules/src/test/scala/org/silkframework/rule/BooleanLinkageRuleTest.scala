@@ -1,14 +1,15 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.{StringValueType, ValueType}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.util.DPair
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class BooleanLinkageRuleTest extends FlatSpec with MustMatchers {
+class BooleanLinkageRuleTest extends AnyFlatSpec with Matchers {
   behavior of "Boolean Linkage Rule"
 
   private val A = leaf("A")

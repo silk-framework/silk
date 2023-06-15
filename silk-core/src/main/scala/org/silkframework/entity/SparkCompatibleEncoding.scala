@@ -32,7 +32,7 @@ object SparkCompatibleEncoding {
       }
     }
     else {
-      original.replaceAllLiterally("\\","%5C").replaceAllLiterally("/","%2F").replaceAll(" ", "+")
+      original.replace("\\","%5C").replace("/","%2F").replaceAll(" ", "+")
     }
 
   }

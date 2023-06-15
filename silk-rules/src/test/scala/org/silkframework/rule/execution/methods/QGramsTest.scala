@@ -1,10 +1,11 @@
 package org.silkframework.rule.execution.methods
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.entity.paths.UntypedPath
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class QGramsTest extends FlatSpec with Matchers {
+class QGramsTest extends AnyFlatSpec with Matchers {
 
   "QGrams" should "generate the correct sublists" in {
     subLists("Miller", q = 2, t = 0.8) should equal (millerSubLists4)

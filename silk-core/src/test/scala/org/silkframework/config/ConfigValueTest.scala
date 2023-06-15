@@ -1,9 +1,10 @@
 package org.silkframework.config
 
 import com.typesafe.config.{Config => TypesafeConfig}
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ConfigValueTest extends FlatSpec with Matchers {
+class ConfigValueTest extends AnyFlatSpec with Matchers {
 
   behavior of "ConfigValue"
 

@@ -2,6 +2,8 @@ package controllers.errorReporting
 
 import play.api.libs.json.{Format, Json}
 
+import scala.collection.immutable.ArraySeq
+
 object ErrorReport {
   /** Stacktrace object. */
   case class Stacktrace(exceptionClass: String, errorMessage: Option[String], lines: Seq[String], cause: Option[Stacktrace], suppressed: Seq[Stacktrace])
@@ -10,7 +12,7 @@ object ErrorReport {
     implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
 
     def fromException(exception: Throwable): Stacktrace = {
-      val lines = exception.getStackTrace.map(_.toString)
+      val lines = ArraySeq.unsafeWrapArray(exception.getStackTrace.map(_.toString))
       val cause = Option(exception.getCause).map(fromException)
       val suppressed = exception.getSuppressed.map(fromException)
       Stacktrace(exception.getClass.getName, Option(exception.getMessage), lines, cause, suppressed)

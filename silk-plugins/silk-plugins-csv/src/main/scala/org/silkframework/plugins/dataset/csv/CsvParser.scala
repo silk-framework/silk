@@ -20,7 +20,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
     parserSettings.getFormat.setQuote(quoteChar)
   }
   if(selectedIndices.nonEmpty) {
-    parserSettings.selectIndexes(selectedIndices.map(new Integer(_)): _*)
+    parserSettings.selectIndexes(selectedIndices.map(Integer.valueOf): _*)
   }
   parserSettings.setMaxCharsPerColumn(maxCharsPerColumn.getOrElse(MAX_CHARS_PER_COLUMNS_DEFAULT))
   parserSettings.setMaxColumns(maxColumns.getOrElse(MAX_COLUMNS_DEFAULT))

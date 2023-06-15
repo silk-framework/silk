@@ -55,7 +55,7 @@ object VariableStatistic {
   /**
    * Generates the statistics for variable based on a sample of values.
    */
-  def apply(values: Traversable[Double]): VariableStatistic = {
+  def apply(values: Iterable[Double]): VariableStatistic = {
     val mean = values.sum / values.size
     val standardDeviation = values.map(x => abs(x - mean)).sum / values.size
 

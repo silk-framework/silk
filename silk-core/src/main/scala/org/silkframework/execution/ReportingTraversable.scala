@@ -1,44 +1,38 @@
 package org.silkframework.execution
 
 import org.silkframework.entity.Entity
+import org.silkframework.runtime.iterator.CloseableIterator
 
 import scala.util.control.NonFatal
 
 /**
-  * An entity traversable that forwards all entity traversals to an execution report.
+  * An entity iterable that forwards all entity traversals to an execution report.
   */
-case class ReportingTraversable(entities: Traversable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Traversable[Entity] {
-  override def foreach[U](f: Entity => U): Unit = {
+case class ReportingIterable(entities: Iterable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Iterable[Entity] {
+
+  override def iterator: Iterator[Entity] = {
+    ReportingIterator(CloseableIterator(entities.iterator))
+  }
+}
+
+/**
+  * An entity iterator that forwards all entity traversals to an execution report.
+  */
+case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater) extends CloseableIterator[Entity] {
+
+  override def hasNext: Boolean = {
     try {
-      for(entity <- entities) {
-        f(entity)
-        executionReport.increaseEntityCounter()
+      if (entities.hasNext) {
+        true
+      } else {
+        executionReport.executionDone()
+        false
       }
     } catch {
       case NonFatal(ex) =>
         executionReport.setExecutionError(Some(ex.getMessage))
+        executionReport.executionDone()
         throw ex
-    } finally {
-      executionReport.executionDone()
-    }
-  }
-}
-
-case class ReportingIterable(entities: Iterable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Iterable[Entity] {
-
-  override def iterator: Iterator[Entity] = {
-    ReportingIterator(entities.iterator)
-  }
-}
-
-case class ReportingIterator(entities: Iterator[Entity])(implicit executionReport: ExecutionReportUpdater) extends Iterator[Entity] {
-
-  override def hasNext: Boolean = {
-    if(entities.hasNext) {
-      true
-    } else {
-      executionReport.executionDone()
-      false
     }
   }
 
@@ -49,10 +43,15 @@ case class ReportingIterator(entities: Iterator[Entity])(implicit executionRepor
       } catch {
         case NonFatal(ex) =>
           executionReport.setExecutionError(Some(ex.getMessage))
+          executionReport.executionDone()
           throw ex
       }
     executionReport.increaseEntityCounter()
     entity
+  }
+
+  override def close(): Unit = {
+    entities.close()
   }
 }
 

@@ -673,6 +673,44 @@ export function CreateArtefactModal() {
     }
 
     const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
+    const notifications: JSX.Element[] = [];
+
+    if (!!error.detail || !!error.errorMessage) {
+        notifications.push(
+            <Notification
+                message={
+                    error.errorMessage ||
+                    t("common.messages.actionFailed", {
+                        action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
+                        error: error.detail.replace(/^(assertion failed: )/, ""),
+                    })
+                }
+                danger
+            />
+        );
+    }
+
+    if (infoMessage) {
+        notifications.push(<Notification message={infoMessage.message} />);
+    }
+
+    if (projectArtefactSelected) {
+        notifications.push(
+            <Notification
+                message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
+                actions={[
+                    <Button
+                        data-test-id="project-import-link"
+                        key="importProject"
+                        onClick={switchToProjectImport}
+                        href="#import-project"
+                    >
+                        {t("ProjectImportModal.restoreStarter", "Import project file")}
+                    </Button>,
+                ]}
+            />
+        );
+    }
 
     const createDialog = (
         <SimpleDialog
@@ -739,36 +777,7 @@ export function CreateArtefactModal() {
                     ]
                 )
             }
-            notifications={
-                ((!!error.detail || !!error.errorMessage) && (
-                    <Notification
-                        message={
-                            error.errorMessage ||
-                            t("common.messages.actionFailed", {
-                                action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
-                                error: error.detail.replace(/^(assertion failed: )/, ""),
-                            })
-                        }
-                        danger
-                    />
-                )) ||
-                (infoMessage && <Notification message={infoMessage.message} />) ||
-                (projectArtefactSelected && (
-                    <Notification
-                        message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
-                        actions={[
-                            <Button
-                                data-test-id="project-import-link"
-                                key="importProject"
-                                onClick={switchToProjectImport}
-                                href="#import-project"
-                            >
-                                {t("ProjectImportModal.restoreStarter", "Import project file")}
-                            </Button>,
-                        ]}
-                    />
-                ))
-            }
+            notifications={notifications}
         >
             {
                 <>

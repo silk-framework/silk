@@ -105,7 +105,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
-                     time: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+                     time: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val wc: WriteContext[JsValue] = WriteContext.fromProject(WorkspaceFactory().workspace.project(projectId))
     val report = ExecutionReportManager().retrieveReport(ReportIdentifier(projectId, taskId, Instant.parse(time)))
     val jsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)

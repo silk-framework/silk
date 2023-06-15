@@ -131,10 +131,10 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
     if(autoConfig) {
       val project = getProject(projectName)
       implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, sourceResourceManager, userContext, Some(project.id))
-      dataSources = dataSources.mapValues {
+      dataSources = dataSources.view.mapValues {
         case autoConfigDataset: DatasetPluginAutoConfigurable[_] => autoConfigDataset.autoConfigured
         case other: Dataset => other
-      }
+      }.toMap
     }
     (dataSources, sinks, resultResourceManager)
   }

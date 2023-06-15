@@ -1,12 +1,13 @@
 package org.silkframework.runtime.resource
 
-import org.scalatest.{BeforeAndAfterAll, FlatSpec}
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.config.DefaultConfig
 import org.silkframework.util.FileUtils._
 
 import java.nio.file.Files
+import org.scalatest.flatspec.AnyFlatSpec
 
-class FileResourceFreeSpaceThresholdTest extends FlatSpec with BeforeAndAfterAll {
+class FileResourceFreeSpaceThresholdTest extends AnyFlatSpec with BeforeAndAfterAll {
   private val tempDir = Files.createTempDirectory("doesntmatter").toFile
   tempDir.deleteRecursiveOnExit()
   private val currentFreeSpace = tempDir.getFreeSpace

@@ -82,7 +82,7 @@ class ExecuteTransform(task: Task[TransformSpec],
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRule, rule.outputSchema,
-      isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
+      isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context).iterator
     var count = 0
     breakable {
       for (entity <- transformedEntities) {

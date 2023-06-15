@@ -16,7 +16,7 @@ import org.silkframework.runtime.templating.GlobalTemplateVariables
 import play.api.libs.json.{Format, JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController, Request}
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
   * API endpoints for initialization of the frontend application.

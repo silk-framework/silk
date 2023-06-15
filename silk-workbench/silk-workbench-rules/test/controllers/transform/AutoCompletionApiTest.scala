@@ -113,7 +113,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
       )
     val transformTask = PlainTask(task, transformSpec)
     val request = client.url(s"$baseUrl/transform/tasks/$project/$task")
-    val response = request.put(toJson[TransformTask](transformTask))
+    val response = request.put(toJsonEmptyContext[TransformTask](transformTask))
     checkResponse(response)
 
     waitForCaches(task)

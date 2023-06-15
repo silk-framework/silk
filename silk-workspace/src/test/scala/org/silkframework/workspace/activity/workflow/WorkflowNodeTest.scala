@@ -1,8 +1,9 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkflowNodeTest extends FlatSpec with MustMatchers {
+class WorkflowNodeTest extends AnyFlatSpec with Matchers {
   behavior of "Workflow Node"
 
   it should "be able to copy the underlying case objects from the trait" in {

@@ -13,12 +13,13 @@
  */
 
 package org.silkframework.rule.plugins.transformer
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.plugins.transformer.substring.StripPrefixTransformer
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class StripPrefixTransformerTest extends FlatSpec with Matchers {
+class StripPrefixTransformerTest extends AnyFlatSpec with Matchers {
 
   val transformer = new StripPrefixTransformer(prefix = "abc")
 

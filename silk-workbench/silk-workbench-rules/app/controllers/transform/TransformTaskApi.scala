@@ -20,7 +20,7 @@ import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
@@ -113,11 +113,11 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                       createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
-        val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
+        val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).view.mapValues(_.mkString).toMap
         val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes),
           Restriction.custom(values.getOrElse("restriction", "")))
         val output = values.get("output").filter(_.nonEmpty).map(Identifier(_))
@@ -425,6 +425,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     task.synchronized {
       processRule(task, ruleId) { currentRule =>
         handleValidationExceptions {
+          implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
           implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
           deserializeCompileTime[TransformRule]() { updatedRule =>
             updateRule(currentRule.update(updatedRule))
@@ -558,7 +559,6 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  )
                  afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task), validationEnabled = true)
       processRule(task, ruleName) { parentRule =>
@@ -869,7 +869,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     TransformSpec.identifierGenerator(transformTask.data)
   }
 
-  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser): Request[AnyContent] = {
+  private def updateJsonRequest(request: Request[AnyContent], rule: RuleTraverser)
+                               (implicit writeContext: WriteContext[JsValue]): Request[AnyContent] = {
     request.body.asJson match {
       case Some(requestJson) =>
         val ruleJson = toJson(rule.operator.asInstanceOf[TransformRule]).as[JsObject]

@@ -6,13 +6,14 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 /**
   * A data source on [[org.silkframework.entity.Entity]] objects
   */
-case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
+case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: CloseableIterator[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
   override def retrieve(requestSchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(requestSchema.typeUri != entitySchema.typeUri) {
@@ -46,7 +47,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Seq(entitySchema.typeUri.uri -> 1.0)
   }
 

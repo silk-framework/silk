@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 
 import { ruleRemoveAsync, setApiDetails } from "./store";
 
-import MappingsTree from "./containers/MappingsTree";
+import MappingsTree from "./containers/MappingsTreeLegacy";
 import MappingsWorkview from "./containers/MappingsWorkview";
 import MessageHandler from "./components/MessageHandler";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";
@@ -15,8 +15,8 @@ import { withHistoryHOC } from "./utils/withHistoryHOC";
 import MappingEditorModal from "./MappingEditorModal";
 import { getHistory } from "../../../../store/configureStore";
 import PromptModal from "../../../../views/shared/projectTaskTabView/PromptModal";
-import {requestValueTypes} from "./HierarchicalMapping.requests";
-import {GlobalMappingEditorContext} from "../contexts/GlobalMappingEditorContext";
+import { requestValueTypes } from "./HierarchicalMapping.requests";
+import { GlobalMappingEditorContext } from "../contexts/GlobalMappingEditorContext";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -51,7 +51,7 @@ class HierarchicalMapping extends React.Component {
             removeFunction: this.handleConfirmRemove,
             showMappingEditor: false,
             mappingEditorRuleId: undefined,
-            valueTypeLabels: new Map()
+            valueTypeLabels: new Map(),
         };
     }
 
@@ -59,7 +59,7 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        this.loadValueTypeLabels()
+        this.loadValueTypeLabels();
     }
 
     componentWillUnmount() {
@@ -84,11 +84,11 @@ class HierarchicalMapping extends React.Component {
     }
 
     async loadValueTypeLabels() {
-        const valueTypes = (await requestValueTypes()).data
-        const valueTypeMap = valueTypes.map(vt => [vt.value, vt.label ?? vt.value])
+        const valueTypes = (await requestValueTypes()).data;
+        const valueTypeMap = valueTypes.map((vt) => [vt.value, vt.label ?? vt.value]);
         this.setState({
-            valueTypeLabels: new Map(valueTypeMap)
-        })
+            valueTypeLabels: new Map(valueTypeMap),
+        });
     }
 
     onOpenEdit = (obj) => {
@@ -192,17 +192,13 @@ class HierarchicalMapping extends React.Component {
     };
 
     // react to rule id changes
-    onRuleNavigation = ({ newRuleId }) => {
-        console.log({
-            newRuleId,
-            currentRuleId: this.state.currentRuleId,
-            editingElements: this.state.editingElements,
-        });
+    onRuleNavigation = ({ newRuleId, containerRuleId }) => {
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
             this.setState({
                 currentRuleId: newRuleId,
+                containerRuleId: containerRuleId,
             });
         } else {
             this.toggleAskForDiscard(newRuleId);
@@ -233,8 +229,13 @@ class HierarchicalMapping extends React.Component {
         this.setState({ showMappingEditor: true, mappingEditorRuleId });
     };
 
+    /** Handles changes of the container rule. */
     handleRuleIdChange = (rule) => {
-        this.onRuleNavigation(rule);
+        const containerRuleNavigation = { ...rule };
+        if (!containerRuleNavigation.containerRuleId) {
+            containerRuleNavigation.containerRuleId = rule.newRuleId;
+        }
+        this.onRuleNavigation(containerRuleNavigation);
     };
 
     // template rendering
@@ -244,69 +245,71 @@ class HierarchicalMapping extends React.Component {
         const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
         // render mapping edit / create view of value and object
-        return <GlobalMappingEditorContext.Provider
-            value={{
-                valueTypeLabels: this.state.valueTypeLabels
-            }}
-        >
-            <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
-                {showMappingEditor && this.state.mappingEditorRuleId ? (
-                    <MappingEditorModal
-                        projectId={this.props.project}
-                        transformTaskId={this.props.transformTask}
-                        ruleId={this.state.mappingEditorRuleId}
-                        isOpen={showMappingEditor}
-                        onClose={() => {
-                            this.setState({
-                                showMappingEditor: false,
-                                mappingEditorRuleId: undefined,
-                            });
-                            // this.onRuleNavigation({ newRuleId: this.state.mappingEditorRuleId });
-                            EventEmitter.emit(MESSAGES.RELOAD, true);
-                        }}
-                    />
-                ) : null}
-                {askForRemove && (
-                    <RemoveMappingRuleDialog
-                        mappingType={elementToDelete.type}
-                        handleConfirmRemove={this.state.removeFunction}
-                        handleCancelRemove={this.handleCancelRemove}
-                    />
-                )}
-                <PromptModal
-                    onClose={() => this.toggleAskForDiscard(false)}
-                    proceed={this.handleDiscardChanges}
-                    isOpen={askForDiscard}
-                />
-                {loading}
-                <div className="ecc-temp__appmessages">
-                    <MessageHandler />
-                </div>
-                <div className="ecc-silk-mapping__content">
-                    {showNavigation && (
-                        <MappingsTree
-                            currentRuleId={currentRuleId}
-                            handleRuleNavigation={this.onRuleNavigation}
-                            startFullScreen={this.props.startFullScreen}
+        return (
+            <GlobalMappingEditorContext.Provider
+                value={{
+                    valueTypeLabels: this.state.valueTypeLabels,
+                }}
+            >
+                <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
+                    {showMappingEditor && this.state.mappingEditorRuleId ? (
+                        <MappingEditorModal
+                            projectId={this.props.project}
+                            transformTaskId={this.props.transformTask}
+                            containerRuleId={this.state.containerRuleId ?? "root"}
+                            ruleId={this.state.mappingEditorRuleId}
+                            isOpen={showMappingEditor}
+                            onClose={() => {
+                                this.setState({
+                                    showMappingEditor: false,
+                                    mappingEditorRuleId: undefined,
+                                });
+                                EventEmitter.emit(MESSAGES.RELOAD, true);
+                            }}
+                        />
+                    ) : null}
+                    {askForRemove && (
+                        <RemoveMappingRuleDialog
+                            mappingType={elementToDelete.type}
+                            handleConfirmRemove={this.state.removeFunction}
+                            handleCancelRemove={this.handleCancelRemove}
                         />
                     )}
-                    {
-                        <MappingsWorkview
-                            currentRuleId={this.state.currentRuleId}
-                            showNavigation={showNavigation}
-                            onToggleTreeNav={this.handleToggleNavigation}
-                            onRuleIdChange={this.handleRuleIdChange}
-                            askForDiscardData={this.state.askForDiscard}
-                            onAskDiscardChanges={this.toggleAskForDiscard}
-                            onClickedRemove={this.handleClickRemove}
-                            openMappingEditor={this.handleOpenMappingEditorModal}
-                            startFullScreen={this.props.startFullScreen}
-                            viewActions={this.props.viewActions}
-                        />
-                    }
-                </div>
-            </section>
-        </GlobalMappingEditorContext.Provider>;
+                    <PromptModal
+                        onClose={() => this.toggleAskForDiscard(false)}
+                        proceed={this.handleDiscardChanges}
+                        isOpen={askForDiscard}
+                    />
+                    {loading}
+                    <div className="ecc-temp__appmessages">
+                        <MessageHandler />
+                    </div>
+                    <div className="ecc-silk-mapping__content">
+                        {showNavigation && (
+                            <MappingsTree
+                                currentRuleId={currentRuleId}
+                                handleRuleNavigation={this.onRuleNavigation}
+                                startFullScreen={this.props.startFullScreen}
+                            />
+                        )}
+                        {
+                            <MappingsWorkview
+                                currentRuleId={this.state.currentRuleId}
+                                showNavigation={showNavigation}
+                                onToggleTreeNav={this.handleToggleNavigation}
+                                onRuleIdChange={this.handleRuleIdChange}
+                                askForDiscardData={this.state.askForDiscard}
+                                onAskDiscardChanges={this.toggleAskForDiscard}
+                                onClickedRemove={this.handleClickRemove}
+                                openMappingEditor={this.handleOpenMappingEditorModal}
+                                startFullScreen={this.props.startFullScreen}
+                                viewActions={this.props.viewActions}
+                            />
+                        }
+                    </div>
+                </section>
+            </GlobalMappingEditorContext.Provider>
+        );
     }
 }
 

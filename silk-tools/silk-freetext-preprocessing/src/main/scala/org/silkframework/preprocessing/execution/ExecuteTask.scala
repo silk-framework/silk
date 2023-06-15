@@ -115,7 +115,7 @@ class ExecuteTask {
       resolveTransformersAcc(config, List.empty[Transformer]).reverse
   }
 
-  def merge(value: (String,Traversable[Entity])): Entity = {
+  def merge(value: (String,Iterable[Entity])): Entity = {
     new Entity(value._1, (for(entity <- value._2) yield entity.properties).flatMap(x => x))
   }
 

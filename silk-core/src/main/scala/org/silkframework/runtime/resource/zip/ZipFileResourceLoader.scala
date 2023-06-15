@@ -3,8 +3,9 @@ package org.silkframework.runtime.resource.zip
 import java.io.{File, InputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipFile}
-import scala.collection.JavaConverters._
 import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
+
+import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 /**
   * A resource loader that loads all resources from a zip file.

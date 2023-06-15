@@ -4,7 +4,7 @@ package org.silkframework.entity
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType.{GEO, XSD}
 import org.silkframework.runtime.plugin.AnyPlugin
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, PluginType}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.StringUtils.DoubleLiteral
 import org.silkframework.util.Uri
@@ -19,6 +19,7 @@ import scala.xml.Node
   * The type of a value.
   * (Atomic Types)
   */
+@PluginType()
 sealed trait ValueType extends AnyPlugin {
 
   /** The unique ID of this value type. This will be used for serialization and deserialization */

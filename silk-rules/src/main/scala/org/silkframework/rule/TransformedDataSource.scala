@@ -24,7 +24,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
   override def retrieveTypes(limit: Option[Int] = None)
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     for(TypeMapping(_, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
@@ -54,7 +54,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     val sourceEntities = source.retrieve(inputSchema, limit).entities
     val taskContext = new ActivityMonitor[TransformReport](task.id, None)
     val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule,
-      entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, taskContext)
+      entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, taskContext).iterator
     GenericEntityTable(transformedEntities, entitySchema, underlyingTask)
   }
 

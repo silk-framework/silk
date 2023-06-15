@@ -1,12 +1,13 @@
 package org.silkframework.rule.util
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 
 import scala.util.{Failure, Success, Try}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class UriPatternParserTest extends FlatSpec with MustMatchers {
+class UriPatternParserTest extends AnyFlatSpec with Matchers {
   behavior of "URI pattern parser"
 
   it should "fail immediately for syntactically wrong templates" in {

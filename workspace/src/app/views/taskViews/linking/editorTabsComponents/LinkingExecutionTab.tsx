@@ -18,7 +18,7 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
     const [executionUpdateCounter, setExecutionUpdateCounter] = React.useState<number>(0);
     const [taskDownloadInfo, setTaskDownloadInfo] = React.useState<ProjectTaskDownloadInfo | undefined>();
 
-    const handleReceivedUpdates = React.useCallback((status) => {
+    const handleActivityUpdates = React.useCallback((status) => {
         if (status.statusName === "Finished") {
             setExecutionUpdateCounter((n) => ++n);
         }
@@ -40,7 +40,7 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
                     <Spacing size="small" vertical />
                     <Card>
                         <TaskActivityWidget
-                            registerToReceiveUpdates={handleReceivedUpdates}
+                            updateCallback={handleActivityUpdates}
                             projectId={projectId}
                             taskId={taskId}
                             activityName="ExecuteLinking"

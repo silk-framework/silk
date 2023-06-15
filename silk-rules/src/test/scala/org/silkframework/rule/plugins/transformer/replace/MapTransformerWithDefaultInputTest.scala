@@ -1,11 +1,12 @@
 package org.silkframework.rule.plugins.transformer.replace
 
-import org.scalatest.{MustMatchers, FlatSpec}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Created on 9/1/16.
   */
-class MapTransformerWithDefaultInputTest extends FlatSpec with MustMatchers {
+class MapTransformerWithDefaultInputTest extends AnyFlatSpec with Matchers {
   behavior of "map transformer with default input"
   final val A = "A"
   final val B = "B"

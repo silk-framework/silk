@@ -1,14 +1,15 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import org.apache.jena.query.DatasetFactory
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.{FlatSpec, Matchers}
+import org.apache.jena.query.DatasetFactory
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.MockitoSugar
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created on 3/14/16.
   */
-class JenaDatasetEndpointTest extends FlatSpec with Matchers with MockitoSugar {
+class JenaDatasetEndpointTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "JenaDatasetEndpoint"
 
   implicit val userContext: UserContext = UserContext.Empty

@@ -10,6 +10,7 @@ import org.silkframework.runtime.plugin.PluginList
 import play.api.mvc._
 
 import javax.inject.Inject
+import scala.collection.immutable.ArraySeq
 
 @Tag(name = "Plugins")
 class PluginApi @Inject() () extends InjectedController with UserContextActions {
@@ -76,7 +77,7 @@ class PluginApi @Inject() () extends InjectedController with UserContextActions 
                         schema = new Schema(implementation = classOf[Boolean], example = "false")
                       )
                       addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
-    val pluginTypes = pluginType.split("\\s*,\\s*")
+    val pluginTypes = ArraySeq.unsafeWrapArray(pluginType.split("\\s*,\\s*"))
     serialize(addMarkdownDocumentation, pluginTypes)
   }
   }

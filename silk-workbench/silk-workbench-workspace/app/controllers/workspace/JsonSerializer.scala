@@ -36,7 +36,7 @@ object JsonSerializer {
                  (implicit userContext: UserContext): JsObject = {
     Json.obj(
       "name" -> JsString(project.id),
-      "metaData" -> JsonSerializers.toJson(project.config.metaData),
+      "metaData" -> JsonSerializers.toJsonEmptyContext(project.config.metaData),
       "tasks" -> Json.obj(
       "dataset" -> tasksJson[GenericDatasetSpec](project),
       "transform" -> tasksJson[TransformSpec](project),

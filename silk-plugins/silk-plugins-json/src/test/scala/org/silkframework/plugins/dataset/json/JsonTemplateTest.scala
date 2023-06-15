@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.plugins.dataset.json.JsonTemplate.placeholder
 import org.silkframework.runtime.validation.ValidationException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonTemplateTest extends FlatSpec with Matchers {
+class JsonTemplateTest extends AnyFlatSpec with Matchers {
 
   behavior of "JsonTemplate"
 

@@ -84,7 +84,9 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
 
   override def iterator: Iterator[(String, LazyMetadata[_, Serialization])] = metadata.iterator
 
-  override def -(key: String): Map[String, LazyMetadata[_, Serialization]] = metadata.-(key)
+  override def removed(key: String): Map[String, LazyMetadata[_, Serialization]] = metadata.-(key)
+
+  override def updated[V1 >: LazyMetadata[_, Serialization]](key: String, value: V1): Map[String, V1] = metadata.updated(key, value)
 
   override def empty: EntityMetadata[Serialization] = this.emptyEntityMetadata
 }

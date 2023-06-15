@@ -8,6 +8,8 @@ export interface MappingEditorProps {
     projectId: string;
     /** The task the rules are being edited of. */
     transformTaskId: string;
+    /** The container rule ID, i.e. of either the root or an object rule. */
+    containerRuleId: string;
     /** The transform rule that should be edited. This needs to be a value mapping rule. */
     ruleId: string;
     // control whether the modal is open or not
@@ -18,7 +20,14 @@ export interface MappingEditorProps {
     onClose: () => void;
 }
 
-const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, projectId, transformTaskId, isOpen }) => {
+const MappingEditorModal = ({
+    ruleId,
+    onClose,
+    projectId,
+    transformTaskId,
+    isOpen,
+    containerRuleId,
+}: MappingEditorProps) => {
     /** keeps track of whether there are unsaved changes or not */
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [showWarningModal, setShowWarningModal] = React.useState<boolean>(false);
@@ -86,6 +95,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                 <div style={{ position: "relative", height: "100%" }}>
                     <TransformRuleEditor
                         projectId={projectId}
+                        containerRuleId={containerRuleId}
                         ruleId={ruleId}
                         instanceId={"transform-rule-editor-modal-instance"}
                         transformTaskId={transformTaskId}

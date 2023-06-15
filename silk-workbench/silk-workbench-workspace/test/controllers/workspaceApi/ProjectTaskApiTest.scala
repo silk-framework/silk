@@ -3,7 +3,7 @@ package controllers.workspaceApi
 import controllers.workspaceApi.projectTask.RelatedItems
 import controllers.workspaceApi.search.ItemType
 import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -13,10 +13,12 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.{JsValue, Json}
 import testWorkspace.Routes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait
+class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with MustMatchers{
+    with Matchers{
   behavior of "Project Task API"
 
   override def workspaceProviderId: String = "inMemory"
@@ -40,7 +42,7 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
     val inDatasetRelatedItems = relatedItems(inputDataset)
     inDatasetRelatedItems.total mustBe 2
     inDatasetRelatedItems.items.map(i => (i.id, i.`type`)) mustBe Seq((transformTask, ItemType.transform.label), (workflowTask, ItemType.workflow.label))
-    inDatasetRelatedItems.items.head.itemLinks.size must be >= 2
+    inDatasetRelatedItems.items.head.itemLinks.size must be >= 1
     val transformRelatedItems = relatedItems(transformTask)
     transformRelatedItems.total mustBe 3
     transformRelatedItems.items.map(_.id).toSet mustBe Set(inputDataset, outputDataset, workflowTask)

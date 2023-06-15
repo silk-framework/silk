@@ -28,7 +28,7 @@ case class TransformExampleValue(description: Option[String],
     sb ++= s"* Returns:\n\n  → `${format(output)}`\n"
   }
 
-  private def format(traversable: Traversable[_]): String = {
+  private def format(traversable: Iterable[_]): String = {
     traversable.mkString("[", ", ", "]")
   }
 

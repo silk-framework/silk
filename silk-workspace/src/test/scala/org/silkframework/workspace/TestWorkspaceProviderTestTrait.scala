@@ -1,9 +1,9 @@
 package org.silkframework.workspace
 
 import org.scalatest.{BeforeAndAfterAll, TestSuite}
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.SharedFileRepository
@@ -36,7 +36,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     * The WorkspaceProvide instance
     */
   lazy val workspaceProvider: WorkspaceProvider = {
-    implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
+    implicit val pluginContext: PluginContext = TestPluginContext(resources = InMemoryResourceManager())
     PluginRegistry.create[WorkspaceProvider](workspaceProviderId, ParameterValues.empty)
   }
 

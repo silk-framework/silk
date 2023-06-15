@@ -19,13 +19,15 @@ import { optionallyLabelledParameterToValue } from "../linking/linking.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { inputPathTab } from "./transformEditor.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
-import TransformRuleEvaluation from "./evalution/TransformRuleEvaluation";
+import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
     projectId: string;
     /** The task the rules are being edited of. */
     transformTaskId: string;
+    /** The container rule ID, i.e. of either the root or an object rule. */
+    containerRuleId: string;
     /** The transform rule that should be edited. This needs to be a value mapping rule. */
     ruleId: string;
     /** Generic actions and callbacks on views. */
@@ -42,6 +44,7 @@ export interface TransformRuleEditorProps {
 export const TransformRuleEditor = ({
     projectId,
     transformTaskId,
+    containerRuleId,
     ruleId,
     initialFitToViewZoomLevel,
     instanceId,
@@ -193,7 +196,7 @@ export const TransformRuleEditor = ({
         <TransformRuleEvaluation
             projectId={projectId}
             transformTaskId={transformTaskId}
-            ruleId={ruleId}
+            containerRuleId={containerRuleId}
             numberOfLinkToShow={5}
         >
             <RuleEditor<IComplexMappingRule, IPluginDetails>

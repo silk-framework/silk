@@ -1,16 +1,17 @@
 package controllers.workspaceApi
 
 import controllers.workspaceApi.validation.{AutoSuggestValidationError, AutoSuggestValidationResponse, SourcePathValidationRequest, UriPatternValidationRequest}
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.serialization.json.JsonHelpers
 import play.api.libs.json.Json
 import play.api.routing.Router
 
 import scala.util.Try
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 
-class ValidationApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
+class ValidationApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers {
   behavior of "Validation API"
 
   val projectId = "testProject"

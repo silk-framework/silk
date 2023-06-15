@@ -1,6 +1,6 @@
 package controllers.sparqlapi
 
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
 import controllers.sparqlapi.SparqlProtocolApi._
 
 import javax.inject.Inject
@@ -17,6 +17,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController, Result}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.Using
 import scala.xml.Node
 
 /**
@@ -72,27 +73,29 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
   }
 
   private def executeQuery(query: String, accepts: Seq[MediaRange], context: Context[GenericDatasetSpec])(implicit uc: UserContext): Result = {
-    val acceptableMediaTypes = accepts.map(a => (a.mediaType + "/" + a.mediaSubType, a.qValue.map(_.doubleValue()).getOrElse(0d)))
+    val acceptableMediaTypes = accepts.map(a => (a.mediaType + "/" + a.mediaSubType, a.qValue.map(_.doubleValue).getOrElse(0d)))
       .filter(a => SparqlProtocolApi.SupportedMediaTyped.contains(a._1))
-      .sortBy(a => (a._2, a._1))( Ordering.Tuple2(Ordering.Double.reverse, Ordering.String))
+      .sortBy(a => (a._2, a._1))( Ordering.Tuple2(Ordering.Double.TotalOrdering.reverse, Ordering.String))
     val chosenMediaType = if(acceptableMediaTypes.isEmpty) accepts.headOption.map(a => a.mediaType + "/" + a.mediaSubType) else acceptableMediaTypes.headOption.map(_._1)
 
     context.task.data.plugin match {
       case rdf: RdfDataset =>
         val sparqlEndpoint = rdf.sparqlEndpoint
-        val queryResults = SparqlQueryType.determineSparqlQueryType(query) match{
+        val queryResults = SparqlQueryType.determineSparqlQueryType(query) match {
           case SparqlQueryType.ASK => sparqlEndpoint.ask(query)
           case SparqlQueryType.SELECT => sparqlEndpoint.select(query)
           case typ: SparqlQueryType.Val => return ErrorResult(SparqlUnsupportedQueryTypeError(Some(typ)))
         }
-
-        chosenMediaType match{
-          case Some(SPARQLJSONRESULT) => Ok(SparqlResultJsonSerializers.write(queryResults)(getWriteContext[JsValue](context)))
-          case Some(SPARQLXMLRESULT) => Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context)))
-          case Some(unsupported) => ErrorResult(SparqlContentNegotiationError(Some(unsupported))) //unsupported!
-          case None | Some(MimeTypes.TEXT) | Some(MimeTypes.HTML) =>
-            Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context)))    // by default we return xml, which also includes text/plain and text/html
+        Using.resource(queryResults) { queryResults =>
+          chosenMediaType match {
+            case Some(SPARQLJSONRESULT) => Ok(SparqlResultJsonSerializers.write(queryResults)(getWriteContext[JsValue](context)))
+            case Some(SPARQLXMLRESULT) => Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context)))
+            case Some(unsupported) => ErrorResult(SparqlContentNegotiationError(Some(unsupported))) //unsupported!
+            case None | Some(MimeTypes.TEXT) | Some(MimeTypes.HTML) =>
+              Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context))) // by default we return xml, which also includes text/plain and text/html
+          }
         }
+
       case _ => ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
     }
   }

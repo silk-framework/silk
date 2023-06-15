@@ -1,9 +1,10 @@
 package org.silkframework.util
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class UriTest extends FlatSpec with Matchers {
+class UriTest extends AnyFlatSpec with Matchers {
 
   val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",

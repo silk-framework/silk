@@ -184,24 +184,13 @@ export const RuleEditorToolbar = () => {
                         text={t("RuleEditor.toolbar.autoLayout")}
                         onClick={() => modelContext.executeModelEditOperation.autoLayout(true)}
                     />
-                    <Spacing vertical hasDivider />
+                    <Spacing vertical size={"small"} />
                     <IconButton
                         data-test-id="rule-editor-header-sticky-btn"
                         name="item-comment"
                         text={t("StickyNoteModal.tooltip")}
                         onClick={() => setShowCreateStickyModal(true)}
                     />
-                    {ruleEvaluationContext.supportsEvaluation && (
-                        <>
-                            <Spacing vertical hasDivider />
-                            <Switch
-                                data-test-id={"rule-editor-evaluation-toggle"}
-                                label={t("RuleEditor.toolbar.showEvaluation")}
-                                checked={evaluationShown}
-                                onClick={() => toggleEvaluation(!evaluationShown)}
-                            />
-                        </>
-                    )}
                     <Spacing vertical size={"small"} />
                     <Switch
                         data-test-id={"rule-editor-advanced-toggle"}
@@ -215,7 +204,7 @@ export const RuleEditorToolbar = () => {
                     />
                 </ToolbarSection>
                 <ToolbarSection canGrow>
-                    <Spacing vertical />
+                    <Spacing vertical size={"small"} />
                 </ToolbarSection>
                 {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
@@ -225,6 +214,15 @@ export const RuleEditorToolbar = () => {
                             loading={ruleEvaluationContext.evaluationRunning}
                             referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
                             evaluationResultsShown={ruleEvaluationContext.evaluationResultsShown}
+                            evaluationResultsShownToggleButton={{
+                                "data-test-id": "rule-editor-start-evaluation-btn",
+                                disabled: ruleEvaluationContext.evaluationRunning,
+                                icon: evaluationShown ? "item-hidedetails" : "item-viewdetails",
+                                tooltip: evaluationShown
+                                    ? t("RuleEditor.toolbar.hideEvaluation")
+                                    : t("RuleEditor.toolbar.showEvaluation"),
+                                action: () => toggleEvaluation(!evaluationShown),
+                            }}
                             manualStartButton={{
                                 "data-test-id": "rule-editor-start-evaluation-btn",
                                 disabled: ruleEvaluationContext.evaluationRunning,
@@ -233,7 +231,7 @@ export const RuleEditorToolbar = () => {
                                 action: startEvaluation,
                             }}
                         />
-                        <Spacing vertical hasDivider />
+                        <Spacing vertical size="small" />
                     </ToolbarSection>
                 ) : null}
                 <ToolbarSection>

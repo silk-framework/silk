@@ -32,7 +32,7 @@ object ReferenceLinksReader {
     new ReferenceLinks(readLinks(xml, "=").toSet, readLinks(xml, "!=").toSet, Set.empty)
   }
 
-  private def readLinks(xml: Node, relation: String): Traversable[Link] = {
+  private def readLinks(xml: Node, relation: String): Iterable[Link] = {
     for (cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation").text == relation) yield {
       new LinkWithConfidence(
         source = (cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource").text,

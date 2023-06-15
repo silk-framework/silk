@@ -1,13 +1,16 @@
 package org.silkframework.dataset
 
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.CloseableIterator
 
-class EntityDatasourceTest extends FlatSpec with MustMatchers {
+class EntityDatasourceTest extends AnyFlatSpec with Matchers {
   behavior of "Entity Data Source"
 
   implicit val userContext: UserContext = UserContext.Empty
@@ -24,11 +27,11 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
       entitySchema
     )
   )
-  val entityDatasource = EntityDatasource(alibiTask, entities, entitySchema)
+  val entityDatasource = EntityDatasource(alibiTask, CloseableIterator(entities), entitySchema)
 
   it should "turn its entities into the request schema" in {
     val requestSchema = EntitySchema(typeUri, nrToPaths(IndexedSeq(4, 2)))
-    val requestEntities = entityDatasource.retrieve(requestSchema).entities
+    val requestEntities = entityDatasource.retrieve(requestSchema).entities.toSeq
     requestEntities.size mustBe 1
     val entity = requestEntities.head
     entity.uri.toString mustBe entityUri

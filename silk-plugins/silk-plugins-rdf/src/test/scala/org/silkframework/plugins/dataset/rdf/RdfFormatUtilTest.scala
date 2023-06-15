@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class RdfFormatUtilTest extends FlatSpec with MustMatchers {
+class RdfFormatUtilTest extends AnyFlatSpec with Matchers {
   behavior of "RDFFormatUtil"
 
   final val NL = "\n"
