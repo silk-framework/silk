@@ -335,6 +335,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     val parameters = (resultWithParameters.head \ PARAMETERS).asOpt[JsObject]
     parameters mustBe defined
     (parameters.get \ "file").as[String] mustBe "xyz.json"
+    (parameters.get \ "streaming").as[Boolean] mustBe true
   }
 
   private def resourceNames(defaultResults: IndexedSeq[collection.Map[String, JsValue]]) = {

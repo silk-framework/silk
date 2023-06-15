@@ -81,9 +81,9 @@ export const NodeContent = ({
     const dependentValue = (paramId: string): string | undefined => {
         const value = operatorContext.currentValue(nodeId, paramId);
         if ((value as IOperatorNodeParameterValueWithLabel).value != null) {
-            return (value as IOperatorNodeParameterValueWithLabel).value;
+            return `${(value as IOperatorNodeParameterValueWithLabel).value}`;
         } else {
-            return value as string | undefined;
+            return value != null ? `${value}` : undefined;
         }
     };
     return rerender ? null : (

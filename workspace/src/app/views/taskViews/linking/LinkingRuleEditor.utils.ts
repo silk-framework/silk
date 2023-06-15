@@ -70,8 +70,11 @@ const extractSimilarityOperatorNode = (
             }
             return t;
         };
-        const reverseParameterValue = () =>
-            operator.parameters[REVERSE_PARAMETER_ID]?.["value"] ?? operator.parameters[REVERSE_PARAMETER_ID];
+        const reverseParameterValue = (): string | undefined => {
+            const value =
+                operator.parameters[REVERSE_PARAMETER_ID]?.["value"] ?? operator.parameters[REVERSE_PARAMETER_ID];
+            return typeof value == "string" ? value : typeof value == "boolean" ? `${value}` : undefined;
+        };
         const inputsCanBeSwitched = isComparison && reverseParameterValue() != null;
         const switchInputs = inputsCanBeSwitched && reverseParameterValue() === "true";
         if (switchInputs) {
@@ -185,14 +188,16 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                 id: ruleOperatorNode.nodeId,
                 indexing: true, // FIXME: Should this be part of the config in the UI?
                 parameters: Object.fromEntries(
-                    Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
-                        parameterKey,
-                        parameterValue ?? "",
-                    ])
+                    Object.entries(ruleOperatorNode.parameters)
+                        // Do not send values that were not set, these must have a default value defined.
+                        .filter(([_key, value]) => value != null)
+                        .map(([parameterKey, parameterValue]) => [parameterKey, parameterValue!])
                 ),
                 type: "Comparison",
-                threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
-                weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
+                threshold: parseFloat(
+                    ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!! as string
+                ),
+                weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!! as string),
             };
             if (ruleOperatorNode.inputsCanBeSwitched && ruleOperatorNode.inputs[0] != null) {
                 // Set reverse parameter correctly. Either the first input has a target path or the second input has a source path.
@@ -232,7 +237,7 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                     ])
                 ),
                 type: "Aggregation",
-                weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
+                weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!! as string),
             };
             return aggregation;
         }

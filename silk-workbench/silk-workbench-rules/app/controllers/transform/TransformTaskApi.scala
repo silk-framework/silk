@@ -425,7 +425,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     task.synchronized {
       processRule(task, ruleId) { currentRule =>
         handleValidationExceptions {
-          implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
+          implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project).copy(prefixes = Prefixes.empty)
           implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
           deserializeCompileTime[TransformRule]() { updatedRule =>
             updateRule(currentRule.update(updatedRule))

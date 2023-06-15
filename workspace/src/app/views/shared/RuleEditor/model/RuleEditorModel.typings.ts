@@ -13,12 +13,14 @@ export interface RuleEditorNode extends Node<NodeContentPropsWithBusinessData<IR
     data: NodeContentPropsWithBusinessData<IRuleNodeData>;
 }
 
-export type RuleEditorNodeParameterValue = IOperatorNodeParameterValueWithLabel | string | undefined;
-export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue): string | undefined => {
-    return typeof value === "string" ? value : value?.value;
+export type RuleEditorNodeParameterValue = IOperatorNodeParameterValueWithLabel | string | boolean | undefined;
+export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue): string | boolean | undefined => {
+    return typeof value === "string" || typeof value === "boolean" ? value : value?.value;
 };
 export const ruleEditorNodeParameterLabel = (value: RuleEditorNodeParameterValue): string | undefined => {
-    return typeof value === "string" ? value : value?.label ?? value?.value;
+    return typeof value === "string" || typeof value === "boolean"
+        ? `${value}`
+        : value?.label ?? (value?.value != null ? `${value.value}` : undefined);
 };
 export type StickyNodePropType = { content?: string; style?: CSSProperties };
 

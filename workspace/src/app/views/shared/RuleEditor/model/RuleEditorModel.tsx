@@ -1539,7 +1539,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                   parameterDiff && parameterDiff.has(parameterId)
                                       ? parameterDiff.get(parameterId)
                                       : parameterValue;
-                              return [parameterId, typeof value === "string" ? value : value ? value.value : undefined];
+                              return [
+                                  parameterId,
+                                  typeof value === "string" || typeof value === "boolean"
+                                      ? value
+                                      : value
+                                      ? value.value
+                                      : undefined,
+                              ];
                           })
                       )
                     : originalNode.parameters,

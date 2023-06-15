@@ -332,10 +332,9 @@ const convertRuleOperatorNodeToValueInput = (
                     )
                 ),
             parameters: Object.fromEntries(
-                Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
-                    parameterKey,
-                    parameterValue ?? "",
-                ])
+                Object.entries(ruleOperatorNode.parameters)
+                    .filter(([_key, value]) => value != null)
+                    .map(([parameterKey, parameterValue]) => [parameterKey, parameterValue!])
             ),
             type: "transformInput",
         };
@@ -343,7 +342,7 @@ const convertRuleOperatorNodeToValueInput = (
     } else if (ruleOperatorNode.pluginType === "PathInputOperator") {
         const pathInput: IPathInput = {
             id: ruleOperatorNode.nodeId,
-            path: ruleEditorNodeParameterValue(ruleOperatorNode.parameters["path"]) ?? "",
+            path: (ruleEditorNodeParameterValue(ruleOperatorNode.parameters["path"]) ?? "") as string,
             type: "pathInput",
         };
         return pathInput;

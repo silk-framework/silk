@@ -50,13 +50,29 @@ export const RuleParameterInput = ({
     const uniqueId = `${nodeId}_${ruleParameter.parameterId}`;
     const defaultValueWithLabel = ruleParameter.currentValue() ?? ruleParameter.initialValue;
     const defaultValue = ruleEditorNodeParameterValue(defaultValueWithLabel);
-    const inputAttributes = {
+    const _inputAttributes = {
         id: uniqueId,
         name: uniqueId,
-        defaultValue: defaultValue,
         onChange,
         intent: hasValidationError ? Intent.DANGER : undefined,
         readOnly: ruleEditorContext.readOnlyMode || modelContext.readOnly,
+    };
+    const stringDefaultValue =
+        typeof defaultValue === "string" ? defaultValue : defaultValue != null ? `${defaultValue}` : undefined;
+    const stringValueInputAttributes = {
+        ..._inputAttributes,
+        defaultValue: stringDefaultValue,
+    };
+    const booleanDefaultValue =
+        typeof defaultValue === "boolean"
+            ? defaultValue
+            : typeof defaultValue === "string"
+            ? defaultValue.toLowerCase() === "true"
+            : undefined;
+    const booleanValueInputAttributes = {
+        ..._inputAttributes,
+        defaultValue: booleanDefaultValue ? "true" : "false",
+        defaultChecked: booleanDefaultValue,
     };
 
     const handleFileSearch = async (input: string) => {
@@ -77,11 +93,13 @@ export const RuleParameterInput = ({
             if (large) {
                 // FIXME: CodeEditor looks buggy in the modal
                 // return <CodeEditor {...inputAttributes} />;
-                return <TextAreaWithCharacterWarnings {...inputAttributes} fill={true} large={true} rows={10} />;
+                return (
+                    <TextAreaWithCharacterWarnings {...stringValueInputAttributes} fill={true} large={true} rows={10} />
+                );
             } else {
                 return (
                     <TextAreaWithCharacterWarnings
-                        {...inputAttributes}
+                        {...stringValueInputAttributes}
                         fill={false}
                         small={true}
                         growVertically={false}
@@ -93,19 +111,18 @@ export const RuleParameterInput = ({
         case "boolean":
             return (
                 <Switch
-                    {...inputAttributes}
-                    onChange={(value: boolean) => inputAttributes.onChange(`${value}`)}
-                    defaultChecked={inputAttributes.defaultValue?.toLowerCase() === "true"}
-                    disabled={inputAttributes.readOnly}
+                    {...booleanValueInputAttributes}
+                    onChange={(value: boolean) => booleanValueInputAttributes.onChange(`${value}`)}
+                    disabled={booleanValueInputAttributes.readOnly}
                 />
             );
         case "code":
             // FIXME: Add readOnly mode
-            return <CodeEditor {...inputAttributes} />;
+            return <CodeEditor {...stringValueInputAttributes} />;
         case "password":
             return (
                 <TextField
-                    {...inputAttributes}
+                    {...stringValueInputAttributes}
                     type={"password"}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         onChange(e.target.value);
@@ -125,11 +142,11 @@ export const RuleParameterInput = ({
                         itemValueString: resourceNameFn,
                         noResultText: t("common.messages.noResults", "No results."),
                         inputProps: {
-                            readOnly: inputAttributes.readOnly,
+                            readOnly: stringValueInputAttributes.readOnly,
                         },
                     }}
                     required={ruleParameter.parameterSpecification.required}
-                    {...inputAttributes}
+                    {...stringValueInputAttributes}
                     insideModal={insideModal}
                 />
             );
@@ -143,11 +160,11 @@ export const RuleParameterInput = ({
                         projectId={ruleEditorContext.projectId}
                         paramId={ruleParameter.parameterId}
                         pluginId={pluginId}
-                        onChange={inputAttributes.onChange}
+                        onChange={stringValueInputAttributes.onChange}
                         initialValue={
-                            defaultValue
+                            stringDefaultValue
                                 ? {
-                                      value: defaultValue,
+                                      value: stringDefaultValue,
                                       label: (defaultValueWithLabel as IOperatorNodeParameterValueWithLabel)?.label,
                                   }
                                 : undefined
@@ -157,13 +174,16 @@ export const RuleParameterInput = ({
                         formParamId={uniqueId}
                         dependentValue={dependentValue}
                         required={ruleParameter.parameterSpecification.required}
-                        readOnly={inputAttributes.readOnly}
+                        readOnly={stringValueInputAttributes.readOnly}
                         hasBackDrop={!insideModal}
                     />
                 );
             } else {
                 return (
-                    <TextFieldWithCharacterWarnings {...inputAttributes} {...preventEventsFromBubblingToReactFlow} />
+                    <TextFieldWithCharacterWarnings
+                        {...stringValueInputAttributes}
+                        {...preventEventsFromBubblingToReactFlow}
+                    />
                 );
             }
     }
