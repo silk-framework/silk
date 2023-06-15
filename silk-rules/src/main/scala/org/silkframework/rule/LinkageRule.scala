@@ -105,13 +105,14 @@ object LinkageRule {
         operator = (node \ "_").find(child => !Set("Filter", "RuleLayout", "UiAnnotations").contains(child.label)).map(fromXml[SimilarityOperator]),
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
         linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes),
+        inverseLinkType = Option((node \ "@inverseLinkType").text.trim).filter(_.nonEmpty).map(Uri.parse(_, readContext.prefixes)),
         layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout()),
         uiAnnotations = (node \ "UiAnnotations").headOption.map(uiAnnotations => XmlSerialization.fromXml[UiAnnotations](uiAnnotations)).getOrElse(UiAnnotations())
       )
     }
 
     def write(value: LinkageRule)(implicit writeContext: WriteContext[Node]): Node = {
-      <LinkageRule linkType={value.linkType.serialize(writeContext.prefixes)}>
+      <LinkageRule linkType={value.linkType.serialize(writeContext.prefixes)} inverseLinkType={value.inverseLinkType.map(_.serialize(writeContext.prefixes)).getOrElse("")}>
         {value.operator.toList.map(toXml[SimilarityOperator])}
         {value.filter.toXML}
         {XmlSerialization.toXml(value.layout)}
