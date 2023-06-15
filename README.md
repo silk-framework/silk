@@ -19,7 +19,7 @@ Community documentation is maintained in the [doc](doc/) folder.
 
 ### Local build
 
-- JDK 11
+- JDK 17
 - [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
 - [Yarn](https://yarnpkg.com) for React/JavaScript build pipeline (e.g. ^1.22.0)
 - Node (e.g. ^14.17.0)

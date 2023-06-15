@@ -16,17 +16,17 @@ package models.linking
 
 import models.linking.EvalLink.{Correctness, LinkType}
 import org.silkframework.entity.Link
-import org.silkframework.rule.evaluation.DetailedLink
+import org.silkframework.rule.evaluation.EvaluatedLink
 
 /**
  * An evaluation link.
  */
-class EvalLink(link: DetailedLink,
+class EvalLink(link: EvaluatedLink,
                val correct: Correctness,
-               val linkType: LinkType) extends DetailedLink(link.source, link.target, link.entities, link.details) {
+               val linkType: LinkType) extends EvaluatedLink(link.source, link.target, link.linkEntities, link.details) {
 
   def this(link: Link, correct: Correctness, linkType: LinkType) = {
-    this(new DetailedLink(link), correct, linkType)
+    this(new EvaluatedLink(link), correct, linkType)
   }
 
   def updateCorrectness(correct: Correctness) = new EvalLink(this, correct, linkType)
