@@ -66,7 +66,7 @@ const datasetConfigPreview = (
     };
 };
 
-const intRegex = /^-?[1-9][0-9]*$/;
+const intRegex = /^(0|-?[1-9][0-9]*)$/;
 const isInt = (value) => {
     return intRegex.test(`${value}`);
 };
