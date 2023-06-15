@@ -10,7 +10,10 @@ import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata.CachedEntitySchemaXmlFormat
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCacheFactory
+import org.silkframework.workspace.activity.workflow.TaskIdentifierParameter.TaskIdentifierParameterXmlFormat
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
+import org.silkframework.workspace.activity.workflow.WorkflowDatasetsParameter.WorkflowDatasetsFormat
+import org.silkframework.workspace.activity.workflow.WorkflowOperatorsParameter.WorkflowOperatorsFormat
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowAsTaskExecutor, LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 
@@ -63,6 +66,9 @@ class WorkspacePlugins extends PluginModule {
     TypesFormat.getClass ::
     VocabularyCacheValue.ValueFormat.getClass ::
     CachedEntitySchemaXmlFormat.getClass ::
+    WorkflowOperatorsFormat.getClass ::
+    WorkflowDatasetsFormat.getClass ::
+    TaskIdentifierParameterXmlFormat.getClass ::
     WorkflowXmlFormat.getClass ::
     Nil
   }
