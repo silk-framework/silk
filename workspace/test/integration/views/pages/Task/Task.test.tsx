@@ -107,14 +107,16 @@ describe("Task page", () => {
         // Check widget title
         await waitFor(() => {
             const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
-            expect(findSingleElement(taskConfig, "header h3").text()).toContain(pluginLabel);
+            expect(findSingleElement(taskConfig, "header h2").text()).toContain(pluginLabel);
         });
+
         const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
         const propertyLabels = findAll(taskConfig, ".eccgui-card__content .eccgui-label").map((elem) => elem.text());
         expect(propertyLabels).toStrictEqual(params.map(([paramId, paramLabel]) => paramLabel));
         const propertyValues = findAll(taskConfig, ".eccgui-card__content .eccgui-propertyvalue__value").map((elem) =>
             elem.text()
         );
+
         expect(propertyValues).toStrictEqual(
             params.map(([pluginId, pluginLabel, value, label]) => (label ? label : value))
         );
