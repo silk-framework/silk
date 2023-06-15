@@ -87,6 +87,8 @@ object JsonHelpers {
     optionalValue(json, attributeName) match {
       case Some(jsBoolean: JsBoolean) =>
         Some(jsBoolean.value)
+      case Some(jsString: JsString) =>
+        Some(jsString.value.toBoolean)
       case Some(_) =>
         throw JsonParseException("Value for attribute '" + attributeName + "' is not a boolean!")
       case None =>
