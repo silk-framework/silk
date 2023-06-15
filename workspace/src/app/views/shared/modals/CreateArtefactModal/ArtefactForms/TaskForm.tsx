@@ -39,7 +39,7 @@ export interface IProps {
 export interface UpdateTaskProps {
     // The existing parameter values
     parameterValues: {
-        [key: string]: string | object;
+        [key: string]: string | boolean | object;
     };
     variableTemplateValues: Record<string, any>;
     dataParameters?: {
@@ -224,7 +224,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         }
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
+            setValue(URI_PROPERTY_PARAMETER_ID, updateTask?.dataParameters?.uriProperty ?? "");
             register({ name: READ_ONLY_PARAMETER });
+            setValue(READ_ONLY_PARAMETER, updateTask?.dataParameters?.readOnly ?? false);
         }
         registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
         setFormValueKeys(returnKeys);

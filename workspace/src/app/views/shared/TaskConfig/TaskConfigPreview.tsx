@@ -88,11 +88,15 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     /** Returns the string value if this is an atomic value, else it returns the parameter value object. */
     const paramDisplayValue = (parameterValue: any): string | any => {
         if (typeof parameterValue === "string") {
-            return t("widget.ConfigWidget.values." + parameterValue, parameterValue);
+            return parameterValue;
+        } else if (typeof parameterValue === "boolean") {
+            return `${parameterValue}`;
         } else if (typeof parameterValue.label === "string") {
-            return t("widget.ConfigWidget.values." + parameterValue.label, parameterValue.label);
+            return parameterValue.label;
         } else if (typeof parameterValue.value === "string") {
-            return t("widget.ConfigWidget.values." + parameterValue.value, parameterValue.value);
+            return parameterValue.value;
+        } else if (typeof parameterValue.value === "boolean") {
+            return `${parameterValue.value}`;
         } else if (parameterValue.value) {
             // withLabels "object" value
             return parameterValue.value;

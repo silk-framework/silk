@@ -111,9 +111,9 @@ function customFlush(done) {
 const deepMerge = (source, target) => {
     for (const key of new Set(Object.keys(target).concat(Object.keys(source)))) {
         if (source[key] !== undefined && target[key] !== undefined) {
-            if(typeof source[key] === "string" || typeof target[key] === "string") {
-                console.log(`Found 2 conflicting values for key '${key}'. Selected value: '${source[key]}'`)
-                target[key] = source[key]
+            if (typeof source[key] === "string" || typeof target[key] === "string") {
+                console.log(`Found 2 conflicting values for key '${key}'. Selected value: '${source[key]}'`);
+                target[key] = source[key];
             } else if (typeof source[key] === "object" && typeof target[key] === "object") {
                 Object.assign(target[key], deepMerge(target[key], source[key]));
             } else {
@@ -204,7 +204,7 @@ function validate() {
         for (const [lang, missingKeys] of languagesWithMissingKeys) {
             console.warn(
                 `For language '${lang}' ${missingKeys.size} keys do not have a translation value:\n  - ` +
-                [...missingKeys].sort((a, b) => (a < b ? -1 : 1)).join("\n  - ")
+                    [...missingKeys].sort((a, b) => (a < b ? -1 : 1)).join("\n  - ")
             );
         }
         process.exit(1);

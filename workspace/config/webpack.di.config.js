@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const webpack = require("webpack");
 const resolve = require("resolve");
-const sass = require('sass');
+const sass = require("sass");
 const sassRenderSyncOptions = require("@eccenca/gui-elements/config/sassOptions");
 const PnpWebpackPlugin = require("pnp-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -445,14 +445,16 @@ module.exports = function (webpackEnv, isWatch) {
                         },
                         {
                             test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
-                            use: [{
-                                loader: 'file-loader',
-                                options: {
-                                    name: '[name].[ext]',
-                                    outputPath: 'assets/css/fonts/',
-                                    publicPath: 'fonts'
-                                }
-                            }]
+                            use: [
+                                {
+                                    loader: "file-loader",
+                                    options: {
+                                        name: "[name].[ext]",
+                                        outputPath: "assets/css/fonts/",
+                                        publicPath: "fonts",
+                                    },
+                                },
+                            ],
                         },
                         // "file" loader makes sure those assets get served by WebpackDevServer.
                         // When you `import` an asset, you get its (virtual) filename.
@@ -583,22 +585,20 @@ module.exports = function (webpackEnv, isWatch) {
                 }),
             // TypeScript type checking
             useTypeScript &&
-                new ForkTsCheckerWebpackPlugin(
-                    {
-                        typescript: {
-                            configOverwrite: {
-                                include: [paths.appSrc, ...paths.additionalSourcePaths()]
-                            }
-                        }
-                    }
-                ),
+                new ForkTsCheckerWebpackPlugin({
+                    typescript: {
+                        configOverwrite: {
+                            include: [paths.appSrc, ...paths.additionalSourcePaths()],
+                        },
+                    },
+                }),
             // isEnvProduction && new BundleAnalyzerPlugin({
             //     generateStatsFile: true
             // }),
             isEnvProduction &&
                 new CycloneDxWebpackPlugin({
                     outputLocation: "./artifacts",
-                })
+                }),
         ].filter(Boolean),
         // Some libraries import Node modules but don't use them in the browser.
         // Tell Webpack to provide empty mocks for them so importing them works.

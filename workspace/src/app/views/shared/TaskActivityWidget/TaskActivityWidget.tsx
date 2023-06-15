@@ -37,7 +37,7 @@ interface TaskActivityWidgetProps {
      */
     updateCallback?: (status: IActivityStatus) => void;
     /** Optional test ID. */
-    testId?: string
+    testId?: string;
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
@@ -55,7 +55,7 @@ export const useTaskActivityWidget = ({
     activityActionPreAction = {},
     updateCallback,
     isCacheActivity = false,
-    testId = `activity-control-workflow-editor`
+    testId = `activity-control-workflow-editor`,
 }: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();

@@ -1,5 +1,5 @@
-import {LinkTypeMapping, ReferenceLinkType} from "../typings";
-import React, {useState} from "react";
+import { LinkTypeMapping, ReferenceLinkType } from "../typings";
+import React, { useState } from "react";
 import {
     Button,
     FieldItem,
@@ -10,9 +10,9 @@ import {
     Spacing,
     TextField,
 } from "@eccenca/gui-elements";
-import {updateReferenceLink} from "../LinkingEvaluationViewUtils";
-import {useTranslation} from "react-i18next";
-import {diErrorMessage} from "@ducks/error/typings";
+import { updateReferenceLink } from "../LinkingEvaluationViewUtils";
+import { useTranslation } from "react-i18next";
+import { diErrorMessage } from "@ducks/error/typings";
 
 interface Props {
     projectId: string;
@@ -111,7 +111,7 @@ export const AddReferenceLinkModal = ({ projectId, linkingTaskId, onClose }: Pro
                 }}
             >
                 <Select
-                    items={["positive", "negative"].map(type => ({ label: type }))}
+                    items={["positive", "negative"].map((type) => ({ label: type }))}
                     onItemSelect={() => {}}
                     itemRenderer={(item, props) => {
                         return (

@@ -372,8 +372,8 @@ describe("Task creation widget", () => {
         // })
     });
 
-    const value = (value: string, label?: string) => {
-        const result: { value: string; label?: string } = { value };
+    const value = (value: string | boolean, label?: string) => {
+        const result: { value: string | boolean; label?: string } = { value };
         if (label) {
             result.label = label;
         }

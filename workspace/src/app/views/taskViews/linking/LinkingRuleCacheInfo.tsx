@@ -31,7 +31,7 @@ export const LinkingRuleCacheInfo = ({ projectId, taskId }: LinkingRuleCacheInfo
         taskId: taskId,
         activityName: "ReferenceEntitiesCache",
         layoutConfig: { border: true, visualization: "spinner" },
-        isCacheActivity: true
+        isCacheActivity: true,
     });
 
     const pathCache = useTaskActivityWidget({

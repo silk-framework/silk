@@ -53,8 +53,8 @@ export type RuleOperatorType = "AggregationOperator" | "TransformOperator" | "Co
 export type PluginType = TaskType | RuleOperatorType;
 
 export interface IArbitraryPluginParameters {
-    // If requested with withLabels option, then the values will be reified like this: {label: string, value: string | object}
-    [key: string]: string | object;
+    // If requested with withLabels option, then the values will be reified like this: {label: string, value: string | boolean | object}
+    [key: string]: string | boolean | object;
 }
 
 /** The data of a project task from the generic /tasks endpoint. */

@@ -13,18 +13,21 @@ export const defaultValueAsJs = (property: IArtefactItemProperty, withLabel: boo
     return withLabel ? { value, label: optionallyLabelledParameterToLabel(property.value) } : value;
 };
 /** Converts a string value to its typed equivalent based on the given value type. */
-export const stringValueAsJs = (valueType: string, value: OptionallyLabelledParameter<string> | null): any => {
+export const stringValueAsJs = (
+    valueType: string,
+    value: OptionallyLabelledParameter<string | boolean> | null
+): any => {
     const stringValue = value != null ? optionallyLabelledParameterToValue(value) ?? "" : "";
     let v: any = stringValue;
 
-    if (valueType === INPUT_TYPES.BOOLEAN) {
+    if (valueType === INPUT_TYPES.BOOLEAN && typeof v === "string") {
         // cast to boolean from string
-        v = stringValue.toLowerCase() === "true";
+        v = (stringValue as string).toLowerCase() === "true";
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {
         if (v !== "" && stringValue) {
-            v = parseInt(stringValue);
+            v = parseInt(stringValue as string);
         } else {
             v = null;
         }

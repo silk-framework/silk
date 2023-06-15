@@ -3,6 +3,7 @@ package controllers.workspaceApi.search
 import controllers.util.TextSearchUtils
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -35,6 +36,8 @@ object SearchApiModel {
   final val PLUGIN_LABEL = "pluginLabel"
   final val TAGS = "tags"
   final val PARAMETERS = "parameters"
+  final val READ_ONLY = "readOnly"
+  final val URI_PROPERTY = "uriProperty"
   // type values
   final val PROJECT_TYPE = "project"
   /* JSON serialization */
@@ -496,6 +499,15 @@ object SearchApiModel {
       } else {
         Seq.empty
       }
+      val datasetAttributes = {
+        task.data match {
+          case ds: GenericDatasetSpec =>
+            Seq(READ_ONLY -> JsBoolean(ds.readOnly)) ++
+              ds.uriAttribute.map(uri => URI_PROPERTY -> JsString(uri))
+          case _ =>
+            Seq.empty
+        }
+      }
       JsObject(
         Seq(
           PROJECT_ID -> JsString(typedTask.project),
@@ -510,6 +522,7 @@ object SearchApiModel {
         )
           ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
           ++ parameters
+          ++ datasetAttributes
       )
     }
   }
