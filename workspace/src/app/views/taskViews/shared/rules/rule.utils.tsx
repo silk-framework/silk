@@ -451,7 +451,7 @@ const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
         }
     });
     return {
-        nodePositions: nodePositions,
+        nodePositions,
     };
 };
 

@@ -254,8 +254,7 @@ const createTagsAndAddToMetadata = async (payload: {
 
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
 const extractDataAttributes = (formData): ArtefactDataParameters => {
-    let returnValue: ArtefactDataParameters = Object.create(null);
-    returnValue = Object.create(null);
+    const returnValue: ArtefactDataParameters = Object.create(null);
     returnValue[URI_PROPERTY_PARAMETER_ID] = formData[URI_PROPERTY_PARAMETER_ID];
     returnValue[READ_ONLY_PARAMETER] = formData[READ_ONLY_PARAMETER];
     return returnValue;
