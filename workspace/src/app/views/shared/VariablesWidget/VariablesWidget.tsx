@@ -31,6 +31,7 @@ import NewVariableModal from "./modals/NewVariableModal";
 import { createNewVariable } from "./requests";
 import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 import DeleteModal from "../modals/DeleteModal";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
@@ -106,11 +107,18 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             }
 
             const reorderedVariables = { variables: reorderArray(variables, fromPos, toPos) };
-
             try {
                 await createNewVariable(reorderedVariables, projectId);
                 setRefetch((f) => ++f);
-            } catch (err) {}
+            } catch (err) {
+                if (err && (err as FetchError).isFetchError && err.body.detail.includes("Unknown token found: ")) {
+                    registerError(
+                        "VariableWidgetError",
+                        "Cannot change position of variable: its own dependencies must be defined beforehand",
+                        err
+                    );
+                }
+            }
         },
         [variables]
     );
