@@ -1,28 +1,27 @@
 package org.silkframework.workspace
 
 import org.mockito.Mockito._
-import org.scalatest.Matchers.convertToAnyShouldWrapper
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+
 import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, TestResourceManager}
 import org.silkframework.runtime.validation.ServiceUnavailableException
-import org.silkframework.util.{ConfigTestTrait, Identifier}
+import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.ClassTag
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with MockitoSugar with TestUserContextTrait {
+class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with MockitoSugar with TestUserContextTrait {
   behavior of "Workspace"
 
   it should "throw a 503 if it is loading and reaching its timeout" in {
@@ -59,12 +58,12 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     val project1 = Identifier("project1")
     val task1 = Identifier("task1")
     workspaceProvider.putProject(ProjectConfig(project1, metaData = MetaData(Some(project1))))
-    workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()), EmptyResourceManager())
+    workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()), TestResourceManager())
 
     val project2 = Identifier("project2")
     val task2 = Identifier("task2")
     workspaceProvider.putProject(ProjectConfig(project2, metaData = MetaData(Some(project2))))
-    workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()), EmptyResourceManager())
+    workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()), TestResourceManager())
 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 
@@ -95,20 +94,20 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     val project = Identifier("project")
     val task = Identifier("task")
     workspaceProvider.putProject(ProjectConfig(project, metaData = MetaData(Some(project))))
-    workspaceProvider.putTask(project, PlainTask(task,  TestTask()), EmptyResourceManager())
+    workspaceProvider.putTask(project, PlainTask(task,  TestTask()), TestResourceManager())
 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 
     // Activity should have been started automatically
     val sleepActivity = workspace.project(project).anyTask(task).activity[SleepActivity]
-    sleepActivity.status() shouldBe 'isRunning
+    sleepActivity.status() mustBe  'isRunning
 
     workspace.reload()
 
     // After reload the current activity should have been cancelled and a new one started.
-    sleepActivity.status() should not be 'isRunning
+    sleepActivity.status() must not be 'isRunning
     val newSleepActivity = workspace.project(project).anyTask(task).activity[SleepActivity]
-    newSleepActivity.status() shouldBe 'isRunning
+    newSleepActivity.status() mustBe 'isRunning
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(

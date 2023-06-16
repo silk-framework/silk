@@ -12,6 +12,7 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.LoadedTask
 
 import java.util.logging.Logger
+import scala.util.control.NonFatal
 import scala.xml._
 
 /**
@@ -30,7 +31,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     val taskResources = resources.child(data.id)
 
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
 
     val datasetXml = data.selection.toXML(asSource = true)
     val rulesXml = toXml(data)
@@ -54,8 +55,8 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
     try {
       implicit val readContext = ReadContext.fromPluginContext()
       // Currently the transform spec is distributed in two xml files
-      val datasetXml = taskResources.get("dataset.xml").read(XML.load)
-      val rulesXml = taskResources.get("rules.xml").read(XML.load)
+      val datasetXml = loadResourceAsXml(taskResources, "dataset.xml")
+      val rulesXml = loadResourceAsXml(taskResources, "rules.xml")
       var xml = rulesXml.copy(child = datasetXml ++ rulesXml.child)
       // Old XML versions do not contain the id
       if((xml \ "@id").isEmpty) {
@@ -63,7 +64,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       }
       loadTaskSafelyFromXML(xml, resourceName = "rules.xml", alternativeTaskId = Some(name), taskResources)
     } catch {
-      case ex: ValidationException =>
+      case NonFatal(ex) =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)
     }
   }

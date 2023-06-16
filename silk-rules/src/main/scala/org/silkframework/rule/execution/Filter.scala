@@ -43,7 +43,7 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
             linkBuffer.appendAll(bestLinks)
           }
         }
-        context.value.update(linkBuffer)
+        context.value.update(linkBuffer.toSeq)
         context.log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
       }
       case None => {

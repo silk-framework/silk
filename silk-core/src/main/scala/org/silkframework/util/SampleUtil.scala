@@ -23,7 +23,7 @@ object SampleUtil {
    * @tparam T
    * @return
    */
-  def sample[T](values: Traversable[T],
+  def sample[T](values: Iterator[T],
                 size: Int,
                 filterOpt: Option[T => Boolean])
                (implicit m: ClassTag[T], random: Random): Seq[T] = {

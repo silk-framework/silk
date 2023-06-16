@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class XmlOutputTemplateTest extends FlatSpec with Matchers {
+class XmlOutputTemplateTest extends AnyFlatSpec with Matchers {
 
   behavior of "XmlOutputTemplate"
 

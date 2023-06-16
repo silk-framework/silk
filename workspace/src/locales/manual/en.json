@@ -228,6 +228,7 @@
             "cancel": "Cancel",
             "proceed": "Proceed",
             "copy": "Copy",
+            "chooseFile": "Choose file",
             "clone": "Clone",
             "close": "Close",
             "confirm": "Confirm",
@@ -236,6 +237,7 @@
             "download": "Download",
             "export": "Export to",
             "exportTo": "Export to",
+            "import": "Import",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
             "remove": "Remove",
@@ -289,6 +291,7 @@
         },
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
+            "anErrorHasOccurred": "An error has occurred.",
             "allTypes": "All types",
             "cloneModalTitle": "New name of cloned {{item}}",
             "cloneOf": "Copy of {{item}}",
@@ -299,6 +302,7 @@
             "createFirstItems": "Create your first {{items}} now.",
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
+            "noValuesAvailable": "No values available",
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
@@ -329,6 +333,7 @@
             "itemType": "Item type",
             "less": "less",
             "more": "more",
+            "loading": "Loading",
             "required": "required",
             "sortOptions": "Sort options",
             "summary": "Summary",
@@ -379,6 +384,14 @@
             "timeout": "Timeout"
         }
     },
+    "transformEvaluationTabView": {
+        "table": {
+            "header": {
+                "transformEntities": "Transformed Entities"
+            }
+        },
+        "couldNotLoad": "Could not load evaluation."
+    },
     "linkingEvaluationTabView": {
         "toolbar": {
             "toggleExampleValues": "Value table expanded by default",
@@ -392,9 +405,19 @@
             "missingExecution": "Linking evaluation action need to run first to get evaluation results.",
             "emptyWithoutFilters": "No evaluation results available.",
             "emptyWithFilters": "No evaluation results available for the filters you set. Adjust or clear them first.",
+            "referenceLinksEmptyWithoutFilters": "No reference links available.",
+            "referenceLinksEmptyWithFilters": "No reference links available for the filters you set. Adjust or clear them first.",
             "running": "Evaluation is currently running.",
             "unsuccessfulEvaluation": "The evaluation process did not finished successfully. Check the warning log.",
             "unknownProblem": "No results available because of unexpected behaviour."
+        },
+        "errors": {
+            "fetchingLinks": {
+                "msg": "An error has occurred fetching {{linkType}} links"
+            },
+            "updateLink": {
+                "msg": "An error has occurred updating {{linkType}} link"
+            }
         },
         "table": {
             "header": {
@@ -477,6 +500,8 @@
             "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links.",
             "scoreWidget": {
+                "title": "Evaluation",
+                "notStarted": "Click button to run evaluation",
                 "showExamples": "Show Examples",
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
@@ -550,7 +575,8 @@
                 }
             },
             "startEvaluation": "Start evaluation",
-            "showEvaluation": "Show evaluation"
+            "showEvaluation": "Show evaluation examples",
+            "hideEvaluation": "Hide evaluation examples"
         }
     },
     "taskViews": {
@@ -942,14 +968,41 @@
         "confirmed": "Confirmed",
         "declined": "Declined",
         "certainOnly": "Certain",
+        "uncertain": "Uncertain",
         "uncertainOnly": "Uncertain",
         "removeLink": "Delete reference link",
         "checkFeedback": "Re-evaluate feedback decision",
+        "source": "Source",
+        "target": "Target",
+        "type": "Type",
+        "warnings": {
+            "entityHasNoValues": "This entity has no value available for all of its input paths. Maybe the entity does not exist in the data source."
+        },
         "showEntityUris": {
             "menuText": "Show entity URIs",
             "modalTitle": "Reference link entity URIs",
             "sourceEntity": "Source entity",
             "targetEntity": "Target entity"
+        },
+        "contextMenu": {
+            "add": "Add reference link",
+            "import": "Import reference links",
+            "export": "Export reference links",
+            "removeReferenceLinks": "Remove reference links"
+        },
+        "removeModal": {
+            "title": "Remove reference links",
+            "infoMessage": "All reference links for every of the selected categories will be deleted."
+        },
+        "importModal": {
+            "title": "Import reference Links",
+            "generateDeclinedLinks": "Generate declined links",
+            "generateDeclinedLinksTooltip": "If enabled, declined reference links will be generated by interchanging the source and targets of the provided positive links. This will only produce correct results if the provided positive reference links are complete and model 1:1 relations."
+        },
+        "addLinkModal": {
+            "title": "Add reference link",
+            "sourceUri": "Source URI",
+            "targetUri": "Target URI"
         }
     },
     "HierarchicalMapping": {
@@ -981,5 +1034,9 @@
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
+    },
+    "MappingTree": {
+        "loadingRules": "Loading rules",
+        "noRulesFound": "No rules found"
     }
 }

@@ -2,22 +2,29 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.{QuerySolution, ResultSet}
 import org.silkframework.dataset.rdf._
+import org.silkframework.runtime.iterator.CloseableIterator
 
-import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
+import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 /**
   * Reads Jena ResultSets into Silk SPARQL results.
   */
 object JenaResultsReader {
 
-  def read[U](resultSet: ResultSet, f: SortedMap[String, RdfNode] => U): Int = {
-    var count = 0
-    for (result: QuerySolution <- resultSet.asScala) {
-      f(toSilkBinding(result))
-      count += 1
-    }
-    count
+  /**
+    * Iterator that reads the result set and closes it afterwards.
+    */
+  def read(resultSet: ResultSet): CloseableIterator[SortedMap[String, RdfNode]] = {
+    val iterator =
+      for (result: QuerySolution <- resultSet.asScala) yield {
+        // Make sure that the reading has not been interrupted in the mean time
+        if(Thread.currentThread().isInterrupted) {
+          throw new InterruptedException()
+        }
+        toSilkBinding(result)
+      }
+    CloseableIterator(iterator, () => { resultSet.close() })
   }
 
   /**

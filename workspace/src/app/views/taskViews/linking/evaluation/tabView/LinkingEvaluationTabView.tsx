@@ -1,7 +1,7 @@
 import {
     ActivityControlWidget,
-    ContextOverlay,
     ContextMenu,
+    ContextOverlay,
     Divider,
     HtmlContentBlock,
     IActivityStatus,
@@ -19,6 +19,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
+    Tabs,
     Tag,
     TagList,
     Toolbar,
@@ -50,6 +51,14 @@ import { useFirstRender } from "../../../../../hooks/useFirstRender";
 import { DataTableCustomRenderProps, DataTableHeader } from "carbon-components-react";
 import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
+import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
+import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
+import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
+import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { getHistory } from "../../../../../store/configureStore";
+import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
+import { extractSearchWords, createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -66,8 +75,14 @@ type LinkingEvaluationResultWithId = LinkingEvaluationResult & { id: string };
 
 const pageSizes = [10, 20, 50];
 
+const linkingTabs: TabProps[] = [
+    { id: 0, title: "Evaluated Links" },
+    { id: 1, title: "Reference Links" },
+];
+
 const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ projectId, linkingTaskId }) => {
     const [t] = useTranslation();
+    const errorHandler = useErrorHandler();
     const commonSel = useSelector(workspaceSel.commonSelector);
     const evaluationResults = React.useRef<LinkRuleEvaluationResult | undefined>();
     const [pagination, paginationElement, onTotalChange] = usePagination({
@@ -79,7 +94,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [showOperators, setShowOperators] = React.useState<boolean>(true);
     const [showStatisticOverlay, setShowStatisticOverlay] = React.useState<boolean>(false);
     const [inputValues, setInputValues] = React.useState<Array<EvaluationLinkInputValue>>([]);
-    const [expandedRows, setExpandedRows] = React.useState<Map<number, number>>(new Map());
+    const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const linksToValueMap = React.useRef<Array<Map<string, EvaluationResultType[number]>>>([]);
     const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<
         IActivityStatus["concreteStatus"] | undefined
@@ -90,6 +105,17 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [linkStateFilter, setLinkStateFilter] = React.useState<keyof typeof LinkEvaluationFilters>();
     const [linkSortBy, setLinkSortBy] = React.useState<Array<LinkEvaluationSortBy>>([]);
     const hasRenderedBefore = useFirstRender();
+    const [showReferenceLinks, setShowReferenceLinks] = React.useState<boolean>(() => {
+        const show = new URLSearchParams(window.location.search).get("showReferenceLinks");
+        console.log({ show });
+        return Boolean(show);
+    });
+    const [showImportLinkModal, setShowImportLinkModal] = React.useState<boolean>(false);
+    const [showAddLinkModal, setShowAddLinkModal] = React.useState<boolean>(false);
+    const [showDeleteReferenceLinkModal, setShowDeleteReferenceLinkModal] = React.useState<boolean>(false);
+    // Tracks if in the current view there has been a link state change. This will prevent re-rendering when changing the state.
+    const manualLinkChange = React.useRef<boolean>(false);
+
     const [tableSortDirection, setTableSortDirection] = React.useState<
         Map<typeof headerData[number]["key"], keyof typeof sortDirectionMapping>
     >(
@@ -100,6 +126,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 ["confidence", "NONE"],
             ])
     );
+    const linkType = showReferenceLinks ? "Reference" : "Evaluation";
 
     //fetch operator plugins
     React.useEffect(() => {
@@ -108,25 +135,46 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         })();
     }, []);
 
+    const registerError = React.useCallback(
+        (errorId: string, err: any, data = {}) =>
+            errorHandler.registerError(errorId, t(`linkingEvaluationTabView.errors.${errorId}`, data), err),
+        []
+    );
+
     React.useEffect(() => {
         if (evaluationResults.current) {
             onTotalChange(evaluationResults.current.resultStats.filteredLinkCount);
         }
     }, [evaluationResults.current]);
 
-    const getEvaluatedLinksUtil = React.useCallback(async (pagination, searchQuery = "", filters, linkSortBy) => {
-        try {
-            setLoading(true);
-            const results = (
-                await getEvaluatedLinks(projectId, linkingTaskId, pagination, searchQuery, filters, linkSortBy)
-            )?.data;
-            evaluationResults.current = results;
-            linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
-        } catch (err) {
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const fetchEvaluatedLinks = React.useCallback(
+        async (pagination, searchQuery = "", filters, linkSortBy, showReferenceLinks) => {
+            try {
+                setLoading(true);
+                // New view is rendered, reset manual link change
+                manualLinkChange.current = false;
+                const results = (
+                    await getEvaluatedLinks(
+                        projectId,
+                        linkingTaskId,
+                        pagination,
+                        searchQuery,
+                        filters,
+                        linkSortBy,
+                        showReferenceLinks,
+                        !showReferenceLinks
+                    )
+                )?.data;
+                evaluationResults.current = results;
+                linksToValueMap.current = results?.links.map((link) => utils.linkToValueMap(link as any)) ?? [];
+            } catch (err) {
+                registerError("fetchingLinks.msg", `Could not fetch ${linkType} links`, { linkType });
+            } finally {
+                setLoading(false);
+            }
+        },
+        []
+    );
 
     const debouncedSearch = React.useCallback((query: string) => {
         if (searchState.current.currentSearchId != null) {
@@ -139,7 +187,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
     React.useEffect(() => {
         if (hasRenderedBefore) {
-            getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
+            fetchEvaluatedLinks(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
         }
     }, [searchQuery]);
 
@@ -149,12 +203,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     React.useEffect(() => {
         let shouldCancel = false;
         if (!shouldCancel && taskEvaluationStatus === "Successful") {
-            getEvaluatedLinksUtil(pagination, searchQuery, linkStateFilter ? [linkStateFilter] : [], linkSortBy);
+            fetchEvaluatedLinks(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
         }
         return () => {
             shouldCancel = true;
         };
-    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, sortString]);
+    }, [pagination.current, pagination.limit, taskEvaluationStatus, linkStateFilter, sortString, showReferenceLinks]);
 
     React.useEffect(() => {
         if (
@@ -261,24 +321,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         return evaluationResults.current?.links.map((evaluation, i) => ({ ...evaluation, id: `${i}` })) ?? [];
     }, [evaluationResults.current]);
 
-    const handleRowExpansion = React.useCallback(
-        (rowId?: number) => {
-            setExpandedRows((prevExpandedRows) => {
-                if (typeof rowId !== "undefined" && prevExpandedRows.has(rowId)) {
-                    prevExpandedRows.delete(rowId);
-                    return new Map([...prevExpandedRows]);
-                } else if (typeof rowId !== "undefined") {
-                    //provided row id doesn't exist in record
-                    return new Map([...prevExpandedRows, [rowId, rowId]]);
-                } else {
-                    //should either collapse all or expand all.
-                    if (prevExpandedRows.size === rowData.length) return new Map();
-                    return new Map(rowData.map((_row: any, i: number) => [i, i]));
-                }
-            });
-        },
-        [rowData]
-    );
+    const handleAllRowsExpansion = React.useCallback(() => setAllRowsExpanded((e) => !e), []);
 
     const handleReferenceLinkTypeUpdate = React.useCallback(
         async (
@@ -291,6 +334,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             if (currentLinkType === linkType) return false;
 
             try {
+                // Link state will trigger a reference entity cache update. Prevent re-rendering by setting this flag.
+                manualLinkChange.current = true;
                 const updateResp = await updateReferenceLink(projectId, linkingTaskId, source, target, linkType);
                 if (updateResp.axiosResponse.status === 200 && evaluationResults.current) {
                     //update one
@@ -298,6 +343,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 }
                 return true;
             } catch (err) {
+                registerError("updateLink.msg", `Could not update ${linkType} link`, { linkType });
                 return false;
             }
         },
@@ -366,20 +412,18 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
         if (taskEvaluationStatus === "Successful" && !searchQuery && !linkStateFilter) {
             // evaluation action done, no filters, no results
-            return (
-                <Notification data-test-id="empty-links-banner">
-                    {t("linkingEvaluationTabView.messages.emptyWithoutFilters")}
-                </Notification>
-            );
+            const translationKey = `linkingEvaluationTabView.messages.${
+                showReferenceLinks ? "referenceLinksEmptyWithoutFilters" : "emptyWithoutFilters"
+            }`;
+            return <Notification data-test-id="empty-links-banner">{t(translationKey)}</Notification>;
         }
 
         if (taskEvaluationStatus === "Successful" && (!!searchQuery || !!linkStateFilter)) {
             // evaluation action done, filters for link state or search query active
-            return (
-                <Notification data-test-id="notification-empty-with-filters">
-                    {t("linkingEvaluationTabView.messages.emptyWithFilters")}
-                </Notification>
-            );
+            const translationKey = `linkingEvaluationTabView.messages.${
+                showReferenceLinks ? "referenceLinksEmptyWithFilters" : "emptyWithFilters"
+            }`;
+            return <Notification data-test-id="notification-empty-with-filters">{t(translationKey)}</Notification>;
         }
 
         // Fallback
@@ -396,15 +440,102 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         };
     }, []);
 
-    const registerForTaskUpdates = React.useCallback((status: IActivityStatus) => {
+    const handleActivityUpdates = React.useCallback((status: IActivityStatus) => {
         if (status.concreteStatus !== "Successful") {
             setLoading(false);
         }
-        setTaskEvaluationStatus(status.concreteStatus);
+        if (!manualLinkChange.current) {
+            // Only change status when there has not been a manual link state change before, else this will trigger a re-render
+            setTaskEvaluationStatus(status.concreteStatus);
+        }
     }, []);
+
+    const refreshIfNecessary = async (needsRefresh: boolean) => {
+        if (needsRefresh) {
+            await fetchEvaluatedLinks(
+                pagination,
+                searchQuery,
+                linkStateFilter ? [linkStateFilter] : [],
+                linkSortBy,
+                showReferenceLinks
+            );
+        }
+    };
+
+    const closeDeleteReferenceLinks = async (needsRefresh: boolean) => {
+        await refreshIfNecessary(needsRefresh);
+        setShowDeleteReferenceLinkModal(false);
+    };
+
+    const closeImportReferenceLinkModal = React.useCallback(async (needsRefresh: boolean) => {
+        await refreshIfNecessary(needsRefresh);
+        setShowImportLinkModal(false);
+    }, []);
+
+    const closeAddNewReferenceLinkModal = React.useCallback(async (needsRefresh: boolean) => {
+        await refreshIfNecessary(needsRefresh);
+        setShowAddLinkModal(false);
+    }, []);
+
+    const handleLinkingTabSwitch = React.useCallback((tabId: number, prevTabId: number) => {
+        if (prevTabId === tabId) {
+            return;
+        }
+        manualLinkChange.current = false;
+        evaluationResults.current = undefined;
+        const history = getHistory();
+        history.replace({
+            search: `?${new URLSearchParams(tabId ? { showReferenceLinks: "true" } : {})}`,
+        });
+        setShowReferenceLinks(!!tabId);
+    }, []);
+
+    const resetManualLinkStateFlag = async (originalAction: () => Promise<void>) => {
+        // Reset when manually running the activities
+        manualLinkChange.current = false;
+        await originalAction();
+    };
+    const activityPreAction = React.useMemo(
+        () => ({
+            start: resetManualLinkStateFlag,
+            restart: resetManualLinkStateFlag,
+        }),
+        []
+    );
+
+    // To check if only the row body matches
+    const multiWordSearchRegex = createMultiWordRegex(extractSearchWords(searchQuery, true), false);
 
     return (
         <section className="diapp-linking-evaluation">
+            {showDeleteReferenceLinkModal && (
+                <ReferenceLinksRemoveModal
+                    projectId={projectId}
+                    linkingTaskId={linkingTaskId}
+                    onClose={closeDeleteReferenceLinks}
+                />
+            )}
+            {showAddLinkModal && (
+                <AddReferenceLinkModal
+                    projectId={projectId}
+                    linkingTaskId={linkingTaskId}
+                    onClose={closeAddNewReferenceLinkModal}
+                />
+            )}
+            {showImportLinkModal && (
+                <ImportReferenceLinksModal
+                    projectId={projectId}
+                    linkingTaskId={linkingTaskId}
+                    onClose={closeImportReferenceLinkModal}
+                />
+            )}
+            <Tabs
+                id="linkingTabs"
+                tabs={linkingTabs}
+                defaultSelectedTabId={Number(showReferenceLinks)}
+                onChange={handleLinkingTabSwitch}
+            />
+            <Spacing size={"tiny"} />
             <Toolbar noWrap>
                 <ToolbarSection canShrink>
                     <Switch
@@ -430,7 +561,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 <ToolbarSection canGrow>
                     <Spacing vertical />
                 </ToolbarSection>
-                {taskEvaluationStatus === "Successful" ? (
+                {taskEvaluationStatus === "Successful" && !showReferenceLinks ? (
                     <ToolbarSection canShrink style={{ maxWidth: "25%" }}>
                         <ContextOverlay
                             isOpen={showStatisticOverlay ? true : undefined}
@@ -461,6 +592,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 border
                                 small
                                 canShrink
+                                data-test-id="linking-evaluation-stats"
                                 label={
                                     <strong>
                                         {t("linkingEvaluationTabView.toolbar.statsHeadSources")}
@@ -493,22 +625,55 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                     <TaskActivityWidget
                         projectId={projectId}
                         taskId={linkingTaskId}
-                        label="Evaluate Linking"
-                        activityName="EvaluateLinking"
-                        registerToReceiveUpdates={registerForTaskUpdates}
+                        label={showReferenceLinks ? "Reference Links Cache" : "Evaluate Linking"}
+                        activityName={showReferenceLinks ? "ReferenceEntitiesCache" : "EvaluateLinking"}
+                        isCacheActivity={showReferenceLinks}
+                        updateCallback={handleActivityUpdates}
                         layoutConfig={{
                             small: true,
                             border: true,
                             hasSpacing: true,
                             canShrink: true,
                         }}
+                        activityActionPreAction={activityPreAction}
+                        testId={`${showReferenceLinks ? "referenceLinks" : "evaluateLinking"}-task-activity-widget`}
                     />
                 </ToolbarSection>
+                {showReferenceLinks ? (
+                    <ToolbarSection>
+                        <Spacing vertical />
+                        <ContextMenu
+                            data-test-id="linking-reference-actions"
+                            togglerElement="item-moremenu"
+                            togglerText="reference links action"
+                        >
+                            <MenuItem
+                                data-test-id="add-reference-links"
+                                text={t("ReferenceLinks.contextMenu.add")}
+                                onClick={() => setShowAddLinkModal(true)}
+                            />
+                            <MenuItem
+                                data-test-id="remove-reference-links"
+                                text={t("ReferenceLinks.contextMenu.removeReferenceLinks")}
+                                onClick={() => setShowDeleteReferenceLinkModal(true)}
+                            />
+                            <MenuItem
+                                text={t("ReferenceLinks.contextMenu.import")}
+                                onClick={() => setShowImportLinkModal(true)}
+                            />
+                            <MenuItem
+                                text={t("ReferenceLinks.contextMenu.export")}
+                                href={legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinks`)}
+                            />
+                        </ContextMenu>
+                    </ToolbarSection>
+                ) : null}
             </Toolbar>
             <Divider addSpacing="medium" />
             <SearchField
                 onChange={(e) => debouncedSearch(e.target.value)}
                 onClearanceHandler={() => setSearchQuery("")}
+                data-test-id="linking-evaluation-search"
             />
             <Spacing size="small" />
             {linkStateFilter && (
@@ -524,19 +689,24 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
                 {({ headers, getHeaderProps, getTableProps, getRowProps }: DataTableCustomRenderProps) => (
-                    <Table {...getTableProps()} size="medium" columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}>
+                    <Table
+                        {...getTableProps()}
+                        size="medium"
+                        columnWidths={["30px", "30px", "40%", "40%", "7rem", "9rem"]}
+                    >
                         <TableHead>
                             <TableRow>
                                 <TableExpandHeader
                                     enableToggle
-                                    isExpanded={expandedRows.size === rowData.length}
-                                    onExpand={() => handleRowExpansion()}
+                                    isExpanded={allRowsExpanded}
+                                    onExpand={handleAllRowsExpansion}
                                     togglerText={
-                                        expandedRows.size === rowData.length
+                                        allRowsExpanded
                                             ? t("linkingEvaluationTabView.table.header.collapseRows")
                                             : t("linkingEvaluationTabView.table.header.expandRows")
                                     }
                                 />
+                                <TableHeader key="warning-column">&nbsp;</TableHeader>
                                 {headers.map((header) => (
                                     <TableHeader
                                         data-test-id={header.key}
@@ -587,23 +757,26 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         {(evaluationResults.current && evaluationResults.current.links.length && !loading && (
                             <TableBody>
                                 {rowData.map((row, rowIdx) => {
+                                    const result = evaluationResults.current?.links[rowIdx]!;
+                                    const resultString = `${result.source} ${result.target}`.toLowerCase();
+                                    const expandedBecauseOfStringMatch =
+                                        !!searchQuery.trim() && !multiWordSearchRegex.test(resultString);
                                     return (
                                         <LinkingEvaluationRow
                                             key={rowIdx}
-                                            colSpan={headers.length + 2}
+                                            colSpan={headers.length + 3}
                                             rowIdx={rowIdx}
                                             inputValues={inputValues[rowIdx]}
-                                            linkingEvaluationResult={evaluationResults.current?.links[rowIdx]!}
-                                            rowIsExpanded={expandedRows.has(rowIdx)}
+                                            linkingEvaluationResult={result}
+                                            rowIsExpandedByParent={allRowsExpanded}
                                             handleReferenceLinkTypeUpdate={handleReferenceLinkTypeUpdate}
                                             searchQuery={searchQuery}
-                                            // carbonRowProps={getRowProps({ row })} // TODO: What is this needed for? This leads to unnecessary re-renders even though it didn't change
-                                            handleRowExpansion={handleRowExpansion}
                                             linkRuleOperatorTree={evaluationResults.current?.linkRule.operator}
                                             inputValuesExpandedByDefault={showInputValues}
                                             operatorTreeExpandedByDefault={showOperators}
                                             evaluationMap={linksToValueMap.current[rowIdx]}
                                             operatorPlugins={operatorPlugins}
+                                            expandedBySearch={expandedBecauseOfStringMatch}
                                         />
                                     );
                                 })}

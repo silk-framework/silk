@@ -52,7 +52,7 @@ case class SimpleRetriever(endpoint: SparqlEndpoint, pageSize: Int = 1000, graph
   /**
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
-  private class EntityTraversable(sparqlResults: Traversable[Map[String, Node]],  variable: String) extends Traversable[Entity] {
+  private class EntityTraversable(sparqlResults: Iterable[Map[String, Node]],  variable: String) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U) {
 
       for (result <- sparqlResults;

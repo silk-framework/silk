@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.CoveragePathInput
 import org.silkframework.entity.EntitySchema
@@ -8,11 +7,13 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Tests for XmlSource
   */
-class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
+class XmlSourceCoverageTest extends AnyFlatSpec with Matchers {
   behavior of "XML Source"
 
   implicit val userContext: UserContext = UserContext.Empty

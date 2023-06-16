@@ -17,10 +17,12 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.EntityCache
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
+import org.silkframework.entity.Entity
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
+import org.silkframework.runtime.iterator.CloseableIterator
 
 import scala.util.Random
-import util.control.Breaks._
+import scala.util.control.Breaks._
 
 /**
  * Loads the entity cache
@@ -46,25 +48,23 @@ class CacheLoader(source: DataSource,
   private def load(context: ActivityContext[Unit])(implicit userContext: UserContext) = {
     val startTime = System.currentTimeMillis()
     var entityCounter = 0
-    breakable {
-      for (entity <- retrieveEntities) {
-        if (context.status().isInstanceOf[Status.Canceling] || cancelled)
-          break()
-        entityCache.write(entity)
+    retrieveEntities.use { entities =>
+      while(entities.hasNext && !(context.status().isInstanceOf[Status.Canceling] || cancelled)) {
+        entityCache.write(entities.next())
         entityCounter += 1
       }
-
-      val time = (System.currentTimeMillis - startTime) / 1000.0
-      context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri +
-          "' in " + time + " seconds." + context.status.projectAndTaskIdString)
     }
+
+    val time = (System.currentTimeMillis - startTime) / 1000.0
+    context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri +
+      "' in " + time + " seconds." + context.status.projectAndTaskIdString)
   }
 
-  private def retrieveEntities(implicit userContext: UserContext) = {
+  private def retrieveEntities(implicit userContext: UserContext): CloseableIterator[Entity] = {
     sampleSizeOpt match {
       case Some(sampleSize) =>
         implicit val random: Random = Random
-        source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter
+        CloseableIterator(source.sampleEntities(entityCache.entitySchema, sampleSize, None)) // TODO: Add filter
       case None =>
         source.retrieve(entityCache.entitySchema).entities
     }

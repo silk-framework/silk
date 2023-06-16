@@ -1,19 +1,21 @@
 package org.silkframework.serialization.json.metadata
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.{config, dataset}
 import org.silkframework.dataset.EmptyDataset
 import org.silkframework.entity.metadata.{EntityMetadata, GenericExecutionFailure}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Restriction}
 import org.silkframework.failures.{EntityException, FailureClass}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, TestWriteContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json.{JsObject, JsString, JsValue}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class JsonMetadataTest extends FlatSpec with Matchers {
+class JsonMetadataTest extends AnyFlatSpec with Matchers {
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
   implicit val throwableTag = classOf[FailureClass]
@@ -96,8 +98,8 @@ class JsonMetadataTest extends FlatSpec with Matchers {
         TestSerializerCategoryName -> LazyMetadataJson(new DPair("s", "t"), serializer)
       )
     )
-    val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(WriteContext.empty[JsValue])
-    val readMetadata = newMetadata.serializer.fromString(stringVers, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext())
+    val stringVers = newMetadata.serializer.toString(newMetadata, JsonFormat.MIME_TYPE_APPLICATION)(TestWriteContext[JsValue]())
+    val readMetadata = newMetadata.serializer.fromString(stringVers, JsonFormat.MIME_TYPE_APPLICATION)(TestReadContext())
     val ex = readMetadata.getLazyMetadata[FailureClass](EntityMetadata.FAILURE_KEY).metadata.get
     val pair = readMetadata.getLazyMetadata[DPair[String]](TestSerializerCategoryName).metadata.get
     pair.source + pair.target shouldEqual "st"    //test the DPair
@@ -106,9 +108,9 @@ class JsonMetadataTest extends FlatSpec with Matchers {
 
   it should "deal correctly with empty metadata objects" in{
     val emptyMap = EntityMetadataJson()
-    val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(WriteContext.empty[JsValue])
+    val stringVal = EntityMetadataJson.JsonSerializer.toString(emptyMap, "")(TestWriteContext[JsValue]())
     stringVal shouldBe ""
-    val parsed = EntityMetadataJson.JsonSerializer.fromString(stringVal, "")(ReadContext())
+    val parsed = EntityMetadataJson.JsonSerializer.fromString(stringVal, "")(TestReadContext())
     parsed shouldBe EntityMetadataJson()
   }
 }

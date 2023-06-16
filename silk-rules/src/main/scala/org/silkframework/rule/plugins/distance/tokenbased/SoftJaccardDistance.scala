@@ -35,7 +35,7 @@ case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure wit
     //Replace all values in values1 with their equivalent in values2 while keeping values without any equivalent
     val values1Replaced = values1.flatMap{v1 =>
       val equivalentValues = values2.filter(v2 => levenshtein.evaluate(v1, v2, maxDistance) <= maxDistance)
-      if(equivalentValues.isEmpty) Traversable(v1) else equivalentValues
+      if(equivalentValues.isEmpty) Iterable(v1) else equivalentValues
     }
 
     jaccard(values1Replaced, values2)

@@ -1,11 +1,10 @@
 package org.silkframework.plugins.dataset.hierarchical
 
-import org.silkframework.dataset.rdf.ClosableIterator
 import org.silkframework.runtime.caching.{HandleTooLargeKeyStrategy, PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
+import org.silkframework.runtime.iterator.CloseableIterator
 
 import java.io._
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
 
 /**
@@ -53,7 +52,7 @@ private case class HierarchicalEntityCache() extends Closeable {
   /**
     * Iterate through all entities.
     */
-  def iterateEntities: ClosableIterator[CachedEntity] = {
+  def iterateEntities: CloseableIterator[CachedEntity] = {
     new EntityIterator(cache.iterateEntries())
   }
 
@@ -80,7 +79,7 @@ private case class HierarchicalEntityCache() extends Closeable {
     }
   }
 
-  private class EntityIterator(iterator: ClosableIterator[(ByteBuffer, ByteBuffer)]) extends ClosableIterator[CachedEntity] {
+  private class EntityIterator(iterator: CloseableIterator[(ByteBuffer, ByteBuffer)]) extends CloseableIterator[CachedEntity] {
 
     override def hasNext: Boolean = iterator.hasNext
 

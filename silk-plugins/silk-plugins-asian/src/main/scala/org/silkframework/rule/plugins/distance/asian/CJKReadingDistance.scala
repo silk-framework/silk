@@ -18,8 +18,8 @@ import java.util.{ArrayList, Collections}
 import org.silkframework.rule.similarity.SingleValueDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
-import scala.collection.JavaConverters._
 import scala.io.{Codec, Source}
+import scala.jdk.CollectionConverters.MapHasAsJava
 
 @Plugin(
   id = "cjkReadingDistance",
@@ -43,8 +43,8 @@ case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends 
       sh_str = str1
     }
     var level = lo_str.length() - sh_str.length()
-    var src = makeStringToArray(lo_str.replaceAllLiterally(" ", ""))
-    var tgt = makeStringToArray(sh_str.replaceAllLiterally(" ", ""))
+    var src = makeStringToArray(lo_str.replace(" ", ""))
+    var tgt = makeStringToArray(sh_str.replace(" ", ""))
     val text = Source.fromInputStream(getClass.getResourceAsStream("/org/silkframework/plugins/distance/asian/unihanProperties.tsv"))(Codec.UTF8)
     val m = for (line <- text.getLines()) yield {
       val splitLine = line.split("\t")

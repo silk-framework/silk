@@ -4,8 +4,8 @@ import java.nio.charset._
 import java.nio.charset.spi.CharsetProvider
 import java.nio.{ByteBuffer, CharBuffer}
 import java.util
+import scala.jdk.CollectionConverters.IteratorHasAsJava
 
-import scala.collection.JavaConverters._
 
 /**
   * A UTF8 charset that writes byte order marks (BOMs).

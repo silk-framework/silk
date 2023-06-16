@@ -1,13 +1,14 @@
 package org.silkframework.workspace.activity.workflow
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class WorkflowValidatorTest extends FlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait  {
+class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait  {
 
   behavior of "WorkflowValidator"
 

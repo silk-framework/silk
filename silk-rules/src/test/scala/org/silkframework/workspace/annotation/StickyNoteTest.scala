@@ -1,9 +1,10 @@
 package org.silkframework.workspace.annotation
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.util.XmlSerializationHelperTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class StickyNoteTest extends FlatSpec with MustMatchers with XmlSerializationHelperTrait {
+class StickyNoteTest extends AnyFlatSpec with Matchers with XmlSerializationHelperTrait {
   behavior of "Sticky note"
 
   it should "de-/serialize from/to XML" in {

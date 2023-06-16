@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
@@ -8,8 +7,10 @@ import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceTooL
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 import java.time.Instant
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class RdfFileDatasetTest extends FlatSpec with MustMatchers {
+class RdfFileDatasetTest extends AnyFlatSpec with Matchers {
   behavior of "RDF file dataset"
 
   val resourceManager = InMemoryResourceManager()

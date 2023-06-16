@@ -2,9 +2,10 @@ package org.silkframework.rule.util
 
 import org.apache.jena.datatypes.xsd.XSDDatatype
 import org.apache.jena.graph.NodeFactory
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class JenaSerializationUtilTest extends FlatSpec with MustMatchers {
+class JenaSerializationUtilTest extends AnyFlatSpec with Matchers {
   behavior of "Jena Serialization Util"
 
   it should "serialize single RDF nodes" in {

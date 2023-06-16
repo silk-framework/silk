@@ -1,2 +1,4 @@
 -J-Xmx6G
 -J-XX:+UseG1GC
+-J--add-opens=java.base/java.nio=ALL-UNNAMED
+-J--add-exports=java.base/sun.nio.ch=ALL-UNNAMED

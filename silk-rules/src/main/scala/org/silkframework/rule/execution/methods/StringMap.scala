@@ -3,10 +3,10 @@ package org.silkframework.rule.execution.methods
 import org.silkframework.cache.Partition
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, Index}
+import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.execution.methods.StringMap.Mapper
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
-import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.util.DPair
 
@@ -21,8 +21,7 @@ case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThresho
   /**
    * Generates comparison pairs from two partitions.
    */
-  override def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean) = {
-
+  override def comparisonPairs(sourcePartition: Partition, targetPartition: Partition, full: Boolean): Iterable[DPair[Entity]] = {
     val sourceValues = sourcePartition.entities.map(_.evaluate(sourceKey))
     val targetValues = targetPartition.entities.map(_.evaluate(targetKey))
 
@@ -36,15 +35,11 @@ case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThresho
     // Compute the threshold in the mapped space that corresponds to the specified distance threshold
     val mappedThreshold = sm.computeThreshold(sourceValues, thresholdPercentage, targetValues, thresholdPercentage, distThreshold)
 
-    // Return a traversable of all pairs which are closer than the mapped threshold
-    new Traversable[DPair[Entity]] {
-      def foreach[U](f: DPair[Entity] => U) {
-        for(i <- 0 until sourceValues.size;
-            j <- 0 until targetValues.size
-            if sm.mappedDistance(sm.coordinates(i), sm.coordinates(sourceValues.size + j)) < mappedThreshold) yield {
-          f(DPair(sourcePartition.entities(i), targetPartition.entities(j)))
-        }
-      }
+    // Return a iterable of all pairs which are closer than the mapped threshold
+    for (i <- sourceValues.indices;
+         j <- targetValues.indices
+         if sm.mappedDistance(sm.coordinates(i), sm.coordinates(sourceValues.length + j)) < mappedThreshold) yield {
+      DPair(sourcePartition.entities(i), targetPartition.entities(j))
     }
   }
 }

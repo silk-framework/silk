@@ -12,7 +12,7 @@ import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import {
     activityActionCreator,
-    activityStartPrioritized
+    activityStartPrioritized,
 } from "../../../views/shared/TaskActivityOverview/taskActivityOverviewRequests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { activityErrorReportFactory } from "../../../views/shared/TaskActivityOverview/taskActivityUtils";
@@ -21,8 +21,8 @@ import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
 import { SERVE_PATH } from "../../../constants/path";
-import {ActivityControlTranslationKeys} from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl"
-import {DIErrorTypes} from "@ducks/error/typings";
+import { ActivityControlTranslationKeys } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+import { DIErrorTypes } from "@ducks/error/typings";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -115,12 +115,16 @@ const ActivityList = () => {
     };
 
     const registerActivityError = (action: string) => (activityName: string, error: DIErrorTypes) => {
-        registerError(`ActivityList.${action}`, `Activity action '${action}' against activity '${activityName}' could not be executed.`, error)
-    }
+        registerError(
+            `ActivityList.${action}`,
+            `Activity action '${action}' against activity '${activityName}' could not be executed.`,
+            error
+        );
+    };
 
     const startPrioritized = async (activityName: string, project?: string, task?: string) => {
-        await activityStartPrioritized(activityName, project, task, registerActivityError("Run prioritized"))
-    }
+        await activityStartPrioritized(activityName, project, task, registerActivityError("Run prioritized"));
+    };
 
     // Returns a function that fetches the error report for a particular activity
     const fetchErrorReportFactory = (activity: IActivity) => {
@@ -256,7 +260,9 @@ const ActivityList = () => {
                                         : undefined
                                 }
                                 translate={translateActions}
-                                executePrioritized={() => startPrioritized(activity.id, activity.project, activity.task)}
+                                executePrioritized={() =>
+                                    startPrioritized(activity.id, activity.project, activity.task)
+                                }
                             />
                         </Card>
                     );

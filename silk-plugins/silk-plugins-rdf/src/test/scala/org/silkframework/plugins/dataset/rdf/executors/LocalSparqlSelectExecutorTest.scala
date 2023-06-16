@@ -1,18 +1,20 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
+
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
-import org.silkframework.runtime.plugin.types.MultilineStringParameter
-import org.silkframework.util.TestMocks
+import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.util.{MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.TraversableIterator
 
-class LocalSparqlSelectExecutorTest extends FlatSpec
-    with MustMatchers
+class LocalSparqlSelectExecutorTest extends AnyFlatSpec
+    with Matchers
     with TestUserContextTrait
     with MockitoSugar {
   behavior of "Local SPARQL Select executor"
@@ -28,7 +30,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
       override def sparqlParams: SparqlParams = ???
       override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = ???
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
-        SparqlResults(new Traversable[SortedMap[String, RdfNode]] {
+        SparqlResults(Seq("s", "p", "o"), new TraversableIterator[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0
             while (i < limit) {
@@ -76,7 +78,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
 
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
         selectCallback(this)
-        SparqlResults(new Traversable[SortedMap[String, RdfNode]] {
+        SparqlResults(Seq("s", "p", "o"), new TraversableIterator[SortedMap[String, RdfNode]] {
           override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
             var i = 0
             while (i < limit) {

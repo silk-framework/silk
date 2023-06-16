@@ -7,7 +7,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 
 import scala.xml.{Node, Null}
 
-case class Vocabulary(info: GenericInfo, classes: Traversable[VocabularyClass], properties: Traversable[VocabularyProperty]) {
+case class Vocabulary(info: GenericInfo, classes: Iterable[VocabularyClass], properties: Iterable[VocabularyProperty]) {
 
   def getClass(uri: String): Option[VocabularyClass] = {
     classes.find(_.info.uri == uri)
@@ -75,7 +75,7 @@ object Vocabulary {
   }
 }
 
-case class VocabularyClass(info: GenericInfo, parentClasses: Traversable[String])
+case class VocabularyClass(info: GenericInfo, parentClasses: Iterable[String])
 
 sealed trait PropertyType {
   /** Unique ID */

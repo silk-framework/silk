@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 
-import org.apache.jena.vocabulary.XSD
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.apache.jena.vocabulary.XSD
 import org.silkframework.runtime.validation.ValidationException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SparqlTemplatingEngineVelocityTest extends FlatSpec with MustMatchers {
+class SparqlTemplatingEngineVelocityTest extends AnyFlatSpec with Matchers {
   behavior of "Velocity SPARQL Templating Engine"
 
   private val sparqlUpdateTemplate =

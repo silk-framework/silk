@@ -1,11 +1,12 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created on 6/9/16.
   */
-class GetValueByIndexTransformerTest extends FlatSpec with Matchers {
+class GetValueByIndexTransformerTest extends AnyFlatSpec with Matchers {
   behavior of "get value by index transformer"
 
   private val ONE = "1"

@@ -15,7 +15,7 @@ object CsvSourceHelper {
     CsvSettings(quote = Some('"'))
   )
 
-  def serialize(fields: Traversable[String]): String = {
+  def serialize(fields: Iterable[String]): String = {
     fields.map { field =>
       if (field.contains("\"") || field.contains(",")) {
         escapeString(field)
@@ -46,7 +46,7 @@ object CsvSourceHelper {
     }
     entries.flatten.
         groupBy(_._1).
-        mapValues(_.map(_._2).max)
+      view.mapValues(_.map(_._2).max).toMap
   }
 
   /** Converts the field names to a representation that can be used in URIs */

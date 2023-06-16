@@ -15,7 +15,7 @@ object SafeModeDataSource extends DataSource {
   override def underlyingTask: Task[DatasetSpec[Dataset]] = SafeModeException.throwSafeModeException()
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     SafeModeException.throwSafeModeException()
   }
 

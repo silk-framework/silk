@@ -3,15 +3,15 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
-import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
+import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
 import { evaluateTransformRule } from "../transform.requests";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
-import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
+import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import ruleUtils from "../../shared/rules/rule.utils";
 import { transformToValueMap } from "../transformEditor.utils";
-import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
-import { EvaluationResultType } from "../../../../views/taskViews/linking/evaluation/LinkingRuleEvaluation";
+import { LinkRuleNodeEvaluation } from "../../linking/evaluation/LinkRuleNodeEvaluation";
+import { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -36,6 +36,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
+    const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [nodeUpdateCallbacks] = React.useState(
         new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
     );
@@ -74,6 +75,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 updateCallback(undefined);
             });
         }
+        setEvaluationResultsShown(show);
     };
 
     const fetchReferenceLinksEvaluation: (
@@ -178,7 +180,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 toggleEvaluationResults,
                 evaluationScore: undefined,
                 // There is no evaluation result for mapping rules
-                evaluationResultsShown: false,
+                evaluationResultsShown: evaluationResultsShown,
                 ruleValidationError,
                 clearRuleValidationError,
             }}

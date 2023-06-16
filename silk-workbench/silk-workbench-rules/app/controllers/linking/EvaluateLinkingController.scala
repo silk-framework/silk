@@ -61,7 +61,7 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem,
           else
             new EvalLink(detailedLink, Unknown, Generated)
         }
-      Ok(views.html.widgets.linksTable(project, task, links, Some(linking.statistics), linkResolvers, linkSorter, filter, page,
+      Ok(views.html.widgets.linksTable(project, task, links.toSeq, Some(linking.statistics), linkResolvers, linkSorter, filter, page,
         showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
     } else {
       // Show an empty links table

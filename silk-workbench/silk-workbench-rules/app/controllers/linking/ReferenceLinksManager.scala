@@ -112,7 +112,7 @@ class ReferenceLinksManager @Inject() (implicit workspaceReact: WorkspaceReact) 
       }
     }
 
-    Ok(views.html.widgets.linksTable(project, task, links, None, linkResolvers, linkSorter, filter, page, showStatus = true, showDetails = true, showEntities = false, rateButtons = false))
+    Ok(views.html.widgets.linksTable(project, task, links.toSeq, None, linkResolvers, linkSorter, filter, page, showStatus = true, showDetails = true, showEntities = false, rateButtons = false))
   }
 
   def addLinkDialog(project: String, task: String) = Action {

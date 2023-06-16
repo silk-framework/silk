@@ -99,7 +99,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     val errorIds = errors.map(_.taskId).toSet
     val externalLoadingErrors = provider.externalTaskLoadingErrors(config.id).filterNot(extError => errorIds.contains(extError.taskId))
     // Some workspaces have duplicate loading errors, make them distinct.
-    (errors ++ externalLoadingErrors).groupBy(_.taskId).values.map(_.head).toSeq
+    (errors ++ externalLoadingErrors).distinctBy(_.taskId)
   }
 
   private val projectActivities = {

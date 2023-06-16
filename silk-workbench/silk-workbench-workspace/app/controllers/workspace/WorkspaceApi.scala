@@ -310,7 +310,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
   def importLinkSpec(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     request.body match {
       case AnyContentAsMultipartFormData(data) =>
@@ -339,7 +339,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
   }
 
   def updatePrefixes(project: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val prefixMap = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
+    val prefixMap = request.body.asFormUrlEncoded.getOrElse(Map.empty).view.mapValues(_.mkString).toMap
     val projectObj = WorkspaceFactory().workspace.project(project)
     projectObj.config = projectObj.config.copy(prefixes = Prefixes(prefixMap))
 

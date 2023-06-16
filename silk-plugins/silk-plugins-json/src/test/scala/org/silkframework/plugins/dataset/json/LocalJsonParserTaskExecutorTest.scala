@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
@@ -9,8 +8,12 @@ import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.util.MockitoSugar
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.iterator.CloseableIterator
 
-class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
+class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
   behavior of "Local JSON Parser Task Executor"
 
   private val entitySchema = EntitySchema("type", IndexedSeq(UntypedPath("id"), UntypedPath("jsonContent")).map(_.asStringTypedPath))
@@ -36,7 +39,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
   private val executor = LocalJsonParserTaskExecutor()
   private val jsonParserTask = JsonParserTask("jsonContent", "persons")
   private val task = PlainTask("JsonParser", jsonParserTask)
-  private val inputEntities = GenericEntityTable(entities, entitySchema, task)
+  private def inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
   private implicit val prefixes = Prefixes.empty
 
   PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])
@@ -47,7 +50,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
       execution = LocalExecution(false)
     )
     result mustBe defined
-    result.get.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+    result.get.entities.map(_.values.flatten.head).toSeq mustBe Seq("John", "Max")
   }
 
   it should "produce multi schema entities" in {
@@ -59,9 +62,9 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
     result mustBe defined
     result.get mustBe a[MultiEntityTable]
     val multiEntityTable = result.get.asInstanceOf[MultiEntityTable]
-    multiEntityTable.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+    multiEntityTable.entities.map(_.values.flatten.head).toSeq mustBe Seq("John", "Max")
     multiEntityTable.subTables.size mustBe 1
-    multiEntityTable.subTables.head.entities.map(_.values.flatten.head) mustBe Seq("John", "Max")
+    multiEntityTable.subTables.head.entities.map(_.values.flatten.head).toSeq mustBe Seq("John", "Max")
   }
 
   it should "support the in-memory version of the JSON dataset, e.g. supporting backward paths" in {
@@ -71,7 +74,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
       execution = LocalExecution(false)
     )
     result mustBe defined
-    val values = result.get.entities.flatMap(_.values).flatten
+    val values = result.get.entities.flatMap(_.values).flatten.toSeq
     values mustBe Seq("1", "1")
   }
 }

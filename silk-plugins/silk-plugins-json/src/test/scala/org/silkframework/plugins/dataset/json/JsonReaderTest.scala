@@ -13,13 +13,14 @@
  */
 
 package org.silkframework.plugins.dataset.json
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.resource.ClasspathResourceLoader
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class JsonReaderTest extends FlatSpec with Matchers {
+class JsonReaderTest extends AnyFlatSpec with Matchers {
 
   private val exampleJson = json("example.json")
 

@@ -1,7 +1,6 @@
 package org.silkframework.workspace
 
-import org.scalatest.{FlatSpec, Matchers}
-import org.scalatestplus.mockito.MockitoSugar
+
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -15,18 +14,20 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
+trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
@@ -61,7 +62,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   private val projectResources = repository.get(PROJECT_NAME)
 
-  protected implicit val pluginContext: PluginContext = PluginContext(resources = projectResources)
+  protected implicit val pluginContext: PluginContext = TestPluginContext(resources = projectResources)
 
   private def project(implicit userContext: UserContext) = workspace.project(PROJECT_NAME)
 

@@ -14,9 +14,10 @@
 
 package org.silkframework.rule.plugins.distance.asian
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CJKReadingDistanceTest extends FlatSpec with Matchers {
+class CJKReadingDistanceTest extends AnyFlatSpec with Matchers {
 
   val metric = new CJKReadingDistance()
 

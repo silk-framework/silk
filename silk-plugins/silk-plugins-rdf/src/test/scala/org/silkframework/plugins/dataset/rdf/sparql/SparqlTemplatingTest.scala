@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.sparql
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.plugins.dataset.rdf.tasks.templating.{Row, SparqlVelocityTemplating, TaskProperties, TemplateExecutionException}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SparqlTemplatingTest extends FlatSpec with MustMatchers {
+class SparqlTemplatingTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Templating"
 
   it should "render a simple Velocity template" in {

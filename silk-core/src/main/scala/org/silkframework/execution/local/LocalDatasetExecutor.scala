@@ -2,12 +2,13 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.CloseableDataset.using
-import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec, ReadOnlyDatasetWriteAccessException}
+import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -43,7 +44,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
         val table = source.retrieve(entitySchema = schema)
-        GenericEntityTable(ReportingTraversable(table.entities), entitySchema = schema, dataset, table.globalErrors)
+        GenericEntityTable(ReportingIterator(table.entities), entitySchema = schema, dataset, table.globalErrors)
     }
   }
 
@@ -67,11 +68,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
-      entities = ReportingTraversable(table.entities),
+      entities = ReportingIterator(table.entities),
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(ReportingTraversable(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
+            GenericEntityTable(ReportingIterator(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
       task = dataset,
       globalErrors = table.globalErrors
     )
@@ -102,7 +103,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
                          (implicit userContext: UserContext): TripleEntityTable = {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
-    val tripleEntities = sparqlResult.bindings.view map { resultMap =>
+    val tripleEntities = sparqlResult.bindings map { resultMap =>
       val s = resultMap("s").value
       val p = resultMap("p").value
       val (value, typ) = TripleEntityTable.convertToEncodedType(resultMap("o"))
@@ -194,7 +195,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
     private def estimatedRuntimeStat: String = {
       if (runtime > 0) {
-        val estimation = (remainingQueries / throughput).formatted("%.2f") + " seconds"
+        val estimation = String.format("%.2f", remainingQueries / throughput) + " seconds"
         if (remainingQueries >= remainingSparqlUpdateQueryBufferSize) {
           "> " + estimation
         } else {
@@ -230,7 +231,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     *
     * @param bufferSize max size of queries that should be buffered
     */
-  case class SparqlQueryBuffer(bufferSize: Int, entities: Traversable[Entity]) extends Traversable[String] {
+  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[Entity]) extends TraversableIterator[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
     override def foreach[U](f: String => U): Unit = {
@@ -238,7 +239,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         assert(entity.values.size == 1 && entity.values.head.size == 1)
         val query = entity.values.head.head
         queryBuffer.push(query)
-        if(queryBuffer.size() > bufferSize) {
+        if(queryBuffer.size() > queryBufferSize) {
           f(queryBuffer.remove())
         }
       }
@@ -344,7 +345,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
-  private def writeTriples(sink: EntitySink, entities: Traversable[Entity])
+  private def writeTriples(sink: EntitySink, entities: CloseableIterator[Entity])
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink match {
       case tripleSink: TripleSink =>
@@ -356,7 +357,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def writeTriples(entities: Traversable[Entity], sink: TripleSink)
+  private def writeTriples(entities: CloseableIterator[Entity], sink: TripleSink)
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink.init()
     for (entity <- entities) {

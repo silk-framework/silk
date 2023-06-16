@@ -42,8 +42,8 @@ case class AggregatorExampleValue(description: Option[String],
     }
   }
 
-  private def format(traversable: Traversable[_]): String = {
-    traversable.mkString("[", ", ", "]")
+  private def format(iterable: Iterable[_]): String = {
+    iterable.mkString("[", ", ", "]")
   }
 }
 

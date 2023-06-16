@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
 import scala.xml.{Elem, Utility, XML}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+class XSLTOperatorTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   private final val WORKFLOW = "xsltWorkflow"
   private final val OUTPUT_RESOURCE = "output.xml"
 

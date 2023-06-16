@@ -33,7 +33,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     resources.get(name) match {
       case Some(data) => new InMemoryResource(name, path)
       case None if !mustExist => new InMemoryResource(name, path)
-      case None if mustExist => throw new ResourceNotFoundException(s"Resource $name not found in path $basePath")
+      case None => throw new ResourceNotFoundException(s"Resource $name not found in path $basePath")
     }
   }
 

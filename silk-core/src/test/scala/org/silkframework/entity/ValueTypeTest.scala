@@ -1,12 +1,14 @@
 package org.silkframework.entity
 
-import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 
-class ValueTypeTest extends FlatSpec with MustMatchers {
+import org.silkframework.runtime.serialization.{TestReadContext, XmlSerialization}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+
+class ValueTypeTest extends AnyFlatSpec with Matchers {
   behavior of "ValueType"
 
-  implicit val readContext = ReadContext()
+  implicit val readContext = TestReadContext()
 
   it should "serialize and deserialize object value types to/from XML" in {
     val objTypes = Seq(ValueType.FLOAT, ValueType.DOUBLE, ValueType.URI, ValueType.UNTYPED, ValueType.DATE_TIME)
@@ -25,7 +27,7 @@ class ValueTypeTest extends FlatSpec with MustMatchers {
   }
 
   // Test all value types without parameters for now
-  for(valueType <- ValueType.allValueType.flatMap(_.right.toOption)) {
+  for(valueType <- ValueType.allValueType.flatMap(_.toOption)) {
     testValueType(valueType)
   }
 

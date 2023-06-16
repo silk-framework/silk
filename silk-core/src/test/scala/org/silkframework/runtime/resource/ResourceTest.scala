@@ -3,9 +3,10 @@ package org.silkframework.runtime.resource
 import java.io.{ByteArrayInputStream, IOException, InputStream}
 import java.time.Instant
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ResourceTest extends FlatSpec with MustMatchers {
+class ResourceTest extends AnyFlatSpec with Matchers {
 
   behavior of "Resource"
 

@@ -1,8 +1,7 @@
 package org.silkframework.runtime.caching
 
+import org.silkframework.runtime.iterator.CloseableIterator
 import java.nio.ByteBuffer
-
-import org.silkframework.dataset.rdf.ClosableIterator
 
 /**
   * Implements default actions that make sense for most concrete cache implementations using the [[PersistentSortedKeyValueStore]].
@@ -20,12 +19,12 @@ trait DefaultCacheActions {
   def storeSize(): Long = store.size()
 
   /** Iterate over all entries as ByteBuffer pairs. */
-  def iterateEntries(): ClosableIterator[(ByteBuffer, ByteBuffer)] = {
+  def iterateEntries(): CloseableIterator[(ByteBuffer, ByteBuffer)] = {
     store.iterateEntries()
   }
 
   /** Iterate over all entries as String key, String value pairs. */
-  def stringIterator(): ClosableIterator[(String, String)] = {
+  def stringIterator(): CloseableIterator[(String, String)] = {
     store.iterateStringEntries()
   }
 }

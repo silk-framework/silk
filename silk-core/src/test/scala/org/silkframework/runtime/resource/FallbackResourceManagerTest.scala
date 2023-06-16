@@ -1,11 +1,12 @@
 package org.silkframework.runtime.resource
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Tests the fallback resource manager
   */
-class FallbackResourceManagerTest extends FlatSpec with MustMatchers {
+class FallbackResourceManagerTest extends AnyFlatSpec with Matchers {
   behavior of "Fallback resource manager"
 
   private final val RESOURCE = "Resource A"

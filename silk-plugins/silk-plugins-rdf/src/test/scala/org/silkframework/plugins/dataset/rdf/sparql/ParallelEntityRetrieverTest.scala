@@ -1,8 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
-import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.mutable.ArrayBuffer
@@ -28,7 +26,7 @@ case class TestMockSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndp
     SparqlResults(Seq.empty)
   }
 
-  def queries: Seq[(String, Int)] = queryQueue
+  def queries: Seq[(String, Int)] = queryQueue.toSeq
 
   def clearQueue(): Unit = {
     queryQueue.clear()

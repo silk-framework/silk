@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.charset
 
 import java.nio.charset.Charset
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 /**
   * Methods to ask for all available charsets and to retrieve individual charsets by name.

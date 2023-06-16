@@ -1,11 +1,12 @@
 package org.silkframework.rule.evaluation
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.util.{Uri, XmlSerializationHelperTrait}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ReferenceEntitiesTest extends FlatSpec with MustMatchers with XmlSerializationHelperTrait {
+class ReferenceEntitiesTest extends AnyFlatSpec with Matchers with XmlSerializationHelperTrait {
   behavior of "Reference entities"
 
   it should "serialize and deserialize correctly" in {

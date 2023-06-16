@@ -3,6 +3,7 @@ package org.silkframework.execution.local
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.{EmptyEntityHolder, EntityHolder, EntityHolderWithEntityIterator}
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.Uri
 
 /**
@@ -13,21 +14,29 @@ trait LocalEntities extends EntityHolder {
   /**
     * get head Entity
     */
-  override def headOption: Option[Entity] = this.entities.headOption
+  override def headOption: Option[Entity] = entities.headOption
 
-  def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities
+  def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): LocalEntities
 
   def mapEntities(f: Entity => Entity): EntityHolder = {
     updateEntities(entities.map(f), entitySchema)
   }
 
-  def flatMapEntities(outputSchema: EntitySchema, updateTask: Task[TaskSpec] = task)(f: Entity => TraversableOnce[Entity]): EntityHolder = {
+  def flatMapEntities(outputSchema: EntitySchema, updateTask: Task[TaskSpec] = task)(f: Entity => Iterator[Entity]): EntityHolder = {
     updateEntities(entities.flatMap(f), outputSchema)
   }
 
   def filter(f: Entity => Boolean): EntityHolder = {
-    updateEntities(entities.filter(f), entitySchema)
+    updateEntities(CloseableIterator(entities.filter(f), entities), entitySchema)
   }
+
+  /**
+    * Closes the entities iterator.
+    */
+  override final def close(): Unit = {
+    entities.close()
+  }
+
 }
 
 trait LocalEntitiesWithIterator extends LocalEntities with EntityHolderWithEntityIterator

@@ -1,9 +1,10 @@
 package org.silkframework.entity.rdf
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class SparqlRestrictionTest extends FlatSpec with Matchers {
+class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
 
   implicit val prefixes = {
     Prefixes(Map(

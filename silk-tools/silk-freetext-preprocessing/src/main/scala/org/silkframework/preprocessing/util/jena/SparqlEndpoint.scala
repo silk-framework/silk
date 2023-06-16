@@ -12,7 +12,7 @@ class SparqlEndpoint(model:Model) {
   /**
    * Executes a SPARQL SELECT query.
    */
-  def query(sparql: String, limit: Int = Integer.MAX_VALUE): Traversable[Map[String, Node]] = {
+  def query(sparql: String, limit: Int = Integer.MAX_VALUE): Iterable[Map[String, Node]] = {
     val qe = QueryExecutionFactory.create(sparql + " LIMIT " + limit, model)
 
     try {

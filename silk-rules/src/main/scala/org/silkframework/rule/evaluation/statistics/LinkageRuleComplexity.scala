@@ -42,25 +42,25 @@ object LinkageRuleComplexity {
 
     LinkageRuleComplexity(
       size = ops.size,
-      comparisonCount = ops.filter(_.isInstanceOf[Comparison]).size,
-      transformationCount = ops.filter(_.isInstanceOf[TransformInput]).size
+      comparisonCount = ops.count(_.isInstanceOf[Comparison]),
+      transformationCount = ops.count(_.isInstanceOf[TransformInput])
     )
   }
 
   /**
    * Collects all operators of the linkage rule.
    */
-  private def collectOperators(linkageRule: LinkageRule): Traversable[Operator] = {
-    linkageRule.operator.toTraversable.flatMap(collectOperators)
+  private def collectOperators(linkageRule: LinkageRule): Iterable[Operator] = {
+    linkageRule.operator.toSeq.flatMap(collectOperators)
   }
 
   /**
    * Collects all sub operators.
    */
-  private def collectOperators(root: Operator): Traversable[Operator] = root match {
+  private def collectOperators(root: Operator): Iterable[Operator] = root match {
     case Aggregation(_, _, _, ops) => root +: ops.flatMap(collectOperators)
     case Comparison(_, _, _, _, _, inputs) => root +: inputs.flatMap(collectOperators)
     case TransformInput(_, _, inputs) => root +: inputs.flatMap(collectOperators)
-    case PathInput(_, _) => Traversable(root)
+    case PathInput(_, _) => Iterable(root)
   }
 }

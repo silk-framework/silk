@@ -1,13 +1,14 @@
 package controllers.workspaceApi
 
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
 import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
 import play.api.routing.Router
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class InitApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with ConfigTestTrait {
+class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait {
   behavior of "Init API"
 
   override def workspaceProviderId: String = "inMemory"

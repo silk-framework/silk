@@ -1,22 +1,24 @@
 package org.silkframework.workbench.workspace
 
 import java.time.Duration
-import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult}
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.Json
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Base class for ExecutionReportManager implementation tests.
   */
-abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
+abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
 
-  private implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
+  private implicit val pluginContext: PluginContext = TestPluginContext(resources = InMemoryResourceManager())
 
   private val projectId = "4e371d98-3de7-4986-ab7d-979612f1ac29_project"
   private val taskId = "4150f4a9-4104-4681-90f5-9fc64d4ecce0_workflow"
@@ -37,7 +39,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
       val reports = reportManager.listReports(Some(projectId), Some(taskId))
       reports should have size 1
       val retrievedReport = reportManager.retrieveReport(reports.head).resultValue.get
-      retrievedReport.toString.replaceAll("ArrayBuffer", "List") shouldEqual testReport.toString.replaceAll("ArrayBuffer", "List")
+      retrievedReport.toString.replaceAll("Vector", "List") shouldEqual testReport.toString.replaceAll("Vector", "List")
     }
   }
 

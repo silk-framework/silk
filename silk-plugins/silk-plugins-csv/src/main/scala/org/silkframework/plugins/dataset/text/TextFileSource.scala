@@ -7,13 +7,14 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 class TextFileSource(ds: TextFileDataset) extends DataSource {
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Seq((ds.typeName, 1.0))
   }
 
@@ -45,7 +46,7 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
         entitySchema
       )
       GenericEntityTable(
-        entities = Seq(entity),
+        entities = CloseableIterator(Iterator(entity)),
         entitySchema = entitySchema,
         task = underlyingTask,
       )

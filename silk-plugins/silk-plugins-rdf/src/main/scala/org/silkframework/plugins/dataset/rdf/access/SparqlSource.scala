@@ -10,6 +10,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.{Level, Logger}
@@ -58,7 +59,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     SparqlTypesCollector(sparqlEndpoint, params.graph, limit)
   }
 
@@ -81,17 +82,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   override def sampleValues(typeUri: Option[Uri],
                             typedPaths: Seq[TypedPath],
                             valueSampleLimit: Option[Int])
-                           (implicit userContext: UserContext): Seq[Traversable[String]] = {
+                           (implicit userContext: UserContext): Seq[CloseableIterator[String]] = {
     typedPaths map { typedPath =>
-      new ValueTraverser(typeUri, typedPath, valueSampleLimit)
-    }
-  }
-
-  class ValueTraverser(typeUri: Option[Uri],
-                       typedPath: TypedPath,
-                       limit: Option[Int])
-                      (implicit userContext: UserContext) extends Traversable[String] {
-    override def foreach[U](f: String => U): Unit = {
       val pathQuery = ParallelEntityRetriever.pathQuery(
         "a",
         typeUri.map(SparqlRestriction.forType).getOrElse(SparqlRestriction.empty),
@@ -102,10 +94,10 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         varPrefix = "v",
         useOptional = false
       )
-      val results = sparqlEndpoint.select(pathQuery, limit = limit.getOrElse(Int.MaxValue))
-      for(result <- results.bindings;
-          value <- result.get("v0")) {
-        f(value.value)
+      val results = sparqlEndpoint.select(pathQuery, limit = valueSampleLimit.getOrElse(Int.MaxValue))
+      for (result <- results.bindings;
+           value <- result.get("v0")) yield {
+        value.value
       }
     }
   }
@@ -139,13 +131,16 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         |  ?v ?property ?s
         |} GROUP BY ?class ?property
       """.stripMargin)
-    for (binding <- backwardResults.bindings;
-         classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
-      val classUri = binding("class").value
-      val propertyUri = binding("property").value
-      val propertyType = valueType(binding("valueSample"))
-      val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, currentProperties :+ TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+
+    backwardResults.bindings.use { bindings =>
+      for (binding <- bindings;
+           classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
+        val classUri = binding("class").value
+        val propertyUri = binding("property").value
+        val propertyType = valueType(binding("valueSample"))
+        val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
+        classProperties.put(classUri, currentProperties :+ TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+      }
     }
   }
 
@@ -159,13 +154,16 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         |     ?property ?v
         |} GROUP BY ?class ?property
       """.stripMargin)
-    for (binding <- forwardResults.bindings;
-         classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
-      val classUri = binding("class").value
-      val propertyUri = binding("property").value
-      val propertyType = valueType(binding("valueSample"))
-      val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, currentProperties :+ TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+
+    forwardResults.bindings.use { bindings =>
+      for (binding <- bindings;
+           classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
+        val classUri = binding("class").value
+        val propertyUri = binding("property").value
+        val propertyType = valueType(binding("valueSample"))
+        val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
+        classProperties.put(classUri, currentProperties :+ TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+      }
     }
   }
 

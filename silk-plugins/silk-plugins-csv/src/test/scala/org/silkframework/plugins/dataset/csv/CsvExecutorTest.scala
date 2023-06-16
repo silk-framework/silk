@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.csv
 
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Base class for testing CSV execution.
   * Should be subclassed for each execution type.
   */
-abstract class CsvExecutorTest extends FlatSpec with MustMatchers {
+abstract class CsvExecutorTest extends AnyFlatSpec with Matchers {
 
   behavior of getClass.getSimpleName.stripSuffix("Test")
 

@@ -43,15 +43,15 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   /** True, if positive and negative entities are available. */
   def isDefined = positiveLinks.nonEmpty && negativeLinks.nonEmpty
 
-  def positiveEntities: Traversable[DPair[Entity]] = {
+  def positiveEntities: Iterable[DPair[Entity]] = {
     linksToEntities(positiveLinks)
   }
 
-  def negativeEntities: Traversable[DPair[Entity]] = {
+  def negativeEntities: Iterable[DPair[Entity]] = {
     linksToEntities(negativeLinks)
   }
 
-  def unlabeledEntities: Traversable[DPair[Entity]] = {
+  def unlabeledEntities: Iterable[DPair[Entity]] = {
     linksToEntities(unlabeledLinks)
   }
 
@@ -100,14 +100,19 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
   }
 
   def toReferenceLinks: Seq[ReferenceLink] = {
-    asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE) ++ asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
+    positiveReferenceLinks ++ negativeReferenceLinks
   }
 
-  def positiveReferenceLinks: Seq[ReferenceLink] = {
+  def toReferenceLinksSafe(sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): Seq[ReferenceLink] = {
+    asReferenceLinksSafe(positiveLinks.toSeq, LinkDecision.POSITIVE, sourceEntitySchema, targetEntitySchema) ++
+      asReferenceLinksSafe(negativeLinks.toSeq, LinkDecision.NEGATIVE, sourceEntitySchema, targetEntitySchema)
+  }
+
+  private def positiveReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE)
   }
 
-  def negativeReferenceLinks: Seq[ReferenceLink] = {
+  private def negativeReferenceLinks: Seq[ReferenceLink] = {
     asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
   }
 
@@ -123,17 +128,49 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
 
   private def asReferenceLinks(links: Seq[Link], linkDecision: LinkDecision): Seq[ReferenceLink] = {
     for (link <- links) yield {
-      new ReferenceLink(
-        source = link.source,
-        target = link.target,
-        linkEntities = DPair(
-          source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
-          target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
-        ),
-        decision = linkDecision,
-        confidence = link.confidence
-      )
+      asReferenceLink(link, linkDecision)
     }
+  }
+
+  private def asReferenceLinksSafe(links: Seq[Link], linkDecision: LinkDecision, sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): Seq[ReferenceLink] = {
+    for (link <- links) yield {
+      asReferenceLinkSafe(link, linkDecision, sourceEntitySchema, targetEntitySchema)
+    }
+  }
+
+  /** Adds entities with no values to the link if the entity could not be found. */
+  private def asReferenceLinkSafe(link: Link, linkDecision: LinkDecision, sourceEntitySchema: EntitySchema, targetEntitySchema: EntitySchema): ReferenceLink = {
+    new ReferenceLink(
+      source = link.source,
+      target = link.target,
+      linkEntities = DPair(
+        source = sourceEntities.getOrElse(link.source, emptyEntity(link.source, sourceEntitySchema)),
+        target = targetEntities.getOrElse(link.target, emptyEntity(link.target, targetEntitySchema)),
+      ),
+      decision = linkDecision,
+      confidence = link.confidence
+    )
+  }
+
+  private def emptyEntity(uri: String, entitySchema: EntitySchema): Entity = {
+    Entity(
+      uri,
+      values = entitySchema.typedPaths.map(_ => Seq()),
+      schema = entitySchema
+    )
+  }
+
+  private def asReferenceLink(link: Link, linkDecision: LinkDecision): ReferenceLink = {
+    new ReferenceLink(
+      source = link.source,
+      target = link.target,
+      linkEntities = DPair(
+        source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
+        target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
+      ),
+      decision = linkDecision,
+      confidence = link.confidence
+    )
   }
 
   /** Merges this reference set with another reference set. */
@@ -145,8 +182,8 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     unlabeledLinks ++ ref.unlabeledLinks
   )
 
-  def update(newSourceEntities: Traversable[Entity] = Traversable.empty,
-             newTargetEntities: Traversable[Entity] = Traversable.empty,
+  def update(newSourceEntities: Iterable[Entity] = Iterable.empty,
+             newTargetEntities: Iterable[Entity] = Iterable.empty,
              newPositiveLinks: Set[Link] = Set.empty,
              newNegativeLinks: Set[Link] = Set.empty,
              newUnlabeledLinks: Set[Link] = Set.empty): ReferenceEntities = {
@@ -175,11 +212,11 @@ object ReferenceEntities {
 
   def empty = ReferenceEntities(Map.empty, Map.empty)
 
-  def fromEntities(positiveEntities: Traversable[DPair[Entity]],
-                   negativeEntities: Traversable[DPair[Entity]],
-                   unlabeledEntities: Traversable[DPair[Entity]] = Traversable.empty): ReferenceEntities = {
-    def srcEnt(e: Traversable[DPair[Entity]]) = e.map(_.source).toSet
-    def tgtEnt(e: Traversable[DPair[Entity]]) = e.map(_.target).toSet
+  def fromEntities(positiveEntities: Iterable[DPair[Entity]],
+                   negativeEntities: Iterable[DPair[Entity]],
+                   unlabeledEntities: Iterable[DPair[Entity]] = Iterable.empty): ReferenceEntities = {
+    def srcEnt(e: Iterable[DPair[Entity]]) = e.map(_.source).toSet
+    def tgtEnt(e: Iterable[DPair[Entity]]) = e.map(_.target).toSet
 
     val sourceEntities = srcEnt(positiveEntities) ++ srcEnt(negativeEntities) ++ srcEnt(unlabeledEntities)
     val targetEntities = tgtEnt(positiveEntities) ++ tgtEnt(negativeEntities) ++ tgtEnt(unlabeledEntities)

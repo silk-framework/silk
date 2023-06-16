@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
@@ -481,7 +481,7 @@ object TransformSpec {
   private val enumParameterType = EnumerationType(classOf[TargetVocabularyParameterEnum])
 
   /** The old version of a list of vocabularies for backwards compatibility. */
-  case class TargetVocabularyListParameter(value: Traversable[String]) extends TargetVocabularyParameter {
+  case class TargetVocabularyListParameter(value: Iterable[String]) extends TargetVocabularyParameter {
     override def explicitVocabularies: Seq[String] = value.toSeq
 
     override def toString: String = TargetVocabularyParameterType.stringValue(this)
@@ -535,7 +535,7 @@ object TransformSpec {
     override def autoComplete(searchQuery: String,
                               dependOnParameterValues: Seq[ParamValue],
                               workspace: WorkspaceReadTrait)
-                             (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                             (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
       filterResults(searchQuery, potentialResults)
     }
 

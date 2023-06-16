@@ -22,7 +22,7 @@ case class DistanceMeasureExampleValue(description: Option[String],
     sb ++= s"* Returns: → `${output}`\n"
   }
 
-  private def format(traversable: Traversable[_]): String = {
+  private def format(traversable: Iterable[_]): String = {
     traversable.mkString("[", ", ", "]")
   }
 

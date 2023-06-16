@@ -54,7 +54,7 @@ trait Observable[T] {
    * @return The provided function
    */
   final def subscribe[U](f: T => U): Unit = subscriberMap.synchronized {
-    subscriberMap.update(f, Unit)
+    subscriberMap.update(f, ())
   }
 
   /**
@@ -74,7 +74,7 @@ trait Observable[T] {
   /**
     * Retrieves all subscribers.
     */
-  final def subscribers: Traversable[T => _] = subscriberMap.synchronized {
+  final def subscribers: Iterable[T => _] = subscriberMap.synchronized {
     subscriberMap.keys
   }
 

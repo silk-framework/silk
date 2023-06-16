@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class XmlTraverserTest extends FlatSpec with MustMatchers {
+class XmlTraverserTest extends AnyFlatSpec with Matchers {
   behavior of "XML Traverser"
 
   it should "evaluate paths as requested" in {
@@ -25,7 +26,7 @@ class XmlTraverserTest extends FlatSpec with MustMatchers {
     val objectResources = evaluate("/A/B", ValueType.URI)
     objectResources.size mustBe 6
     objectResources.map(_.take(14)).distinct mustBe Seq("urn:instance:B")
-    evaluate("/A", ValueType.URI) mustBe Seq("urn:instance:A#1031906387")
+    evaluate("/A", ValueType.URI) mustBe Seq("urn:instance:A#1133478415")
     evaluate("/A", ValueType.STRING) mustBe Seq()
     evaluate("/A", ValueType.INT) mustBe Seq()
   }

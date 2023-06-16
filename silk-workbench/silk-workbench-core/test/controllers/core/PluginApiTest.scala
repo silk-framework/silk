@@ -1,7 +1,7 @@
 package controllers.core
 
 import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -11,8 +11,10 @@ import org.silkframework.runtime.plugin._
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginDescriptionSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsObject, JsValue, Json}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
+class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers {
   behavior of "Plugin API"
 
   override def workspaceProviderId = "inMemory"
@@ -23,7 +25,7 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
     for(addMarkdown <- Seq(false, true);
         endpoint <- Seq("plugins", "plugins/org.silkframework.dataset.Dataset")) {
       val request = client.url(s"$baseUrl/core/$endpoint?addMarkdownDocumentation=$addMarkdown")
-      val response = request.get
+      val response = request.get()
       val markdownDocs = (checkResponse(response).json \\ PluginDescriptionSerializers.MARKDOWN_DOCUMENTATION_PARAMETER).map(_.as[String])
       val markdownExists = markdownDocs.size > 0
       assert(!(markdownExists ^ addMarkdown), s"For endpoint '$endpoint' markdown was ${if(addMarkdown) "" else "not "}" +
@@ -99,7 +101,7 @@ case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionPro
   val values = Seq("val1" -> "First value", "val2" -> "Second value", "val3" -> "Third value")
 
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue], workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiWordQuery = extractSearchTerms(searchQuery)
     values.filter(v => matchesSearchTerm(multiWordQuery, v._2)).map{ case (value, label) => AutoCompletionResult(value, Some(label))}
   }

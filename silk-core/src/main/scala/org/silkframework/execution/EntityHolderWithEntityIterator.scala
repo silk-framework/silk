@@ -3,7 +3,7 @@ package org.silkframework.execution
 import org.silkframework.entity.Entity
 
 /**
-  * An [[EntityHolder]] that on top of the entity [[Traversable]] offers an entity iterator as optimization.
+  * An [[EntityHolder]] that on top of the entity [[Iterable]] offers an entity iterator as optimization.
   */
 trait EntityHolderWithEntityIterator extends EntityHolder {
   /** An [[Iterator]] of [[Entity]] objects contemplating the entities method.

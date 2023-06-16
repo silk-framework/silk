@@ -26,15 +26,15 @@ class EvaluateTransform(source: DataSource,
 
   def execute()(implicit userContext: UserContext, prefixes: Prefixes): Seq[DetailedEntity] = {
     // Retrieve entities
-    val entities = source.retrieve(entitySchema, Some(maxEntities)).entities
-
-    // Read all entities
-    for(entity <- entities) {
-      // Transform entity
-      val transformedEntity = DetailedEvaluator(rules, entity)
-      // Write transformed entity to cache
-      cachedValues = cachedValues :+ transformedEntity
-      if(cachedValues.size >= maxEntities) return cachedValues
+    source.retrieve(entitySchema, Some(maxEntities)).entities.use { entities =>
+      // Read all entities
+      for (entity <- entities) {
+        // Transform entity
+        val transformedEntity = DetailedEvaluator(rules, entity)
+        // Write transformed entity to cache
+        cachedValues = cachedValues :+ transformedEntity
+        if (cachedValues.size >= maxEntities) return cachedValues
+      }
     }
 
     cachedValues

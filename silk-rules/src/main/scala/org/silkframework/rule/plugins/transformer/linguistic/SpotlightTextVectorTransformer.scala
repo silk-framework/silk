@@ -25,7 +25,7 @@ import scala.xml.{Elem, XML}
 )
 case class SpotlightTextVectorTransformer() extends Transformer {
   def apply(values: Seq[Seq[String]]): Seq[String] = {
-    val stringSet = values.reduce(_ union _)
+    val stringSet = values.reduce(_ concat _)
     if(stringSet.isEmpty)
       return Seq[String]()
     val query = if(stringSet.size>1)
@@ -67,7 +67,7 @@ object SpotlightClient {
     for(resource <- root \ "Resources" \ "Resource")
       tempResources += ((resource.text, (resource \ "@similarityScore").text.toDouble))
     var first = true
-    for((resource, score) <- normalize(tempResources)) {
+    for((resource, score) <- normalize(tempResources.toSeq)) {
       if(!first)
         sb.append(";")
       else

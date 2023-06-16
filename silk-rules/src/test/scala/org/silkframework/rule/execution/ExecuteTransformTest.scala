@@ -1,9 +1,8 @@
 package org.silkframework.rule.execution
 
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, Matchers}
-import org.scalatestplus.mockito.MockitoSugar
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
@@ -12,9 +11,12 @@ import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.{Identifier, MockitoSugar, Uri}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.silkframework.runtime.iterator.CloseableIterator
 
-class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
+class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
 
   implicit val userContext: UserContext = UserContext.Empty
@@ -26,7 +28,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())(any(), any())).thenReturn(GenericEntityTable(entities, entities.head.schema, null))
+    when(dataSourceMock.retrieve(any(), any())(any(), any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
     val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
       PlainTask("transformTask", transform),

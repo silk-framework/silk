@@ -2,13 +2,12 @@ import React from "react";
 import { TreeNodeInfo } from "@blueprintjs/core";
 import { EvaluationLinkInputValue, HoveredValuedType, LinkingEvaluationResult, ReferenceLinkType } from "./typings";
 import { useTranslation } from "react-i18next";
-import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
-import { getOperatorLabel, getParentNodes } from "./LinkingEvaluationViewUtils";
+import { getParentNodes } from "./LinkingEvaluationViewUtils";
 import { IAggregationOperator, ISimilarityOperator } from "../../linking.types";
 import { ComparisonDataCell, ComparisonDataContainer } from "../../activeLearning/components/ComparisionData";
 import { PropertyBox } from "../../activeLearning/components/PropertyBox";
 import { ActiveLearningValueExamples } from "../../activeLearning/shared/ActiveLearningValueExamples";
-import TableTree from "./shared/TableTreeView";
+import TableTree from "../../../shared/evaluations/TableTreeView";
 import { IPluginDetails } from "@ducks/common/typings";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
 
@@ -16,6 +15,7 @@ import {
     ConfidenceValue,
     Divider,
     Highlighter,
+    Icon,
     IconButton,
     InteractionGate,
     OverflowText,
@@ -27,14 +27,14 @@ import {
     TableExpandRow,
     TableRow,
     Tag,
-    TagList,
 } from "@eccenca/gui-elements";
+import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 
 interface ExpandedEvaluationRowProps {
     rowIdx: number;
     colSpan: number;
-    inputValues: EvaluationLinkInputValue;
-    rowIsExpanded: boolean;
+    inputValues?: EvaluationLinkInputValue;
+    rowIsExpandedByParent: boolean;
     linkingEvaluationResult?: LinkingEvaluationResult;
     handleReferenceLinkTypeUpdate: (
         currentLinkType: ReferenceLinkType,
@@ -44,12 +44,13 @@ interface ExpandedEvaluationRowProps {
         index: number
     ) => Promise<boolean>;
     searchQuery: string;
-    handleRowExpansion: (rowId?: number) => any;
     linkRuleOperatorTree?: ISimilarityOperator;
     operatorTreeExpandedByDefault: boolean;
     inputValuesExpandedByDefault: boolean;
     operatorPlugins: Array<IPluginDetails>;
     evaluationMap?: Map<string, EvaluationResultType[number]>;
+    /** If the row is expanded because of a search match. Only the row values should be shown in that case. */
+    expandedBySearch: boolean;
 }
 
 const operatorInputMapping = {
@@ -69,16 +70,16 @@ export const LinkingEvaluationRow = React.memo(
         rowIdx,
         colSpan,
         inputValues,
-        rowIsExpanded,
+        rowIsExpandedByParent,
         linkingEvaluationResult,
         handleReferenceLinkTypeUpdate,
         searchQuery,
-        handleRowExpansion,
         linkRuleOperatorTree,
         operatorTreeExpandedByDefault,
         inputValuesExpandedByDefault,
         operatorPlugins,
         evaluationMap,
+        expandedBySearch,
     }: ExpandedEvaluationRowProps) => {
         const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo | undefined>(undefined);
         const [valueToHighlight, setValueToHighlight] = React.useState<HoveredValuedType | undefined>(undefined);
@@ -96,6 +97,7 @@ export const LinkingEvaluationRow = React.memo(
         const [currentLinkType, setCurrentLinkType] = React.useState<ReferenceLinkType>(
             linkingEvaluationResult?.decision ?? "unlabeled"
         );
+        const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowIsExpandedByParent);
         const [t] = useTranslation();
 
         const handleInputTableExpansion = React.useCallback(() => {
@@ -103,15 +105,20 @@ export const LinkingEvaluationRow = React.memo(
         }, []);
 
         React.useEffect(() => {
+            setRowIsExpanded(rowIsExpandedByParent || expandedBySearch);
+        }, [rowIsExpandedByParent, expandedBySearch]);
+
+        React.useEffect(() => {
             if (rowIsExpanded) {
                 if (inputValuesExpandedByDefault !== inputValueTableExpanded) {
                     setInputValueTableExpanded(inputValuesExpandedByDefault);
                 }
-                if (operatorTreeExpandedByDefault !== operatorTreeExpansion.expanded) {
-                    setOperatorTreeExpansion({ ...operatorTreeExpansion, expanded: operatorTreeExpandedByDefault });
+                const treeExpanded = operatorTreeExpandedByDefault && (!expandedBySearch || rowIsExpandedByParent);
+                if (treeExpanded !== operatorTreeExpansion.expanded) {
+                    setOperatorTreeExpansion({ ...operatorTreeExpansion, expanded: treeExpanded });
                 }
             }
-        }, [rowIsExpanded]);
+        }, [rowIsExpanded, expandedBySearch, rowIsExpandedByParent]);
 
         const toggleRuleTreeExpand = React.useCallback(() => {
             setOperatorTreeExpansion((old) => ({
@@ -143,6 +150,31 @@ export const LinkingEvaluationRow = React.memo(
             [evaluationMap, nodeParentHighlightedIds]
         );
 
+        // Returns an icon element that warns the user that the entity has no values at all
+        const emptyEntityWarning = (values?: Record<string, string[]>): JSX.Element | null => {
+            if (!values) {
+                return null;
+            }
+            const entries = Object.entries(values);
+            if (entries.length === 0) {
+                // If there is no input path at all, do not highlight empty entity
+                return null;
+            }
+            const allEmpty = entries.every(
+                ([_prop, propertyValues]) => !Array.isArray(propertyValues) || propertyValues.length === 0
+            );
+            return allEmpty ? (
+                <>
+                    <Spacing vertical={true} size={"small"} />
+                    <Icon
+                        intent={"neutral"}
+                        name={"state-info"}
+                        tooltipText={t("ReferenceLinks.warnings.entityHasNoValues")}
+                    />
+                </>
+            ) : null;
+        };
+
         const updateTreeNode = React.useCallback(() => {
             const operatorNode = linkRuleOperatorTree;
             if (!operatorNode) return;
@@ -151,13 +183,13 @@ export const LinkingEvaluationRow = React.memo(
                 isExpanded: operatorTreeExpansion.expanded,
                 hasCaret: false,
                 label: (
-                    <span>
-                        <Tag backgroundColor={tagColor(operatorNode.type)}>
-                            {getOperatorLabel(operatorNode, operatorPlugins)}
-                        </Tag>
-                        <Spacing vertical size="tiny" />
+                    <OperatorLabel
+                        tagPluginType={operatorNode.type}
+                        operator={operatorNode}
+                        operatorPlugins={operatorPlugins}
+                    >
                         {getOperatorConfidence(operatorNode.id)}
-                    </span>
+                    </OperatorLabel>
                 ),
                 childNodes: [],
             };
@@ -176,13 +208,13 @@ export const LinkingEvaluationRow = React.memo(
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <span>
-                                    <Tag backgroundColor={tagColor(nodeInput.type)}>
-                                        {getOperatorLabel(nodeInput, operatorPlugins)}
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
+                                <OperatorLabel
+                                    tagPluginType={nodeInput.type}
+                                    operator={nodeInput}
+                                    operatorPlugins={operatorPlugins}
+                                >
                                     {getOperatorConfidence(nodeInput.id)}
-                                </span>
+                                </OperatorLabel>
                             ),
                             childNodes: [],
                         });
@@ -196,24 +228,20 @@ export const LinkingEvaluationRow = React.memo(
                             isExpanded: true,
                             hasCaret: false,
                             label: (
-                                <TagList>
-                                    <Tag
-                                        key="pathinput"
-                                        backgroundColor={
-                                            tagColor(
-                                                node[inputPath].type === "pathInput"
-                                                    ? inputPathCategory[inputPath]
-                                                    : operatorInputMapping[node[inputPath].type]
-                                            ) as string
-                                        }
-                                    >
-                                        {getOperatorLabel(node[inputPath], operatorPlugins)}
-                                    </Tag>
+                                <OperatorLabel
+                                    tagPluginType={
+                                        node[inputPath].type === "pathInput"
+                                            ? inputPathCategory[inputPath]
+                                            : operatorInputMapping[node[inputPath].type]
+                                    }
+                                    operator={node[inputPath]}
+                                    operatorPlugins={operatorPlugins}
+                                >
                                     {getLinkValues(node[inputPath].id, rowIdx, treeInfo, {
                                         path: node[inputPath].path ?? "",
                                         isSourceEntity,
                                     })}
-                                </TagList>
+                                </OperatorLabel>
                             ),
                             childNodes: [],
                         };
@@ -248,11 +276,9 @@ export const LinkingEvaluationRow = React.memo(
                           isExpanded: true,
                           hasCaret: false,
                           label: (
-                              <span>
-                                  <Tag backgroundColor={tagColor(i.type)}>{getOperatorLabel(i, operatorPlugins)}</Tag>
-                                  <Spacing vertical size="tiny" />
+                              <OperatorLabel tagPluginType={i.type} operator={i} operatorPlugins={operatorPlugins}>
                                   {getOperatorConfidence(i.id)}
-                              </span>
+                              </OperatorLabel>
                           ),
                           childNodes: [],
                       });
@@ -276,15 +302,12 @@ export const LinkingEvaluationRow = React.memo(
                     hasCaret: false,
                     isExpanded: true,
                     label: (
-                        <TagList>
-                            <Tag key="input" backgroundColor={tagColor(tagInputTag) as string}>
-                                {getOperatorLabel(input, operatorPlugins)}
-                            </Tag>
+                        <OperatorLabel tagPluginType={tagInputTag} operator={input} operatorPlugins={operatorPlugins}>
                             {getLinkValues(input.id, index, parentTree, {
                                 path: input.path ?? "",
                                 isSourceEntity,
                             })}
-                        </TagList>
+                        </OperatorLabel>
                     ),
                 };
                 tree.childNodes = [...(tree?.childNodes ?? []), newChild];
@@ -297,15 +320,16 @@ export const LinkingEvaluationRow = React.memo(
                     hasCaret: false,
                     isExpanded: true,
                     label: (
-                        <TagList>
-                            <Tag key="operator" backgroundColor={tagColor(operatorInputMapping[input.type]) as string}>
-                                {getOperatorLabel(input, operatorPlugins)}
-                            </Tag>
+                        <OperatorLabel
+                            tagPluginType={operatorInputMapping[input.type]}
+                            operator={input}
+                            operatorPlugins={operatorPlugins}
+                        >
                             {getLinkValues(input.id, index, parentTree, {
                                 path: input.path ?? "",
                                 isSourceEntity,
                             })}
-                        </TagList>
+                        </OperatorLabel>
                     ),
                 };
                 tree.childNodes = [...(tree?.childNodes ?? []), newChildTree];
@@ -329,6 +353,7 @@ export const LinkingEvaluationRow = React.memo(
                             acc = acc && currentHighlightedValue[key] === val;
                             return acc;
                         }, true);
+
                     const otherCount =
                         (evaluationMap.get(id)?.value || []).length > cutAfter ? (
                             <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
@@ -337,37 +362,53 @@ export const LinkingEvaluationRow = React.memo(
                         ) : (
                             <></>
                         );
-                    const exampleValues = evaluationMap
-                        .get(id)
-                        ?.value.slice(0, cutAfter)
-                        .map((val, i) => (
+                    let exampleValues: JSX.Element[] = [];
+
+                    if (!evaluationMap.get(id)?.value.length) {
+                        exampleValues = [
                             <Tag
-                                key={val + i}
-                                round
-                                emphasis="stronger"
-                                interactive
-                                backgroundColor={
-                                    isHighlightMatch(val)
-                                        ? "#746a85" // TODO: get color from CSS config
-                                        : nodeParentHighlightedIds.get(index)?.includes(id)
-                                        ? "#0097a7" // TODO: get color from CSS config
-                                        : undefined
-                                }
-                                onMouseEnter={() => {
-                                    handleValueHover({
-                                        value: val,
-                                        ...nodeData,
-                                    });
-                                    handleParentNodeHighlights(tree, id, index);
-                                }}
-                                onMouseLeave={() => {
-                                    handleValueHover({ value: "", path: "", isSourceEntity: false });
-                                    handleParentNodeHighlights(tree, id, index, true);
-                                }}
+                                htmlTitle={t("common.messages.noValuesAvailable")}
+                                round={true}
+                                intent={"neutral"}
+                                emphasis={"weak"}
                             >
-                                {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
-                            </Tag>
-                        ));
+                                N/A
+                            </Tag>,
+                        ];
+                    }
+
+                    exampleValues =
+                        evaluationMap
+                            .get(id)
+                            ?.value.slice(0, cutAfter)
+                            .map((val, i) => (
+                                <Tag
+                                    key={val + i}
+                                    round
+                                    emphasis="stronger"
+                                    interactive
+                                    backgroundColor={
+                                        isHighlightMatch(val)
+                                            ? "#746a85" // TODO: get color from CSS config
+                                            : nodeParentHighlightedIds.get(index)?.includes(id)
+                                            ? "#0097a7" // TODO: get color from CSS config
+                                            : undefined
+                                    }
+                                    onMouseEnter={() => {
+                                        handleValueHover({
+                                            value: val,
+                                            ...nodeData,
+                                        });
+                                        handleParentNodeHighlights(tree, id, index);
+                                    }}
+                                    onMouseLeave={() => {
+                                        handleValueHover({ value: "", path: "", isSourceEntity: false });
+                                        handleParentNodeHighlights(tree, id, index, true);
+                                    }}
+                                >
+                                    {searchQuery ? <Highlighter label={val} searchValue={searchQuery} /> : val}
+                                </Tag>
+                            )) ?? [];
                     return [exampleValues, [otherCount]];
                 }
             },
@@ -413,7 +454,14 @@ export const LinkingEvaluationRow = React.memo(
                 setUpdateOperationPending(false);
             }
         };
-        const onExpandRow = React.useCallback(() => handleRowExpansion(rowIdx), []);
+        const onExpandRow = React.useCallback(() => setRowIsExpanded((e) => !e), []);
+
+        //score does not match decision
+        const mismatchExists: boolean =
+            linkingEvaluationResult?.decision != null &&
+            linkingEvaluationResult?.confidence != null &&
+            linkingEvaluationResult.decision !== "unlabeled" &&
+            (linkingEvaluationResult.confidence >= 0 ? "positive" : "negative") !== linkingEvaluationResult?.decision;
         return (
             <React.Fragment key={rowIdx}>
                 {linkingEvaluationResult && (
@@ -429,11 +477,23 @@ export const LinkingEvaluationRow = React.memo(
                         className="diapp-linking-evaluation__row-item"
                         useZebraStyle={rowIdx % 2 === 1}
                     >
+                        <TableCell alignVertical="middle">
+                            {mismatchExists ? (
+                                <Icon
+                                    intent="warning"
+                                    name="state-warning"
+                                    data-test-id="decision-mismatch-warning"
+                                    tooltipText="decision mismatch"
+                                />
+                            ) : null}
+                        </TableCell>
                         <TableCell key={"sourceEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.source} searchValue={searchQuery} />
+                            {emptyEntityWarning(inputValues?.source)}
                         </TableCell>
                         <TableCell key={"targetEntity"} alignVertical="middle">
                             <Highlighter label={linkingEvaluationResult.target} searchValue={searchQuery} />
+                            {emptyEntityWarning(inputValues?.target)}
                         </TableCell>
                         <TableCell key="confidence" alignVertical="middle">
                             <ConfidenceValue value={linkingEvaluationResult.confidence} />
@@ -447,6 +507,7 @@ export const LinkingEvaluationRow = React.memo(
                                     {linkStateButtons.map(({ linkType, icon, ...otherProps }, btnIndex) => (
                                         <React.Fragment key={icon}>
                                             <IconButton
+                                                data-test-id={`link-state-button-${linkType}`}
                                                 name={icon}
                                                 onClick={() => onLinkStateUpdate(linkType)}
                                                 {...otherProps}
@@ -566,6 +627,7 @@ export const LinkingEvaluationRow = React.memo(
                             </TableBody>
                         </Table>
                         <TableTree
+                            columnWidths={["30px", "40%", "40%", "7rem", "9rem"]}
                             treeIsExpanded={operatorTreeExpansion.expanded}
                             nodes={treeNodes ? [treeNodes] : []}
                             toggleTableExpansion={toggleRuleTreeExpand}

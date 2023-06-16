@@ -15,11 +15,11 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
-
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.CloseableIterator
 
 /**
  * Retrieves the most frequent paths of a number of random sample entities.
@@ -48,11 +48,13 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
         getEntities(endpoint, graph, restrictions)
     }
 
-    getEntitiesPaths(endpoint, graph, sampleEntities, restrictions.variable, limit.getOrElse(100))
+    sampleEntities.use { iterator =>
+      getEntitiesPaths(endpoint, graph, iterator, restrictions.variable, limit.getOrElse(100))
+    }
   }
 
   private def getEntities(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction)
-                         (implicit userContext: UserContext): Traversable[String] = {
+                         (implicit userContext: UserContext): CloseableIterator[String] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT ?" + restrictions.variable
 
@@ -70,7 +72,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     results.bindings.map(_(restrictions.variable).value)
   }
 
-  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Traversable[String], variable: String, limit: Int)
+  private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Iterator[String], variable: String, limit: Int)
                               (implicit userContext: UserContext): Seq[TypedPath] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
@@ -80,7 +82,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     val properties = entityArray.flatMap(entity => getEntityProperties(endpoint, graph, entity, variable, limit))
 
     //Compute the frequency of each property
-    val propertyFrequencies = properties.groupBy(x => x).mapValues(_.size.toDouble / entityArray.size).toList
+    val propertyFrequencies = properties.groupBy(x => x).view.mapValues(_.size.toDouble / entityArray.size).toList
 
     //Choose the relevant properties
     val relevantProperties = propertyFrequencies.filter { case (uri, frequency) => frequency > MinFrequency }
@@ -92,7 +94,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)
-                                 (implicit userContext: UserContext): Traversable[UntypedPath] = {
+                                 (implicit userContext: UserContext): Seq[UntypedPath] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT DISTINCT ?p \n"
 
@@ -105,7 +107,9 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     sparql ++= "}"
 
-    for (result <- endpoint.select(sparql.toString(), limit).bindings; binding <- result.values) yield
-      UntypedPath(ForwardOperator(binding.value) :: Nil)
+    endpoint.select(sparql.toString(), limit).bindings.use { bindings =>
+      for (result <- bindings.toSeq; binding <- result.values) yield
+        UntypedPath(ForwardOperator(binding.value) :: Nil)
+    }
   }
 }

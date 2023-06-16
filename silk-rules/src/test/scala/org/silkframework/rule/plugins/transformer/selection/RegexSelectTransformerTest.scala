@@ -1,11 +1,12 @@
 package org.silkframework.rule.plugins.transformer.selection
 
-import org.scalatest.{MustMatchers, FlatSpec}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Created on 9/9/16.
   */
-class RegexSelectTransformerTest extends FlatSpec with MustMatchers {
+class RegexSelectTransformerTest extends AnyFlatSpec with Matchers {
   behavior of "Regex Select Transformer"
 
   private val outputValue = "output"
