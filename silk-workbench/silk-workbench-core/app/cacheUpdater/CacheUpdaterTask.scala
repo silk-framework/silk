@@ -3,7 +3,7 @@ package cacheUpdater
 import akka.actor.ActorSystem
 import org.silkframework.config.{DefaultConfig, ExtendedTypesafeConfig}
 import org.silkframework.dataset.DirtyTrackingFileDataSink
-import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.concurrent.CustomExecutionContext
 import resources.ResourceHelper

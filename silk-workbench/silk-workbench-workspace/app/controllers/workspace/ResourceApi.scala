@@ -215,7 +215,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     schema = new Schema(implementation = classOf[String])
                   )
                   resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    ResourceHelper.uploadResource(projectName, resourceName)
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val resource = project.resources.get(resourceName)
+    ResourceHelper.uploadResource(project, resource)
   }
 
   @deprecated("Use files-endpoints instead.")

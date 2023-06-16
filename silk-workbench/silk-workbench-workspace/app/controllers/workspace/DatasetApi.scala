@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import akka.stream.scaladsl.StreamConverters
 import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
@@ -417,12 +418,60 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
   }
 
   @Operation(
-    summary = "Upload dataset resource",
+    summary = "Retrieve dataset file",
+    description = "Retrieve the file of a dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset is not based on a file."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def getFile(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "name",
+                description = "The dataset identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              datasetName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val dataset = project.task[GenericDatasetSpec](datasetName)
+    dataset.data.plugin match {
+      case resourceDataset: ResourceBasedDataset =>
+        val resource = resourceDataset.file
+        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
+      case _ =>
+        throw BadUserInputException(s"Dataset ${dataset.labelAndId} is not based on a file.")
+    }
+  }
+
+  @Operation(
+    summary = "Upload dataset file",
     description = ResourceApiDoc.resourceUploadDescription,
     responses = Array(
       new ApiResponse(
         responseCode = "204",
         description = "If the resource has been uploaded successfully."
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset is not based on a file or has been set to read-only."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -455,10 +504,10 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
               )
               projectName: String,
               @Parameter(
-                name = "path",
+                name = "name",
                 description = "The dataset identifier",
                 required = true,
-                in = ParameterIn.QUERY,
+                in = ParameterIn.PATH,
                 schema = new Schema(implementation = classOf[String])
               )
               datasetName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -468,8 +517,8 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
       case resourceDataset: ResourceBasedDataset =>
         resourceDataset.writableResource match {
           case Some(writeableResource) if !dataset.data.readOnly =>
-            ResourceHelper.uploadResource(projectName, writeableResource.path)
-          case None =>
+            ResourceHelper.uploadResource(project, writeableResource)
+          case _ =>
             throw BadUserInputException(s"The file of dataset ${dataset.labelAndId} cannot be written to.")
         }
       case _ =>
