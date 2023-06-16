@@ -6,8 +6,8 @@ import org.silkframework.runtime.validation.BadUserInputException
 
 import java.io.StringWriter
 import java.util
-import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.MapHasAsJava
 import scala.xml.Node
 
 /**
@@ -24,7 +24,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     * The key is the scope and the values are all variables for this scope as a Java map.
     */
   def variableMap: Map[String, util.Map[String, String]] = {
-    map.groupBy(_._2.scope).mapValues(_.mapValues(_.value).asJava)
+    map.groupBy(_._2.scope).view.mapValues(_.view.mapValues(_.value).toMap.asJava).toMap
   }
 
   /**
@@ -41,13 +41,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     for(variable <- variables) {
       variable.template match {
         case Some(template) =>
-          val value = TemplateVariables(resolvedVariables).resolveTemplateValue(template, additionalVariables)
+          val value = TemplateVariables(resolvedVariables.toSeq).resolveTemplateValue(template, additionalVariables)
           resolvedVariables.append(variable.copy(value = value))
         case None =>
           resolvedVariables.append(variable)
       }
     }
-    TemplateVariables(resolvedVariables)
+    TemplateVariables(resolvedVariables.toSeq)
   }
 
   /**

@@ -15,14 +15,9 @@ case class WriteContext[U](parent: Option[U] = None,
                            prefixes: Prefixes,
                            projectId: Option[Identifier] = None,
                            projectUri: Option[String] = None,
-<<<<<<< HEAD
                            resources: ResourceManager = EmptyResourceManager(),
                            user: UserContext = UserContext.Empty,
                            templateVariables: TemplateVariablesReader = GlobalTemplateVariables) extends PluginContext
-=======
-                           resources: ResourceManager,
-                           user: UserContext = UserContext.Empty) extends PluginContext
->>>>>>> develop
 
 object WriteContext {
 

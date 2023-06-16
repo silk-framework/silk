@@ -16,11 +16,7 @@ import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEn
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
-<<<<<<< HEAD
-=======
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.plugin.MultilineStringParameter
->>>>>>> develop
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}

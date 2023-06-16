@@ -5,13 +5,13 @@ import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
-import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.util.{MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.runtime.iterator.TraversableIterator
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 
 class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     with Matchers

@@ -26,11 +26,7 @@ trait PluginContext {
 
 object PluginContext {
 
-<<<<<<< HEAD
-  def empty: PluginContext = apply()
-=======
-  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None)
->>>>>>> develop
+  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables)
 
   def apply(prefixes: Prefixes,
             resources: ResourceManager,
@@ -53,12 +49,8 @@ object PluginContext {
   private case class PlainPluginContext(prefixes: Prefixes,
                                         resources: ResourceManager,
                                         user: UserContext,
-<<<<<<< HEAD
                                         projectId: Option[Identifier],
                                         templateVariables: TemplateVariablesReader) extends PluginContext
-=======
-                                        projectId: Option[Identifier]) extends PluginContext
->>>>>>> develop
 
 }
 

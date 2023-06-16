@@ -3,13 +3,7 @@ package org.silkframework.runtime.templating
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 
-<<<<<<< HEAD:silk-core/src/main/scala/org/silkframework/runtime/templating/GlobalTemplateVariablesConfig.scala
-import scala.collection.JavaConverters.asScalaSetConverter
-=======
-import java.io.StringWriter
-import java.util
-import scala.jdk.CollectionConverters.{MapHasAsJava, SetHasAsScala}
->>>>>>> develop:silk-core/src/main/scala/org/silkframework/runtime/templating/GlobalTemplateVariables.scala
+import scala.jdk.CollectionConverters.SetHasAsScala
 
 /**
   * Global template variables, which are defined in the configuration.

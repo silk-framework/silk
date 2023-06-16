@@ -1,7 +1,8 @@
 package org.silkframework.workspace.xml
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.runtime.templating.TemplateVariables.TemplateVariablesFormat
@@ -14,7 +15,7 @@ class XmlTemplateVariablesSerializer(resources: ResourceManager) extends Templat
     * Reads all variables at this scope.
     */
   override def readVariables()(implicit userContext: UserContext): TemplateVariables = {
-    implicit val readContext: ReadContext = ReadContext(user = userContext)
+    implicit val readContext: ReadContext = ReadContext(EmptyResourceManager(), Prefixes.empty, user = userContext)
     val variablesFile = resources.get("variables.xml")
     if(variablesFile.exists) {
       variablesFile.read(is => TemplateVariablesFormat.read(XML.load(is)))
@@ -27,7 +28,7 @@ class XmlTemplateVariablesSerializer(resources: ResourceManager) extends Templat
     * Updates all variables.
     */
   override def putVariables(variables: TemplateVariables)(implicit userContext: UserContext): Unit = {
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](user = userContext)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](prefixes = Prefixes.empty, user = userContext)
     val variablesFile = resources.get("variables.xml")
     val printer = new PrettyPrinter(Int.MaxValue, 2)
     variablesFile.writeString(printer.format(TemplateVariablesFormat.write(variables)))
