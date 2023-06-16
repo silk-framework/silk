@@ -117,7 +117,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
                 implicit val taskXmlFormat: XmlFormat[Task[TaskType]] = Task.taskFormat[TaskType]
                 val updatedReadContext = ReadContext.fromPluginContext()(pluginContext).copy(validationEnabled = readContext.validationEnabled, identifierGenerator = readContext.identifierGenerator)
                 val newParameterValues = XmlSerialization.serializeParameters(parameterValues)
-                // TODO CMEM-4608: Parameters are not merged if they are nested
+                // Nested parameters are not merged, but overwritten on the top level. As long as the complete parameter is sent and not a deep patch, this should be fine.
                 val updatedElem = new Elem(elem.prefix, elem.label, elem.attributes, elem.scope, false, elem.child ++ newParameterValues : _*)
                 XmlSerialization.fromXml[Task[TaskType]](updatedElem)(taskXmlFormat, updatedReadContext)
               }
