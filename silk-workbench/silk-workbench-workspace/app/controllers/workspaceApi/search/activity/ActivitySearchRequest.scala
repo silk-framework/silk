@@ -12,13 +12,11 @@ import play.api.libs.json.{Json, OFormat, Reads}
 
 case class ActivitySearchRequest(@Schema(
                                    description = "If defined, only activities from that project are fetched.",
-                                   required = false,
                                    nullable = true
                                  )
                                  project: Option[String] = None,
                                  @Schema(
                                    description = "If defined, only activities of this parent type are fetched.",
-                                   required = false,
                                    nullable = true,
                                    implementation = classOf[String], // The ItemType JSON reader expects a single string instead of the whole object
                                    allowableValues = Array("workspace", "project", "dataset", "transform", "linking", "workflow", "task")
@@ -26,20 +24,17 @@ case class ActivitySearchRequest(@Schema(
                                  itemType: Option[ItemType] = None,
                                  @Schema(
                                    description = "Conjunctive multi word query. The single words can be scattered over different artifact properties.",
-                                   required = false,
                                    nullable = true
                                  )
                                  textQuery: Option[String] = None,
                                  @Schema(
                                    description = "Search result offset to allow for paging.",
-                                   required = false,
                                    nullable = true,
                                    implementation = classOf[Int]
                                  )
                                  offset: Option[Int] = None,
                                  @Schema(
                                    description = "Search result limit to allow for paging. Can be disabled by setting it to '0', which will return all results.",
-                                   required = false,
                                    nullable = true,
                                    defaultValue = "10",
                                    implementation = classOf[Int]
@@ -47,7 +42,6 @@ case class ActivitySearchRequest(@Schema(
                                  limit: Option[Int] = None,
                                  @Schema(
                                    description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, update date or running time.",
-                                   required = false,
                                    nullable = true,
                                    defaultValue = "label",
                                    allowableValues = Array("label", "recentlyUpdated", "runningTime")
@@ -55,7 +49,6 @@ case class ActivitySearchRequest(@Schema(
                                  sortBy: Option[ActivitySortBy.Value] = None,
                                  @Schema(
                                    description = "The order of the retrieved results.",
-                                   required = false,
                                    nullable = true,
                                    defaultValue = "ASC",
                                    allowableValues = Array("ASC", "DESC")
@@ -64,7 +57,6 @@ case class ActivitySearchRequest(@Schema(
                                  @ArraySchema(
                                    schema = new Schema(
                                      description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.",
-                                     required = false,
                                      nullable = true,
                                      implementation = classOf[String]
                                  ))
