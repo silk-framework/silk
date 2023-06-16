@@ -372,7 +372,7 @@ object WorkflowDatasetsParameter {
 
   implicit object WorkflowDatasetsFormat extends XmlFormat[WorkflowDatasetsParameter] {
     override def read(node: Node)(implicit readContext: ReadContext): WorkflowDatasetsParameter = {
-      for (op <- node \ "Operator") yield {
+      for (op <- node \ "Dataset") yield {
         WorkflowDataset.workflowDatasetXmlFormat.read(op)
       }
     }
