@@ -832,7 +832,7 @@
                 "edit": "Edit variable"
             },
             "errorMessages": {
-                "loadingVariables": "Could not load variables for project {{projectId}}",
+                "loadingVariables": "Could not load variables for project '{{projectId}}'",
                 "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand"
             }
         },
