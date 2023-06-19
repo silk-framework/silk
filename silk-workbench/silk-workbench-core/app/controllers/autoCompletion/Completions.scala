@@ -1,5 +1,6 @@
 package controllers.autoCompletion
 
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.util.StringUtils
 import play.api.libs.json._
@@ -89,17 +90,17 @@ object CompletionBase {
   * @param isCompletion True, if this is a valid completion. False, if this is a (error) message.
   * @param extra        Some extra values depending on the category
   */
-case class Completion(@Schema(description = "The value to be filled if the user selects this completion.", required = true)
+case class Completion(@Schema(description = "The value to be filled if the user selects this completion.", requiredMode = RequiredMode.REQUIRED)
                       value: String,
-                      @Schema(description = "The confidence of this completion.", required = true)
+                      @Schema(description = "The confidence of this completion.", requiredMode = RequiredMode.REQUIRED)
                       confidence: Double = Double.MinValue,
-                      @Schema(description = "A user readable label if available.", required = false)
+                      @Schema(description = "A user readable label if available.")
                       label: Option[String],
-                      @Schema(description = "A user readable description if available.", required = false)
+                      @Schema(description = "A user readable description if available.")
                       description: Option[String],
-                      @Schema(description = "The category to be shown in the autocompletion.", required = true)
+                      @Schema(description = "The category to be shown in the autocompletion.", requiredMode = RequiredMode.REQUIRED)
                       category: String,
-                      @Schema(description = "True, if this is a valid completion. False, if this is a (error) message.", required = true)
+                      @Schema(description = "True, if this is a valid completion. False, if this is a (error) message.", requiredMode = RequiredMode.REQUIRED)
                       isCompletion: Boolean,
                       @Schema(
                         description = "Some extra values depending on the category (arbitrary JSON)",
