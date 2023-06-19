@@ -206,7 +206,13 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         >
                             <Icon name="navigation-close" description="Close icon" large />
                         </ApplicationToolbarAction>
-                        <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
+                        <ApplicationToolbarPanel
+                            aria-label="User menu"
+                            expanded={true}
+                            onLeave={() => {
+                                toggleUserMenuDisplay(false);
+                            }}
+                        >
                             <Toolbar verticalStack={true} style={{ height: "100%" }}>
                                 <ToolbarSection canGrow={true} style={{ width: "100%" }}>
                                     <Menu>
