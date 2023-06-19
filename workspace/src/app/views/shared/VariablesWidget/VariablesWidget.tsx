@@ -112,7 +112,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setRefetch((f) => ++f);
             } catch (err) {
                 if (err && (err as FetchError).isFetchError && err.body.detail.includes("Unknown token found: ")) {
-                    registerError("VariableWidgetError", t("VariableWidget.errorMessages.orderingVariables"), err);
+                    registerError(
+                        "VariableWidgetError",
+                        t("widget.VariableWidget.errorMessages.orderingVariables"),
+                        err
+                    );
                 }
             }
         },
