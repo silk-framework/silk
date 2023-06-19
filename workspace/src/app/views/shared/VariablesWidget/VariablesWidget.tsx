@@ -112,11 +112,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setRefetch((f) => ++f);
             } catch (err) {
                 if (err && (err as FetchError).isFetchError && err.body.detail.includes("Unknown token found: ")) {
-                    registerError(
-                        "VariableWidgetError",
-                        "Cannot change position of variable: its own dependencies must be defined beforehand",
-                        err
-                    );
+                    registerError("VariableWidgetError", t("VariableWidget.errorMessages.orderingVariables"), err);
                 }
             }
         },
