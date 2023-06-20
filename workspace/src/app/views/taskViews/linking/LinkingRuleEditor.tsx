@@ -126,6 +126,15 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             return results.slice(0, limit);
         };
 
+    // Return for either a source or target path what type of path it is.
+    const inputPathPluginPathType =
+        (pluginId: "sourcePathInput" | "targetPathInput", path: string): string | undefined => {
+            const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
+            const pathLength = path.length
+            const pathMetaData = pathsMetaData.find(p => p.value && path.endsWith(p.value))
+            return pathMetaData?.valueType
+        };
+
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
@@ -327,6 +336,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                 instanceId={instanceId}
                 fetchDatasetCharacteristics={fetchDatasetCharacteristics}
+                inputPathPluginPathType={inputPathPluginPathType}
             />
         </LinkingRuleEvaluation>
     );

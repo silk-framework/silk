@@ -152,7 +152,7 @@ export const ParameterAutoCompletion = ({
                 if (showErrorsInline) {
                     registerError("ParameterAutoCompletion.handleAutoCompleteInput", errorTitle, e);
                 } else {
-                    // This should be handled in the auto completion component
+                    // This should be handled in the auto-completion component
                     const details = parseErrorCauseMsg(e) ?? "";
                     throw new Error(details);
                 }

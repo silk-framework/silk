@@ -7,9 +7,16 @@ import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { Button, IconButton, MenuItem, Select } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
+/** Language filter related properties. */
+export interface LanguageFilterProps {
+    enabled: boolean,
+    /** Returns for a path the type of the given path. Returns undefined if the path metadata is unknown. */
+    pathType: (path: string) => string | undefined
+}
+
 interface Props {
     parameterAutoCompletionProps: ParameterAutoCompletionProps;
-    languageFilterSupport?: boolean;
+    languageFilterSupport?: LanguageFilterProps;
 }
 
 /** Extracts the language part from a language filter operator string. */
@@ -20,7 +27,7 @@ const StringSelect = Select.ofType<string>();
 const NO_LANG = "-";
 
 /** Rule operator that takes input paths. */
-export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilterSupport = true }: Props) => {
+export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilterSupport = {enabled: true, pathType: () => undefined} }: Props) => {
     const [t] = useTranslation();
     const [activeProps, setActiveProps] = React.useState<ParameterAutoCompletionProps>(parameterAutoCompletionProps);
     const [languageFilter, _setLanguageFilter] = React.useState<string | undefined>(undefined);
@@ -33,6 +40,22 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
         // This onChange handler uses the up-to-date language filter
         activeOnChangeHandler?: (value: IAutocompleteDefaultResponse) => any;
     }>({ initialized: false, currentValue: parameterAutoCompletionProps.initialValue });
+    const [showLanguageFilterButton, setShowLanguageFilterButton] = React.useState(false)
+
+    const checkPathToShowFilterButton = React.useCallback((path?: string) => {
+        const pathType = path ? languageFilterSupport.pathType(path) : "URI"
+        setShowLanguageFilterButton(
+            !pathType || pathType === "String"
+        )
+    }, [])
+
+    React.useEffect(() => {
+        const initialValue = parameterAutoCompletionProps.initialValue
+        if(languageFilterSupport.enabled && initialValue) {
+            const initialPath = parameterAutoCompletionProps.initialValue?.value
+            checkPathToShowFilterButton(initialPath)
+        }
+    }, [checkPathToShowFilterButton])
 
     const setLanguageFilter = (string) => {
         internalState.current.currentLanguageFilter = string;
@@ -41,6 +64,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
 
     internalState.current.activeOnChangeHandler = (value) => {
         internalState.current.currentValue = value;
+        checkPathToShowFilterButton(value.value)
         const fullValue = {
             ...value,
             value: value.value + languageFilterExpression(internalState.current.currentLanguageFilter),
@@ -49,7 +73,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
     };
     const languageFilterItems = ["en", "de", "fr", NO_LANG];
 
-    const overwrittenProps: Partial<ParameterAutoCompletionProps> = languageFilterSupport
+    const overwrittenProps: Partial<ParameterAutoCompletionProps> = languageFilterSupport.enabled && (showLanguageFilterButton || languageFilter)
         ? {
               inputProps: {
                   rightElement: (
@@ -143,7 +167,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilter
         : {};
 
     // Initialize language filter and modify original props, e.g. onChange handler and initialValue
-    if (languageFilterSupport && !internalState.current.initialized) {
+    if (languageFilterSupport.enabled && !internalState.current.initialized) {
         internalState.current.initialized = true;
         const initialValue = parameterAutoCompletionProps.initialValue?.value ?? "";
         const onChange = (value: IAutocompleteDefaultResponse) => {

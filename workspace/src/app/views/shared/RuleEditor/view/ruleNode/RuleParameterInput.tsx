@@ -18,7 +18,7 @@ import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { PathInputOperator } from "./PathInputOperator";
+import {LanguageFilterProps, PathInputOperator} from "./PathInputOperator";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -36,7 +36,7 @@ interface RuleParameterInputProps {
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
     /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
-    languageFilterEnabled: boolean;
+    languageFilter?: LanguageFilterProps;
 }
 
 /** An input widget for a parameter value. */
@@ -48,7 +48,7 @@ export const RuleParameterInput = ({
     dependentValue,
     large,
     insideModal,
-    languageFilterEnabled,
+    languageFilter,
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -175,7 +175,7 @@ export const RuleParameterInput = ({
                             parameterAutoCompletionProps={autoCompleteProps(
                                 ruleParameter.parameterSpecification.autoCompletion
                             )}
-                            languageFilterSupport={languageFilterEnabled}
+                            languageFilterSupport={languageFilter}
                         />
                     );
                 }

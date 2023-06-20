@@ -17,6 +17,7 @@ import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { IconButton } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import {LanguageFilterProps} from "../view/ruleNode/PathInputOperator";
 
 /** Constants */
 
@@ -71,7 +72,7 @@ export interface IOperatorCreateContext {
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
     /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
-    languageFilterEnabled: (nodeId: string) => boolean;
+    languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
 }
 
 /** Creates a new react-flow rule operator node. */

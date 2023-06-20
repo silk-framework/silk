@@ -47,6 +47,7 @@ import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
+import {LanguageFilterProps} from "../view/ruleNode/PathInputOperator";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -1470,16 +1471,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
 
-    const languageFilterEnabled = (nodeId: string) => {
+    const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
         const node = nodeMap.get(nodeId);
         if (node) {
-            return (
+            const enabled = (
                 node.node.pluginType === "PathInputOperator" &&
                 !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
                     .languageFilter
             );
-        } else {
-            return false;
+            return {
+                enabled,
+                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path)
+            }
         }
     };
 
