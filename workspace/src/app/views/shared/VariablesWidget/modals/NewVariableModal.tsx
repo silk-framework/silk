@@ -94,10 +94,10 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
      */
     const validationChecker = React.useCallback(() => {
         const error = {
-            name: !name.length ? "Name must be specified" : undefined,
+            name: !name.length ? t("widget.VariableWidget.formErrors.nameMustBeSpecified") : undefined,
             valueOrTemplate:
                 !valueState.current.currentInputValue?.length && !valueState.current.currentTemplateValue?.length
-                    ? "Must provide value or template"
+                    ? t("widget.VariableWidget.formErrors.mustProvideValOrTemplate")
                     : undefined,
         };
         setValidationError(error);
@@ -112,11 +112,23 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             const newName = e.target.value;
             setName(newName);
             if (variables.find((v) => v.name === newName)) {
-                setValidationError((prevError) => ({ ...prevError, name: "Name already exist" }));
+                setValidationError((prevError) => ({
+                    ...prevError,
+                    name: t("widget.VariableWidget.formErrors.nameAlreadyExists"),
+                }));
+            } else {
+                setValidationError((prevError) => ({ ...prevError, name: undefined }));
             }
         },
         [variables]
     );
+
+    const resetModalState = React.useCallback(() => {
+        setName("");
+        setDescription("");
+        valueState.current.inputValueBeforeSwitch = "";
+        valueState.current.templateValueBeforeSwitch = "";
+    }, []);
 
     /**
      * adds new variable or updates existing variable
@@ -160,10 +172,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 variables: newVariables,
             };
             await createNewVariable(updatedVariables, projectId, taskId);
-            setName("");
-            setDescription("");
-            valueState.current.inputValueBeforeSwitch = "";
-            valueState.current.templateValueBeforeSwitch = "";
+            resetModalState();
             refresh();
             closeModal();
         } catch (err) {
@@ -173,13 +182,18 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         }
     }, [name, valueState, description, taskId]);
 
+    const handleModalClose = React.useCallback(() => {
+        closeModal();
+        resetModalState();
+    }, []);
+
     return (
         <SimpleDialog
             data-test-id="variable-modal"
             size="small"
             title={`${isEditMode ? "Edit" : "Add"} Variable`}
             isOpen={modalOpen}
-            onClose={closeModal}
+            onClose={handleModalClose}
             notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
             actions={[
                 <Button
@@ -192,7 +206,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 >
                     {!isEditMode ? t("common.action.add") : t("common.action.update")}
                 </Button>,
-                <Button key="cancel" onClick={closeModal}>
+                <Button key="cancel" onClick={handleModalClose}>
                     {t("common.action.cancel", "Cancel")}
                 </Button>,
             ]}

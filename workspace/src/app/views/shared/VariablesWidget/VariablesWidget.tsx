@@ -91,10 +91,13 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         }
     }, [selectedVariable]);
 
-    const handleVariableDragStart = React.useCallback(() => {}, []);
+    const handleVariableDragStart = React.useCallback(() => {
+        if (variables.length === 1) return;
+    }, [variables]);
 
     const handleVariableDragEnd = React.useCallback(
         async (result) => {
+            if (variables.length === 1) return;
             // dropped outside the list
             if (!result.destination) {
                 return;
@@ -179,87 +182,99 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                         <OverviewItemList hasDivider>
                                             {variables.map((variable, i) => (
                                                 <Draggable key={variable.name} pos={i} index={i} draggableId={`${i}`}>
-                                                    {(provided) => (
-                                                        <div
-                                                            data-test-id="variable-list-item"
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                        >
-                                                            <Toolbar noWrap>
-                                                                <ToolbarSection>
-                                                                    <Icon small name="item-draggable" />
-                                                                    <Spacing size="tiny" vertical />
-                                                                </ToolbarSection>
-                                                                <ToolbarSection canGrow canShrink>
-                                                                    <PropertyValuePair>
-                                                                        <PropertyName
-                                                                            style={{
-                                                                                whiteSpace: "nowrap",
-                                                                                overflow: "visible",
-                                                                            }}
-                                                                            title={variable.name}
-                                                                        >
-                                                                            <Label
-                                                                                isLayoutForElement="span"
-                                                                                text={
-                                                                                    <OverflowText inline>
-                                                                                        {variable.name}
-                                                                                    </OverflowText>
-                                                                                }
-                                                                                tooltip={variable.description}
-                                                                                style={{ lineHeight: "normal" }}
-                                                                            />
-                                                                        </PropertyName>
-                                                                        <PropertyValue
-                                                                            style={{
-                                                                                marginLeft: "calc(18.75% + 14px)",
-                                                                            }}
-                                                                        >
-                                                                            <OverflowText>
-                                                                                <code>{variable.value}</code>
-                                                                            </OverflowText>
-                                                                        </PropertyValue>
-                                                                    </PropertyValuePair>
-                                                                </ToolbarSection>
-                                                                {variable.template != null && (
-                                                                    <ToolbarSection>
-                                                                        <Icon
-                                                                            name={"form-template"}
-                                                                            intent={"info"}
-                                                                            data-test-id="template-variable-delimiter"
-                                                                            tooltipText={
-                                                                                t(
-                                                                                    "widget.TaskConfigWidget.templateValueInfo"
-                                                                                ) +
-                                                                                `\n\n\`\`\`${variable.template}\`\`\``
-                                                                            }
-                                                                            tooltipProps={{
-                                                                                placement: "top",
-                                                                                markdownEnabler: "```",
-                                                                            }}
-                                                                        />
-                                                                        <Spacing size="tiny" vertical />
+                                                    {(provided) => {
+                                                        const draggablePlugins =
+                                                            variables.length === 1
+                                                                ? {}
+                                                                : {
+                                                                      ...provided.draggableProps,
+                                                                      ...provided.dragHandleProps,
+                                                                  };
+                                                        return (
+                                                            <div
+                                                                data-test-id="variable-list-item"
+                                                                ref={provided.innerRef}
+                                                                {...draggablePlugins}
+                                                            >
+                                                                <Toolbar noWrap>
+                                                                    {variables.length > 1 ? (
+                                                                        <ToolbarSection>
+                                                                            <Icon small name="item-draggable" />
+                                                                            <Spacing size="tiny" vertical />
+                                                                        </ToolbarSection>
+                                                                    ) : null}
+                                                                    <ToolbarSection canGrow canShrink>
+                                                                        <PropertyValuePair>
+                                                                            <PropertyName
+                                                                                style={{
+                                                                                    whiteSpace: "nowrap",
+                                                                                    overflow: "visible",
+                                                                                }}
+                                                                                title={variable.name}
+                                                                            >
+                                                                                <Label
+                                                                                    isLayoutForElement="span"
+                                                                                    text={
+                                                                                        <OverflowText inline>
+                                                                                            {variable.name}
+                                                                                        </OverflowText>
+                                                                                    }
+                                                                                    tooltip={variable.description}
+                                                                                    style={{ lineHeight: "normal" }}
+                                                                                />
+                                                                            </PropertyName>
+                                                                            <PropertyValue
+                                                                                style={{
+                                                                                    marginLeft: "calc(18.75% + 14px)",
+                                                                                }}
+                                                                            >
+                                                                                <OverflowText>
+                                                                                    <code>{variable.value}</code>
+                                                                                </OverflowText>
+                                                                            </PropertyValue>
+                                                                        </PropertyValuePair>
                                                                     </ToolbarSection>
-                                                                )}
-                                                                <ToolbarSection>
-                                                                    <IconButton
-                                                                        small
-                                                                        name="item-edit"
-                                                                        data-test-id="variable-edit-btn"
-                                                                        onClick={() => handleModalOpen(variable)}
-                                                                    />
-                                                                    <IconButton
-                                                                        small
-                                                                        name="item-remove"
-                                                                        data-test-id="variable-delete-btn"
-                                                                        onClick={() => handleDeleteModalOpen(variable)}
-                                                                        disruptive
-                                                                    />
-                                                                </ToolbarSection>
-                                                            </Toolbar>
-                                                        </div>
-                                                    )}
+                                                                    {variable.template != null && (
+                                                                        <ToolbarSection>
+                                                                            <Icon
+                                                                                name={"form-template"}
+                                                                                intent={"info"}
+                                                                                data-test-id="template-variable-delimiter"
+                                                                                tooltipText={
+                                                                                    t(
+                                                                                        "widget.TaskConfigWidget.templateValueInfo"
+                                                                                    ) +
+                                                                                    `\n\n\`\`\`${variable.template}\`\`\``
+                                                                                }
+                                                                                tooltipProps={{
+                                                                                    placement: "top",
+                                                                                    markdownEnabler: "```",
+                                                                                }}
+                                                                            />
+                                                                            <Spacing size="tiny" vertical />
+                                                                        </ToolbarSection>
+                                                                    )}
+                                                                    <ToolbarSection>
+                                                                        <IconButton
+                                                                            small
+                                                                            name="item-edit"
+                                                                            data-test-id="variable-edit-btn"
+                                                                            onClick={() => handleModalOpen(variable)}
+                                                                        />
+                                                                        <IconButton
+                                                                            small
+                                                                            name="item-remove"
+                                                                            data-test-id="variable-delete-btn"
+                                                                            onClick={() =>
+                                                                                handleDeleteModalOpen(variable)
+                                                                            }
+                                                                            disruptive
+                                                                        />
+                                                                    </ToolbarSection>
+                                                                </Toolbar>
+                                                            </div>
+                                                        );
+                                                    }}
                                                 </Draggable>
                                             ))}
                                         </OverviewItemList>
