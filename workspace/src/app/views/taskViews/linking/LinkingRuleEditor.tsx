@@ -26,6 +26,7 @@ import { IStickyNote } from "../shared/task.typings";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
+import Loading from "../../shared/Loading";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -65,6 +66,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // Label for input paths
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
+    const [loading, setLoading] = React.useState(true)
+    const pendingRequests = React.useRef(2)
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -76,19 +79,30 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         fetchPaths("target");
     }, [projectId, linkingTaskId, prefLang]);
 
+    const reducePendingRequestCount = () => {
+        pendingRequests.current = pendingRequests.current - 1
+        if(pendingRequests.current <= 0) {
+            setLoading(false)
+        }
+    }
+
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
-        const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
-            projectId,
-            linkingTaskId,
-            sourceOrTarget,
-            true,
-            prefLang
-        );
-        if (sourceOrTarget === "source") {
-            sourcePathLabels.current = paths.data as PathWithMetaData[];
-        } else {
-            targetPathLabels.current = paths.data as PathWithMetaData[];
+        try {
+            const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
+                projectId,
+                linkingTaskId,
+                sourceOrTarget,
+                true,
+                prefLang
+            );
+            if (sourceOrTarget === "source") {
+                sourcePathLabels.current = paths.data as PathWithMetaData[];
+            } else {
+                targetPathLabels.current = paths.data as PathWithMetaData[];
+            }
+        } finally {
+            reducePendingRequestCount()
         }
     };
     /** Fetches the parameters of the linking task */
@@ -130,7 +144,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const inputPathPluginPathType =
         (pluginId: "sourcePathInput" | "targetPathInput", path: string): string | undefined => {
             const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
-            const pathLength = path.length
             const pathMetaData = pathsMetaData.find(p => p.value && path.endsWith(p.value))
             return pathMetaData?.valueType
         };
@@ -275,6 +288,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         }
         return result;
     };
+
+    if(loading) {
+        return <Loading />
+    }
 
     return (
         <LinkingRuleEvaluation

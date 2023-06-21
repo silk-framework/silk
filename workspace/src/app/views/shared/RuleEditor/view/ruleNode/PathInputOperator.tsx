@@ -26,8 +26,10 @@ const languageTagRegex = /^[a-zA-Z]+(?:-[a-zA-Z0-9]+)*$/;
 const StringSelect = Select.ofType<string>();
 const NO_LANG = "-";
 
+const DEFAULT_LANGUAGE_FILTER_SUPPORT = {enabled: true, pathType: () => undefined}
+
 /** Rule operator that takes input paths. */
-export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilterSupport = {enabled: true, pathType: () => undefined} }: Props) => {
+export const PathInputOperator = ({ parameterAutoCompletionProps, languageFilterSupport = DEFAULT_LANGUAGE_FILTER_SUPPORT}: Props) => {
     const [t] = useTranslation();
     const [activeProps, setActiveProps] = React.useState<ParameterAutoCompletionProps>(parameterAutoCompletionProps);
     const [languageFilter, _setLanguageFilter] = React.useState<string | undefined>(undefined);

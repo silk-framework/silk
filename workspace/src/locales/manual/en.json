@@ -485,6 +485,13 @@
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
                 "referenceLinks": "Open reference links UI in new tab"
+            },
+            "PathNotInCacheModal": {
+                "loadAndReEvaluate": "Load and re-evaluate",
+                "missingPath": "Path not loaded",
+                "pathCouldNotBeAdded": "Path could not be loaded.",
+                "messagePartA": "Values for the input path",
+                "messagePartB": "are not available for evaluation. Load the path values from the data source and repeat evaluation?"
             }
         },
         "node": {
