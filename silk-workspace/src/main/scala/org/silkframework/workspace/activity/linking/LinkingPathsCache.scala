@@ -123,7 +123,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
                           (implicit userContext: UserContext): EntitySchema = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
     val paths = retrievePathsOfInput(datasetSelection.inputId, Some(datasetSelection), task.project, context)
-    entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths).distinct)
+    entitySchema.copy(typedPaths = (paths ++ entitySchema.typedPaths).distinct)
   }
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"pathsCache.xml")
