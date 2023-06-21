@@ -4,9 +4,11 @@ GET        /plugins/:pluginId            controllers.workspaceApi.coreApi.Plugin
 GET        /usages/plugins/:pluginId     controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
 
 # Template variables
-GET        /variableTemplate/variables   controllers.workspaceApi.coreApi.VariableTemplateApi.getVariables(project: String)
-POST       /variableTemplate/variables   controllers.workspaceApi.coreApi.VariableTemplateApi.putVariables(project: String)
-POST       /variableTemplate/validation  controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
-POST       /variableTemplate/completion  controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
+GET        /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.getVariables(project: String)
+POST       /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.putVariables(project: String)
+GET        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.getVariable(project: String, name: String)
+DELETE     /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.deleteVariable(project: String, name: String)
+POST       /variableTemplate/validation       controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
+POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
 
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()

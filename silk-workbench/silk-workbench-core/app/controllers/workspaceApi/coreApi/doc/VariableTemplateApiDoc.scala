@@ -1,6 +1,19 @@
 package controllers.workspaceApi.coreApi.doc
 
 object VariableTemplateApiDoc {
+
+  final val cannotDeleteUsedVariableResponse =
+    """{
+        "title": "Cannot delete used variable",
+        "detail": "The variable 'year' cannot be deleted because it's used in the following other variables: 'movie1', 'movie2'",
+        "cause": null,
+        "variable": "year",
+        "dependentVariables": [
+          "movie1",
+          "movie2"
+        ]
+      }"""
+
   final val autoCompleteVariableTemplateRequest =
     """
     {

@@ -2,15 +2,16 @@ package controllers.workspaceApi.coreApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.workspaceApi.coreApi.VariableTemplateApi.TemplateVariablesFormat
+import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat}
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationError, VariableTemplateValidationResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
@@ -91,6 +92,112 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     val variables = Json.fromJson[TemplateVariablesFormat](request.body).get.convert
     project.templateVariables.put(variables.resolved(GlobalTemplateVariables.all))
     Ok
+  }
+
+  @Operation(
+    summary = "Get variable",
+    description = "Retrieves a single variable by name.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Requested variable",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(
+            implementation = classOf[TemplateVariableFormat]
+          )
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or variable does not exist."
+      )
+    )
+  )
+  def getVariable(@Parameter(
+                    name = "project",
+                    description = "The project identifier",
+                    required = true,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String,
+                  @Parameter(
+                    name = "namer",
+                    description = "The variable name",
+                    required = true,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+      val project = WorkspaceFactory().workspace.project(projectName)
+      Ok(Json.toJson(TemplateVariableFormat(project.templateVariables.get(variableName))))
+  }
+
+  @Operation(
+    summary = "Remove variable",
+    description = "Removes a single variable by name.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the variable has been removed successfully",
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the variable could not be removed because another variable depends on it.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(VariableTemplateApiDoc.cannotDeleteUsedVariableResponse))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or variable does not exist."
+      )
+    )
+  )
+  def deleteVariable(@Parameter(
+                       name = "project",
+                       description = "The project identifier",
+                       required = true,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     projectName: String,
+                     @Parameter(
+                       name = "namer",
+                       description = "The variable name",
+                       required = true,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+
+    // Make sure that variable exists
+    val variable = project.templateVariables.get(variableName)
+
+    // Remove variable and update
+    val currentVariables = project.templateVariables.all
+    val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+    try {
+      val resolvedVariables = updatedVariables.resolved(GlobalTemplateVariables.all)
+      project.templateVariables.put(resolvedVariables)
+      Ok
+    } catch {
+      case ex: TemplateVariablesEvaluationException =>
+        // Check if the evaluation failed because this variable is used in other variables.
+        val dependentVariables =
+          ex.issues.collect {
+            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable.scopedName) =>
+              dependentVar.name
+          }
+        if(dependentVariables.nonEmpty) {
+          throw CannotDeleteUsedVariableException(variableName, dependentVariables)
+        } else {
+          throw ex
+        }
+    }
   }
 
   @Operation(
@@ -188,10 +295,10 @@ object VariableTemplateApi {
 
   @Schema(description = "A single template variable")
   case class TemplateVariableFormat(@Schema(
-                                      description = "The name of the variable.",
-                                      example = "myVar",
-                                      required = true
-                                    )
+    description = "The name of the variable.",
+    example = "myVar",
+    required = true
+  )
                                     name: String,
                                     @Schema(
                                       description = "The value of the variable.",
@@ -223,7 +330,7 @@ object VariableTemplateApi {
                                     )
                                     scope: String) {
     def convert: TemplateVariable = {
-      if(value.isEmpty && template.isEmpty) {
+      if (value.isEmpty && template.isEmpty) {
         throw new BadUserInputException("Either the variable value or its template has to be defined.")
       }
       TemplateVariable(name, value.getOrElse(""), template, description, isSensitive, scope)
@@ -238,11 +345,11 @@ object VariableTemplateApi {
 
   @Schema(description = "A list of template variables.")
   case class TemplateVariablesFormat(@ArraySchema(
-                                       schema = new Schema(
-                                         description = "List of variables.",
-                                         required = true,
-                                         implementation = classOf[TemplateVariableFormat]
-                                     ))
+    schema = new Schema(
+      description = "List of variables.",
+      required = true,
+      implementation = classOf[TemplateVariableFormat]
+    ))
                                      variables: Seq[TemplateVariableFormat]) {
     def convert: TemplateVariables = {
       TemplateVariables(variables.map(_.convert))

@@ -111,7 +111,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 await createNewVariable(reorderedVariables, projectId);
                 setRefetch((f) => ++f);
             } catch (err) {
-                if (err && (err as FetchError).isFetchError && err.body.detail.includes("Unknown token found: ")) {
+                if (
+                    err &&
+                    (err as FetchError).isFetchError &&
+                    err.body.title.includes("Template variables evaluation error")
+                ) {
                     registerError(
                         "VariableWidgetError",
                         t("widget.VariableWidget.errorMessages.orderingVariables"),

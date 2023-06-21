@@ -8,21 +8,14 @@ import scala.xml.{Node, PCData}
 /**
   * A single template variable.
   */
-case class TemplateVariable(name: String,
+case class TemplateVariable(override val name: String,
                             value: String,
                             template: Option[String],
                             description: Option[String],
                             isSensitive: Boolean,
-                            scope: String) {
+                            override val scope: String) extends TemplateVariableValue(name, scope, values = Seq(value)) {
 
   validate()
-
-  /**
-    * The variable name including its scope, e.g., `project.var`
-    */
-  def scopedName: String = {
-    scope + "." + name
-  }
 
   private def validate(): Unit = {
     if(!isAllowedChar(name.head, firstChar = true) || !name.tail.forall(isAllowedChar(_, firstChar = false))) {

@@ -2,12 +2,11 @@ package org.silkframework.runtime.templating
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.templating.TemplateVariable.TemplateVariableFormat
+import org.silkframework.runtime.templating.exceptions.{TemplateEvaluationException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException}
 import org.silkframework.runtime.validation.BadUserInputException
 
 import java.io.StringWriter
-import java.util
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.MapHasAsJava
 import scala.xml.Node
 
 /**
@@ -20,14 +19,6 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   validate()
 
   /**
-    * Returns variables as a map to be used in template evaluation.
-    * The key is the scope and the values are all variables for this scope as a Java map.
-    */
-  def variableMap: Map[String, util.Map[String, String]] = {
-    map.groupBy(_._2.scope).view.mapValues(_.view.mapValues(_.value).toMap.asJava).toMap
-  }
-
-  /**
     * Lists all available scoped variable names.
     */
   def variableNames: Seq[String] = {
@@ -36,18 +27,33 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     }
   }
 
+  /**
+    * Resolves all templates and fills the template values accordingly.
+    *
+    * @throws TemplateVariablesEvaluationException If at least one template variable could not be resolved.
+    */
   def resolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    val errors = mutable.Buffer[TemplateVariableEvaluationException]()
     for(variable <- variables) {
       variable.template match {
         case Some(template) =>
-          val value = TemplateVariables(resolvedVariables.toSeq).resolveTemplateValue(template, additionalVariables)
-          resolvedVariables.append(variable.copy(value = value))
+          try {
+            val value = TemplateVariables(resolvedVariables.toSeq).resolveTemplateValue(template, additionalVariables)
+            resolvedVariables.append(variable.copy(value = value))
+          } catch {
+            case ex: TemplateEvaluationException =>
+              errors.append(TemplateVariableEvaluationException(variable, ex))
+          }
         case None =>
           resolvedVariables.append(variable)
       }
     }
-    TemplateVariables(resolvedVariables.toSeq)
+    if(errors.isEmpty) {
+      TemplateVariables(resolvedVariables.toSeq)
+    } else {
+      throw TemplateVariablesEvaluationException(errors.toSeq)
+    }
   }
 
   /**
@@ -57,7 +63,7 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     * */
   def resolveTemplateValue(template: String, additionalVariables: TemplateVariables = TemplateVariables.empty): String = {
     val writer = new StringWriter()
-    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(additionalVariables.map ++ variableMap, writer)
+    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(additionalVariables.variables ++ variables, writer)
     writer.toString
   }
 
