@@ -47,6 +47,7 @@ export const PathNotInCacheModal = ({projectId, linkingTaskId, toTarget, path, o
         undefined
 
     return <SimpleDialog
+        data-test-id={"pathNotInCacheModal"}
         isOpen={true}
         title={t("RuleEditor.evaluation.PathNotInCacheModal.missingPath")}
         onClose={onClose}
@@ -55,6 +56,7 @@ export const PathNotInCacheModal = ({projectId, linkingTaskId, toTarget, path, o
         intent={"warning"}
         actions={[
             <Button
+                data-test-id={"loadAndReEvaluateBtn"}
                 type={"submit"}
                 hasStatePrimary={true}
                 text={t("RuleEditor.evaluation.PathNotInCacheModal.loadAndReEvaluate")}
