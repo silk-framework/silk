@@ -19,7 +19,7 @@ import { LinkageRuleConfigModal } from "./LinkageRuleConfigModal";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { fetchLinkSpec, updateLinkageRule } from "../../../taskViews/linking/LinkingRuleEditor.requests";
 import { ILinkingRule, LabelledParameterValue } from "../../../taskViews/linking/linking.types";
-import { invalidUriChars } from "../../Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
+import { validateUriString } from "../../Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { requestSearchForGlobalVocabularyProperties } from "@ducks/workspace/requests";
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
@@ -38,7 +38,7 @@ export interface LinkageRuleConfigItem {
     description: string;
     /** Value of the parameter. */
     value: string | undefined;
-    /** */
+    /** The label that should be shown in the read-only view. */
     valueLabel?: string;
     /** Either validates or an error message is given. */
     validation: (value: string) => true | string;
@@ -46,7 +46,13 @@ export interface LinkageRuleConfigItem {
     placeholder?: string;
     /** Auto-complete search function. The parameter will be rendered as auto-complete field. */
     onSearch?: (textQuery: string, limit: number) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>;
+    /** If this should be shown in the read-only view. Default: true */
+    showReadOnly?: boolean;
 }
+
+const LINK_TYPE = "linkType";
+const INVERSE_LINK_TYPE = "inverseLinkType";
+const LIMIT = "limit";
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const [loading, setLoading] = React.useState(false);
@@ -89,22 +95,15 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
         if (linkingRule) {
             setParameters([
                 {
-                    id: "linkType",
+                    id: LINK_TYPE,
                     label: t("widget.LinkingRuleConfigWidget.parameters.linkType.label"),
                     value: linkingRule.linkType,
                     description: t("widget.LinkingRuleConfigWidget.parameters.linkType.description"),
-                    validation: (value) => {
-                        const invalidCharMatches = value.match(invalidUriChars);
-                        if (invalidCharMatches && invalidCharMatches.index != null) {
-                            const invalidChar = value.substring(invalidCharMatches.index, invalidCharMatches.index + 1);
-                            return `Invalid character found in string: '${invalidChar}'`;
-                        }
-                        return true;
-                    },
+                    validation: validateUriString,
                     onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
                 },
                 {
-                    id: "limit",
+                    id: LIMIT,
                     label: t("widget.LinkingRuleConfigWidget.parameters.limit.label"),
                     value: linkingRule.filter.limit != null ? `${linkingRule.filter.limit}` : "",
                     description: t("widget.LinkingRuleConfigWidget.parameters.limit.description"),
@@ -121,6 +120,15 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     },
                     placeholder: unlimited,
                 },
+                {
+                    id: "inverseLinkType",
+                    label: t("widget.LinkingRuleConfigWidget.parameters.inverseLinkType.label"),
+                    value: linkingRule.inverseLinkType ?? undefined,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.inverseLinkType.description"),
+                    validation: validateUriString,
+                    onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
+                    showReadOnly: !!linkingRule.inverseLinkType,
+                },
             ]);
         }
     };
@@ -133,11 +141,17 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     const param = parameters.find(([paramId]) => paramId === parameterId);
                     return param ? param[1] : undefined;
                 };
-                const linkType = paramValue("linkType");
+                const linkType = paramValue(LINK_TYPE);
                 if (linkType != null) {
                     linkingRule.linkType = linkType;
                 }
-                const limit = paramValue("limit");
+                const inverseLinkType = paramValue(INVERSE_LINK_TYPE);
+                if (inverseLinkType != null && inverseLinkType.trim() === "") {
+                    linkingRule.inverseLinkType = null;
+                } else if (inverseLinkType != null) {
+                    linkingRule.inverseLinkType = inverseLinkType;
+                }
+                const limit = paramValue(LIMIT);
                 const limitNr = Number(limit);
                 if (limit != null && limit.trim() !== "" && Number.isInteger(limitNr)) {
                     linkingRule.filter.limit = limitNr;
@@ -178,16 +192,20 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                 ) : (
                     <OverflowText passDown>
                         <PropertyValueList>
-                            {parameters.map((paramConfig) => {
-                                return (
-                                    <PropertyValuePair hasDivider key={paramConfig.id}>
-                                        <PropertyName title={paramConfig.label}>{paramConfig.label}</PropertyName>
-                                        <PropertyValue>
-                                            <code style={fixStyle}>{paramConfig.valueLabel ?? paramConfig.value}</code>
-                                        </PropertyValue>
-                                    </PropertyValuePair>
-                                );
-                            })}
+                            {parameters
+                                .filter((p) => p.showReadOnly == null || p.showReadOnly)
+                                .map((paramConfig) => {
+                                    return (
+                                        <PropertyValuePair hasDivider key={paramConfig.id}>
+                                            <PropertyName title={paramConfig.label}>{paramConfig.label}</PropertyName>
+                                            <PropertyValue>
+                                                <code style={fixStyle}>
+                                                    {paramConfig.valueLabel ?? paramConfig.value}
+                                                </code>
+                                            </PropertyValue>
+                                        </PropertyValuePair>
+                                    );
+                                })}
                         </PropertyValueList>
                     </OverflowText>
                 )}
