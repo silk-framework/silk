@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
+import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, CannotReorderVariablesException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
@@ -190,7 +190,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         // Check if the evaluation failed because this variable is used in other variables.
         val dependentVariables =
           ex.issues.collect {
-            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable.scopedName) =>
+            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable) =>
               dependentVar.name
           }
         if(dependentVariables.nonEmpty) {
@@ -216,11 +216,13 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     )
   )
   @RequestBody(
+    description = "An array containing the variable names in the desired order.",
     required = true,
     content = Array(
       new Content(
         mediaType = "application/json",
         schema = new Schema(implementation = classOf[Array[String]]),
+        examples = Array(new ExampleObject("""[ "variable1", "variable2" ]"""))
       )
     )
   )
@@ -231,8 +233,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                         in = ParameterIn.PATH,
                         schema = new Schema(implementation = classOf[String])
                       )
-                      projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
-    implicit userContext =>
+                      projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
 
@@ -250,7 +251,16 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         project.templateVariables.put(TemplateVariables(newVariables).resolved(GlobalTemplateVariables.all))
       } catch {
         case ex: TemplateVariablesEvaluationException =>
-          throw ex
+          val dependencyErrors =
+            ex.issues.collect {
+              case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) =>
+                (dependentVar.name, unboundEx.missingVars.filter(_.scope == "project").map(_.name))
+            }.filter(_._2.nonEmpty).toMap
+          if(dependencyErrors.nonEmpty) {
+            throw new CannotReorderVariablesException(dependencyErrors)
+          } else {
+            throw ex
+          }
       }
       Ok
   }

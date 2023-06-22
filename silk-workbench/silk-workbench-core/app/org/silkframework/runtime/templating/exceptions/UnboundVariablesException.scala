@@ -1,5 +1,6 @@
 package org.silkframework.runtime.templating.exceptions
 
+import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.templating.exceptions.UnboundVariablesException.generateMessage
 import org.silkframework.workbench.utils.JsonRequestException
 import play.api.libs.json.{JsObject, Json}
@@ -7,7 +8,7 @@ import play.api.libs.json.{JsObject, Json}
 /**
   * Thrown if a value for an unbound variable is missing.
   */
-class UnboundVariablesException(val missingVars: Seq[String], cause: Option[Exception] = None)
+class UnboundVariablesException(val missingVars: Seq[TemplateVariableName], cause: Option[Exception] = None)
   extends TemplateEvaluationException(generateMessage(missingVars), cause) with JsonRequestException {
 
   /**
@@ -21,14 +22,14 @@ class UnboundVariablesException(val missingVars: Seq[String], cause: Option[Exce
     */
   override def additionalJson: JsObject = {
     Json.obj(
-      "unboundVariables" -> missingVars
+      "unboundVariables" -> missingVars.map(_.scopedName)
     )
   }
 }
 
 object UnboundVariablesException {
 
-  private def generateMessage(missingVars: Seq[String]): String = {
+  private def generateMessage(missingVars: Seq[TemplateVariableName]): String = {
     missingVars match {
       case Seq(variable) =>
         s"'$variable' is not defined."

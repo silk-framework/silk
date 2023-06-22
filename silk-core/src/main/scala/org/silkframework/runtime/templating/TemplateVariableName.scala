@@ -33,3 +33,16 @@ class TemplateVariableName(val name: String, val scope: String) {
     Seq(name, scope).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }
+
+object TemplateVariableName {
+
+  def parse(fullName: String): TemplateVariableName = {
+    val pointIndex = fullName.indexOf('.'.toInt)
+    if(pointIndex != -1) {
+      new TemplateVariableName(fullName.substring(pointIndex + 1), fullName.substring(0, pointIndex))
+    } else {
+      new TemplateVariableName(fullName, "")
+    }
+  }
+
+}
