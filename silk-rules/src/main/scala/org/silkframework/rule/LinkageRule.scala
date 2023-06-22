@@ -31,6 +31,7 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
                        filter: LinkFilter = LinkFilter(),
                        linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs"),
                        inverseLinkType: Option[Uri] = None,
+                       isReflexive: Boolean = true,
                        layout: RuleLayout = RuleLayout(),
                        uiAnnotations: UiAnnotations = UiAnnotations()
                       ) extends PluginObjectParameterNoSchema {
@@ -106,13 +107,16 @@ object LinkageRule {
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
         linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes),
         inverseLinkType = Option((node \ "@inverseLinkType").text.trim).filter(_.nonEmpty).map(Uri.parse(_, readContext.prefixes)),
+        isReflexive = Option((node \ "@isReflexive").text.trim).filter(_.nonEmpty).map(_.toBoolean).getOrElse(true),
         layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout()),
         uiAnnotations = (node \ "UiAnnotations").headOption.map(uiAnnotations => XmlSerialization.fromXml[UiAnnotations](uiAnnotations)).getOrElse(UiAnnotations())
       )
     }
 
     def write(value: LinkageRule)(implicit writeContext: WriteContext[Node]): Node = {
-      <LinkageRule linkType={value.linkType.serialize(writeContext.prefixes)} inverseLinkType={value.inverseLinkType.map(_.serialize(writeContext.prefixes)).getOrElse("")}>
+      <LinkageRule linkType={value.linkType.serialize(writeContext.prefixes)}
+                   inverseLinkType={value.inverseLinkType.map(_.serialize(writeContext.prefixes)).getOrElse("")}
+                   isReflexive={value.isReflexive.toString}>
         {value.operator.toList.map(toXml[SimilarityOperator])}
         {value.filter.toXML}
         {XmlSerialization.toXml(value.layout)}
