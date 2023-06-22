@@ -1,7 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.mockito.Mockito._
-
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -12,6 +11,7 @@ import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.rule.{DatasetSelection, TransformSpec}
 
 class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with TestUserContextTrait {
   behavior of "Workflow"
@@ -153,7 +153,22 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
       val dataset = CsvDataset(project.resources.get("file.csv"))
       project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
     }
+    for(transformId <- Seq(TRANSFORM_1, TRANSFORM_2)) {
+      project.addTask[TransformSpec](transformId, TransformSpec(DatasetSelection(DS_A)))
+    }
     reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+  }
+
+  it should "not return datasets as output datasets that only have tasks as inputs that generate no data" in {
+    val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectA"))
+    for (datasetId <- Seq(DS_A, DS_B, DS_B2)) {
+      val dataset = CsvDataset(project.resources.get("file.csv"))
+      project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+    }
+    project.addTask[Workflow](WORKFLOW, Workflow())
+    project.addTask[TransformSpec](TRANSFORM_2, TransformSpec(DatasetSelection(DS_A)))
+    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
   }
 }
 
@@ -257,6 +272,20 @@ object WorkflowTest {
       datasets = Seq(
         dataset(DS_A, DS_A, outputs = Seq(), configInputs = Seq(TRANSFORM_1)),
         dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_2), outputs = Seq(), configInputs = Seq(TRANSFORM_1))
+      )
+    )
+  }
+
+  val noSchemaInputDatasetWorkflow: Workflow = {
+    Workflow(
+      operators = Seq(
+        operator(task = TRANSFORM_2, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM_2),
+        operator(task = WORKFLOW, inputs = Seq(), outputs = Seq(DS_A), WORKFLOW)
+      ),
+      datasets = Seq(
+        dataset(DS_A, DS_A, inputs = Seq(WORKFLOW, DS_B2), outputs = Seq(TRANSFORM_2)),
+        dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_2), outputs = Seq()),
+        dataset(DS_B2, DS_B2, inputs = Seq(), outputs = Seq(DS_A))
       )
     )
   }
