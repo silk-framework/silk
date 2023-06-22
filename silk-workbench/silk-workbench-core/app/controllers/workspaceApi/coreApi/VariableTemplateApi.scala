@@ -19,6 +19,7 @@ import play.api.libs.json.{JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
+import scala.collection.immutable.ArraySeq
 import scala.util.control.NonFatal
 
 /** Everything related to variable templates. */
@@ -49,7 +50,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      name = "project",
                      description = "The project identifier",
                      required = true,
-                     in = ParameterIn.QUERY,
+                     in = ParameterIn.PATH,
                      schema = new Schema(implementation = classOf[String])
                    )
                    projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -84,7 +85,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      name = "project",
                      description = "The project identifier",
                      required = true,
-                     in = ParameterIn.QUERY,
+                     in = ParameterIn.PATH,
                      schema = new Schema(implementation = classOf[String])
                    )
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
@@ -118,15 +119,15 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                     name = "project",
                     description = "The project identifier",
                     required = true,
-                    in = ParameterIn.QUERY,
+                    in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
                   projectName: String,
                   @Parameter(
-                    name = "namer",
+                    name = "name",
                     description = "The variable name",
                     required = true,
-                    in = ParameterIn.QUERY,
+                    in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
                   variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -160,15 +161,15 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                        name = "project",
                        description = "The project identifier",
                        required = true,
-                       in = ParameterIn.QUERY,
+                       in = ParameterIn.PATH,
                        schema = new Schema(implementation = classOf[String])
                      )
                      projectName: String,
                      @Parameter(
-                       name = "namer",
+                       name = "name",
                        description = "The variable name",
                        required = true,
-                       in = ParameterIn.QUERY,
+                       in = ParameterIn.PATH,
                        schema = new Schema(implementation = classOf[String])
                      )
                      variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -198,6 +199,60 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
           throw ex
         }
     }
+  }
+
+  @Operation(
+    summary = "Reorder variables",
+    description = "Reorders all variables.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the update has been successful."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[Array[String]]),
+      )
+    )
+  )
+  def reorderVariables(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      val project = WorkspaceFactory().workspace.project(projectName)
+      val variableNames = ArraySeq.unsafeWrapArray(Json.fromJson[Array[String]](request.body).get)
+
+      val currentVariables = project.templateVariables.all
+      if(project.templateVariables.all.map.keySet != variableNames.toSet) {
+        throw new BadUserInputException("Provided variable names don't match the existing variables.")
+      }
+
+      val newVariables =
+        for(variableName <- variableNames) yield {
+           currentVariables.map(variableName)
+        }
+
+      try {
+        project.templateVariables.put(TemplateVariables(newVariables).resolved(GlobalTemplateVariables.all))
+      } catch {
+        case ex: TemplateVariablesEvaluationException =>
+          throw ex
+      }
+      Ok
   }
 
   @Operation(
@@ -295,10 +350,10 @@ object VariableTemplateApi {
 
   @Schema(description = "A single template variable")
   case class TemplateVariableFormat(@Schema(
-    description = "The name of the variable.",
-    example = "myVar",
-    required = true
-  )
+                                      description = "The name of the variable.",
+                                      example = "myVar",
+                                      required = true
+                                    )
                                     name: String,
                                     @Schema(
                                       description = "The value of the variable.",
