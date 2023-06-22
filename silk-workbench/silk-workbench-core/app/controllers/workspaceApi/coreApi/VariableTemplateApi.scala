@@ -210,6 +210,13 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
         description = "If the update has been successful."
       ),
       new ApiResponse(
+        responseCode = "400",
+        description = "If the variables could not be reordered.",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      ),
+      new ApiResponse(
         responseCode = "404",
         description = "If the project does not exist."
       )
