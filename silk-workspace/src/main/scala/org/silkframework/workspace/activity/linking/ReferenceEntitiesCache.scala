@@ -14,7 +14,6 @@ import org.silkframework.workspace.activity.CachedActivityStreaming
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 import java.util
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.SetHasAsScala
 
