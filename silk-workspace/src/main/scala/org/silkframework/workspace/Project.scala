@@ -307,6 +307,12 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     }
   }
 
+  /** Removes a task loading error. */
+  def removeLoadingError(taskId: String): Unit = {
+    modules.foreach(_.removeLoadingError(taskId))
+    provider.removeExternalTaskLoadingError(id, taskId)
+  }
+
   /**
    * Removes a task of a specific type.
    * Note that the named task will be deleted, even if it is referenced by another task.

@@ -41,7 +41,8 @@ object OpenApiValidator {
   // Validate our own spec
   private def validateLocal(contents: String, validateJsonSchema: Boolean): ValidationResult = {
     val parser = new OpenAPIV3Parser()
-    val parserMessages = parser.readContents(contents).getMessages.asScala.toSeq
+    val parseResult = parser.readContents(contents)
+    val parserMessages = parseResult.getMessages.asScala.toSeq
     val schemaMessages = if(validateJsonSchema) validateSchema(contents) else Seq.empty
     ValidationResult(parserMessages ++ schemaMessages)
   }

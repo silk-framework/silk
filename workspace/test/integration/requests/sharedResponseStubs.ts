@@ -34,7 +34,7 @@ export const requestTaskDataTestResponse = ({
     taskLabel = "unsetTaskLabel",
     taskDescription = "unsetTaskDescription",
 }: ITaskDataResponseParams = {}): IProjectTask => {
-    const paramJSon = {};
+    const paramJSon = Object.create(null);
     parameters.forEach((param) => {
         let paramValue = param.value;
         if (withLabels) {

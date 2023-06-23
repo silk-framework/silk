@@ -42,8 +42,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     // Generates a flat object of (nested) parameter labels and their display values, i.e. their label if it exists
     const taskValues = (parameters: any): Record<string, ParameterConfigValue> => {
         if (parameters) {
-            const templates = objectToFlatRecord(taskData.data.templates ?? {}, {});
-            const result: Record<string, ParameterConfigValue> = {};
+            const templates = objectToFlatRecord(taskData.data.templates ?? {}, {}, false);
+            const result: Record<string, ParameterConfigValue> = Object.create(null);
             // Recursively extracts (nested) parameter display values.
             const taskValuesRec = (
                 obj: object,

@@ -2,11 +2,14 @@ package controllers.core.util
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.serialization.json.{JsonFormat, JsonHelpers}
 import org.silkframework.workspace.{Project, ProjectTask, Workspace, WorkspaceFactory}
-import play.api.libs.json.{JsError, JsValue, Json, Reads}
+import play.api.libs.json.{JsError, JsString, JsValue, Json, Reads}
 import play.api.mvc.{Accepting, BaseController, Request, Result}
 
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
   * Utility methods useful in Controllers.
@@ -30,6 +33,21 @@ trait ControllerUtilsTrait {
         body(obj)
       }
     )
+  }
+
+  /** Validates the JSON of the request body. Returns a 400 with the error details, if the validation failed. */
+  def validateJsonFromJsonFormat[T](body: T => Result)
+                                   (implicit request: Request[JsValue],
+                                    jsonFormat: JsonFormat[T],
+                                    readContext: ReadContext): Result = {
+    val obj: T = try {
+      val jsonBody = request.body
+      jsonFormat.read(jsonBody)
+    } catch {
+      case NonFatal(ex) =>
+        return BadRequest(Json.obj("status" -> "JSON parse error", "message" -> JsString(ex.getMessage)))
+    }
+    body(obj)
   }
 
   /** Returns the workspace object. */

@@ -23,7 +23,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
     const FACETS_PREVIEW_LIMIT = 7;
 
     useEffect(() => {
-        const visiblesOnly = {} as any;
+        const visiblesOnly = Object.create(null) as any;
         facets.forEach((facet) => {
             visiblesOnly[facet.id] = [...facet.values]
                 .sort((a, b) => Number(isChecked(facet.id, b.id)) - Number(isChecked(facet.id, a.id)))

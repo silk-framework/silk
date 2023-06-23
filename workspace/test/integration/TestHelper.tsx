@@ -432,10 +432,10 @@ export const checkRequestMade = (
     if (data !== null) {
         if (partialEquality && typeof data === "object") {
             Object.entries(data).forEach(([key, value]) => {
-                expect(reqInfo.data[key]).toStrictEqual(value);
+                expect(reqInfo.data[key]).toEqual(value);
             });
         } else {
-            expect(reqInfo.data).toStrictEqual(data);
+            expect(reqInfo.data).toEqual(data);
         }
     }
 };

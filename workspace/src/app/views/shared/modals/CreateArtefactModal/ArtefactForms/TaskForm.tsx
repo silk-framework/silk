@@ -66,7 +66,7 @@ const datasetConfigPreview = (
     };
 };
 
-const intRegex = /^[0-9]*$/;
+const intRegex = /^(0|-?[1-9][0-9]*)$/;
 const isInt = (value) => {
     return intRegex.test(`${value}`);
 };
@@ -81,6 +81,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const { registerError } = useErrorHandler();
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
+    /** Initial values, these can be reified as {label, value} or directly set. */
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
@@ -204,7 +205,10 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             parameterCallbacks.setTemplateFlag(fullParameterId, true);
                             currentValue = updateTask.variableTemplateValues[fullParameterId];
                         } else {
-                            currentValue = parameterValues[paramId].value;
+                            currentValue =
+                                parameterValues[paramId].value !== undefined
+                                    ? parameterValues[paramId].value
+                                    : parameterValues[paramId];
                         }
                     }
                     setValue(fullParameterId, currentValue);
@@ -270,7 +274,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
      * All change handlers that will be passed to the ParameterWidget components.
      */
     const changeHandlers = useMemo(() => {
-        const handlers = {};
+        const handlers = Object.create(null);
         formValueKeys.forEach((key) => {
             handlers[key] = handleChange(key);
         });
