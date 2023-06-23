@@ -259,7 +259,8 @@
             "configure": "Configure",
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
-            "filterOff": "Remove filter"
+            "filterOff": "Remove filter",
+            "showMoreDetails": "Show more details"
         },
         "app": {
             "build": "Workbench",
@@ -738,6 +739,10 @@
                 "inverseLinkType": {
                     "label": "Inverse link type",
                     "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
+                },
+                "isReflexive": {
+                    "label": "Is reflexive",
+                    "description": "If enabled, links will can be generated from a resource to itself, otherwise this would be prevented."
                 },
                 "linkType": {
                     "label": "Link type",

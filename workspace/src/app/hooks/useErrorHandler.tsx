@@ -1,6 +1,6 @@
 import React from "react";
 import { DIErrorFormat, diErrorMessage, DIErrorTypes } from "@ducks/error/typings";
-import { Notification } from "@eccenca/gui-elements";
+import { Accordion, AccordionItem, Notification, Spacing, TitleSubsection } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
@@ -9,8 +9,10 @@ import { useTranslation } from "react-i18next";
 
 /**
  * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.
- * @param errorMessage A human readable error message that should be shown in the UI.
+ * @param errorMessage A human-readable error message that should be shown in the UI.
  * @param cause        The actual error that has happened.
+ * @param errorNotificationInstanceId The notification instance where the error should be displayed. If this is set, the
+ *                                    error will NOT be displayed in the global notification widget.
  */
 export type ErrorHandlerRegisterFuncType = (
     errorId: string,
@@ -30,7 +32,7 @@ interface ErrorHandlerDict {
     registerError: ErrorHandlerRegisterFuncType;
     getAllErrors: () => Array<DIErrorFormat>;
     clearErrors: (errorIds?: Array<string> | undefined) => void;
-    registerErrorI18N: ErrorHandlerRegisterShortFuncType
+    registerErrorI18N: ErrorHandlerRegisterShortFuncType;
 }
 
 export type RegisterErrorType = Pick<DIErrorFormat, "id" | "message" | "cause">;
@@ -74,7 +76,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         cause: null,
                         alternativeIntent: "warning",
                     },
-                    errorNotificationInstanceId
+                    errorNotificationInstanceId,
                 })
             );
             return <Notification message={tempUnavailableMessage} />;
@@ -83,18 +85,38 @@ const useErrorHandler = (): ErrorHandlerDict => {
             console.warn("Received 404 error.", cause);
             return null;
         } else {
-            dispatch(registerNewError({
-                newError: error,
-                errorNotificationInstanceId
-            }));
-            return <Notification message={errorMessage} warning />;
+            dispatch(
+                registerNewError({
+                    newError: error,
+                    errorNotificationInstanceId,
+                })
+            );
+            const detailMessage = diErrorMessage(cause);
+            return (
+                <Notification warning>
+                    {errorMessage}
+                    <Spacing size="small" />
+                    {detailMessage ? (
+                        <Accordion>
+                            <AccordionItem
+                                label={<TitleSubsection>{t("common.action.showMoreDetails")}</TitleSubsection>}
+                                open={false}
+                                condensed={true}
+                                noBorder={true}
+                            >
+                                {detailMessage}
+                            </AccordionItem>
+                        </Accordion>
+                    ) : null}
+                </Notification>
+            );
         }
     };
 
     /** Shorter version that uses the language file key as error ID. */
     const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (langKey: string, cause: DIErrorTypes | null) => {
-        return registerError(langKey, t(langKey), cause)
-    }
+        return registerError(langKey, t(langKey), cause);
+    };
 
     const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {
         return (
@@ -133,7 +155,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
         registerError,
         getAllErrors,
         clearErrors,
-        registerErrorI18N
+        registerErrorI18N,
     };
 };
 

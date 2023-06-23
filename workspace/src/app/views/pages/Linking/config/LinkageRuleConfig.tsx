@@ -48,11 +48,14 @@ export interface LinkageRuleConfigItem {
     onSearch?: (textQuery: string, limit: number) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>;
     /** If this should be shown in the read-only view. Default: true */
     showReadOnly?: boolean;
+    /** The type of the input. */
+    type: "string" | "boolean";
 }
 
 const LINK_TYPE = "linkType";
 const INVERSE_LINK_TYPE = "inverseLinkType";
 const LIMIT = "limit";
+const IS_REFLEXIVE = "isReflexive";
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const [loading, setLoading] = React.useState(false);
@@ -101,6 +104,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     description: t("widget.LinkingRuleConfigWidget.parameters.linkType.description"),
                     validation: validateUriString,
                     onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
+                    type: "string",
                 },
                 {
                     id: LIMIT,
@@ -119,51 +123,62 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                         }
                     },
                     placeholder: unlimited,
+                    type: "string",
                 },
                 {
-                    id: "inverseLinkType",
+                    id: INVERSE_LINK_TYPE,
                     label: t("widget.LinkingRuleConfigWidget.parameters.inverseLinkType.label"),
                     value: linkingRule.inverseLinkType ?? undefined,
                     description: t("widget.LinkingRuleConfigWidget.parameters.inverseLinkType.description"),
                     validation: validateUriString,
                     onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
                     showReadOnly: !!linkingRule.inverseLinkType,
+                    type: "string",
+                },
+                {
+                    id: IS_REFLEXIVE,
+                    label: t("widget.LinkingRuleConfigWidget.parameters.isReflexive.label"),
+                    value: `${linkingRule.isReflexive}`,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.isReflexive.description"),
+                    validation: (value: string) => value === "true" || value === "false" || "No valid boolean value.",
+                    showReadOnly: !linkingRule.isReflexive,
+                    type: "boolean",
                 },
             ]);
         }
     };
 
     const saveConfig = async (parameters: [string, string | undefined][]) => {
-        try {
-            const linkingRule = await fetchLinkingRule(false);
-            if (linkingRule) {
-                const paramValue = (parameterId: string): string | undefined => {
-                    const param = parameters.find(([paramId]) => paramId === parameterId);
-                    return param ? param[1] : undefined;
-                };
-                const linkType = paramValue(LINK_TYPE);
-                if (linkType != null) {
-                    linkingRule.linkType = linkType;
-                }
-                const inverseLinkType = paramValue(INVERSE_LINK_TYPE);
-                if (inverseLinkType != null && inverseLinkType.trim() === "") {
-                    linkingRule.inverseLinkType = null;
-                } else if (inverseLinkType != null) {
-                    linkingRule.inverseLinkType = inverseLinkType;
-                }
-                const limit = paramValue(LIMIT);
-                const limitNr = Number(limit);
-                if (limit != null && limit.trim() !== "" && Number.isInteger(limitNr)) {
-                    linkingRule.filter.limit = limitNr;
-                } else {
-                    linkingRule.filter.limit = undefined;
-                }
-                await updateLinkageRule(projectId, linkingTaskId, linkingRule);
-                setShowModal(false);
-                init();
+        const linkingRule = await fetchLinkingRule(false);
+        if (linkingRule) {
+            const paramValue = (parameterId: string): string | undefined => {
+                const param = parameters.find(([paramId]) => paramId === parameterId);
+                return param ? param[1] : undefined;
+            };
+            const linkType = paramValue(LINK_TYPE);
+            if (linkType != null) {
+                linkingRule.linkType = linkType;
             }
-        } catch (ex) {
-            registerError("LinkageRuleConfig-save-config", t("widget.LinkingRuleConfigWidget.saveError"), ex);
+            const inverseLinkType = paramValue(INVERSE_LINK_TYPE);
+            if (inverseLinkType != null && inverseLinkType.trim() === "") {
+                linkingRule.inverseLinkType = null;
+            } else if (inverseLinkType != null) {
+                linkingRule.inverseLinkType = inverseLinkType;
+            }
+            const limit = paramValue(LIMIT);
+            const limitNr = Number(limit);
+            if (limit != null && limit.trim() !== "" && Number.isInteger(limitNr)) {
+                linkingRule.filter.limit = limitNr;
+            } else {
+                linkingRule.filter.limit = undefined;
+            }
+            const isReflexive = paramValue(IS_REFLEXIVE);
+            if (isReflexive != null) {
+                linkingRule.isReflexive = isReflexive === "true";
+            }
+            await updateLinkageRule(projectId, linkingTaskId, linkingRule);
+            setShowModal(false);
+            init();
         }
     };
 
