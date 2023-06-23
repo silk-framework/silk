@@ -1,9 +1,9 @@
 /** Component that handles the linking rule (inline) evaluation. */
-import {RuleEditorEvaluationContext} from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import React, {ReactElement} from "react";
-import {IRuleOperatorNode, RuleValidationError} from "../../../shared/RuleEditor/RuleEditor.typings";
-import {RuleEditorProps} from "../../../shared/RuleEditor/RuleEditor";
-import {TaskPlugin} from "@ducks/shared/typings";
+import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import React, { ReactElement } from "react";
+import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
+import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
+import { TaskPlugin } from "@ducks/shared/typings";
 import {
     IEntityLink,
     IEvaluatedReferenceLinks,
@@ -11,17 +11,17 @@ import {
     ILinkingRule,
     ILinkingTaskParameters,
 } from "../linking.types";
-import {IPluginDetails} from "@ducks/common/typings";
+import { IPluginDetails } from "@ducks/common/typings";
 import editorUtils from "../LinkingRuleEditor.utils";
-import {evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities} from "../LinkingRuleEditor.requests";
+import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from "../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import {useTranslation} from "react-i18next";
-import {LinkRuleNodeEvaluation} from "./LinkRuleNodeEvaluation";
-import {queryParameterValue} from "../../../../utils/basicUtils";
+import { useTranslation } from "react-i18next";
+import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
+import { queryParameterValue } from "../../../../utils/basicUtils";
 import utils from "./LinkingRuleEvaluation.utils";
-import {FetchError} from "../../../../services/fetch/responseInterceptor";
-import {ruleEditorNodeParameterValue} from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
-import {PathNotInCacheModal} from "./tabView/shared/PathNotInCacheModal";
+import { FetchError } from "../../../../services/fetch/responseInterceptor";
+import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModal";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -61,15 +61,17 @@ export const LinkingRuleEvaluation = ({
     const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
-    const [pathNotInCacheValidationError, setPathNotInCacheValidationError] = React.useState<{path: string, toTarget: boolean} | undefined>(undefined)
+    const [pathNotInCacheValidationError, setPathNotInCacheValidationError] = React.useState<
+        { path: string; toTarget: boolean } | undefined
+    >(undefined);
     /** Contains the function to trigger an evaluation. */
-    const triggerEvaluation = React.useRef<(() => any) | undefined>(undefined)
+    const triggerEvaluation = React.useRef<(() => any) | undefined>(undefined);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
     const clearRuleValidationErrors = () => {
         setRuleValidationError(undefined);
-        setPathNotInCacheValidationError(undefined)
+        setPathNotInCacheValidationError(undefined);
     };
 
     React.useEffect(() => {
@@ -145,7 +147,7 @@ export const LinkingRuleEvaluation = ({
         quickEvaluationOnly: boolean = false
     ) => {
         setEvaluationRunning(true);
-        clearRuleValidationErrors()
+        clearRuleValidationErrors();
         try {
             const ruleTree = editorUtils.constructLinkageRuleTree(ruleOperatorNodes);
             const linkSpec = originalTask as TaskPlugin<ILinkingTaskParameters>;
@@ -183,8 +185,8 @@ export const LinkingRuleEvaluation = ({
                             op.pluginType === "PathInputOperator" &&
                             ruleEditorNodeParameterValue(op.parameters.path) === path
                     );
-                    if(pathNode) {
-                        setPathNotInCacheValidationError({path, toTarget: pathNode.pluginId === "targetPathInput"})
+                    if (pathNode) {
+                        setPathNotInCacheValidationError({ path, toTarget: pathNode.pluginId === "targetPathInput" });
                     }
                 } else {
                     registerError(
@@ -224,8 +226,8 @@ export const LinkingRuleEvaluation = ({
     };
 
     const fetchTriggerEvaluationFunction = React.useCallback((trigggerFn: () => any) => {
-        triggerEvaluation.current = trigggerFn
-    }, [])
+        triggerEvaluation.current = trigggerFn;
+    }, []);
 
     return (
         <RuleEditorEvaluationContext.Provider
@@ -241,22 +243,22 @@ export const LinkingRuleEvaluation = ({
                 referenceLinksUrl,
                 ruleValidationError,
                 clearRuleValidationError: clearRuleValidationErrors,
-                fetchTriggerEvaluationFunction
+                fetchTriggerEvaluationFunction,
             }}
         >
-            {
-                pathNotInCacheValidationError && triggerEvaluation.current && <PathNotInCacheModal
+            {pathNotInCacheValidationError && triggerEvaluation.current && (
+                <PathNotInCacheModal
                     projectId={projectId}
                     linkingTaskId={linkingTaskId}
                     toTarget={pathNotInCacheValidationError.toTarget}
                     path={pathNotInCacheValidationError.path}
                     onAddPath={() => {
-                        clearRuleValidationErrors()
-                        triggerEvaluation.current?.()
+                        clearRuleValidationErrors();
+                        triggerEvaluation.current?.();
                     }}
                     onClose={() => clearRuleValidationErrors()}
                 />
-            }
+            )}
             {children}
         </RuleEditorEvaluationContext.Provider>
     );
