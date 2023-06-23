@@ -2,11 +2,12 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
+import org.silkframework.runtime.iterator.CloseableIterator
 
 /**
   * Provides an Iterator interface for [[Quad]] containing serialization and [[Entity]] transformation
   */
-trait QuadIterator extends ClosableIterator[Quad] {
+trait QuadIterator extends CloseableIterator[Quad] {
   /**
     * Should close and clean up all used resources. This will be called at most once.
     */
@@ -25,9 +26,9 @@ trait QuadIterator extends ClosableIterator[Quad] {
   /**
     * Will generate an Entity for each Quad (using the EntitySchema of [[org.silkframework.execution.local.QuadEntityTable]]
     */
-  def asQuadEntities: Traversable[Entity] = {
+  def asQuadEntities: CloseableIterator[Entity] = {
     var count = 0L
-    this.toTraversable.map( quad => {
+    this.map( quad => {
       count += 1
       quad.toQuadEntity(Some(DataSource.URN_NID_PREFIX + count))
     })

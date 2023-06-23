@@ -1,7 +1,7 @@
 package org.silkframework.preprocessing.entity
 
 
-case class Entity(uri:String, properties:Traversable[Property]) {
+case class Entity(uri:String, properties: Iterable[Property]) {
 
   override def toString = {
    "<" + uri + "> {\n"+ properties.mkString +"}"

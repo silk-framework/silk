@@ -4,8 +4,7 @@ import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.workflow.WorkflowInfo
 import controllers.workspace.ActivityClient
 import controllers.workspace.activityApi.StartActivityResponse
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
@@ -18,9 +17,11 @@ import play.api.libs.ws.WSResponse
 import play.api.routing.Router
 
 import scala.concurrent.Future
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class SimpleVariableWorkflowApiTest extends FlatSpec
-    with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
+class SimpleVariableWorkflowApiTest extends AnyFlatSpec
+    with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers {
   behavior of "Simple variable workflow execution API"
 
   private val variableInputDataset = "1e80c0ed-9ca9-4d67-8868-65f7655aa416_Variableinputdataset"

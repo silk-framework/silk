@@ -9,8 +9,9 @@ import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
 import javax.inject.Inject
-import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
+import scala.collection.parallel.CollectionConverters.ImmutableSeqIsParallelizable
+import scala.jdk.CollectionConverters.{IteratorHasAsScala, SetHasAsScala}
 import scala.reflect.ClassTag
 
 /**
@@ -50,7 +51,7 @@ object PluginRegistry {
     */
   def lastUpdateTimestamp: Long = timestamp
 
-  def allPlugins: Traversable[PluginDescription[_]] = {
+  def allPlugins: Iterable[PluginDescription[_]] = {
     pluginsById.values.flatten
   }
 
@@ -356,7 +357,7 @@ object PluginRegistry {
       // Build a list of tuples of the form (category, plugin)
       val categoriesAndPlugins = for(plugin <- availablePlugins; category <- plugin.categories) yield (category, plugin)
       // Build a map from each category to all corresponding plugins
-      categoriesAndPlugins.groupBy(_._1).mapValues(_.map(_._2))
+      categoriesAndPlugins.groupBy(_._1).view.mapValues(_.map(_._2)).toMap
     }
   }
 

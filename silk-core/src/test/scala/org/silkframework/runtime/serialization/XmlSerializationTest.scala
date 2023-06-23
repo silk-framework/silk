@@ -1,18 +1,20 @@
 package org.silkframework.runtime.serialization
 
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.CustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   *
   */
-class XmlSerializationTest extends FlatSpec with MustMatchers {
+class XmlSerializationTest extends AnyFlatSpec with Matchers {
   behavior of "XML serialization"
 
   it should "serialize and read parameters" in {
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
-    implicit val readContext: ReadContext = ReadContext()
+    implicit val readContext: ReadContext = TestReadContext()
     val task = TestCustomTask("Some\nString\n  \t!!", 42)
     val node = XmlSerialization.toXml[CustomTask](task)
     val roundTripTask = XmlSerialization.fromXml[CustomTask](node)

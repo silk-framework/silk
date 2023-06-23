@@ -16,6 +16,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import java.util
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.SetHasAsScala
 
 
 /**
@@ -178,11 +179,10 @@ class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
       Map.empty
     } else {
       implicit val prefixes: Prefixes = task.project.config.prefixes
-      val entities = source.retrieveByUri(
+      source.retrieveByUri(
         entitySchema = entityDesc,
         entities = entityUris map Uri.apply
-      ).entities
-      entities.map { e => (e.uri.toString, e) }.toMap
+      ).use(_.map { e => (e.uri.toString, e) }.toMap)
     }
   }
 

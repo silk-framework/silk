@@ -2,12 +2,13 @@ package org.silkframework.workspace.zip
 
 import java.io.File
 import java.util.zip.ZipFile
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
+class ZipInputStreamResourceManagerTest extends AnyFlatSpec with Matchers {
 
   behavior of "zip resource managers"
 

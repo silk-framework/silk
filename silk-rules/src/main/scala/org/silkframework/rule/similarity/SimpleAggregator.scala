@@ -14,7 +14,7 @@ trait SimpleAggregator extends Aggregator {
       weightedValues += WeightedSimilarityScore(score, op.weight)
     }
 
-    evaluate(weightedValues)
+    evaluate(weightedValues.toSeq)
   }
 
   def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore

@@ -1,14 +1,15 @@
 package org.silkframework.rule
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.util.{DPair, Identifier}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class LinkageRuleIndexTest extends FlatSpec with MustMatchers {
+class LinkageRuleIndexTest extends AnyFlatSpec with Matchers {
 
   behavior of "Linkage rule index"
 

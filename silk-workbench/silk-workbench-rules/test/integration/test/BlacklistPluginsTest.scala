@@ -1,12 +1,13 @@
 package integration.test
 
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.config.CustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.util.ConfigTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class BlacklistPluginsTest extends FlatSpec with MustMatchers with ConfigTestTrait with IntegrationTestTrait {
+class BlacklistPluginsTest extends AnyFlatSpec with Matchers with ConfigTestTrait with IntegrationTestTrait {
   behavior of "Plugin blacklist parameter"
 
   override def workspaceProviderId: String = "inMemory"

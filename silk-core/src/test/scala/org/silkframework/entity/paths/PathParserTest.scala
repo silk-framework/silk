@@ -1,10 +1,11 @@
 package org.silkframework.entity.paths
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class PathParserTest extends FlatSpec with MustMatchers {
+class PathParserTest extends AnyFlatSpec with Matchers {
   behavior of "path parser"
 
   val parser = new PathParser(Prefixes.default)

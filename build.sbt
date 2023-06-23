@@ -31,10 +31,11 @@ val buildReactExternally = {
   result
 }
 
-val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
-  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
+// Additional compiler (javac, scalac) parameters
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 17) {
+  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
 } else {
-  (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
+  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
@@ -57,7 +58,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.12.15",
+  scalaVersion := "2.13.10",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -75,7 +76,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.4" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
-  libraryDependencies += "org.mockito" % "mockito-all" % "1.10.19" % "test",
+  libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
@@ -100,6 +101,15 @@ lazy val commonSettings = Seq(
   },
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
+
+  Test / javaOptions ++= Seq(
+    // Needed by Play 2.8.x for JDK 17 support
+    "--add-exports=java.base/sun.security.x509=ALL-UNNAMED",
+    "--add-opens=java.base/sun.security.ssl=ALL-UNNAMED",
+    // Needed by ldmb for JDK 17 support
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -111,11 +121,11 @@ lazy val core = (project in file("silk-core"))
   .settings(
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
-    libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
@@ -155,7 +165,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
-  .dependsOn(core)
+  .dependsOn(core % "test->test;compile->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins CSV",
@@ -395,7 +405,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench OpenAPI",
-    libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.4",
+    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.4" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
     libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.12",
     libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.78",
     libraryDependencies += "org.webjars" % "swagger-ui" % "4.18.1"

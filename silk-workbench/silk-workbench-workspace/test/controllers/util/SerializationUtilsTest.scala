@@ -2,21 +2,23 @@ package controllers.util
 
 import controllers.util.SerializationUtilsTest._
 import org.mockito.Mockito._
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.config.MetaData
 import org.silkframework.rule.input.PathInput
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, TestReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.MockitoSugar
 import org.silkframework.workspace.{Project, ProjectConfig}
 import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc.{AnyContent, AnyContentAsJson, Request}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   *
   */
-class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSugar {
+class SerializationUtilsTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "Serialization Utils"
 
   private val APPLICATION_JSON = "application/json"
@@ -29,7 +31,7 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
   val request: Request[AnyContent] = mock[Request[AnyContent]]
   when(request.acceptedTypes).thenReturn(List())
   when(request.mediaType).thenReturn(None)
-  implicit private val readContext = ReadContext()
+  implicit private val readContext: ReadContext = TestReadContext()
 
   it must "serialize the object with the compile type of the object" in {
     implicit val r = request

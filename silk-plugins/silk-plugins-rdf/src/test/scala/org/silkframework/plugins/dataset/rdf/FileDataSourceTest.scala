@@ -16,8 +16,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.io.File
 import java.net.URLDecoder
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{EntitySchema, StringValueType, UriValueType, ValueType}
@@ -25,8 +24,10 @@ import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class FileDataSourceTest extends FlatSpec with Matchers {
+class FileDataSourceTest extends AnyFlatSpec with Matchers {
   behavior of "File Data Source"
 
   implicit val prefixes: Prefixes = Map(

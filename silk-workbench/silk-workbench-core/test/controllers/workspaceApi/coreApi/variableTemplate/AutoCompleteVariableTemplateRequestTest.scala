@@ -1,9 +1,10 @@
 package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, CompletionBase, ReplacementInterval, ReplacementResults}
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class AutoCompleteVariableTemplateRequestTest extends FlatSpec with MustMatchers {
+class AutoCompleteVariableTemplateRequestTest extends AnyFlatSpec with Matchers {
   behavior of "auto-complete variable template"
 
   it should "return the correct suggestions" in {

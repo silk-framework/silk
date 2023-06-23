@@ -47,7 +47,7 @@ class NopDataSource extends DataSource {
     Traversable.empty[Entity]
   }
 
-  override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Traversable[(Path, Double)] = {
+  override def retrieveSparqlPaths(restrictions: SparqlRestriction, depth: Int, limit: Option[Int]): Iterable[(Path, Double)] = {
     Traversable.empty[(Path, Double)]
   }
 

@@ -6,8 +6,6 @@ import org.silkframework.serialization.json.JsonHelpers._
 import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
-import scala.util.Try
-
 case class ExceptionSerializerJson() extends JsonMetadataSerializer[GenericExecutionFailure] {
 
   @transient
@@ -39,7 +37,7 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[GenericExecu
       val className = stringValueOption(ste, ExceptionSerializer.CLASSNAME).getOrElse("unknown")
       val methodName = stringValueOption(ste, ExceptionSerializer.METHODNAME).getOrElse("unknown")
       val fileName = stringValueOption(ste, ExceptionSerializer.FILENAME).getOrElse("unknown")
-      val lineNumber = numberValueOption(ste, ExceptionSerializer.LINENUMBER).map(_.intValue()).getOrElse(-1)
+      val lineNumber = numberValueOption(ste, ExceptionSerializer.LINENUMBER).map(_.intValue).getOrElse(-1)
       new StackTraceElement(className, methodName, fileName, lineNumber)
     }
     stackTrace.toArray

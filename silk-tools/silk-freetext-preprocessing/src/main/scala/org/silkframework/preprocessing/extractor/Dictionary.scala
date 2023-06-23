@@ -19,7 +19,7 @@ case class Dictionary(override  val id: String,
     "(?<=[A-Z])(?=[A-Z][a-z])".r.findAllIn(s).subgroups(0)
   }
 
-  override def apply(dataset:Dataset, findNewProperty: String => String):Traversable[Entity] = {
+  override def apply(dataset:Dataset, findNewProperty: String => String): Iterable[Entity] = {
 
 
     //TODO: FIX!!!

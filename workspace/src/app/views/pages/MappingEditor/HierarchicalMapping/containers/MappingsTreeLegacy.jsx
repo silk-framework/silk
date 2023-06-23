@@ -315,7 +315,6 @@ class MappingsTree extends React.Component {
 
     render() {
         const { data, navigationLoading } = this.state;
-
         const tree = this.markTree(data);
         const NavigationList = this.navigationList(tree);
 

@@ -1,14 +1,15 @@
 package org.silkframework.rule.similarity
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.rule.LinkSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Tests the reverse property in a DI project.
   */
-class NonSymmetricDistanceMeasureIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+class NonSymmetricDistanceMeasureIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "non symmetric distance measures"
 
   private val linkTaskReverseFalse = "prefixLinking"

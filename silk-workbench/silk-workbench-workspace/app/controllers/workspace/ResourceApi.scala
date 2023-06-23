@@ -356,7 +356,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                      )
                      path: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    deleteRecursive(project.resources, path.split("/"))
+    deleteRecursive(project.resources, path.split("/").toSeq)
     log.info(s"Deleted resource '$path' in project '$projectName'. " + userContext.logInfo)
     NoContent
   }

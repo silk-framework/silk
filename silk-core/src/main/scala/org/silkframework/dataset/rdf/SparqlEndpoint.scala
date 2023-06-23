@@ -39,7 +39,7 @@ trait SparqlEndpoint {
     */
   def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = {
     val selectQuery = query.replaceFirst("(ASK|ask)\\s+", "SELECT * ")
-    val askResult = this.select(selectQuery, 1).bindings.nonEmpty
+    val askResult = this.select(selectQuery, 1).bindings.use(_.nonEmpty)
     new SparqlAskResult(askResult)
   }
 

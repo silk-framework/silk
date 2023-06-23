@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace.xml
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.plugin.PluginContext
@@ -53,7 +53,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
    */
   override def writeTask(task: Task[GenericDatasetSpec], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
     val taskXml = XmlSerialization.toXml(task)
     resources.get(task.id.toString + ".xml").write(){ os => taskXml.write(os) }
   }

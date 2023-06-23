@@ -3,7 +3,8 @@ package org.silkframework.execution.local
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.InterruptibleTraversable
+import org.silkframework.execution.InterruptibleIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.Uri
 
 case class LinksTable(
@@ -14,15 +15,15 @@ case class LinksTable(
 
   val entitySchema: EntitySchema = LinksTable.linkEntitySchema
 
-  lazy val entities: Traversable[Entity] = {
-    for (link <- new InterruptibleTraversable(links)) yield LinksTable.convertLinkToEntity(link, entitySchema)
+  lazy val entities: CloseableIterator[Entity] = {
+    for (link <- new InterruptibleIterator(CloseableIterator(links.iterator))) yield LinksTable.convertLinkToEntity(link, entitySchema)
   }
 
   override def entityIterator: Iterator[Entity] = {
     new LinkEntityIterator(links, entitySchema)
   }
 
-  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): GenericEntityTable = {
+  override def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): GenericEntityTable = {
     new GenericEntityTable(newEntities, newSchema, task)
   }
 }

@@ -3,16 +3,17 @@ package org.silkframework.execution.local
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.InterruptibleTraversable
+import org.silkframework.execution.InterruptibleIterator
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.util.Uri
 
-case class QuadEntityTable(entityFunction: () => Traversable[Entity], task: Task[TaskSpec]) extends LocalEntities {
+case class QuadEntityTable(entityFunction: () => CloseableIterator[Entity], task: Task[TaskSpec]) extends LocalEntities {
 
   override def entitySchema: EntitySchema = QuadEntityTable.schema
 
-  override def entities: Traversable[Entity] = new InterruptibleTraversable(entityFunction())
+  override def entities: CloseableIterator[Entity] = new InterruptibleIterator(entityFunction())
 
-  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities = {
+  override def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): LocalEntities = {
     QuadEntityTable(() => newEntities, task)
   }
 }

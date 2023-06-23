@@ -33,7 +33,7 @@ class DatasetController @Inject() (implicit workspaceReact: WorkspaceReact) exte
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
     implicit val context: PluginContext = PluginContext.fromProject(project)
-    val datasetParams = request.queryString.mapValues(_.head)
+    val datasetParams = request.queryString.view.mapValues(_.head).toMap
     val datasetPlugin = Dataset.apply(pluginId, ParameterValues.fromStringMap(datasetParams))
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
@@ -63,7 +63,7 @@ class DatasetController @Inject() (implicit workspaceReact: WorkspaceReact) exte
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
     val entityDesc = EntitySchema(firstTypes, paths)
-    val entities = source.retrieve(entityDesc).entities.take(maxEntities).toList
+    val entities = source.retrieve(entityDesc).entities.use(_.take(maxEntities).toList)
 
     Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
   }

@@ -1,9 +1,9 @@
-import React from 'react';
-import _ from 'lodash';
+import React from "react";
+import _ from "lodash";
 
-import PropTypes from 'prop-types';
-import {setApiDetails} from './store';
-import MappingsTree from './containers/MappingsTree';
+import PropTypes from "prop-types";
+import { setApiDetails } from "./store";
+import MappingsTree from "./containers/MappingsTreeLegacy";
 
 /**
  * Legacy mappings evaluation view.
@@ -17,16 +17,12 @@ class EvaluateMapping extends React.Component {
         transformTask: PropTypes.string.isRequired, // Current Transformation
         initialRule: PropTypes.string.isRequired, // Initially selected mapping rule
         offset: PropTypes.number.isRequired, // Entity offset
-        limit: PropTypes.number.isRequired // Entity limit
+        limit: PropTypes.number.isRequired, // Entity limit
     };
 
     constructor(props) {
         super(props);
-        const {
-            initialRule,
-            project,
-            transformTask
-        } = this.props;
+        const { initialRule, project, transformTask } = this.props;
         setApiDetails({
             project,
             transformTask,
@@ -46,21 +42,24 @@ class EvaluateMapping extends React.Component {
     };
 
     render() {
-        return <div className="mdl-grid mdl-grid--no-spacing" style={{ "height": "100%" }}>
-            <div className="mdl-cell mdl-cell--3-col">
-                <MappingsTree
-                    currentRuleId={this.state.currentRuleId}
-                    handleRuleNavigation={this.onRuleNavigation}
+        return (
+            <div className="mdl-grid mdl-grid--no-spacing" style={{ height: "100%" }}>
+                <div className="mdl-cell mdl-cell--3-col">
+                    <MappingsTree
+                        currentRuleId={this.state.currentRuleId}
+                        handleRuleNavigation={this.onRuleNavigation}
+                    />
+                </div>
+                <iframe
+                    id="generatedEntitiesIFrame"
+                    title={"Generate entities"}
+                    className="mdl-cell mdl-cell--9-col mdl-cell--stretch"
+                    src={`evaluate/generatedEntities?rule=${this.state.currentRuleId}&offset=${this.props.offset}&limit=${this.props.limit}`}
+                    frameBorder="0"
+                    style={{ margin: "7px" }}
                 />
             </div>
-            <iframe id = "generatedEntitiesIFrame"
-                    title={"Generate entities"}
-                    className = "mdl-cell mdl-cell--9-col mdl-cell--stretch"
-                    src = { `evaluate/generatedEntities?rule=${this.state.currentRuleId}&offset=${this.props.offset}&limit=${this.props.limit}` }
-                    frameBorder = "0"
-                    style={{"margin": "7px"}}
-            />
-        </div>
+        );
     }
 }
 

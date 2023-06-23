@@ -287,6 +287,6 @@ Cause: Unrecognized token 'name': was expecting (JSON String, Number, Array, Obj
   ```
   """
 
-  final val activityInstanceParameterDesc = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+  final val activityInstanceParameterDesc = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id."
 
 }

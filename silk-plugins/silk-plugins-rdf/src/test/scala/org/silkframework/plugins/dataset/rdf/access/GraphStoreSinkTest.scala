@@ -1,15 +1,16 @@
 package org.silkframework.plugins.dataset.rdf.access
 
 import org.apache.jena.query.DatasetFactory
-import org.apache.jena.rdf.model.ModelFactory
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.ConfigTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class GraphStoreSinkTest extends FlatSpec with MustMatchers with ConfigTestTrait {
+class GraphStoreSinkTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
   behavior of "Graph store sink"
 
   implicit private val userContext: UserContext = UserContext.Empty

@@ -15,7 +15,7 @@ case class OutputWriter(id:String,
   val output:Output = Resource.fromFile(file)
 
 
-  def write(entities:Traversable[Entity]){
+  def write(entities:Iterable[Entity]){
     val content = for(entity <- entities; property <- entity.properties) yield {
         "<" + entity.uri + "> " + "<" + property.path + "> \"" + property.value + "\" ."
     }

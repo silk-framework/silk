@@ -74,7 +74,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   def retrieveRuleOrder(): Seq[String] = {
     val fullTree = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules")
-    (fullTree \ "rules" \ "propertyRules").as[JsArray].value.map(r => (r \ "id").as[JsString].value)
+    (fullTree \ "rules" \ "propertyRules").as[JsArray].value.map(r => (r \ "id").as[JsString].value).toSeq
   }
 
   implicit class JsonOperations(json: JsValue) {

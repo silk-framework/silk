@@ -86,7 +86,7 @@ trait ExecutionReportUpdater {
       val stats = Seq(
         "Started" -> formatDateTime(start),
         "Runtime" -> s"${runtime.toDouble / 1000} seconds",
-        s"$entityLabelPlural / second" -> (if (runtime <= 0) "-" else throughput.formatted("%.3f")),
+        s"$entityLabelPlural / second" -> (if (runtime <= 0) "-" else String.format("%.3f", throughput)),
         s"No. of ${entityLabelPlural.toLowerCase} $entityProcessVerb" -> entitiesEmitted.toString
       ) ++
           Seq("Finished" -> formatDateTime(System.currentTimeMillis())).filter(_ => addEndTime) ++

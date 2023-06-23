@@ -1,11 +1,12 @@
 package org.silkframework.workspace.activity.transform
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.entity.{StringValueType, UriValueType, ValueType}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class TransformPathsCacheTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+class TransformPathsCacheTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with Matchers {
   behavior of "Transform Path Cache"
 
   override def projectPathInClasspath: String = "diProjects/hierarchicalPersonJson.zip"

@@ -1,13 +1,14 @@
 package org.silkframework.entity
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.util.Uri
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class EntityTest extends FlatSpec with Matchers {
+class EntityTest extends AnyFlatSpec with Matchers {
 
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 

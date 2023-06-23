@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
@@ -10,9 +9,11 @@ import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
 import scala.languageFeature.postfixOps
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 //noinspection ScalaStyle
-abstract class XmlSourceTestBase extends FlatSpec with Matchers {
+abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
 
   implicit protected val userContext: UserContext = UserContext.Empty
   implicit protected val prefixes: Prefixes = Prefixes.empty

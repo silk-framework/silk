@@ -1,7 +1,7 @@
 package org.silkframework.rule.test
 
 import org.silkframework.rule.input.{TransformExampleValue, Transformer}
-import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription, ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger
@@ -43,7 +43,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   }
 
   private class TransformTest(example: TransformExampleValue) {
-    lazy val transformer: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(PluginContext.empty)
+    lazy val transformer: T = pluginDesc(ParameterValues.fromStringMap(example.parameters))(TestPluginContext())
 
     private lazy val (generatedOutput, throwableOpt): (Seq[String], Option[Throwable]) =
       try {
@@ -82,7 +82,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
       }
     }
 
-    private def format(traversable: Traversable[_]): String = {
+    private def format(traversable: Iterable[_]): String = {
       traversable.mkString("[", ", ", "]")
     }
   }

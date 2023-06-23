@@ -21,6 +21,7 @@ import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, Spar
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.plugins.dataset.rdf.sparql.ParallelEntityRetriever.{ExceptionPathValues, ExistingPathValues, PathValues, QueueEndMarker}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.util.Uri
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
@@ -49,7 +50,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    * @return The retrieved entities
    */
   override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): CloseableIterator[Entity] = {
     canceled = false
     if(entitySchema.typedPaths.size <= 1) {
       new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy).retrieve(entitySchema, entities, limit)
@@ -62,7 +63,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
    * Wraps a Traversable of SPARQL results and retrieves entities from them.
    */
   private class EntityTraversable(entitySchema: EntitySchema, entityUris: Seq[Uri], limit: Option[Int])
-                                 (implicit userContext: UserContext)extends Traversable[Entity] {
+                                 (implicit userContext: UserContext) extends TraversableIterator[Entity] {
     override def foreach[U](f: Entity => U): Unit = {
       var inconsistentOrder = false
       var counter = 0
@@ -158,8 +159,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     override def run() {
       try {
         //Query for all entities
-        val sparqlResults = queryPath()
-        parseResults(sparqlResults.bindings)
+        queryPath().bindings.use { bindings =>
+          parseResults(bindings)
+        }
       }
       catch {
         case ex: Throwable =>
@@ -180,12 +182,13 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     private val isSpecialTextPath = specialPaths.isTextSpecialPath(path)
     private val uriRequested = path.valueType == ValueType.URI
 
-    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]]): Unit = {
+    private def parseResults(sparqlResults: Iterator[Map[String, RdfNode]]): Unit = {
       var currentSubject: Option[String] = None
       var currentValues: Seq[String] = Seq.empty
       def addCurrentValue(value: String): Unit = {
         currentValues = currentValues :+ value
       }
+      val nonEmptyResults = sparqlResults.nonEmpty
 
       for (result <- sparqlResults) {
         if (canceled) {
@@ -209,7 +212,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
       }
 
-      for (s <- currentSubject if sparqlResults.nonEmpty) {
+      for (s <- currentSubject if nonEmptyResults) {
         queueElement(ExistingPathValues(s, currentValues))
       }
       queueElement(QueueEndMarker)

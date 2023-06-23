@@ -1,9 +1,10 @@
 package org.silkframework.config
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import MetaData.labelFromId
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class MetaDataTest extends FlatSpec with MustMatchers {
+class MetaDataTest extends AnyFlatSpec with Matchers {
 
   behavior of "MetaData"
 

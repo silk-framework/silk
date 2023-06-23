@@ -9,7 +9,7 @@ trait SparqlMockServerTrait extends MockServerTestTrait {
 
   /** SPARQL results, plain string values only. */
   def sparqlContent(variables: Seq[String],
-                    values: Traversable[Seq[String]],
+                    values: Iterable[Seq[String]],
                     contextPath: String = "/sparql"): ServedContent = ServedContent(content =
       Some(s"""<?xml version="1.0"?>
              |<sparql xmlns="http://www.w3.org/2005/sparql-results#">

@@ -1,10 +1,11 @@
 package org.silkframework.util
 
-import com.typesafe.config.ConfigException
-import org.scalatest.{FlatSpec, MustMatchers}
+import com.typesafe.config.ConfigException
 import org.silkframework.config.DefaultConfig
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class ConfigTestTraitTest extends FlatSpec with MustMatchers with ConfigTestTrait {
+class ConfigTestTraitTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
   behavior of "Config Test Trait"
 
   val propertyKey = "test.property.xyz"

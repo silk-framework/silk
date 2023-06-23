@@ -13,8 +13,7 @@
  */
 
 package org.silkframework.rule.plugins.similarity
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
@@ -24,9 +23,11 @@ import org.silkframework.testutil.approximatelyEqualTo
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.xml.Node
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 
-class ComparisonTest extends FlatSpec with Matchers {
+class ComparisonTest extends AnyFlatSpec with Matchers {
   "Comparison" should "return the distance normalized to [-1, 1]" in {
     cmp(distance = 1.0, threshold = 1.0) should be(approximatelyEqualTo(0.0))
     cmp(distance = 4.0, threshold = 4.0) should be(approximatelyEqualTo(0.0))

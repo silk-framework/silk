@@ -13,7 +13,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import {activityActionCreator, activityStartPrioritized} from "../TaskActivityOverview/taskActivityOverviewRequests";
+import { activityActionCreator, activityStartPrioritized } from "../TaskActivityOverview/taskActivityOverviewRequests";
 
 interface TaskActivityWidgetProps {
     projectId: string;
@@ -27,7 +27,7 @@ interface TaskActivityWidgetProps {
     // Allows to add logic that is executed when an action button has been clicked and may call the actual action (mainAction) at any time.
     // It may abort the execution of the action by not calling 'mainAction'.
     activityActionPreAction?: {
-        // key is typed as string but should be ActivityAction, which is not allowed for index signature parameter types
+        // key is typed as string but should be an ActivityAction (start, cancel, restart), which is not allowed for index signature parameter types
         [key: string]: (mainAction: () => Promise<void>) => Promise<void>;
     };
     /** If the activity is a cache activity the presentation will be different, e.g. reload button shown etc. */
@@ -35,7 +35,9 @@ interface TaskActivityWidgetProps {
     /**
      * callback executed when an update is received.
      */
-    registerToReceiveUpdates?: (status: IActivityStatus) => void;
+    updateCallback?: (status: IActivityStatus) => void;
+    /** Optional test ID. */
+    testId?: string
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
@@ -51,8 +53,9 @@ export const useTaskActivityWidget = ({
     label = "",
     layoutConfig,
     activityActionPreAction = {},
-    registerToReceiveUpdates,
+    updateCallback,
     isCacheActivity = false,
+    testId = `activity-control-workflow-editor`
 }: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -66,8 +69,8 @@ export const useTaskActivityWidget = ({
         if (updatesHandler.updateHandler) {
             updatesHandler.updateHandler(status);
         }
-        if (registerToReceiveUpdates) {
-            registerToReceiveUpdates(status);
+        if (updateCallback) {
+            updateCallback(status);
         }
     };
 
@@ -95,7 +98,7 @@ export const useTaskActivityWidget = ({
     };
     useEffect(() => {
         return registerForUpdates();
-    }, []);
+    }, [projectId, taskId, activityName]);
 
     const activityErrorReport = activityErrorReportFactory(activityName, projectId, taskId, (ex) => {
         registerError(
@@ -116,10 +119,14 @@ export const useTaskActivityWidget = ({
 
     const executePrioritized = React.useCallback(async () => {
         const registerActivityError = (activityName: string, error: DIErrorTypes) => {
-            registerError(`TaskActivityWidget.${projectId}-${taskId}-${activityName}.startPrioritized`, `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`, error)
-        }
-        await activityStartPrioritized(activityName, projectId, taskId, registerActivityError)
-    }, [])
+            registerError(
+                `TaskActivityWidget.${projectId}-${taskId}-${activityName}.startPrioritized`,
+                `Activity action 'Run prioritized' against activity '${activityName}' has failed, see details.`,
+                error
+            );
+        };
+        await activityStartPrioritized(activityName, projectId, taskId, registerActivityError);
+    }, []);
 
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
     // For the elapsed time component, showing when a cache was last updated
@@ -127,7 +134,7 @@ export const useTaskActivityWidget = ({
 
     return useSilkActivityControl({
         label,
-        "data-test-id": `activity-control-workflow-editor`,
+        "data-test-id": testId,
         executeActivityAction: executeAction,
         registerForUpdates: registerForUpdate,
         unregisterFromUpdates: () => {},
@@ -153,6 +160,6 @@ export const useTaskActivityWidget = ({
               }
             : undefined,
         hideMessageOnStatus: isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined,
-        executePrioritized
+        executePrioritized,
     });
 };

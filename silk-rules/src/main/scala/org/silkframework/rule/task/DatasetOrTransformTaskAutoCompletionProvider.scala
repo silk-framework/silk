@@ -16,7 +16,7 @@ case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParamete
     */
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
-                           (implicit context: PluginContext): Traversable[AutoCompletionResult] = {
+                           (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     implicit val userContext: UserContext = context.user
     val taskProject = getProject(dependOnParameterValues)
     val allDatasets = workspace.project(taskProject).tasks[GenericDatasetSpec]

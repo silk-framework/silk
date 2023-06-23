@@ -1,13 +1,14 @@
 package org.silkframework.plugins.dataset.text
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class TextFileDatasetTest extends FlatSpec with Matchers {
+class TextFileDatasetTest extends AnyFlatSpec with Matchers {
 
   behavior of "TextFileDataset"
 
@@ -38,7 +39,7 @@ class TextFileDatasetTest extends FlatSpec with Matchers {
     source.retrieveTypes().map(_._1) shouldBe Seq(dataset.typeName)
     source.retrievePaths(dataset.typeName) shouldBe Seq(dataset.path)
 
-    val entities = source.retrieve(EntitySchema(dataset.typeName, IndexedSeq(dataset.path))).entities
+    val entities = source.retrieve(EntitySchema(dataset.typeName, IndexedSeq(dataset.path))).entities.toSeq
     entities.size shouldBe 1
     entities.head.values shouldBe Seq(Seq(testValue))
   }

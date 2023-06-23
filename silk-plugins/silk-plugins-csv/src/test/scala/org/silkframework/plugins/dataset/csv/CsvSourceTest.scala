@@ -1,18 +1,20 @@
 package org.silkframework.plugins.dataset.csv
 
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource, ReadOnlyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.resource._
 import org.silkframework.util.Uri
 
 import java.io.StringReader
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class CsvSourceTest extends FlatSpec with Matchers {
+class CsvSourceTest extends AnyFlatSpec with Matchers {
 
   behavior of "CSV Source"
 
@@ -20,7 +22,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
-  implicit val pluginContext: PluginContext = PluginContext(resources = resources)
+  implicit val pluginContext: PluginContext = TestPluginContext(prefixes, resources)
 
   val settings =
     CsvSettings(
@@ -228,7 +230,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val s = source
     val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("#idx").asStringTypedPath))
     val entities = s.retrieve(schema, limitOpt = Some(3)).entities
-    entities.map(_.values.flatten.head) shouldBe Seq("1", "2", "3")
+    entities.map(_.values.flatten.head).toSeq shouldBe Seq("1", "2", "3")
   }
 
   it should "respect the limit parameter" in {
@@ -257,7 +259,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "Csv Source" should "fetch entities by URI" in {
     val es = EntitySchema("", IndexedSeq())
-    val entities = source.retrieve(es).entities
+    val entities = source.retrieve(es).entities.toSeq
     entities.size shouldBe 3
     source.retrieveByUri(es, Seq(entities.head.uri)).entities.size shouldBe 1
   }

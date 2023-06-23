@@ -1,11 +1,12 @@
 package org.silkframework.rule.evaluation
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created by andreas on 2/22/16.
   */
-class EvaluationResultTest extends FlatSpec with Matchers {
+class EvaluationResultTest extends AnyFlatSpec with Matchers {
   behavior of "EvaluationResult"
 
   it should "calculate correct values for true values only" in {

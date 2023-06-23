@@ -1,19 +1,20 @@
 package controllers.workspaceApi
 
 import controllers.workspaceApi.uriPattern.{UriPatternRequest, UriPatternResponse, UriPatternResult}
-import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import helper.IntegrationTestTrait
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.transform.GlobalUriPatternCache
 import play.api.libs.json.Json
 import play.api.routing.Router
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
-class WorkspaceUriPatternApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait
+class WorkspaceUriPatternApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait
   with IntegrationTestTrait
   with ConfigTestTrait
-  with MustMatchers {
+  with Matchers {
   behavior of "Workspace URI pattern API"
 
   override def projectPathInClasspath: String = "diProjects/9b50b3b6-eab1-4261-a743-eb3570e67f25_URItemplatetestproject.zip"

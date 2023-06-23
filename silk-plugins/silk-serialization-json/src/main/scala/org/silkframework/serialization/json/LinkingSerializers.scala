@@ -1,16 +1,13 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Link, LinkWithDecision}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairJsonFormat}
 import org.silkframework.serialization.json.JsonHelpers._
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json._
 
-/**
-  *
-  */
 object LinkingSerializers {
 
   class LinkJsonFormat(rule: Option[LinkageRule],
@@ -23,6 +20,7 @@ object LinkingSerializers {
     final val TARGET = "target"
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
+    final val DECISION = "decision"
 
     private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema, distinctValues))
 
@@ -36,20 +34,37 @@ object LinkingSerializers {
     }
 
     override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsObject = {
-      val evaluationDetails = rule.flatMap(r => link.entities.flatMap(entities => DetailedEvaluator(r, entities).details))
-
       var json =
         Json.obj(
           SOURCE -> link.source,
           TARGET -> link.target,
-          CONFIDENCE -> evaluationDetails.flatMap(_.score).orElse(link.confidence),
-          RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
+          CONFIDENCE -> link.confidence
         )
 
+      // Add entities
       if (writeEntities) {
         for (entities <- link.entities) {
           json += (ENTITIES -> entityPairFormat.write(entities))
         }
+      }
+
+      // Add decision
+      link match {
+        case linkWithDecision: LinkWithDecision =>
+          json += (DECISION -> JsString(linkWithDecision.decision.getId))
+        case _ =>
+      }
+
+      // Add evaluation details
+      link match {
+        case linkWithDetails: LinkWithEvaluation =>
+          json += (RULE_VALUES -> ConfidenceJsonFormat.write(linkWithDetails.details))
+        case _ =>
+          // Link does not provide evaluation details, need to evaluate it first
+          for (linkingRule <- rule; entities <- link.entities) {
+            val details = DetailedEvaluator(linkingRule, entities).details
+            json += (RULE_VALUES -> ConfidenceJsonFormat.write(details))
+          }
       }
 
       json
@@ -134,6 +149,18 @@ object LinkingSerializers {
         POSITIVE -> JsArray(value.positive.toSeq.map(LinkJsonFormat.write)),
         NEGATIVE -> JsArray(value.negative.toSeq.map(LinkJsonFormat.write)),
         UNLABELED -> JsArray(value.unlabeled.toSeq.map(LinkJsonFormat.write))
+      )
+    }
+  }
+
+  implicit object DetailedEntityJsonFormat extends WriteOnlyJsonFormat[DetailedEntity] {
+    final val URIS = "uris"
+    final val VALUES = "values"
+
+    override def write(detailedEntity: DetailedEntity)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        URIS -> detailedEntity.uris,
+        VALUES -> detailedEntity.values.map(ValueJsonFormat.write)
       )
     }
   }

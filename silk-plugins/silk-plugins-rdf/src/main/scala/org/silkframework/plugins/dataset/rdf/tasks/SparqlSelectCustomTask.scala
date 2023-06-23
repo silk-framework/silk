@@ -10,8 +10,8 @@ import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
+import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Try
-import scala.collection.JavaConverters._
 
 /**
   * Custom task that executes a SPARQL select query on the input data source and translates the SPARQL result into

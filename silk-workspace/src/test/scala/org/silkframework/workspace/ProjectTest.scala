@@ -1,11 +1,12 @@
 package org.silkframework.workspace
-
-import org.scalatest.{FlatSpec, Matchers}
+
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.workspace.exceptions.CircularDependencyException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class ProjectTest extends FlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+class ProjectTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
   behavior of "Project"
 

@@ -39,7 +39,7 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
    */
   override def writeTask(task: Task[CustomTask], resources: ResourceManager, projectResourceManager: ResourceManager): Unit = {
     // Only serialize file paths correctly, paths should not be prefixed
-    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager)
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node](resources = projectResourceManager, prefixes = Prefixes.empty)
     val taskXml = XmlSerialization.toXml(task)
     resources.get(task.id.toString + ".xml").write() { os =>
       val out = new OutputStreamWriter(os, "UTF-8")

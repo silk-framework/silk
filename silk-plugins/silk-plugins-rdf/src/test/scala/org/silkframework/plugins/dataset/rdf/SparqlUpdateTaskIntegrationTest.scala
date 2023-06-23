@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
-
-import org.scalatest.{FlatSpec, MustMatchers}
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 
 /**
   * Execute a workflow using the SPARQL Update task and check the result.
   */
-class SparqlUpdateTaskIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
+class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "SPARQL Update Task in a Workflow"
 
   override def workspaceProviderId: String = "inMemory"

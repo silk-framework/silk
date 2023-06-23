@@ -8,6 +8,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.iterator.CloseableIterator
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
@@ -35,7 +36,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                                          sparql: SparqlEndpointEntityTable,
                                          limit: Int = Integer.MAX_VALUE,
                                          executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
-                                        (implicit userContext: UserContext): Traversable[Entity] = {
+                                        (implicit userContext: UserContext): CloseableIterator[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
     val results = select(sparqlSelectTask, sparql, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
@@ -62,26 +63,24 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   private def createEntities(taskData: SparqlSelectCustomTask,
                              results: SparqlResults,
                              vars: IndexedSeq[String],
-                             executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): Traversable[Entity] = {
+                             executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): CloseableIterator[Entity] = {
     val increase: () => Unit = executionReportUpdater match {
       case Some(updater) => () =>
         updater.increaseEntityCounter()
       case None => () => {} // no-op
     }
-    new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        var count = 0
-        results.bindings foreach { binding =>
-          count += 1
-          val values = vars map { v =>
-            binding.get(v).toSeq.map(_.value)
-          }
-          f(Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema))
-          increase()
-        }
-        executionReportUpdater.foreach(updater => updater.executionDone())
+
+    var count = 0
+    val entityIterator = results.bindings.map { binding =>
+      count += 1
+      val values = vars map { v =>
+        binding.get(v).toSeq.map(_.value)
       }
+      val entity = Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
+      increase()
+      entity
     }
+    entityIterator.thenClose(() => executionReportUpdater.foreach(updater => updater.executionDone()))
   }
 }
 

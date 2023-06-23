@@ -105,13 +105,13 @@ trait IntegrationTestTrait extends TaskApiClient
       // The CMEM integration test maps to these URIs, which result in the same URIs as the schema extraction
       "loans" -> Seq("http://eccenca.com/ds/loans/"),
       "unemployment" -> Seq("http://eccenca.com/ds/unemployment/")
-    ) ++ extraPrefixes.mapValues(Seq(_)))
+    ) ++ extraPrefixes.view.mapValues(Seq(_)))
     checkResponse(response)
   }
 
   def listResources(projectId: String): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources")
-    val response = request.get
+    val response = request.get()
     checkResponse(response)
   }
 
@@ -136,19 +136,19 @@ trait IntegrationTestTrait extends TaskApiClient
 
   def resourceExists(projectId: String, resourceId: String): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
-    val response = request.get
+    val response = request.get()
     checkResponse(response)
   }
 
   def getResourcesJson(projectId: String): String = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources")
-    val response = request.get
+    val response = request.get()
     checkResponse(response).body
   }
 
   def getResource(projectId: String, resourceId: String): String = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
-    val response = request.get
+    val response = request.get()
     checkResponse(response).body
   }
 
@@ -330,7 +330,7 @@ trait IntegrationTestTrait extends TaskApiClient
   def createDefaultMapping(projectId: String,
                            datasetId: String,
                            uriPrefix: String,
-                           propertyUris: Traversable[String] = Seq()): WSResponse = {
+                           propertyUris: Iterable[String] = Seq()): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DefaultMappingGenerator/startBlocking")
     val response = request.post(Map(
       "pathSelection" -> Seq(propertyUris.mkString(" ")),
@@ -370,7 +370,7 @@ trait IntegrationTestTrait extends TaskApiClient
     */
   def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
     val request = client.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
-    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
+    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).view.mapValues(v => Seq(v)).toMap)
     checkResponse(response)
     workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
   }
@@ -470,8 +470,8 @@ trait IntegrationTestTrait extends TaskApiClient
   }
 
   def getVariableValues(variableName: String,
-                        results: Traversable[SortedMap[String, RdfNode]]): Traversable[String] = {
-    results.map(_(variableName).value)
+                        results: IterableOnce[SortedMap[String, RdfNode]]): Seq[String] = {
+    results.iterator.map(_(variableName).value).toSeq
   }
 
   def createWorkflow(projectId: String, workflowId: String, workflow: Workflow): WSResponse = {

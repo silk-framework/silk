@@ -8,6 +8,7 @@ import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 
 import java.util.logging.Logger
@@ -26,13 +27,13 @@ import scala.util.control.NonFatal
   * @param context           The activity context.
   */
 class TransformedEntities(task: Task[TransformSpec],
-                          entities: Traversable[Entity],
+                          entities: CloseableIterator[Entity],
                           ruleLabel: String,
                           rule: TransformRule,
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
-                          context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) extends Traversable[Entity] {
+                          context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -59,7 +60,7 @@ class TransformedEntities(task: Task[TransformSpec],
 
   private val errors = mutable.Buffer[Throwable]()
 
-  override def foreach[U](f: Entity => U): Unit = {
+  def iterator: CloseableIterator[Entity] = {
     val report = {
       val prevReport = context.value.get.getOrElse(TransformReport(task))
       new TransformReportBuilder(task, rules, prevReport)
@@ -68,37 +69,31 @@ class TransformedEntities(task: Task[TransformSpec],
     count = 0
     var lastUpdateTime = System.currentTimeMillis()
     var lastCount = 0
-    try {
-      for (entity <- entities) {
-        mapEntity(entity, f, report)
+
+    val mappedEntities =
+      for (entity <- entities; mappedEntity <- mapEntity(entity, report)) yield {
         if (count > lastCount && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
           context.value.update(report.build())
           context.status.updateMessage(s"Executing ($count Entities)")
           lastUpdateTime = System.currentTimeMillis()
           lastCount = count
         }
+        mappedEntity
       }
-    } catch {
-      case NonFatal(ex) =>
-        report.setExecutionError(ex.getMessage)
-        throw ex
-    } finally {
-      context.value() = report.build(isDone = true)
-    }
-    context.status.updateMessage(s"Finished Executing ($count Entities)")
+    new TransformReportIterator(mappedEntities, report)
   }
 
-  private def mapEntity[U](entity: Entity, f: Entity => U, report: TransformReportBuilder): Unit = {
+  private def mapEntity(entity: Entity, report: TransformReportBuilder): Iterator[Entity] = {
     errorFlag = false
     errors.clear()
 
     val uris = subjectRule match {
-      case Some(rule) => evaluateRule(entity, rule, report)
-      case None => Seq(entity.uri.toString)
+      case Some(rule) => evaluateRule(entity, rule, report).iterator
+      case None => Iterator(entity.uri.toString)
     }
 
     if(uris.nonEmpty) {
-      for (uri <- uris) {
+      for (uri <- uris) yield {
         if(count > 0 && outputSchema.singleEntity && rule.isInstanceOf[RootMappingRule]) {
           throw new MultipleValuesException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
         }
@@ -122,16 +117,16 @@ class TransformedEntities(task: Task[TransformSpec],
           rules.flatMap(evalRule)
         }
 
-        f(Entity(uri, values, outputSchema, metadata = buildErrorMetadata()))
-
         updateReport(report)
         count += 1
+        Entity(uri, values, outputSchema, metadata = buildErrorMetadata())
       }
     } else {
       for(uriRule <- subjectRule) {
         report.addRuleError(uriRule, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
       }
       errorFlag = true
+      Iterator.empty
     }
   }
 
@@ -176,5 +171,37 @@ class TransformedEntities(task: Task[TransformSpec],
         s"Failed to transform entity '${entity.uri}' with rule '${rule.label()}' in '$ruleLabel': ${ex.getMessage}"
       throw AbortExecutionException(message, Some(ex))
     }
+  }
+
+  private class TransformReportIterator(iterator: CloseableIterator[Entity], report: TransformReportBuilder) extends CloseableIterator[Entity] {
+
+    override def hasNext: Boolean = {
+      try {
+        if (iterator.hasNext) {
+          true
+        } else {
+          context.value() = report.build(isDone = true)
+          false
+        }
+      } catch {
+        case NonFatal(ex) =>
+          report.setExecutionError(ex.getMessage)
+          context.value() = report.build(isDone = true)
+          throw ex
+      }
+    }
+
+    override def next(): Entity = {
+      try {
+        iterator.next()
+      } catch {
+        case NonFatal(ex) =>
+          report.setExecutionError(ex.getMessage)
+          context.value() = report.build(isDone = true)
+          throw ex
+      }
+    }
+
+    override def close(): Unit = iterator.close()
   }
 }

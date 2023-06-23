@@ -45,6 +45,12 @@ export type NodePath = number[];
 
 export type ReferenceLinkType = "positive" | "negative" | "unlabeled";
 
+export enum LinkTypeMapping {
+    positive = "confirmed",
+    negative = "declined",
+    unlabeled = "uncertain",
+}
+
 export interface HoveredValuedType {
     path: string;
     isSourceEntity: boolean;
@@ -65,6 +71,12 @@ export const LinkEvaluationFilters = {
         label: "Uncertain",
     },
 } as const;
+
+export const referenceLinksMap = new Map([
+    ["positive", false],
+    ["negative", false],
+    ["unlabeled", false],
+]) as Map<ReferenceLinkType, boolean>;
 
 export const LinkEvaluationSortByObj = {
     DESC: {

@@ -34,6 +34,7 @@ import play.api.mvc._
 
 import java.net.HttpURLConnection
 import javax.inject.Inject
+import scala.util.Using
 
 @Tag(name = "Datasets", description = "Manage datasets.")
 class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -274,7 +275,7 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
     implicit val context: PluginContext = PluginContext.fromProject(project)
-    val datasetParams = request.queryString.mapValues(_.head)
+    val datasetParams = request.queryString.view.mapValues(_.head).toMap
     val datasetPlugin = Dataset.apply(pluginId, ParameterValues.fromStringMap(datasetParams))
     datasetPlugin match {
       case ds: DatasetPluginAutoConfigurable[_] =>
@@ -304,7 +305,7 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
     val entityDesc = EntitySchema(firstTypes, paths)
-    val entities = source.retrieve(entityDesc).entities.take(maxEntities).toList
+    val entities = source.retrieve(entityDesc).entities.use(_.take(maxEntities).toList)
 
     Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
   }
@@ -577,7 +578,7 @@ class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) exten
   }
 
   private def transformationInputPaths(project: Project)
-                                      (implicit userContext: UserContext): Traversable[CoveragePathInput] = {
+                                      (implicit userContext: UserContext): Iterable[CoveragePathInput] = {
     val transformationTasks = project.tasks[TransformSpec]
     for (transformation <- transformationTasks) yield {
       val typeUri = transformation.selection.typeUri
