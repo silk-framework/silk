@@ -38,3 +38,30 @@ export const createNewVariable = (
         method: "post",
         body: payload,
     });
+
+/**
+ * Delete a single variable by name
+ * @param project
+ * @param name
+ * @returns
+ */
+export const deleteVariableRequest = (project: string, name: string) =>
+    fetch({
+        url: coreApi(`/variableTemplate/variables/${name}`),
+        query: {
+            project,
+            name,
+        },
+        method: "delete",
+    });
+
+/** reorder variable list by providing the intended order */
+export const reorderVariablesRequest = (project, reorderedVariables: Variable[]) =>
+    fetch({
+        url: coreApi("/variableTemplate/variables"),
+        query: {
+            project,
+        },
+        method: "post",
+        body: { variables: reorderedVariables },
+    });

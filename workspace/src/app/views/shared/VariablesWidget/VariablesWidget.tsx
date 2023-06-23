@@ -24,7 +24,7 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { getVariables } from "./requests";
+import { deleteVariableRequest, getVariables, reorderVariablesRequest } from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
@@ -75,13 +75,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
      * upon acceptance on the delete prompt, it deletes the selected variable.
      */
     const handleDeleteVariable = React.useCallback(async () => {
+        if (!selectedVariable) return;
         setIsDeleting(true);
         setDeleteErrMsg("");
         try {
-            const filteredVariables = {
-                variables: variables.filter((variable) => variable.name !== selectedVariable?.name),
-            };
-            await createNewVariable(filteredVariables, projectId);
+            await deleteVariableRequest(projectId, selectedVariable.name);
             setRefetch((r) => ++r);
             setDeleteModalOpen(false);
         } catch (err) {
@@ -108,22 +106,19 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             if (fromPos === toPos) {
                 return;
             }
-
-            const reorderedVariables = { variables: reorderArray(variables, fromPos, toPos) };
+            const reorderedVariables = reorderArray(variables, fromPos, toPos) as Variable[];
             try {
-                await createNewVariable(reorderedVariables, projectId);
-                setRefetch((f) => ++f);
+                const res = await reorderVariablesRequest(projectId, reorderedVariables);
+                if (res.axiosResponse.status === 200) {
+                    setVariables(reorderedVariables);
+                }
             } catch (err) {
                 if (
                     err &&
                     (err as FetchError).isFetchError &&
                     err.body.title.includes("Template variables evaluation error")
                 ) {
-                    registerError(
-                        "VariableWidgetError",
-                        t("widget.VariableWidget.errorMessages.orderingVariables"),
-                        err
-                    );
+                    registerError("VariableWidgetError", err.body.detail, err);
                 }
             }
         },
