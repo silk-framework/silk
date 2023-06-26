@@ -83,7 +83,7 @@ class DraggableItem extends React.Component {
                 isDragDisabled={this.state.expanded}
                 style={{ width: "15" }}
                 key={this.props.id}
-                draggableId={this.props.id}
+                draggableId={`draggable-${this.props.id}`}
                 index={this.props.pos}
             >
                 {(provided, snapshot) => (

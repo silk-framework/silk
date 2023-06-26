@@ -13,6 +13,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.xml.{Node, Text}
 
@@ -244,7 +245,25 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /** Returns all Dataset tasks that are used as outputs in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
-    for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
+    val configInputs = new mutable.HashMap[String, String]()
+    for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
+      configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
+    }
+    val operatorsWithDataOutput: Set[Identifier] = operators
+      .map(op => op.task).distinct
+      .filter(taskId => project.anyTask(taskId).outputSchemaOpt.isDefined)
+      .toSet
+    // Filter out datasets that have no real data input
+    val datasetNodesWithRealInputs = operators.flatMap(op => {
+      if(!operatorsWithDataOutput.contains(op.task)) {
+        // The operator node that goes into the dataset must have real data output
+        Seq.empty
+      } else {
+        // and is not connected to the config port of the dataset
+        op.outputs.filter(output => !configInputs.get(output).contains(op.nodeId))
+      }
+    }).distinct
+    for (datasetNodeId <- datasetNodesWithRealInputs;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
     }
