@@ -9,6 +9,7 @@ import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
 import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
+import org.silkframework.workbench.workflow.OptionalPrimaryResourceManagerParameter
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.MediaRange
@@ -276,7 +277,7 @@ object VariableWorkflowRequestUtils {
       configParameters = ParameterValues(Map(
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
         "configurationType" -> ParameterStringValue(jsonMimeType),
-        "optionalPrimaryResourceManager" -> ParameterObjectValue(variableWorkflowFileResourceManager)
+        "optionalPrimaryResourceManager" -> ParameterObjectValue(OptionalPrimaryResourceManagerParameter(Some(variableWorkflowFileResourceManager)))
       )),
       variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType)
     )
