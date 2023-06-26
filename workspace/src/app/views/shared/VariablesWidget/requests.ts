@@ -56,12 +56,12 @@ export const deleteVariableRequest = (project: string, name: string) =>
     });
 
 /** reorder variable list by providing the intended order */
-export const reorderVariablesRequest = (project, reorderedVariables: Variable[]) =>
+export const reorderVariablesRequest = (project, reorderedVariables: string[]) =>
     fetch({
-        url: coreApi("/variableTemplate/variables"),
+        url: coreApi("/variableTemplate/reorderVariables"),
         query: {
             project,
         },
         method: "post",
-        body: { variables: reorderedVariables },
+        body: reorderedVariables,
     });

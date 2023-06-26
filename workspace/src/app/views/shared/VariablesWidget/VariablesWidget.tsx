@@ -108,17 +108,16 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             }
             const reorderedVariables = reorderArray(variables, fromPos, toPos) as Variable[];
             try {
-                const res = await reorderVariablesRequest(projectId, reorderedVariables);
+                const res = await reorderVariablesRequest(
+                    projectId,
+                    reorderedVariables.map((v) => v.name)
+                );
                 if (res.axiosResponse.status === 200) {
                     setVariables(reorderedVariables);
                 }
             } catch (err) {
-                if (
-                    err &&
-                    (err as FetchError).isFetchError &&
-                    err.body.title.includes("Template variables evaluation error")
-                ) {
-                    registerError("VariableWidgetError", err.body.detail, err);
+                if (err && (err as FetchError).isFetchError) {
+                    registerError("VariableWidgetError", err.body.title, err);
                 }
             }
         },
