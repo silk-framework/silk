@@ -53,7 +53,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 const { data } = await getVariables(projectId);
                 setVariables(data?.variables ?? []);
             } catch (err) {
-                registerError("variable-config", "Could get load variables", err);
+                registerError("variable-config", t("widget.VariableWidget.errorMessages.loadingVariables"), err);
             } finally {
                 setLoadingVariables(false);
             }
