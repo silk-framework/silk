@@ -4,7 +4,7 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.{Dataset, ResourceBasedDataset}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginRegistry}
 import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
@@ -202,12 +202,9 @@ object VariableWorkflowRequestUtils {
     *
     * @param configParameters       The variable workflow configuration parameters.
     * @param variableDataSinkConfig Optional data sink config.
-    * @param resourceManager        The temp file based resource manager that should be used to read and write resources to/from.
-    *                               This includes files uploaded via multipart/form-data request.
     */
-  case class VariableWorkflowRequestConfig(configParameters: Map[String, String],
-                                           variableDataSinkConfig: Option[String],
-                                           resourceManager: FileMapResourceManager)
+  case class VariableWorkflowRequestConfig(configParameters: ParameterValues,
+                                           variableDataSinkConfig: Option[String])
 
   private def variableWorkflowFileResourceManager(implicit request: Request[AnyContent]): FileMapResourceManager = {
     val baseDir = Files.createTempDirectory(tempFileBaseDir, "variableWorkflowResourceManager")
@@ -276,12 +273,12 @@ object VariableWorkflowRequestUtils {
       )
     )
     VariableWorkflowRequestConfig(
-      configParameters = Map(
-        "configuration" -> workflowConfig.toString(),
-        "configurationType" -> jsonMimeType
-      ),
-      variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType),
-      resourceManager = variableWorkflowFileResourceManager
+      configParameters = ParameterValues(Map(
+        "configuration" -> ParameterStringValue(workflowConfig.toString()),
+        "configurationType" -> ParameterStringValue(jsonMimeType),
+        "optionalPrimaryResourceManager" -> ParameterObjectValue(variableWorkflowFileResourceManager)
+      )),
+      variableDataSinkConfig = replaceableDataSinkConfigOpt.map(_.mimeType)
     )
   }
 

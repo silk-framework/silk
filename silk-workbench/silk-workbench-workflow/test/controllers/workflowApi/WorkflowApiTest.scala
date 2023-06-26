@@ -3,7 +3,8 @@ package controllers.workflowApi
 import controllers.workflowApi.workflow.{WorkflowNodePortConfig, WorkflowNodesPortConfig}
 import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.{BeforeAndAfterAll, FlatSpec}
 import org.silkframework.config.{CustomTask, Prefixes, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
@@ -19,7 +20,7 @@ import play.api.routing.Router
 import java.io.File
 
 class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with ConfigTestTrait
-  with IntegrationTestTrait with MustMatchers with BeforeAndAfterAll {
+  with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
   behavior of "Workflow API"
 
   override def projectPathInClasspath: String = "2dc191ef-d583-4eb8-a8ed-f2a3fb94bd8f_WorkflowAPItestproject.zip"

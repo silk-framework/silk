@@ -30,10 +30,10 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
 
   def autoRun: Boolean = defaultFactory.autoRun
 
-  protected override def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+  override protected def createInstanceFromParameterValues(config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
     implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, project.resources)
     Activity(
-      ClassPluginDescription(defaultFactory.getClass)(ParameterValues.fromStringMap(config), ignoreNonExistingParameters = false).apply(task),
+      ClassPluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
       projectAndTaskId = Some(ProjectAndTaskIds(project.id, taskOption.map(_.id)))
     )
   }

@@ -21,11 +21,8 @@ trait UserContext {
 /** Holds information about the (current) execution context. This might get adapted via the withExecutionContext if from there on
   * specific execution parameters are known and can be set.
   * @param insideWorkflow After entering a workflow execution this flag is set to true.
-  * @param primaryResourceManager If resources should be fetched primarily from this resource manager and only as fallback from the default resource managers, this will be set.
   */
-case class UserExecutionContext(insideWorkflow: Boolean = false,
-                               // TODO CMEM-3180: Any other option to get an optional resource manager into an activity?
-                               primaryResourceManager: Option[ResourceManager] = None)
+case class UserExecutionContext(insideWorkflow: Boolean = false)
 
 object UserContext {
   val Empty: UserContext = empty(UserExecutionContext())
