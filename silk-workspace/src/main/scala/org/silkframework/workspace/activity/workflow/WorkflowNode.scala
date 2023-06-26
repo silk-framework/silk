@@ -1,6 +1,10 @@
 package org.silkframework.workspace.activity.workflow
 
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.workflow.Workflow.taskIds
+
+import scala.xml.{Node, Text}
 
 /**
   * A workflow step.
@@ -63,6 +67,26 @@ sealed trait WorkflowNode {
   def allInputs: Seq[NodeReference] = (inputs ++ configInputs).distinct
 }
 
+object WorkflowNode {
+  def parseOutputPriority(op: Node): Option[Double] = {
+    val node = op \ "@outputPriority"
+    if (node.isEmpty) {
+      None
+    } else {
+      Some(node.text.toDouble)
+    }
+  }
+
+  def parseNodeId(op: Node, task: String): String = {
+    val node = op \ "@id"
+    if (node.isEmpty) {
+      task
+    } else {
+      node.text
+    }
+  }
+}
+
 case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
                             task: Identifier,
                             outputs: Seq[WorkflowNode#NodeReference],
@@ -72,6 +96,41 @@ case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
                             outputPriority: Option[Double],
                             configInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
 
+object WorkflowOperator {
+  implicit val workflowOperatorXmlFormat: XmlFormat[WorkflowOperator] = new XmlFormat[WorkflowOperator] {
+    override def read(op: Node)(implicit readContext: ReadContext): WorkflowOperator = {
+      val inputStr = (op \ "@inputs").text
+      val outputStr = (op \ "@outputs").text
+      val errorOutputStr = (op \ "@errorOutputs").text
+      val configInputStr = (op \ "@configInputs").text
+      val task = (op \ "@task").text
+      WorkflowOperator(
+        inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
+        task = task,
+        outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
+        errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
+        position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
+        nodeId = WorkflowNode.parseNodeId(op, task),
+        outputPriority = WorkflowNode.parseOutputPriority(op),
+        configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
+      )
+    }
+
+    override def write(op: WorkflowOperator)(implicit writeContext: WriteContext[Node]): Node = {
+        <Operator
+        posX={op.position._1.toString}
+        posY={op.position._2.toString}
+        task={op.task}
+        inputs={op.inputs.mkString(",")}
+        outputs={op.outputs.mkString(",")}
+        errorOutputs={op.errorOutputs.mkString(",")}
+        id={op.nodeId}
+        outputPriority={op.outputPriority map (priority => Text(priority.toString))}
+        configInputs={op.configInputs.mkString(",")}/>
+    }
+  }
+}
+
 case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
                            task: Identifier,
                            outputs: Seq[WorkflowNode#NodeReference],
@@ -79,3 +138,35 @@ case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
                            nodeId: WorkflowNode#NodeReference,
                            outputPriority: Option[Double],
                            configInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
+
+object WorkflowDataset {
+  implicit val workflowDatasetXmlFormat: XmlFormat[WorkflowDataset] = new XmlFormat[WorkflowDataset] {
+    override def read(ds: Node)(implicit readContext: ReadContext): WorkflowDataset = {
+      val inputs = taskIds((ds \ "@inputs").text)
+      val outputs = taskIds((ds \ "@outputs").text)
+      val configInputStr = (ds \ "@configInputs").text
+      val task = (ds \ "@task").text
+      WorkflowDataset(
+        inputs = inputs,
+        task = task,
+        outputs = outputs,
+        position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
+        nodeId = WorkflowNode.parseNodeId(ds, task),
+        outputPriority = WorkflowNode.parseOutputPriority(ds),
+        configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
+      )
+    }
+
+    override def write(ds: WorkflowDataset)(implicit writeContext: WriteContext[Node]): Node = {
+        <Dataset
+        posX={ds.position._1.toString}
+        posY={ds.position._2.toString}
+        task={ds.task}
+        inputs={ds.inputs.mkString(",")}
+        outputs={ds.outputs.mkString(",")}
+        id={ds.nodeId}
+        outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
+        configInputs={ds.configInputs.mkString(",")}/>
+    }
+  }
+}

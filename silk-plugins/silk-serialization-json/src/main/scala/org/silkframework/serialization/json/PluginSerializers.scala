@@ -65,8 +65,9 @@ object PluginSerializers {
             (key, JsString(strValue))
           case (key, template: ParameterTemplateValue) =>
             (key, JsString(template.evaluate()))
-          case (key, ParameterObjectValue(objValue)) =>
-            (key, Serialization.formatForDynamicType[JsValue](objValue.getClass).write(objValue))
+          case (key, parameterObjectValue: ParameterObjectValue) =>
+            val value = parameterObjectValue.value(writeContext)
+            (key, Serialization.formatForDynamicType[JsValue](value.getClass).write(value))
           case (key, values: ParameterValues) =>
             (key, writeParameters(values))
         }

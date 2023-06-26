@@ -16,10 +16,10 @@ package org.silkframework.workspace.xml
 
 import org.silkframework.config._
 import org.silkframework.rule.LinkSpec
-import org.silkframework.rule.evaluation.ReferenceLinksReader
+import org.silkframework.rule.evaluation.{ReferenceLinks, ReferenceLinksReader}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
