@@ -155,7 +155,7 @@ object ClassPluginDescription {
       )
     } catch {
       case ex: InvalidPluginException =>
-        throw new InvalidPluginException(s"Cannot extract plugin description for plugin class '${pluginClass.getCanonicalName}'. Details: ${ex.getMessage}")
+        throw new InvalidPluginException(s"Cannot extract plugin description for plugin class '${pluginClass.getCanonicalName}'. Details: ${ex.getMessage}", ex)
     }
   }
 
