@@ -1,10 +1,8 @@
 package controllers.workflowApi.variableWorkflow
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{Dataset, ResourceBasedDataset}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginRegistry}
+import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
@@ -273,6 +271,7 @@ object VariableWorkflowRequestUtils {
         "autoConfig" -> request.getQueryString(QUERY_CONFIG_PARAM_AUTO_CONFIG).map(_.trim).contains("true")
       )
     )
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
     VariableWorkflowRequestConfig(
       configParameters = ParameterValues(Map(
         "configuration" -> ParameterStringValue(workflowConfig.toString()),
