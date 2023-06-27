@@ -58,7 +58,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.13.10",
+  scalaVersion := "3.3.0",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -73,7 +73,7 @@ lazy val commonSettings = Seq(
   (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.4" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
@@ -122,10 +122,9 @@ lazy val core = (project in file("silk-core"))
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.2.0",
-    libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "2.2.0",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
@@ -148,7 +147,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += ws
+    libraryDependencies += "com.typesafe.play" % "play-ahc-ws-standalone_3" % "2.2.0-M4"
   )
 
 /////////////////////////////////////////////// ///////////////////////////////
@@ -187,7 +186,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.13.5",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.0-RC9"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -217,7 +216,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.0-RC9",
     libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.8"
   )
 
@@ -367,7 +366,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .settings(
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
-    libraryDependencies += filters,
+    libraryDependencies += "com.typesafe.play" %% "filters-helpers" % "2.9.0-M6",
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % "test"
   )
 
@@ -378,7 +377,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace",
-    libraryDependencies += ws % "test"
+    libraryDependencies += "com.typesafe.play" % "play-ahc-ws-standalone_3" % "2.2.0-M4" % "test"
   )
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
