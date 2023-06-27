@@ -7,6 +7,7 @@ import org.silkframework.plugins.dataset.xml.util.IndentingXMLStreamWriter
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.OutputStream
+import java.nio.charset.StandardCharsets
 import javax.xml.stream.{XMLOutputFactory, XMLStreamWriter}
 
 
@@ -15,7 +16,7 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
   private val writer: XMLStreamWriter = {
     val factory = XMLOutputFactory.newInstance()
     factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true)
-    new IndentingXMLStreamWriter(factory.createXMLStreamWriter(outputStream))
+    new IndentingXMLStreamWriter(factory.createXMLStreamWriter(outputStream, StandardCharsets.UTF_8.name()))
   }
 
   // Counts all generated namespace prefixes

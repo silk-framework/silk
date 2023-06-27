@@ -241,7 +241,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
       case AnyContentAsRaw(buffer) =>
         buffer.asFile
       case _ =>
-        throw BadUserInputException("Must attach body as multipart form data or as raw bytes.")
+        throw BadUserInputException("Must attach body as multipart/form-data or as raw bytes.")
     }
   }
 

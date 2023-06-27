@@ -82,7 +82,7 @@ class ActivitiesApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderT
       statusFilter.map(status => ("statusFilter", status))
     ).flatten
     val jsonResponse = checkResponse(client.url(s"$baseUrl/api/workspace/taskActivitiesStatus")
-        .withHttpHeaders(ACCEPT -> APPLICATION_JSON)
+        .addHttpHeaders(ACCEPT -> APPLICATION_JSON)
         .withQueryStringParameters(queryParameters: _*)
         .get()).json
     Json.fromJson[Seq[TestActivityStatus]](jsonResponse).get

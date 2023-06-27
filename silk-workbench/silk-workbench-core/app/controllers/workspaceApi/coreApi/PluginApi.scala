@@ -2,7 +2,7 @@ package controllers.workspaceApi.coreApi
 
 import config.WorkbenchLinks
 import controllers.core.UserContextActions
-import controllers.util.{PluginUsageCollector, TextSearchUtils}
+import controllers.util.{DatasetUtils, PluginUsageCollector, TextSearchUtils}
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -182,6 +182,26 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     }
 
     Ok(JsArray(usages))
+  }
+
+  lazy val resourceBasedDatasetPluginIds: Seq[JsString] = DatasetUtils.resourceBasedDatasetPluginIds
+    .map(s => JsString(s))
+
+  @Operation(
+    summary = "Resource based dataset plugin IDs",
+    description = "Returns a list of plugin IDs of all resource based datasets.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(PluginApiDoc.resourceBasedPluginIdsExample))
+        ))
+      )
+    ))
+  def resourceBasedDatasetIds(): Action[AnyContent] = UserContextAction { implicit userContext =>
+    Ok(JsArray(resourceBasedDatasetPluginIds))
   }
 
   /** Rule (operator) plugins. */

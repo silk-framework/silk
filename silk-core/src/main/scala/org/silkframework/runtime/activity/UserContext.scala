@@ -1,6 +1,7 @@
 package org.silkframework.runtime.activity
 
 import org.silkframework.config.SilkVocab
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.users.{DefaultUserManager, User}
 
 /**
@@ -17,6 +18,10 @@ trait UserContext {
   def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext
 }
 
+/** Holds information about the (current) execution context. This might get adapted via the withExecutionContext if from there on
+  * specific execution parameters are known and can be set.
+  * @param insideWorkflow After entering a workflow execution this flag is set to true.
+  */
 case class UserExecutionContext(insideWorkflow: Boolean = false)
 
 object UserContext {

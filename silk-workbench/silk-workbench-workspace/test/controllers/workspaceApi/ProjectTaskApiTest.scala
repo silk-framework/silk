@@ -72,7 +72,7 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     initialDataset.plugin.separator mustBe ","
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     val request = client.url(s"$baseUrl$path")
-      .withHttpHeaders(ACCEPT -> APPLICATION_JSON)
+      .addHttpHeaders(ACCEPT -> APPLICATION_JSON)
       .post(JsonSerialization.toJson[GenericDatasetSpec](initialDataset))
     val response = checkResponse(request).json
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
