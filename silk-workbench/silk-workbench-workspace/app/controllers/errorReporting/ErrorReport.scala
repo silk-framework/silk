@@ -14,7 +14,7 @@ object ErrorReport {
     def fromException(exception: Throwable): Stacktrace = {
       val lines = ArraySeq.unsafeWrapArray(exception.getStackTrace.map(_.toString))
       val cause = Option(exception.getCause).map(fromException)
-      val suppressed = exception.getSuppressed.map(fromException)
+      val suppressed = ArraySeq.unsafeWrapArray(exception.getSuppressed).map(fromException)
       Stacktrace(exception.getClass.getName, Option(exception.getMessage), lines, cause, suppressed)
     }
   }

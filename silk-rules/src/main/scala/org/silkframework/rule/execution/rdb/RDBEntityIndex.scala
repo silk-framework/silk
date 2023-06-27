@@ -91,10 +91,10 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
       createSeparateIndexTable(indexProfile.indexProfiles)
       loadTables(indexProfile)
     } catch {
-      case ex: SQLException =>
-        throw new RuntimeException("Tables for entity linking could not be created because of SQL error. Details: " + ex.getMessage, ex)
       case ex: SQLTimeoutException =>
         throw new RuntimeException("Tables for entity linking could not be created because of SQL timeout. Details: " + ex.getMessage, ex)
+      case ex: SQLException =>
+        throw new RuntimeException("Tables for entity linking could not be created because of SQL error. Details: " + ex.getMessage, ex)
     } finally {
       connection.close()
     }
