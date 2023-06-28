@@ -75,10 +75,8 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
-    initStatus(user)
-    this.synchronized {
-      runActivity()
-    }
+    start()
+    waitUntilFinished()
   }
 
   private def setStartMetaData(user: UserContext): Unit = {
