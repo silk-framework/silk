@@ -103,7 +103,9 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS) match {
         case null =>
           // No result available: make sure that loaders are not blocked
-          context.helpQuiesce()
+          if(loaders.exists(!_.status().finished())) {
+            context.helpQuiesce()
+          }
           None
         case future: Future[T] =>
           Some(future.get())
