@@ -229,27 +229,32 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                             </PropertyValue>
                                                                         </PropertyValuePair>
                                                                     </ToolbarSection>
-                                                                    {variable.template != null && (
-                                                                        <ToolbarSection>
-                                                                            <Icon
-                                                                                name={"form-template"}
-                                                                                intent={"info"}
-                                                                                data-test-id="template-variable-delimiter"
-                                                                                tooltipText={
-                                                                                    t(
-                                                                                        "widget.TaskConfigWidget.templateValueInfo"
-                                                                                    ) +
-                                                                                    `\n\n\`\`\`${variable.template}\`\`\``
-                                                                                }
-                                                                                tooltipProps={{
-                                                                                    placement: "top",
-                                                                                    markdownEnabler: "```",
-                                                                                }}
-                                                                            />
-                                                                            <Spacing size="tiny" vertical />
-                                                                        </ToolbarSection>
-                                                                    )}
-                                                                    <ToolbarSection>
+                                                                    <ToolbarSection
+                                                                        style={{
+                                                                            minWidth: "75px",
+                                                                            justifyContent: "right",
+                                                                        }}
+                                                                    >
+                                                                        {variable.template != null && (
+                                                                            <>
+                                                                                <Icon
+                                                                                    name={"form-template"}
+                                                                                    intent={"info"}
+                                                                                    data-test-id="template-variable-delimiter"
+                                                                                    tooltipText={
+                                                                                        t(
+                                                                                            "widget.TaskConfigWidget.templateValueInfo"
+                                                                                        ) +
+                                                                                        `\n\n\`\`\`${variable.template}\`\`\``
+                                                                                    }
+                                                                                    tooltipProps={{
+                                                                                        placement: "top",
+                                                                                        markdownEnabler: "```",
+                                                                                    }}
+                                                                                />
+                                                                                <Spacing size="tiny" vertical />
+                                                                            </>
+                                                                        )}
                                                                         <IconButton
                                                                             small
                                                                             name="item-edit"
