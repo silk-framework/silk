@@ -50,7 +50,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      name = "project",
                      description = "The project identifier",
                      required = true,
-                     in = ParameterIn.PATH,
+                     in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
                    projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -85,7 +85,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      name = "project",
                      description = "The project identifier",
                      required = true,
-                     in = ParameterIn.PATH,
+                     in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[String])
                    )
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
@@ -119,7 +119,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                     name = "project",
                     description = "The project identifier",
                     required = true,
-                    in = ParameterIn.PATH,
+                    in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
                   )
                   projectName: String,
@@ -161,7 +161,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                        name = "project",
                        description = "The project identifier",
                        required = true,
-                       in = ParameterIn.PATH,
+                       in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
                      projectName: String,
@@ -237,7 +237,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                         name = "project",
                         description = "The project identifier",
                         required = true,
-                        in = ParameterIn.PATH,
+                        in = ParameterIn.QUERY,
                         schema = new Schema(implementation = classOf[String])
                       )
                       projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
