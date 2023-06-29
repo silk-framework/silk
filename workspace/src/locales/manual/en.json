@@ -825,7 +825,7 @@
             },
             "modalMessages": {
                 "deleteModalTitle": "Delete variable",
-                "deletePrompt": "Are you sure you want to delete this variable?"
+                "deletePrompt": "Are you sure you want to delete variable '{{varname}}'?"
             },
             "actions": {
                 "add": "Add variable",
