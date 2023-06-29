@@ -78,6 +78,7 @@ const TemplateValueInput = React.forwardRef(
         }, []);
 
         const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
+        console.log("showVariableTemplateInput", showVariableTemplateInput);
         return (
             <FieldItem
                 labelProps={{
@@ -99,7 +100,7 @@ const TemplateValueInput = React.forwardRef(
                         canGrow
                         style={{
                             alignSelf: "center",
-                            // maxWidth: showVariableTemplateInput ? "calc(100% - 3.5px - 32px)" : "auto", // set full width minus tiny spacing and icon button width
+                            maxWidth: showVariableTemplateInput ? "calc(100% - 3.5px - 32px)" : "auto", // set full width minus tiny spacing and icon button width
                         }}
                     >
                         {showVariableTemplateInput ? (
