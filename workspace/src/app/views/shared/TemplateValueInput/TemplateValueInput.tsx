@@ -78,7 +78,7 @@ const TemplateValueInput = React.forwardRef(
         }, []);
 
         const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
-        console.log("showVariableTemplateInput", showVariableTemplateInput);
+
         return (
             <FieldItem
                 labelProps={{
