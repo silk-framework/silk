@@ -136,6 +136,60 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
   }
 
   @Operation(
+    summary = "Put variable",
+    description = "Adds or updates a single variable.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[TemplateVariableFormat]),
+      )
+    )
+  )
+  def putVariable(@Parameter(
+                    name = "project",
+                    description = "The project identifier",
+                    required = true,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String,
+                  @Parameter(
+                    name = "name",
+                    description = "The variable name",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  variableName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val variable = Json.fromJson[TemplateVariableFormat](request.body).get.convert
+    if(variable.name != variableName) {
+      throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
+    }
+    val variables = project.templateVariables.all.variables
+    val updatedVariables = variables.indexWhere(_.name == variableName) match {
+      case -1 =>
+        TemplateVariables(variables :+ variable)
+      case index: Int =>
+        TemplateVariables(variables.updated(index, variable))
+    }
+    project.templateVariables.put(updatedVariables.resolved(GlobalTemplateVariables.all))
+    Ok
+  }
+
+  @Operation(
     summary = "Remove variable",
     description = "Removes a single variable by name.",
     responses = Array(
