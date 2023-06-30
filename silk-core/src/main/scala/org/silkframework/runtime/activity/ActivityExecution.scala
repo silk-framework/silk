@@ -68,7 +68,8 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
-    start()
+    initStatus(user)
+    runForkJoin()
     waitUntilFinished()
   }
 
@@ -84,6 +85,7 @@ private class ActivityExecution[T](activity: Activity[T],
       for (v <- initialValue)
         value.update(v)
       runForkJoin()
+      waitUntilFinished()
       value()
     }
   }
