@@ -81,13 +81,11 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
     initStatus(user)
-    this.synchronized {
-      for (v <- initialValue)
-        value.update(v)
-      runForkJoin()
-      waitUntilFinished()
-      value()
-    }
+    for (v <- initialValue)
+      value.update(v)
+    runForkJoin()
+    waitUntilFinished()
+    value()
   }
 
   override def startPrioritized()(implicit user: UserContext): Unit = {
