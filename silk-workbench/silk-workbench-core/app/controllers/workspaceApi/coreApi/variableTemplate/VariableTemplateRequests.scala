@@ -2,12 +2,61 @@ package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.templating.GlobalTemplateVariables
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
+import scala.util.control.NonFatal
 
-case class ValidateVariableTemplateRequest(templateString: String, project: Option[String] = None)
+trait VariableTemplateRequest {
+
+  def project: Option[String]
+
+  def variableName: Option[String]
+
+  /**
+    * Collects all variables given the optional project and variable name.
+    */
+  def collectVariables()(implicit user: UserContext): TemplateVariables = {
+    project match {
+      case Some(projectName) =>
+        val project = WorkspaceFactory().workspace.project(projectName)
+        var variables = project.templateVariables.all.variables
+        for (variableName <- variableName) {
+          variables = project.templateVariables.all.variables.takeWhile(_.name != variableName)
+        }
+        variables = GlobalTemplateVariables.all.variables ++ variables
+        TemplateVariables(variables)
+      case None =>
+        GlobalTemplateVariables.all
+    }
+  }
+
+}
+
+case class ValidateVariableTemplateRequest(templateString: String, project: Option[String] = None, variableName: Option[String] = None) extends VariableTemplateRequest {
+
+  def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
+    val resultOrError: Either[String, String] = try {
+      Left(collectVariables().resolveTemplateValue(templateString))
+    } catch {
+      case NonFatal(ex) =>
+        var errorMessage = ex.getMessage
+        errorMessage = errorMessage.replace("token", "variable")
+        Right(errorMessage)
+    }
+    VariableTemplateValidationResponse(
+      valid = resultOrError.isLeft,
+      parseError = resultOrError.toOption.map(errorMessage => VariableTemplateValidationError(
+        message = errorMessage,
+        start = 0,
+        end = templateString.length
+      )),
+      evaluatedTemplate = resultOrError.left.toOption
+    )
+  }
+
+}
 
 object ValidateVariableTemplateRequest {
   implicit val validateVariableTemplateRequestFormat: Format[ValidateVariableTemplateRequest] = Json.format[ValidateVariableTemplateRequest]
@@ -36,16 +85,10 @@ object VariableTemplateValidationResponse {
 case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                cursorPosition: Int,
                                                maxSuggestions: Option[Int],
-                                               project: Option[String] = None) extends AutoSuggestAutoCompletionRequest {
+                                               project: Option[String] = None,
+                                               variableName: Option[String] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
-    val variables = project match {
-      case Some(projectName) =>
-        val project = WorkspaceFactory().workspace.project(projectName)
-        GlobalTemplateVariables.all.variableNames ++ project.templateVariables.all.variableNames
-      case None =>
-        GlobalTemplateVariables.all.variableNames
-    }
-    AutoCompleteVariableTemplateRequest.suggestions(this, variables)
+    AutoCompleteVariableTemplateRequest.suggestions(this,  collectVariables().variableNames)
   }
 }
 

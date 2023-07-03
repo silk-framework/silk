@@ -4,14 +4,14 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat}
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
-import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest, VariableTemplateValidationError, VariableTemplateValidationResponse}
+import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, CannotReorderVariablesException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
+import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
@@ -20,7 +20,6 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 import scala.collection.immutable.ArraySeq
-import scala.util.control.NonFatal
 
 /** Everything related to variable templates. */
 @Tag(name = "Variable Templates", description = "Provides endpoints for variable template handling.")
@@ -355,30 +354,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
   )
   def validateTemplate():  Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ValidateVariableTemplateRequest] { validationRequest =>
-      val resultOrError: Either[String, String] = try {
-        validationRequest.project match {
-          case Some(projectName) =>
-            val project = WorkspaceFactory().workspace.project(projectName)
-            Left(project.templateVariables.all.resolveTemplateValue(validationRequest.templateString, GlobalTemplateVariables.all))
-          case None =>
-            Left(GlobalTemplateVariables.all.resolveTemplateValue(validationRequest.templateString))
-        }
-      } catch {
-        case NonFatal(ex) =>
-          var errorMessage = ex.getMessage
-          errorMessage = errorMessage.replace("token", "variable")
-          Right(errorMessage)
-      }
-      val response = VariableTemplateValidationResponse(
-        valid = resultOrError.isLeft,
-        parseError = resultOrError.toOption.map(errorMessage => VariableTemplateValidationError(
-          message = errorMessage,
-          start = 0,
-          end = validationRequest.templateString.length
-        )),
-        evaluatedTemplate = resultOrError.left.toOption
-      )
-      Ok(Json.toJson(response))
+      Ok(Json.toJson(validationRequest.execute()))
     }
   }
 

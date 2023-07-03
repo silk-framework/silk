@@ -34,12 +34,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     */
   def resolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
+    resolvedVariables.appendAll(additionalVariables.variables)
     val errors = mutable.Buffer[TemplateVariableEvaluationException]()
     for(variable <- variables) {
       variable.template match {
         case Some(template) =>
           try {
-            val value = TemplateVariables(resolvedVariables.toSeq).resolveTemplateValue(template, additionalVariables)
+            val value = TemplateVariables(resolvedVariables.toSeq).resolveTemplateValue(template)
             resolvedVariables.append(variable.copy(value = value))
           } catch {
             case ex: TemplateEvaluationException =>
@@ -61,9 +62,9 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     *
     * @throws TemplateEvaluationException If the template evaluation failed.
     * */
-  def resolveTemplateValue(template: String, additionalVariables: TemplateVariables = TemplateVariables.empty): String = {
+  def resolveTemplateValue(template: String): String = {
     val writer = new StringWriter()
-    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(additionalVariables.variables ++ variables, writer)
+    GlobalTemplateVariablesConfig.templateEngine().compile(template).evaluate(variables, writer)
     writer.toString
   }
 
