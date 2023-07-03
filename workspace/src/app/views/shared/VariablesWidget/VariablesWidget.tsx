@@ -20,6 +20,7 @@ import {
     PropertyValue,
     PropertyValuePair,
     Spacing,
+    Spinner,
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
@@ -42,6 +43,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
     const [deleteModalOpen, setDeleteModalOpen] = React.useState<boolean>(false);
     const [deleteErrorMsg, setDeleteErrMsg] = React.useState<string>("");
+    const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [t] = useTranslation();
 
     // initial loading of variables
@@ -107,6 +109,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             }
             const reorderedVariables = reorderArray(variables, fromPos, toPos) as Variable[];
             try {
+                setDropChangeLoading(true);
                 const res = await reorderVariablesRequest(
                     projectId,
                     reorderedVariables.map((v) => v.name)
@@ -118,6 +121,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 if (err && (err as FetchError).isFetchError) {
                     registerError("VariableWidgetError", err.body.title, err);
                 }
+            } finally {
+                setDropChangeLoading(false);
             }
         },
         [variables]
@@ -129,6 +134,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     return (
         <>
+            {dropChangeLoading && <Spinner />}
             <NewVariableModal
                 modalOpen={modalOpen}
                 closeModal={() => setModalOpen(false)}
@@ -175,7 +181,12 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                     <div ref={provided.innerRef} {...provided.droppableProps}>
                                         <OverviewItemList hasDivider>
                                             {variables.map((variable, i) => (
-                                                <Draggable key={variable.name} pos={i} index={i} draggableId={`${i}`}>
+                                                <Draggable
+                                                    key={variable.name}
+                                                    pos={i}
+                                                    index={i}
+                                                    draggableId={variable.name}
+                                                >
                                                     {(provided) => {
                                                         const draggablePlugins =
                                                             variables.length === 1
