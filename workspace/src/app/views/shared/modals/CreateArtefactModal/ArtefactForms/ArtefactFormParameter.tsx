@@ -306,7 +306,9 @@ export const TemplateInputComponent = memo(
         const checkTemplate = React.useCallback(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
-                    const validationResponse = (await requestValidateTemplateString(inputString, projectId)).data;
+                    const validationResponse = (
+                        await requestValidateTemplateString(inputString, projectId, variableName)
+                    ).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
                             ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })

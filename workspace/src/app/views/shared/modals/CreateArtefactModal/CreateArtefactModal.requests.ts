@@ -27,7 +27,8 @@ export interface ValidateTemplateResponse extends IValidationResult {
 /** Validates a variable template. If the validation was successful, the evaluated string is returned. */
 export const requestValidateTemplateString = async (
     templateString: string,
-    project?: string
+    project?: string,
+    variableName?: string
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
@@ -35,6 +36,7 @@ export const requestValidateTemplateString = async (
         body: {
             templateString,
             project,
+            variableName,
         },
     });
 };
