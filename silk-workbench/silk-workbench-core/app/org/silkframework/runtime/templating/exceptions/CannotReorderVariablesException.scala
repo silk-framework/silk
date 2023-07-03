@@ -16,7 +16,7 @@ case class CannotReorderVariablesException(dependencies: Map[String, Seq[String]
   /**
     * A short error title, e.g, "Task not found".
     */
-  override val errorTitle: String = "Cannot reorder variables"
+  override val errorTitle: String = "Cannot reorder variables. Templates can only access preceding variables (see details)."
 
   /**
     * The HTTP error code. Typically in the 4xx range.
