@@ -2,10 +2,13 @@ package controllers.workspaceApi.coreApi.variableTemplate
 
 import controllers.autoCompletion._
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
+
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 trait VariableTemplateRequest {
@@ -17,13 +20,13 @@ trait VariableTemplateRequest {
   /**
     * Collects all variables given the optional project and variable name.
     */
-  def collectVariables()(implicit user: UserContext): TemplateVariables = {
+  def collectVariables(overwriteVariableName: Option[String] = None)(implicit user: UserContext): TemplateVariables = {
     project match {
       case Some(projectName) =>
         val project = WorkspaceFactory().workspace.project(projectName)
         var variables = project.templateVariables.all.variables
-        for (variableName <- variableName) {
-          variables = project.templateVariables.all.variables.takeWhile(_.name != variableName)
+        for (variableName <- overwriteVariableName.orElse(variableName)) {
+          variables = variables.takeWhile(_.name != variableName)
         }
         variables = GlobalTemplateVariables.all.variables ++ variables
         TemplateVariables(variables)
@@ -40,10 +43,16 @@ case class ValidateVariableTemplateRequest(templateString: String, project: Opti
     val resultOrError: Either[String, String] = try {
       Left(collectVariables().resolveTemplateValue(templateString))
     } catch {
+      case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
+        // Check if the variable is unbound because it is defined after the current one
+        Try(collectVariables(None).resolveTemplateValue(templateString)) match {
+          case _: Success[_] =>
+            Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
+          case _: Failure[_] =>
+            Right(ex.getMessage)
+        }
       case NonFatal(ex) =>
-        var errorMessage = ex.getMessage
-        errorMessage = errorMessage.replace("token", "variable")
-        Right(errorMessage)
+        Right(ex.getMessage)
     }
     VariableTemplateValidationResponse(
       valid = resultOrError.isLeft,
