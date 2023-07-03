@@ -34,13 +34,12 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     */
   def resolved(additionalVariables: TemplateVariables = TemplateVariables.empty): TemplateVariables = {
     val resolvedVariables = mutable.Buffer[TemplateVariable]()
-    resolvedVariables.appendAll(additionalVariables.variables)
     val errors = mutable.Buffer[TemplateVariableEvaluationException]()
     for(variable <- variables) {
       variable.template match {
         case Some(template) =>
           try {
-            val value = TemplateVariables(resolvedVariables.toSeq).resolveTemplateValue(template)
+            val value = TemplateVariables(additionalVariables.variables ++ resolvedVariables).resolveTemplateValue(template)
             resolvedVariables.append(variable.copy(value = value))
           } catch {
             case ex: TemplateEvaluationException =>
