@@ -512,7 +512,7 @@
                 "missingPath": "Path not loaded",
                 "pathCouldNotBeAdded": "Path could not be loaded.",
                 "messagePartA": "Values for the input path",
-                "messagePartB": "are not available for evaluation. Load the path values from the data source and repeat evaluation?"
+                "messagePartB": "are not available for evaluation. Fetching the path values from the data source may take some time. Do you want to load the values and repeat the evaluation?"
             }
         },
         "node": {
