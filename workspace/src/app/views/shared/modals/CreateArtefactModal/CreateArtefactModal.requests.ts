@@ -39,11 +39,19 @@ export const requestValidateTemplateString = async (
     });
 };
 
-/** Auto-complete a variable template. */
+/**
+ * Auto-complete a variable template.
+ * @param inputString
+ * @param cursorPosition
+ * @param project
+ * @param variableName optional parameter to make correct suggestions for when an existing variable is edited
+ * @returns
+ */
 export const requestAutoCompleteTemplateString = async (
     inputString: string,
     cursorPosition: number,
-    project?: string
+    project?: string,
+    variableName?: string
 ): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),
@@ -52,6 +60,7 @@ export const requestAutoCompleteTemplateString = async (
             inputString,
             cursorPosition,
             project,
+            variableName,
         },
     });
 };

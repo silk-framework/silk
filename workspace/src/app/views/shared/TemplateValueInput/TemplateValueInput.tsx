@@ -12,6 +12,7 @@ interface TemplateValueInputProps {
     projectId: string;
     /** ID of the input component. */
     parameterId?: string;
+    existingVariableName?: string;
 }
 
 const TemplateValueInput = React.forwardRef(
@@ -23,6 +24,7 @@ const TemplateValueInput = React.forwardRef(
             hasStateDanger,
             messageText,
             parameterId = "template-value-input",
+            existingVariableName,
         }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
@@ -111,6 +113,7 @@ const TemplateValueInput = React.forwardRef(
                                 evaluatedValueMessage={setTemplateInfoMessage}
                                 projectId={projectId}
                                 parameterId={parameterId}
+                                variableName={existingVariableName}
                             />
                         ) : (
                             <TextField
@@ -119,6 +122,7 @@ const TemplateValueInput = React.forwardRef(
                                 key={valueStateRef.current.inputValueBeforeSwitch}
                                 defaultValue={valueStateRef.current.inputValueBeforeSwitch}
                                 onChange={onElementValueChange}
+                                autoFocus={!!existingVariableName}
                             />
                         )}
                     </ToolbarSection>

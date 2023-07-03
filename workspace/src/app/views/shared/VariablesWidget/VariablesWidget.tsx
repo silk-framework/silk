@@ -28,7 +28,6 @@ import { deleteVariableRequest, getVariables, reorderVariablesRequest } from "./
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
-import { createNewVariable } from "./requests";
 import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 import DeleteModal from "../modals/DeleteModal";
 import { FetchError } from "../../../services/fetch/responseInterceptor";

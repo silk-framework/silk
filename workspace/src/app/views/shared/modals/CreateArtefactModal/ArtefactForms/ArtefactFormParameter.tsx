@@ -254,6 +254,8 @@ interface TemplateInputComponentProps {
     setValidationError: (error?: string) => any;
     /** Called with a message that contains the currently evaluated template. */
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
+    /** optional parameter to make correct suggestions for when an existing variable is edited **/
+    variableName?: string;
 }
 
 /** The input component for the template value. */
@@ -265,6 +267,7 @@ export const TemplateInputComponent = memo(
         setValidationError,
         evaluatedValueMessage,
         projectId,
+        variableName,
     }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
         const [t] = useTranslation();
@@ -293,7 +296,8 @@ export const TemplateInputComponent = memo(
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId)).data;
+                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
+                    .data;
             } catch (error) {
                 registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
             }

@@ -225,6 +225,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     onChange={handleVariableNameChange}
                     value={name}
                     disabled={!!isEditMode}
+                    autoFocus={!targetVariable?.name}
                 />
             </FieldItem>
             <TemplateValueInput
@@ -232,6 +233,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 hasStateDanger={!!validationError?.valueOrTemplate}
                 ref={valueState}
                 projectId={projectId}
+                existingVariableName={targetVariable?.name}
             />
             <FieldItem
                 labelProps={{
