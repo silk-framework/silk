@@ -1,9 +1,11 @@
 import React from "react";
 import { autocompleteAsync } from "../store";
 import {
-    AutoCompleteField,
+    SuggestField,
+    suggestFieldUtils,
     FieldItem,
     Highlighter,
+    highlighterUtils,
     MenuItem,
     OverflowText,
     OverviewItem,
@@ -11,9 +13,7 @@ import {
     OverviewItemLine,
     Spacing,
 } from "@eccenca/gui-elements";
-import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 
 // Creates a search function for the auto-complete field
 const onSearchFactory = (ruleId?: string, entity?: string): ((searchText: string) => Promise<any[]>) => {
@@ -36,8 +36,10 @@ const onSearchFactory = (ruleId?: string, entity?: string): ((searchText: string
 // Creates a search function from a list of options
 const onSearchOptionFactory = (options: string[]) => {
     return (query: string) => {
-        const searchWords = extractSearchWords(query, true);
-        return options.filter((o) => matchesAllWords(o.toLowerCase(), searchWords)).map((o) => ({ value: o }));
+        const searchWords = highlighterUtils.extractSearchWords(query, true);
+        return options
+            .filter((o) => highlighterUtils.matchesAllWords(o.toLowerCase(), searchWords))
+            .map((o) => ({ value: o }));
     };
 };
 
@@ -209,7 +211,7 @@ const AutoComplete = ({
         handleClick: React.MouseEventHandler<HTMLElement>
     ) => {
         if (isValidNewOption({ label: query })) {
-            const newItemRenderer = createNewItemRendererFactory(
+            const newItemRenderer = suggestFieldUtils.createNewItemRendererFactory(
                 (query: string) => (newOptionText ? newOptionText(query) : `Create option '${query}'`),
                 "item-add-artefact"
             );
@@ -231,7 +233,7 @@ const AutoComplete = ({
                     text: placeholder,
                 }}
             >
-                <AutoCompleteField<IAutoCompleteItem, string>
+                <SuggestField<IAutoCompleteItem, string>
                     inputProps={{
                         placeholder: placeholder,
                     }}

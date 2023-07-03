@@ -4,7 +4,7 @@ import React from "react";
 import {
     Accordion,
     AccordionItem,
-    AutoCompleteField,
+    SuggestField,
     Button,
     Checkbox,
     FieldItem,
@@ -198,7 +198,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     text: t("common.messages.copyModalProjectSelect"),
                 }}
             >
-                <AutoCompleteField
+                <SuggestField
                     autoFocus={true}
                     onSearch={handleSearch}
                     onChange={async (value) => {

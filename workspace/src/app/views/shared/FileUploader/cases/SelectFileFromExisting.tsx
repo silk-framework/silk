@@ -1,14 +1,11 @@
 import { FieldItem } from "@eccenca/gui-elements";
-import {
-    AutoCompleteField,
-    IAutoCompleteFieldProps,
-} from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { SuggestField, SuggestFieldProps } from "@eccenca/gui-elements";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { fileValue, IProjectResource } from "@ducks/shared/typings";
 
 interface IProps {
-    autocomplete: IAutoCompleteFieldProps<IProjectResource, string>;
+    autocomplete: SuggestFieldProps<IProjectResource, string>;
 
     /**
      * Fire when autocomplete value selected
@@ -83,7 +80,7 @@ const itemStringValue = (item: IProjectResource) => fileValue(item);
 
 interface ProjectResourceAutoCompleteProps {
     initialValue?: string;
-    autocomplete: IAutoCompleteFieldProps<IProjectResource, string>;
+    autocomplete: SuggestFieldProps<IProjectResource, string>;
     handleChange: (value: string) => void;
     /** If true allows to clear the selection. */
     resettable: boolean;
@@ -103,7 +100,7 @@ const ProjectResourceAutoComplete = ({
     const [t] = useTranslation();
 
     return (
-        <AutoCompleteField<IProjectResource, string>
+        <SuggestField<IProjectResource, string>
             {...autocomplete}
             initialValue={initialValue ? { name: initialValue, modified: "2000-01-01", size: 1 } : undefined}
             onChange={handleChange}

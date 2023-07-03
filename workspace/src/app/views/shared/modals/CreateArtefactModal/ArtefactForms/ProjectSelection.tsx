@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, AutoCompleteField, Notification, Button, AlertDialog } from "@eccenca/gui-elements";
+import { FieldItem, SuggestField, Notification, Button, AlertDialog } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { ProjectIdAndLabel } from "../CreateArtefactModal";
@@ -76,7 +76,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     text: t("CreateModal.projectContext.selectProjectLabel", "Select project"),
                 }}
             >
-                <AutoCompleteField<ISearchResultsServer, ISearchResultsServer | null>
+                <SuggestField<ISearchResultsServer, ISearchResultsServer | null>
                     autoFocus={!!selectedProject}
                     onSearch={getWorkspaceProjects}
                     onChange={(item) => {

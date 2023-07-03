@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import {
-    AutoCompleteField,
+    SuggestField,
+    suggestFieldUtils,
     Button,
     Highlighter,
+    highlighterUtils,
     Notification,
     OverflowText,
     OverviewItem,
@@ -12,7 +14,6 @@ import {
     SimpleDialog,
     Spacing,
 } from "@eccenca/gui-elements";
-import { extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
@@ -28,8 +29,7 @@ import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
-import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
@@ -176,7 +176,7 @@ export function RecentlyViewedModal() {
     };
     // Searches on the results from the initial requests
     const handleSearch = (textQuery: string) => {
-        const searchWords = extractSearchWords(textQuery.toLowerCase());
+        const searchWords = highlighterUtils.extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
             const label = itemSearchableString(item).toLowerCase();
             return searchWords.every((word) => label.includes(word));
@@ -208,7 +208,7 @@ export function RecentlyViewedModal() {
         };
     };
     // Displays the 'search in workspace' option in the list.
-    const createNewItemRenderer = createNewItemRendererFactory(
+    const createNewItemRenderer = suggestFieldUtils.createNewItemRendererFactory(
         (query) => t("RecentlyViewedModal.globalSearch", { query }),
         "operation-search"
     );
@@ -216,7 +216,7 @@ export function RecentlyViewedModal() {
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
-            <AutoCompleteField<IRecentlyViewedItem, IItemLink[]>
+            <SuggestField<IRecentlyViewedItem, IItemLink[]>
                 onSearch={handleSearch}
                 itemValueSelector={(value) => value.itemLinks}
                 itemRenderer={itemOption}
