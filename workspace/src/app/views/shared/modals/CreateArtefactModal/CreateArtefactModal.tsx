@@ -86,6 +86,7 @@ export function CreateArtefactModal() {
         loading,
         updateExistingTask,
         error,
+        newTaskPreConfiguration
     }: IArtefactModal = modalStore;
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
@@ -312,7 +313,7 @@ export function CreateArtefactModal() {
                 } else {
                     !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                     await dispatch(
-                        commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current)
+                        commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current, newTaskPreConfiguration?.alternativeCallback)
                     );
                     setSearchValue("");
                 }
@@ -540,7 +541,8 @@ export function CreateArtefactModal() {
                 (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
         )
         .sort((a, b) => a.title!.localeCompare(b.title!));
-    if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
+    const removeProjectCategoryAndItem = newTaskPreConfiguration && !newTaskPreConfiguration.showProjectItem
+    if (showProjectItem && (selectedDType === "all" || selectedDType === "project") && !removeProjectCategoryAndItem) {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -797,7 +799,10 @@ export function CreateArtefactModal() {
                         <Grid>
                             <GridRow>
                                 <GridColumn small>
-                                    <ArtefactTypesList onSelect={handleSelectDType} />
+                                    <ArtefactTypesList
+                                        onSelect={handleSelectDType}
+                                        typesToRemove={removeProjectCategoryAndItem ? new Set(["project"]) : new Set()}
+                                    />
                                 </GridColumn>
                                 <GridColumn>
                                     <SearchBar
