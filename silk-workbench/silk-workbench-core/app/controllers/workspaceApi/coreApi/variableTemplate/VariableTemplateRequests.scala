@@ -20,13 +20,13 @@ trait VariableTemplateRequest {
   /**
     * Collects all variables given the optional project and variable name.
     */
-  def collectVariables(overwriteVariableName: Option[String] = None)(implicit user: UserContext): TemplateVariables = {
+  def collectVariables(ignoreVariableName: Boolean = false)(implicit user: UserContext): TemplateVariables = {
     project match {
       case Some(projectName) =>
         val project = WorkspaceFactory().workspace.project(projectName)
         var variables = project.templateVariables.all.variables
-        for (variableName <- overwriteVariableName.orElse(variableName)) {
-          variables = variables.takeWhile(_.name != variableName)
+        for (name <- variableName if !ignoreVariableName) {
+          variables = variables.takeWhile(_.name != name)
         }
         variables = GlobalTemplateVariables.all.variables ++ variables
         TemplateVariables(variables)
@@ -45,7 +45,7 @@ case class ValidateVariableTemplateRequest(templateString: String, project: Opti
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one
-        Try(collectVariables(None).resolveTemplateValue(templateString)) match {
+        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString)) match {
           case _: Success[_] =>
             Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
           case _: Failure[_] =>
