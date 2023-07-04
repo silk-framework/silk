@@ -1,4 +1,4 @@
-import { Button, FieldItem, Notification, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, IconButton, Notification, SimpleDialog, TextArea, TextField } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
@@ -64,6 +64,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const [loading, setLoading] = React.useState<boolean>(false);
     const [name, setName] = React.useState<string>("");
     const [description, setDescription] = React.useState<string>("");
+    const [showModalHelperText, setShowModalHelperText] = React.useState<boolean>(false);
     const [validationError, setValidationError] = React.useState<
         Partial<{ name: string; valueOrTemplate: string }> | undefined
     >();
@@ -126,6 +127,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const resetModalState = React.useCallback(() => {
         setName("");
         setDescription("");
+        setErrorMessage("");
+        setValidationError(undefined);
         valueState.current.inputValueBeforeSwitch = "";
         valueState.current.templateValueBeforeSwitch = "";
     }, []);
@@ -188,62 +191,90 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     }, []);
 
     return (
-        <SimpleDialog
-            data-test-id="variable-modal"
-            size="small"
-            title={`${isEditMode ? "Edit" : "Add"} Variable`}
-            isOpen={modalOpen}
-            onClose={handleModalClose}
-            notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
-            actions={[
-                <Button
-                    key="add"
-                    data-test-id="variable-modal-submit-btn"
-                    affirmative
-                    onClick={addNewVariable}
-                    disabled={loading}
-                    loading={loading}
+        <>
+            <SimpleDialog
+                data-test-id="variable-modal"
+                size="small"
+                title={`${isEditMode ? "Edit" : "Add"} Variable`}
+                isOpen={modalOpen}
+                onClose={handleModalClose}
+                headerOptions={
+                    <IconButton
+                        key={"show-enhanced-description-btn"}
+                        name="item-question"
+                        onClick={() => setShowModalHelperText(true)}
+                    />
+                }
+                notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
+                actions={[
+                    <Button
+                        key="add"
+                        data-test-id="variable-modal-submit-btn"
+                        affirmative
+                        onClick={addNewVariable}
+                        disabled={loading}
+                        loading={loading}
+                    >
+                        {!isEditMode ? t("common.action.add") : t("common.action.update")}
+                    </Button>,
+                    <Button key="cancel" onClick={handleModalClose}>
+                        {t("common.action.cancel", "Cancel")}
+                    </Button>,
+                ]}
+            >
+                <FieldItem
+                    hasStateDanger={!!validationError?.name}
+                    messageText={validationError?.name}
+                    labelProps={{
+                        htmlFor: "name",
+                        text: t("widget.VariableWidget.form.name", "Name"),
+                    }}
                 >
-                    {!isEditMode ? t("common.action.add") : t("common.action.update")}
-                </Button>,
-                <Button key="cancel" onClick={handleModalClose}>
-                    {t("common.action.cancel", "Cancel")}
-                </Button>,
-            ]}
-        >
-            <FieldItem
-                hasStateDanger={!!validationError?.name}
-                messageText={validationError?.name}
-                labelProps={{
-                    htmlFor: "name",
-                    text: t("widget.VariableWidget.form.name", "Name"),
-                }}
-            >
-                <TextField
-                    id="name"
-                    intent={!!validationError?.name ? "danger" : "none"}
-                    onChange={handleVariableNameChange}
-                    value={name}
-                    disabled={!!isEditMode}
-                    autoFocus={!targetVariable?.name}
+                    <TextField
+                        id="name"
+                        intent={!!validationError?.name ? "danger" : "none"}
+                        onChange={handleVariableNameChange}
+                        value={name}
+                        disabled={!!isEditMode}
+                        autoFocus={!targetVariable?.name}
+                    />
+                </FieldItem>
+                <TemplateValueInput
+                    messageText={validationError?.valueOrTemplate}
+                    hasStateDanger={!!validationError?.valueOrTemplate}
+                    ref={valueState}
+                    projectId={projectId}
+                    existingVariableName={targetVariable?.name}
                 />
-            </FieldItem>
-            <TemplateValueInput
-                messageText={validationError?.valueOrTemplate}
-                hasStateDanger={!!validationError?.valueOrTemplate}
-                ref={valueState}
-                projectId={projectId}
-                existingVariableName={targetVariable?.name}
-            />
-            <FieldItem
-                labelProps={{
-                    htmlFor: "description",
-                    text: t("widget.VariableWidget.form.description", "Description"),
-                }}
-            >
-                <TextArea id="description" onChange={(e) => setDescription(e.target.value)} value={description} />
-            </FieldItem>
-        </SimpleDialog>
+                <FieldItem
+                    labelProps={{
+                        htmlFor: "description",
+                        text: t("widget.VariableWidget.form.description", "Description"),
+                    }}
+                >
+                    <TextArea id="description" onChange={(e) => setDescription(e.target.value)} value={description} />
+                </FieldItem>
+            </SimpleDialog>
+            {showModalHelperText && (
+                <SimpleDialog
+                    data-test-id={"artefact-documentation-modal"}
+                    isOpen
+                    canEscapeKeyClose={true}
+                    title={t("widget.VariableWidget.form.infoBoxTitle")}
+                    actions={
+                        <Button
+                            text="Close"
+                            onClick={() => {
+                                setShowModalHelperText(false);
+                            }}
+                        />
+                    }
+                    size="small"
+                >
+                    <p>{t("widget.VariableWidget.form.infoBoxDescription")}</p>
+                </SimpleDialog>
+            )}
+        </>
     );
 };
 

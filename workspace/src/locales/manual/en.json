@@ -821,7 +821,9 @@
             "form": {
                 "name": "Name",
                 "value": "Value",
-                "description": "Description"
+                "description": "Description",
+                "infoBoxTitle": "Variable documentation",
+                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
             },
             "modalMessages": {
                 "deleteModalTitle": "Delete variable",
