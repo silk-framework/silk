@@ -137,6 +137,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                             whiteSpace: "nowrap",
                                         }}
                                         title={paramId}
+                                        size="large"
                                     >
                                         <Label
                                             isLayoutForElement="span"

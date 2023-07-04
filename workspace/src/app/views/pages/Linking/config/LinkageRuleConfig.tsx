@@ -182,7 +182,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                             {parameters.map((paramConfig) => {
                                 return (
                                     <PropertyValuePair hasDivider key={paramConfig.id}>
-                                        <PropertyName title={paramConfig.label}>
+                                        <PropertyName title={paramConfig.label} size="large">
                                             <Label
                                                 isLayoutForElement="span"
                                                 text={<OverflowText inline>{paramConfig.label}</OverflowText>}

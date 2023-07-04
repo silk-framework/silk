@@ -216,6 +216,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                                     overflow: "visible",
                                                                                 }}
                                                                                 title={variable.name}
+                                                                                size="large"
                                                                             >
                                                                                 <Label
                                                                                     isLayoutForElement="span"
