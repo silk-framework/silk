@@ -225,6 +225,7 @@ export const ParameterWidget = (props: IProps) => {
             : initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value);
         return (
             <ArtefactFormParameter
+                projectId={projectId}
                 label={title}
                 parameterId={formParamId}
                 // For boolean parameters the default is always set to false even if a default value was missing
