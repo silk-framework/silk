@@ -55,7 +55,7 @@ export interface LinkageRuleConfigItem {
 const LINK_TYPE = "linkType";
 const INVERSE_LINK_TYPE = "inverseLinkType";
 const LIMIT = "limit";
-const IS_REFLEXIVE = "isReflexive";
+const IS_IRREFLEXIVE_LINKING = "isIrreflexiveLinking";
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const [loading, setLoading] = React.useState(false);
@@ -136,10 +136,10 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     type: "string",
                 },
                 {
-                    id: IS_REFLEXIVE,
-                    label: t("widget.LinkingRuleConfigWidget.parameters.isReflexive.label"),
-                    value: `${linkingRule.isReflexive}`,
-                    description: t("widget.LinkingRuleConfigWidget.parameters.isReflexive.description"),
+                    id: IS_IRREFLEXIVE_LINKING,
+                    label: t("widget.LinkingRuleConfigWidget.parameters.isIrreflexive.label"),
+                    value: `${!linkingRule.isReflexive}`,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.isIrreflexive.description"),
                     validation: (value: string) => value === "true" || value === "false" || "No valid boolean value.",
                     showReadOnly: !linkingRule.isReflexive,
                     type: "boolean",
@@ -172,9 +172,9 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
             } else {
                 linkingRule.filter.limit = undefined;
             }
-            const isReflexive = paramValue(IS_REFLEXIVE);
-            if (isReflexive != null) {
-                linkingRule.isReflexive = isReflexive === "true";
+            const isIrreflexive = paramValue(IS_IRREFLEXIVE_LINKING);
+            if (isIrreflexive != null) {
+                linkingRule.isReflexive = isIrreflexive !== "true";
             }
             await updateLinkageRule(projectId, linkingTaskId, linkingRule);
             setShowModal(false);
