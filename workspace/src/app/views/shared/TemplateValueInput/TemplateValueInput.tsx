@@ -129,6 +129,8 @@ const TemplateValueInput = React.forwardRef(
                     <ToolbarSection hideOverflow style={!showSwitchButton ? { width: "0px" } : {}}>
                         <Spacing vertical={true} size={"tiny"} />
                         <IconButton
+                            onFocus={showVariableTemplateInput ? undefined : (e) => setShowRareActions(true)}
+                            onBlur={showVariableTemplateInput ? undefined : (e) => setShowRareActions(false)}
                             data-test-id="template-value-toggle-btn"
                             fill={false}
                             tooltipProps={{
