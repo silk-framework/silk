@@ -1,12 +1,14 @@
 package controllers.workspace
 
+import akka.stream.scaladsl.StreamConverters
 import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
 import controllers.workspace.DatasetApi.TypeCacheFailedException
-import controllers.workspace.doc.DatasetApiDoc
+import controllers.workspace.doc.ResourceApiDoc.ResourceMultiPartRequest
+import controllers.workspace.doc.{DatasetApiDoc, ResourceApiDoc}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -31,10 +33,10 @@ import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
+import resources.ResourceHelper
 
 import java.net.HttpURLConnection
 import javax.inject.Inject
-import scala.util.Using
 
 @Tag(name = "Datasets", description = "Manage datasets.")
 class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -413,6 +415,115 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
     val filteredTypes = types.filter(typ => TextSearchUtils.matchesSearchTerm(multiWordQuery, typ))
     val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
     Ok(JsArray(limitedTypes.map(JsString)))
+  }
+
+  @Operation(
+    summary = "Retrieve dataset file",
+    description = "Retrieve the file of a dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset is not based on a file."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def getFile(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "name",
+                description = "The dataset identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              datasetName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val dataset = project.task[GenericDatasetSpec](datasetName)
+    dataset.data.plugin match {
+      case resourceDataset: ResourceBasedDataset =>
+        val resource = resourceDataset.file
+        Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> s"""attachment; filename="${resource.name}"""")
+      case _ =>
+        throw BadUserInputException(s"Dataset ${dataset.labelAndId} is not based on a file.")
+    }
+  }
+
+  @Operation(
+    summary = "Upload dataset file",
+    description = ResourceApiDoc.resourceUploadDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "If the resource has been uploaded successfully."
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset is not based on a file or has been set to read-only."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "multipart/form-data",
+        schema = new Schema(
+          implementation = classOf[ResourceMultiPartRequest]
+        )
+      ),
+      new Content(
+        mediaType = "application/octet-stream"
+      ),
+      new Content(
+        mediaType = "text/plain"
+      ),
+    )
+  )
+  def uploadFile(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "name",
+                description = "The dataset identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              datasetName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val dataset = project.task[GenericDatasetSpec](datasetName)
+    dataset.data.plugin match {
+      case resourceDataset: ResourceBasedDataset =>
+        resourceDataset.writableResource match {
+          case Some(writeableResource) if !dataset.data.readOnly =>
+            ResourceHelper.uploadResource(project, writeableResource)
+          case _ =>
+            throw BadUserInputException(s"The file of dataset ${dataset.labelAndId} cannot be written to.")
+        }
+      case _ =>
+        throw BadUserInputException(s"Dataset ${dataset.labelAndId} is not based on a file.")
+    }
   }
 
   @Operation(

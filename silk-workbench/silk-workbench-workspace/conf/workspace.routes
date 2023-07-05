@@ -42,6 +42,8 @@ GET           /projects/:project/datasets/:name                                 
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
 GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
 GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String, textQuery: String ?= "", limit: Option[Int] ?= None)
+GET           /projects/:project/datasets/:name/file                            controllers.workspace.DatasetApi.getFile(project: String, name: String)
+PUT           /projects/:project/datasets/:name/file                            controllers.workspace.DatasetApi.uploadFile(project: String, name: String)
 GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
 POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
 
