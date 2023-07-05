@@ -228,6 +228,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     labelProps={{
                         htmlFor: "name",
                         text: t("widget.VariableWidget.form.name", "Name"),
+                        info: t("common.words.required"),
                     }}
                 >
                     <TextField
