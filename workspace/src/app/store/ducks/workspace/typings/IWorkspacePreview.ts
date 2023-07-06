@@ -1,4 +1,5 @@
 import { Keywords } from ".";
+import {TaskType} from "@ducks/shared/typings";
 
 export type DATA_TYPES = "project" | "Dataset" | "transform" | "Linking" | "task";
 
@@ -21,7 +22,7 @@ export interface ISearchResultsServer {
      */
     label: string;
     /**
-     * Type of search results
+     * Type of search results, e.g. "dataset", "transform" etc.
      */
     type: string;
     /**
@@ -47,6 +48,23 @@ export interface ISearchResultsServer {
      * set tags for a project or task
      */
     tags?: Keywords;
+}
+
+export const convertTaskTypeToSearchResultServerType = (taskType: TaskType): string => {
+    switch(taskType) {
+        case "CustomTask":
+            return "task"
+        case "Dataset":
+            return "dataset"
+        case "Transform":
+            return "transform"
+        case "Workflow":
+            return "workflow"
+        case "Linking":
+            return "linking"
+        default:
+            return "task"
+    }
 }
 
 export interface IPreviewState {
