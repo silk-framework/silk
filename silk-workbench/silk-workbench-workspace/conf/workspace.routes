@@ -34,7 +34,7 @@ GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       
 GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetController.dataset(project, task)
 GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetController.table(project, task, maxEntities: Int ?= 20)
 GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetController.sparql(project, task, query ?= "")
-GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search, limit: Option[Int] ?= None)
+GET           /datasets/:project/:task/types                                    controllers.workspace.LegacyDatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API
 PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)

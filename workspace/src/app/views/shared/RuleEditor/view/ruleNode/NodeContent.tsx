@@ -97,6 +97,7 @@ export const NodeContent = ({
                     dependentValue={dependentValue}
                     large={false}
                     insideModal={false}
+                    languageFilter={operatorContext.languageFilterEnabled(nodeId)}
                 />
             ) : null}
             {tags ? utils.createOperatorTags(tags) : null}
@@ -113,6 +114,7 @@ export const NodeContent = ({
                         onCloseEditModal();
                     }}
                     updateNodeParameters={operatorContext.updateNodeParameters}
+                    languageFilter={operatorContext.languageFilterEnabled(nodeId)}
                 />
             ) : null}
         </>

@@ -17,6 +17,7 @@ import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
+import { DatasetCharacteristics } from "../typings";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -78,6 +79,13 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     zoomRange?: [number, number];
     /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
     initialFitToViewZoomLevel?: number;
+    /** Fetches dataset characteristics for all input datasets relevant in the rule editor. These are used for the 'PathInputOperator' type.
+     * The key is the corresponding plugin ID. */
+    fetchDatasetCharacteristics?: (
+        taskData: RULE_TYPE | undefined
+    ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
+    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
+    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -105,6 +113,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     zoomRange,
     initialFitToViewZoomLevel,
     instanceId,
+    fetchDatasetCharacteristics,
+    inputPathPluginPathType,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -129,6 +139,10 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const readOnlyMode =
         (new URLSearchParams(window.location.search).get(READ_ONLY_QUERY_PARAMETER) ?? "").toLowerCase() === "true";
     const [lastSaveResult, setLastSaveResult] = React.useState<RuleSaveResult | undefined>(undefined);
+    // Dataset characteristics used for the 'PathInputOperator' type. The key is the corresponding plugin ID.
+    const [datasetCharacteristics, setDatasetCharacteristics] = React.useState<Map<string, DatasetCharacteristics>>(
+        new Map()
+    );
 
     /** This should be used instead of calling setLastSaveResult directly. */
     const updateLastSaveResult = (saveResult: RuleSaveResult | undefined) => {
@@ -182,7 +196,12 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const fetchData = async () => {
         setTaskDataLoading(true);
         try {
-            setTaskData(await fetchRuleData(projectId, taskId));
+            const data = await fetchRuleData(projectId, taskId);
+            if (fetchDatasetCharacteristics) {
+                const datasetCharacteristics = await fetchDatasetCharacteristics(data);
+                setDatasetCharacteristics(datasetCharacteristics);
+            }
+            setTaskData(data);
         } finally {
             setTaskDataLoading(false);
         }
@@ -249,10 +268,17 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 zoomRange,
                 initialFitToViewZoomLevel,
                 instanceId,
+                datasetCharacteristics,
+                inputPathPluginPathType,
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} zoomRange={zoomRange} readOnlyMode={readOnlyMode} />
+                <RuleEditorView
+                    showRuleOnly={showRuleOnly}
+                    hideMinimap={hideMinimap}
+                    zoomRange={zoomRange}
+                    readOnlyMode={readOnlyMode}
+                />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

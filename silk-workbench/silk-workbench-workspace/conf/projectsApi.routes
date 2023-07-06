@@ -31,6 +31,7 @@ GET           /:projectId/tasks/:taskId/relatedItems                   controlle
 GET           /:projectId/tasks/:taskId/links                          controllers.projectApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
 GET           /:projectId/tasks/:taskId/itemInfo                       controllers.projectApi.ProjectTaskApi.itemInfo(projectId: String, taskId: String)
 POST          /:projectId/tasks/:taskId/clone                          controllers.projectApi.ProjectTaskApi.cloneTask(projectId: String, taskId: String)
+GET           /:projectId/datasets/:datasetId/characteristics          controllers.datasetApi.DatasetApi.datasetCharacteristics(projectId: String, datasetId: String)
 
 # Dataset specific endpoints
 POST          /:projectId/dataset/autoConfigure                        controllers.projectApi.ProjectTaskApi.postDatasetAutoConfigured(projectId: String)

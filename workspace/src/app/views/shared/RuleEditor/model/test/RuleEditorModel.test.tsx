@@ -96,6 +96,7 @@ describe("Rule editor model", () => {
                         operatorSpec,
                         validateConnection,
                         instanceId: "id",
+                        datasetCharacteristics: new Map(),
                     }}
                 >
                     <ReactFlowProvider>

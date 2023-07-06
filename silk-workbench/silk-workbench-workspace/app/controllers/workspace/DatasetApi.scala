@@ -39,7 +39,7 @@ import java.net.HttpURLConnection
 import javax.inject.Inject
 
 @Tag(name = "Datasets", description = "Manage datasets.")
-class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]

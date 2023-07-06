@@ -1,6 +1,6 @@
 import React from "react";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
+import { ILinkingRule, ILinkingTaskParameters, optionallyLabelledParameterToValue } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
@@ -19,11 +19,14 @@ import { commonSel } from "@ducks/common";
 import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
-import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
 import { IStickyNote } from "../shared/task.typings";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { DatasetCharacteristics } from "../../shared/typings";
+import { requestDatasetCharacteristics } from "@ducks/shared/requests";
+import Loading from "../../shared/Loading";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -63,6 +66,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // Label for input paths
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const pendingRequests = React.useRef(2);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -74,19 +79,30 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         fetchPaths("target");
     }, [projectId, linkingTaskId, prefLang]);
 
+    const reducePendingRequestCount = () => {
+        pendingRequests.current = pendingRequests.current - 1;
+        if (pendingRequests.current <= 0) {
+            setLoading(false);
+        }
+    };
+
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
-        const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
-            projectId,
-            linkingTaskId,
-            sourceOrTarget,
-            true,
-            prefLang
-        );
-        if (sourceOrTarget === "source") {
-            sourcePathLabels.current = paths.data as PathWithMetaData[];
-        } else {
-            targetPathLabels.current = paths.data as PathWithMetaData[];
+        try {
+            const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
+                projectId,
+                linkingTaskId,
+                sourceOrTarget,
+                true,
+                prefLang
+            );
+            if (sourceOrTarget === "source") {
+                sourcePathLabels.current = paths.data as PathWithMetaData[];
+            } else {
+                targetPathLabels.current = paths.data as PathWithMetaData[];
+            }
+        } finally {
+            reducePendingRequestCount();
         }
     };
     /** Fetches the parameters of the linking task */
@@ -123,6 +139,16 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             }
             return results.slice(0, limit);
         };
+
+    // Return for either a source or target path what type of path it is.
+    const inputPathPluginPathType = (
+        pluginId: "sourcePathInput" | "targetPathInput",
+        path: string
+    ): string | undefined => {
+        const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
+        const pathMetaData = pathsMetaData.find((p) => p.value && path.endsWith(p.value));
+        return pathMetaData?.valueType;
+    };
 
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
@@ -229,6 +255,46 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             inputPathAutoCompletion("target")
         );
 
+    const fetchDatasetCharacteristics = async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
+        const result = new Map<string, DatasetCharacteristics>();
+        if (taskData) {
+            const parameters = taskData.parameters;
+            const sourceTaskId = optionallyLabelledParameterToValue(
+                optionallyLabelledParameterToValue(parameters.source).inputId
+            );
+            const targetTaskId = optionallyLabelledParameterToValue(
+                optionallyLabelledParameterToValue(parameters.target).inputId
+            );
+            const sourceDatasetRequest = requestDatasetCharacteristics(projectId, sourceTaskId);
+            const targetDatasetRequest = requestDatasetCharacteristics(projectId, targetTaskId);
+            const handleRequest = async (
+                requestFuture: Promise<FetchResponse<DatasetCharacteristics>>,
+                pathPluginId: "sourcePathInput" | "targetPathInput"
+            ) => {
+                try {
+                    const response = await requestFuture;
+                    result.set(pathPluginId, response.data);
+                } catch (ex) {
+                    // Return 404 if the dataset does not exist or the task is not a dataset
+                    if (ex.httpStatus !== 404) {
+                        registerError(
+                            "LinkingRuleEditor-fetchDatasetCharacteristics",
+                            "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
+                            ex
+                        );
+                    }
+                }
+            };
+            await handleRequest(sourceDatasetRequest, "sourcePathInput");
+            await handleRequest(targetDatasetRequest, "targetPathInput");
+        }
+        return result;
+    };
+
+    if (loading) {
+        return <Loading />;
+    }
+
     return (
         <LinkingRuleEvaluation
             projectId={projectId}
@@ -288,6 +354,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
                 instanceId={instanceId}
+                fetchDatasetCharacteristics={fetchDatasetCharacteristics}
+                inputPathPluginPathType={inputPathPluginPathType}
             />
         </LinkingRuleEvaluation>
     );
