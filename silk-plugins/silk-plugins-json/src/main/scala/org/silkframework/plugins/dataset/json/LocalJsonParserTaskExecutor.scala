@@ -6,6 +6,7 @@ import org.silkframework.entity.Entity.EntitySerializer
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
+import org.silkframework.plugins.dataset.json.RewindableEntityIterator.TempFileHolder
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -44,14 +45,8 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
 
       def parseEntities(schema: EntitySchema): CloseableIterator[Entity] = {
         val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(schema)), execution, pathIndex)
-        var initialized = false
-        new RepeatedIterator(() => {
-          if (!initialized) {
-            entities.reset()
-            initialized = true
-          }
-          entities.nextOption().map(entityParser)
-        })
+        val entityIterator = entities.newIterator()
+        new RepeatedIterator(() => entityIterator.nextOption().map(entityParser))
       }
 
       requestedSchema match {
@@ -108,35 +103,38 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
 trait RewindableIterator[T] extends CloseableIterator[T] {
 
   /**
-    * Resets this iterator to the beginning.
+    * Returns a new iterator that starts at the beginning.
     */
-  def reset(): Unit
+  def newIterator(): CloseableIterator[T]
 
 }
 
 
-class RewindableEntityIterator(file: File, schema: EntitySchema) extends RewindableIterator[Entity] {
+class RewindableEntityIterator(file: TempFileHolder, schema: EntitySchema) extends RewindableIterator[Entity] {
 
-  private var inputStream = new DataInputStream(new FileInputStream(file))
+  private val inputStream = new DataInputStream(new FileInputStream(file.newInstance()))
 
-  override def reset(): Unit = {
-    inputStream.close()
-    inputStream = new DataInputStream(new FileInputStream(file))
+  private var nextAvailable = inputStream.readBoolean()
+
+  override def newIterator(): RewindableEntityIterator = {
+    new RewindableEntityIterator(file, schema)
   }
 
   override def hasNext: Boolean = {
-    inputStream.available() != 0
+    nextAvailable
   }
 
   override def next(): Entity = {
-    EntitySerializer.deserialize(inputStream, schema)
+    val  entity = EntitySerializer.deserialize(inputStream, schema)
+    nextAvailable = inputStream.readBoolean()
+    entity
   }
 
   override def close(): Unit = {
     try {
       inputStream.close()
     } finally {
-      file.delete()
+      file.removeInstance()
     }
   }
 }
@@ -145,13 +143,14 @@ class RewindableEntityIterator(file: File, schema: EntitySchema) extends Rewinda
 object RewindableEntityIterator {
 
   def load(iterator: CloseableIterator[Entity], schema: EntitySchema): RewindableEntityIterator = {
-    val file = Files.createTempFile("rewindableEntityIterator", "tmp").toFile
-    file.deleteOnExit()
-    val outputStream = new DataOutputStream(new FileOutputStream(file))
+    val file = new TempFileHolder("RewindableEntityIterator")
+    val outputStream = new DataOutputStream(new FileOutputStream(file()))
     try {
       for (entity <- iterator) {
+        outputStream.writeBoolean(true)
         EntitySerializer.serialize(entity, outputStream)
       }
+      outputStream.writeBoolean(false)
     } finally {
       try {
         outputStream.close()
@@ -160,6 +159,31 @@ object RewindableEntityIterator {
       }
     }
     new RewindableEntityIterator(file, schema)
+  }
+
+  class TempFileHolder(name: String) {
+
+    private val file = Files.createTempFile(name, "tmp").toFile
+    file.deleteOnExit()
+
+    private var instanceCount = 0
+
+    def apply(): File = {
+      file
+    }
+
+    def newInstance(): File = {
+      instanceCount += 1
+      file
+    }
+
+    def removeInstance(): Unit = {
+      instanceCount -= 1
+      if(instanceCount <= 0) {
+        file.delete()
+      }
+    }
+
   }
 
 }
