@@ -12,11 +12,14 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 
 import java.io.{DataInputStream, DataOutputStream, File, FileInputStream, FileOutputStream}
 import java.nio.file.Files
+
+
 /**
   * Only considers the first input and checks for the property path defined in the [[JsonParserTask]] specification.
   * It will only read a property value of the first entity, following entities are ignored.
   */
 case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
+
   override def execute(task: Task[JsonParserTask],
                        inputs: Seq[LocalEntities],
                        output: ExecutorOutput,
@@ -39,20 +42,27 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         throw TaskException("No input entity for 'JSON Parser Operator' found! There must be at least one entity in the input.")
       }
 
-      val entityParser = new EntityParser(task, output, execution, pathIndex)
-      val parsedEntities = new RepeatedIterator(() => entities.nextOption().map(entityParser))
+      def parseEntities(schema: EntitySchema): CloseableIterator[Entity] = {
+        val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(schema)), execution, pathIndex)
+        var initialized = false
+        new RepeatedIterator(() => {
+          if (!initialized) {
+            entities.reset()
+            initialized = true
+          }
+          entities.nextOption().map(entityParser)
+        })
+      }
 
       requestedSchema match {
         case mt: MultiEntitySchema =>
+          val rootEntities = parseEntities(requestedSchema)
           val subEntities = mt.subSchemata.map { subSchema =>
-            val subEntityParser = new EntityParser(task, ExecutorOutput(output.task, Some(subSchema)), execution, pathIndex)
-            entities.reset()
-            val subParsedEntities = new RepeatedIterator(() => entities.nextOption().map(subEntityParser))
-            GenericEntityTable(subParsedEntities, subSchema, task)
+            GenericEntityTable(parseEntities(subSchema), subSchema, task)
           }
-          MultiEntityTable(parsedEntities, requestedSchema, task, subEntities)
+          MultiEntityTable(rootEntities, requestedSchema, task, subEntities)
         case _ =>
-          GenericEntityTable(parsedEntities, requestedSchema, task)
+          GenericEntityTable(parseEntities(requestedSchema), requestedSchema, task)
       }
     }
   }
@@ -92,6 +102,9 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
 }
 
 
+/**
+  * Iterator that can be reset to the beginning, i.e., can be iterated multiple times.
+  */
 trait RewindableIterator[T] extends CloseableIterator[T] {
 
   /**
