@@ -21,7 +21,7 @@ import org.silkframework.failures.FailureClass
 import org.silkframework.util.StreamUtils.ByteBufferBackedInputStream
 import org.silkframework.util.Uri
 
-import java.io.{ByteArrayOutputStream, DataInput, DataOutput, ObjectInputStream, ObjectOutputStream}
+import java.io.{ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream}
 import java.nio.ByteBuffer
 import scala.language.existentials
 import scala.xml.Node
@@ -302,7 +302,7 @@ object Entity {
 
     def serializeToArray(entity: Entity): Array[Byte] = {
       val byteStream = new ByteArrayOutputStream
-      val objectStream = new ObjectOutputStream(byteStream)
+      val objectStream = new DataOutputStream(byteStream)
       try {
         serialize(entity, objectStream)
       } finally {
@@ -312,7 +312,7 @@ object Entity {
     }
 
     def deserialize(buffer: ByteBuffer, schema: EntitySchema): Entity = {
-      val inputStream = new ObjectInputStream(new ByteBufferBackedInputStream(buffer))
+      val inputStream = new DataInputStream(new ByteBufferBackedInputStream(buffer))
       try {
         deserialize(inputStream, schema)
       } finally {

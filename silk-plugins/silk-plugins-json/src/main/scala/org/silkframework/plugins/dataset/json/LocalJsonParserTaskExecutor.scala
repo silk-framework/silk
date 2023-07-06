@@ -2,12 +2,16 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.entity.{Entity, MultiEntitySchema}
+import org.silkframework.entity.Entity.EntitySerializer
+import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.resource.InMemoryResourceManager
+
+import java.io.{DataInputStream, DataOutputStream, File, FileInputStream, FileOutputStream}
+import java.nio.file.Files
 /**
   * Only considers the first input and checks for the property path defined in the [[JsonParserTask]] specification.
   * It will only read a property value of the first entity, following entities are ignored.
@@ -24,7 +28,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
     }
     output.requestedSchema.map { requestedSchema =>
       val entityTable = inputs.head
-      val entities = entityTable.entities
+      val entities = RewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
 
       val pathIndex =  task.data.parsedInputPath match {
         case Some(path) => entityTable.entitySchema.indexOfPath(path)
@@ -42,6 +46,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         case mt: MultiEntitySchema =>
           val subEntities = mt.subSchemata.map { subSchema =>
             val subEntityParser = new EntityParser(task, ExecutorOutput(output.task, Some(subSchema)), execution, pathIndex)
+            entities.reset()
             val subParsedEntities = new RepeatedIterator(() => entities.nextOption().map(subEntityParser))
             GenericEntityTable(subParsedEntities, subSchema, task)
           }
@@ -49,9 +54,6 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         case _ =>
           GenericEntityTable(parsedEntities, requestedSchema, task)
       }
-
-
-
     }
   }
 
@@ -85,6 +87,66 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         }
       }
     }
+  }
+
+}
+
+
+trait RewindableIterator[T] extends CloseableIterator[T] {
+
+  /**
+    * Resets this iterator to the beginning.
+    */
+  def reset(): Unit
+
+}
+
+
+class RewindableEntityIterator(file: File, schema: EntitySchema) extends RewindableIterator[Entity] {
+
+  private var inputStream = new DataInputStream(new FileInputStream(file))
+
+  override def reset(): Unit = {
+    inputStream.close()
+    inputStream = new DataInputStream(new FileInputStream(file))
+  }
+
+  override def hasNext: Boolean = {
+    inputStream.available() != 0
+  }
+
+  override def next(): Entity = {
+    EntitySerializer.deserialize(inputStream, schema)
+  }
+
+  override def close(): Unit = {
+    try {
+      inputStream.close()
+    } finally {
+      file.delete()
+    }
+  }
+}
+
+
+object RewindableEntityIterator {
+
+  def load(iterator: CloseableIterator[Entity], schema: EntitySchema): RewindableEntityIterator = {
+    val file = Files.createTempFile("rewindableEntityIterator", "tmp").toFile
+    file.deleteOnExit()
+    val outputStream = new DataOutputStream(new FileOutputStream(file))
+    try {
+      for (entity <- iterator) {
+        EntitySerializer.serialize(entity, outputStream)
+      }
+    } finally {
+      try {
+        outputStream.close()
+      } finally {
+        iterator.close()
+      }
+    }
+    new RewindableEntityIterator(file, schema)
   }
 
 }
