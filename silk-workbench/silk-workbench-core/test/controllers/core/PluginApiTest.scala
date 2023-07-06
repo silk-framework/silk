@@ -10,7 +10,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin._
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginDescriptionSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
@@ -81,6 +81,11 @@ class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers 
     // In mix of label and description
     checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?textQuery=unique+dummy").get()).
         json.as[JsObject].keys mustBe Set("autoCompletableTestPlugin")
+  }
+
+  it should "return a list of resource based dataset plugin IDs" in {
+    checkResponse(client.url(s"$baseUrl/api/core/datasets/resourceBased").get())
+      .json.as[JsArray].value.map(_.as[String]) must contain allOf ("csv", "xml", "json")
   }
 }
 

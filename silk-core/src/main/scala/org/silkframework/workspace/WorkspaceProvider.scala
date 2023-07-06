@@ -1,16 +1,20 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{Prefixes, Tag, Task, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.PluginType
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
+import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.collection.mutable
+import scala.language.implicitConversions
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
+import scala.xml.{Attribute, Elem, Node, Text, Null}
 
 @PluginType()
 trait WorkspaceProvider extends AnyPlugin {
@@ -210,7 +214,120 @@ object LoadedTask {
     LoadedTask(Left(error))
   }
 
+  /** Returns a loaded task with properly set task factory function in case of a loading failure.
+    *
+    * @param taskFactory           A factory function that takes parameter values that will be merged with the original parameters
+    *                              and an alternative plugin context.
+    * @param originalParameters    The original parameters.
+    * @param originalPluginContext The original plugin context.
+    */
+  def factory[T <: TaskSpec : ClassTag](taskFactory: (ParameterValues, PluginContext) => Task[T],
+                                        originalParameters: ParameterValues,
+                                        originalPluginContext: PluginContext,
+                                        projectId: Option[Identifier],
+                                        taskId: Identifier,
+                                        label: Option[String] = None,
+                                        description: Option[String] = None): LoadedTask[T] = {
+    def loadInternal(parameterValueOverwrites: ParameterValues, alternativePluginContext: PluginContext): LoadedTask[T] = {
+      try {
+        val mergedParameters = originalParameters.merge(parameterValueOverwrites)
+        val task = taskFactory(mergedParameters, alternativePluginContext)
+        LoadedTask.success[T](task)
+      } catch {
+        case ex: TaskLoadingException =>
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex.cause, label, description, Some(loadInternal), Some(ex.originalTaskData)))
+        case NonFatal(ex) =>
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal), None))
+      }
+    }
+    loadInternal(originalParameters, originalPluginContext)
+  }
+
+  implicit def convertTaskToLoadedTask[T <: TaskSpec : ClassTag](task: Task[T]): LoadedTask[T] = LoadedTask.success(task)
+  implicit def convertLoadedTaskToTask[T <: TaskSpec : ClassTag](loadedTask: LoadedTask[T]): Task[T] = {
+    loadedTask.taskOrError match {
+      case Right(task) => task
+      case Left(error) => throw error.throwable
+    }
+  }
+
+  /**
+    * Returns the xml serialization format for a LoadedTask.
+    *
+    * @param xmlFormat The xml serialization format for type T.
+    */
+  implicit def loadedTaskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]): XmlFormat[LoadedTask[T]] = new LoadedTaskFormat[T]
+
+  /**
+    * XML serialization format.
+    */
+  class LoadedTaskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[LoadedTask[T]] {
+
+    import XmlSerialization._
+
+    /**
+      * Deserialize a value from XML.
+      */
+    def read(node: Node)(implicit readContext: ReadContext): LoadedTask[T] = {
+      LoadedTask(
+        Right(PlainTask(
+          id = (node \ "@id").text,
+          data = fromXml[T](node),
+          metaData = (node \ "MetaData").headOption.map(fromXml[MetaData]).getOrElse(MetaData.empty)
+        ))
+      )
+    }
+
+    /**
+      * Serialize a value to XML.
+      */
+    def write(task: LoadedTask[T])(implicit writeContext: WriteContext[Node]): Node = {
+      var node = toXml(task.data).head.asInstanceOf[Elem]
+      node = node % Attribute("id", Text(task.id), Null)
+      node = node.copy(child = toXml[MetaData](task.metaData) +: node.child)
+      node
+    }
+  }
 }
 
-/** Task loading error. */
-case class TaskLoadingError(projectId: Option[String], taskId: String, throwable: Throwable, label: Option[String] = None, description: Option[String] = None)
+/** Task loading error.
+  *
+  * @param projectId       ID of the project the task is located in.
+  * @param taskId          ID of the task.
+  * @param throwable       The exception that was thrown.
+  * @param label           Optional label of the task for display purposes.
+  * @param description     Optional description of the task for display purposes.
+  * @param factoryFunction Optional function that tries to create the task instance.
+  * @param originalParameterValues The original parameter values, if those could extracted.
+  */
+case class TaskLoadingError(projectId: Option[Identifier],
+                            taskId: Identifier,
+                            throwable: Throwable,
+                            label: Option[String] = None,
+                            description: Option[String] = None,
+                            factoryFunction: Option[(ParameterValues, PluginContext) => LoadedTask[_ <: TaskSpec]],
+                            originalParameterValues: Option[OriginalTaskData])
+
+/** Data necessary to restore a task that has failed loading. */
+case class OriginalTaskData(pluginId: String,
+                            parameterValues: ParameterValues)
+
+/** An exception that carries the original parameter (simple parameters only!) values of a task if available.
+  * Do not use directly. Use withTaskLoadingException instead. */
+case class TaskLoadingException(msg: String, originalTaskData: OriginalTaskData, cause: Throwable) extends RuntimeException(msg, cause)
+
+object TaskLoadingException {
+  /** This should be used where a TaskLoadingException should be thrown. */
+  def withTaskLoadingException[T](getOriginalTaskData: => OriginalTaskData)(create: ParameterValues => T): T = {
+    val originalTaskData = getOriginalTaskData
+    try {
+      create(originalTaskData.parameterValues)
+    } catch {
+      case ex: TaskLoadingException =>
+        // TaskLoadingException was thrown, just pass on
+        throw ex
+      case NonFatal(ex) =>
+        throw TaskLoadingException("Task has failed loading.", originalTaskData, ex)
+    }
+  }
+}

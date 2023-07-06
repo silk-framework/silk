@@ -114,11 +114,20 @@ export interface IPluginOverview {
     markdownDocumentation?: string;
 }
 
+export type AlternativeTaskUpdateFunction = (
+    projectId: string,
+    taskId: string,
+    parameterData: object,
+    variableTemplateData: object,
+    dataParameters: Record<string, string> | undefined
+) => any | Promise<any>;
+
 /** Contains all data that is needed to render an update dialog. */
 export interface IProjectTaskUpdatePayload {
     projectId: string;
     taskId: string;
     taskPluginDetails: IPluginDetails;
+    /** Needed to display the task label in the modal title. */
     metaData: IMetadata;
     currentParameterValues: {
         [key: string]: string | object;
@@ -127,6 +136,10 @@ export interface IProjectTaskUpdatePayload {
     dataParameters?: {
         [key: string]: string;
     };
+    /** Function that is called instead of the task PATCH endpoint. */
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction;
+    /** The title of the modal that will be displayed */
+    alternativeTitle?: string;
 }
 
 export interface ProjectTaskDownloadInfo {

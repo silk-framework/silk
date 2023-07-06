@@ -1,11 +1,14 @@
 package controllers.workflowApi
 
+import akka.stream.scaladsl.{FileIO, StreamConverters}
 import akka.util.ByteString
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.util.DatasetUtils
 import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
+import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils.VariableWorkflowRequestConfig
 import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
 import controllers.workspace.activityApi.StartActivityResponse
 import controllers.workspaceApi.search.ItemType
@@ -16,6 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
+import org.silkframework.runtime.activity.UserExecutionContext
+import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -24,10 +29,13 @@ import play.api.libs.json.Json
 import play.api.mvc._
 
 import java.net.HttpURLConnection
+import java.nio.file.Files
 import javax.inject.Inject
 
 @Tag(name = "Workflows", description = "Workflow specific operations, such as execution of workflows with payloads.")
 class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTrait with UserContextActions {
+
+  lazy val resourceBasedDatasetPluginIds: Seq[String] = DatasetUtils.resourceBasedDatasetPluginIds
 
   @Operation(
     summary = "Parameterized workflow execution result",
@@ -234,15 +242,23 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                      workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
-    val (workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
+    val VariableWorkflowRequestConfig(workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val resultValue = activity.startBlockingAndGetValue(workflowConfig)
     mimeTypeOpt match {
       case Some(mimeType) =>
         val outputResource = resultValue.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
+        val body = outputResource match {
+          case FileResource(file) =>
+            // Stream file resources
+            val contentLength = Some(Files.size(file.toPath))
+            HttpEntity.Streamed(FileIO.fromPath(file.toPath), contentLength, Some(mimeType))
+          case resource: Resource =>
+            HttpEntity.Strict(ByteString(resource.loadAsBytes), Some(mimeType))
+        }
         Result(
           header = ResponseHeader(OK, Map.empty),
-          body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), Some(mimeType))
+          body = body
         )
       case None =>
         NoContent
@@ -352,7 +368,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                    )
                                    workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
-    val (workflowConfig, _) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
+    val VariableWorkflowRequestConfig(workflowConfig, _) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfig)
     val result = StartActivityResponse(activity.name, id)

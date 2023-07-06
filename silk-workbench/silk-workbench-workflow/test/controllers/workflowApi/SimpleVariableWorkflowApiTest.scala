@@ -1,26 +1,36 @@
 package controllers.workflowApi
 
+import akka.stream.scaladsl.{FileIO, Source}
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.workflow.WorkflowInfo
 import controllers.workspace.ActivityClient
 import controllers.workspace.activityApi.StartActivityResponse
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
+import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.silkframework.runtime.resource.FileResource
+import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.serialization.json.JsonHelpers
+import org.silkframework.util.FileUtils
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.UiAnnotations
 import play.api.libs.json.JsArray
 import play.api.libs.ws.WSResponse
+import play.api.mvc.MultipartFormData.FilePart
 import play.api.routing.Router
 
+import java.io.File
 import scala.concurrent.Future
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
-class SimpleVariableWorkflowApiTest extends AnyFlatSpec
+class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with Matchers {
   behavior of "Simple variable workflow execution API"
 
@@ -30,8 +40,9 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
 
   private val inputOnlyWorkflow = "7e4b3499-4743-40c7-81e6-72b33f34a496_Workflowinputonly"
   private val outputOnlyWorkflow = "67fe02eb-43a7-4b74-a6a2-c65a5c097636_Workflowoutputonly"
+  private val inputOutputWorkflow = "f5bbbdc1-3c80-425d-a2ce-3bb08aefde1c_Workflow"
   private val validVariableWorkflows = Seq(
-    "f5bbbdc1-3c80-425d-a2ce-3bb08aefde1c_Workflow",
+    inputOutputWorkflow,
     "0c338c22-c43e-4a1c-960d-da44b8176c56_Workflowmultipleofthesameinputandoutput",
     inputOnlyWorkflow,
     outputOnlyWorkflow
@@ -57,19 +68,19 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
 
   private val nonEmptyRequestParameters = Map(sourceProperty1 -> Seq("val"))
   it should "not execute invalid workflows" in {
-    for(invalidWorkflowId <- invalidVariableWorkflows) {
+    for (invalidWorkflowId <- invalidVariableWorkflows) {
       checkResponseExactStatusCode(executeVariableWorkflow(invalidWorkflowId, Map.empty), BAD_REQUEST)
     }
   }
 
   it should "not accept invalid ACCEPT header value" in {
-    for(mimeType <- Seq("application/msword", "text/plain")) {
-      checkResponseExactStatusCode(executeVariableWorkflow(validVariableWorkflows.head, nonEmptyRequestParameters, acceptMimeType = mimeType), NOT_ACCEPTABLE)
+    for (mimeType <- Seq("application/msword", "text/plain")) {
+      checkResponseExactStatusCode(executeVariableWorkflow(inputOutputWorkflow, nonEmptyRequestParameters, acceptMimeType = mimeType), NOT_ACCEPTABLE)
     }
   }
 
   it should "execute valid workflows" in {
-    for(validWorkflow <- validVariableWorkflows) {
+    for (validWorkflow <- validVariableWorkflows) {
       checkResponse(executeVariableWorkflow(validWorkflow, nonEmptyRequestParameters, acceptMimeType = "application/xml"))
     }
   }
@@ -80,18 +91,18 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
   }
 
   it should "return the correct response bodies given valid ACCEPT values" in {
-    for(mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
-      for(IndexedSeq(param1Values, param2Values) <- Seq(
+    for (mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+      for (IndexedSeq(param1Values, param2Values) <- Seq(
         IndexedSeq(Seq("val 1"), Seq("val 2")),
         IndexedSeq(Seq(), Seq("val A", "val B"))
       )) {
-        for(usePost <- Seq(false, true)) {
+        for (usePost <- Seq(false, true)) {
           val parameterMap = Map(
             sourceProperty1 -> param1Values,
             sourceProperty2 -> param2Values
           ).filter(_._2.nonEmpty)
           val response = checkResponseExactStatusCode(
-            executeVariableWorkflow(validVariableWorkflows.head, parameterMap, usePost, mimeType))
+            executeVariableWorkflow(inputOutputWorkflow, parameterMap, usePost, mimeType))
           checkForCorrectReturnType(mimeType, response.body, param1Values.isEmpty && param2Values.isEmpty)
           checkForValues(1, param1Values, response.body)
           checkForValues(2, param2Values, response.body)
@@ -101,14 +112,14 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
   }
 
   it should "return an error if no (query or form) parameters are specified for the input source" in {
-    for(usePost <- Seq(false, true)) {
+    for (usePost <- Seq(false, true)) {
       checkResponseExactStatusCode(
-        executeVariableWorkflow(validVariableWorkflows.head, Map.empty, usePost), BAD_REQUEST)
+        executeVariableWorkflow(inputOutputWorkflow, Map.empty, usePost), BAD_REQUEST)
     }
   }
 
   it should "return the correct response for an output only variable workflow" in {
-    for(usePost <- Seq(true, false)) {
+    for (usePost <- Seq(true, false)) {
       val response = checkResponseExactStatusCode(
         executeVariableWorkflow(outputOnlyWorkflow, Map.empty, usePost, APPLICATION_XML))
       checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
@@ -122,7 +133,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
       sourceProperty1 -> Seq("input value A"),
       sourceProperty2 -> Seq("XYZ")
     )
-    for(usePost <- Seq(true, false)) {
+    for (usePost <- Seq(true, false)) {
       checkResponseExactStatusCode(
         executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML), NO_CONTENT)
       val outputCsvResource = project.resources.get(outputCsv)
@@ -133,17 +144,17 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
 
   it should "take the dataset content directly as POST payload" in {
     val inputValue = "some test value ä€"
-    for(payload <- Seq(
+    for (payload <- Seq(
       (s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON),
       (s"""[{"$sourceProperty1":"$inputValue"}]""", APPLICATION_JSON),
       (
-          s"""<?xml version='1.0' encoding='utf-8'?>
-             |<Root><$sourceProperty1>$inputValue</$sourceProperty1></Root>""".stripMargin, APPLICATION_XML),
+        s"""<?xml version='1.0' encoding='utf-8'?>
+           |<Root><$sourceProperty1>$inputValue</$sourceProperty1></Root>""".stripMargin, APPLICATION_XML),
       (s"""$sourceProperty1\n$inputValue""", "text/comma-separated-values"),
       (s"""$sourceProperty1\n$inputValue""", "text/csv")
     )) {
       val response = checkResponseExactStatusCode(
-        executeVariableWorkflow(validVariableWorkflows.head, contentOpt = Some(payload)))
+        executeVariableWorkflow(inputOutputWorkflow, contentOpt = Some(payload)))
       checkForValues(1, Seq(inputValue), response.body)
     }
   }
@@ -156,18 +167,20 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
          |""".stripMargin
     val response = checkResponseExactStatusCode(
       executeVariableWorkflow(
-        validVariableWorkflows.head, contentOpt = Some((csvPayLoad, "text/csv")),
+        inputOutputWorkflow,
+        contentOpt = Some((csvPayLoad, "text/csv")),
+        acceptMimeType = APPLICATION_JSON,
         additionalQueryParameters = Map(VariableWorkflowRequestUtils.QUERY_CONFIG_PARAM_AUTO_CONFIG -> "true")
       ))
-    for(i <- 1 to 2) {
+    for (i <- 1 to 2) {
       (response.json \\ s"targetProp$i").head.as[JsArray].value.map(_.as[String]) mustBe IndexedSeq(s"sourceVal$i")
     }
   }
 
   it should "return an error if a content-type is specified without valid content" in {
-    for(mimeType <- Seq(APPLICATION_JSON, APPLICATION_XML, "text/csv")) {
+    for (mimeType <- Seq(APPLICATION_JSON, APPLICATION_XML, "text/csv")) {
       checkResponseExactStatusCode(
-        executeVariableWorkflow(validVariableWorkflows.head, contentOpt = Some(("", mimeType))),
+        executeVariableWorkflow(inputOutputWorkflow, contentOpt = Some(("", mimeType))),
         responseCode = BAD_REQUEST
       )
     }
@@ -188,8 +201,8 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
   }
 
   it should "return the variable dataset info in the workflow info" in {
-    workflowInfo(validVariableWorkflows.head) mustBe WorkflowInfo(
-      validVariableWorkflows.head,
+    workflowInfo(inputOutputWorkflow) mustBe WorkflowInfo(
+      inputOutputWorkflow,
       "Workflow",
       projectId,
       "Simple variable workflow project",
@@ -236,6 +249,64 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
     val response = checkResponseExactStatusCode(
       executeVariableWorkflow(workflowId, contentOpt = Some((s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON))))
     checkForValues(1, Seq(inputValue), response.body)
+  }
+
+  it should "allow re-configuring the data source and sink parameters" in {
+    val csvPayLoad =
+      s"""$sourceProperty1;$sourceProperty2
+         |sourceVal1;sourceVal2
+         |""".stripMargin
+    val response = checkResponseExactStatusCode(
+      executeVariableWorkflow(
+        inputOutputWorkflow,
+        acceptMimeType = "text/csv",
+        contentOpt = Some((csvPayLoad, "text/csv")),
+        additionalQueryParameters = Map(
+          s"${VariableWorkflowRequestUtils.QUERY_DATA_SOURCE_CONFIG_PREFIX}separator" -> ";",
+          s"${VariableWorkflowRequestUtils.QUERY_DATA_SINK_CONFIG_PREFIX}separator" -> "|"
+        )
+      )
+    )
+    response.body must startWith (s"${targetProp(1)}|${targetProp(2)}")
+    response.body must include ("sourceVal1|sourceVal2")
+  }
+
+  val (exampleFile, exampleResource): (File, FileResource) = {
+    val file = File.createTempFile("inputFile", "dat")
+    file.deleteOnExit()
+    val resource = FileResource(file)
+    resource.writeString(
+      s"""<?xml version='1.0' encoding='utf-8'?>
+         |<Root><$sourceProperty1>some value</$sourceProperty1></Root>""".stripMargin)
+    (file, resource)
+  }
+
+  it should "support uploading files via multipart/form-data request" in {
+    val response = checkResponseExactStatusCode(getVariableWorkflowResultMultiPart(inputOutputWorkflow, exampleFile))
+    checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
+    checkForValues(1, Seq("some value"), response.body)
+  }
+
+  it should "support arbitrary input and output datasets via custom mime type application/x-plugin-<PLUGIN_ID>" in {
+    val response = checkResponseExactStatusCode(getVariableWorkflowResultMultiPart(inputOutputWorkflow, exampleFile,
+      contentType = "application/x-plugin-xml", acceptMimeType = "application/x-plugin-xml"))
+    checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
+    checkForValues(1, Seq("some value"), response.body)
+  }
+
+  it should "remove temp files on GC" in {
+    removeTempFiles()
+    val workflowId = inputOutputWorkflow
+    checkResponse(executeVariableWorkflow(workflowId, nonEmptyRequestParameters))
+    eventually {
+      new File(FileUtils.tempDir).listFiles() must not be empty
+    }
+    project.removeTask[Workflow](workflowId)
+    val runtime = Runtime.getRuntime
+    runtime.gc()
+    eventually {
+      new File(FileUtils.tempDir).listFiles() mustBe empty
+    }
   }
 
   // Checks if all input values exist in the workflow output
@@ -295,14 +366,14 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
       }
     }
     var request = client.url(s"$baseUrl$path")
-        .withHttpHeaders(ACCEPT -> acceptMimeType)
+        .addHttpHeaders(ACCEPT -> acceptMimeType)
     additionalQueryParameters.foreach { queryParam =>
       request = request.addQueryStringParameters(queryParam)
     }
     if(usePost || contentOpt.isDefined) {
       contentOpt match {
         case Some(content) =>
-          request.withHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
+          request.addHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
         case None =>
           request.post(parameters)
       }
@@ -325,7 +396,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
     val response =
       contentOpt match {
         case Some(content) =>
-          request.withHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
+          request.addHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
         case None =>
           request.post(parameters)
       }
@@ -336,7 +407,28 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec
                                         instanceId: String,
                                         acceptMimeType: String = "application/xml"): Future[WSResponse] = {
     val path =  controllers.workflowApi.routes.WorkflowApi.variableWorkflowAsyncResult(projectId, workflowId, instanceId).url
-    val request = client.url(s"$baseUrl$path").withHttpHeaders(ACCEPT -> acceptMimeType)
+    val request = client.url(s"$baseUrl$path").addHttpHeaders(ACCEPT -> acceptMimeType)
     request.get()
+  }
+
+  private def getVariableWorkflowResultMultiPart(workflowId: String,
+                                                 file: File,
+                                                 contentType: String = "application/xml",
+                                                 acceptMimeType: String = "application/xml"): Future[WSResponse] = {
+    val path = controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
+    val request = client.url(s"$baseUrl$path")
+      .addHttpHeaders(ACCEPT -> acceptMimeType)
+    request.post(Source(
+      FilePart("hello", "shouldNotMatter.txt", Option(contentType), FileIO.fromPath(file.toPath)) :: Nil
+    ))
+  }
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursiveOnExit()
+  }
+
+  private def removeTempFiles(): Unit = {
+    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursive(true)
   }
 }

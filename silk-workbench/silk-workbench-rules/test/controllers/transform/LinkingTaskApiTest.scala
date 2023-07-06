@@ -200,8 +200,8 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     val linkLimitQuery = linkLimit.map(ll => s"?linkLimit=$ll").getOrElse("")
     val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + linkLimitQuery)
     val response = request.
-        withHttpHeaders("Content-Type"-> SerializationUtils.APPLICATION_JSON).
-        post(linkageRuleJson)
+      addHttpHeaders("Content-Type"-> SerializationUtils.APPLICATION_JSON).
+      post(linkageRuleJson)
     // Check results
     val json = checkResponse(response).json
     val jsLinks = json.as[JsArray].value

@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
@@ -38,6 +39,10 @@ object PluginContext {
 
   def fromProjectConfig(config: ProjectConfig, projectResource: ResourceManager)(implicit user: UserContext): PluginContext = {
     PlainPluginContext(config.prefixes, projectResource, user, Some(config.id))
+  }
+
+  def fromReadContext(readContext: ReadContext): PluginContext = {
+    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId)
   }
 
   private case class PlainPluginContext(prefixes: Prefixes,

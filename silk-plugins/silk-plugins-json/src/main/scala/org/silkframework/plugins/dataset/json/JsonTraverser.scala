@@ -78,7 +78,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         Seq()
       case _: JsValue if path.isEmpty =>
         Seq(this)
-      case _: JsValue if path.nonEmpty =>
+      case _: JsValue =>
         Seq()
     }
   }
