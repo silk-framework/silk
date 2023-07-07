@@ -85,7 +85,8 @@ const TemplateValueInput = React.forwardRef(
             <FieldItem
                 labelProps={{
                     htmlFor: "value",
-                    text: "Value",
+                    text: t("widget.VariableWidget.form.value"),
+                    info: t("common.words.required"),
                 }}
                 hasStateDanger={hasStateDanger || !!validationError}
                 messageText={messageText || validationError || templateInfoMessage}
