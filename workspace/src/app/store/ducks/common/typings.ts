@@ -151,9 +151,11 @@ export interface TaskPreConfiguration {
         [key: string]: string | object;
     };
     /** When this is set the modal starts directly in the create-task step. */
-    taskPluginDetails?: IPluginDetails;
+    taskPluginId?: string;
     /** If it should be possible to create a project. */
     showProjectItem?: boolean
+    /** If set to false, then the widget to change the project for the task will not be shown. Default: false */
+    showProjectChangeWidget?: boolean
     /** Blacklist some plugins that should not be possible to create. */
     pluginBlackList?: string[]
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */

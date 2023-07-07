@@ -89,6 +89,15 @@ export function CreateArtefactModal() {
         newTaskPreConfiguration
     }: IArtefactModal = modalStore;
 
+    React.useEffect(() => {
+        if(newTaskPreConfiguration?.taskPluginId && artefactsList) {
+            const pluginOverview = artefactsList.find(plugin => plugin.key === newTaskPreConfiguration.taskPluginId)
+            if(pluginOverview) {
+                dispatch(commonOp.getArtefactPropertiesAsync(pluginOverview))
+            }
+        }
+    }, [newTaskPreConfiguration?.taskPluginId, artefactsList])
+
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
     const toBeAdded = useRef<IPluginOverview | undefined>(selectedArtefactFromStore);
@@ -417,7 +426,7 @@ export function CreateArtefactModal() {
      * @returns
      */
     const addChangeProjectHandler = (artefactForm: JSX.Element): JSX.Element => {
-        if (currentProject)
+        if (currentProject && (newTaskPreConfiguration?.showProjectChangeWidget == null || newTaskPreConfiguration?.showProjectChangeWidget))
             return (
                 <>
                     {showProjectSelection ? (
@@ -520,6 +529,7 @@ export function CreateArtefactModal() {
                                 registerForExternalChanges,
                                 templateFlag,
                             }}
+                            newTaskPreConfiguration={newTaskPreConfiguration}
                         />
                     );
                 }
