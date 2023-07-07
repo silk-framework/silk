@@ -6,7 +6,7 @@ import org.silkframework.entity.Entity.EntitySerializer
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
-import org.silkframework.plugins.dataset.json.RewindableEntityIterator.TempFileHolder
+import org.silkframework.plugins.dataset.json.FileRewindableEntityIterator.TempFileHolder
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -32,7 +32,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
     }
     output.requestedSchema.map { requestedSchema =>
       val entityTable = inputs.head
-      val entities = RewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
+      val entities = FileRewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
 
       val pathIndex =  task.data.parsedInputPath match {
         case Some(path) => entityTable.entitySchema.indexOfPath(path)
@@ -109,15 +109,73 @@ trait RewindableIterator[T] extends CloseableIterator[T] {
 
 }
 
+/**
+  * Entity iterator that can be reset to the beginning, i.e., can be iterated multiple times.
+  */
+trait RewindableEntityIterator extends RewindableIterator[Entity]
 
-class RewindableEntityIterator(file: TempFileHolder, schema: EntitySchema) extends RewindableIterator[Entity] {
+object RewindableEntityIterator {
+
+  /**
+    * Creates a rewindable entity iterator, possibly by loading all entities into a temporary file.
+    */
+  def load(iterator: CloseableIterator[Entity], schema: EntitySchema): RewindableEntityIterator = {
+    if (iterator.isInstanceOf[RewindableEntityIterator]) {
+      // Iterator is already rewindable
+      iterator.asInstanceOf[RewindableEntityIterator]
+    } else if (!iterator.hasNext) {
+      // Iterator is empty
+      new InMemoryRewindableEntityIterator(Iterable.empty)
+    } else {
+      val firstEntity = iterator.next()
+      if(!iterator.hasNext) {
+        // Iterator contains just one entity
+        new InMemoryRewindableEntityIterator(Iterable(firstEntity))
+      } else {
+        // Load entities into file
+        FileRewindableEntityIterator.load(iterator, schema)
+      }
+    }
+  }
+}
+
+/**
+  * Entity iterator that holds all entities in memory and thus can be rewinded.
+  */
+class InMemoryRewindableEntityIterator(entities: Iterable[Entity]) extends RewindableEntityIterator {
+
+  private val entityIterator = entities.iterator
+
+  /**
+    * Returns a new iterator that starts at the beginning.
+    */
+  override def newIterator(): CloseableIterator[Entity] = {
+    new InMemoryRewindableEntityIterator(entities)
+  }
+
+  override def hasNext: Boolean = {
+    entityIterator.hasNext
+  }
+
+  override def next(): Entity = {
+    entityIterator.next()
+  }
+
+  override def close(): Unit = {
+  }
+}
+
+/**
+  * Entity iterator that holds all entities on the file system and thus can be rewinded.
+  */
+class FileRewindableEntityIterator(file: TempFileHolder, schema: EntitySchema) extends RewindableEntityIterator {
 
   private val inputStream = new DataInputStream(new FileInputStream(file.newInstance()))
 
   private var nextAvailable = inputStream.readBoolean()
 
-  override def newIterator(): RewindableEntityIterator = {
-    new RewindableEntityIterator(file, schema)
+  override def newIterator(): RewindableIterator[Entity] = {
+    new FileRewindableEntityIterator(file, schema)
   }
 
   override def hasNext: Boolean = {
@@ -140,9 +198,9 @@ class RewindableEntityIterator(file: TempFileHolder, schema: EntitySchema) exten
 }
 
 
-object RewindableEntityIterator {
+object FileRewindableEntityIterator {
 
-  def load(iterator: CloseableIterator[Entity], schema: EntitySchema): RewindableEntityIterator = {
+  def load(iterator: CloseableIterator[Entity], schema: EntitySchema): FileRewindableEntityIterator = {
     val file = new TempFileHolder("RewindableEntityIterator")
     val outputStream = new DataOutputStream(new FileOutputStream(file()))
     try {
@@ -158,9 +216,13 @@ object RewindableEntityIterator {
         iterator.close()
       }
     }
-    new RewindableEntityIterator(file, schema)
+    new FileRewindableEntityIterator(file, schema)
   }
 
+  /**
+    * Holds a temporary file that can be used by multiple instances.
+    * Deletes the file if the last instance has been removed.
+    */
   class TempFileHolder(name: String) {
 
     private val file = Files.createTempFile(name, "tmp").toFile
