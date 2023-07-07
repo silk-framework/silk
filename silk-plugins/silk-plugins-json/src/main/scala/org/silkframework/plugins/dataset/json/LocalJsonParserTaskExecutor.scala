@@ -38,18 +38,18 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         throw TaskException("No input entity for 'JSON Parser Operator' found! There must be at least one entity in the input.")
       }
 
-      def parseEntities(schema: EntitySchema): CloseableIterator[Entity] = {
+      def parseEntities(schema: EntitySchema, createNewIterator: Boolean = false): CloseableIterator[Entity] = {
         val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(schema)), execution, pathIndex)
-        val entityIterator = entities.newIterator()
+        val entityIterator = if(createNewIterator) entities.newIterator() else entities
         implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
-        ReportingIterator(new RepeatedIterator(() => entityIterator.nextOption().map(entityParser)))
+        ReportingIterator(new RepeatedIterator(() => entityIterator.nextOption().map(entityParser)).thenClose(entityIterator))
       }
 
       requestedSchema match {
         case mt: MultiEntitySchema =>
           val rootEntities = parseEntities(requestedSchema)
           val subEntities = mt.subSchemata.map { subSchema =>
-            GenericEntityTable(parseEntities(subSchema), subSchema, task)
+            GenericEntityTable(parseEntities(subSchema, createNewIterator = true), subSchema, task)
           }
           MultiEntityTable(rootEntities, requestedSchema, task, subEntities)
         case _ =>
