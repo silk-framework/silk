@@ -1,10 +1,11 @@
 package controllers.sparqlapi
 
 import scala.util.matching.Regex
+import scala.language.implicitConversions
 
 object SparqlQueryType extends Enumeration {
   case class Val(name: String, regex: Regex) extends super.Val(name)
-  import scala.language.implicitConversions
+
   implicit def valueToVal(x: Value): Val = x.asInstanceOf[Val]
 
   val ASK         = Val("ASK", "(?s)(ask|ASK)\\s+(WHERE|where)\\s*\\{".r)

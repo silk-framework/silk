@@ -8,7 +8,7 @@ import {
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
-import { IPluginOverview } from "@ducks/common/typings";
+import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
@@ -148,7 +148,7 @@ const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
 
 /** Splits the form data into normal parameters/values and variable template parameters/values. */
 const splitParameterAndVariableTemplateParameters = (formData: any, variableTemplateParameterSet: Set<string>) => {
-    const parameters: Record<string, any> = {};
+    const parameters: Record<string, any> = Object.create(null);
     const variableTemplateParameters: Record<string, any> = {};
     Object.entries(formData).forEach(([key, value]) => {
         if (variableTemplateParameterSet.has(key)) {
@@ -165,7 +165,7 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 
 /** Builds a request object for project/task create call. */
 const buildTaskObject = (formData: Record<string, any>): object => {
-    const returnObject = {};
+    const returnObject = Object.create(null);
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
     // Add direct parameters
@@ -254,8 +254,7 @@ const createTagsAndAddToMetadata = async (payload: {
 
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
 const extractDataAttributes = (formData): ArtefactDataParameters => {
-    let returnValue: ArtefactDataParameters = {};
-    returnValue = {};
+    const returnValue: ArtefactDataParameters = Object.create(null);
     returnValue[URI_PROPERTY_PARAMETER_ID] = formData[URI_PROPERTY_PARAMETER_ID];
     returnValue[READ_ONLY_PARAMETER] = formData[READ_ONLY_PARAMETER];
     return returnValue;
@@ -335,7 +334,9 @@ const fetchUpdateTaskAsync = (
     formData: any,
     dataParameters: ArtefactDataParameters | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** Function that is called instead of the task PATCH endpoint. */
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
@@ -357,7 +358,11 @@ const fetchUpdateTaskAsync = (
         };
         dispatch(setModalError({}));
         try {
-            await requestUpdateProjectTask(projectId, itemId, payload);
+            if (alternativeUpdateFunction) {
+                await alternativeUpdateFunction(projectId, itemId, parameterData, variableTemplateData, dataParameters);
+            } else {
+                await requestUpdateProjectTask(projectId, itemId, payload);
+            }
             dispatch(closeArtefactModal());
         } catch (e) {
             dispatch(setModalError(e));

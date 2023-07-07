@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.UserContext
 trait GraphStoreFileUploadTrait {
   this: GraphStoreTrait =>
   /**
-    * Uploads an RDF file to a graph via a multipart HTTP request to the GraphStore endpoint.
+    * Uploads an RDF file to a graph via a multipart/form-data HTTP request to the GraphStore endpoint.
     *
     * @param graph       the graph this data should be uploaded to
     * @param file        The file containing the RDF data

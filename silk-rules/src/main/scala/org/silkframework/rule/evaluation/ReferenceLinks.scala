@@ -18,6 +18,7 @@ package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.{Link, MinimalLink}
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
 import scala.xml.Node
 

@@ -142,16 +142,21 @@ object ClassPluginDescription {
   }
 
   private def createFromClass[T <: AnyPlugin](pluginClass: Class[T]): ClassPluginDescription[T] = {
-    new ClassPluginDescription(
-      id = Identifier.fromAllowed(pluginClass.getSimpleName),
-      label = pluginClass.getSimpleName,
-      categories = Seq(PluginCategories.uncategorized),
-      description = "",
-      documentation = "",
-      parameters = getParameters(pluginClass),
-      constructor = getConstructor(pluginClass),
-      pluginTypes = getPluginTypes(pluginClass)
-    )
+    try {
+      new ClassPluginDescription(
+        id = Identifier.fromAllowed(pluginClass.getSimpleName),
+        label = pluginClass.getSimpleName,
+        categories = Seq(PluginCategories.uncategorized),
+        description = "",
+        documentation = "",
+        parameters = getParameters(pluginClass),
+        constructor = getConstructor(pluginClass),
+        pluginTypes = getPluginTypes(pluginClass)
+      )
+    } catch {
+      case ex: InvalidPluginException =>
+        throw new InvalidPluginException(s"Cannot extract plugin description for plugin class '${pluginClass.getCanonicalName}'. Details: ${ex.getMessage}", ex)
+    }
   }
 
   private def loadMarkdownDocumentation(pluginClass: Class[_], classpath: String): String = {

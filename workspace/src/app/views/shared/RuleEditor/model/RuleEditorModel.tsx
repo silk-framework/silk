@@ -889,7 +889,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
-                const newStickyProps: StickyNodePropType = {};
+                const newStickyProps: StickyNodePropType = Object.create(null);
                 const oldStickyProps = {
                     style: nodeUtils.generateStyleWithColor(node.data.style?.borderColor ?? "#000"),
                     content: node.data.businessData.stickyNote,

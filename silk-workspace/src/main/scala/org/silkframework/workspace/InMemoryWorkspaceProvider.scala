@@ -1,9 +1,9 @@
 package org.silkframework.workspace
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext, PluginDescription}
@@ -13,7 +13,6 @@ import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 
 @Plugin(
   id = "inMemory",
@@ -170,14 +169,14 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                     metaData: MetaData) extends InMemoryTask[T] {
 
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
-      try {
-          LoadedTask.success[T](PlainTask(id, pluginDesc(parameters).asInstanceOf[T], metaData))
-      } catch {
-        case NonFatal(ex) =>
-          LoadedTask.failed[T](TaskLoadingError(Some(projectId), id, ex, metaData.label, metaData.description))
+      def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
+        val mergedParameters = parameters.merge(parameterValues)
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginDesc.id, mergedParameters)) { params =>
+          LoadedTask.success[T](PlainTask(id, pluginDesc(params)(pluginContext).asInstanceOf[T], metaData)).task
+        }
       }
+      LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)
     }
-
   }
 
   protected case class InMemoryDataset[T <: TaskSpec : ClassTag](id: Identifier,
@@ -188,12 +187,12 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                  uriAttribute: Option[Uri],
                                                                  readOnly: Boolean) extends InMemoryTask[T] {
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
-      try {
-        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameters).asInstanceOf[Dataset], uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
-      } catch {
-        case NonFatal(ex) =>
-          LoadedTask.failed[T](TaskLoadingError(Some(projectId), id, ex, metaData.label, metaData.description))
+      def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
+        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameterValues)(pluginContext).asInstanceOf[Dataset],
+          uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
       }
+
+      LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)
     }
   }
 

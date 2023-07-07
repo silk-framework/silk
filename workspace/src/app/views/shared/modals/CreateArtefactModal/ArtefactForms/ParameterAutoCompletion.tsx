@@ -1,7 +1,8 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React, { useEffect } from "react";
 import {
-    AutoCompleteField,
+    SuggestField,
+    suggestFieldUtils,
     Highlighter,
     OverflowText,
     OverviewItem,
@@ -13,10 +14,9 @@ import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
@@ -170,7 +170,7 @@ export const ParameterAutoCompletion = ({
     }
 
     return (
-        <AutoCompleteField<StringOrReifiedValue, IAutocompleteDefaultResponse>
+        <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
             onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
@@ -202,7 +202,7 @@ export const ParameterAutoCompletion = ({
                     ? undefined
                     : {
                           itemFromQuery: (query) => ({ value: query }),
-                          itemRenderer: createNewItemRendererFactory(
+                          itemRenderer: suggestFieldUtils.createNewItemRendererFactory(
                               (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
                               "item-add-artefact"
                           ),

@@ -68,7 +68,7 @@ export const requestTaskData = async <TASK_PARAMETERS = IArbitraryPluginParamete
     itemId: string,
     withLabel: boolean = false
 ): Promise<FetchResponse<IProjectTask<TASK_PARAMETERS>>> => {
-    const queryParams: any = {};
+    const queryParams: any = Object.create(null);
     if (withLabel) {
         queryParams.withLabels = true;
     }

@@ -830,7 +830,15 @@
         },
         "WarningWidget": {
             "loading": "Loading log messages.",
-            "title": "Error log"
+            "title": "Error log",
+            "fixTask": "Fix task",
+            "fixTaskInitFailed": "Could not load data in oder to fix task.",
+            "fixTaskModalTitle": "Fix task '{{taskLabel}}'",
+            "FixTaskDataNotFoundModal": {
+                "title": "Reload failed task",
+                "warningMessage": "Either the plugin data or the original task data was not available. Click button to reload the task. Details: {{details}}",
+                "reloadButton": "Reload task"
+            }
         }
     },
     "DatasetUriPropertyParameter": {

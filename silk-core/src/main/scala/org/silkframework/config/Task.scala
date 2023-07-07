@@ -3,6 +3,7 @@ package org.silkframework.config
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.LoadedTask
 
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
@@ -99,7 +100,7 @@ object Task {
     /**
       * Deserialize a value from XML.
       */
-    def read(node: Node)(implicit readContext: ReadContext) = {
+    def read(node: Node)(implicit readContext: ReadContext): Task[T] = {
       PlainTask(
         id = (node \ "@id").text,
         data = fromXml[T](node),

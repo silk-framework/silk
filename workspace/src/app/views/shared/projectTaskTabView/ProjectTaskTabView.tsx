@@ -25,6 +25,7 @@ import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import PromptModal from "./PromptModal";
+import ErrorBoundary from "../../../ErrorBoundary";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -383,7 +384,7 @@ export function ProjectTaskTabView({
     };
 
     return (
-        <>
+        <ErrorBoundary>
             <PromptModal
                 onClose={() => {
                     setOpenTabSwitchPrompt(false);
@@ -410,6 +411,6 @@ export function ProjectTaskTabView({
                     </div>
                 </section>
             ) : null}
-        </>
+        </ErrorBoundary>
     );
 }
