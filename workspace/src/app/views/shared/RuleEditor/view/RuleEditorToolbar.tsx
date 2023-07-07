@@ -77,6 +77,10 @@ export const RuleEditorToolbar = () => {
         }
     }, [modelContext.unsavedChanges]);
 
+    React.useEffect(() => {
+        ruleEvaluationContext.fetchTriggerEvaluationFunction?.(startEvaluation)
+    }, [ruleEvaluationContext.startEvaluation, ruleEvaluationContext.toggleEvaluationResults])
+
     const saveLinkingRule = async (e) => {
         e.preventDefault();
         setSavingWorkflow(true);

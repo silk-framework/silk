@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
@@ -13,6 +14,7 @@ import org.silkframework.workspace.activity.CachedActivityStreaming
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 import java.util
+import scala.collection.mutable
 import scala.jdk.CollectionConverters.SetHasAsScala
 
 
@@ -27,7 +29,13 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
 
   override def initialValue: Option[ReferenceEntities] = Some(ReferenceEntities.empty)
 
+  /** Additional paths that should be loaded into the cache. These will be deleted on a reset. */
+  private val additionalSourcePaths = new mutable.LinkedHashSet[TypedPath]()
+  private val additionalTargetPaths = new mutable.LinkedHashSet[TypedPath]()
+
   override def reset()(implicit userContext: UserContext): Unit = {
+    additionalSourcePaths.clear()
+    additionalTargetPaths.clear()
     val pathsCache =  task.activity[LinkingPathsCache].control
     pathsCache.reset()
     pathsCache.start()
@@ -40,14 +48,39 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
     val pathsCache = task.activity[LinkingPathsCache].control
     pathsCache.waitUntilFinished()
 
-    if (pathsCache.status().failed)
+    if (pathsCache.status().failed) {
       throw new Exception(s"Cannot load reference entities cache for ${task.id}, because the paths cache could not be loaded.")
-    if (!Option(pathsCache.value()).exists(ed => ed.source.typedPaths.nonEmpty || ed.target.typedPaths.nonEmpty))
+    }
+    if (!Option(pathsCache.value()).exists(ed => ed.source.typedPaths.nonEmpty || ed.target.typedPaths.nonEmpty)) {
       context.log.info(s"Could not load reference entities cache for ${task.id} as that paths cache does not define paths.")
-    else {
-      val entityLoader = new ReferenceLinksEntityLoader(task, context, pathsCache.value(), cancelled)
+    } else {
+      val pathCacheValue = pathsCache.value()
+      val updatedPaths = addAdditionalPaths(pathCacheValue)
+      val entityLoader = new ReferenceLinksEntityLoader(task, context, updatedPaths, cancelled)
       entityLoader.load()
     }
+  }
+
+  def addSourcePathToCache(sourcePath: TypedPath) = synchronized {
+    additionalSourcePaths.add(sourcePath)
+  }
+
+  def addTargetPathToCache(targetPath: TypedPath) = synchronized {
+    additionalTargetPaths.add(targetPath)
+  }
+
+  private def addAdditionalPaths(pathCacheValue: DPair[EntitySchema]): DPair[EntitySchema] = {
+    // Remove duplicate paths
+    DPair(
+      addAdditionalPathsToSchema(pathCacheValue.source, additionalSourcePaths),
+      addAdditionalPathsToSchema(pathCacheValue.target, additionalTargetPaths)
+    )
+  }
+
+  private def addAdditionalPathsToSchema(schema: EntitySchema, additionalPaths: mutable.LinkedHashSet[TypedPath]): EntitySchema = synchronized {
+    // Remove duplicate paths from additional paths first
+    schema.typedPaths.foreach(p => additionalPaths.remove(p))
+    schema.copy(typedPaths = schema.typedPaths ++ additionalPaths)
   }
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"referenceEntitiesCache.xml")

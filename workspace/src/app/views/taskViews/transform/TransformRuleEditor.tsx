@@ -1,6 +1,6 @@
 import React from "react";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { IComplexMappingRule } from "./transform.types";
+import { IComplexMappingRule, ITransformTaskParameters } from "./transform.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
@@ -20,6 +20,8 @@ import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { inputPathTab } from "./transformEditor.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
+import { DatasetCharacteristics } from "../../shared/typings";
+import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/requests";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -192,6 +194,26 @@ export const TransformRuleEditor = ({
             inputPathAutoCompletion
         );
 
+    const fetchDatasetCharacteristics = async () => {
+        const result = new Map<string, DatasetCharacteristics>();
+        try {
+            const taskData = (await requestTaskData<ITransformTaskParameters>(projectId, transformTaskId)).data;
+            const parameters: ITransformTaskParameters = taskData.data.parameters;
+            const characteristics = await requestDatasetCharacteristics(projectId, parameters.selection.inputId);
+            result.set("sourcePathInput", characteristics.data);
+        } catch (ex) {
+            // Return 404 if the dataset does not exist or the task is not a dataset
+            if (ex.httpStatus !== 404) {
+                registerError(
+                    "TransformRuleEditor-fetchDatasetCharacteristics",
+                    "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
+                    ex
+                );
+            }
+        }
+        return result;
+    };
+
     return (
         <TransformRuleEvaluation
             projectId={projectId}
@@ -226,6 +248,7 @@ export const TransformRuleEditor = ({
                 showRuleOnly={false}
                 initialFitToViewZoomLevel={initialFitToViewZoomLevel}
                 instanceId={instanceId}
+                fetchDatasetCharacteristics={fetchDatasetCharacteristics}
             />
         </TransformRuleEvaluation>
     );
