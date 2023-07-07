@@ -1,11 +1,11 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.Entity.EntitySerializer
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor, MultiEntityTable}
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, ExecutorRegistry, TaskException, ReportingIterator}
 import org.silkframework.plugins.dataset.json.FileRewindableEntityIterator.TempFileHolder
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
@@ -46,7 +46,8 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
       def parseEntities(schema: EntitySchema): CloseableIterator[Entity] = {
         val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(schema)), execution, pathIndex)
         val entityIterator = entities.newIterator()
-        new RepeatedIterator(() => entityIterator.nextOption().map(entityParser))
+        implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
+        ReportingIterator(new RepeatedIterator(() => entityIterator.nextOption().map(entityParser)))
       }
 
       requestedSchema match {
@@ -94,6 +95,11 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
     }
   }
 
+}
+
+case class JsonParserReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+
+  override def entityProcessVerb: String = "parsed"
 }
 
 
