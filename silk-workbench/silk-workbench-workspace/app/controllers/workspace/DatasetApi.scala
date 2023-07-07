@@ -9,7 +9,7 @@ import controllers.util.TextSearchUtils
 import controllers.workspace.DatasetApi.TypeCacheFailedException
 import controllers.workspace.doc.{LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspace.doc.ResourceApiDoc.ResourceMultiPartRequest
-import controllers.workspace.doc.{DatasetApiDoc, ResourceApiDoc}
+import controllers.workspace.doc.{ResourceApiDoc}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
