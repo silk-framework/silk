@@ -209,7 +209,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         </ToolbarSection>
                                                                     ) : null}
                                                                     <ToolbarSection canGrow canShrink>
-                                                                        <PropertyValuePair>
+                                                                        <PropertyValuePair style={{ width: "100%" }}>
                                                                             <PropertyName
                                                                                 style={{
                                                                                     whiteSpace: "nowrap",
@@ -231,7 +231,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                             </PropertyName>
                                                                             <PropertyValue
                                                                                 style={{
-                                                                                    marginLeft: "calc(18.75% + 14px)",
+                                                                                    marginLeft: "calc(31.25% + 14px)",
                                                                                 }}
                                                                             >
                                                                                 <OverflowText>
