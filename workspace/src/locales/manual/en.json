@@ -259,7 +259,8 @@
             "configure": "Configure",
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
-            "filterOff": "Remove filter"
+            "filterOff": "Remove filter",
+            "showMoreDetails": "Show more details"
         },
         "app": {
             "build": "Workbench",
@@ -742,9 +743,17 @@
                 "title": "Edit linkage rule configuration"
             },
             "parameters": {
+                "inverseLinkType": {
+                    "label": "Inverse link type",
+                    "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
+                },
+                "isIrreflexive": {
+                    "label": "Irreflexive linking",
+                    "description": "If enabled, no links are generated from a resource to itself."
+                },
                 "linkType": {
                     "label": "Link type",
-                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the linked resources."
+                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the source to the target resource."
                 },
                 "limit": {
                     "label": "Target link limit",

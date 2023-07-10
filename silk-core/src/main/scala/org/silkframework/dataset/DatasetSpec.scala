@@ -303,11 +303,11 @@ object DatasetSpec {
     /**
       * Writes a new link to this writer.
       */
-    override def writeLink(link: Link, predicateUri: String)
+    override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       //require(isOpen, "Output must be opened before writing statements to it")
 
-      linkSink.writeLink(link, predicateUri)
+      linkSink.writeLink(link, predicateUri, inversePredicateUri)
       linkCount += 1
     }
 
