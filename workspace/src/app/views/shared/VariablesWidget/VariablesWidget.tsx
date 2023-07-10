@@ -134,7 +134,6 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     return (
         <>
-            {dropChangeLoading && <Spinner />}
             <NewVariableModal
                 modalOpen={modalOpen}
                 closeModal={() => setModalOpen(false)}
@@ -165,6 +164,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                             name={"item-add-artefact"}
                             text={t("widget.VariableWidget.actions.add", "Add")}
                             onClick={() => handleModalOpen()}
+                            loading={dropChangeLoading}
                         />
                     </CardOptions>
                 </CardHeader>
