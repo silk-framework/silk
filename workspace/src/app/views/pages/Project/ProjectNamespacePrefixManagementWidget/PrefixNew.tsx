@@ -19,6 +19,16 @@ export const createPrefixNameRegex = (): RegExp => {
 // eslint-disable-next-line no-control-regex
 export const invalidUriChars = new RegExp('[\\u0000-\\u0020<>"{}|^`\\\\]');
 
+/** Simple validation if a string is a valid URI string. Does not handle all cases. */
+export const validateUriString = (value) => {
+    const invalidCharMatches = value.match(invalidUriChars);
+    if (invalidCharMatches && invalidCharMatches.index != null) {
+        const invalidChar = value.substring(invalidCharMatches.index, invalidCharMatches.index + 1);
+        return `Invalid character found in string: '${invalidChar}'`;
+    }
+    return true;
+};
+
 export const prefixNameRegex = createPrefixNameRegex();
 
 export const validatePrefixName = (prefixName: string): boolean => prefixNameRegex.test(prefixName);

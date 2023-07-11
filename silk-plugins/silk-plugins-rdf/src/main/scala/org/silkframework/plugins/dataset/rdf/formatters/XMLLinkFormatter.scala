@@ -24,7 +24,7 @@ import scala.xml.NodeSeq
  */
 trait XMLLinkFormatter extends LinkFormatter {
 
-  override final def formatLink(link: Link, predicateUri: String): String = formatXML(link, predicateUri).toString + "\n"
+  override final def formatLink(link: Link, predicateUri: String, inversePredicate: Option[String]): String = formatXML(link, predicateUri).toString + "\n"
 
   def formatXML(link: Link, predicateUri: String): NodeSeq
 }

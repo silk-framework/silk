@@ -14,17 +14,13 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
-import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
 
 import java.io.File
-import java.net.URL
 import java.util.logging.Logger
 import javax.inject.Inject
 
@@ -218,65 +214,14 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String])
                   )
-                  resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
+                  resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName)
-
-    val response = request.body match {
-      case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
-        putResourceFromMultipartFormData(resource, formData)
-      case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
-        putResourceFromResourceUrl(resource, formData)
-      case AnyContentAsMultipartFormData(formData) if formData.files.isEmpty =>
-        // Put empty resource
-        resource.writeBytes(Array[Byte]())
-        NoContent
-      case AnyContentAsRaw(buffer) =>
-        resource.writeFile(buffer.asFile)
-        NoContent
-      case AnyContentAsText(txt) =>
-        resource.writeString(txt)
-        NoContent
-      case AnyContentAsEmpty =>
-        // Put empty resource
-        resource.writeBytes(Array[Byte]())
-        NoContent
-      case _ =>
-        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
-    }
-    if(response == NoContent) { // Successfully updated
-      log.info(s"Created/updated resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
-      ResourceHelper.refreshCachesOfDependingTasks(resourceName, project)
-    }
-    response
+    ResourceHelper.uploadResource(project, resource)
   }
 
   @deprecated("Use files-endpoints instead.")
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = putFile(projectName, resourceName).apply()
-
-  private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
-    try {
-      val file = formData.files.head.ref.path.toFile
-      resource.writeFile(file)
-      NoContent
-    } catch {
-      case ex: Exception =>
-        ErrorResult(BadUserInputException(ex))
-    }
-  }
-
-  private def putResourceFromResourceUrl(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]): Result = {
-    try {
-      val dataParts = formData.dataParts("resource-url")
-      val url = dataParts.head
-      val urlResource = UrlResource(new URL(url))
-      resource.writeResource(urlResource)
-      NoContent
-    } catch {
-      case ex: Exception =>
-        ErrorResult(BadUserInputException(ex))
-    }
-  }
 
   @Operation(
     summary = "Resource usage",

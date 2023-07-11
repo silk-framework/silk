@@ -3,7 +3,7 @@ package controllers.linking
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
-import controllers.linking.evaluation.{EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
+import controllers.linking.evaluation.{AddPathToReferenceEntitiesCacheRequest, EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
@@ -37,7 +37,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
-import play.api.mvc._
+import play.api.mvc.{Action, _}
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
@@ -609,6 +609,58 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     Ok
   }
 
+  @Operation(
+    summary = "Add path to the reference entities cache",
+    description = "Adds a path to the reference entities cache.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def addPathToReferenceEntitiesCache(@Parameter(
+                                        name = "project",
+                                        description = "The project identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
+                                      projectId: String,
+                                      @Parameter(
+                                        name = "task",
+                                        description = "The task identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
+                                      linkingTaskId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val (project, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
+    validateJson[AddPathToReferenceEntitiesCacheRequest] { request =>
+      implicit val prefixes: Prefixes = project.config.prefixes
+      val typedPath = UntypedPath.parse(request.path).asStringTypedPath
+      val entitiesCacheControl = linkingTask.activity[ReferenceEntitiesCache].control
+      entitiesCacheControl.underlying match {
+        case entitiesCache: ReferenceEntitiesCache =>
+          if(request.toTarget) {
+           entitiesCache.addTargetPathToCache(typedPath)
+          } else {
+            entitiesCache.addSourcePathToCache(typedPath)
+          }
+          if(request.reloadCache) {
+            entitiesCacheControl.startBlocking()
+          }
+          NoContent
+        case _ =>
+          throw NotFoundException("No entities cache found.")
+      }
+    }
+  }
+
   // Get the project and linking task
   private def projectAndTask(projectName: String, taskName: String)
                             (implicit userContext: UserContext): (Project, ProjectTask[LinkSpec]) = {
@@ -817,7 +869,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         try{
           val (project, task) = projectAndTask(projectName, taskName)
           implicit val prefixes: Prefixes = project.config.prefixes
-          implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
+          implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, None)
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)

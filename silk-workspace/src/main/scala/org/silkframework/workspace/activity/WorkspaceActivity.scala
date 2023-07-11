@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.{DefaultConfig, TaskSpec}
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -29,13 +29,13 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * Each workspace activity does have a current instance that's always defined.
     */
   @volatile
-  private var currentInstance: ActivityControl[ActivityType#ValueType] = createInstance(Map.empty)
+  private var currentInstance: ActivityControl[ActivityType#ValueType] = createInstanceFromParameterValues(ParameterValues.empty)
 
   /**
     * The plugin parameters of current instance.
     */
   @volatile
-  private var currentParameters: Map[String, String] = Map.empty
+  private var currentParameters: ParameterValues = ParameterValues.empty
 
   /**
     * For non-singleton activities, this holds all instances.
@@ -59,10 +59,15 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     */
   def factory: WorkspaceActivityFactory
 
+  @deprecated("Use createInstanceFromParameterValues instead.")
+  protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+    createInstanceFromParameterValues(ParameterValues.fromStringMap(config))
+  }
+
   /**
     * Creates a new control for this activity type.
     */
-  protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType]
+  protected def createInstanceFromParameterValues(config: ParameterValues): ActivityControl[ActivityType#ValueType]
 
   /**
     * Identifier of this activity.
@@ -152,10 +157,15 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @param user The user context
     * @return The identifier of the started activity instance
     */
-  final def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+  final def start(config: ParameterValues)(implicit user: UserContext): Identifier = {
     val (id, control) = addInstance(config)
     control.start()
     id
+  }
+
+  @deprecated("Use the variant with ParameterValues instead.")
+  final def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+    start(ParameterValues.fromStringMap(config))
   }
 
   /**
@@ -166,10 +176,15 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @param user The user context
     * @return The identifier of the started activity
     */
-  final def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+  final def startBlocking(config: ParameterValues)(implicit user: UserContext): Identifier = {
     val (id, control) = addInstance(config)
     control.startBlocking()
     id
+  }
+
+  @deprecated("Use the variant with ParameterValues instead.")
+  final def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+    startBlocking(ParameterValues.fromStringMap(config))
   }
 
   /**
@@ -181,12 +196,17 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @param user The user context
     * @return The identifier of the started activity
     */
-  final def startBlockingAndGetValue(config: Map[String, String] = Map.empty)(implicit user: UserContext): ActivityType#ValueType = {
+  final def startBlockingAndGetValue(config: ParameterValues)(implicit user: UserContext): ActivityType#ValueType = {
     val (id, control) = addInstance(config)
     control.startBlocking()
     val value = control.value()
     removeActivityInstance(id)
     value
+  }
+
+  @deprecated("Use the variant with ParameterValues instead.")
+  final def startBlockingAndGetValue(config: Map[String, String] = Map.empty)(implicit user: UserContext): ActivityType#ValueType = {
+    startBlockingAndGetValue(ParameterValues.fromStringMap(config))
   }
 
   /**
@@ -203,7 +223,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
   @deprecated("should send configuration when calling start", "4.5.0")
   final def update(config: Map[String, String]): Unit = {
-    addInstance(config)
+    addInstance(ParameterValues.fromStringMap(config))
   }
 
   /** Marks an activity as a cache activity, i.e. an activity that stores a cached value of something that is potentially expensive to compute. */
@@ -234,7 +254,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * Adds a new instance of this activity type.
     * If this is a singleton activity, it will only be updated if the configuration changed.
     */
-  protected final def addInstance(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
+  protected final def addInstance(config: ParameterValues): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
     val identifier = if(isSingleton) name else identifierGenerator.generate("")
 
     if(isSingleton) {
@@ -266,8 +286,8 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     (identifier, currentInstance)
   }
 
-  private def createControl(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
-    val newControl = createInstance(config)
+  private def createControl(config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
+    val newControl = createInstanceFromParameterValues(config)
     // Update the status and value mirrors to point to the new instance
     status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
     value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)

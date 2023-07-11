@@ -1,7 +1,8 @@
 package org.silkframework.runtime.activity
 
 import org.scalatest.concurrent.Eventually
-import org.scalatest.time.{Seconds, Span}
+import org.scalatest.time.{Seconds, Span}
+
 import org.silkframework.runtime.activity.Status.{Finished, Running, Waiting}
 import org.silkframework.runtime.users.User
 
@@ -143,6 +144,40 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     }
 
     stopActivities(sleepingActivities :+ priorityActivity1 :+ priorityActivity2)
+  }
+
+  it should "start and startBlocking should both be run in the same pool" in {
+    val sleepingActivitiesAsync =
+      for (_ <- 0 until (parallelism - 1)) yield {
+        val activity = Activity(new SleepingActivity())
+        activity.start()
+        activity
+      }
+
+    val sleepingActivitiesSync =
+      for (_ <- 0 until 2) yield {
+        val activity = Activity(new SleepingActivity())
+        Future {
+          activity.startBlocking()
+        }
+        activity
+      }
+
+    for (activity <- sleepingActivitiesAsync) {
+      eventually {
+        activity.status().isRunning mustBe true
+      }
+    }
+
+    eventually {
+      sleepingActivitiesSync(0).status().isRunning mustBe true
+    }
+
+    Thread.sleep(1000)
+    sleepingActivitiesSync(1).status() mustBe a[Waiting]
+
+    // Clean up: cancel all activities
+    stopActivities(sleepingActivitiesAsync ++ sleepingActivitiesSync)
   }
 
   private def stopActivities(activities: Iterable[ActivityControl[_]]): Unit = {

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, IconButton, Notification, SimpleDialog, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, IconButton, Notification, SimpleDialog, TextField, Switch } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { LinkageRuleConfigItem } from "./LinkageRuleConfig";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { DefaultAutoCompleteField } from "../../../shared/autoCompletion/DefaultAutoCompleteField";
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 interface IProps {
     onClose: () => any;
     parameters: LinkageRuleConfigItem[];
-    submit: (parameters: [string, string | undefined][]) => any;
+    submit: (parameters: [string, string | boolean | undefined][]) => any;
 }
 
 /** Config modal to change linkage rule config parameters like link type and link limit. */
@@ -22,6 +23,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
     const initialParameters = new Map(parameters.map((p) => [p.id, p]));
     const [errors] = useState(new Map<string, string>());
     const [saving, setSaving] = useState(false);
+    const { registerError } = useErrorHandler();
 
     // Always change error count to correct count when it is off. This mechanism is sometimes used to re-render.
     useEffect(() => {
@@ -98,12 +100,23 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
     };
 
     const onSubmit = async () => {
-        const updatedParameters: [string, string | undefined][] = parameters.map((p) => {
+        const updatedParameters: [string, string | boolean | undefined][] = parameters.map((p) => {
             const updatedValue = parameterDiff.get(p.id) ?? p.value;
             return [p.id, updatedValue];
         });
         setSaving(true);
-        await submit(updatedParameters);
+        setRequestError(undefined);
+        try {
+            await submit(updatedParameters);
+        } catch (ex) {
+            const errorWidget = registerError(
+                "LinkageRuleConfig-save-config",
+                t("widget.LinkingRuleConfigWidget.saveError"),
+                ex,
+                "_none_"
+            );
+            setRequestError(errorWidget || undefined);
+        }
         setSaving(false);
     };
 
@@ -144,7 +157,13 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                         messageText={errorMessage ? errorMessage : undefined}
                         helperText={p.description}
                     >
-                        {p.onSearch ? (
+                        {p.type === "boolean" ? (
+                            <Switch
+                                id={"parameter-" + p.id}
+                                defaultChecked={p.value === "true"}
+                                onChange={(value: boolean) => changeParameter(p.id)(`${value}`)}
+                            />
+                        ) : p.onSearch ? (
                             <DefaultAutoCompleteField
                                 id={"parameter-" + p.id}
                                 initialValue={{ value: p.value ?? "" }}

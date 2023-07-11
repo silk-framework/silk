@@ -192,4 +192,8 @@ a specific parameter depends on. These must be send in the auto-completion reque
       ]
     """
 
+  final val resourceBasedPluginIdsExample =
+    """
+      ["file", "csv", "xml"]
+    """
 }

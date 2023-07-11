@@ -17,12 +17,13 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
+import org.silkframework.runtime.activity.Status.Waiting
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.util.DPair
 
-import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent._
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.logging.{Level, Logger}
 import scala.math.min
 
@@ -43,7 +44,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
   /** The name of this task. */
   override def name: String = "MatchTask"
-  final val POLL_TIMEOUT_MS = 100
+  final val POLL_TIMEOUT_MS = 1000
   final val minLogDelayInMs = 5000
   final val MAX_PARTITION_MATCHER_QUEUE_SIZE = 1000
 
@@ -103,7 +104,11 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS) match {
         case null =>
           // No result available: make sure that loaders are not blocked
-          context.helpQuiesce()
+          for (runningLoader <- loaders.filter(_.status().isInstanceOf[Waiting])) {
+            // join blocked loader
+            log.info("No more threads available. Fully executing loader first.")
+            runningLoader.waitUntilFinished()
+          }
           None
         case future: Future[T] =>
           Some(future.get())
@@ -278,9 +283,11 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
           val attachedEntities = if(runtimeConfig.generateLinksWithEntities) Some(entityPair) else None
 
           if(!runtimeConfig.indexingOnly) {
-            val confidence = linkageRule(entityPair, 0.0)
-            if (confidence >= 0.0) {
-              links = links :+ Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
+            if(linkageRule.isReflexive || entityPair.source.uri != entityPair.target.uri) {
+              val confidence = linkageRule(entityPair, 0.0)
+              if (confidence >= 0.0) {
+                links = links :+ Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
+              }
             }
           } else {
             links = links :+ Link(entityPair.source.uri, entityPair.target.uri, None, attachedEntities)

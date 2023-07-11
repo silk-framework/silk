@@ -183,6 +183,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 evaluationResultsShown: evaluationResultsShown,
                 ruleValidationError,
                 clearRuleValidationError,
+                // Not needed yet
+                fetchTriggerEvaluationFunction: () => {},
             }}
         >
             {children}
