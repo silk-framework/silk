@@ -187,7 +187,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
 
     const handleModalClose = React.useCallback(() => {
         closeModal();
-        resetModalState();
+        setErrorMessage("");
+        setValidationError(undefined);
     }, []);
 
     return (

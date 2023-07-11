@@ -129,7 +129,11 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     );
 
     const renderDeleteVariable = React.useCallback(() => {
-        return <div>{t("widget.VariableWidget.modalMessages.deletePrompt", { varname: selectedVariable?.name })}</div>;
+        return (
+            <div>
+                {t("widget.VariableWidget.modalMessages.deletePrompt", { varname: selectedVariable?.name ?? "" })}
+            </div>
+        );
     }, [selectedVariable]);
 
     return (
