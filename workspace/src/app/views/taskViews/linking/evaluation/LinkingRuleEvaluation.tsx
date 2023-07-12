@@ -60,6 +60,7 @@ export const LinkingRuleEvaluation = ({
     const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
+    const [evaluatedRuleOperatorIds, setEvaluatedRuleOperatorIds] = React.useState<string[]>([]);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
@@ -82,18 +83,22 @@ export const LinkingRuleEvaluation = ({
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
                 if (evaluationResultsShown) {
-                    updateCallback(evaluationValues);
+                    updateCallback(!evaluatedRuleOperatorIds.includes(operatorId) ? undefined : evaluationValues);
                 }
             });
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
-    }, [evaluationResult, evaluationResultsShown]);
+    }, [evaluationResult, evaluationResultsShown, evaluatedRuleOperatorIds.join("|")]);
 
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {
             nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
-                updateCallback(evaluationResultMap.get(ruleOperatorId));
+                updateCallback(
+                    !evaluatedRuleOperatorIds.includes(ruleOperatorId)
+                        ? undefined
+                        : evaluationResultMap.get(ruleOperatorId)
+                );
             });
         } else {
             nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
@@ -136,6 +141,7 @@ export const LinkingRuleEvaluation = ({
         quickEvaluationOnly: boolean = false
     ) => {
         setEvaluationRunning(true);
+        setEvaluatedRuleOperatorIds(ruleOperatorNodes.map((r) => r.nodeId));
         setRuleValidationError(undefined);
         try {
             const ruleTree = editorUtils.constructLinkageRuleTree(ruleOperatorNodes);

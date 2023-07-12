@@ -59,6 +59,8 @@ export const LinkRuleNodeEvaluation = ({
 
     const EXAMPLES_MAX = 20;
 
+    console.log({ ruleOperatorId, evaluationResult });
+
     return evaluationResult ? (
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             {evaluationResult.length > 0 ? (
@@ -112,8 +114,9 @@ export const LinkRuleNodeEvaluation = ({
                                                     </OverflowText>
                                                 </OverviewItemLine>
                                             ) : (
-                                                value.slice(0, EXAMPLES_MAX - 1).map((value) => (
+                                                value.slice(0, EXAMPLES_MAX - 1).map((value, i) => (
                                                     <Tag
+                                                        key={i}
                                                         small={true}
                                                         minimal={true}
                                                         round={true}

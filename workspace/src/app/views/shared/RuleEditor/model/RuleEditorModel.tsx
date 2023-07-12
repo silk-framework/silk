@@ -116,6 +116,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
+    const [currentSubtreeNodeId, setCurrentSubtreeNodeId] = React.useState<string>();
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -1492,8 +1493,59 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         autoLayoutInternal(current.elements, true, startTransaction);
     };
 
+    React.useEffect(() => {
+        //make the current node id animated
+        changeElementsInternal((els) => {
+            return els.map((el) => {
+                if (el.id === currentSubtreeNodeId) {
+                    el.data = {
+                        ...el.data,
+                        animated: ruleEvaluationContext.evaluationRunning,
+                    };
+                }
+                return el;
+            });
+        });
+    }, [ruleEvaluationContext.evaluationRunning]);
+    /**
+     * gets all the nodes that are connected to the focused node for evaluation
+     */
+    const getSubTreeNodes = (nodeId: string) => {
+        setCurrentSubtreeNodeId(nodeId);
+        const nodesAndEdgesIds: string[] = [];
+        /* from the focus node
+             get the edge where it's target is the focus node. 
+             get the source node for the edge, where the above applies, 
+             rinse and repeat until source path node. 
+    
+             note: there could be multiple edges hence do the same. 
+             the goal is to get all the nodes connected to the focus node from the source.
+          */
+        const getNodesAndEdgesIds = (currentNode) => {
+            nodesAndEdgesIds.push(currentNode);
+            const edges: Edge[] = [];
+            current.elements.forEach((el) => {
+                if (utils.isEdge(el) && utils.asEdge(el)!.target === currentNode) {
+                    edges.push(utils.asEdge(el)!);
+                }
+            });
+            nodesAndEdgesIds.push(...edges.map((e) => e.id));
+            if (edges.length === 0) return;
+            //push all the edges to the left
+            edges.forEach((edge) => {
+                getNodesAndEdgesIds(edge.source);
+            });
+        };
+
+        getNodesAndEdgesIds(nodeId);
+
+        return nodesAndEdgesIds.map((nodeId) => {
+            return current.elements.find((el) => el.id === nodeId);
+        }) as Elements;
+    };
+
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
-    const ruleOperatorNodes = (): IRuleOperatorNode[] => {
+    const ruleOperatorNodes = (pristineElements: Elements = current.elements): IRuleOperatorNode[] => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
         const inputEdgesByNodeId = (nodeId: string): Edge[] => {
@@ -1505,7 +1557,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return newArray;
             }
         };
-        current.elements.forEach((elem) => {
+        pristineElements.forEach((elem) => {
             if (utils.isNode(elem)) {
                 elem.type !== "stickynote" && nodes.push(utils.asNode(elem)!!);
             } else {
@@ -1708,6 +1760,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
+                getSubTreeNodes,
             }}
         >
             <InteractionGate showSpinner={initializing} useParentPositioning>

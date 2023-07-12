@@ -515,6 +515,10 @@
                 },
                 "remove": {
                     "label": "Remove"
+                },
+                "subtree": {
+                    "label": "Evaluate subtree",
+                    "description": "Evaluate linking tree partially until this operator node."
                 }
             },
             "executionButtons": {
