@@ -48,7 +48,7 @@ object PluginContext {
   }
 
   def fromReadContext(readContext: ReadContext): PluginContext = {
-    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId)
+    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables)
   }
 
   private case class PlainPluginContext(prefixes: Prefixes,
