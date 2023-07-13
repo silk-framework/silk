@@ -8,6 +8,7 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    Label,
     OverflowText,
     PropertyName,
     PropertyValue,
@@ -201,7 +202,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !parameters ? (
                     <Loading />
                 ) : (
@@ -212,7 +213,13 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                                 .map((paramConfig) => {
                                     return (
                                         <PropertyValuePair hasDivider key={paramConfig.id}>
-                                            <PropertyName title={paramConfig.label}>{paramConfig.label}</PropertyName>
+                                            <PropertyName title={paramConfig.label} size="large">
+                                                <Label
+                                                    isLayoutForElement="span"
+                                                    text={<OverflowText inline>{paramConfig.label}</OverflowText>}
+                                                    style={fixStyle}
+                                                />
+                                            </PropertyName>
                                             <PropertyValue>
                                                 <code style={fixStyle}>
                                                     {paramConfig.valueLabel ?? paramConfig.value}

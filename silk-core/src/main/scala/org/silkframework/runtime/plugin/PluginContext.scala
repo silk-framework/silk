@@ -4,6 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
@@ -20,25 +21,30 @@ trait PluginContext {
 
   def projectId: Option[Identifier]
 
+  def templateVariables: TemplateVariablesReader
+
 }
 
 object PluginContext {
 
-  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None)
+  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables)
 
   def apply(prefixes: Prefixes,
             resources: ResourceManager,
             user: UserContext = UserContext.Empty,
-            projectId: Option[Identifier] = None): PluginContext = {
-    PlainPluginContext(prefixes, resources, user, projectId)
+            projectId: Option[Identifier] = None,
+            templateVariables: TemplateVariablesReader = GlobalTemplateVariables): PluginContext = {
+    PlainPluginContext(prefixes, resources, user, projectId, templateVariables)
   }
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PluginContext = {
-    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id))
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables)
   }
 
-  def fromProjectConfig(config: ProjectConfig, projectResource: ResourceManager)(implicit user: UserContext): PluginContext = {
-    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id))
+  def fromProjectConfig(config: ProjectConfig,
+                        projectResource: ResourceManager,
+                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables)(implicit user: UserContext): PluginContext = {
+    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables)
   }
 
   def fromReadContext(readContext: ReadContext): PluginContext = {
@@ -48,7 +54,8 @@ object PluginContext {
   private case class PlainPluginContext(prefixes: Prefixes,
                                         resources: ResourceManager,
                                         user: UserContext,
-                                        projectId: Option[Identifier]) extends PluginContext
+                                        projectId: Option[Identifier],
+                                        templateVariables: TemplateVariablesReader) extends PluginContext
 
 }
 

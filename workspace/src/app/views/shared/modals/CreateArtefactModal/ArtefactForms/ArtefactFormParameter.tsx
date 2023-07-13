@@ -18,6 +18,8 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 
 interface Props {
+    //For task forms, project id is needed tor validation and autocompletion
+    projectId?: string;
     // ID of the parameter
     parameterId: string;
     // Label of the parameter
@@ -64,6 +66,7 @@ interface Props {
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
 export const ArtefactFormParameter = ({
+    projectId,
     parameterId,
     label,
     required = false,
@@ -192,6 +195,7 @@ export const ArtefactFormParameter = ({
                 >
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
+                            projectId={projectId}
                             parameterId={parameterId}
                             initialValue={
                                 valueState.current.templateValueBeforeSwitch ??
@@ -241,21 +245,29 @@ export const ArtefactFormParameter = ({
 };
 
 interface TemplateInputComponentProps {
+    /** If a project ID is defined, also project variables will be auto-completed. */
+    projectId?: string;
+    /** ID for the input field. */
     parameterId: string;
     initialValue: string;
     onTemplateValueChange: (any) => any;
     setValidationError: (error?: string) => any;
     /** Called with a message that contains the currently evaluated template. */
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
+    /** optional parameter to make correct suggestions for when an existing variable is edited **/
+    variableName?: string;
 }
 
-const TemplateInputComponent = memo(
+/** The input component for the template value. */
+export const TemplateInputComponent = memo(
     ({
         parameterId,
         initialValue,
         onTemplateValueChange,
         setValidationError,
         evaluatedValueMessage,
+        projectId,
+        variableName,
     }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
         const [t] = useTranslation();
@@ -284,7 +296,8 @@ const TemplateInputComponent = memo(
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition)).data;
+                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
+                    .data;
             } catch (error) {
                 registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
             }
@@ -293,7 +306,9 @@ const TemplateInputComponent = memo(
         const checkTemplate = React.useCallback(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
-                    const validationResponse = (await requestValidateTemplateString(inputString)).data;
+                    const validationResponse = (
+                        await requestValidateTemplateString(inputString, projectId, variableName)
+                    ).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
                             ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })

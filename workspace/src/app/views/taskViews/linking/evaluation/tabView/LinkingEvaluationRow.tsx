@@ -50,7 +50,7 @@ interface ExpandedEvaluationRowProps {
     operatorPlugins: Array<IPluginDetails>;
     evaluationMap?: Map<string, EvaluationResultType[number]>;
     /** If the row is expanded because of a search match. Only the row values should be shown in that case. */
-    expandedBySearch: boolean
+    expandedBySearch: boolean;
 }
 
 const operatorInputMapping = {
@@ -79,7 +79,7 @@ export const LinkingEvaluationRow = React.memo(
         inputValuesExpandedByDefault,
         operatorPlugins,
         evaluationMap,
-        expandedBySearch
+        expandedBySearch,
     }: ExpandedEvaluationRowProps) => {
         const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo | undefined>(undefined);
         const [valueToHighlight, setValueToHighlight] = React.useState<HoveredValuedType | undefined>(undefined);
@@ -113,7 +113,7 @@ export const LinkingEvaluationRow = React.memo(
                 if (inputValuesExpandedByDefault !== inputValueTableExpanded) {
                     setInputValueTableExpanded(inputValuesExpandedByDefault);
                 }
-                const treeExpanded = operatorTreeExpandedByDefault && (!expandedBySearch || rowIsExpandedByParent)
+                const treeExpanded = operatorTreeExpandedByDefault && (!expandedBySearch || rowIsExpandedByParent);
                 if (treeExpanded !== operatorTreeExpansion.expanded) {
                     setOperatorTreeExpansion({ ...operatorTreeExpansion, expanded: treeExpanded });
                 }

@@ -1,4 +1,4 @@
-package org.silkframework.runtime.plugin
+package org.silkframework.runtime.plugin.types
 
 import scala.language.implicitConversions
 

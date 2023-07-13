@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
-import org.silkframework.runtime.templating.GlobalTemplateVariables
+import org.silkframework.runtime.templating.GlobalTemplateVariablesConfig
 import play.api.libs.json.{Format, JsArray, JsString, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController, Request}
 
@@ -71,7 +71,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "initialLanguage" -> initialLanguage(request),
       "hotKeys" -> Json.toJson(hotkeys()),
       "maxFileUploadSize" -> maxUploadSize,
-      "templatingEnabled" -> GlobalTemplateVariables.isEnabled
+      "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))

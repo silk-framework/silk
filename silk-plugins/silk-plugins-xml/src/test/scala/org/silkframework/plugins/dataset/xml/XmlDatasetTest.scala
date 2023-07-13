@@ -7,7 +7,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.ValidationException
 
