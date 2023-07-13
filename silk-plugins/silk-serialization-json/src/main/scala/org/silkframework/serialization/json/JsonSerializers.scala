@@ -25,11 +25,13 @@ import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.PluginSerializers.{ParameterValuesJsonFormat, PluginJsonFormat}
 import org.silkframework.util.{DPair, Identifier, IdentifierUtils, Uri}
+import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
   * Serializers for JSON.
@@ -914,6 +916,8 @@ object JsonSerializers {
     final val OPERATOR = "operator"
     final val FILTER = "filter"
     final val LINKTYPE = "linkType"
+    final val INVERSELINKTYPE = "inverseLinkType"
+    final val IS_REFLEXIVE = "isReflexive"
     final val UI_ANNOTATIONS = "uiAnnotations"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkageRule = {
@@ -921,6 +925,8 @@ object JsonSerializers {
         operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
         linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
+        inverseLinkType = optionalValue(value, INVERSELINKTYPE).map(fromJson[Uri](_)),
+        isReflexive = booleanValueOption(value, IS_REFLEXIVE).getOrElse(true),
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
@@ -931,6 +937,8 @@ object JsonSerializers {
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),
         LINKTYPE -> toJson(value.linkType),
+        INVERSELINKTYPE -> toJsonOpt(value.inverseLinkType),
+        IS_REFLEXIVE -> value.isReflexive,
         LAYOUT -> toJson(value.layout),
         UI_ANNOTATIONS -> toJson(value.uiAnnotations)
       )
@@ -1037,7 +1045,7 @@ object JsonSerializers {
     */
   class TaskJsonFormat[T <: TaskSpec : ClassTag](options: TaskFormatOptions = TaskFormatOptions(),
                                                  userContext: Option[UserContext] = None,
-                                                 dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+                                                 dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[LoadedTask[T]] {
 
     final val PROJECT = "project"
     final val PROPERTIES = "properties"
@@ -1050,30 +1058,40 @@ object JsonSerializers {
     /**
       * Deserializes a value.
       */
-    override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
-      val id: Identifier = stringValueOption(value, ID).map(_.trim).filter(_.nonEmpty).map(Identifier.apply).getOrElse {
-        // Generate unique ID from label if no ID was supplied
-        val md = metaData(value)
-        md.label match {
-          case Some(label) if label.trim.nonEmpty =>
-            IdentifierUtils.generateTaskId(label)
-          case _ =>
-            throw BadUserInputException("The label must not be empty if no ID is provided!")
+    override def read(value: JsValue)(implicit readContext: ReadContext): LoadedTask[T] = {
+      var taskId = ""
+      try {
+        val id: Identifier = stringValueOption(value, ID).map(_.trim).filter(_.nonEmpty).map(Identifier.apply).getOrElse {
+          // Generate unique ID from label if no ID was supplied
+          val md = metaData(value)
+          md.label match {
+            case Some(label) if label.trim.nonEmpty =>
+              IdentifierUtils.generateTaskId(label)
+            case _ =>
+              throw BadUserInputException("The label must not be empty if no ID is provided!")
+          }
         }
+        taskId = id.toString
+        // In older serializations the task data has been directly attached to this JSON object
+        val dataJson = optionalValue(value, DATA).getOrElse(value)
+        val task = PlainTask(
+          id = id,
+          data = fromJson[T](dataJson),
+          metaData = metaData(value)
+        )
+
+        LoadedTask.success(task)
+      } catch {
+        case NonFatal(ex) =>
+          LoadedTask.failed(TaskLoadingError(readContext.projectId, if(taskId.isEmpty) Identifier("__unknown__") else Identifier(taskId),
+            ex, factoryFunction = None, originalParameterValues = None))
       }
-      // In older serializations the task data has been directly attached to this JSON object
-      val dataJson = optionalValue(value, DATA).getOrElse(value)
-      PlainTask(
-        id = id,
-        data = fromJson[T](dataJson),
-        metaData = metaData(value)
-      )
     }
 
     /**
       * Serializes a value.
       */
-    override def write(task:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(task:  LoadedTask[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       // If any of the defaults is changed, the annotations on TaskFormatOptions need to be updated
       var json = Json.obj(ID -> JsString(task.id.toString))
 
@@ -1371,6 +1389,15 @@ object JsonSerializers {
 
   def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue]): JsValue = {
     format.write(value)
+  }
+
+  def toJsonOpt[T](value: Option[T])(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue]): JsValue = {
+    value match {
+      case Some(v) =>
+        format.write(v)
+      case None =>
+        JsNull
+    }
   }
 
   def toJsonEmptyContext[T](value: T)(implicit format: JsonFormat[T]): JsValue = {

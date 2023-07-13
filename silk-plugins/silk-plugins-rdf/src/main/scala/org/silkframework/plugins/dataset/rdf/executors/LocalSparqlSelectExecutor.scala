@@ -8,7 +8,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
+import org.silkframework.runtime.iterator.CloseableIterator
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
@@ -69,20 +69,18 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         updater.increaseEntityCounter()
       case None => () => {} // no-op
     }
-    new TraversableIterator[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        var count = 0
-        results.bindings foreach { binding =>
-          count += 1
-          val values = vars map { v =>
-            binding.get(v).toSeq.map(_.value)
-          }
-          f(Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema))
-          increase()
-        }
-        executionReportUpdater.foreach(updater => updater.executionDone())
+
+    var count = 0
+    val entityIterator = results.bindings.map { binding =>
+      count += 1
+      val values = vars map { v =>
+        binding.get(v).toSeq.map(_.value)
       }
+      val entity = Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
+      increase()
+      entity
     }
+    entityIterator.thenClose(() => executionReportUpdater.foreach(updater => updater.executionDone()))
   }
 }
 

@@ -950,7 +950,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
-        implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
+        implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, None)
         val dataSource = createDataSource(xmlRoot, None)
         val (model, entitySink) = createEntitySink(xmlRoot)
         executeTransform(task, entitySink, dataSource, errorEntitySinkOpt = None)

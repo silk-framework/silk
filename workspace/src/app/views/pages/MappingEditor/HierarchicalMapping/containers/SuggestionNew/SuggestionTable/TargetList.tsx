@@ -145,14 +145,13 @@ export default function TargetList({ targets, onChange }: IProps) {
                 className: "ecc-silk-mapping__suggestionlist__target-property-search",
             }}
             contextOverlayProps={{
-                minimal: true,
                 popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
                 portalContainer: context.portalContainer,
             }}
             onQueryChange={handleQueryChange}
             query={inputQuery}
         >
-            <Button fill={true} rightIcon="toggler-caret" text={itemLabel(selected, context.search)} />
+            <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
         </TargetSelect>
     );
 }

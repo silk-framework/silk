@@ -113,7 +113,7 @@ export default function SearchItem({
         if (!e?.ctrlKey && itemLinks.length > 0) {
             e.preventDefault();
             const detailsPath = itemLinks[0].path;
-            const labels: IPageLabels = {};
+            const labels: IPageLabels = Object.create(null);
             if (item.type === DATA_TYPES.PROJECT) {
                 labels.projectLabel = item.label;
             } else {

@@ -2,9 +2,9 @@
 # Workspace
 ############################################################################################################################################
 
-GET           /                                                                 controllers.workspace.WorkspaceController.index
-GET           /tree                                                             controllers.workspace.WorkspaceController.tree
-GET           /allActivities                                                    controllers.workspace.WorkspaceController.activities
+GET           /                                                                 controllers.workspace.WorkspaceController.index()
+GET           /tree                                                             controllers.workspace.WorkspaceController.tree()
+GET           /allActivities                                                    controllers.workspace.WorkspaceController.activities()
 
 GET           /dialogs/newproject                                               controllers.workspace.WorkspaceController.newProjectDialog()
 GET           /dialogs/importproject                                            controllers.workspace.WorkspaceController.importProjectDialog()
@@ -34,16 +34,18 @@ GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       
 GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetController.dataset(project, task)
 GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetController.table(project, task, maxEntities: Int ?= 20)
 GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetController.sparql(project, task, query ?= "")
-GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search, limit: Option[Int] ?= None)
+GET           /datasets/:project/:task/types                                    controllers.workspace.LegacyDatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API
-PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
-GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
-DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
-GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
-GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String, textQuery: String ?= "", limit: Option[Int] ?= None)
-GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
-POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
+PUT           /projects/:project/datasets/:name                                 controllers.workspace.LegacyDatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
+GET           /projects/:project/datasets/:name                                 controllers.workspace.LegacyDatasetApi.getDataset(project: String, name: String)
+DELETE        /projects/:project/datasets/:name                                 controllers.workspace.LegacyDatasetApi.deleteDataset(project: String, name: String)
+GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.LegacyDatasetApi.getDatasetAutoConfigured(project: String, name: String)
+GET           /projects/:project/datasets/:name/types                           controllers.workspace.LegacyDatasetApi.getDatasetTypes(project: String, name: String, textQuery: String ?= "", limit: Option[Int] ?= None)
+GET           /projects/:project/datasets/:name/file                            controllers.workspace.LegacyDatasetApi.getFile(project: String, name: String)
+PUT           /projects/:project/datasets/:name/file                            controllers.workspace.LegacyDatasetApi.uploadFile(project: String, name: String)
+GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.LegacyDatasetApi.getMappingCoverage(project: String, name: String)
+POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.LegacyDatasetApi.getMappingValueCoverage(project: String, name: String)
 
 ############################################################################################################################################
 # CustomTasks
@@ -64,15 +66,15 @@ DELETE        /projects/:project/customTasks/:name                              
 ############################################################################################################################################
 
 # Reload Workspace
-POST          /reload                                                           controllers.workspace.WorkspaceApi.reload
-POST          /reloadPrefixes                                                   controllers.workspace.WorkspaceApi.reloadPrefixes
-POST          /updateGlobalVocabularyCache                                      controllers.workspace.WorkspaceApi.updateGlobalVocabularyCache
+POST          /reload                                                           controllers.workspace.WorkspaceApi.reload()
+POST          /reloadPrefixes                                                   controllers.workspace.WorkspaceApi.reloadPrefixes()
+POST          /updateGlobalVocabularyCache                                      controllers.workspace.WorkspaceApi.updateGlobalVocabularyCache()
 POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
 GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
 
 # Projects
-GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
+GET           /projects                                                         controllers.workspace.WorkspaceApi.projects()
 GET           /projects/:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)
 PUT           /projects/:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
 DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)

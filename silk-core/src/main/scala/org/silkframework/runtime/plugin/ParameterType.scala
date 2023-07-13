@@ -88,6 +88,10 @@ object ParameterType {
 trait PluginObjectParameter extends AnyPlugin {
   /** defines if the parameter type has a schema definition, i.e. is composed completely from [[ParameterType]] elements. */
   def hasSchemaDefinition: Boolean = true
+
+  /** Defines if the parameter type is serialized. This should be true in general, except for parameters of classes that
+    * are not persisted or part of the HTTP API. */
+  def hasSerialization: Boolean = true
 }
 
 /** Plugin parameter type that is of type object and represents nested values. The default string representation is to JSON. */
@@ -110,10 +114,15 @@ case class PluginObjectParameterType(pluginObjectParameterClass: Class[_ <: AnyP
   override def name: String = "objectParameter"
 }
 
-/** Should be used for parameters that either too complex and cannot be edited in a generic plugin dialog or they are not
+/** Should be used for parameters that are either too complex and cannot be edited in a generic plugin dialog or they are not
   * composed of parameters that themselves have a schema. */
 trait PluginObjectParameterNoSchema extends PluginObjectParameter {
   override def hasSchemaDefinition: Boolean = false
+}
+
+/** This should ONLY be used for parameters of classes that are never persisted or part of the HTTP API. */
+trait PluginObjectParameterNoSchemaAndSerialization extends PluginObjectParameterNoSchema {
+  override def hasSerialization: Boolean = false
 }
 
 case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_ <: AnyPlugin]) extends PluginObjectParameterTypeTrait {

@@ -84,7 +84,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
         const labelForBreadCrumb = (params: any): ((string) => Promise<string>) => {
             const actualBreadcrumbs = breadcrumbOrder.filter((breadcrumbId) => params[breadcrumbId]);
             const pageLabels = location.state?.pageLabels;
-            const resultLabels = {};
+            const resultLabels = Object.create(null);
             // Extract labels from location state if existent
             actualBreadcrumbs.forEach((breadcrumbId, idx) => {
                 if (idx + 1 === actualBreadcrumbs.length && pageLabels?.pageTitle) {

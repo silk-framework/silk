@@ -84,7 +84,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     }, []);
 
     const renderRuleIcon = (ruleId) => {
-        if (!ruleValidation || !ruleValidation.hasOwnProperty(ruleId)) {
+        if (!ruleValidation || ruleValidation[ruleId] === undefined) {
             return null;
         } else if (ruleValidation[ruleId] === "ok") {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;

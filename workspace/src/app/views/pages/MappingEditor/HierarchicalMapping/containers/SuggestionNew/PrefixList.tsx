@@ -101,13 +101,9 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
                 createNewItemFromQuery={createPrefix}
                 createNewItemRenderer={renderCreatePrefixOptionRenderer}
                 createNewItemPosition={"last"}
-                contextOverlayProps={{
-                    minimal: true,
-                    portalContainer: context.portalContainer,
-                }}
             >
                 <Button
-                    rightIcon="toggler-caret"
+                    rightIcon="toggler-caretdown"
                     text={
                         selectedItem === selectedPrefix ? selectedItem : "Select prefix for auto-generated properties"
                     }

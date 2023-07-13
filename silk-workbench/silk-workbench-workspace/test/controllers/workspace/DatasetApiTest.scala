@@ -2,7 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TEMPLATES, TYPE}
+import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TYPE}
 import play.api.libs.json.{JsObject, Json}
 
 class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
@@ -95,6 +95,38 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     (xml \ "MetaData" \ "Label").text mustBe "label 2"
     (xml \ "MetaData" \ "Description").text mustBe "description 2"
     (xml \ "Param").text mustBe "urn:dataset2"
+  }
+
+  "update dataset file" in {
+    // Create CSV dataset
+    val dataset = "csvDataset"
+    val fileName = "test.csv"
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    request = request.addHttpHeaders("Accept" -> "application/json")
+    val response = request.put(
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> dataset,
+        DATA -> Json.obj(
+          TYPE -> "csv",
+          PARAMETERS ->
+            Json.obj(
+              "file" -> fileName
+            )
+        )
+      )
+    )
+    checkResponse(response)
+
+    // Upload csv
+    val testData = "test data"
+    val uploadRequest = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset/file")
+    checkResponse(uploadRequest.put(testData))
+
+    val downloadRequest = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset/file")
+    val downloadedFile = checkResponse(downloadRequest.get()).body
+
+    downloadedFile mustBe testData
   }
 
 }

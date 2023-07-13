@@ -10,6 +10,8 @@ import org.silkframework.util.{MockitoSugar, TestMocks}
 import scala.collection.immutable.SortedMap
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.entity.Entity
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.iterator.TraversableIterator
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 
@@ -30,18 +32,15 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       override def sparqlParams: SparqlParams = ???
       override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = ???
       override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
-        SparqlResults(Seq("s", "p", "o"), new TraversableIterator[SortedMap[String, RdfNode]] {
-          override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
-            var i = 0
-            while (i < limit) {
-              f(SortedMap("s" -> Resource(s"subject $i"), "p" -> Resource(s"predicate $i"), "o" -> PlainLiteral(s"literal $i")))
-              i += 1
-            }
+        val entities =
+          for(i <- Iterator.range(0, limit)) yield {
+            SortedMap("s" -> Resource(s"subject $i"), "p" -> Resource(s"predicate $i"), "o" -> PlainLiteral(s"literal $i"))
           }
-        })
+        SparqlResults(Seq("s", "p", "o"), CloseableIterator(entities))
       }
       override def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = ???
     }
+    Entity.empty("") // Make sure that Entity class is loaded
     val entityTable = new SparqlEndpointEntityTable(sparqlEndpoint, mock[Task[TaskSpec]])
     val start = System.currentTimeMillis()
     val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpointEntityTable(task, entityTable, executionReportUpdater = Some(reportUpdater))

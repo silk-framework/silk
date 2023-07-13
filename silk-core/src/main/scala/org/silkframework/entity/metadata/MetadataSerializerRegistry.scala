@@ -25,10 +25,7 @@ trait MetadataSerializerRegistry[Format <: Any] {
 
   def getSerializationFormat[T](key: String): Option[SerializationFormat[T, Format] with MetadataSerializer] ={
     SerializerRegistry.get(key) match{
-      case Some(ser) => ser.valueType match{
-        case _:T => Some(ser.asInstanceOf[SerializationFormat[T, Format] with MetadataSerializer])              //NOTE: unchecked conversion to T
-        case _ => None
-      }
+      case Some(ser) => Some(ser.asInstanceOf[SerializationFormat[T, Format] with MetadataSerializer])
       case None => None
     }
   }

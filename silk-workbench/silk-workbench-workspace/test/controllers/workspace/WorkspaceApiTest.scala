@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import controllers.workspace.WorkspaceApiTest.TestTransformer
 import controllers.workspace.routes.ResourceApi
 import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspace.workspaceRequests.CopyTasksResponse
@@ -28,6 +29,7 @@ import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.libs.json.Json
 import testWorkspace.Routes
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.runtime.plugin.PluginRegistry
 
 /**
   * Workspace API integration tests.
@@ -102,10 +104,12 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
     }
   }
 
+  PluginRegistry.registerPlugin(classOf[TestTransformer])
+
   private var counter = 0
   private def transformInput(resource: Resource): TransformInput = {
     counter += 1
-    TransformInput(s"id$counter", transformer = TestTransformer(Seq(resource)))
+    TransformInput(s"id$counter", transformer = TestTransformer(resource))
   }
 
   "Resource usage endpoint" should {
@@ -177,8 +181,14 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with Matchers 
       }
     }
   }
+}
 
-  case class TestTransformer(override val referencedResources: Seq[Resource]) extends Transformer {
+object WorkspaceApiTest {
+  case class TestTransformer(referencedResource: Resource) extends Transformer {
     override def apply(values: Seq[Seq[String]]): Seq[String] = Seq.empty
+
+    override def referencedResources: Seq[Resource] = {
+      Seq(referencedResource)
+    }
   }
 }

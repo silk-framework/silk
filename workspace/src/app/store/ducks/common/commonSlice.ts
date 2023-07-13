@@ -118,7 +118,7 @@ export const commonSlice = createSlice({
 
         setArtefactsList: (state, action: PayloadAction<IPluginOverview[]>) => {
             // Calculate category counts
-            const categories: Record<string, number> = {};
+            const categories: Record<string, number> = Object.create(null);
             categories["All"] = action.payload.length;
             action.payload.forEach((itemDescription) => {
                 (itemDescription.categories ?? []).forEach((category) => {

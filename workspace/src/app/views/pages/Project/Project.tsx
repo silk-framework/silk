@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,18 +28,21 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Filterbar from "../Workspace/Filterbar";
 import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
-import WarningWidget from "./WarningWidget";
+import { ProjectTaskLoadingErrors } from "./WarningWidget/WarningWidget";
 import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
+import { Warning } from "gui-elements-deprecated";
 
 const Project = () => {
     const dispatch = useDispatch();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const currentSearchQuery = useRef<string>("");
+    currentSearchQuery.current = textQuery;
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
     const data = useSelector(workspaceSel.resultsSelector);
@@ -168,7 +171,9 @@ const Project = () => {
                     <FileWidget />
                     <Spacing />
                     <ConfigurationWidget />
-                    <WarningWidget />
+                    <Spacing />
+                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
+                    <Warning />
                     <Spacing />
                     <ActivityInfoWidget />
                     <Spacing />
