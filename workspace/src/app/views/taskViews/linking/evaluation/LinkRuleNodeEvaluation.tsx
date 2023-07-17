@@ -59,8 +59,6 @@ export const LinkRuleNodeEvaluation = ({
 
     const EXAMPLES_MAX = 20;
 
-    console.log({ ruleOperatorId, evaluationResult });
-
     return evaluationResult ? (
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             {evaluationResult.length > 0 ? (

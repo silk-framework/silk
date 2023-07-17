@@ -64,6 +64,8 @@ export const LinkingRuleEvaluation = ({
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
+    console.log({ ruleValidationError });
+
     React.useEffect(() => {
         setEvaluationResult([]);
         clearEntities();
@@ -202,6 +204,8 @@ export const LinkingRuleEvaluation = ({
                         ex
                     );
                 }
+            } else if (ex.isRuleValidationError) {
+                setRuleValidationError(ex);
             } else {
                 console.warn("Could not fetch evaluation results!", ex);
             }
