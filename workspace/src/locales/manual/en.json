@@ -747,8 +747,8 @@
                     "label": "Inverse link type",
                     "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
                 },
-                "isIrreflexive": {
-                    "label": "Irreflexive linking",
+                "excludeSelfReferences": {
+                    "label": "Exclude self references",
                     "description": "If enabled, no links are generated from a resource to itself."
                 },
                 "linkType": {

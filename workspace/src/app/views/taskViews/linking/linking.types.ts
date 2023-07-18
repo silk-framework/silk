@@ -15,8 +15,8 @@ export interface ILinkingRule {
     linkType: string;
     /** The optional inverse property URI of the link that would connect the target entity to the source entity. */
     inverseLinkType?: string | null;
-    /** If enabled, links will can be generated from a resource to itself, otherwise this would be prevented. */
-    isReflexive: boolean;
+    /** If enabled, links will not be generated from a resource to itself. */
+    excludeSelfReferences: boolean;
     /** Layout information of the link rule operators. */
     layout: RuleLayout;
     /** Visual annotations to be displayed in the editor. */

@@ -168,7 +168,7 @@
             </xs:sequence>
             <xs:attribute name="linkType" type="xs:string" use="optional"/>
             <xs:attribute name="inverseLinkType" type="xs:string" use="optional"/>
-            <xs:attribute name="isReflexive" type="xs:boolean" use="optional"/>
+            <xs:attribute name="excludeSelfReferences" type="xs:boolean" use="optional"/>
         </xs:complexType>
     </xs:element>
 

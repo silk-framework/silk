@@ -82,7 +82,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       ),
       linkType = "http://www.w3.org/2002/07/owl#sameAs",
       inverseLinkType = Some("http://www.w3.org/2002/07/owl#sameAsInv"),
-      isReflexive = false,
+      excludeSelfReferences = true,
       layout = RuleLayout(
         nodePositions = Map("compareNames" -> (1, 2))
       ),
