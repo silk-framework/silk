@@ -63,7 +63,6 @@ export const LinkingRuleEvaluation = ({
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const [evaluatedRuleOperatorIds, setEvaluatedRuleOperatorIds] = React.useState<string[]>([]);
 
-    console.log({ ruleValidationError });
     const [pathNotInCacheValidationError, setPathNotInCacheValidationError] = React.useState<
         { path: string; toTarget: boolean } | undefined
     >(undefined);
