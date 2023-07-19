@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
@@ -44,6 +45,10 @@ object PluginContext {
                         projectResource: ResourceManager,
                         templateVariables: TemplateVariablesReader = GlobalTemplateVariables)(implicit user: UserContext): PluginContext = {
     PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables)
+  }
+
+  def fromReadContext(readContext: ReadContext): PluginContext = {
+    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables)
   }
 
   private case class PlainPluginContext(prefixes: Prefixes,

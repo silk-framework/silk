@@ -272,8 +272,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-        project.startActivities()
         addProjectToCache(project)
+        project.startActivities()
       case None =>
         val errorMessage = s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!"
         log.warning(errorMessage)

@@ -16,6 +16,7 @@ import {
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { DatasetCharacteristics } from "../../../views/shared/typings";
 
 /**
  * Default Endpoint to get autocompletion values
@@ -67,7 +68,7 @@ export const requestTaskData = async <TASK_PARAMETERS = IArbitraryPluginParamete
     itemId: string,
     withLabel: boolean = false
 ): Promise<FetchResponse<IProjectTask<TASK_PARAMETERS>>> => {
-    const queryParams: any = {};
+    const queryParams: any = Object.create(null);
     if (withLabel) {
         queryParams.withLabels = true;
     }
@@ -157,5 +158,15 @@ export const requestResourcesList = async (
 export const requestItemLinks = async (projectId: string, taskId: string): Promise<FetchResponse<IItemLink[]>> => {
     return fetch({
         url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/links`),
+    });
+};
+
+/** Fetches dataset characteristics for a specific dataset. */
+export const requestDatasetCharacteristics = async (
+    projectId: string,
+    datasetId: string
+): Promise<FetchResponse<DatasetCharacteristics>> => {
+    return fetch({
+        url: projectApi(`/${projectId}/datasets/${datasetId}/characteristics`),
     });
 };

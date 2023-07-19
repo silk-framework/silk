@@ -1,6 +1,6 @@
 package controllers.workspace.doc
 
-object DatasetApiDoc {
+object LegacyDatasetApiDoc {
 
   final val datasetExampleJson =
     """

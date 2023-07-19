@@ -15,6 +15,7 @@
 package org.silkframework.rule.plugins
 
 import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
+import org.silkframework.rule.LinkageRule.LinkageRuleFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
@@ -42,7 +43,9 @@ import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
+import org.silkframework.workspace.annotation.UiAnnotations.UiAnnotationsXmlFormat
 
+import scala.::
 import scala.language.existentials
 
 /**
@@ -185,7 +188,9 @@ class RulePlugins extends PluginModule {
     TransformRuleFormat.getClass ::
     MappingRulesFormat.getClass ::
     RootMappingRuleFormat.getClass ::
+    LinkageRuleFormat.getClass ::
     LinkSpecificationFormat.getClass ::
+    UiAnnotationsXmlFormat.getClass ::
     Nil
 
   private def pluginParameterTypes: List[Class[_ <: AnyPlugin]] =

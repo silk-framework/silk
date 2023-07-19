@@ -10,7 +10,7 @@ import play.api.libs.json.{Format, Json}
 object ProjectLoadingErrors {
   def fromTaskLoadingError(taskLoadingError: TaskLoadingError): ErrorReportItem = {
     ErrorReportItem(
-      projectId = taskLoadingError.projectId,
+      projectId = taskLoadingError.projectId.map(_.toString),
       taskId = Some(taskLoadingError.taskId),
       activityId = None,
       errorSummary = "Loading failed: " + taskLoadingError.label.getOrElse(taskLoadingError.taskId),

@@ -1,6 +1,9 @@
 package org.silkframework.runtime.plugin
 
+import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
+
+import scala.xml.{Elem, Node}
 
 /**
   * The value of a plugin parameter.
@@ -15,8 +18,40 @@ case class ParameterStringValue(value: String) extends ParameterValue
 /**
   * An object parameter value.
   * Can be used for parameters that cannot be represented as strings.
+  *
+  * @param xmlFormat        The XML format the parameter value object was serialized with.
+  * @param xmlSerialization The XML serialization of the parameter value object.
+  *
   */
-case class ParameterObjectValue(value: AnyRef) extends ParameterValue
+case class ParameterObjectValue(valueOrSerialization: Either[AnyRef, ParameterObjectValueSerialized]) extends ParameterValue {
+  /** Deserializes the parameter value with the given plugin context. */
+  def value(pluginContext: PluginContext): AnyRef = {
+    valueOrSerialization match {
+      case Left(v) => v
+      case Right(ParameterObjectValueSerialized(xmlFormat, xmlSerialization)) =>
+        implicit val readContext: ReadContext = ReadContext.fromPluginContext()(pluginContext)
+        xmlFormat.read(xmlSerialization).asInstanceOf[AnyRef]
+    }
+  }
+}
+
+case class ParameterObjectValueSerialized(xmlFormat: SerializationFormat[Any, Node], xmlSerialization: Node)
+
+object ParameterObjectValue {
+  def apply(parameterValue: AnyRef)
+           (implicit  pluginContext: PluginContext): ParameterObjectValue = {
+    try {
+      val xmlFormat = Serialization.formatForDynamicType[Node](parameterValue.getClass)
+      implicit val writeContext: WriteContext[Node] = WriteContext.fromPluginContext[Node]()(pluginContext)
+      val valueXml = xmlFormat.write(parameterValue)
+      ParameterObjectValue(Right(ParameterObjectValueSerialized(xmlFormat, valueXml)))
+    } catch {
+      case _: NoSuchElementException =>
+        ParameterObjectValue(Left(parameterValue))
+    }
+
+  }
+}
 
 /**
   * A template parameter value.

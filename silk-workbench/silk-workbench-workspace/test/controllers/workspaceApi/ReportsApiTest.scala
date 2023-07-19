@@ -3,7 +3,10 @@ package controllers.workspaceApi
 import akka.actor.ActorSystem
 import controllers.util.ReportsApiClient
 import helper.IntegrationTestTrait
-import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.concurrent.Eventually
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.time.{Seconds, Span}
 import org.silkframework.config.{CustomTask, PlainTask, Prefixes, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
@@ -18,10 +21,8 @@ import play.api.routing.Router
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Await
 import scala.concurrent.duration.{Duration, MINUTES}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
-class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsApiClient with Matchers {
+class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsApiClient with Matchers with Eventually {
 
   behavior of "Report API"
 
@@ -30,6 +31,8 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   private implicit val actorSystem: ActorSystem = app.injector.instanceOf[ActorSystem]
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(30, Seconds)))
 
   it should "provide updates to the current report" in {
     PluginRegistry.registerPlugin(classOf[TestCustomTask])

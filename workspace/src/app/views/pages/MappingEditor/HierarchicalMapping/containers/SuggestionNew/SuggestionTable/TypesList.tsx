@@ -33,12 +33,8 @@ export default function TypesList({ onChange, selected }: IProps) {
             items={TYPES}
             itemRenderer={itemRenderer}
             itemsEqual={areTypesEqual}
-            contextOverlayProps={{
-                minimal: true,
-                portalContainer: context.portalContainer,
-            }}
-        >
-            <Button rightIcon="toggler-caret" text={selected} />
-        </TypesSelect>
+            fill
+            text={selected}
+        />
     );
 }

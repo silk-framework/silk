@@ -33,9 +33,9 @@ class SparqlSink(params: SparqlParams,
 
   override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    val (newStatements, statementCount) = formatLink(link, predicateUri)
+    val (newStatements, statementCount) = formatLink(link, predicateUri, inversePredicateUri)
     if(body.isEmpty) {
       beginSparul()
     } else if (statements + statementCount > statementsPerRequest) {
@@ -75,6 +75,11 @@ class SparqlSink(params: SparqlParams,
           endpoint.update(s"DROP SILENT DEFAULT")
       }
     }
+  }
+
+  def writeStatements(subject: String, property: String, value: String, valueType: ValueType)
+                    (implicit userContext: UserContext): Unit = {
+
   }
 
   def writeStatement(subject: String, property: String, value: String, valueType: ValueType)

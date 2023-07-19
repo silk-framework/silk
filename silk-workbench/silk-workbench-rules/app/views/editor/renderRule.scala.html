@@ -92,7 +92,7 @@
     comparisonNode <- rootInputNode.moveUp
   } {
     // The operator is a source input if it is the first child of the comparison
-    isSource = comparisonNode.iterateChildren.next.operator.id == rootInputNode.operator.id
+    isSource = comparisonNode.iterateChildren.next().operator.id == rootInputNode.operator.id
   }
   isSource
 }

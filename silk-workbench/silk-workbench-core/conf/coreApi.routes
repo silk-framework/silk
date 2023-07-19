@@ -12,5 +12,6 @@ DELETE     /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.V
 POST       /variableTemplate/reorderVariables controllers.workspaceApi.coreApi.VariableTemplateApi.reorderVariables(project: String)
 POST       /variableTemplate/validation       controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
 POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
+GET        /datasets/resourceBased    controllers.workspaceApi.coreApi.PluginApi.resourceBasedDatasetIds()
 
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()

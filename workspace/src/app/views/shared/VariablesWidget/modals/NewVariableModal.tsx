@@ -129,8 +129,12 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         setDescription("");
         setErrorMessage("");
         setValidationError(undefined);
-        valueState.current.inputValueBeforeSwitch = "";
-        valueState.current.templateValueBeforeSwitch = "";
+        valueState.current = {
+            inputValueBeforeSwitch: "",
+            templateValueBeforeSwitch: "",
+            currentTemplateValue: "",
+            currentInputValue: "",
+        };
     }, []);
 
     /**

@@ -27,7 +27,7 @@ case class GetValueByIndexTransformer(index: Int,
       vs.drop(index).headOption match {
         case None if failIfNotFound =>
           throw new IndexOutOfBoundsException("No value at index " + index + ".")
-        case None if !failIfNotFound =>
+        case None =>
           Seq()
         case Some(v) =>
           if(emptyStringToEmptyResult && v.isEmpty) {

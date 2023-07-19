@@ -5,14 +5,15 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.xml.{Node, Text}
 
@@ -244,7 +245,25 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /** Returns all Dataset tasks that are used as outputs in the workflow */
   def outputDatasets(project: Project)
                     (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
-    for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
+    val configInputs = new mutable.HashMap[String, String]()
+    for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
+      configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
+    }
+    val operatorsWithDataOutput: Set[Identifier] = operators
+      .map(op => op.task).distinct
+      .filter(taskId => project.anyTask(taskId).outputSchemaOpt.isDefined)
+      .toSet
+    // Filter out datasets that have no real data input
+    val datasetNodesWithRealInputs = operators.flatMap(op => {
+      if(!operatorsWithDataOutput.contains(op.task)) {
+        // The operator node that goes into the dataset must have real data output
+        Seq.empty
+      } else {
+        // and is not connected to the config port of the dataset
+        op.outputs.filter(output => !configInputs.get(output).contains(op.nodeId))
+      }
+    }).distinct
+    for (datasetNodeId <- datasetNodesWithRealInputs;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
     }
@@ -345,6 +364,22 @@ case class WorkflowOperatorsParameter(value: Seq[WorkflowOperator]) extends Plug
 object WorkflowOperatorsParameter {
   implicit def toWorkflowOperatorParameter(v: Seq[WorkflowOperator]): WorkflowOperatorsParameter = WorkflowOperatorsParameter(v)
   implicit def fromWorkflowOperatorParameter(v: WorkflowOperatorsParameter): Seq[WorkflowOperator] = v.value
+
+  implicit object WorkflowOperatorsFormat extends XmlFormat[WorkflowOperatorsParameter] {
+    override def read(node: Node)(implicit readContext: ReadContext): WorkflowOperatorsParameter = {
+      for (op <- node \ "Operator") yield {
+        WorkflowOperator.workflowOperatorXmlFormat.read(op)
+      }
+    }
+
+    override def write(operators: WorkflowOperatorsParameter)(implicit writeContext: WriteContext[Node]): Node = {
+      <WorkflowOperators>
+        {for (op <- operators.value) yield {
+        WorkflowOperator.workflowOperatorXmlFormat.write(op)
+      }}
+      </WorkflowOperators>
+    }
+  }
 }
 
 /** Plugin parameter for the workflow datasets. */
@@ -353,6 +388,22 @@ case class WorkflowDatasetsParameter(value: Seq[WorkflowDataset]) extends Plugin
 object WorkflowDatasetsParameter {
   implicit def toWorkflowDatasetParameter(v: Seq[WorkflowDataset]): WorkflowDatasetsParameter = WorkflowDatasetsParameter(v)
   implicit def fromWorkflowDatasetParameter(v: WorkflowDatasetsParameter): Seq[WorkflowDataset] = v.value
+
+  implicit object WorkflowDatasetsFormat extends XmlFormat[WorkflowDatasetsParameter] {
+    override def read(node: Node)(implicit readContext: ReadContext): WorkflowDatasetsParameter = {
+      for (op <- node \ "Dataset") yield {
+        WorkflowDataset.workflowDatasetXmlFormat.read(op)
+      }
+    }
+
+    override def write(operators: WorkflowDatasetsParameter)(implicit writeContext: WriteContext[Node]): Node = {
+      <WorkflowDatasets>
+        {for (op <- operators.value) yield {
+        WorkflowDataset.workflowDatasetXmlFormat.write(op)
+      }}
+      </WorkflowDatasets>
+    }
+  }
 }
 
 /** Used e.g. for replaceable input/output lists. */
@@ -362,6 +413,16 @@ object TaskIdentifierParameter {
   implicit def toTaskIdentifierParameter(v: Seq[String]): TaskIdentifierParameter = TaskIdentifierParameter(v)
 
   implicit def fromTaskIdentifierParameter(v: TaskIdentifierParameter): Seq[String] = v.taskIds
+
+  implicit object TaskIdentifierParameterXmlFormat extends XmlFormat[TaskIdentifierParameter] {
+    override def read(value: Node)(implicit readContext: ReadContext): TaskIdentifierParameter = {
+      TaskIdentifierParameter(Workflow.taskIds(value.text))
+    }
+
+    override def write(value: TaskIdentifierParameter)(implicit writeContext: WriteContext[Node]): Node = {
+      Text(value.taskIds.mkString(","))
+    }
+  }
 }
 
 /** All IDs of replaceable datasets in a workflow */
@@ -400,38 +461,12 @@ object Workflow {
     override def read(xml: Node)(implicit readContext: ReadContext): Workflow = {
       val operators =
         for (op <- xml \ "Operator") yield {
-          val inputStr = (op \ "@inputs").text
-          val outputStr = (op \ "@outputs").text
-          val errorOutputStr = (op \ "@errorOutputs").text
-          val configInputStr = (op \ "@configInputs").text
-          val task = (op \ "@task").text
-          WorkflowOperator(
-            inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
-            task = task,
-            outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
-            errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
-            position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
-            nodeId = parseNodeId(op, task),
-            outputPriority = parseOutputPriority(op),
-            configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
-          )
+          WorkflowOperator.workflowOperatorXmlFormat.read(op)
         }
 
       val datasets =
         for (ds <- xml \ "Dataset") yield {
-          val inputs = taskIds((ds \ "@inputs").text)
-          val outputs = taskIds((ds \ "@outputs").text)
-          val configInputStr = (ds \ "@configInputs").text
-          val task = (ds \ "@task").text
-          WorkflowDataset(
-            inputs = inputs,
-            task = task,
-            outputs = outputs,
-            position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
-            nodeId = parseNodeId(ds, task),
-            outputPriority = parseOutputPriority(ds),
-            configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
-          )
+          WorkflowDataset.workflowDatasetXmlFormat.read(ds)
         }
 
       val stickyNotes = (xml \ "UiAnnotations" \ "StickyNotes" \ "StickyNote").map(StickyNote.StickyNodeXmlFormat.read)
@@ -447,49 +482,12 @@ object Workflow {
       import workflow._
       <Workflow replaceableInputs={workflow.replaceableInputs.mkString(",")} replaceableOutputs={workflow.replaceableOutputs.mkString(",")}>
         {for (op <- operators) yield {
-          <Operator
-          posX={op.position._1.toString}
-          posY={op.position._2.toString}
-          task={op.task}
-          inputs={op.inputs.mkString(",")}
-          outputs={op.outputs.mkString(",")}
-          errorOutputs={op.errorOutputs.mkString(",")}
-          id={op.nodeId}
-          outputPriority={op.outputPriority map (priority => Text(priority.toString))}
-          configInputs={op.configInputs.mkString(",")}
-          />
+          WorkflowOperator.workflowOperatorXmlFormat.write(op)
       }}{for (ds <- datasets) yield {
-          <Dataset
-          posX={ds.position._1.toString}
-          posY={ds.position._2.toString}
-          task={ds.task}
-          inputs={ds.inputs.mkString(",")}
-          outputs={ds.outputs.mkString(",")}
-          id={ds.nodeId}
-          outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
-          configInputs={ds.configInputs.mkString(",")}
-          />
+        WorkflowDataset.workflowDatasetXmlFormat.write(ds)
       }}
         {UiAnnotations.UiAnnotationsXmlFormat.write(workflow.uiAnnotations)}
       </Workflow>
-    }
-
-    private def parseOutputPriority(op: Node): Option[Double] = {
-      val node = op \ "@outputPriority"
-      if (node.isEmpty) {
-        None
-      } else {
-        Some(node.text.toDouble)
-      }
-    }
-
-    private def parseNodeId(op: Node, task: String): String = {
-      val node = op \ "@id"
-      if (node.isEmpty) {
-        task
-      } else {
-        node.text
-      }
     }
   }
 }

@@ -1,5 +1,5 @@
 import React, { memo, MouseEventHandler } from "react";
-import { AutoSuggestion, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import {
@@ -324,16 +324,14 @@ export const TemplateInputComponent = memo(
         );
 
         return (
-            <>
-                <AutoSuggestion
-                    id={parameterId}
-                    initialValue={initialValue}
-                    onChange={onTemplateValueChange}
-                    fetchSuggestions={autoComplete}
-                    checkInput={checkTemplate}
-                    autoCompletionRequestDelay={200}
-                />
-            </>
+            <CodeAutocompleteField
+                id={parameterId}
+                initialValue={initialValue}
+                onChange={onTemplateValueChange}
+                fetchSuggestions={autoComplete}
+                checkInput={checkTemplate}
+                autoCompletionRequestDelay={200}
+            />
         );
     }
 );
