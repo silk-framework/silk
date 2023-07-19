@@ -1,7 +1,17 @@
 import React from "react";
 import _ from "lodash";
 import { Icon } from "gui-elements-deprecated";
-import { InteractionGate, Notification, Tree, TreeNodeInfo } from "@eccenca/gui-elements";
+import {
+    InteractionGate,
+    Notification,
+    Tree,
+    TreeNodeInfo,
+    Button,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverflowText,
+} from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -109,11 +119,16 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
             const label = (
                 <div
-                    className={`ecc-silk-mapping__treenav--item${
+                    className={`ecc-silk-mapping__treenav--item ecc-silk-mapping__treenav--item--ignorestyles${
                         currentRuleId === id ? " ecc-silk-mapping__treenav--item-active" : ""
                     }`}
                 >
-                    <button
+                    <Button
+                        alignText="left"
+                        minimal
+                        fill
+                        active={currentRuleId === id}
+                        icon={renderRuleIcon(id) ?? undefined}
                         className="ecc-silk-mapping__treenav--item-handler"
                         data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
                         onClick={() => {
@@ -126,18 +141,21 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                             handleRuleNavigation({ newRuleId: id, parentId: undefined });
                         }}
                     >
-                        <span className="ecc-silk-mapping__treenav--item-maintitle">
-                            <span>
-                                {renderRuleIcon(id)}
-                                <RuleTitle rule={parent} />
-                            </span>
-                        </span>
-                        {parentType === MAPPING_RULE_TYPE_OBJECT && (
-                            <small className="ecc-silk-mapping__treenav--item-rule-subtitle">
-                                <RuleTypes rule={parent} />
-                            </small>
-                        )}
-                    </button>
+                        <OverviewItem densityHigh>
+                            <OverviewItemDescription>
+                                <OverviewItemLine className="ecc-silk-mapping__treenav--item-maintitle">
+                                    <RuleTitle rule={parent} />
+                                </OverviewItemLine>
+                                {parentType === MAPPING_RULE_TYPE_OBJECT && (
+                                    <OverviewItemLine small className="ecc-silk-mapping__treenav--item-rule-subtitle">
+                                        <OverflowText>
+                                            <RuleTypes rule={parent} />
+                                        </OverflowText>
+                                    </OverviewItemLine>
+                                )}
+                            </OverviewItemDescription>
+                        </OverviewItem>
+                    </Button>
                 </div>
             );
             return {
