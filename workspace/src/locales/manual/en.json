@@ -454,7 +454,9 @@
                 "query": "Queries",
                 "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
                 "vocab": "Vocabularies",
-                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
+                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog.",
+                "thesaurus": "Thesauri",
+                "thesaurusTooltip": "The thesaurus module provides an interface for browsing, editing, structuring and linking concepts in a taxonomy based on SKOS."
             },
             "dmBrowser": "Explore",
             "open": "Open navigation",
