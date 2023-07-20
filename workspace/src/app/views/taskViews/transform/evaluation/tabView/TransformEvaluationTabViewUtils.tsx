@@ -3,7 +3,7 @@ import React from "react";
 import fetch from "../../../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../../../utils/getApiEndpoint";
 import { EvaluatedEntityOperator, EvaluatedRuleEntityResult, EvaluatedRuleOperator } from "./typing";
-import { Tag, TagList, TreeNodeInfo } from "@eccenca/gui-elements";
+import { Icon, Tag, TagList, TreeNodeInfo } from "@eccenca/gui-elements";
 import { IPluginDetails } from "@ducks/common/typings";
 import { OperatorLabel } from "../../../../../views/taskViews/shared/evaluations/OperatorLabel";
 import { useTranslation } from "react-i18next";
@@ -48,7 +48,7 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
 
         return (
             <TagList>
-                {!values.length && (
+                {!values.length && !error && (
                     <Tag
                         htmlTitle={error || t("common.messages.noValuesAvailable")}
                         round={true}
@@ -58,6 +58,7 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                         N/A
                     </Tag>
                 )}
+                {!values.length && error && <Icon intent="warning" name="state-warning" tooltipText={error} />}
                 {values.slice(0, cutAfter).map((v, i) => (
                     <Tag key={i} round emphasis="stronger" interactive {...otherTagProps}>
                         {v}
