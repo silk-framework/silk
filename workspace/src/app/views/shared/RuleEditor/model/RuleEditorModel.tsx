@@ -47,7 +47,7 @@ import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import {LanguageFilterProps} from "../view/ruleNode/PathInputOperator";
+import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -221,12 +221,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     useEffect(() => {
         if (evaluateQuickly) {
             const timeout = setTimeout(
-                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
+                () =>
+                    ruleEvaluationContext.startEvaluation(
+                        ruleOperatorNodes(currentSubtreeNodeId ? getSubTreeNodes(currentSubtreeNodeId) : undefined),
+                        ruleEditorContext.editedItem,
+                        true
+                    ),
                 500
             );
             return () => clearTimeout(timeout);
         }
-    }, [evaluationCounter, evaluateQuickly]);
+    }, [evaluationCounter, evaluateQuickly, currentSubtreeNodeId]);
 
     /** Inline rule evaluation */
     React.useEffect(() => {
@@ -1475,15 +1480,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
         const node = nodeMap.get(nodeId);
         if (node) {
-            const enabled = (
+            const enabled =
                 node.node.pluginType === "PathInputOperator" &&
                 !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
-                    .languageFilter
-            );
+                    .languageFilter;
             return {
                 enabled,
-                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path)
-            }
+                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
+            };
         }
     };
 
@@ -1538,11 +1542,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
              note: there could be multiple edges hence do the same. 
              the goal is to get all the nodes connected to the focus node from the source.
           */
-        const getNodesAndEdgesIds = (currentNode) => {
-            nodesAndEdgesIds.push(currentNode);
+        const getNodesAndEdgesIds = (currentNodeId) => {
+            nodesAndEdgesIds.push(currentNodeId);
             const edges: Edge[] = [];
             current.elements.forEach((el) => {
-                if (utils.isEdge(el) && utils.asEdge(el)!.target === currentNode) {
+                if (utils.isEdge(el) && utils.asEdge(el)!.target === currentNodeId) {
                     edges.push(utils.asEdge(el)!);
                 }
             });
