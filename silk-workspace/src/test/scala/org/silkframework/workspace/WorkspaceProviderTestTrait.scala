@@ -136,9 +136,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                   ComplexMapping(
                     id = "complexId",
                     operator = TransformInput("lower", transformer = LowerCaseTransformer(),
-                      inputs = Seq(
+                      inputs = IndexedSeq(
                         TransformInput("concat", transformer = ConcatTransformer(),
-                          inputs = Seq(
+                          inputs = IndexedSeq(
                             PathInput("path", UntypedPath.parse("path"))
                           )
                         )

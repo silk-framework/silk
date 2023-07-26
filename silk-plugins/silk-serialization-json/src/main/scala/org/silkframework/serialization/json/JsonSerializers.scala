@@ -227,7 +227,7 @@ object JsonSerializers {
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
         val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), ParameterValuesJsonFormat.read(value))
-        TransformInput(id, transformer, inputs.toList)
+        TransformInput(id, transformer, inputs.toIndexedSeq)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
       }

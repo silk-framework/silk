@@ -52,14 +52,14 @@ case class Comparison(id: Identifier = Operator.generateId,
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
     val values1 =
       try {
-        sourceInput.apply(entities.source)
+        sourceInput.apply(entities.source).values
       } catch {
         case NonFatal(_) =>
           Seq.empty
       }
     val values2 =
       try {
-        targetInput.apply(entities.target)
+        targetInput.apply(entities.target).values
       } catch {
         case NonFatal(_) =>
           Seq.empty
@@ -82,7 +82,7 @@ case class Comparison(id: Identifier = Operator.generateId,
     * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
     */
   override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
-    val values = Try(inputs.select(sourceOrTarget)(entity)).getOrElse(Seq.empty)
+    val values = Try(inputs.select(sourceOrTarget)(entity).values).getOrElse(Seq.empty)
 
     val distanceLimit = threshold * (1.0 - limit)
 

@@ -31,7 +31,7 @@ trait Input extends Operator {
    * @param entity The entity from which the values should be read.
    * @return The values.
    */
-  def apply(entity: Entity): Seq[String]
+  def apply(entity: Entity): Value
 }
 
 object Input {
