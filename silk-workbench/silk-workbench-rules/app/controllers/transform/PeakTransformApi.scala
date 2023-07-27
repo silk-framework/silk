@@ -326,10 +326,15 @@ object PeakTransformApi {
       tryCounter += 1
       val entity = exampleEntities.next()
       try {
-        //TODO forward errors?
-        val transformResult = rule(entity).values
-        if (transformResult.nonEmpty) {
-          resultBuffer.append(PeakResult(entity.values, transformResult))
+        val transformResult = rule(entity)
+        for(error <- transformResult.errors) {
+          errorCounter += 1
+          if (errorMessage.isEmpty) {
+            errorMessage = error.error.getClass.getSimpleName + ": " + Option(error.error.getMessage).getOrElse("")
+          }
+        }
+        if (transformResult.values.nonEmpty) {
+          resultBuffer.append(PeakResult(entity.values, transformResult.values))
           exampleCounter += 1
         }
       } catch {

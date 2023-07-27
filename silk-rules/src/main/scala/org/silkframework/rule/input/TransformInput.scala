@@ -15,6 +15,7 @@
 package org.silkframework.rule.input
 
 import org.silkframework.entity.Entity
+import org.silkframework.execution.ExecutionException
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
@@ -50,6 +51,8 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
     try {
       Value(transformer(inputValues), errors)
     } catch {
+      case ex: ExecutionException if ex.abortExecution =>
+        throw ex
       case NonFatal(ex) =>
         errors +:= OperatorEvaluationError(id, ex)
         Value(Seq.empty, errors)
