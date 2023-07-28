@@ -12,6 +12,7 @@ import ruleUtils from "../../shared/rules/rule.utils";
 import { transformToValueMap } from "../transformEditor.utils";
 import { LinkRuleNodeEvaluation } from "../../linking/evaluation/LinkRuleNodeEvaluation";
 import { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvaluation";
+import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -43,6 +44,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
+    // The root node of the sub-tree that will be evaluated
+    const evaluatedSubTreeNode = React.useRef<string>();
 
     React.useEffect(() => {
         setEvaluationResult([]);
@@ -99,14 +102,30 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         }
     };
 
+    const setEvaluationRootNode = React.useCallback((nodeId: string | undefined) => {
+        evaluatedSubTreeNode.current = nodeId;
+    }, []);
+
+    const evaluationRootNode = React.useCallback(() => {
+        return evaluatedSubTreeNode.current;
+    }, []);
+
+    const canBeEvaluated = React.useCallback((nodeType: string | undefined) => {
+        return true;
+    }, []);
+
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (
-        ruleOperatorNodes: IRuleOperatorNode[],
+        _ruleOperatorNodes: IRuleOperatorNode[],
         originalRule: any,
         quickEvaluationOnly: boolean = false
     ) => {
         setEvaluationRunning(true);
         setRuleValidationError(undefined);
+        let ruleOperatorNodes = _ruleOperatorNodes;
+        if (evaluatedSubTreeNode.current) {
+            ruleOperatorNodes = evaluationUtils.getSubTreeNodes(ruleOperatorNodes, evaluatedSubTreeNode.current);
+        }
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
@@ -184,7 +203,10 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 ruleValidationError,
                 clearRuleValidationError,
                 // Not needed yet
-                fetchTriggerEvaluationFunction: () => {}
+                fetchTriggerEvaluationFunction: () => {},
+                setEvaluationRootNode,
+                evaluationRootNode,
+                canBeEvaluated,
             }}
         >
             {children}

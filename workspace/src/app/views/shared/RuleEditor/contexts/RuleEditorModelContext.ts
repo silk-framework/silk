@@ -42,9 +42,7 @@ export interface RuleEditorModelContextProps {
      * Returns true if the node has been found and centered, else false. */
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
-    ruleOperatorNodes: (pristineElements?: Elements) => IRuleOperatorNode[];
-    /* from the focus node find all connected nodes that form the subtree*/
-    getSubTreeNodes: (nodeId: string) => Elements;
+    ruleOperatorNodes: () => IRuleOperatorNode[];
     /** The ID of the rule editor canvas element. */
     canvasId: string;
 }
@@ -155,6 +153,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
-    getSubTreeNodes: () => [],
     canvasId: "canvasId",
 });

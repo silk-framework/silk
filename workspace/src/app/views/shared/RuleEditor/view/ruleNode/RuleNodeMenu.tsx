@@ -80,16 +80,15 @@ export const RuleNodeMenu = ({
                         htmlTitle={ruleOperatorDescription}
                     />
                 ) : null}
-                {nodeType === "aggregator" || nodeType === "comparator" ? (
+                {ruleEvaluationContext.canBeEvaluated(nodeType) ? (
                     <MenuItem
                         data-test-id="rule-node-evaluate-btn"
                         key="evaluate-subtree"
                         icon={"item-start"}
                         onClick={(e) => {
                             e.preventDefault();
-                            const subtreeRuleOperatorNodes = modelContext.ruleOperatorNodes(
-                                modelContext.getSubTreeNodes(nodeId)
-                            );
+                            ruleEvaluationContext.setEvaluationRootNode(nodeId);
+                            const subtreeRuleOperatorNodes = modelContext.ruleOperatorNodes();
                             ruleEvaluationContext.startEvaluation(
                                 subtreeRuleOperatorNodes,
                                 ruleEditorContext.editedItem,

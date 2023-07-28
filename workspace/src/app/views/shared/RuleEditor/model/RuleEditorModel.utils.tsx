@@ -17,7 +17,7 @@ import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { IconButton } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import {LanguageFilterProps} from "../view/ruleNode/PathInputOperator";
+import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 /** Constants */
 
@@ -491,3 +491,7 @@ export const ruleEditorModelUtilsFactory = (
         nodesById,
     };
 };
+
+const defaultUtils = ruleEditorModelUtilsFactory();
+
+export default defaultUtils;
