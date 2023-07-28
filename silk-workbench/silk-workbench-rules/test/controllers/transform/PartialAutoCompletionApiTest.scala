@@ -2,7 +2,8 @@ package controllers.transform
 
 import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, CompletionBase, ReplacementInterval, ReplacementResults}
 import controllers.transform.autoCompletion._
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
@@ -152,12 +153,16 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
   }
 
   it should "not propose the exact same replacement if it is the only result" in {
-    rdfSuggestions("rdf:type") mustBe rdfOps
-    rdfSuggestions(s"<$RDF_NS/address>") mustBe rdfOps
+    // The backward operator is proposed for RDF in position 0, so show the path
+    rdfSuggestions("rdf:type", 0, None) mustBe Seq("rdf:type", "\\")
+    // No operator is proposed here at position 1, so do not show the path
+    rdfSuggestions(s"<$RDF_NS/address>", 1, None) mustBe Seq.empty
+    // The operators are proposed, so the path should also be shown
+    rdfSuggestions("rdf:type") mustBe Seq("rdf:type") ++ rdfOps
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
     jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
-    // here it's not the case and only the path ops show up
-    jsonSuggestionsForPath("phoneNumbers/number") mustBe jsonOps
+    // Here, the backward operator would show up, so also show the path
+    jsonSuggestions("name", 0, None) mustBe Seq("name", "\\")
   }
 
   it should "not propose path ops inside a filter" in {

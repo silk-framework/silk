@@ -109,7 +109,8 @@ object PartialSourcePathAutocompletionHelper {
   /** Returns filter results based on text query and the number of results limit. */
   def filterResults(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
                     pathToReplace: PathToReplace,
-                    completions: Completions): Completions = {
+                    completions: Completions,
+                    filterOutSingleExactQueryStringCompletion: Boolean): Completions = {
     val stringToBeReplaced = autoCompletionRequest.inputString.substring(pathToReplace.from, pathToReplace.from + pathToReplace.length)
     val filteredCompletions: Completions = pathToReplace.query match {
       case Some(query) =>
@@ -123,7 +124,7 @@ object PartialSourcePathAutocompletionHelper {
       case None =>
         Seq.empty
     }
-    if(filteredCompletions.values.size == 1 && filteredCompletions.values.head.value == stringToBeReplaced) {
+    if(filterOutSingleExactQueryStringCompletion && filteredCompletions.values.size == 1 && filteredCompletions.values.head.value == stringToBeReplaced) {
       // If only real search result has the exact same value as the string to be replaced, do not suggest anything.
       Seq.empty
     } else {

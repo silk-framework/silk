@@ -56,7 +56,7 @@ export interface LinkageRuleConfigItem {
 const LINK_TYPE = "linkType";
 const INVERSE_LINK_TYPE = "inverseLinkType";
 const LIMIT = "limit";
-const IS_IRREFLEXIVE_LINKING = "isIrreflexiveLinking";
+const EXCLUDE_SELF_REFERENCES = "excludeSelfReferences";
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const [loading, setLoading] = React.useState(false);
@@ -137,12 +137,12 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     type: "string",
                 },
                 {
-                    id: IS_IRREFLEXIVE_LINKING,
-                    label: t("widget.LinkingRuleConfigWidget.parameters.isIrreflexive.label"),
-                    value: `${!linkingRule.isReflexive}`,
-                    description: t("widget.LinkingRuleConfigWidget.parameters.isIrreflexive.description"),
+                    id: EXCLUDE_SELF_REFERENCES,
+                    label: t("widget.LinkingRuleConfigWidget.parameters.excludeSelfReferences.label"),
+                    value: `${linkingRule.excludeSelfReferences}`,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.excludeSelfReferences.description"),
                     validation: (value: string) => value === "true" || value === "false" || "No valid boolean value.",
-                    showReadOnly: !linkingRule.isReflexive,
+                    showReadOnly: linkingRule.excludeSelfReferences,
                     type: "boolean",
                 },
             ]);
@@ -173,9 +173,9 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
             } else {
                 linkingRule.filter.limit = undefined;
             }
-            const isIrreflexive = paramValue(IS_IRREFLEXIVE_LINKING);
-            if (isIrreflexive != null) {
-                linkingRule.isReflexive = isIrreflexive !== "true";
+            const excludeSelfReferences = paramValue(EXCLUDE_SELF_REFERENCES);
+            if (excludeSelfReferences != null) {
+                linkingRule.excludeSelfReferences = excludeSelfReferences === "true";
             }
             await updateLinkageRule(projectId, linkingTaskId, linkingRule);
             setShowModal(false);

@@ -30,7 +30,7 @@ object DetailedEvaluator {
   def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double): Option[EvaluatedLink] = {
     rule.operator match {
       case Some(op) =>
-        if(rule.isReflexive || entities.source.uri != entities.target.uri) {
+        if(!rule.excludeSelfReferences || entities.source.uri != entities.target.uri) {
           val confidence = evaluateOperator(op, entities, limit)
           if (confidence.score.getOrElse(-1.0) >= limit) {
             Some(new EvaluatedLink(entities.source.uri, entities.target.uri, entities, confidence))

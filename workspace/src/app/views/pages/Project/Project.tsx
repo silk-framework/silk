@@ -173,7 +173,6 @@ const Project = () => {
                     <ConfigurationWidget />
                     <Spacing />
                     <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
-                    <Warning />
                     <Spacing />
                     <ActivityInfoWidget />
                     <Spacing />
