@@ -22,6 +22,7 @@ import utils from "./LinkingRuleEvaluation.utils";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModal";
+import evaluationUtils from "../../shared/evaluations/evaluationOperations";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -61,6 +62,10 @@ export const LinkingRuleEvaluation = ({
     const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
+    const [evaluatedRuleOperatorIds, setEvaluatedRuleOperatorIds] = React.useState<string[]>([]);
+    // The root node of the sub-tree that will be evaluated
+    const evaluatedSubTreeNode = React.useRef<string>();
+
     const [pathNotInCacheValidationError, setPathNotInCacheValidationError] = React.useState<
         { path: string; toTarget: boolean } | undefined
     >(undefined);
@@ -93,18 +98,22 @@ export const LinkingRuleEvaluation = ({
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
                 if (evaluationResultsShown) {
-                    updateCallback(evaluationValues);
+                    updateCallback(!evaluatedRuleOperatorIds.includes(operatorId) ? undefined : evaluationValues);
                 }
             });
         } catch (ex) {
             console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
-    }, [evaluationResult, evaluationResultsShown]);
+    }, [evaluationResult, evaluationResultsShown, evaluatedRuleOperatorIds.join("|")]);
 
     const toggleEvaluationResults = (show: boolean) => {
         if (show) {
             nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
-                updateCallback(evaluationResultMap.get(ruleOperatorId));
+                updateCallback(
+                    !evaluatedRuleOperatorIds.includes(ruleOperatorId)
+                        ? undefined
+                        : evaluationResultMap.get(ruleOperatorId)
+                );
             });
         } else {
             nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
@@ -140,13 +149,30 @@ export const LinkingRuleEvaluation = ({
         }
     };
 
+    const setEvaluationRootNode = React.useCallback((nodeId: string | undefined) => {
+        evaluatedSubTreeNode.current = nodeId;
+    }, []);
+
+    const evaluationRootNode = React.useCallback(() => {
+        return evaluatedSubTreeNode.current;
+    }, []);
+
+    const canBeEvaluated = React.useCallback((nodeType: string | undefined) => {
+        return nodeType === "aggregator" || nodeType === "comparator";
+    }, []);
+
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (
-        ruleOperatorNodes: IRuleOperatorNode[],
+        _ruleOperatorNodes: IRuleOperatorNode[],
         originalTask: any,
         quickEvaluationOnly: boolean = false
     ) => {
         setEvaluationRunning(true);
+        let ruleOperatorNodes = _ruleOperatorNodes;
+        if (evaluatedSubTreeNode.current) {
+            ruleOperatorNodes = evaluationUtils.getSubTreeNodes(ruleOperatorNodes, evaluatedSubTreeNode.current);
+        }
+        setEvaluatedRuleOperatorIds(ruleOperatorNodes.map((r) => r.nodeId));
         clearRuleValidationErrors();
         try {
             const ruleTree = editorUtils.constructLinkageRuleTree(ruleOperatorNodes);
@@ -195,6 +221,8 @@ export const LinkingRuleEvaluation = ({
                         ex
                     );
                 }
+            } else if (ex.isRuleValidationError) {
+                setRuleValidationError(ex);
             } else {
                 console.warn("Could not fetch evaluation results!", ex);
             }
@@ -244,6 +272,9 @@ export const LinkingRuleEvaluation = ({
                 ruleValidationError,
                 clearRuleValidationError: clearRuleValidationErrors,
                 fetchTriggerEvaluationFunction,
+                setEvaluationRootNode,
+                evaluationRootNode,
+                canBeEvaluated,
             }}
         >
             {pathNotInCacheValidationError && triggerEvaluation.current && (

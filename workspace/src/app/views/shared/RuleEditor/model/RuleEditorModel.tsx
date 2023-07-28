@@ -47,7 +47,7 @@ import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import {LanguageFilterProps} from "../view/ruleNode/PathInputOperator";
+import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -1474,15 +1474,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
         const node = nodeMap.get(nodeId);
         if (node) {
-            const enabled = (
+            const enabled =
                 node.node.pluginType === "PathInputOperator" &&
                 !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
-                    .languageFilter
-            );
+                    .languageFilter;
             return {
                 enabled,
-                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path)
-            }
+                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
+            };
         }
     };
 
@@ -1508,6 +1507,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const autoLayout = (startTransaction: boolean = true) => {
         autoLayoutInternal(current.elements, true, startTransaction);
     };
+
+    React.useEffect(() => {
+        //make the current node id animated
+        changeElementsInternal((els) => {
+            const currentSubtreeNodeId = ruleEvaluationContext.evaluationRootNode();
+            return els.map((el) => {
+                if (el.id === currentSubtreeNodeId) {
+                    el.data = {
+                        ...el.data,
+                        animated: ruleEvaluationContext.evaluationRunning,
+                    };
+                }
+                return el;
+            });
+        });
+    }, [ruleEvaluationContext.evaluationRunning]);
 
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
     const ruleOperatorNodes = (): IRuleOperatorNode[] => {
