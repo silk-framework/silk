@@ -66,7 +66,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
   }
 
   private def mapping(id: String, prop: String) = {
-    val transformation = TransformInput(inputs = Seq(PathInput(path = UntypedPath(prop))), transformer = transformerWithExceptions())
+    val transformation = TransformInput(inputs = IndexedSeq(PathInput(path = UntypedPath(prop))), transformer = transformerWithExceptions())
     ComplexMapping(id = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
   }
 

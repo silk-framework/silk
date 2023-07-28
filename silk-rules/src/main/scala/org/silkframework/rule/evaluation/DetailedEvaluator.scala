@@ -69,7 +69,7 @@ object DetailedEvaluator {
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
     val uris = subjectRule match {
-      case Some(rule) => rule(entity)
+      case Some(rule) => rule(entity).values
       case None => Seq(entity.uri.toString)
     }
 
@@ -126,9 +126,10 @@ object DetailedEvaluator {
       try {
         TransformedValue(ti, ti.transformer(children.map(_.values)), children)
       } catch {
-        case NonFatal(ex) => TransformedValue(ti, Seq.empty, children, Some(ex))
+        case NonFatal(ex) =>
+          TransformedValue(ti, Seq.empty, children, Some(ex))
       }
 
-    case pi: PathInput => InputValue(pi, input(entity))
+    case pi: PathInput => InputValue(pi, input(entity).values)
   }
 }

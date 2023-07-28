@@ -32,7 +32,7 @@ case class ValidateRegex(
 
   private val compiledRegex = new Regex(regex)
 
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     if(!compiledRegex.pattern.matcher(value).matches()) {
       throw new ValidationException(s"Value '$value' did not match regular expression '$regex'.")
     } else {
