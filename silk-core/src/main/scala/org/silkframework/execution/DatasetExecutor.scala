@@ -4,6 +4,7 @@ import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 
 /**
   * Writes and/or reads a data set.
@@ -42,8 +43,10 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     output: ExecutorOutput,
     execution: ExecType,
     context: ActivityContext[ExecutionReport]
-  )(implicit userContext: UserContext, prefixes: Prefixes): Option[ExecType#DataType] = {
+  )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     implicit val c = context
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
     for (input <- inputs) {
       write(input, task, execution)
     }

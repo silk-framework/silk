@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
 import org.silkframework.entity.Entity
@@ -9,6 +9,7 @@ import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, Exe
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 
 /**
   * Local executor for [[SparqlSelectCustomTask]].
@@ -19,8 +20,9 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val taskData = task.data
+    implicit val user: UserContext = pluginContext.user
 
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>

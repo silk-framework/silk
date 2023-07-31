@@ -1,8 +1,8 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -134,7 +134,7 @@ object ExecutorRegistry extends ExecutorRegistry {
     output: ExecutorOutput,
     execution: ExecType,
     context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
-  )(implicit userContext: UserContext, prefixes: Prefixes): Option[ExecType#DataType] = {
+  )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
 
     val exec = executor(task.data, execution)
     exec.execute(task, inputs, output, execution, context)
