@@ -6,10 +6,10 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.{CustomTask, Prefixes, Task}
+import org.silkframework.config.{CustomTask, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
-import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.serialization.json.JsonHelpers
@@ -130,7 +130,7 @@ case class BlockingTaskExecutor() extends Executor[BlockingTask, ExecutionType] 
                        output: ExecutorOutput,
                        execution: ExecutionType,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[ExecutionType#DataType] = {
+                      (implicit pluginContext: PluginContext): Option[ExecutionType#DataType] = {
     while(BlockingTask.block) {
       Thread.sleep(1)
     }
