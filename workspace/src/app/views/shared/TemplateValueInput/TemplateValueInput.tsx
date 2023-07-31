@@ -5,13 +5,18 @@ import { ValueStateRef } from "../VariablesWidget/modals/NewVariableModal";
 import { TemplateInputComponent } from "../modals/CreateArtefactModal/ArtefactForms/ArtefactFormParameter";
 
 interface TemplateValueInputProps {
+    /** disables input to prevent interactivity */
     disabled?: boolean;
+    /** adds additional information to customer */
     helperText?: string;
     messageText?: string;
+    /** used to notify users in case of an error in the inputs */
     hasStateDanger?: boolean;
+    /** current project id */
     projectId: string;
     /** ID of the input component. */
     parameterId?: string;
+    /** in the case of an edit, this would be the current variable name */
     existingVariableName?: string;
 }
 

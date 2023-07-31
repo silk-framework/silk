@@ -114,9 +114,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     projectId,
                     reorderedVariables.map((v) => v.name)
                 );
-                if (res.axiosResponse.status === 200) {
-                    setVariables(reorderedVariables);
-                }
+                setVariables(reorderedVariables);
             } catch (err) {
                 if (err && (err as FetchError).isFetchError) {
                     registerError("VariableWidgetError", err.body.title, err);
