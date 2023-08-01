@@ -77,7 +77,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
-  libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % "test",
+  libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
