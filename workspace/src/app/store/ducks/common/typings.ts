@@ -1,6 +1,7 @@
 import {
     IAutocompleteDefaultResponse,
-    IMetadata, IProjectTask,
+    IMetadata,
+    IProjectTask,
     PluginType,
     TaskType,
     TemplateValueType,
@@ -142,6 +143,8 @@ export interface IProjectTaskUpdatePayload {
     alternativeTitle?: string;
 }
 
+export type MetaDataFactoryFunction = (pluginDetails: IPluginDetails) => IMetadata;
+
 /** Contains additional data to pre-set some configs or parameters when creating a new task. */
 export interface TaskPreConfiguration {
     /** Meta data to pre-configure the label or description of a task. */
@@ -153,13 +156,15 @@ export interface TaskPreConfiguration {
     /** When this is set the modal starts directly in the create-task step. */
     taskPluginId?: string;
     /** If it should be possible to create a project. */
-    showProjectItem?: boolean
+    showProjectItem?: boolean;
     /** If set to false, then the widget to change the project for the task will not be shown. Default: false */
-    showProjectChangeWidget?: boolean
+    showProjectChangeWidget?: boolean;
     /** Blacklist some plugins that should not be possible to create. */
-    pluginBlackList?: string[]
+    pluginBlackList?: string[];
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
-    alternativeCallback?: (newTask: IProjectTask) => any
+    alternativeCallback?: (newTask: IProjectTask) => any;
+    /** A factory function that should be called to generate meta data based on the selected plugin. */
+    metaDataFactoryFunction?: MetaDataFactoryFunction;
 }
 
 export interface ProjectTaskDownloadInfo {
@@ -205,7 +210,7 @@ export interface IArtefactModal {
     updateExistingTask?: IProjectTaskUpdatePayload;
 
     /** Allows to pre-set some of the task parameters or meta data when creating a new task. */
-    newTaskPreConfiguration?: TaskPreConfiguration
+    newTaskPreConfiguration?: TaskPreConfiguration;
 
     error: any;
 }
