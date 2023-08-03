@@ -13,11 +13,12 @@
  */
 
 package org.silkframework.rule.plugins.similarity
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
-import org.silkframework.rule.input.Input
+import org.silkframework.rule.input.{Input, Value}
 import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
 import org.silkframework.testutil.approximatelyEqualTo
 import org.silkframework.util.{DPair, Identifier}
@@ -48,7 +49,7 @@ class ComparisonTest extends AnyFlatSpec with Matchers {
 
   private object DummyInput extends Input {
     val id = Identifier.random
-    def apply(entity: Entity): Seq[String] = Seq("dummy")
+    def apply(entity: Entity): Value = Value(Seq("dummy"))
     def toXML(implicit prefixes: Prefixes): Node = null
     def children = Seq.empty
     def withChildren(newChildren: Seq[Operator]) = ???

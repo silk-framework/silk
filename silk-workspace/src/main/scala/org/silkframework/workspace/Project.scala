@@ -20,6 +20,7 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.templating.TemplateVariablesManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
@@ -39,6 +40,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
   val tagManager = new TagManager(initialConfig.id, provider)
+
+  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id))
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 

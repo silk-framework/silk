@@ -8,6 +8,7 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    Label,
     OverflowText,
     PropertyName,
     PropertyValue,
@@ -55,7 +56,7 @@ export interface LinkageRuleConfigItem {
 const LINK_TYPE = "linkType";
 const INVERSE_LINK_TYPE = "inverseLinkType";
 const LIMIT = "limit";
-const IS_IRREFLEXIVE_LINKING = "isIrreflexiveLinking";
+const EXCLUDE_SELF_REFERENCES = "excludeSelfReferences";
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const [loading, setLoading] = React.useState(false);
@@ -136,12 +137,12 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     type: "string",
                 },
                 {
-                    id: IS_IRREFLEXIVE_LINKING,
-                    label: t("widget.LinkingRuleConfigWidget.parameters.isIrreflexive.label"),
-                    value: `${!linkingRule.isReflexive}`,
-                    description: t("widget.LinkingRuleConfigWidget.parameters.isIrreflexive.description"),
+                    id: EXCLUDE_SELF_REFERENCES,
+                    label: t("widget.LinkingRuleConfigWidget.parameters.excludeSelfReferences.label"),
+                    value: `${linkingRule.excludeSelfReferences}`,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.excludeSelfReferences.description"),
                     validation: (value: string) => value === "true" || value === "false" || "No valid boolean value.",
-                    showReadOnly: !linkingRule.isReflexive,
+                    showReadOnly: linkingRule.excludeSelfReferences,
                     type: "boolean",
                 },
             ]);
@@ -172,9 +173,9 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
             } else {
                 linkingRule.filter.limit = undefined;
             }
-            const isIrreflexive = paramValue(IS_IRREFLEXIVE_LINKING);
-            if (isIrreflexive != null) {
-                linkingRule.isReflexive = isIrreflexive !== "true";
+            const excludeSelfReferences = paramValue(EXCLUDE_SELF_REFERENCES);
+            if (excludeSelfReferences != null) {
+                linkingRule.excludeSelfReferences = excludeSelfReferences === "true";
             }
             await updateLinkageRule(projectId, linkingTaskId, linkingRule);
             setShowModal(false);
@@ -201,7 +202,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !parameters ? (
                     <Loading />
                 ) : (
@@ -212,7 +213,13 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                                 .map((paramConfig) => {
                                     return (
                                         <PropertyValuePair hasDivider key={paramConfig.id}>
-                                            <PropertyName title={paramConfig.label}>{paramConfig.label}</PropertyName>
+                                            <PropertyName title={paramConfig.label} size="large">
+                                                <Label
+                                                    isLayoutForElement="span"
+                                                    text={<OverflowText inline>{paramConfig.label}</OverflowText>}
+                                                    style={fixStyle}
+                                                />
+                                            </PropertyName>
                                             <PropertyValue>
                                                 <code style={fixStyle}>
                                                     {paramConfig.valueLabel ?? paramConfig.value}

@@ -454,7 +454,9 @@
                 "query": "Queries",
                 "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
                 "vocab": "Vocabularies",
-                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
+                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog.",
+                "thesaurus": "Thesauri",
+                "thesaurusTooltip": "The thesaurus module provides an interface for browsing, editing, structuring and linking concepts in a taxonomy based on SKOS."
             },
             "dmBrowser": "Explore",
             "open": "Open navigation",
@@ -524,6 +526,10 @@
                 },
                 "remove": {
                     "label": "Remove"
+                },
+                "subtree": {
+                    "label": "Evaluate subtree",
+                    "description": "Evaluate linking tree partially until this operator node."
                 }
             },
             "executionButtons": {
@@ -748,8 +754,8 @@
                     "label": "Inverse link type",
                     "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
                 },
-                "isIrreflexive": {
-                    "label": "Irreflexive linking",
+                "excludeSelfReferences": {
+                    "label": "Exclude self references",
                     "description": "If enabled, no links are generated from a resource to itself."
                 },
                 "linkType": {
@@ -831,6 +837,34 @@
             },
             "reloadAllCaches": "Reload all caches",
             "title": "Activity overview"
+        },
+        "VariableWidget": {
+            "title": "Variables",
+            "noVariables": "No variables set.",
+            "form": {
+                "name": "Name",
+                "value": "Value",
+                "description": "Description",
+                "infoBoxTitle": "Project variables",
+                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
+            },
+            "modalMessages": {
+                "deleteModalTitle": "Delete variable",
+                "deletePrompt": "Are you sure you want to delete variable '{{varname}}'?"
+            },
+            "actions": {
+                "add": "Add variable",
+                "edit": "Edit variable"
+            },
+            "formErrors": {
+                "nameAlreadyExists": "Name already exists",
+                "nameMustBeSpecified": "Name must be specified",
+                "mustProvideValOrTemplate": "Must provide value or template"
+            },
+            "errorMessages": {
+                "loadingVariables": "Could not load variables for project '{{projectId}}'",
+                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand"
+            }
         },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",

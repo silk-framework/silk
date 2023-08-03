@@ -1,6 +1,6 @@
 package org.silkframework.rule.vocab;
 
-import org.silkframework.runtime.plugin.EnumerationParameterType;
+import org.silkframework.runtime.plugin.types.EnumerationParameterType;
 
 /**
  * Enum that specifies the vocabulary category a transformation has enabled.

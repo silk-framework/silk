@@ -112,8 +112,9 @@ export const LinkRuleNodeEvaluation = ({
                                                     </OverflowText>
                                                 </OverviewItemLine>
                                             ) : (
-                                                value.slice(0, EXAMPLES_MAX - 1).map((value) => (
+                                                value.slice(0, EXAMPLES_MAX - 1).map((value, i) => (
                                                     <Tag
+                                                        key={i}
                                                         small={true}
                                                         minimal={true}
                                                         round={true}

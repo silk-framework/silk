@@ -4,6 +4,7 @@ import org.silkframework.config.{DefaultConfig, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.plugin.annotations.PluginType
+import org.silkframework.runtime.plugin.types.{EnumerationParameterType, GraphUriParameter, IdentifierOptionParameter, IntOptionParameter, MultilineStringParameter, PasswordParameter, ResourceOption, StringTraversableParameter, TemplateParameter}
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
@@ -197,7 +198,7 @@ object StringParameterType {
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
-      SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType,
+      SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
   }
 
@@ -636,6 +637,16 @@ object StringParameterType {
     override def description: String = "A graph URI."
 
     override def fromString(str: String)(implicit context: PluginContext): GraphUriParameter = GraphUriParameter(str)
+  }
+
+  object TemplateParameterType extends StringParameterType[TemplateParameter] {
+    override def name: String = "template"
+
+    override def description: String = "A template."
+
+    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str, context.templateVariables)
+
+    override def toString(value: TemplateParameter)(implicit pluginContext: PluginContext): String = value.templateStr
   }
 
   object PasswordParameterType extends StringParameterType[PasswordParameter] {

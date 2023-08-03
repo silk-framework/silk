@@ -5,7 +5,7 @@ import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 
 @Plugin(
   id = "sparqlUpdateOperator",

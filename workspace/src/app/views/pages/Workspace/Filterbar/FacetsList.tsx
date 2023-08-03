@@ -3,7 +3,7 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@eccenca/gui-elements";
+import { Button, HelperClasses, Spacing, TitleSubsection, Label } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
@@ -72,15 +72,11 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
             {facets.map((facet) => (
                 <div className={HelperClasses.Typography.NOOVERFLOW} key={facet.id}>
                     <TitleSubsection>
-                        <h3>
-                            {t(`widget.FacetsList.facet.${facet.id}.label`, facet.label)}
-                            <Spacing size="tiny" vertical />
-                            <Icon
-                                name="item-info"
-                                small
-                                tooltipText={t(`widget.FacetsList.facet.${facet.id}.description`, facet.description)}
-                            />
-                        </h3>
+                        <Label
+                            isLayoutForElement="h3"
+                            text={t(`widget.FacetsList.facet.${facet.id}.label`, facet.label)}
+                            tooltip={t(`widget.FacetsList.facet.${facet.id}.description`, facet.description)}
+                        />
                     </TitleSubsection>
                     <Spacing size="tiny" />
                     <ul>

@@ -44,6 +44,15 @@ export interface RuleEditorEvaluationContextProps {
 
     /** Called by the rule editor to give the function to trigger an evaluation to the evaluation component. */
     fetchTriggerEvaluationFunction: (triggerFunction: () => any) => any;
+
+    /** Sets the root node for the evaluation. This is reset by setting it to undefined. */
+    setEvaluationRootNode: (nodeId: string | undefined) => void;
+
+    /** Returns the evaluation root node ID. */
+    evaluationRootNode: () => string | undefined;
+
+    /** Checks if the sub-tree at the given node type can be evaluated. */
+    canBeEvaluated: (nodeType: string | undefined) => boolean;
 }
 
 const NOP = () => {};
@@ -62,4 +71,7 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
     ruleValidationError: undefined,
     clearRuleValidationError: NOP,
     fetchTriggerEvaluationFunction: NOP,
+    setEvaluationRootNode: NOP,
+    evaluationRootNode: () => undefined,
+    canBeEvaluated: () => false,
 });

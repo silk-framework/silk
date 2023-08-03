@@ -1508,6 +1508,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         autoLayoutInternal(current.elements, true, startTransaction);
     };
 
+    React.useEffect(() => {
+        //make the current node id animated
+        changeElementsInternal((els) => {
+            const currentSubtreeNodeId = ruleEvaluationContext.evaluationRootNode();
+            return els.map((el) => {
+                if (el.id === currentSubtreeNodeId) {
+                    el.data = {
+                        ...el.data,
+                        animated: ruleEvaluationContext.evaluationRunning,
+                    };
+                }
+                return el;
+            });
+        });
+    }, [ruleEvaluationContext.evaluationRunning]);
+
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
     const ruleOperatorNodes = (): IRuleOperatorNode[] => {
         const nodes: RuleEditorNode[] = [];

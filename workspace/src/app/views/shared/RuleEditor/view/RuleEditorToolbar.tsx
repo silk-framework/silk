@@ -88,7 +88,10 @@ export const RuleEditorToolbar = () => {
         setSavingWorkflow(false);
     };
 
+    // Start evaluation for the whole rule tree
     const startEvaluation = () => {
+        // Reset sub-tre evaluation if set
+        ruleEvaluationContext.setEvaluationRootNode(undefined);
         ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditorContext.editedItem, false);
         toggleEvaluation(true);
     };

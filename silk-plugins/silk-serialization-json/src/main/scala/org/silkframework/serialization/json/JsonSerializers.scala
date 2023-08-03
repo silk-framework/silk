@@ -227,7 +227,7 @@ object JsonSerializers {
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
         val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), ParameterValuesJsonFormat.read(value))
-        TransformInput(id, transformer, inputs.toList)
+        TransformInput(id, transformer, inputs.toIndexedSeq)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
       }
@@ -917,7 +917,7 @@ object JsonSerializers {
     final val FILTER = "filter"
     final val LINKTYPE = "linkType"
     final val INVERSELINKTYPE = "inverseLinkType"
-    final val IS_REFLEXIVE = "isReflexive"
+    final val EXCLUDE_SELF_REFERENCES = "excludeSelfReferences"
     final val UI_ANNOTATIONS = "uiAnnotations"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkageRule = {
@@ -926,7 +926,7 @@ object JsonSerializers {
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
         linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
         inverseLinkType = optionalValue(value, INVERSELINKTYPE).map(fromJson[Uri](_)),
-        isReflexive = booleanValueOption(value, IS_REFLEXIVE).getOrElse(true),
+        excludeSelfReferences = booleanValueOption(value, EXCLUDE_SELF_REFERENCES).getOrElse(false),
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
@@ -938,7 +938,7 @@ object JsonSerializers {
         FILTER -> toJson(value.filter),
         LINKTYPE -> toJson(value.linkType),
         INVERSELINKTYPE -> toJsonOpt(value.inverseLinkType),
-        IS_REFLEXIVE -> value.isReflexive,
+        EXCLUDE_SELF_REFERENCES -> value.excludeSelfReferences,
         LAYOUT -> toJson(value.layout),
         UI_ANNOTATIONS -> toJson(value.uiAnnotations)
       )

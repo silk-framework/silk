@@ -19,11 +19,10 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation.{DetailedEvaluator, EvaluatedLink, EvaluatedLinkWithDecision, ReferenceEntities, ReferenceLinks}
+import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
 import org.silkframework.serialization.json.JsonSerialization
@@ -138,9 +137,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def putRule(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     try {
       val updatedRule = linkageRule(request)

@@ -327,8 +327,14 @@ object PeakTransformApi {
       val entity = exampleEntities.next()
       try {
         val transformResult = rule(entity)
-        if (transformResult.nonEmpty) {
-          resultBuffer.append(PeakResult(entity.values, transformResult))
+        for(error <- transformResult.errors) {
+          errorCounter += 1
+          if (errorMessage.isEmpty) {
+            errorMessage = error.error.getClass.getSimpleName + ": " + Option(error.error.getMessage).getOrElse("")
+          }
+        }
+        if (transformResult.values.nonEmpty) {
+          resultBuffer.append(PeakResult(entity.values, transformResult.values))
           exampleCounter += 1
         }
       } catch {

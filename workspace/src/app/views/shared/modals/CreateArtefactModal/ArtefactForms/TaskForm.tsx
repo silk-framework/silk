@@ -3,7 +3,7 @@ import {
     IArtefactItemProperty,
     IPluginDetails,
     IPropertyAutocomplete,
-    TaskPreConfiguration
+    TaskPreConfiguration,
 } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
@@ -41,7 +41,7 @@ export interface IProps {
     parameterCallbacks: ParameterCallbacks;
 
     /** Allows to set some config/parameters for a newly created task. */
-    newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">
+    newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">;
 }
 
 export interface UpdateTaskProps {
@@ -80,7 +80,16 @@ const isInt = (value) => {
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange, parameterCallbacks, newTaskPreConfiguration }: IProps) {
+export function TaskForm({
+    form,
+    projectId,
+    artefact,
+    updateTask,
+    taskId,
+    detectChange,
+    parameterCallbacks,
+    newTaskPreConfiguration,
+}: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
@@ -90,13 +99,15 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     /** Initial values, these can be reified as {label, value} or directly set. */
-    const initialValues = existingTaskValuesToFlatParameters(updateTask ?
-        updateTask :
-        newTaskPreConfiguration && newTaskPreConfiguration.preConfiguredParameterValues ? {
-                parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
-                variableTemplateValues: {}
-            } :
-            undefined
+    const initialValues = existingTaskValuesToFlatParameters(
+        updateTask
+            ? updateTask
+            : newTaskPreConfiguration && newTaskPreConfiguration.preConfiguredParameterValues
+            ? {
+                  parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
+                  variableTemplateValues: {},
+              }
+            : undefined
     );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
@@ -241,9 +252,10 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             register({ name: IDENTIFIER });
             register({ name: TAGS });
         }
-        if(newTaskPreConfiguration) {
-            newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label)
-            newTaskPreConfiguration.metaData?.description && setValue(DESCRIPTION, newTaskPreConfiguration.metaData?.description)
+        if (newTaskPreConfiguration) {
+            newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label);
+            newTaskPreConfiguration.metaData?.description &&
+                setValue(DESCRIPTION, newTaskPreConfiguration.metaData?.description);
         }
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
@@ -252,9 +264,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         registerParameters(
             "",
             visibleParams,
-            updateTask ?
-                updateTask.parameterValues :
-                (newTaskPreConfiguration?.preConfiguredParameterValues ?? {}),
+            updateTask ? updateTask.parameterValues : newTaskPreConfiguration?.preConfiguredParameterValues ?? {},
             requiredRootParameters
         );
         setFormValueKeys(returnKeys);
@@ -320,6 +330,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                     <>
                         <ArtefactFormParameter
                             key={LABEL}
+                            projectId={projectId}
                             parameterId={LABEL}
                             label={t("form.field.label")}
                             required={true}
@@ -341,6 +352,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             )}
                         />
                         <ArtefactFormParameter
+                            projectId={projectId}
                             key={DESCRIPTION}
                             parameterId={DESCRIPTION}
                             label={t("form.field.description")}
@@ -354,6 +366,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             )}
                         />
                         <ArtefactFormParameter
+                            projectId={projectId}
                             key={TAGS}
                             parameterId={TAGS}
                             label={t("form.field.tags")}

@@ -116,6 +116,7 @@ function createOperatorNode(
             text={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
         />
     );
+    const type = nodeType(node.pluginType, node.pluginId);
 
     const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
@@ -131,6 +132,7 @@ function createOperatorNode(
             <RuleNodeMenu
                 nodeId={node.nodeId}
                 t={operatorContext.t}
+                nodeType={type}
                 handleDeleteNode={nodeOperations.handleDeleteNode}
                 ruleOperatorDescription={node.description}
                 ruleOperatorDocumentation={node.markdownDocumentation}
@@ -162,7 +164,7 @@ function createOperatorNode(
 
     return {
         id: node.nodeId,
-        type: nodeType(node.pluginType, node.pluginId),
+        type,
         position,
         data,
     };
@@ -489,3 +491,7 @@ export const ruleEditorModelUtilsFactory = (
         nodesById,
     };
 };
+
+const defaultUtils = ruleEditorModelUtilsFactory();
+
+export default defaultUtils;

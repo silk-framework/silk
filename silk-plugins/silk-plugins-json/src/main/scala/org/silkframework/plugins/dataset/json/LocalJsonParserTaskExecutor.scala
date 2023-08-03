@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 /**
   * Only considers the first input and checks for the property path defined in the [[JsonParserTask]] specification.
@@ -16,7 +17,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val spec = task.data
     if (inputs.size != 1) {
       throw TaskException("JsonParserTask takes exactly one input!")

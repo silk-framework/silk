@@ -4,6 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTrait
 
@@ -14,8 +15,9 @@ case class WriteContext[U](parent: Option[U] = None,
                            prefixes: Prefixes,
                            projectId: Option[Identifier] = None,
                            projectUri: Option[String] = None,
-                           resources: ResourceManager,
-                           user: UserContext = UserContext.Empty) extends PluginContext
+                           resources: ResourceManager = EmptyResourceManager(),
+                           user: UserContext = UserContext.Empty,
+                           templateVariables: TemplateVariablesReader = GlobalTemplateVariables) extends PluginContext
 
 object WriteContext {
 
@@ -28,7 +30,8 @@ object WriteContext {
       projectId = Some(project.id),
       projectUri = project.config.projectResourceUriOpt,
       resources = project.resources,
-      user = user
+      user = user,
+      templateVariables = project.combinedTemplateVariables
     )
   }
 
@@ -40,7 +43,8 @@ object WriteContext {
       projectId = pluginContext.projectId,
       projectUri = projectUri,
       resources = pluginContext.resources,
-      user = pluginContext.user
+      user = pluginContext.user,
+      templateVariables = pluginContext.templateVariables
     )
   }
 }

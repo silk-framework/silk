@@ -18,6 +18,7 @@ import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
@@ -81,7 +82,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       ),
       linkType = "http://www.w3.org/2002/07/owl#sameAs",
       inverseLinkType = Some("http://www.w3.org/2002/07/owl#sameAsInv"),
-      isReflexive = false,
+      excludeSelfReferences = true,
       layout = RuleLayout(
         nodePositions = Map("compareNames" -> (1, 2))
       ),
@@ -135,9 +136,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                   ComplexMapping(
                     id = "complexId",
                     operator = TransformInput("lower", transformer = LowerCaseTransformer(),
-                      inputs = Seq(
+                      inputs = IndexedSeq(
                         TransformInput("concat", transformer = ConcatTransformer(),
-                          inputs = Seq(
+                          inputs = IndexedSeq(
                             PathInput("path", UntypedPath.parse("path"))
                           )
                         )
@@ -602,6 +603,36 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     workspaceProvider.deleteTag(PROJECT_NAME, tag1.uri)
     refreshTest {
       workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag2)
+    }
+  }
+
+  it should "allow managing project template variables" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Initially, it should return an empty variable list
+    val variables = workspaceProvider.projectVariables(PROJECT_NAME)
+    variables.readVariables().map shouldBe empty
+
+    // Add variables and read again
+    val templateVariables1 = TemplateVariables(Seq(
+      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project"),
+      TemplateVariable("myVar2", "myValue2", None, Some("test description"), isSensitive = true, "project"),
+      TemplateVariable("myVar3", "myValue3", None, None, isSensitive = true, "project")
+    ))
+    variables.putVariables(templateVariables1)
+    refreshTest {
+      variables.readVariables() shouldBe templateVariables1
+    }
+
+    // Modify variables and read again
+    val templateVariables2 = TemplateVariables(Seq(
+      TemplateVariable("myVar2", "myValue2", None, Some("test description 2"), isSensitive = true, "project"),
+      TemplateVariable("myVar4", "myValue4", None, None, isSensitive = true, "project"),
+      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project")
+    ))
+    variables.putVariables(templateVariables2)
+    refreshTest {
+      variables.readVariables() shouldBe templateVariables2
     }
   }
 
