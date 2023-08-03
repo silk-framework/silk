@@ -168,15 +168,14 @@ const Project = () => {
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <FileWidget />
-                    <Spacing />
+                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
                     <ConfigurationWidget />
                     <Spacing />
-                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
+                    <VariablesWidget projectId={projectId} />
                     <Spacing />
                     <ActivityInfoWidget />
                     <Spacing />
-                    <VariablesWidget projectId={projectId} />
+                    <FileWidget />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

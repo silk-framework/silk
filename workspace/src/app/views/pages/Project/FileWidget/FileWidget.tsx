@@ -6,6 +6,7 @@ import {
     Card,
     CardContent,
     CardHeader,
+    CardOptions,
     CardTitle,
     Divider,
     Highlighter,
@@ -18,8 +19,6 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-    Toolbar,
-    ToolbarSection,
     HelperClasses,
 } from "@eccenca/gui-elements";
 import Loading from "../../../shared/Loading";
@@ -93,6 +92,14 @@ export const FileWidget = () => {
                     <CardTitle>
                         <h2>{t("widget.FileWidget.files", "Files")}</h2>
                     </CardTitle>
+                    <CardOptions>
+                        <IconButton
+                            name="item-add-artefact"
+                            data-test-id="project-files-widget-add-file-btn"
+                            text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
+                            onClick={toggleFileUploader}
+                        />
+                    </CardOptions>
                 </CardHeader>
                 <Divider />
                 <CardContent style={{ maxHeight: "25vh" }}>
@@ -101,24 +108,12 @@ export const FileWidget = () => {
                     ) : (
                         <>
                             {(!!textQuery || !!filesList.length) && (
-                                <Toolbar>
-                                    <ToolbarSection canGrow>
-                                        <SearchBar
-                                            textQuery={textQuery}
-                                            onSearch={onSearch}
-                                            data-test-id={"file-search-bar"}
-                                            focusOnCreation={!!textQuery.length}
-                                        />
-                                    </ToolbarSection>
-                                    <ToolbarSection>
-                                        <Spacing size="tiny" vertical />
-                                        <Button
-                                            elevated
-                                            text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
-                                            onClick={toggleFileUploader}
-                                        />
-                                    </ToolbarSection>
-                                </Toolbar>
+                                <SearchBar
+                                    textQuery={textQuery}
+                                    onSearch={onSearch}
+                                    data-test-id={"file-search-bar"}
+                                    focusOnCreation={!!textQuery.length}
+                                />
                             )}
                             {!!filesList.length && <Spacing size="tiny" />}
                             {!!filesList.length && (
@@ -200,7 +195,7 @@ export const FileWidget = () => {
                                 filesList.length > Math.min(pagination.total, pagination.minPageSize) &&
                                     paginationElement
                             }
-                            {!textQuery && !filesList.length && <EmptyFileWidget onFileAdd={toggleFileUploader} />}
+                            {!textQuery && !filesList.length && <EmptyFileWidget />}
                         </>
                     )}
                 </CardContent>
