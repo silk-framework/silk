@@ -7,6 +7,7 @@ import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
@@ -61,6 +62,12 @@ trait WorkspaceProvider extends AnyPlugin {
    * Retrieves the project cache folder.
    */
   def projectCache(name: Identifier): ResourceManager
+
+  /**
+    * Access to project variables.
+    */
+  def projectVariables(projectName: Identifier)
+                      (implicit userContext: UserContext): TemplateVariablesSerializer
 
   /**
     * Reads all tasks of a specific type from a project.
@@ -169,6 +176,23 @@ trait WorkspaceProvider extends AnyPlugin {
     val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
     externalLoadingErrors.put(projectId, loadingErrors.filter(_.taskId != taskId))
   }
+}
+
+/**
+  * (De)serializes a set of variables.
+  */
+trait TemplateVariablesSerializer {
+
+  /**
+    * Reads all variables at this scope.
+    */
+  def readVariables()(implicit userContext: UserContext): TemplateVariables
+
+  /**
+    * Updates all variables.
+    */
+  def putVariables(variables: TemplateVariables)
+                  (implicit userContext: UserContext): Unit
 }
 
 

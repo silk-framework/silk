@@ -53,14 +53,7 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def start()(implicit user: UserContext): Unit = {
     initStatus(user)
-    // Execute activity
-    val forkJoin = new ForkJoinRunner()
-    forkJoinRunner = Some(forkJoin)
-    if (parent.isDefined && runningInDefaultPool) {
-      forkJoin.fork()
-    } else {
-      ActivityExecution.forkJoinPool.execute(forkJoin)
-    }
+    runForkJoin()
   }
 
   // Checks if the activity is already running (and fails if it is) and inits the status.
@@ -76,9 +69,8 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startBlocking()(implicit user: UserContext): Unit = {
     initStatus(user)
-    this.synchronized {
-      runActivity()
-    }
+    runForkJoin()
+    waitUntilFinished()
   }
 
   private def setStartMetaData(user: UserContext): Unit = {
@@ -89,12 +81,11 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
     initStatus(user)
-    this.synchronized {
-      for (v <- initialValue)
-        value.update(v)
-      runActivity()
-      value()
-    }
+    for (v <- initialValue)
+      value.update(v)
+    runForkJoin()
+    waitUntilFinished()
+    value()
   }
 
   override def startPrioritized()(implicit user: UserContext): Unit = {
@@ -110,8 +101,19 @@ private class ActivityExecution[T](activity: Activity[T],
         throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
       }
     }
-    forkJoinRunner = None
-    ActivityExecution.priorityThreadPool.execute(() => runActivity())
+    runForkJoin(prioritized = true)
+  }
+
+  private def runForkJoin(prioritized: Boolean = false)(implicit user: UserContext): Unit = {
+    val forkJoin = new ForkJoinRunner()
+    forkJoinRunner = Some(forkJoin)
+    if (parent.isDefined && runningInOwnPool(prioritized)) {
+      forkJoin.fork()
+    } else if(prioritized) {
+      ActivityExecution.priorityThreadPool.execute(forkJoin)
+    } else {
+      ActivityExecution.forkJoinPool.execute(forkJoin)
+    }
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
@@ -306,5 +308,7 @@ object ActivityExecution {
   /**
     * Thread pool to execute prioritized threads.
     */
-  val priorityThreadPool: ExecutorService = Execution.createThreadPool("Activity-Prio")
+  val priorityThreadPool: ForkJoinPool = {
+    Execution.createForkJoinPool("Activity-Prio", size = poolSize)
+  }
 }

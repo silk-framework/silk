@@ -207,7 +207,8 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
       projectId,
       "Simple variable workflow project",
       List(variableInputDataset),
-      List(variableOutputDataset)
+      List(variableOutputDataset),
+      Seq.empty
     )
   }
 

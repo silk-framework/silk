@@ -2,7 +2,7 @@ package org.silkframework.workbench.utils
 
 import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
 import org.silkframework.util.StringUtils.toStringUtils
-import play.api.libs.json.{JsNull, JsString, JsValue, Json}
+import play.api.libs.json.{JsNull, JsObject, JsString, JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
 
@@ -44,6 +44,8 @@ object ErrorResult {
   private def fromException(ex: Throwable): JsValue = {
     val cause = Option(ex.getCause).map(fromException).getOrElse(JsNull)
     ex match {
+      case requestEx: RequestException with JsonRequestException =>
+        format(requestEx.errorTitle, requestEx.getMessage, cause, requestEx.additionalJson)
       case requestEx: RequestException =>
         format(requestEx.errorTitle, requestEx.getMessage, cause)
       case _ =>
@@ -53,12 +55,12 @@ object ErrorResult {
     }
   }
 
-  private def format(title: String, detail: String, cause: JsValue = JsNull): JsValue = {
+  private def format(title: String, detail: String, cause: JsValue = JsNull, additionalJson: JsObject = JsObject.empty): JsValue = {
     Json.obj(
       "title" -> title,
       "detail" -> detail,
       "cause" -> cause
-    )
+    ) ++ additionalJson
   }
 
   /**

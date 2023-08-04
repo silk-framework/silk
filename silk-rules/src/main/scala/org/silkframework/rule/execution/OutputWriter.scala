@@ -23,7 +23,7 @@ import org.silkframework.util.Uri
 /**
  * Writes the links to the output.
  */
-class OutputWriter(links: Seq[Link], linkType: Uri, output: Option[LinkSink])
+class OutputWriter(links: Seq[Link], linkType: Uri, inversePredicateUri: Option[Uri], output: Option[LinkSink])
                   (implicit prefixes: Prefixes) extends Activity[Unit] {
 
   override def name = "Writing output"
@@ -35,7 +35,7 @@ class OutputWriter(links: Seq[Link], linkType: Uri, output: Option[LinkSink])
 
     for (link <- links;
          output <- output) {
-      output.writeLink(link, linkType.toString)
+      output.writeLink(link, linkType.toString, inversePredicateUri.map(_.uri))
     }
 
     output.foreach(_.close())

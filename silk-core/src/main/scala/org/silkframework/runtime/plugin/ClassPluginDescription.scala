@@ -15,6 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginType}
+import org.silkframework.runtime.plugin.types.EnumerationParameterType
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._

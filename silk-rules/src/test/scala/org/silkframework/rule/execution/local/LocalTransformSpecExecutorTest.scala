@@ -12,10 +12,11 @@ import org.silkframework.util.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 
 class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
 
-  private implicit val prefixes: Prefixes = Prefixes.empty
+  private implicit val pluginContext: PluginContext = PluginContext.empty
 
   behavior of "Local Transform Specification Executor"
 

@@ -10,6 +10,7 @@ import org.silkframework.util.Uri
 case class LinksTable(
      links: Seq[Link],
      linkType: Uri,
+     inverseLinkType: Option[Uri],
      task: Task[TaskSpec]
    ) extends LocalEntitiesWithIterator {
 

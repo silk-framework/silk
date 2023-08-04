@@ -121,7 +121,7 @@ ul.ecc-hierarchical-mapping-error-list {
         color: $button-secondary-color;
     }
 
-    .ecc-silk-mapping__treenav--item-active {
+    .ecc-silk-mapping__treenav--item-active:not(.ecc-silk-mapping__treenav--item--ignorestyles) {
         font-weight: 500;
         background-color: $chip-bg-active-color;
     }
@@ -138,7 +138,7 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
-    .ecc-silk-mapping__treenav--item-handler {
+    .ecc-silk-mapping__treenav--item-handler:not(.#{$eccgui}-button) {
         flex-grow: 1;
         flex-shrink: 1;
         padding: $ecc-size-block-whitespace * 0.25 0;
@@ -161,16 +161,16 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
-    .ecc-silk-mapping__treenav--item-maintitle,
-    .ecc-silk-mapping__treenav--item-subtitle {
+    span.ecc-silk-mapping__treenav--item-maintitle,
+    span.ecc-silk-mapping__treenav--item-subtitle {
         display: block;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    .ecc-silk-mapping__treenav--item-subtitle,
-    .ecc-silk-mapping__treenav--item-rule-subtitle {
+    span.ecc-silk-mapping__treenav--item-subtitle,
+    span.ecc-silk-mapping__treenav--item-rule-subtitle {
         @include typo-caption();
     }
 }

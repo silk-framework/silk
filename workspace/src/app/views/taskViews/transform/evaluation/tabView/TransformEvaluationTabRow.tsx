@@ -25,7 +25,7 @@ interface TransformEvaluationTabRowProps {
 const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = React.memo(
     ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins, zebra = false }) => {
         const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowExpandedByParent);
-        const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<string, boolean>>(new Map());
+        const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<number, boolean>>(new Map());
         const [multipleTrees, setMultipleTrees] = React.useState<TreeNodeInfo[]>([]);
         const [t] = useTranslation();
 
@@ -43,27 +43,27 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
         const handleRowExpansion = React.useCallback(() => setRowIsExpanded((e) => !e), []);
 
         const handleTreeExpansion = React.useCallback(
-            (rowId: string) =>
+            (rowId: number) =>
                 setTreeExpansionMap((prevExpansion) => new Map([...prevExpansion, [rowId, !prevExpansion.get(rowId)]])),
             []
         );
 
         const buildTree = React.useCallback(() => {
             setMultipleTrees(
-                entity.values.map((e, i) => {
+                entity.values.map((e, idx) => {
                     const matchingRuleType = (
-                        rules[i].operator
-                            ? rules[i]
+                        rules[idx].operator
+                            ? rules[idx]
                             : {
-                                  ...rules[i].rules?.propertyRules[0],
-                                  mappingTarget: (rules[i] as EvaluatedComplexRule)?.mappingTarget,
+                                  ...rules[idx].rules?.propertyRules[0],
+                                  mappingTarget: (rules[idx] as EvaluatedComplexRule)?.mappingTarget,
                               }
                     ) as Omit<EvaluatedURIRule, "rules">;
 
                     let treeNodeInfo = {
                         hasCaret: false,
                         id: matchingRuleType.id,
-                        isExpanded: treeExpansionMap.get(matchingRuleType.id),
+                        isExpanded: treeExpansionMap.get(idx),
                         label: "",
                         childNodes: [],
                         nodeData: {
@@ -137,13 +137,13 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                 </TableExpandRow>
                 {(rowIsExpanded && (
                     <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
-                        {multipleTrees.map((tree) => (
+                        {multipleTrees.map((tree, idx) => (
                             <TableTree
                                 columnWidths={["30px", "100%"]}
-                                treeIsExpanded={!!treeExpansionMap.get(tree.id as string)}
-                                key={tree.id}
+                                treeIsExpanded={!!treeExpansionMap.get(idx)}
+                                key={idx}
                                 nodes={[tree]}
-                                toggleTableExpansion={() => handleTreeExpansion(tree.id as string)}
+                                toggleTableExpansion={() => handleTreeExpansion(idx)}
                             />
                         ))}
                     </TableExpandedRow>

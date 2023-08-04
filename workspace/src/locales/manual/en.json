@@ -259,7 +259,8 @@
             "configure": "Configure",
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
-            "filterOff": "Remove filter"
+            "filterOff": "Remove filter",
+            "showMoreDetails": "Show more details"
         },
         "app": {
             "build": "Workbench",
@@ -453,7 +454,9 @@
                 "query": "Queries",
                 "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
                 "vocab": "Vocabularies",
-                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
+                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog.",
+                "thesaurus": "Thesauri",
+                "thesaurusTooltip": "The thesaurus module provides an interface for browsing, editing, structuring and linking concepts in a taxonomy based on SKOS."
             },
             "dmBrowser": "Explore",
             "open": "Open navigation",
@@ -506,6 +509,13 @@
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
                 "referenceLinks": "Open reference links UI in new tab"
+            },
+            "PathNotInCacheModal": {
+                "loadAndReEvaluate": "Load and re-evaluate",
+                "missingPath": "Path not loaded",
+                "pathCouldNotBeAdded": "Path could not be loaded.",
+                "messagePartA": "Values for the input path",
+                "messagePartB": "are not available for evaluation. Fetching the path values from the data source may take some time. Do you want to load the values and repeat the evaluation?"
             }
         },
         "node": {
@@ -515,6 +525,10 @@
                 },
                 "remove": {
                     "label": "Remove"
+                },
+                "subtree": {
+                    "label": "Evaluate subtree",
+                    "description": "Evaluate linking tree partially until this operator node."
                 }
             },
             "executionButtons": {
@@ -735,9 +749,17 @@
                 "title": "Edit linkage rule configuration"
             },
             "parameters": {
+                "inverseLinkType": {
+                    "label": "Inverse link type",
+                    "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
+                },
+                "excludeSelfReferences": {
+                    "label": "Exclude self references",
+                    "description": "If enabled, no links are generated from a resource to itself."
+                },
                 "linkType": {
                     "label": "Link type",
-                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the linked resources."
+                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the source to the target resource."
                 },
                 "limit": {
                     "label": "Target link limit",
@@ -814,6 +836,34 @@
             },
             "reloadAllCaches": "Reload all caches",
             "title": "Activity overview"
+        },
+        "VariableWidget": {
+            "title": "Variables",
+            "noVariables": "No variables set.",
+            "form": {
+                "name": "Name",
+                "value": "Value",
+                "description": "Description",
+                "infoBoxTitle": "Project variables",
+                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
+            },
+            "modalMessages": {
+                "deleteModalTitle": "Delete variable",
+                "deletePrompt": "Are you sure you want to delete variable '{{varname}}'?"
+            },
+            "actions": {
+                "add": "Add variable",
+                "edit": "Edit variable"
+            },
+            "formErrors": {
+                "nameAlreadyExists": "Name already exists",
+                "nameMustBeSpecified": "Name must be specified",
+                "mustProvideValOrTemplate": "Must provide value or template"
+            },
+            "errorMessages": {
+                "loadingVariables": "Could not load variables for project '{{projectId}}'",
+                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand"
+            }
         },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
@@ -1022,6 +1072,10 @@
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
+    },
+    "PathInputOperator" : {
+        "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
+        "noFilter": "No language filter"
     },
     "MappingTree": {
         "loadingRules": "Loading rules",

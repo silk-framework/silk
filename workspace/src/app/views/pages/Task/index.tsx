@@ -10,6 +10,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
+import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 
 export default function TaskPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -45,6 +46,8 @@ export default function TaskPage() {
                     <TaskConfig projectId={projectId} taskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <VariablesWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

@@ -116,10 +116,10 @@ export function TaskConfig(props: IProps) {
         <Card data-test-id={"taskConfigWidget"}>
             <CardHeader>
                 <CardTitle>
-                    <h3>
+                    <h2>
                         {t("widget.TaskConfigWidget.title", "Configuration")}
                         {titlePostfix}
-                    </h3>
+                    </h2>
                 </CardTitle>
                 <CardOptions>
                     <IconButton
@@ -131,7 +131,7 @@ export function TaskConfig(props: IProps) {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !labelledTaskData ? (
                     <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (

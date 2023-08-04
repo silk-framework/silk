@@ -25,7 +25,7 @@ import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
 import org.silkframework.rule.plugins.distance.numeric._
 import org.silkframework.rule.plugins.distance.tokenbased._
-import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatTransformer, MergeTransformer}
+import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatPairwiseTransformer, ConcatTransformer, MergeTransformer}
 import org.silkframework.rule.plugins.transformer.conditional._
 import org.silkframework.rule.plugins.transformer.conversion.ConvertCharsetTransformer
 import org.silkframework.rule.plugins.transformer.date._
@@ -45,7 +45,6 @@ import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.workspace.annotation.UiAnnotations.UiAnnotationsXmlFormat
 
-import scala.::
 import scala.language.existentials
 
 /**
@@ -64,6 +63,7 @@ class RulePlugins extends PluginModule {
         classOf[MapTransformer] ::
         classOf[MapTransformerWithDefaultInput] ::
         classOf[ConcatTransformer] ::
+        classOf[ConcatPairwiseTransformer] ::
         classOf[RemoveBlanksTransformer] ::
         classOf[LowerCaseTransformer] ::
         classOf[UpperCaseTransformer] ::

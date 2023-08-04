@@ -1,15 +1,14 @@
 import { Keyword } from "@ducks/workspace/typings";
-import { MultiSelect } from "@eccenca/gui-elements";
+import { MultiSuggestField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
 import React from "react";
 import utils from "./Metadata/MetadataUtils";
 import useErrorHandler from "../../hooks/useErrorHandler";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { useTranslation } from "react-i18next";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 
 interface IProps {
     projectId?: string;
-    handleTagSelectionChange: (params: SelectedParamsType<Keyword>) => any;
+    handleTagSelectionChange: (params: MultiSelectSelectionProps<Keyword>) => any;
     initialTags?: Keyword[];
 }
 
@@ -38,7 +37,7 @@ export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTag
     );
 
     return (
-        <MultiSelect<Keyword>
+        <MultiSuggestField<Keyword>
             prePopulateWithItems={!!initialTags}
             openOnKeyDown
             itemId={(keyword) => keyword.uri}

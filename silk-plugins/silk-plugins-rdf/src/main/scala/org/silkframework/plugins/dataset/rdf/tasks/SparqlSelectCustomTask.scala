@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndp
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 

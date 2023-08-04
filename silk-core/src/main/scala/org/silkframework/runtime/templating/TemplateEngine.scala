@@ -3,6 +3,7 @@ package org.silkframework.runtime.templating
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.PluginType
+import org.silkframework.runtime.templating.exceptions.TemplateEvaluationException
 
 import java.io.Writer
 
@@ -24,14 +25,14 @@ trait CompiledTemplate {
     * Holds all unbound variables in the template.
     * Returns None, if this functionality is not supported.
     */
-  def variables: Option[Seq[String]] = None
+  def variables: Option[Seq[TemplateVariableName]] = None
 
   /**
     * Evaluates this template using provided values.
     *
     * @throws TemplateEvaluationException If the evaluation failed.
     */
-  def evaluate(values: Map[String, AnyRef], writer: Writer)
+  def evaluate(values: Seq[TemplateVariableValue], writer: Writer): Unit
 
   /**
     * Evaluates this template using a provided entity.
@@ -42,12 +43,10 @@ trait CompiledTemplate {
     evaluate(entityToMap(entity), writer)
   }
 
-  protected def entityToMap(entity: Entity): Map[String, AnyRef] = {
-    val keyValues =
-      for((path, value) <- entity.schema.typedPaths zip entity.values if value.nonEmpty) yield {
-        path.normalizedSerialization -> RuleValues.fromValues(value)
-      }
-    keyValues.toMap
+  protected def entityToMap(entity: Entity): Seq[TemplateVariableValue] = {
+    for((path, value) <- entity.schema.typedPaths zip entity.values if value.nonEmpty) yield {
+       new TemplateVariableValue(path.normalizedSerialization, "", value)
+    }
   }
 
 }

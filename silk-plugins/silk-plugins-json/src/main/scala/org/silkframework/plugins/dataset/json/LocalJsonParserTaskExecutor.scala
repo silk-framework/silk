@@ -1,12 +1,16 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.local._
 import org.silkframework.execution._
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
+import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
 
@@ -21,7 +25,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     if (inputs.size != 1) {
       throw TaskException("JsonParserTask takes exactly one input!")
     }

@@ -55,6 +55,11 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     parameters = Array("pattern", "0"),
     input1 = Array("1.0"),
     output = Array("1")
+  ),
+  new TransformExample(
+    parameters = Array("pattern", "0.0"),
+    input1 = Array("0000123.4"),
+    output = Array("123.4")
   )
 ))
 case class FormatNumber(pattern: String, locale: String = "en") extends SimpleTransformer {

@@ -1,11 +1,71 @@
 package controllers.workspaceApi.coreApi.variableTemplate
 
-import controllers.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, CompletionBase, Completions, ReplacementInterval, ReplacementResults}
-import org.silkframework.runtime.templating.GlobalTemplateVariables
+import controllers.autoCompletion._
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.templating.exceptions.UnboundVariablesException
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables}
 import org.silkframework.util.StringUtils
+import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, Json}
 
-case class ValidateVariableTemplateRequest(templateString: String)
+import scala.util.{Failure, Success, Try}
+import scala.util.control.NonFatal
+
+trait VariableTemplateRequest {
+
+  def project: Option[String]
+
+  def variableName: Option[String]
+
+  /**
+    * Collects all variables given the optional project and variable name.
+    */
+  def collectVariables(ignoreVariableName: Boolean = false)(implicit user: UserContext): TemplateVariables = {
+    project match {
+      case Some(projectName) =>
+        val project = WorkspaceFactory().workspace.project(projectName)
+        var variables = project.templateVariables.all.variables
+        for (name <- variableName if !ignoreVariableName) {
+          variables = variables.takeWhile(_.name != name)
+        }
+        variables = GlobalTemplateVariables.all.variables ++ variables
+        TemplateVariables(variables)
+      case None =>
+        GlobalTemplateVariables.all
+    }
+  }
+
+}
+
+case class ValidateVariableTemplateRequest(templateString: String, project: Option[String] = None, variableName: Option[String] = None) extends VariableTemplateRequest {
+
+  def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
+    val resultOrError: Either[String, String] = try {
+      Left(collectVariables().resolveTemplateValue(templateString))
+    } catch {
+      case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
+        // Check if the variable is unbound because it is defined after the current one
+        Try(collectVariables(ignoreVariableName = true).resolveTemplateValue(templateString)) match {
+          case _: Success[_] =>
+            Right(s"'${ex.missingVars.head}' cannot be used because it's defined after '${variableName.get}'.")
+          case _: Failure[_] =>
+            Right(ex.getMessage)
+        }
+      case NonFatal(ex) =>
+        Right(ex.getMessage)
+    }
+    VariableTemplateValidationResponse(
+      valid = resultOrError.isLeft,
+      parseError = resultOrError.toOption.map(errorMessage => VariableTemplateValidationError(
+        message = errorMessage,
+        start = 0,
+        end = templateString.length
+      )),
+      evaluatedTemplate = resultOrError.left.toOption
+    )
+  }
+
+}
 
 object ValidateVariableTemplateRequest {
   implicit val validateVariableTemplateRequestFormat: Format[ValidateVariableTemplateRequest] = Json.format[ValidateVariableTemplateRequest]
@@ -33,10 +93,11 @@ object VariableTemplateValidationResponse {
 /** Variable template auto-completion request. */
 case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                cursorPosition: Int,
-                                               maxSuggestions: Option[Int]) extends AutoSuggestAutoCompletionRequest {
-  def execute(): AutoSuggestAutoCompletionResponse = {
-    val variables = GlobalTemplateVariables.variableNames
-    AutoCompleteVariableTemplateRequest.suggestions(this, variables)
+                                               maxSuggestions: Option[Int],
+                                               project: Option[String] = None,
+                                               variableName: Option[String] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
+  def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
+    AutoCompleteVariableTemplateRequest.suggestions(this,  collectVariables().variableNames)
   }
 }
 

@@ -19,10 +19,10 @@ class FormattedJenaLinkSink(model: Model,
   /**
    * Writes a new link to this writer.
    */
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     this.synchronized {
-      val linkModel = formatter.formatAsRDF(link, predicateUri)
+      val linkModel = formatter.formatAsRDF(link, predicateUri, inversePredicateUri)
       model.add(linkModel)
     }
   }

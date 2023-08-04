@@ -20,8 +20,15 @@ import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
 
-  override def formatLink(link: Link, predicateUri: String): String = {
-    "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
+  override def formatLink(link: Link, predicateUri: String, inversePredicateUri: Option[String]): String = {
+    val statement = "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
+    inversePredicateUri match {
+      case Some(inversePredicateUri) =>
+        val inverseStatement = "<" + link.target + "> <" + inversePredicateUri + "> <" + link.source + "> .\n"
+        statement + inverseStatement
+      case None =>
+        statement
+    }
   }
 
   override def formatLiteralStatement(subject: String, predicate: String, value: String, valueType: ValueType): String = {

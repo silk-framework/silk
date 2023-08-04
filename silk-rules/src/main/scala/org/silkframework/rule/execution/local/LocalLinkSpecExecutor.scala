@@ -10,6 +10,7 @@ import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KE
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
@@ -23,8 +24,12 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     assert(inputs.size == 2, "LinkSpecificationExecutor did not receive exactly two inputs (source, target).")
+
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
     val linkSpec = updateSelection(task.data, inputs.head, inputs.tail.head)
     val sources = DPair[DataSource](
       entitySource(inputs.head, task.dataSelections.source.typeUri),
@@ -44,7 +49,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       ))
     }
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
+    Some(LinksTable(linking.links, linkSpec.rule.linkType, linkSpec.rule.inverseLinkType, task))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {

@@ -1,10 +1,11 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
 import java.nio.charset.StandardCharsets
@@ -19,7 +20,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val spec = task.data
     if (inputs.size != 1) {
       throw TaskException("XmlParserTask takes exactly one input!")

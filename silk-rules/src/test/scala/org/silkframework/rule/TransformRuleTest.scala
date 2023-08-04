@@ -1,5 +1,6 @@
 package org.silkframework.rule
-
+
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
@@ -79,7 +80,7 @@ class TransformRuleTest extends AnyFlatSpec with Matchers {
         uriRule = None,
         typeRules = Seq.empty,
         propertyRules = Seq(
-          ComplexMapping("invalidRule", TransformInput("duplicateID", LowerCaseTransformer(), Seq(PathInput("duplicateID", UntypedPath.empty))))
+          ComplexMapping("invalidRule", TransformInput("duplicateID", LowerCaseTransformer(), IndexedSeq(PathInput("duplicateID", UntypedPath.empty))))
         )
       )
     )

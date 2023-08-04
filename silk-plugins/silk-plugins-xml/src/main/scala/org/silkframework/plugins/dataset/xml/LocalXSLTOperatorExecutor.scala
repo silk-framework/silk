@@ -1,17 +1,18 @@
 package org.silkframework.plugins.dataset.xml
 
-import javax.xml.transform.TransformerConfigurationException
-import javax.xml.transform.stream.{StreamResult, StreamSource}
 import net.sf.saxon.TransformerFactoryImpl
 import net.sf.saxon.s9api.SaxonApiException
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.Task
 import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResourceEntityTable}
-import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
+import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.validation.ValidationException
+
+import javax.xml.transform.TransformerConfigurationException
+import javax.xml.transform.stream.{StreamResult, StreamSource}
 
 
 /**
@@ -24,7 +25,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     inputs.headOption match {
       case Some(et: DatasetResourceEntityTable) =>
         val xSLTOperator = task.data

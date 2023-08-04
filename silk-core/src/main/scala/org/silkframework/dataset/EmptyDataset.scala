@@ -58,7 +58,7 @@ object EmptyDataset extends Dataset with Serializable {
     /**
      * Writes a new link to this writer.
      */
-    override def writeLink(link: Link, predicateUri: String)
+    override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     override def close()(implicit userContext: UserContext): Unit = {}

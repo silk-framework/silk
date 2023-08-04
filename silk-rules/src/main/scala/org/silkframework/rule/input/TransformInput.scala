@@ -15,12 +15,14 @@
 package org.silkframework.rule.input
 
 import org.silkframework.entity.Entity
+import org.silkframework.execution.ExecutionException
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
+import scala.util.control.NonFatal
 import scala.xml.Node
 
 /**
@@ -30,18 +32,37 @@ import scala.xml.Node
   * @param transformer The transformer used to transform values.
   * @param inputs The children operators from which input values are read.
  */
-case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: Seq[Input] = Seq.empty) extends Input {
+case class TransformInput(id: Identifier = Operator.generateId, transformer: Transformer, inputs: IndexedSeq[Input] = IndexedSeq.empty) extends Input {
 
-  def apply(entity: Entity): Seq[String] = {
-    val values = for (input <- inputs) yield input(entity)
+  def apply(entity: Entity): Value = {
+    val inputValues = new Array[Seq[String]](inputs.length)
+    var errors = Seq[OperatorEvaluationError]()
 
-    transformer(values)
+    // Evaluate input operators
+    for(i <- inputs.indices) {
+      val result = inputs(i)(entity)
+      inputValues(i) = result.values
+      for(error <- result.errors) {
+        errors +:= error
+      }
+    }
+
+    // Evaluate transform
+    try {
+      Value(transformer(inputValues), errors)
+    } catch {
+      case ex: ExecutionException if ex.abortExecution =>
+        throw ex
+      case NonFatal(ex) =>
+        errors +:= OperatorEvaluationError(id, ex)
+        Value(Seq.empty, errors)
+    }
   }
 
   override def children: Seq[Input] = inputs
 
   override def withChildren(newChildren: Seq[Operator]): TransformInput = {
-    copy(inputs = newChildren.map(_.asInstanceOf[Input]))
+    copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
   }
 }
 
@@ -61,7 +82,7 @@ object TransformInput {
       try {
         val transformerPluginId = (node \ "@function").text
         val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), Operator.readParams(node))
-        TransformInput(id, transformer, inputs.toList)
+        TransformInput(id, transformer, inputs.toIndexedSeq)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
       }

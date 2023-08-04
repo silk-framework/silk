@@ -95,7 +95,7 @@ export const FileWidget = () => {
                     </CardTitle>
                 </CardHeader>
                 <Divider />
-                <CardContent>
+                <CardContent style={{ maxHeight: "25vh" }}>
                     {isLoading ? (
                         <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : (
@@ -123,7 +123,7 @@ export const FileWidget = () => {
                             {!!filesList.length && <Spacing size="tiny" />}
                             {!!filesList.length && (
                                 <TableContainer>
-                                    <Table>
+                                    <Table columnWidths={["40%", "25%", "25%", "60px"]}>
                                         <TableHead>
                                             <TableRow>
                                                 {headers.map((property) => (
@@ -147,6 +147,7 @@ export const FileWidget = () => {
                                                                     : file[property.key];
                                                             return (
                                                                 <TableCell
+                                                                    alignVertical="middle"
                                                                     key={property.key}
                                                                     className={
                                                                         property.key === "name"
@@ -165,10 +166,7 @@ export const FileWidget = () => {
                                                                 </TableCell>
                                                             );
                                                         })}
-                                                        <TableCell
-                                                            key={"fileActions"}
-                                                            className="bx--table-column-menu"
-                                                        >
+                                                        <TableCell alignVertical="middle" key={"fileActions"}>
                                                             <div style={{ display: "flex" }}>
                                                                 <IconButton
                                                                     data-test-id={"resource-download-btn"}

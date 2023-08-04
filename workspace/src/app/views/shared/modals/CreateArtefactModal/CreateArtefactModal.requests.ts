@@ -26,21 +26,34 @@ export interface ValidateTemplateResponse extends IValidationResult {
 
 /** Validates a variable template. If the validation was successful, the evaluated string is returned. */
 export const requestValidateTemplateString = async (
-    templateString: string
+    templateString: string,
+    project?: string,
+    variableName?: string
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
         method: "POST",
         body: {
             templateString,
+            project,
+            variableName,
         },
     });
 };
 
-/** Auto-complete a variable template. */
+/**
+ * Auto-complete a variable template.
+ * @param inputString
+ * @param cursorPosition
+ * @param project
+ * @param variableName optional parameter to make correct suggestions for when an existing variable is edited
+ * @returns
+ */
 export const requestAutoCompleteTemplateString = async (
     inputString: string,
-    cursorPosition: number
+    cursorPosition: number,
+    project?: string,
+    variableName?: string
 ): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),
@@ -48,6 +61,8 @@ export const requestAutoCompleteTemplateString = async (
         body: {
             inputString,
             cursorPosition,
+            project,
+            variableName,
         },
     });
 };

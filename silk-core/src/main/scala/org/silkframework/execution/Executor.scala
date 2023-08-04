@@ -1,10 +1,10 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
-import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.annotations.PluginType
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
 
 /**
   * Executes a task specification.
@@ -17,7 +17,7 @@ trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugi
 
   def execute(task: Task[TaskType], inputs: Seq[ExecType#DataType], output: ExecutorOutput,
               execution: ExecType, context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-             (implicit userContext: UserContext, prefixes: Prefixes): Option[ExecType#DataType]
+             (implicit pluginContext: PluginContext): Option[ExecType#DataType]
 
 }
 
