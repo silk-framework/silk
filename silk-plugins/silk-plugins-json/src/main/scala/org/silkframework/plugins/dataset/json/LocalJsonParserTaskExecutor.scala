@@ -5,11 +5,8 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.local._
 import org.silkframework.execution._
-import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
-import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
-import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
+import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
@@ -66,7 +63,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
     * Parses individual entities.
     */
   private class EntityParser(task: Task[JsonParserTask], output: ExecutorOutput, execution: LocalExecution, pathIndex: Int)
-                            (implicit userContext: UserContext, prefixes: Prefixes) extends ((Entity) => CloseableIterator[Entity]) {
+                            (implicit pluginContext: PluginContext) extends ((Entity) => CloseableIterator[Entity]) {
 
     private val spec = task.data
 
