@@ -5,7 +5,7 @@ import {
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { CodeAutocompleteField, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, FieldItem, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
@@ -20,6 +20,7 @@ import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
+import { validateUriString } from "../../../../../../../views/pages/Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
 
 const LANGUAGES_LIST = [
     "en",
@@ -64,6 +65,8 @@ interface IValueType {
     nodeType: string;
     // If this is a lang type value, this property specifies the language code
     lang?: string;
+    //manually specify uri for custom types
+    uri?: string;
 }
 
 interface IState {
@@ -117,6 +120,7 @@ export function ValueRuleForm(props: IProps) {
     const [valuePathValid, setValuePathValid] = useState<boolean>(false);
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
     const lastEmittedEvent = React.useRef<string>("");
+    const [customURIErrorMsg, setCustomURIErrorMsg] = React.useState<string>();
 
     const { id, parentId } = props;
     const setValueType = React.useCallback((valueType: IValueType) => {
@@ -242,6 +246,14 @@ export function ValueRuleForm(props: IProps) {
 
     const handleChangeSelectBox = (statePropertyName: string, setValueFunction: (v: any) => void, value) => {
         handleChangeValue(statePropertyName, value, setValueFunction);
+    };
+
+    const handleCustomURITextField = (event) => {
+        const value = event.target.value;
+        const validationOutput = validateUriString(value);
+        setCustomURIErrorMsg(typeof validationOutput === "string" ? validationOutput : undefined);
+        const valueType = { nodeType: "CustomValueType", uri: value };
+        handleChangeValue("valueType", valueType, setValueType);
     };
 
     const handleChangePropertyType = (value) => {
@@ -439,6 +451,23 @@ export function ValueRuleForm(props: IProps) {
                             onChange={handleChangePropertyType}
                             showValueWhenLabelExists={false}
                         />
+                        {valueType.nodeType === "CustomValueType" && (
+                            <FieldItem
+                                hasStateDanger={!!customURIErrorMsg}
+                                messageText={customURIErrorMsg}
+                                labelProps={{
+                                    htmlFor: "uri",
+                                    text: "URI",
+                                }}
+                            >
+                                <TextField
+                                    id="uri"
+                                    intent={!!customURIErrorMsg ? "danger" : "none"}
+                                    onChange={handleCustomURITextField}
+                                    value={valueType.uri}
+                                />
+                            </FieldItem>
+                        )}
                         {valueType.nodeType === "LanguageValueType" && (
                             <AutoComplete
                                 data-id="lng-select-box"
