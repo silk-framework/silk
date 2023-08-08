@@ -23,13 +23,31 @@ trait TaskSpec {
     * of entity schema.
     * A result of Some(Seq()) on the other hand means that this task has no inputs at all.
     */
-  def inputSchemataOpt: Option[Seq[EntitySchema]]
+  def inputSchemataOpt: Option[Seq[EntitySchema]] = None
 
   /**
     * The schema of the output data.
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
-  def outputSchemaOpt: Option[EntitySchema]
+  def outputSchemaOpt: Option[EntitySchema] = None
+
+  def inputPorts: InputPorts = {
+    inputSchemataOpt match {
+      case Some(schemata) =>
+        FixedNumberOfInputs(schemata.map(FixedSchemaPort))
+      case None =>
+        FlexibleNumberOfInputs()
+    }
+  }
+
+  def outputPort: Port = {
+    outputSchemaOpt match {
+      case Some(outputSchema) =>
+        FixedSchemaPort(outputSchema)
+      case None =>
+        FlexibleSchemaPort
+    }
+  }
 
   /**
     * The tasks that this task reads from.
