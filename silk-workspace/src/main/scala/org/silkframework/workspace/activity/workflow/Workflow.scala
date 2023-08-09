@@ -1,9 +1,8 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{FixedNumberOfInputs, InputPorts, Port, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
-import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
@@ -300,15 +299,14 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   }
 
   /**
-    * A workflow does not have any inputs.
+    * At the moment, a workflow does not have any inputs.
     */
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
 
   /**
-    * The schema of the output data.
-    * Returns None, if the schema is unknown or if no output is written by this task.
+    * At the moment, a workflow does not have any output.
     */
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = None
 
   /**
     * The tasks that this task reads from.

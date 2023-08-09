@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
 import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -43,9 +43,13 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
     Try(limit.toInt).filter(_ > 0).toOption
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(SparqlEndpointEntitySchema.schema))
+  override def inputPorts: InputPorts = {
+    FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
+  }
 
-  override def outputSchemaOpt: Option[EntitySchema] = Some(outputSchema)
+  override def outputPort: Option[Port] = {
+    Some(FixedSchemaPort(outputSchema))
+  }
 
   val outputSchema: EntitySchema = {
     val query = QueryFactory.create(selectQuery.str)

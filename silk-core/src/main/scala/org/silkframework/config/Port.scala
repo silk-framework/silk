@@ -34,7 +34,6 @@ object FlexibleSchemaPort extends Port {
 
 /**
   * Port for which the schema is not known in advance.
-  * Only valid for outputs.
   */
 object UnknownSchemaPort extends Port {
 

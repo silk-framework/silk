@@ -23,7 +23,7 @@ class XmlSerializationTest extends AnyFlatSpec with Matchers {
 }
 
 case class TestCustomTask(param1: String, param2: Int) extends CustomTask {
-  override def inputSchemataOpt = ???
+  override def inputPorts = ???
 
-  override def outputSchemaOpt = ???
+  override def outputPort = ???
 }

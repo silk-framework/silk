@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, FlexibleSchemaPort, InputPorts, Port}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -35,20 +35,25 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
     * If no inputPath is defined then we don't care about the input schema and take the value of the first input path.
     * Else we pick the input path of the entity that matches inputPath.
     */
-  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    parsedInputPath map { path =>
-      Seq(
-        EntitySchema(
-          typeUri = Uri(""),
-          typedPaths = IndexedSeq(path.asStringTypedPath)
+  override lazy val inputPorts: InputPorts = {
+    val inputPort = parsedInputPath match {
+      case Some(path) =>
+        FixedSchemaPort(
+          EntitySchema(
+            typeUri = Uri(""),
+            typedPaths = IndexedSeq(path.asStringTypedPath)
+          )
         )
-      )
+      case None =>
+        FlexibleSchemaPort
     }
+    FixedNumberOfInputs(Seq(inputPort))
   }
 
   /**
-    * The schema of the output data.
-    * Returns None, if the schema is unknown or if no output is written by this task.
+    * The output is adapted to the connected operator.
     */
-  override lazy val outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = {
+    Some(FlexibleSchemaPort)
+  }
 }
