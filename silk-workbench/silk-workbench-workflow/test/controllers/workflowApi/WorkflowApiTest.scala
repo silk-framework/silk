@@ -44,7 +44,8 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
     val portConfig = JsonHelpers.fromJsonValidated[WorkflowNodesPortConfig](responseJson)
     val noSchemaConfig = Some(WorkflowNodePortConfig(1, None))
-    portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe noSchemaConfig
+    val singleFlexiblePortConfig = Some(WorkflowNodePortConfig(0, Some(0)))
+    portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe singleFlexiblePortConfig
     portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe Some(WorkflowNodePortConfig(1, Some(1)))
     portConfig.byTaskId.get("noSchema") mustBe noSchemaConfig
     portConfig.byTaskId.get("onePort") mustBe Some(WorkflowNodePortConfig(1, Some(1)))

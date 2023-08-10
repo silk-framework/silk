@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{FixedNumberOfInputs, InputPorts, Port, TaskSpec}
+import org.silkframework.config.{FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, Port, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.runtime.activity.UserContext
@@ -300,13 +300,15 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
 
   /**
     * At the moment, a workflow does not have any inputs.
+    * It still declares a flexible number of inputs so those can be used to model dependencies.
     */
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = FlexibleNumberOfInputs()
 
   /**
     * At the moment, a workflow does not have any output.
+    * It still declares an output, so it can be used to model dependencies.
     */
-  override def outputPort: Option[Port] = None
+  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
 
   /**
     * The tasks that this task reads from.
