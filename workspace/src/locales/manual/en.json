@@ -211,6 +211,36 @@
     "RelatedItems": {
         "title": "Related items"
     },
+    "header": {
+        "keyboardShortcutsModal": {
+            "title": "Keyboard shortcuts",
+            "categories-title": "Sections",
+            "categories": {
+                "general": {
+                    "label": "Global",
+                    "shortcuts": {
+                        "quick-search": "Quick Search"
+                    }
+                },
+                "rule-editors": {
+                    "label": "Rule Editors",
+                    "shortcuts": {
+                        "duplicate-nodes": "Duplicate selected nodes",
+                        "undo": "Undo",
+                        "redo": "Redo",
+                        "delete": "Remove Selected elements",
+                        "select-nodes": "Select nodes either by clicking on each on or by dragging a selection area"
+                    }
+                },
+                "workflow-editor": {
+                    "label": "Workflow Editor",
+                    "shortcuts": {
+                        "delete": "Remove Selected elements"
+                    }
+                }
+            }
+        }
+    },
     "common": {
         "action": {
             "showIdentifier": "Show identifier",
@@ -1073,7 +1103,7 @@
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
     },
-    "PathInputOperator" : {
+    "PathInputOperator": {
         "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
         "noFilter": "No language filter"
     },
