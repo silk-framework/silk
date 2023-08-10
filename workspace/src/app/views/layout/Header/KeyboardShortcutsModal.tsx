@@ -60,15 +60,20 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
         },
     });
 
+    const closeModal = React.useCallback(() => {
+        setActiveAction("general");
+        onClose();
+    }, []);
+
     return (
         <SimpleDialog
             data-test-id="keyboard-shortcuts"
             size="large"
             title={t("header.keyboardShortcutsModal.title")}
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={closeModal}
             actions={[
-                <Button key="cancel" onClick={onClose}>
+                <Button key="cancel" onClick={closeModal}>
                     {t("common.action.close", "Close")}
                 </Button>,
             ]}
