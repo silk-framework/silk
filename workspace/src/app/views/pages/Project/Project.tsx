@@ -35,7 +35,6 @@ import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
-import { Warning } from "gui-elements-deprecated";
 
 const Project = () => {
     const dispatch = useDispatch();

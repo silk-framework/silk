@@ -4,12 +4,11 @@ import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
 import { createNewVariable } from "../requests";
 import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
-import { current } from "@reduxjs/toolkit";
 
 interface VariableModalProps {
     /*
        All the existing variables for the project,
-       this is tenable because first iteration expects a max of 7 variables 
+       this is tenable because first iteration expects a max of 7 variables
      */
     variables: Variable[];
     /**
