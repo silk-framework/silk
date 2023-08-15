@@ -235,7 +235,8 @@
                 "workflow-editor": {
                     "label": "Workflow editor",
                     "shortcuts": {
-                        "delete": "Remove selected elements"
+                        "delete": "Remove selected elements",
+                        "select-nodes": "Select nodes either by clicking on each on or by dragging a selection area"
                     }
                 }
             },

@@ -11,18 +11,17 @@ import {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
     ApplicationToolbarSection,
-    Button,
     Divider,
     HtmlContentBlock,
     Icon,
     Menu,
     MenuDivider,
     MenuItem,
-    Spacing,
     TitleSubsection,
     Toolbar,
     ToolbarSection,
     WorkspaceHeader,
+    Tag,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
@@ -232,19 +231,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             <MenuDivider />
                                             {hotKeys.quickSearch && (
                                                 <MenuItem
-                                                    text={
-                                                        <>
-                                                            {t("RecentlyViewedModal.title")}
-                                                            <Spacing vertical={true} size="small" />
-                                                            <Button
-                                                                outlined={true}
-                                                                small={true}
-                                                                tooltip={`Hotkey: ${hotKeys.quickSearch}`}
-                                                            >
-                                                                {hotKeys.quickSearch}
-                                                            </Button>
-                                                        </>
-                                                    }
+                                                    text={t("RecentlyViewedModal.title")}
                                                     href={"#"}
                                                     onClick={(e) => {
                                                         if (e) {
@@ -253,17 +240,30 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                         triggerHotkeyHandler(hotKeys.quickSearch as string);
                                                     }}
                                                     icon={"operation-search"}
+                                                    labelElement={
+                                                        <Tag
+                                                            htmlTitle={`Hotkey: ${hotKeys.quickSearch}`}
+                                                            emphasis="weaker"
+                                                        >
+                                                            {hotKeys.quickSearch}
+                                                        </Tag>
+                                                    }
                                                 />
                                             )}
+                                            <MenuItem
+                                                text={t("header.keyboardShortcutsModal.title")}
+                                                icon={"application-vocabularies"}
+                                                labelElement={
+                                                    <Tag htmlTitle={`Hotkey: ?`} emphasis="weaker">
+                                                        ?
+                                                    </Tag>
+                                                }
+                                                onClick={toggleShortcutModal}
+                                            />
                                             <MenuItem
                                                 text={t("common.action.showApiDoc", "API")}
                                                 href={CONTEXT_PATH + "/doc/api"}
                                                 icon={"application-homepage"}
-                                            />
-                                            <MenuItem
-                                                text={"Keyboard shortcuts"}
-                                                icon={"application-vocabularies"}
-                                                onClick={toggleShortcutModal}
                                             />
                                             <ExampleProjectImportMenu />
                                             {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}
