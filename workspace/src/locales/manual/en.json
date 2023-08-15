@@ -238,6 +238,14 @@
                         "delete": "Remove selected elements"
                     }
                 }
+            },
+            "keys": {
+                "ctrl": "Ctrl",
+                "mod": "Mod",
+                "shift": "⇧Shift",
+                "backspace": "←Backpace",
+                "alt": "Alt",
+                "mouse select": "mouse select"
             }
         }
     },

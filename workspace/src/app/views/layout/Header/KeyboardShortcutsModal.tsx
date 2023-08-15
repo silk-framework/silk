@@ -14,6 +14,7 @@ import {
     SimpleDialog,
     Spacing,
     Tag,
+    TagList,
     TitleSubsection,
     Tooltip,
 } from "@eccenca/gui-elements";
@@ -28,7 +29,7 @@ interface KeyboardShortcutsModalProps {
     openModal: () => void;
 }
 
-const sectionKeys = ["general", "rule-editors", "workflow-editor"] as const;
+const sectionKeys = ["general", "workflow-editor", "rule-editors"] as const;
 const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; commands: string[] }>> = {
     general: [{ key: "quick-search", commands: ["/"] }],
     "rule-editors": [
@@ -41,15 +42,17 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
             key: "redo",
             commands: ["ctrl+shift+z", "mod+shift+z"],
         },
-        { key: "delete", commands: ["Backspace"] },
-        { key: "select-nodes", commands: ["Alt+mouse select"] },
+        { key: "delete", commands: ["backspace"] },
+        { key: "select-nodes", commands: ["alt+mouse select"] },
     ],
-    "workflow-editor": [{ key: "delete", commands: ["Backspace"] }],
+    "workflow-editor": [
+        { key: "delete", commands: ["backspace"] },
+        { key: "select-nodes", commands: ["alt+mouse select"] },
+    ],
 };
 
 export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen, onClose, openModal }) => {
     const [t] = useTranslation();
-    const [activeSection, setActiveAction] = React.useState<typeof sectionKeys[number]>("general");
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
 
     useHotKey({
@@ -61,7 +64,6 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
     });
 
     const closeModal = React.useCallback(() => {
-        setActiveAction("general");
         onClose();
     }, []);
 
@@ -78,39 +80,24 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
                 </Button>,
             ]}
         >
-            <Grid>
-                <GridRow>
-                    <GridColumn small>
-                        <TitleSubsection>{t("header.keyboardShortcutsModal.categories-title")}</TitleSubsection>
-                        <Menu>
-                            {sectionKeys.map((sectionKey) => (
-                                <MenuItem
-                                    key={sectionKey}
-                                    text={t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
-                                    onClick={() => setActiveAction(sectionKey)}
-                                    active={sectionKey === activeSection}
-                                />
-                            ))}
-                        </Menu>
-                    </GridColumn>
-                    <Spacing size="small" vertical />
-                    <GridColumn>
-                        <OverviewItemList hasDivider>
-                            {shortcuts[activeSection].map((shortcut, i) => (
-                                <PropertyValuePair
-                                    style={{ width: "100%" }}
-                                    hasSpacing
-                                    key={activeSection + shortcut.key}
-                                >
+            <OverviewItemList columns={2} hasDivider hasSpacing>
+                {sectionKeys.map((sectionKey) => (
+                    <section>
+                        <TitleSubsection>
+                            {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
+                        </TitleSubsection>
+                        <OverviewItemList densityHigh>
+                            {shortcuts[sectionKey].map((shortcut, i) => (
+                                <PropertyValuePair style={{ width: "100%" }} hasSpacing key={sectionKey + shortcut.key}>
                                     <PropertyName size="large">
                                         <Tooltip
                                             content={t(
-                                                `header.keyboardShortcutsModal.categories.${activeSection}.shortcuts.${shortcut.key}`
+                                                `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`
                                             )}
                                         >
                                             <OverflowText passDown>
                                                 {t(
-                                                    `header.keyboardShortcutsModal.categories.${activeSection}.shortcuts.${shortcut.key}`
+                                                    `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`
                                                 )}
                                             </OverflowText>
                                         </Tooltip>
@@ -120,19 +107,25 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
                                             marginLeft: "calc(31.25% + 14px)",
                                         }}
                                     >
-                                        {shortcut.commands.map((command) => (
-                                            <React.Fragment key={command}>
-                                                <Tag key={command}>{command}</Tag>
-                                                <Spacing size="small" vertical />
-                                            </React.Fragment>
-                                        ))}
+                                        <TagList>
+                                            {shortcut.commands.map((command) => (
+                                                <Tag key={command}>
+                                                    {command
+                                                        .split("+")
+                                                        .map((key) => {
+                                                            return t(`header.keyboardShortcutsModal.keys.${key}`, key);
+                                                        })
+                                                        .join(" + ")}
+                                                </Tag>
+                                            ))}
+                                        </TagList>
                                     </PropertyValue>
                                 </PropertyValuePair>
                             ))}
                         </OverviewItemList>
-                    </GridColumn>
-                </GridRow>
-            </Grid>
+                    </section>
+                ))}
+            </OverviewItemList>
         </SimpleDialog>
     );
 };
