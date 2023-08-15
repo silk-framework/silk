@@ -32,19 +32,19 @@ const sectionKeys = ["general", "rule-editors", "workflow-editor"] as const;
 const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; commands: string[] }>> = {
     general: [{ key: "quick-search", commands: ["/"] }],
     "rule-editors": [
-        { key: "duplicate-nodes", commands: ["mod+d", "ctrl+d"] },
+        { key: "duplicate-nodes", commands: ["ctrl+d", "mod+d"] },
         {
             key: "undo",
-            commands: ["mod+z", "ctrl+z"],
+            commands: ["ctrl+z", "mod+z"],
         },
         {
             key: "redo",
-            commands: ["mod+shift+z", "ctrl+shift+z"],
+            commands: ["ctrl+shift+z", "mod+shift+z"],
         },
-        { key: "delete", commands: ["DELETE"] },
-        { key: "select-nodes", commands: ["ALT+mouse select"] },
+        { key: "delete", commands: ["Backspace"] },
+        { key: "select-nodes", commands: ["Alt+mouse select"] },
     ],
-    "workflow-editor": [{ key: "delete", commands: ["DELETE"] }],
+    "workflow-editor": [{ key: "delete", commands: ["Backspace"] }],
 };
 
 export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen, onClose, openModal }) => {
