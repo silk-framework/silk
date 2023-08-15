@@ -219,23 +219,23 @@
                 "general": {
                     "label": "Global",
                     "shortcuts": {
-                        "quick-search": "Quick Search"
+                        "quick-search": "Quick search"
                     }
                 },
                 "rule-editors": {
-                    "label": "Rule Editors",
+                    "label": "Linking editor",
                     "shortcuts": {
                         "duplicate-nodes": "Duplicate selected nodes",
-                        "undo": "Undo",
-                        "redo": "Redo",
-                        "delete": "Remove Selected elements",
+                        "undo": "Undo change",
+                        "redo": "Redo change",
+                        "delete": "Remove selected elements",
                         "select-nodes": "Select nodes either by clicking on each on or by dragging a selection area"
                     }
                 },
                 "workflow-editor": {
-                    "label": "Workflow Editor",
+                    "label": "Workflow editor",
                     "shortcuts": {
-                        "delete": "Remove Selected elements"
+                        "delete": "Remove selected elements"
                     }
                 }
             }
