@@ -66,8 +66,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // Label for input paths
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
-    const [loading, setLoading] = React.useState(true)
-    const pendingRequests = React.useRef(2)
+    const [loading, setLoading] = React.useState(true);
+    const pendingRequests = React.useRef(2);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -80,11 +80,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     }, [projectId, linkingTaskId, prefLang]);
 
     const reducePendingRequestCount = () => {
-        pendingRequests.current = pendingRequests.current - 1
-        if(pendingRequests.current <= 0) {
-            setLoading(false)
+        pendingRequests.current = pendingRequests.current - 1;
+        if (pendingRequests.current <= 0) {
+            setLoading(false);
         }
-    }
+    };
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
@@ -102,7 +102,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 targetPathLabels.current = paths.data as PathWithMetaData[];
             }
         } finally {
-            reducePendingRequestCount()
+            reducePendingRequestCount();
         }
     };
     /** Fetches the parameters of the linking task */
@@ -141,12 +141,14 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         };
 
     // Return for either a source or target path what type of path it is.
-    const inputPathPluginPathType =
-        (pluginId: "sourcePathInput" | "targetPathInput", path: string): string | undefined => {
-            const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
-            const pathMetaData = pathsMetaData.find(p => p.value && path.endsWith(p.value))
-            return pathMetaData?.valueType
-        };
+    const inputPathPluginPathType = (
+        pluginId: "sourcePathInput" | "targetPathInput",
+        path: string
+    ): string | undefined => {
+        const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
+        const pathMetaData = pathsMetaData.find((p) => p.value && path.endsWith(p.value));
+        return pathMetaData?.valueType;
+    };
 
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
@@ -289,8 +291,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return result;
     };
 
-    if(loading) {
-        return <Loading />
+    if (loading) {
+        return <Loading />;
     }
 
     return (

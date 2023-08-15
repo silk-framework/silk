@@ -85,7 +85,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
         taskData: RULE_TYPE | undefined
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
     /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
-    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined
+    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -114,7 +114,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     initialFitToViewZoomLevel,
     instanceId,
     fetchDatasetCharacteristics,
-    inputPathPluginPathType
+    inputPathPluginPathType,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -269,7 +269,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 initialFitToViewZoomLevel,
                 instanceId,
                 datasetCharacteristics,
-                inputPathPluginPathType
+                inputPathPluginPathType,
             }}
         >
             <RuleEditorModel>
