@@ -217,7 +217,7 @@
             "categories-title": "Sections",
             "categories": {
                 "general": {
-                    "label": "Global",
+                    "label": "Build",
                     "shortcuts": {
                         "quick-search": "Quick search"
                     }
@@ -229,14 +229,16 @@
                         "undo": "Undo change",
                         "redo": "Redo change",
                         "delete": "Remove selected elements",
-                        "select-nodes": "Select nodes either by clicking on each on or by dragging a selection area"
+                        "multiselect": "Select multiple nodes",
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
                     }
                 },
                 "workflow-editor": {
                     "label": "Workflow editor",
                     "shortcuts": {
                         "delete": "Remove selected elements",
-                        "select-nodes": "Select nodes either by clicking on each on or by dragging a selection area"
+                        "multiselect": "Select multiple nodes",
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
                     }
                 }
             },

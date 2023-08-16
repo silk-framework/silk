@@ -10,7 +10,7 @@ import {
     Tag,
     TagList,
     TitleSubsection,
-    Tooltip,
+    Spacing,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import useHotKey from "../../../views/shared/HotKeyHandler/HotKeyHandler";
@@ -37,11 +37,11 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
             commands: ["ctrl+shift+z", "mod+shift+z"],
         },
         { key: "delete", commands: ["backspace"] },
-        { key: "select-nodes", commands: ["alt+mouse select"] },
+        { key: "multiselect", commands: ["alt+mouse select"] },
     ],
     "workflow-editor": [
         { key: "delete", commands: ["backspace"] },
-        { key: "select-nodes", commands: ["alt+mouse select"] },
+        { key: "multiselect", commands: ["alt+mouse select"] },
     ],
 };
 
@@ -74,27 +74,27 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
                 </Button>,
             ]}
         >
-            <OverviewItemList columns={2} hasDivider hasSpacing>
+            <OverviewItemList columns={1}>
                 {sectionKeys.map((sectionKey) => (
                     <section>
                         <TitleSubsection>
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
                         </TitleSubsection>
-                        <OverviewItemList densityHigh>
+                        <OverviewItemList densityHigh hasDivider>
                             {shortcuts[sectionKey].map((shortcut, i) => (
                                 <PropertyValuePair style={{ width: "100%" }} hasSpacing key={sectionKey + shortcut.key}>
-                                    <PropertyName size="large">
-                                        <Tooltip
-                                            content={t(
-                                                `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`
-                                            )}
-                                        >
-                                            <OverflowText passDown>
-                                                {t(
-                                                    `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`
-                                                )}
-                                            </OverflowText>
-                                        </Tooltip>
+                                    <PropertyName
+                                        size="large"
+                                        labelProps={{
+                                            tooltip: t(
+                                                `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}Desc`,
+                                                ""
+                                            ),
+                                        }}
+                                    >
+                                        {t(
+                                            `header.keyboardShortcutsModal.categories.${sectionKey}.shortcuts.${shortcut.key}`
+                                        )}
                                     </PropertyName>
                                     <PropertyValue
                                         style={{
@@ -117,6 +117,7 @@ export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ 
                                 </PropertyValuePair>
                             ))}
                         </OverviewItemList>
+                        <Spacing style={{ clear: "both" }} />
                     </section>
                 ))}
             </OverviewItemList>
