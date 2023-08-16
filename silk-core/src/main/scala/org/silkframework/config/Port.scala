@@ -25,6 +25,8 @@ case class FixedSchemaPort(schema: EntitySchema) extends Port {
   *
   * Flexible input ports will adapt the schema to the connected output.
   * Flexible output ports will adapt the schema to the connected input.
+  *
+  * It is not allowed to connect two flexible ports.
   */
 object FlexibleSchemaPort extends Port {
 
@@ -34,6 +36,8 @@ object FlexibleSchemaPort extends Port {
 
 /**
   * Port for which the schema is not known in advance.
+  *
+  * This includes output ports with a schema that depends on external factors (e.g., REST requests).
   */
 object UnknownSchemaPort extends Port {
 
