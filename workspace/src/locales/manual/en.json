@@ -244,7 +244,7 @@
             },
             "keys": {
                 "ctrl": "Ctrl",
-                "mod": "Mod",
+                "cmd": "⌘",
                 "shift": "⇧Shift",
                 "backspace": "←Backpace",
                 "alt": "Alt",

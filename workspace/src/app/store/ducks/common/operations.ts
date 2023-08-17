@@ -45,7 +45,7 @@ const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
             const data = await requestInitFrontend();
-            dispatch(setInitialSettings({ ...data, hotKeys: { ...data.hotKeys, keyboardShortcuts: "?" } }));
+            dispatch(setInitialSettings(data));
 
             const selectedLng = fetchStoredLang();
             if (!selectedLng) {

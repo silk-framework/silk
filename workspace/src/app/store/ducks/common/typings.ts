@@ -235,7 +235,7 @@ export interface IInitFrontend {
     templatingEnabled: boolean;
 }
 
-type HotKeyIds = "quickSearch" | "keyboardShortcuts";
+type HotKeyIds = "quickSearch" | "overview";
 
 export interface IDmLink {
     path: string;

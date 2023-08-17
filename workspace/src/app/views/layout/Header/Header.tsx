@@ -61,10 +61,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         dispatch(commonOp.setSelectedArtefactDType("all"));
     }, []);
 
-    const toggleShortcutModal = React.useCallback(() => {
-        setShortcutModalOpen((o) => !o);
-    }, []);
-
     const handleNavigate = (path: string) => {
         dispatch(routerOp.goToPage(path));
     };
@@ -80,11 +76,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
 
     return (
         <>
-            <KeyboardShortcutsModal
-                isOpen={shortcutModalOpen}
-                onClose={toggleShortcutModal}
-                openModal={() => setShortcutModalOpen(true)}
-            />
             <ApplicationHeader aria-label={`${APPLICATION_NAME()}${brandingSuffix}`}>
                 <ApplicationTitle
                     href={SERVE_PATH}
@@ -250,16 +241,27 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                     }
                                                 />
                                             )}
-                                            <MenuItem
-                                                text={t("header.keyboardShortcutsModal.title")}
-                                                icon={"application-vocabularies"}
-                                                labelElement={
-                                                    <Tag htmlTitle={`Hotkey: ?`} emphasis="weaker">
-                                                        ?
-                                                    </Tag>
-                                                }
-                                                onClick={toggleShortcutModal}
-                                            />
+                                            {hotKeys.overview && (
+                                                <MenuItem
+                                                    text={t("header.keyboardShortcutsModal.title")}
+                                                    href={"#"}
+                                                    onClick={(e) => {
+                                                        if (e) {
+                                                            e.preventDefault();
+                                                        }
+                                                        triggerHotkeyHandler(hotKeys.overview as string);
+                                                    }}
+                                                    icon="application-vocabularies"
+                                                    labelElement={
+                                                        <Tag
+                                                            htmlTitle={`Hotkey: ${hotKeys.overview}`}
+                                                            emphasis="weaker"
+                                                        >
+                                                            {hotKeys.overview}
+                                                        </Tag>
+                                                    }
+                                                />
+                                            )}
                                             <MenuItem
                                                 text={t("common.action.showApiDoc", "API")}
                                                 href={CONTEXT_PATH + "/doc/api"}

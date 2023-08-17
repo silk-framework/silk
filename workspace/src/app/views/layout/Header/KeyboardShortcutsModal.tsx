@@ -1,7 +1,6 @@
 import React from "react";
 import {
     Button,
-    OverflowText,
     OverviewItemList,
     PropertyName,
     PropertyValue,
@@ -17,24 +16,18 @@ import useHotKey from "../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 
-interface KeyboardShortcutsModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    openModal: () => void;
-}
-
 const sectionKeys = ["general", "workflow-editor", "rule-editors"] as const;
 const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; commands: string[] }>> = {
     general: [{ key: "quick-search", commands: ["/"] }],
     "rule-editors": [
-        { key: "duplicate-nodes", commands: ["ctrl+d", "mod+d"] },
+        { key: "duplicate-nodes", commands: ["ctrl+d", "cmd+d"] },
         {
             key: "undo",
-            commands: ["ctrl+z", "mod+z"],
+            commands: ["ctrl+z", "cmd+z"],
         },
         {
             key: "redo",
-            commands: ["ctrl+shift+z", "mod+shift+z"],
+            commands: ["ctrl+shift+z", "cmd+shift+z"],
         },
         { key: "delete", commands: ["backspace"] },
         { key: "multiselect", commands: ["alt+mouse select"] },
@@ -45,20 +38,21 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
     ],
 };
 
-export const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen, onClose, openModal }) => {
+export const KeyboardShortcutsModal = () => {
+    const [isOpen, setIsOpen] = React.useState<boolean>(false);
     const [t] = useTranslation();
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
 
     useHotKey({
-        hotkey: hotKeys.keyboardShortcuts,
+        hotkey: hotKeys.overview,
         handler: () => {
-            openModal();
+            setIsOpen(true);
             return false; // prevent default
         },
     });
 
     const closeModal = React.useCallback(() => {
-        onClose();
+        setIsOpen(false);
     }, []);
 
     return (
