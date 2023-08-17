@@ -28,7 +28,7 @@ case class FixedSchemaPort(schema: EntitySchema) extends Port {
   *
   * It is not allowed to connect two flexible ports.
   */
-object FlexibleSchemaPort extends Port {
+case object FlexibleSchemaPort extends Port {
 
   override def schemaOpt: Option[EntitySchema] = None
 
@@ -39,7 +39,7 @@ object FlexibleSchemaPort extends Port {
   *
   * This includes output ports with a schema that depends on external factors (e.g., REST requests).
   */
-object UnknownSchemaPort extends Port {
+case object UnknownSchemaPort extends Port {
 
   override def schemaOpt: Option[EntitySchema] = None
 }
