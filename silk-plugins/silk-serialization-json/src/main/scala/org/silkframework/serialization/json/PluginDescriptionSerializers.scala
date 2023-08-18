@@ -51,7 +51,8 @@ object PluginDescriptionSerializers {
         "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString)),
         "pluginId" -> JsString(plugin.id)
       ).filter(_ => !overviewOnly)
-      JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
+      val optionalPluginIcon = plugin.pluginIcon.map(content => "pluginIcon" -> JsString(content))
+      JsObject(metaData ++ tt ++ details ++ markdownDocumentation ++ optionalPluginIcon)
     }
 
     private def serializeParams(params: Seq[PluginParameter],

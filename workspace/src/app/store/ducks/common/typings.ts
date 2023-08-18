@@ -107,11 +107,13 @@ export interface IPluginDetails {
 /** Overview version of an item description. */
 export interface IPluginOverview {
     key: string;
-    taskType?: string;
+    taskType?: TaskType;
     title?: string;
     description?: string;
     categories?: string[];
     markdownDocumentation?: string;
+    /** Plugin icon in Data URL format. */
+    pluginIcon?: string;
 }
 
 export type AlternativeTaskUpdateFunction = (
@@ -195,6 +197,8 @@ export interface ICommonState {
     currentTaskId: string | undefined;
     locale: string;
     initialSettings: IInitFrontend;
+    /** The task plugin overview information. */
+    taskPluginOverviews: IPluginOverview[];
     authenticated: boolean;
     searchQuery: string;
     error?: any;

@@ -60,6 +60,10 @@ export const commonSlice = createSlice({
             state.initialSettings = action.payload;
         },
 
+        setTaskPluginOverviews: (state, action: PayloadAction<IPluginOverview[]>) => {
+            state.taskPluginOverviews = action.payload;
+        },
+
         fetchAvailableDTypes: (state) => {
             state.availableDataTypes = {};
         },

@@ -27,6 +27,7 @@ const {
     updateAvailableDTypes,
     setProjectId,
     setInitialSettings,
+    setTaskPluginOverviews,
     setSelectedArtefactDType,
     closeArtefactModal,
     selectArtefact,
@@ -46,6 +47,13 @@ const fetchCommonSettingsAsync = () => {
         try {
             const data = await requestInitFrontend();
             dispatch(setInitialSettings(data));
+
+            const overviewItems = await requestArtefactList({})
+            const taskPluginOverviews = Object.keys(overviewItems).map((key) => ({
+                key,
+                ...overviewItems[key],
+            }));
+            dispatch(setTaskPluginOverviews(taskPluginOverviews))
 
             const selectedLng = fetchStoredLang();
             if (!selectedLng) {

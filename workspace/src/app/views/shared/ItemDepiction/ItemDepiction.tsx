@@ -1,5 +1,9 @@
 import React from "react";
 import { Icon } from "@eccenca/gui-elements";
+import {useSelector} from "react-redux";
+import {commonSel} from "@ducks/common";
+import {IPluginOverview} from "@ducks/common/typings";
+import {convertTaskTypeToItemType} from "@ducks/shared/typings";
 
 const sizes = ["large", "small"] as const;
 type Sizes = typeof sizes[number];
@@ -23,7 +27,33 @@ export const createIconNameStack = (itemType?: string, pluginId?: string): strin
     return prefixedGeneratedIconNames.filter((x, i, a) => a.indexOf(x) === i);
 };
 
+const customPluginIcon: {artefactList?: IPluginOverview[], iconMap: Map<string, string>} = {
+    iconMap: new Map()
+}
+
+const pluginKey = (itemType: string, pluginId: string): string => `${itemType} ${pluginId}`
+const getCustomPluginIcon = (itemType: string, pluginId: string, artefactList: IPluginOverview[] | undefined): string | undefined => {
+    if(artefactList && artefactList !== customPluginIcon.artefactList) {
+        // Add icons to map
+        customPluginIcon.iconMap = new Map()
+        artefactList.forEach(plugin => {
+            if(plugin.pluginIcon) {
+                customPluginIcon.iconMap.set(pluginKey(convertTaskTypeToItemType(plugin.taskType), plugin.key), plugin.pluginIcon)
+            }
+        })
+        customPluginIcon.artefactList = artefactList
+    }
+    return customPluginIcon.iconMap.get(pluginKey(itemType, pluginId))
+}
+
 /** Item icon derived from the item type and optionally the plugin ID. */
 export const ItemDepiction = ({ itemType, pluginId, size = { large: true } }: IProps) => {
-    return <Icon name={createIconNameStack(itemType, pluginId)} {...size} />;
+    const taskPluginOverviews = useSelector(commonSel.taskPluginOverviewsSelector);
+    const customPluginIcon = itemType && pluginId ?
+        getCustomPluginIcon(itemType, pluginId, taskPluginOverviews) :
+        undefined
+    return customPluginIcon ?
+        // TODO: CMEM-5002: Replace img element with custom component to display data-URL icons
+        <img src={customPluginIcon} alt={""} /> :
+        <Icon name={createIconNameStack(itemType, pluginId)} {...size} />;
 };

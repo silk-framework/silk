@@ -533,7 +533,7 @@ export function CreateArtefactModal() {
         .every((searchWord) => "project".includes(searchWord));
 
     // Filter artefact list and add project item
-    let artefactListWithProject = artefactsList
+    let artefactListWithProject: IPluginOverview[] = artefactsList
         .filter(
             (artefact) =>
                 selectedDType === "all" ||
@@ -548,8 +548,7 @@ export function CreateArtefactModal() {
                 description: t(
                     "common.dataTypes.projectDesc",
                     "Projects let you group related items. All items that depend on each other need to be in the same project."
-                ),
-                taskType: "project",
+                )
             },
             ...artefactListWithProject,
         ];

@@ -36,11 +36,18 @@ import scala.language.existentials
   * @param parameters The parameters of the plugin class.
   * @param constructor The constructor for creating a new instance of this plugin.
   * @param pluginTypes The plugin types for this plugin. Ideally just one.
+  * @param pluginIcon The plugin icon as Data URL string. If the string is empty, a generic icon is used.
   * @tparam T The class that implements this plugin.
   */
-class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
-                                              val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T],
-                                              val pluginTypes: Seq[PluginTypeDescription]) extends PluginDescription[T] {
+class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
+                                              val categories: Seq[String],
+                                              val label: String,
+                                              val description: String,
+                                              val documentation: String,
+                                              val parameters: Seq[ClassPluginParameter],
+                                              constructor: Constructor[T],
+                                              val pluginTypes: Seq[PluginTypeDescription],
+                                              val pluginIcon: Option[String]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -129,6 +136,8 @@ object ClassPluginDescription {
     } {
       customDescription.generateDocumentation(docBuilder)
     }
+    val pluginIconString = annotation.pluginIcon().trim
+    val pluginIcon = if(pluginIconString.isEmpty || !pluginIconString.startsWith("data:")) None else Some(annotation.pluginIcon().trim)
 
     new ClassPluginDescription(
       id = annotation.id,
@@ -138,7 +147,8 @@ object ClassPluginDescription {
       documentation = docBuilder.toString,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass),
-      pluginTypes = pluginTypes
+      pluginTypes = pluginTypes,
+      pluginIcon = pluginIcon
     )
   }
 
@@ -152,7 +162,8 @@ object ClassPluginDescription {
         documentation = "",
         parameters = getParameters(pluginClass),
         constructor = getConstructor(pluginClass),
-        pluginTypes = getPluginTypes(pluginClass)
+        pluginTypes = getPluginTypes(pluginClass),
+        pluginIcon = None
       )
     } catch {
       case ex: InvalidPluginException =>
