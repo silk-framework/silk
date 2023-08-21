@@ -3,7 +3,7 @@ import { Icon } from "@eccenca/gui-elements";
 import {useSelector} from "react-redux";
 import {commonSel} from "@ducks/common";
 import {IPluginOverview} from "@ducks/common/typings";
-import {convertTaskTypeToItemType} from "@ducks/shared/typings";
+import {convertTaskTypeToItemType, TaskType} from "@ducks/shared/typings";
 
 const sizes = ["large", "small"] as const;
 type Sizes = typeof sizes[number];
@@ -31,8 +31,13 @@ const customPluginIcon: {artefactList?: IPluginOverview[], iconMap: Map<string, 
     iconMap: new Map()
 }
 
+const taskTypeSet: Set<TaskType> = new Set(["Dataset", "Linking", "Transform", "Workflow", "CustomTask"])
 const pluginKey = (itemType: string, pluginId: string): string => `${itemType} ${pluginId}`
 const getCustomPluginIcon = (itemType: string, pluginId: string, artefactList: IPluginOverview[] | undefined): string | undefined => {
+    const correctItemType = taskTypeSet.has(itemType as TaskType) ?
+        // Item type is a task type and needs to be converted
+        convertTaskTypeToItemType(itemType as TaskType) :
+        itemType
     if(artefactList && artefactList !== customPluginIcon.artefactList) {
         // Add icons to map
         customPluginIcon.iconMap = new Map()
@@ -43,7 +48,7 @@ const getCustomPluginIcon = (itemType: string, pluginId: string, artefactList: I
         })
         customPluginIcon.artefactList = artefactList
     }
-    return customPluginIcon.iconMap.get(pluginKey(itemType, pluginId))
+    return customPluginIcon.iconMap.get(pluginKey(correctItemType, pluginId))
 }
 
 /** Item icon derived from the item type and optionally the plugin ID. */
