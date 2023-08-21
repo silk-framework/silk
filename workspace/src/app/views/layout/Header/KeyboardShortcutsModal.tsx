@@ -30,11 +30,11 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
             commands: ["ctrl+shift+z", "cmd+shift+z"],
         },
         { key: "delete", commands: ["backspace"] },
-        { key: "multiselect", commands: ["alt+mouse select"] },
+        { key: "multiselect", commands: ["shift+mouse select"] },
     ],
     "workflow-editor": [
         { key: "delete", commands: ["backspace"] },
-        { key: "multiselect", commands: ["alt+mouse select"] },
+        { key: "multiselect", commands: ["shift+mouse select"] },
     ],
 };
 
