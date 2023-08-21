@@ -35,7 +35,6 @@ import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
-import { KeyboardShortcutsModal } from "./KeyboardShortcutsModal";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -54,7 +53,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const diUserMenuFooter = pluginRegistry.pluginReactComponent<UserMenuFooterProps>(
         SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER
     );
-    const [shortcutModalOpen, setShortcutModalOpen] = React.useState<boolean>(false);
     const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
 
     const handleCreateDialog = React.useCallback(() => {
