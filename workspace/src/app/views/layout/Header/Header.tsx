@@ -249,7 +249,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                         }
                                                         triggerHotkeyHandler(hotKeys.overview as string);
                                                     }}
-                                                    icon="application-vocabularies"
+                                                    icon="application-hotkeys"
                                                     labelElement={
                                                         <Tag
                                                             htmlTitle={`Hotkey: ${hotKeys.overview}`}
