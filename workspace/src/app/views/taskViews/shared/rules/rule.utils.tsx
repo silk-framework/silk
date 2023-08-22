@@ -258,6 +258,7 @@ const convertRuleOperator = (
 // Converts the parameter type of the plugin to any of the supported types of the parameter UI component
 const convertPluginParameterType = (pluginParameterType: string): RuleParameterType => {
     switch (pluginParameterType) {
+        case "template":
         case "multiline string":
             return "textArea";
         case "int":
