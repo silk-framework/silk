@@ -17,7 +17,7 @@ import {
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    Depiction,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
@@ -548,7 +548,7 @@ export function CreateArtefactModal() {
                 description: t(
                     "common.dataTypes.projectDesc",
                     "Projects let you group related items. All items that depend on each other need to be in the same project."
-                )
+                ),
             },
             ...artefactListWithProject,
         ];
@@ -838,17 +838,12 @@ export function CreateArtefactModal() {
                                                             onClick={() => handleArtefactSelect(artefact)}
                                                             onKeyDown={handleEnter}
                                                         >
-                                                            <Depiction
-                                                                image={
-                                                                    <ItemDepiction
-                                                                        itemType={artefact.taskType}
-                                                                        pluginId={artefact.key}
-                                                                    />
-                                                                }
-                                                                ratio="1:1"
-                                                                backgroundColor="dark"
-                                                                padding="medium"
-                                                            />
+                                                            <OverviewItemDepiction>
+                                                                <ItemDepiction
+                                                                    itemType={artefact.taskType}
+                                                                    pluginId={artefact.key}
+                                                                />
+                                                            </OverviewItemDepiction>
                                                             <OverviewItemDescription>
                                                                 <OverviewItemLine>
                                                                     <strong>

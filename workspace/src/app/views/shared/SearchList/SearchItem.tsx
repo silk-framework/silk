@@ -13,6 +13,7 @@ import {
     Depiction,
     OverviewItemDescription,
     OverviewItemLine,
+    OverviewItemDepiction,
     Spacing,
     Tag,
 } from "@eccenca/gui-elements";
@@ -132,13 +133,9 @@ export default function SearchItem({
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
-                <Depiction
-                    image={<ItemDepiction itemType={item.type} pluginId={item.pluginId} />}
-                    ratio="1:1"
-                    backgroundColor="dark"
-                    padding="medium"
-                    forceInlineSvg={true}
-                />
+                <OverviewItemDepiction>
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
+                </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <h4>
