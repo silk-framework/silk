@@ -137,6 +137,7 @@ export default function SearchItem({
                     ratio="1:1"
                     backgroundColor="dark"
                     padding="medium"
+                    forceInlineSvg={true}
                 />
                 <OverviewItemDescription>
                     <OverviewItemLine>

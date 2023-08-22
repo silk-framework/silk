@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@eccenca/gui-elements";
+import { Depiction, Icon } from "@eccenca/gui-elements";
 import {useSelector} from "react-redux";
 import {commonSel} from "@ducks/common";
 import {IPluginOverview} from "@ducks/common/typings";
@@ -58,7 +58,6 @@ export const ItemDepiction = ({ itemType, pluginId, size = { large: true } }: IP
         getCustomPluginIcon(itemType, pluginId, taskPluginOverviews) :
         undefined
     return customPluginIcon ?
-        // TODO: CMEM-5002: Replace img element with custom component to display data-URL icons
         <img src={customPluginIcon} alt={""} /> :
         <Icon name={createIconNameStack(itemType, pluginId)} {...size} />;
 };
