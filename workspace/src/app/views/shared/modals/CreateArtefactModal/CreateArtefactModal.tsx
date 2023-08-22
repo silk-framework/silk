@@ -723,7 +723,7 @@ export function CreateArtefactModal() {
     const createDialog = (
         <SimpleDialog
             size="large"
-            preventSimpleClosing={true}
+            preventSimpleClosing={!!artefactForm || searchValue.trim().length > 0}
             hasBorder
             title={
                 updateExistingTask
