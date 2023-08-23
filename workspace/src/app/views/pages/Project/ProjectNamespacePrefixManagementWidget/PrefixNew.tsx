@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {KeyboardEventHandler, useEffect, useState} from "react";
 import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
@@ -99,6 +99,22 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
         prefixValueErrorIcon = <Icon name={"state-warning"} tooltipText={tooltipText} />;
     }
 
+    const submitButtonDisabled = !isValidPrefixName || !isValidPrefixValue || typeof isValidPrefixValue == "number"
+
+    const handleSubmit = React.useCallback(() => {
+        if(!submitButtonDisabled) {
+            isUpdatePrefix ?
+                setOverwriteDialogOpen(true) :
+                onAdd(prefixDefinition);
+        }
+    }, [prefixDefinition, existingPrefixes, submitButtonDisabled])
+
+    const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback((event): void => {
+        if(event.key === "Enter" && !submitButtonDisabled) {
+            handleSubmit()
+        }
+    }, [submitButtonDisabled])
+
     return (
         <>
             <FieldSet title={t("common.action.AddSmth", { smth: t("widget.ConfigWidget.prefix") })} boxed>
@@ -115,6 +131,8 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             value={prefixDefinition.prefixName}
                             onChange={onPrefixNameChange}
                             leftIcon={prefixNameErrorIcon}
+                            autoFocus={true}
+                            onKeyUp={enterHandler}
                             hasStateDanger={!isValidPrefixName && !!prefixDefinition.prefixName}
                         />
                     </FieldItem>
@@ -130,17 +148,16 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             value={prefixDefinition.prefixUri}
                             onChange={onPrefixUriChange}
                             leftIcon={prefixValueErrorIcon}
+                            onKeyUp={enterHandler}
                             hasStateDanger={highlightInvalidPrefixValue}
                         />
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>
                         <Button
                             data-test-id={isUpdatePrefix ? "update-prefix-definition-btn" : "add-prefix-definition-btn"}
-                            onClick={() => (isUpdatePrefix ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition))}
+                            onClick={handleSubmit}
                             elevated
-                            disabled={
-                                !isValidPrefixName || !isValidPrefixValue || typeof isValidPrefixValue == "number"
-                            }
+                            disabled={submitButtonDisabled}
                         >
                             {isUpdatePrefix ? t("common.action.update") : t("common.action.add")}
                         </Button>
