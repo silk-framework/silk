@@ -97,6 +97,10 @@ export interface IUploaderOptions {
 
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
+
+    /** Callback that is called when the state of all uploads being successfully done has changed.
+     * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
+    allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any
 }
 
 interface IState {
@@ -318,6 +322,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                         validateBeforeAdd={this.validateBeforeFileAdded}
                                         uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/files`)}`}
                                         attachFileNameToEndpoint={true}
+                                        allFilesSuccessfullyUploadedHandler={this.props.allFilesSuccessfullyUploadedHandler}
                                     />
                                 </>
                             )}

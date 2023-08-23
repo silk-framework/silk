@@ -33,15 +33,26 @@ interface IProps {
     onUploadSuccess?(file: UppyFile, response: { status: number; body: any });
 
     onUploadError?(e, f);
+
+    /** Callback that is called when the state of all uploads being successfully done has changed.
+     * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
+    allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any
 }
 
 /**
  * The Widget for "Upload new file" option
  */
-export function UploadNewFile(props: IProps) {
-    const { projectId, uppy, onAdded, onUploadSuccess, validateBeforeAdd, uploadEndpoint, attachFileNameToEndpoint } =
-        props;
-
+export function UploadNewFile({
+                                  projectId,
+                                  uppy,
+                                  onAdded,
+                                  onUploadSuccess,
+                                  validateBeforeAdd,
+                                  uploadEndpoint,
+                                  attachFileNameToEndpoint,
+                                  allFilesSuccessfullyUploadedHandler,
+                                  onProgress
+                              }: IProps) {
     // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);
 
@@ -66,7 +77,27 @@ export function UploadNewFile(props: IProps) {
 
     const [t] = useTranslation();
 
+    const allFilesSuccessfullyUploaded = React.useRef(true)
+
     const forceUpdate = useForceUpdate();
+
+    // Check if all files are successfully uploaded
+    const checkFilesSuccessfullyUploaded = () => {
+        let successful = true
+        if(error || filesForRetry.length || filesViolatingRestriction.length || onlyReplacements.length) {
+            // Error or user interaction needed
+            successful = false
+        }
+        if(Object.entries(progresses).find((file, progress) => progress !== 1)) {
+            // Upload in progress
+            successful = false
+        }
+        if(successful !== allFilesSuccessfullyUploaded.current) {
+            allFilesSuccessfullyUploaded.current = successful
+            allFilesSuccessfullyUploadedHandler?.(successful)
+        }
+    }
+    checkFilesSuccessfullyUploaded()
 
     // register/unregister uppy events
     useEffect(() => {
@@ -191,8 +222,8 @@ export function UploadNewFile(props: IProps) {
     const handleProgress = (file: UppyFile, { bytesUploaded, bytesTotal }) => {
         const progressAmount = bytesUploaded / bytesTotal;
 
-        if (props.onProgress) {
-            props.onProgress(progressAmount);
+        if (onProgress) {
+            onProgress(progressAmount);
         }
         setProgresses((prevState) => ({
             ...prevState,
@@ -254,6 +285,13 @@ export function UploadNewFile(props: IProps) {
     };
 
     const handleAbort = (fileId: string) => {
+        setProgresses((prevState) => {
+            const newState = {
+                ...prevState,
+            }
+            delete newState[fileId]
+            return newState
+        });
         addInRetryQueue(uppy.getFile(fileId));
     };
 

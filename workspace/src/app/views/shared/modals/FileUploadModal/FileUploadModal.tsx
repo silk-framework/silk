@@ -17,11 +17,16 @@ export interface IFileUploadModalProps {
 export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
+    const [allSuccessful, setAllSuccessful] = React.useState(true)
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     useDebugValue(!projectId ? "Project ID not provided and upload url is not valid" : "");
+
+    const allFilesSuccessfullyUploadedHandler = React.useCallback((allSuccessful: boolean) => {
+        setAllSuccessful(allSuccessful)
+    }, [])
 
     if (!projectId) {
         return null;
@@ -44,7 +49,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 size="small"
                 isOpen={isOpen}
                 onClose={handleDiscard}
-                preventSimpleClosing={true}
+                preventSimpleClosing={!allSuccessful}
                 actions={
                     <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard}>
                         {t("common.action.close", "Close")}
@@ -59,6 +64,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                         /** We are not interested on file changes, only upload. */
                     }}
                     maxFileUploadSizeBytes={maxFileUploadSize}
+                    allFilesSuccessfullyUploadedHandler={allFilesSuccessfullyUploadedHandler}
                 />
             </SimpleDialog>
         </>
