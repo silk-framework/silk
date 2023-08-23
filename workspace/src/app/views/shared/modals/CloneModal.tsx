@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {KeyboardEventHandler, useEffect, useState} from "react";
 import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
@@ -6,6 +6,7 @@ import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/reque
 import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
+import useHotKey from "../HotKeyHandler/HotKeyHandler";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -74,6 +75,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         }
     };
 
+    useHotKey({hotkey: "enter", handler: handleCloning})
+    const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback((event): void => {
+        if(event.key === "Enter") {
+            handleCloning()
+        }
+    }, [])
+
     return loading ? (
         <Loading delay={0} />
     ) : (
@@ -115,7 +123,12 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }),
                 }}
             >
-                <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />
+                <TextField
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    value={newLabel}
+                    autoFocus={true}
+                    onKeyUp={enterHandler}
+                />
             </FieldItem>
             {error && (
                 <>
