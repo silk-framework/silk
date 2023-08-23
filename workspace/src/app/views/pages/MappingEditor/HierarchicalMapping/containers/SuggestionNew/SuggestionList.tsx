@@ -29,6 +29,7 @@ import { filterRowsByColumnModifier, getLocalNameLabelFromPath, sortRows } from 
 import AppliedFilters from "./AppliedFilters";
 import { Set } from "immutable";
 import { LOCAL_STORAGE_KEYS, MAPPING_DEFAULTS } from "./constants";
+import useHotKey from "../../../../../shared/HotKeyHandler/HotKeyHandler";
 
 interface IPagination {
     // store current page number
@@ -410,6 +411,30 @@ export default function SuggestionList({
 
     const isAllSelected = () => !!filteredRows.length && pageRows.length === selectedSources.size;
 
+    const SwapAlertDialog = () => {
+        const onClose = () => setWarningDialog(false)
+        useHotKey({hotkey: "enter", handler: handleConfirmSwap})
+
+        return <AlertDialog
+            warning={true}
+            isOpen={true}
+            portalContainer={context.portalContainer}
+            canEscapeKeyClose={true}
+            onClose={onClose}
+            actions={[
+                <Button key="confirm" onClick={handleConfirmSwap}>
+                    Swap
+                </Button>,
+                <Button key="cancel" onClick={onClose}>
+                    Cancel
+                </Button>,
+            ]}
+        >
+            <p>The selected auto-generated properties lost after swap.</p>
+            <p>Are you sure?</p>
+        </AlertDialog>
+    }
+
     return loading ? (
         <Spinner />
     ) : (
@@ -486,23 +511,7 @@ export default function SuggestionList({
                     Cancel
                 </Button>
             </CardActions>
-            <AlertDialog
-                warning={true}
-                isOpen={warningDialog}
-                portalContainer={context.portalContainer}
-                onClose={() => setWarningDialog(false)}
-                actions={[
-                    <Button key="confirm" onClick={handleConfirmSwap}>
-                        Swap
-                    </Button>,
-                    <Button key="cancel" onClick={() => setWarningDialog(false)}>
-                        Cancel
-                    </Button>,
-                ]}
-            >
-                <p>The selected auto-generated properties lost after swap.</p>
-                <p>Are you sure?</p>
-            </AlertDialog>
+            {warningDialog && <SwapAlertDialog />}
             <PrefixDialog
                 isOpen={prefixModal}
                 onAdd={handleAdd}
