@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
+import React, {useEffect, useRef, useState} from "react";
+import {batch, useDispatch, useSelector} from "react-redux";
+import {useForm} from "react-hook-form";
 import {
     Button,
     Card,
     CardActionsAux,
+    Depiction,
     Grid,
     GridColumn,
     GridRow,
@@ -17,34 +18,33 @@ import {
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    Depiction,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
     SimpleDialog,
     Spacing,
 } from "@eccenca/gui-elements";
-import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactModal, IPluginDetails, IPluginOverview, IProjectTaskUpdatePayload } from "@ducks/common/typings";
+import {createMultiWordRegex, extractSearchWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import {commonOp, commonSel} from "@ducks/common";
+import {IArtefactModal, IPluginDetails, IPluginOverview, IProjectTaskUpdatePayload} from "@ducks/common/typings";
 import Loading from "../../Loading";
-import { ProjectForm } from "./ArtefactForms/ProjectForm";
-import { TaskForm } from "./ArtefactForms/TaskForm";
-import { DATA_TYPES } from "../../../../constants";
+import {ProjectForm} from "./ArtefactForms/ProjectForm";
+import {TaskForm} from "./ArtefactForms/TaskForm";
+import {DATA_TYPES} from "../../../../constants";
 import ArtefactTypesList from "./ArtefactTypesList";
-import { SearchBar } from "../../SearchBar/SearchBar";
-import { routerOp } from "@ducks/router";
-import { useTranslation } from "react-i18next";
-import { DatasetTaskPlugin, TaskType } from "@ducks/shared/typings";
-import { ProjectImportModal } from "../ProjectImportModal";
+import {SearchBar} from "../../SearchBar/SearchBar";
+import {routerOp} from "@ducks/router";
+import {useTranslation} from "react-i18next";
+import {DatasetTaskPlugin, TaskType} from "@ducks/shared/typings";
+import {ProjectImportModal} from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
-import { workspaceSel } from "@ducks/workspace";
-import { requestSearchList } from "@ducks/workspace/requests";
-import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
-import { requestProjectMetadata } from "@ducks/shared/requests";
-import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
-import { diErrorMessage } from "@ducks/error/typings";
+import {workspaceSel} from "@ducks/workspace";
+import {requestSearchList} from "@ducks/workspace/requests";
+import {objectToFlatRecord, uppercaseFirstChar} from "../../../../utils/transformers";
+import {requestProjectMetadata} from "@ducks/shared/requests";
+import {requestAutoConfiguredDataset} from "./CreateArtefactModal.requests";
+import {diErrorMessage} from "@ducks/error/typings";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -497,13 +497,17 @@ export function CreateArtefactModal() {
                     registerForExternalChanges,
                     templateFlag,
                 }}
+                goBackOnEscape={handleBack}
             />
         );
     } else {
         // Project / task creation
         if (selectedArtefactKey) {
             if (projectArtefactSelected) {
-                artefactForm = <ProjectForm form={form} />;
+                artefactForm = <ProjectForm
+                    form={form}
+                    goBackOnEscape={handleBack}
+                />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 const activeProjectId = currentProject?.id ?? projectId;
@@ -519,6 +523,7 @@ export function CreateArtefactModal() {
                                 registerForExternalChanges,
                                 templateFlag,
                             }}
+                            goBackOnEscape={handleBack}
                         />
                     );
                 }

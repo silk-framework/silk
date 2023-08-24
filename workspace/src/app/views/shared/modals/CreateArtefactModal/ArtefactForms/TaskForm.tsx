@@ -16,6 +16,7 @@ import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
+import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -34,6 +35,9 @@ export interface IProps {
     updateTask?: UpdateTaskProps;
 
     parameterCallbacks: ParameterCallbacks;
+
+    /** Called when no changes were done in the form and the ESC key is pressed. */
+    goBackOnEscape?: () => any
 }
 
 export interface UpdateTaskProps {
@@ -72,7 +76,7 @@ const isInt = (value) => {
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange, parameterCallbacks }: IProps) {
+export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange, parameterCallbacks, goBackOnEscape = () => {}}: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
@@ -87,6 +91,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const parameterLabels = React.useRef(new Map<string, string>());
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const escapeKeyDisabled = React.useRef(false)
 
     const initialTemplateFlag = React.useCallback(
         (fullParameterId: string) => {
@@ -94,6 +99,14 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
         },
         [updateTask]
     );
+
+    const handleEscapeKey = React.useCallback(() => {
+        if(!escapeKeyDisabled.current) {
+            goBackOnEscape()
+        }
+    }, [])
+
+    useHotKey({hotkey: "escape", handler: handleEscapeKey})
 
     const parameterLabel = React.useCallback((fullParameterId: string) => {
         return parameterLabels.current.get(fullParameterId) ?? "N/A";
@@ -261,6 +274,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             await triggerValidation(key);
             //verify task identifier
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
+            if(!escapeKeyDisabled.current) {
+                escapeKeyDisabled.current = true
+            }
         },
         []
     );
