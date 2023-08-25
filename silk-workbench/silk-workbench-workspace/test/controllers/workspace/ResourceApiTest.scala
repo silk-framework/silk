@@ -77,6 +77,6 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
     }
 
     fileMimeType("test.json", "{}", "application/json")
-    fileMimeType("test.xml", "{}", "application/xml")
+    fileMimeType("test.xml", "<test></test>", "application/xml")
   }
 }
