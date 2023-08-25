@@ -64,4 +64,19 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
       workspaceProject(projectId).resources.getInPath(nestedResourcePath, mustExist = true)
     }
   }
+
+  it should "return correct content type for basic files" in {
+    val project = workspaceProject(projectId)
+
+    def fileMimeType(name: String, contents: String, expectedMimeType: String): Unit = {
+      val resource = project.resources.getInPath(name)
+      resource.writeString(contents)
+      val url = resourceApi.getFile(projectId, name).url
+      val response = checkResponse(client.url(s"$baseUrl$url").get())
+      response.contentType mustBe expectedMimeType
+    }
+
+    fileMimeType("test.json", "{}", "application/json")
+    fileMimeType("test.xml", "{}", "application/xml")
+  }
 }
