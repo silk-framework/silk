@@ -4,7 +4,6 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.exceptions.ProjectNotFoundException
 import org.silkframework.workspace.{ProjectTrait, WorkspaceReadTrait}
 import play.api.libs.json._
 
@@ -51,7 +50,8 @@ object PluginDescriptionSerializers {
         "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString)),
         "pluginId" -> JsString(plugin.id)
       ).filter(_ => !overviewOnly)
-      JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
+      val pluginTypeSpecificProperties = plugin.customDescriptions.flatMap(_.additionalProperties().view.mapValues(JsString))
+      JsObject(metaData ++ tt ++ details ++ markdownDocumentation ++ pluginTypeSpecificProperties)
     }
 
     private def serializeParams(params: Seq[PluginParameter],

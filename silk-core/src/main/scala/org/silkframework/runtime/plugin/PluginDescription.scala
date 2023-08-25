@@ -38,6 +38,9 @@ trait PluginDescription[+T] {
   /** The plugin types for this plugin. Ideally just one. */
   val pluginTypes: Seq[PluginTypeDescription]
 
+  /** Custom plugin descriptions */
+  lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescription.generate(pluginClass))
+
   /**
     * Creates an instance of this plugin with the given parameters.
     *
