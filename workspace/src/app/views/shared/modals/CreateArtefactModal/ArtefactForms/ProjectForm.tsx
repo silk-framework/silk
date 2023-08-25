@@ -78,8 +78,10 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     id={LABEL}
                     placeholder={t("form.projectForm.projectTitle", "Project title")}
                     name={LABEL}
+                    autoFocus={true}
                     hasStateDanger={errors.label ? true : false}
                     onChange={onValueChange(LABEL)}
+                    escapeToBlur={true}
                 />
             </FieldItem>
             <FieldItem

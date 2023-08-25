@@ -45,6 +45,7 @@ import {objectToFlatRecord, uppercaseFirstChar} from "../../../../utils/transfor
 import {requestProjectMetadata} from "@ducks/shared/requests";
 import {requestAutoConfiguredDataset} from "./CreateArtefactModal.requests";
 import {diErrorMessage} from "@ducks/error/typings";
+import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -278,15 +279,15 @@ export function CreateArtefactModal() {
         resetModal();
     };
 
-    const taskType = (artefactId): TaskType | "Project" => {
+    const taskType = React.useCallback((artefactId): TaskType | "Project" => {
         if (artefactId === "project") {
             return "Project";
         } else {
             return (cachedArtefactProperties[artefactId] as IPluginDetails).taskType;
         }
-    };
+    }, [cachedArtefactProperties]);
 
-    const handleCreate = async (e) => {
+    const handleCreate = React.useCallback(async (e) => {
         e.preventDefault();
         setActionLoading(true);
         const isValidFields = await form.triggerValidation();
@@ -329,7 +330,7 @@ export function CreateArtefactModal() {
         } finally {
             setActionLoading(false);
         }
-    };
+    }, [form, updateExistingTask, taskType]);
 
     const closeModal = () => {
         setSearchValue("");
@@ -724,6 +725,8 @@ export function CreateArtefactModal() {
             />
         );
     }
+    const submitEnabled = !!isCreationUpdateDialog &&  !isErrorPresented()
+    useHotKey({hotkey: "enter", handler: handleCreate, enabled: submitEnabled})
 
     const createDialog = (
         <SimpleDialog

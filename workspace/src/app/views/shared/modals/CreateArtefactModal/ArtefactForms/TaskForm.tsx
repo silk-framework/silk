@@ -319,6 +319,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                                 <TextField
                                     id={LABEL}
                                     name={LABEL}
+                                    autoFocus={true}
                                     value={label ?? ""}
                                     onChange={handleChange(LABEL)}
                                     hasStateDanger={!!errors.label}
@@ -328,6 +329,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                                             return false;
                                         }
                                     }}
+                                    escapeToBlur={true}
                                 />
                             )}
                         />
