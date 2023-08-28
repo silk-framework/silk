@@ -288,6 +288,12 @@ export function CreateArtefactModal() {
     }, [cachedArtefactProperties]);
 
     const handleCreate = React.useCallback(async (e) => {
+        if((e as KeyboardEvent).key === "Enter") {
+            if(e.target.type === "button" && e.target.popoverTargetAction === "toggle") {
+                // This should trigger a toggle, e.g. on an accordion element, do not trigger create.
+                return
+            }
+        }
         e.preventDefault();
         setActionLoading(true);
         const isValidFields = await form.triggerValidation();
