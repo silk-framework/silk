@@ -66,8 +66,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // Label for input paths
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
-    const [loading, setLoading] = React.useState(true)
-    const pendingRequests = React.useRef(2)
+    const [loading, setLoading] = React.useState(true);
+    const pendingRequests = React.useRef(2);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -80,11 +80,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     }, [projectId, linkingTaskId, prefLang]);
 
     const reducePendingRequestCount = () => {
-        pendingRequests.current = pendingRequests.current - 1
-        if(pendingRequests.current <= 0) {
-            setLoading(false)
+        pendingRequests.current = pendingRequests.current - 1;
+        if (pendingRequests.current <= 0) {
+            setLoading(false);
         }
-    }
+    };
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
@@ -102,7 +102,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 targetPathLabels.current = paths.data as PathWithMetaData[];
             }
         } finally {
-            reducePendingRequestCount()
+            reducePendingRequestCount();
         }
     };
     /** Fetches the parameters of the linking task */
@@ -141,12 +141,14 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         };
 
     // Return for either a source or target path what type of path it is.
-    const inputPathPluginPathType =
-        (pluginId: "sourcePathInput" | "targetPathInput", path: string): string | undefined => {
-            const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
-            const pathMetaData = pathsMetaData.find(p => p.value && path.endsWith(p.value))
-            return pathMetaData?.valueType
-        };
+    const inputPathPluginPathType = (
+        pluginId: "sourcePathInput" | "targetPathInput",
+        path: string
+    ): string | undefined => {
+        const pathsMetaData = pluginId === "sourcePathInput" ? sourcePathLabels.current : targetPathLabels.current;
+        const pathMetaData = pathsMetaData.find((p) => p.value && path.endsWith(p.value));
+        return pathMetaData?.valueType;
+    };
 
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
@@ -225,15 +227,40 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         defaultValue: "1",
     });
 
-    const thresholdParameterSpec = ruleUtils.parameterSpecification({
-        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
-        description: t(
-            "RuleEditor.sidebar.parameter.thresholdDesc",
-            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
-        ),
-        type: "float",
-        defaultValue: "0.0",
-    });
+    const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
+        const varyingSpec = () => {
+            switch (pluginDetails.distanceMeasureRange) {
+                case "normalized":
+                    return {
+                        description: t(
+                            "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
+                            "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity)."
+                        ),
+                        label: t("RuleEditor.sidebar.parameter.thresholdLabel.normalized", "Threshold (0...1)"),
+                    };
+                case "unbounded":
+                    return {
+                        description: t(
+                            "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
+                            "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+                        ),
+                        label: t("RuleEditor.sidebar.parameter.thresholdLabel.unbounded", "Threshold (0...∞)"),
+                    };
+                default:
+                    return {
+                        label: "",
+                        description: "",
+                    };
+            }
+        };
+
+        return ruleUtils.parameterSpecification({
+            ...varyingSpec(),
+            type: "float",
+            defaultValue: "0.0",
+            distanceMeasureRange: pluginDetails.distanceMeasureRange,
+        });
+    };
 
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
@@ -289,8 +316,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return result;
     };
 
-    if(loading) {
-        return <Loading />
+    if (loading) {
+        return <Loading />;
     }
 
     return (
@@ -313,10 +340,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 addAdditionParameterSpecifications={(pluginDetails) => {
                     switch (pluginDetails.pluginType) {
                         case "ComparisonOperator":
-                            return [
-                                ["threshold", thresholdParameterSpec],
-                                ["weight", weightParameterSpec],
-                            ];
+                            return pluginDetails.distanceMeasureRange === "boolean"
+                                ? [["weight", weightParameterSpec]]
+                                : [
+                                      ["threshold", thresholdParameterSpec(pluginDetails)],
+                                      ["weight", weightParameterSpec],
+                                  ];
                         case "AggregationOperator":
                             return [["weight", weightParameterSpec]];
                         default:

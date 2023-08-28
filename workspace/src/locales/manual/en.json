@@ -574,8 +574,14 @@
             "parameter": {
                 "weightLabel": "Weight",
                 "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
-                "thresholdLabel": "Threshold",
-                "thresholdDesc": "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+                "thresholdLabel": {
+                    "normalized": "Threshold (0...1)",
+                    "unbounded": "Threshold (0...∞)"
+                },
+                "thresholdDesc": {
+                    "normalized": "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
+                    "unbounded": "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+                }
             }
         },
         "toolbar": {
@@ -1073,7 +1079,7 @@
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
     },
-    "PathInputOperator" : {
+    "PathInputOperator": {
         "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
         "noFilter": "No language filter"
     },
