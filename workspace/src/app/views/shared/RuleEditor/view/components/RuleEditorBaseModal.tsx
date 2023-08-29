@@ -18,21 +18,5 @@ export const RuleEditorBaseModal = ({ children, ...props }: IProps) => {
         }
     }, [props.isOpen]);
 
-    const wrapperDivProps = {
-        // Prevent react-flow from getting these events
-        onContextMenu: (event) => event.stopPropagation(),
-        onDrag: (event) => event.stopPropagation(),
-        onDragStart: (event) => event.stopPropagation(),
-        onDragEnd: (event) => event.stopPropagation(),
-        onMouseDown: (event) => event.stopPropagation(),
-        onMouseUp: (event) => event.stopPropagation(),
-        onClick: (event) => event.stopPropagation(),
-        ...props.wrapperDivProps,
-    };
-
-    return (
-        <SimpleDialog {...props} wrapperDivProps={wrapperDivProps}>
-            {children}
-        </SimpleDialog>
-    );
+    return <SimpleDialog {...props}>{children}</SimpleDialog>;
 };

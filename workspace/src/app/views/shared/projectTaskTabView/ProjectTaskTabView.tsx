@@ -15,6 +15,7 @@ import {
     GridRow,
     IconButton,
     Modal,
+    modalPreventEvents,
     Spacing,
 } from "@eccenca/gui-elements";
 import { IItemLink } from "@ducks/shared/typings";
@@ -394,7 +395,13 @@ export function ProjectTaskTabView({
                 proceed={() => blockedTab && changeTab(blockedTab, true)}
             />
             {selectedTask === taskId && !!handlerRemoveModal ? (
-                <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>
+                <Modal
+                    size="fullscreen"
+                    isOpen={true}
+                    canEscapeKeyClose={true}
+                    onClose={handlerRemoveModal}
+                    wrapperDivProps={modalPreventEvents}
+                >
                     {tabsWidget(projectId, taskId)}
                 </Modal>
             ) : selectedTask === taskId ? (
