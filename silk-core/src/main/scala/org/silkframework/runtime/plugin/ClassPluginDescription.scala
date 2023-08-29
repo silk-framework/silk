@@ -36,7 +36,7 @@ import scala.language.existentials
   * @param parameters The parameters of the plugin class.
   * @param constructor The constructor for creating a new instance of this plugin.
   * @param pluginTypes The plugin types for this plugin. Ideally just one.
-  * @param pluginIcon The plugin icon as Data URL string. If the string is empty, a generic icon is used.
+  * @param icon The plugin icon as Data URL string. If the string is empty, a generic icon is used.
   * @tparam T The class that implements this plugin.
   */
 class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
@@ -47,7 +47,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               val parameters: Seq[ClassPluginParameter],
                                               constructor: Constructor[T],
                                               val pluginTypes: Seq[PluginTypeDescription],
-                                              val pluginIcon: Option[String]) extends PluginDescription[T] {
+                                              val icon: Option[String]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -148,7 +148,7 @@ object ClassPluginDescription {
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass),
       pluginTypes = pluginTypes,
-      pluginIcon = pluginIcon
+      icon = pluginIcon
     )
   }
 
@@ -163,7 +163,7 @@ object ClassPluginDescription {
         parameters = getParameters(pluginClass),
         constructor = getConstructor(pluginClass),
         pluginTypes = getPluginTypes(pluginClass),
-        pluginIcon = None
+        icon = None
       )
     } catch {
       case ex: InvalidPluginException =>

@@ -39,7 +39,7 @@ trait PluginDescription[+T] {
   val pluginTypes: Seq[PluginTypeDescription]
 
   /** The plugin icon as Data URL string. If the string is empty, a generic icon is used. */
-  val pluginIcon: Option[String]
+  val icon: Option[String]
 
   /**
     * Creates an instance of this plugin with the given parameters.
