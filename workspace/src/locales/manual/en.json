@@ -362,7 +362,10 @@
             "float": "must be a valid floating point number",
             "integer": "must be a valid integer number",
             "isRequired": "{{field}} is required",
-            "parameter": "Parameter validation failed. Please fix the issues first."
+            "parameter": "Parameter validation failed. Please fix the issues first.",
+            "threshold": {
+                "normalized": "Must be a floating point number between 0...1"
+            }
         }
     },
     "http": {
@@ -575,8 +578,8 @@
                 "weightLabel": "Weight",
                 "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
                 "thresholdLabel": {
-                    "normalized": "Threshold (0...1)",
-                    "unbounded": "Threshold (0...∞)"
+                    "normalized": "Threshold 0...1",
+                    "unbounded": "Threshold 0...∞"
                 },
                 "thresholdDesc": {
                     "normalized": "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",

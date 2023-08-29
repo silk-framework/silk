@@ -27,6 +27,11 @@ import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/c
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 import Loading from "../../shared/Loading";
+import {
+    RuleEditorNodeParameterValue,
+    ruleEditorNodeParameterValue,
+} from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
+import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -254,10 +259,20 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             }
         };
 
+        const customValidation = (distanceMeasureRange) => (parameterValue: RuleEditorNodeParameterValue) => {
+            const value = ruleEditorNodeParameterValue(parameterValue);
+            const float = Number(value);
+            if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
+            if (distanceMeasureRange === "normalized" && float > 1)
+                return invalidValueResult(t("form.validations.threshold.normalized"));
+            return { valid: true };
+        };
+
         return ruleUtils.parameterSpecification({
             ...varyingSpec(),
             type: "float",
             defaultValue: "0.0",
+            customValidation: customValidation(pluginDetails.distanceMeasureRange),
             distanceMeasureRange: pluginDetails.distanceMeasureRange,
         });
     };

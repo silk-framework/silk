@@ -6,7 +6,7 @@ import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import {LanguageFilterProps} from "./PathInputOperator";
+import { LanguageFilterProps } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -61,6 +61,8 @@ export const RuleNodeFormParameter = ({
     const paramSpec = parameter.parameterSpecification;
     const parameterDescription =
         paramSpec.description && paramSpec.description !== "No description" ? paramSpec.description : undefined;
+
+    console.log({ parameter });
 
     return (
         <FieldItem
