@@ -114,7 +114,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
         if(event.key === "Enter" && !submitButtonDisabled) {
             handleSubmit()
         }
-    }, [submitButtonDisabled])
+    }, [submitButtonDisabled, prefixDefinition])
 
     const closeOverwriteDialog = React.useCallback(() => setOverwriteDialogOpen(false), [])
 
