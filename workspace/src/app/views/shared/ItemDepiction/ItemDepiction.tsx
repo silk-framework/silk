@@ -33,11 +33,11 @@ const customPluginIcon: { artefactList?: IPluginOverview[]; iconMap: Map<string,
 
 const taskTypeSet: Set<TaskType> = new Set(["Dataset", "Linking", "Transform", "Workflow", "CustomTask"]);
 const pluginKey = (itemType: string, pluginId: string): string => `${itemType} ${pluginId}`;
-const getCustomPluginIcon = (
+const getCustomPluginIcon = async (
     itemType: string,
     pluginId: string,
     artefactList: IPluginOverview[] | undefined
-): string | undefined => {
+): Promise<string | undefined> => {
     const correctItemType = taskTypeSet.has(itemType as TaskType)
         ? // Item type is a task type and needs to be converted
           convertTaskTypeToItemType(itemType as TaskType)
@@ -45,24 +45,48 @@ const getCustomPluginIcon = (
     if (artefactList && artefactList !== customPluginIcon.artefactList) {
         // Add icons to map
         customPluginIcon.iconMap = new Map();
-        artefactList.forEach((plugin) => {
-            if (plugin.pluginIcon) {
+        for(let i = 0; i < artefactList.length; i++) {
+            const plugin = artefactList[i]
+            if (plugin.pluginIcon && await validateDataUrl(plugin)) {
                 customPluginIcon.iconMap.set(
                     pluginKey(convertTaskTypeToItemType(plugin.taskType), plugin.key),
                     plugin.pluginIcon
                 );
             }
-        });
+        }
         customPluginIcon.artefactList = artefactList;
     }
     return customPluginIcon.iconMap.get(pluginKey(correctItemType, pluginId));
 };
 
+const validateDataUrl = async (plugin: IPluginOverview): Promise<boolean> => {
+    try {
+        const imageObj = new Image();
+        imageObj.src = plugin.pluginIcon!
+        await imageObj.decode()
+        return true
+    } catch(ex) {
+        console.warn(`Plugin '${plugin.title ?? plugin.key}' has an invalid icon data URL!`)
+        return false
+    }
+}
+
 /** Item icon derived from the item type and optionally the plugin ID. */
 export const ItemDepiction = ({ itemType, pluginId, size = { large: true } }: IProps) => {
+    const [customPluginIcon, setCustomPluginIcon] = React.useState<string | undefined>(undefined)
     const taskPluginOverviews = useSelector(commonSel.taskPluginOverviewsSelector);
-    const customPluginIcon =
-        itemType && pluginId ? getCustomPluginIcon(itemType, pluginId, taskPluginOverviews) : undefined;
+
+    const fetchValidatedCustomPluginIcon = React.useCallback(async () => {
+        if(itemType && pluginId) {
+            const icon = await getCustomPluginIcon(itemType, pluginId, taskPluginOverviews)
+            setCustomPluginIcon(icon)
+        }
+    }, [])
+
+    React.useEffect(() => {
+        fetchValidatedCustomPluginIcon()
+    }, [])
+
     return customPluginIcon ? (
         <Depiction
             image={<img src={customPluginIcon} alt={""} />}
