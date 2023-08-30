@@ -20,6 +20,7 @@ import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
+import {fillCustomPluginStore} from "../../../views/shared/ItemDepiction/ItemDepiction";
 
 const {
     setError,
@@ -53,6 +54,7 @@ const fetchCommonSettingsAsync = () => {
                 key,
                 ...overviewItems[key],
             }));
+            await fillCustomPluginStore(taskPluginOverviews)
             dispatch(setTaskPluginOverviews(taskPluginOverviews))
 
             const selectedLng = fetchStoredLang();

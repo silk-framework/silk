@@ -33,16 +33,21 @@ const customPluginIcon: { artefactList?: IPluginOverview[]; iconMap: Map<string,
 
 const taskTypeSet: Set<TaskType> = new Set(["Dataset", "Linking", "Transform", "Workflow", "CustomTask"]);
 const pluginKey = (itemType: string, pluginId: string): string => `${itemType} ${pluginId}`;
-const getCustomPluginIcon = async (
+
+/** Gets the custom item type from the icon store. */
+export const getCustomPluginIconFromStore = (
     itemType: string,
-    pluginId: string,
-    artefactList: IPluginOverview[] | undefined
-): Promise<string | undefined> => {
+    pluginId: string
+): string | undefined => {
     const correctItemType = taskTypeSet.has(itemType as TaskType)
         ? // Item type is a task type and needs to be converted
-          convertTaskTypeToItemType(itemType as TaskType)
+        convertTaskTypeToItemType(itemType as TaskType)
         : itemType;
-    if (artefactList && artefactList !== customPluginIcon.artefactList) {
+    return customPluginIcon.iconMap.get(pluginKey(correctItemType, pluginId));
+}
+
+export const fillCustomPluginStore = async (artefactList: IPluginOverview[]) => {
+    if (artefactList !== customPluginIcon.artefactList) {
         // Add icons to map
         customPluginIcon.iconMap = new Map();
         for(let i = 0; i < artefactList.length; i++) {
@@ -56,7 +61,17 @@ const getCustomPluginIcon = async (
         }
         customPluginIcon.artefactList = artefactList;
     }
-    return customPluginIcon.iconMap.get(pluginKey(correctItemType, pluginId));
+}
+
+const getCustomPluginIcon = async (
+    itemType: string,
+    pluginId: string,
+    artefactList: IPluginOverview[] | undefined
+): Promise<string | undefined> => {
+    if (artefactList) {
+        await fillCustomPluginStore(artefactList)
+    }
+    return getCustomPluginIconFromStore(itemType, pluginId);
 };
 
 const validateDataUrl = async (plugin: IPluginOverview): Promise<boolean> => {
