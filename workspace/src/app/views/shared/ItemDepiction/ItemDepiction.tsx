@@ -39,11 +39,20 @@ export const getCustomPluginIconFromStore = (
     itemType: string,
     pluginId: string
 ): string | undefined => {
-    const correctItemType = taskTypeSet.has(itemType as TaskType)
-        ? // Item type is a task type and needs to be converted
-        convertTaskTypeToItemType(itemType as TaskType)
-        : itemType;
+    const correctItemType = fixItemType(itemType)
     return customPluginIcon.iconMap.get(pluginKey(correctItemType, pluginId));
+}
+
+const fixItemType = (itemType: string) => {
+    let returnType = itemType
+    if(taskTypeSet.has(itemType as TaskType)) {
+        // Item type is a task type and needs to be converted
+        returnType = convertTaskTypeToItemType(itemType as TaskType)
+    }
+    if(returnType.charAt(0).toLowerCase() !== returnType.charAt(0)) {
+        returnType = itemType.toLowerCase()
+    }
+    return returnType
 }
 
 export const fillCustomPluginStore = async (artefactList: IPluginOverview[]) => {
