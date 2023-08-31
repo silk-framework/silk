@@ -6,7 +6,7 @@ import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.QuadEntityTable
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
@@ -19,7 +19,7 @@ import scala.util.{Failure, Success, Try}
 )
 case class SparqlCopyCustomTask(
     @Param(label = "Construct query", value = "A SPARQL 1.1 construct query", example = "construct { ?s ?p ?o } where { ?s ?p ?o }")
-      query: MultilineStringParameter,
+      query: SparqlCodeParameter,
     @Param(label = "Use temporary file", value = "When copying directly to the same SPARQL Endpoint or when copying large amounts of triples, set to True by default")
       tempFile: Boolean = true
   ) extends CustomTask {

@@ -19,6 +19,8 @@ import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/Tex
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import {LanguageFilterProps, PathInputOperator} from "./PathInputOperator";
+import {supportedCodeRuleParameterTypes} from "../../RuleEditor.typings";
+import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror"
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -102,6 +104,17 @@ export const RuleParameterInput = ({
         hasBackDrop: !insideModal,
     });
 
+    if(ruleParameter.parameterSpecification.type === "code" ||
+        ruleParameter.parameterSpecification.type.startsWith("code-")) {
+        if(supportedCodeRuleParameterTypes.find(m => m === ruleParameter.parameterSpecification.type)) {
+            // FIXME: Add readOnly mode
+            return <CodeEditor mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes} {...inputAttributes} />;
+        } else {
+            // FIXME: Add readOnly mode
+            return <CodeEditor {...inputAttributes} />;
+        }
+    }
+
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":
             if (large) {
@@ -129,9 +142,6 @@ export const RuleParameterInput = ({
                     disabled={inputAttributes.readOnly}
                 />
             );
-        case "code":
-            // FIXME: Add readOnly mode
-            return <CodeEditor {...inputAttributes} />;
         case "password":
             return (
                 <TextField

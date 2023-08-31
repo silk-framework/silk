@@ -4,7 +4,7 @@ import org.silkframework.config.{DefaultConfig, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.plugin.annotations.PluginType
-import org.silkframework.runtime.plugin.types.{EnumerationParameterType, GraphUriParameter, IdentifierOptionParameter, IntOptionParameter, MultilineStringParameter, PasswordParameter, ResourceOption, StringTraversableParameter, TemplateParameter}
+import org.silkframework.runtime.plugin.types._
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
@@ -199,7 +199,9 @@ object StringParameterType {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
-      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
+      Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
+      YamlCodeParameterType)
   }
 
   /**
@@ -713,5 +715,46 @@ object StringParameterType {
     override def fromString(str: String)(implicit context: PluginContext): SparqlEndpointDatasetParameter = {
       SparqlEndpointDatasetParameter(str)
     }
+  }
+
+  trait CodeParameterType[T <: CodeParameter] extends StringParameterType[T] {
+    def codeMode: String
+
+    override lazy val name: String = s"code-${codeMode}"
+  }
+
+  private object Jinja2CodeParameterType extends CodeParameterType[Jinja2CodeParameter] {
+    override def codeMode: String = "jinja2"
+    override def fromString(str: String)(implicit context: PluginContext): Jinja2CodeParameter = Jinja2CodeParameter(str)
+  }
+
+  private object JsonCodeParameterType extends CodeParameterType[JsonCodeParameter] {
+    override def codeMode: String = "json"
+
+    override def fromString(str: String)(implicit context: PluginContext): JsonCodeParameter = JsonCodeParameter(str)
+  }
+
+  private object SparqlCodeParameterType extends CodeParameterType[SparqlCodeParameter] {
+    override def codeMode: String = "sparql"
+
+    override def fromString(str: String)(implicit context: PluginContext): SparqlCodeParameter = SparqlCodeParameter(str)
+  }
+
+  private object SqlCodeParameterType extends CodeParameterType[SqlCodeParameter] {
+    override def codeMode: String = "sql"
+
+    override def fromString(str: String)(implicit context: PluginContext): SqlCodeParameter = SqlCodeParameter(str)
+  }
+
+  private object XmlCodeParameterType extends CodeParameterType[XmlCodeParameter] {
+    override def codeMode: String = "xml"
+
+    override def fromString(str: String)(implicit context: PluginContext): XmlCodeParameter = XmlCodeParameter(str)
+  }
+
+  private object YamlCodeParameterType extends CodeParameterType[YamlCodeParameter] {
+    override def codeMode: String = "yaml"
+
+    override def fromString(str: String)(implicit context: PluginContext): YamlCodeParameter = YamlCodeParameter(str)
   }
 }

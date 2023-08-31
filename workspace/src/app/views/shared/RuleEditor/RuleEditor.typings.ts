@@ -1,10 +1,10 @@
-import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
-import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
-import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
-import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
-import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
-import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
+import {NodeContentProps} from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import {PluginType, RuleOperatorType} from "@ducks/shared/typings";
+import {ValidIconName} from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import {IPreConfiguredRuleOperator} from "./view/sidebar/RuleEditorOperatorSidebar.typings";
+import {RuleEditorNodeParameterValue} from "./model/RuleEditorModel.typings";
+import {IPropertyAutocomplete} from "@ducks/common/typings";
+import {RuleNodeContentProps} from "./view/ruleNode/NodeContent";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -94,6 +94,11 @@ export interface IParameterValidationResult {
     intent?: "primary" | "success" | "warning" | "danger";
 }
 
+export const supportedCodeRuleParameterTypes = ["code-markdown", "code-python", "code-sparql", "code-sql", "code-turtle",
+    "code-xml", "code-jinja2", "code-yaml", "code-json"] as const
+type SupportedModesTuple = typeof supportedCodeRuleParameterTypes
+export type SupportedRuleParameterCodeModes = SupportedModesTuple[number]
+
 export type RuleParameterType =
     | "boolean"
     | "int"
@@ -103,7 +108,8 @@ export type RuleParameterType =
     | "password"
     | "resource"
     | "textArea"
-    | "pathInput";
+    | "pathInput"
+    | SupportedRuleParameterCodeModes;
 
 interface NodePosition {
     x: number;

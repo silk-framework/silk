@@ -15,6 +15,7 @@ import { fileValue } from "@ducks/shared/typings";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
+import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror"
 
 interface IProps {
     projectId: string;
@@ -125,6 +126,15 @@ export function InputMapper({
 
     if (!show) {
         return <Spinner />;
+    }
+
+    if(param.parameterType.startsWith("code-")) {
+        const mode = param.parameterType.substring(5)
+        if(supportedCodeEditorModes.find(m => m === mode)) {
+            return <CodeEditor mode={mode as any} {...inputAttributes} />;
+        } else {
+            return <CodeEditor {...inputAttributes} />;
+        }
     }
 
     switch (param.parameterType) {
