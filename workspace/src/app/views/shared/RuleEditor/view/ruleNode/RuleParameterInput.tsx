@@ -107,10 +107,8 @@ export const RuleParameterInput = ({
     if(ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")) {
         if(supportedCodeRuleParameterTypes.find(m => m === ruleParameter.parameterSpecification.type)) {
-            // FIXME: Add readOnly mode
             return <CodeEditor mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes} {...inputAttributes} />;
         } else {
-            // FIXME: Add readOnly mode
             return <CodeEditor {...inputAttributes} />;
         }
     }
