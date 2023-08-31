@@ -106,10 +106,18 @@ export const RuleParameterInput = ({
 
     if(ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")) {
-        if(supportedCodeRuleParameterTypes.find(m => m === ruleParameter.parameterSpecification.type)) {
-            return <CodeEditor mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes} {...inputAttributes} />;
+        const sizeParameters = large ? undefined : {height: "100px"}
+        if (supportedCodeRuleParameterTypes.find(m => m === ruleParameter.parameterSpecification.type)) {
+            return <CodeEditor
+                mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes}
+                {...inputAttributes}
+                {...sizeParameters}
+            />;
         } else {
-            return <CodeEditor {...inputAttributes} />;
+            return <CodeEditor
+                {...inputAttributes}
+                {...sizeParameters}
+            />;
         }
     }
 
