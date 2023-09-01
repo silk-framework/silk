@@ -91,6 +91,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
                     disabled={!!taskId}
                     rightElement={taskId ? copyButton : undefined}
                     {...otherProps}
+                    escapeToBlur={true}
                 />
             )}
         />

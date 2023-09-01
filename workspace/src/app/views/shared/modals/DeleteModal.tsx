@@ -11,6 +11,7 @@ import {
 import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { TestableComponent } from "@eccenca/gui-elements/src/components/interfaces";
+import useHotKey from "../HotKeyHandler/HotKeyHandler";
 
 export interface IDeleteModalOptions extends TestableComponent {
     isOpen: boolean;
@@ -25,6 +26,8 @@ export interface IDeleteModalOptions extends TestableComponent {
     // Loading status during the remove request
     removeLoading?: boolean;
     errorMessage?: string;
+    /** Called when the Enter key is pressed and the optional confirmation is checked. */
+    submitOnEnter?: boolean;
 }
 
 export default function DeleteModal({
@@ -37,17 +40,28 @@ export default function DeleteModal({
     title = "Delete",
     removeLoading = false,
     errorMessage,
+    submitOnEnter = true,
     ...otherProps
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
+    const confirmCheckbox = React.useRef<HTMLInputElement | null>(null);
 
     const toggleConfirmChange = () => {
         setIsConfirmed(!isConfirmed);
+        // Needs to be blurred after changing its state so the ENTER hotkey can be triggered
+        confirmCheckbox.current?.blur();
     };
 
     // Only render content when modal is open
     const otherContent = !!render && isOpen ? render() : null;
     const [t] = useTranslation();
+    const enterHandler = React.useCallback(() => {
+        if (submitOnEnter && (!confirmationRequired || isConfirmed)) {
+            onConfirm();
+        }
+    }, [submitOnEnter, isConfirmed, confirmationRequired, onConfirm]);
+
+    useHotKey({ hotkey: "enter", handler: enterHandler, enabled: submitOnEnter });
 
     return (
         <AlertDialog
@@ -92,7 +106,11 @@ export default function DeleteModal({
             )}
             {confirmationRequired && (
                 <FieldItem>
-                    <Checkbox onChange={toggleConfirmChange} label={t("common.action.confirm", "Confirm")} />
+                    <Checkbox
+                        inputRef={confirmCheckbox}
+                        onChange={toggleConfirmChange}
+                        label={t("common.action.confirm", "Confirm")}
+                    />
                 </FieldItem>
             )}
             {errorMessage && (
