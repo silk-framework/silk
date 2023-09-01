@@ -263,8 +263,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             const value = ruleEditorNodeParameterValue(parameterValue);
             const float = Number(value);
             if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
-            if (distanceMeasureRange === "normalized" && float > 1)
+            if (distanceMeasureRange === "normalized" && (float > 1 || float < 0))
                 return invalidValueResult(t("form.validations.threshold.normalized"));
+            if (distanceMeasureRange === "unbounded" && float < 0)
+                return invalidValueResult(t("form.validations.threshold.unbounded"));
             return { valid: true };
         };
 

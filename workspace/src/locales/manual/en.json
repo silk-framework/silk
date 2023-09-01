@@ -364,7 +364,8 @@
             "isRequired": "{{field}} is required",
             "parameter": "Parameter validation failed. Please fix the issues first.",
             "threshold": {
-                "normalized": "Must be a floating point number between 0...1"
+                "normalized": "Must be a number from 0...1",
+                "unbounded": "Must be a number from 0...∞"
             }
         }
     },
