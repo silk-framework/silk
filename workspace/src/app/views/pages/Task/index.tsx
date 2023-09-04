@@ -11,16 +11,30 @@ import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
+import {IPluginDetails} from "@ducks/common/typings";
 
 export default function TaskPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
+    const [pluginDetails, setPluginDetails] = React.useState<IPluginDetails | undefined>()
 
-    const { pageHeader, updateActionsMenu } = usePageHeader({
+    const { pageHeader, updateActionsMenu, updateType } = usePageHeader({
         type: DATA_TYPES.TASK,
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
     });
+
+    const pluginDataCallback = React.useCallback((details: IPluginDetails) => {
+        setPluginDetails(details)
+    }, [])
+
+    React.useEffect(() => {
+        if(pluginDetails) {
+            updateType(pluginDetails.taskType, pluginDetails.pluginId)
+        } else {
+            updateType(DATA_TYPES.TASK)
+        }
+    }, [pluginDetails])
 
     return notFound ? (
         <NotFound />
@@ -43,7 +57,7 @@ export default function TaskPage() {
                 <Section>
                     <RelatedItems projectId={projectId} taskId={taskId} />
                     <Spacing />
-                    <TaskConfig projectId={projectId} taskId={taskId} />
+                    <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={pluginDataCallback} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
                     <Spacing />
