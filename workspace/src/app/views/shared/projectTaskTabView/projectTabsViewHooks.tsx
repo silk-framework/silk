@@ -18,7 +18,13 @@ export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, proj
     const [activeTab, setActiveTab] = useState<IItemLink | string | undefined>(startLink);
     const taskViews = pluginId ? pluginRegistry.taskViews(pluginId) : [];
     const menuItems = taskViews.map(({ id, label }) => (
-        <MenuItem key={id} text={label} icon={getItemLinkIcons(label)} onClick={() => changeTab(id)} />
+        <MenuItem
+            data-test-id={id}
+            key={id}
+            text={label}
+            icon={getItemLinkIcons(label)}
+            onClick={() => changeTab(id)}
+        />
     ));
 
     // handler for link change
