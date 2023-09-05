@@ -88,6 +88,8 @@ export interface IParameterSpecification {
     customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult;
     /** for threshold input values */
     distanceMeasureRange?: DistanceMeasureRange;
+    /** some required fields have additional labels to specify what values are acceptable */
+    requiredLabel?: string;
 }
 
 export interface IParameterValidationResult {

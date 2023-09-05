@@ -241,7 +241,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                             "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
                             "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity)."
                         ),
-                        label: t("RuleEditor.sidebar.parameter.thresholdLabel.normalized", "Threshold (0...1)"),
+                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.normalized", "required 0..1"),
                     };
                 case "unbounded":
                     return {
@@ -249,7 +250,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                             "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
                             "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
                         ),
-                        label: t("RuleEditor.sidebar.parameter.thresholdLabel.unbounded", "Threshold (0...∞)"),
+                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.unbounded", "required 0..∞"),
                     };
                 default:
                     return {

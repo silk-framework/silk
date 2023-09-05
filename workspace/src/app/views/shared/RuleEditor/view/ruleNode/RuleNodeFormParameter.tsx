@@ -62,8 +62,7 @@ export const RuleNodeFormParameter = ({
     const parameterDescription =
         paramSpec.description && paramSpec.description !== "No description" ? paramSpec.description : undefined;
 
-    console.log({ parameter });
-
+    console.log({ requiredLabel: paramSpec.requiredLabel });
     return (
         <FieldItem
             key={parameter.parameterId}
@@ -73,7 +72,7 @@ export const RuleNodeFormParameter = ({
                 tooltipProps: {
                     rootBoundary: "viewport",
                 },
-                info: paramSpec.required ? "required" : undefined,
+                info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
             }}
             messageText={validationResult.message}
             hasStateDanger={validationResult.intent === "danger"}

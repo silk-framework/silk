@@ -194,6 +194,7 @@ const parameterSpecification = ({
     customValidation,
     autoCompletion,
     distanceMeasureRange,
+    requiredLabel,
 }: Omit<IParameterSpecification, OptionalParameterAttributes> &
     Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
@@ -206,6 +207,7 @@ const parameterSpecification = ({
         customValidation,
         autoCompletion,
         distanceMeasureRange,
+        requiredLabel,
     };
 };
 
