@@ -18,6 +18,7 @@ import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../typings";
+import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -143,6 +144,11 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const [datasetCharacteristics, setDatasetCharacteristics] = React.useState<Map<string, DatasetCharacteristics>>(
         new Map()
     );
+    const [hotKeysDisabled, setHotKeysDisabled] = React.useState<boolean>(false);
+
+    const disableHotKeys = React.useCallback((disabled: boolean) => {
+        setHotKeysDisabled(disabled);
+    }, []);
 
     /** This should be used instead of calling setLastSaveResult directly. */
     const updateLastSaveResult = (saveResult: RuleSaveResult | undefined) => {
@@ -272,14 +278,21 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 inputPathPluginPathType,
             }}
         >
-            <RuleEditorModel>
-                <RuleEditorView
-                    showRuleOnly={showRuleOnly}
-                    hideMinimap={hideMinimap}
-                    zoomRange={zoomRange}
-                    readOnlyMode={readOnlyMode}
-                />
-            </RuleEditorModel>
+            <ReactFlowHotkeyContext.Provider
+                value={{
+                    disableHotKeys,
+                    hotKeysDisabled,
+                }}
+            >
+                <RuleEditorModel>
+                    <RuleEditorView
+                        showRuleOnly={showRuleOnly}
+                        hideMinimap={hideMinimap}
+                        zoomRange={zoomRange}
+                        readOnlyMode={readOnlyMode}
+                    />
+                </RuleEditorModel>
+            </ReactFlowHotkeyContext.Provider>
         </RuleEditorContext.Provider>
     );
 };
