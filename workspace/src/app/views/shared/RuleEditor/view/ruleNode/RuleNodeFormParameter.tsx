@@ -62,7 +62,6 @@ export const RuleNodeFormParameter = ({
     const parameterDescription =
         paramSpec.description && paramSpec.description !== "No description" ? paramSpec.description : undefined;
 
-    console.log({ requiredLabel: paramSpec.requiredLabel });
     return (
         <FieldItem
             key={parameter.parameterId}
