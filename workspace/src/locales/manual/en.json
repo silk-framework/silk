@@ -211,6 +211,47 @@
     "RelatedItems": {
         "title": "Related items"
     },
+    "header": {
+        "keyboardShortcutsModal": {
+            "title": "Keyboard shortcuts",
+            "categories-title": "Sections",
+            "categories": {
+                "general": {
+                    "label": "Build",
+                    "shortcuts": {
+                        "quick-search": "Quick search"
+                    }
+                },
+                "rule-editors": {
+                    "label": "Linking editor",
+                    "shortcuts": {
+                        "duplicate-nodes": "Duplicate selected nodes",
+                        "undo": "Undo change",
+                        "redo": "Redo change",
+                        "delete": "Remove selected elements",
+                        "multiselect": "Select multiple nodes",
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                    }
+                },
+                "workflow-editor": {
+                    "label": "Workflow editor",
+                    "shortcuts": {
+                        "delete": "Remove selected elements",
+                        "multiselect": "Select multiple nodes",
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                    }
+                }
+            },
+            "keys": {
+                "ctrl": "Ctrl",
+                "cmd": "⌘Command",
+                "shift": "⇧Shift",
+                "backspace": "←Backpace",
+                "alt": "Alt",
+                "mouse select": "mouse select"
+            }
+        }
+    },
     "common": {
         "action": {
             "showIdentifier": "Show identifier",
@@ -1074,7 +1115,7 @@
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
     },
-    "PathInputOperator" : {
+    "PathInputOperator": {
         "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
         "noFilter": "No language filter"
     },

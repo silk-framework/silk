@@ -11,7 +11,7 @@ import org.silkframework.util.{StatusCodeTestTrait, StreamUtils}
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.Application
+import play.api.{Application, Configuration}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.libs.ws.{WSRequest, WSResponse}
@@ -53,8 +53,11 @@ trait IntegrationTestTrait extends TaskApiClient
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[Class[_ <: Router]] = None
 
+  protected def playConfig: Configuration = Configuration.empty
+
   override implicit lazy val app: Application = {
     var builder = GuiceApplicationBuilder()
+    builder = builder.configure(playConfig)
     for(routerClass <- routes) {
       val routes = builder.injector().instanceOf(routerClass)
       builder = builder.router(routes)

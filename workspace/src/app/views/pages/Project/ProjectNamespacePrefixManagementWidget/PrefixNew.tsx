@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { KeyboardEventHandler, useEffect, useState } from "react";
 import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
+import useHotKey from "../../../shared/HotKeyHandler/HotKeyHandler";
 
 interface IProps {
     onAdd: (prefixDefinition: IPrefixDefinition) => any;
@@ -99,6 +100,54 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
         prefixValueErrorIcon = <Icon name={"state-warning"} tooltipText={tooltipText} />;
     }
 
+    const submitButtonDisabled = !isValidPrefixName || !isValidPrefixValue || typeof isValidPrefixValue == "number";
+
+    const handleSubmit = React.useCallback(() => {
+        if (!submitButtonDisabled) {
+            isUpdatePrefix ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition);
+        }
+    }, [prefixDefinition, existingPrefixes, submitButtonDisabled]);
+
+    const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback(
+        (event): void => {
+            if (event.key === "Enter" && !submitButtonDisabled) {
+                handleSubmit();
+            }
+        },
+        [submitButtonDisabled, prefixDefinition]
+    );
+
+    const closeOverwriteDialog = React.useCallback(() => setOverwriteDialogOpen(false), []);
+
+    const OverWriteDialog = () => {
+        const submitHandler = React.useCallback(() => {
+            setOverwriteDialogOpen(false);
+            onAdd(prefixDefinition);
+        }, []);
+
+        useHotKey({ hotkey: "enter", handler: submitHandler });
+
+        return (
+            <AlertDialog
+                warning
+                isOpen={true}
+                canEscapeKeyClose={true}
+                onClose={closeOverwriteDialog}
+                data-test-id={"update-prefix-dialog"}
+                actions={[
+                    <Button key="overwrite" data-test-id={"prefix-update-dialog-submit-btn"} onClick={submitHandler}>
+                        {t("common.action.update", "Abort")}
+                    </Button>,
+                    <Button key="cancel" onClick={closeOverwriteDialog}>
+                        {t("common.action.cancel")}
+                    </Button>,
+                ]}
+            >
+                <p> {t("PrefixDialog.overwritePrefix", { prefixName: prefixDefinition.prefixName })}</p>
+            </AlertDialog>
+        );
+    };
+
     return (
         <>
             <FieldSet title={t("common.action.AddSmth", { smth: t("widget.ConfigWidget.prefix") })} boxed>
@@ -115,6 +164,8 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             value={prefixDefinition.prefixName}
                             onChange={onPrefixNameChange}
                             leftIcon={prefixNameErrorIcon}
+                            autoFocus={true}
+                            onKeyUp={enterHandler}
                             hasStateDanger={!isValidPrefixName && !!prefixDefinition.prefixName}
                         />
                     </FieldItem>
@@ -130,45 +181,23 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             value={prefixDefinition.prefixUri}
                             onChange={onPrefixUriChange}
                             leftIcon={prefixValueErrorIcon}
+                            onKeyUp={enterHandler}
                             hasStateDanger={highlightInvalidPrefixValue}
                         />
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>
                         <Button
                             data-test-id={isUpdatePrefix ? "update-prefix-definition-btn" : "add-prefix-definition-btn"}
-                            onClick={() => (isUpdatePrefix ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition))}
+                            onClick={handleSubmit}
                             elevated
-                            disabled={
-                                !isValidPrefixName || !isValidPrefixValue || typeof isValidPrefixValue == "number"
-                            }
+                            disabled={submitButtonDisabled}
                         >
                             {isUpdatePrefix ? t("common.action.update") : t("common.action.add")}
                         </Button>
                     </FieldItem>
                 </FieldItemRow>
             </FieldSet>
-            <AlertDialog
-                warning
-                isOpen={overwriteDialogOpen}
-                data-test-id={"update-prefix-dialog"}
-                actions={[
-                    <Button
-                        key="overwrite"
-                        data-test-id={"prefix-update-dialog-submit-btn"}
-                        onClick={() => {
-                            setOverwriteDialogOpen(false);
-                            onAdd(prefixDefinition);
-                        }}
-                    >
-                        {t("common.action.update", "Abort")}
-                    </Button>,
-                    <Button key="cancel" onClick={() => setOverwriteDialogOpen(false)}>
-                        {t("common.action.cancel")}
-                    </Button>,
-                ]}
-            >
-                <p> {t("PrefixDialog.overwritePrefix", { prefixName: prefixDefinition.prefixName })}</p>
-            </AlertDialog>
+            {overwriteDialogOpen && <OverWriteDialog />}
         </>
     );
 };

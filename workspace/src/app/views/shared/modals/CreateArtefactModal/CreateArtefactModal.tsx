@@ -5,6 +5,7 @@ import {
     Button,
     Card,
     CardActionsAux,
+    Depiction,
     Grid,
     GridColumn,
     GridRow,
@@ -17,7 +18,6 @@ import {
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    Depiction,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
@@ -51,6 +51,7 @@ import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transf
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
+import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -294,40 +295,50 @@ export function CreateArtefactModal() {
         resetModal();
     };
 
-    const taskType = (artefactId): TaskType | "Project" => {
-        if (artefactId === "project") {
-            return "Project";
-        } else {
-            return (cachedArtefactProperties[artefactId] as IPluginDetails).taskType;
-        }
-    };
+    const taskType = React.useCallback(
+        (artefactId): TaskType | "Project" => {
+            if (artefactId === "project") {
+                return "Project";
+            } else {
+                return (cachedArtefactProperties[artefactId] as IPluginDetails).taskType;
+            }
+        },
+        [cachedArtefactProperties]
+    );
 
-    const handleCreate = async (e) => {
-        e.preventDefault();
-        setActionLoading(true);
-        const isValidFields = await form.triggerValidation();
-        try {
-            if (isValidFields) {
-                const formValues = form.getValues();
-                const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
-                let dataParameters: any;
-                if (type === "Dataset") {
-                    dataParameters = commonOp.extractDataAttributes(formValues);
+    const handleCreate = React.useCallback(
+        async (e) => {
+            if ((e as KeyboardEvent).key === "Enter") {
+                if (e.target.type === "button" && e.target.popoverTargetAction === "toggle") {
+                    // This should trigger a toggle, e.g. on an accordion element, do not trigger create.
+                    return;
                 }
-                if (updateExistingTask) {
-                    await dispatch(
-                        commonOp.fetchUpdateTaskAsync(
-                            updateExistingTask.projectId,
-                            updateExistingTask.taskId,
-                            formValues,
-                            dataParameters,
-                            templateParameters.current,
-                            updateExistingTask?.alternativeUpdateFunction
-                        )
-                    );
-                } else {
-                    !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
-                    await dispatch(
+            }
+            e.preventDefault();
+            setActionLoading(true);
+            const isValidFields = await form.triggerValidation();
+            try {
+                if (isValidFields) {
+                    const formValues = form.getValues();
+                    const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
+                    let dataParameters: any;
+                    if (type === "Dataset") {
+                        dataParameters = commonOp.extractDataAttributes(formValues);
+                    }
+                    if (updateExistingTask) {
+                        await dispatch(
+                            commonOp.fetchUpdateTaskAsync(
+                                updateExistingTask.projectId,
+                                updateExistingTask.taskId,
+                                formValues,
+                                dataParameters,
+                                templateParameters.current,
+                                updateExistingTask?.alternativeUpdateFunction
+                            )
+                        );
+                    } else {
+                        !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
+                        await dispatch(
                         commonOp.createArtefactAsync(
                             formValues,
                             type,
@@ -335,23 +346,25 @@ export function CreateArtefactModal() {
                             templateParameters.current,
                             newTaskPreConfiguration?.alternativeCallback
                         )
-                    );
-                    setSearchValue("");
+                        );
+                        setSearchValue("");
+                    }
+                } else {
+                    const errKey = Object.keys(form.errors)[0];
+                    const el = document.getElementById(errKey);
+                    if (el) {
+                        el.scrollIntoView({
+                            block: "start",
+                            inline: "start",
+                        });
+                    }
                 }
-            } else {
-                const errKey = Object.keys(form.errors)[0];
-                const el = document.getElementById(errKey);
-                if (el) {
-                    el.scrollIntoView({
-                        block: "start",
-                        inline: "start",
-                    });
-                }
+            } finally {
+                setActionLoading(false);
             }
-        } finally {
-            setActionLoading(false);
-        }
-    };
+        },
+        [form, updateExistingTask, taskType]
+    );
 
     const closeModal = () => {
         setSearchValue("");
@@ -523,13 +536,14 @@ export function CreateArtefactModal() {
                     registerForExternalChanges,
                     templateFlag,
                 }}
+                goBackOnEscape={handleBack}
             />
         );
     } else {
         // Project / task creation
         if (selectedArtefactKey) {
             if (projectArtefactSelected) {
-                artefactForm = <ProjectForm form={form} />;
+                artefactForm = <ProjectForm form={form} goBackOnEscape={handleBack} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 const activeProjectId = currentProject?.id ?? projectId;
@@ -558,6 +572,7 @@ export function CreateArtefactModal() {
                                 registerForExternalChanges,
                                 templateFlag,
                             }}
+                            goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
                         />
                     );
@@ -760,11 +775,13 @@ export function CreateArtefactModal() {
             />
         );
     }
+    const submitEnabled = !!isCreationUpdateDialog && !isErrorPresented();
+    useHotKey({ hotkey: "enter", handler: handleCreate, enabled: submitEnabled });
 
     const createDialog = (
         <SimpleDialog
             size="large"
-            preventSimpleClosing={true}
+            preventSimpleClosing={!!artefactForm || searchValue.trim().length > 0}
             hasBorder
             title={
                 updateExistingTask

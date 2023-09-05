@@ -21,6 +21,7 @@ import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
+import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -39,6 +40,9 @@ export interface IProps {
     updateTask?: UpdateTaskProps;
 
     parameterCallbacks: ParameterCallbacks;
+
+    /** Called when no changes were done in the form and the ESC key is pressed. */
+    goBackOnEscape?: () => any;
 
     /** Allows to set some config/parameters for a newly created task. */
     newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">;
@@ -88,6 +92,7 @@ export function TaskForm({
     taskId,
     detectChange,
     parameterCallbacks,
+    goBackOnEscape = () => {},
     newTaskPreConfiguration,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
@@ -113,6 +118,7 @@ export function TaskForm({
     const parameterLabels = React.useRef(new Map<string, string>());
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
     const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const escapeKeyDisabled = React.useRef(false);
 
     const initialTemplateFlag = React.useCallback(
         (fullParameterId: string) => {
@@ -120,6 +126,14 @@ export function TaskForm({
         },
         [updateTask]
     );
+
+    const handleEscapeKey = React.useCallback(() => {
+        if (!escapeKeyDisabled.current) {
+            goBackOnEscape();
+        }
+    }, []);
+
+    useHotKey({ hotkey: "escape", handler: handleEscapeKey });
 
     const parameterLabel = React.useCallback((fullParameterId: string) => {
         return parameterLabels.current.get(fullParameterId) ?? "N/A";
@@ -297,6 +311,9 @@ export function TaskForm({
             await triggerValidation(key);
             //verify task identifier
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
+            if (!escapeKeyDisabled.current) {
+                escapeKeyDisabled.current = true;
+            }
         },
         []
     );
@@ -339,6 +356,7 @@ export function TaskForm({
                                 <TextField
                                     id={LABEL}
                                     name={LABEL}
+                                    autoFocus={true}
                                     value={label ?? ""}
                                     onChange={handleChange(LABEL)}
                                     hasStateDanger={!!errors.label}
@@ -348,6 +366,7 @@ export function TaskForm({
                                             return false;
                                         }
                                     }}
+                                    escapeToBlur={true}
                                 />
                             )}
                         />
