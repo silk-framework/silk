@@ -333,7 +333,11 @@ export function ProjectTaskTabView({
                                 );
                             })}
                         {!!handlerRemoveModal ? (
-                            <IconButton name="navigation-close" onClick={handlerRemoveModal} />
+                            <IconButton
+                                data-test-id={"close-project-tab-view"}
+                                name="navigation-close"
+                                onClick={handlerRemoveModal}
+                            />
                         ) : (
                             <IconButton
                                 name={displayFullscreen ? "toggler-minimize" : "toggler-maximize"}
