@@ -26,7 +26,13 @@ import {
 } from "@eccenca/gui-elements";
 import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactModal, IPluginDetails, IPluginOverview, IProjectTaskUpdatePayload } from "@ducks/common/typings";
+import {
+    IArtefactModal,
+    IPluginDetails,
+    IPluginOverview,
+    IProjectTaskUpdatePayload,
+    TaskPreConfiguration,
+} from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
@@ -87,7 +93,17 @@ export function CreateArtefactModal() {
         loading,
         updateExistingTask,
         error,
+        newTaskPreConfiguration,
     }: IArtefactModal = modalStore;
+
+    React.useEffect(() => {
+        if (newTaskPreConfiguration?.taskPluginId && artefactsList) {
+            const pluginOverview = artefactsList.find((plugin) => plugin.key === newTaskPreConfiguration.taskPluginId);
+            if (pluginOverview) {
+                dispatch(commonOp.getArtefactPropertiesAsync(pluginOverview));
+            }
+        }
+    }, [newTaskPreConfiguration?.taskPluginId, artefactsList]);
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
@@ -323,7 +339,13 @@ export function CreateArtefactModal() {
                     } else {
                         !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                         await dispatch(
-                            commonOp.createArtefactAsync(formValues, type, dataParameters, templateParameters.current)
+                        commonOp.createArtefactAsync(
+                            formValues,
+                            type,
+                            dataParameters,
+                            templateParameters.current,
+                            newTaskPreConfiguration?.alternativeCallback
+                        )
                         );
                         setSearchValue("");
                     }
@@ -429,7 +451,11 @@ export function CreateArtefactModal() {
      * @returns
      */
     const addChangeProjectHandler = (artefactForm: JSX.Element): JSX.Element => {
-        if (currentProject)
+        if (
+            currentProject &&
+            (newTaskPreConfiguration?.showProjectChangeWidget == null ||
+                newTaskPreConfiguration?.showProjectChangeWidget)
+        )
             return (
                 <>
                     {showProjectSelection ? (
@@ -522,6 +548,19 @@ export function CreateArtefactModal() {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 const activeProjectId = currentProject?.id ?? projectId;
                 if (detailedArtefact && activeProjectId) {
+                    let updatedNewTaskPreConfiguration: TaskPreConfiguration | undefined = {
+                        ...newTaskPreConfiguration,
+                    };
+                    if (newTaskPreConfiguration?.metaDataFactoryFunction) {
+                        const generatedMetaData = newTaskPreConfiguration.metaDataFactoryFunction(detailedArtefact);
+                        updatedNewTaskPreConfiguration = {
+                            ...updatedNewTaskPreConfiguration,
+                            metaData: {
+                                ...newTaskPreConfiguration?.metaData,
+                                ...generatedMetaData,
+                            },
+                        };
+                    }
                     artefactForm = addChangeProjectHandler(
                         <TaskForm
                             detectChange={detectFormChange}
@@ -534,6 +573,7 @@ export function CreateArtefactModal() {
                                 templateFlag,
                             }}
                             goBackOnEscape={handleBack}
+                            newTaskPreConfiguration={updatedNewTaskPreConfiguration}
                         />
                     );
                 }
@@ -555,7 +595,8 @@ export function CreateArtefactModal() {
                 (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
         )
         .sort((a, b) => a.title!.localeCompare(b.title!));
-    if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
+    const removeProjectCategoryAndItem = newTaskPreConfiguration && !newTaskPreConfiguration.showProjectItem;
+    if (showProjectItem && (selectedDType === "all" || selectedDType === "project") && !removeProjectCategoryAndItem) {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -814,7 +855,10 @@ export function CreateArtefactModal() {
                         <Grid>
                             <GridRow>
                                 <GridColumn small>
-                                    <ArtefactTypesList onSelect={handleSelectDType} />
+                                    <ArtefactTypesList
+                                        onSelect={handleSelectDType}
+                                        typesToRemove={removeProjectCategoryAndItem ? new Set(["project"]) : new Set()}
+                                    />
                                 </GridColumn>
                                 <GridColumn>
                                     <SearchBar

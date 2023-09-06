@@ -35,7 +35,6 @@ import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
-import { Warning } from "gui-elements-deprecated";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -168,15 +167,14 @@ const Project = () => {
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <FileWidget />
-                    <Spacing />
+                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
                     <ConfigurationWidget />
                     <Spacing />
-                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
+                    <VariablesWidget projectId={projectId} />
                     <Spacing />
                     <ActivityInfoWidget />
                     <Spacing />
-                    <VariablesWidget projectId={projectId} />
+                    <FileWidget />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

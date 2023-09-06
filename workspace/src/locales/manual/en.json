@@ -528,7 +528,8 @@
         "workspace": {
             "contents": "Contents",
             "createProject": "Create Project",
-            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
+            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file.",
+            "firstWorkflow": "Workflow 1"
         }
     },
     "RuleEditor": {

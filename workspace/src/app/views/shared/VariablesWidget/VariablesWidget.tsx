@@ -1,5 +1,5 @@
 import React from "react";
-import { Draggable, DragDropContext, Droppable } from "react-beautiful-dnd";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 //typing
 import { Variable, VariableWidgetProps } from "./typing";
@@ -20,7 +20,6 @@ import {
     PropertyValue,
     PropertyValuePair,
     Spacing,
-    Spinner,
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";

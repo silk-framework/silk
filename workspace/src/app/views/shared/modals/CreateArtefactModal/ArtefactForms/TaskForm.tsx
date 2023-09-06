@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
+import {
+    IArtefactItemProperty,
+    IPluginDetails,
+    IPropertyAutocomplete,
+    TaskPreConfiguration,
+} from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -38,6 +43,9 @@ export interface IProps {
 
     /** Called when no changes were done in the form and the ESC key is pressed. */
     goBackOnEscape?: () => any;
+
+    /** Allows to set some config/parameters for a newly created task. */
+    newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">;
 }
 
 export interface UpdateTaskProps {
@@ -85,6 +93,7 @@ export function TaskForm({
     detectChange,
     parameterCallbacks,
     goBackOnEscape = () => {},
+    newTaskPreConfiguration,
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
@@ -95,7 +104,16 @@ export function TaskForm({
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     /** Initial values, these can be reified as {label, value} or directly set. */
-    const initialValues = existingTaskValuesToFlatParameters(updateTask);
+    const initialValues = existingTaskValuesToFlatParameters(
+        updateTask
+            ? updateTask
+            : newTaskPreConfiguration && newTaskPreConfiguration.preConfiguredParameterValues
+            ? {
+                  parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
+                  variableTemplateValues: {},
+              }
+            : undefined
+    );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
@@ -221,9 +239,9 @@ export function TaskForm({
                     );
                     // Set default value
                     let currentValue = value;
-                    if (updateTask && parameterValues[paramId] !== undefined) {
+                    if ((updateTask || newTaskPreConfiguration) && parameterValues[paramId] !== undefined) {
                         // Set existing value, either parameter value or variable template value
-                        if (updateTask.variableTemplateValues[fullParameterId] != null) {
+                        if (updateTask && updateTask.variableTemplateValues[fullParameterId] != null) {
                             parameterCallbacks.setTemplateFlag(fullParameterId, true);
                             currentValue = updateTask.variableTemplateValues[fullParameterId];
                         } else {
@@ -248,11 +266,21 @@ export function TaskForm({
             register({ name: IDENTIFIER });
             register({ name: TAGS });
         }
+        if (newTaskPreConfiguration) {
+            newTaskPreConfiguration.metaData?.label && setValue(LABEL, newTaskPreConfiguration.metaData?.label);
+            newTaskPreConfiguration.metaData?.description &&
+                setValue(DESCRIPTION, newTaskPreConfiguration.metaData?.description);
+        }
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
             register({ name: READ_ONLY_PARAMETER });
         }
-        registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
+        registerParameters(
+            "",
+            visibleParams,
+            updateTask ? updateTask.parameterValues : newTaskPreConfiguration?.preConfiguredParameterValues ?? {},
+            requiredRootParameters
+        );
         setFormValueKeys(returnKeys);
 
         // Unsubscribe
