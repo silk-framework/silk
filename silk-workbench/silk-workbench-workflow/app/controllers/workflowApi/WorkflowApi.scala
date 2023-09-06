@@ -9,8 +9,9 @@ import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils.VariableWorkflowRequestConfig
-import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workflowApi.workflow.{ConfigPortConfig, PluginPortConfig, PortSchema, PortSchemaProperty, WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
 import controllers.workspace.activityApi.StartActivityResponse
+import controllers.workspaceApi.coreApi.PluginApi
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -20,6 +21,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
 import org.silkframework.runtime.activity.UserExecutionContext
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
@@ -560,6 +562,11 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       }
       (taskId, portConfig)
     }
+    val taskPlugins = PluginApi.taskplugins().map(pluginDescription => {
+      val pluginId = pluginDescription.id
+      val parameters = pluginDescription.parameters.filter(_.visibleInDialog).map(p => PortSchemaProperty(p.name))
+      pluginId.toString -> PluginPortConfig(ConfigPortConfig(PortSchema(None, parameters)))
+    }).toMap
     val workflowNodesPortConfig = WorkflowNodesPortConfig(
       byItemType = Map(
         ItemType.dataset.id -> WorkflowNodePortConfig(1, None),
@@ -569,7 +576,8 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       byTaskId = customTaskPortConfigs.toMap,
       // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI
-      byNodeId = Map.empty
+      byNodeId = Map.empty,
+      byPluginId = taskPlugins
     )
     Ok(Json.toJson(workflowNodesPortConfig))
   }
