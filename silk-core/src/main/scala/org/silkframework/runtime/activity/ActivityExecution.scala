@@ -52,12 +52,12 @@ private class ActivityExecution[T](activity: Activity[T],
   override def startedBy: UserContext = startedByUser
 
   override def start()(implicit user: UserContext): Unit = {
-    initStatus(user)
+    initStatus()
     runForkJoin()
   }
 
   // Checks if the activity is already running (and fails if it is) and inits the status.
-  private def initStatus(user: UserContext, allowWaiting: Boolean = false): Unit = {
+  private def initStatus(allowWaiting: Boolean = false)(implicit user: UserContext): Unit = {
     StatusLock.synchronized {
       // Check if the current activity is still running
       if (status().isRunning && (!allowWaiting || !status().isInstanceOf[Waiting])) {
@@ -65,10 +65,11 @@ private class ActivityExecution[T](activity: Activity[T],
       }
       setStartMetaData(user)
     }
+    activity.resetCancelFlag()
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
-    initStatus(user)
+    initStatus()
     runForkJoin()
     waitUntilFinished()
   }
@@ -80,7 +81,7 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
-    initStatus(user)
+    initStatus()
     for (v <- initialValue)
       value.update(v)
     runForkJoin()
@@ -89,7 +90,7 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startPrioritized()(implicit user: UserContext): Unit = {
-    initStatus(user, allowWaiting = true)
+    initStatus(allowWaiting = true)
     user.user match {
       case Some(u) if u.uri.nonEmpty => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString).getOrElse("")} has been " +
         s"started prioritized, skipping the waiting queue. (triggered by user with URI: ${u.uri})")
@@ -132,10 +133,8 @@ private class ActivityExecution[T](activity: Activity[T],
       activity.cancelExecution()
       interruptEnabled.synchronized {
         if (interruptEnabled.get()) {
-          ThreadLock.synchronized {
-            runningThread foreach { thread =>
-              thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
-            }
+          runningThread foreach { thread =>
+            thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
           }
         }
       }
@@ -185,8 +184,7 @@ private class ActivityExecution[T](activity: Activity[T],
     ThreadLock.synchronized {
       runningThread = Some(Thread.currentThread())
     }
-    activity.resetCancelFlag()
-    if (!parent.exists(_.status().isInstanceOf[Canceling])) {
+    if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
       val startTime = System.currentTimeMillis()
       startTimestamp = Some(Instant.ofEpochMilli(startTime))
       try {

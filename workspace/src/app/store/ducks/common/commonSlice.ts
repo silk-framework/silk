@@ -11,7 +11,7 @@ import {
     IPluginDetails,
     IExportTypes,
     IInitFrontend,
-    IProjectTaskUpdatePayload,
+    IProjectTaskUpdatePayload, IArtefactModal,
 } from "@ducks/common/typings";
 import { setStoredLang } from "../../../../language";
 
@@ -103,6 +103,7 @@ export const commonSlice = createSlice({
             state.artefactModal.isOpen = false;
             state.artefactModal.selectedArtefact = undefined;
             state.artefactModal.updateExistingTask = undefined;
+            state.artefactModal.newTaskPreConfiguration = undefined;
         },
 
         selectArtefact: (state, action: PayloadAction<IPluginOverview | undefined>) => {
@@ -144,6 +145,13 @@ export const commonSlice = createSlice({
 
         setArtefactLoading: (state, action: PayloadAction<boolean>) => {
             state.artefactModal.loading = action.payload;
+        },
+
+        createNewTask: (state, action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>) => {
+            const {newTaskPreConfiguration, selectedDType} = action.payload
+            state.artefactModal.newTaskPreConfiguration = newTaskPreConfiguration
+            state.artefactModal.selectedDType = selectedDType
+            state.artefactModal.isOpen = true;
         },
 
         updateProjectTask: (state, action: PayloadAction<IProjectTaskUpdatePayload>) => {

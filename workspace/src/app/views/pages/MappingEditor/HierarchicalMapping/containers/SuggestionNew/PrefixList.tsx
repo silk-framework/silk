@@ -1,6 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
-import { MenuItem, FieldItem, Select, Button, Highlighter } from "@eccenca/gui-elements";
-import { SuggestionListContext } from "./SuggestionContainer";
+import React, { useEffect, useState } from "react";
+import { Button, FieldItem, Highlighter, MenuItem, Select } from "@eccenca/gui-elements";
 import { IPrefix } from "./suggestion.typings";
 
 // Select<T> is a generic component to work with your data types.
@@ -19,8 +18,6 @@ interface IProps {
 
 /** The selection of URI prefixes used for auto-generated properties */
 export default function PrefixList({ prefixes, selectedPrefix, onChange, disabled }: IProps) {
-    const context = useContext(SuggestionListContext);
-
     const [items, setItems] = useState<IPrefix[]>([]);
 
     const [inputQuery, setInputQuery] = useState<string>("");

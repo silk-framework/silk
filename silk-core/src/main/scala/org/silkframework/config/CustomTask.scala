@@ -5,13 +5,12 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
-import scala.util.control.NonFatal
 import scala.xml.Node
 
 /**
   * A custom task provided by a plugin.
   */
-@PluginType()
+@PluginType(label = "Workflow operator")
 trait CustomTask extends TaskSpec with AnyPlugin {
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */

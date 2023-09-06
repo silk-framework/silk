@@ -1,5 +1,5 @@
 import React from "react";
-import { Draggable, DragDropContext, Droppable } from "react-beautiful-dnd";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 //typing
 import { Variable, VariableWidgetProps } from "./typing";
@@ -20,7 +20,6 @@ import {
     PropertyValue,
     PropertyValuePair,
     Spacing,
-    Spinner,
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
@@ -129,11 +128,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     );
 
     const renderDeleteVariable = React.useCallback(() => {
-        return (
-            <div>
-                {t("widget.VariableWidget.modalMessages.deletePrompt", { varname: selectedVariable?.name ?? "" })}
-            </div>
-        );
+        const varname = selectedVariable?.name ?? "";
+        return <div>{t("widget.VariableWidget.modalMessages.deletePrompt", { varname })}</div>;
     }, [selectedVariable]);
 
     return (
