@@ -17,9 +17,13 @@ import { BreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadc
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
+import ItemDepiction from "../ItemDepiction";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
+    /** Optional type of the page item. Can be an ItemType. */
     type?: string;
+    /** Optional plugin ID of the page item. */
+    pluginId?: string;
     alternateDepiction?: string;
     breadcrumbs?: BreadcrumbItemProps[];
     autogenerateBreadcrumbs?: boolean;
@@ -73,6 +77,7 @@ function PageHeaderPortal({ children }: any) {
 
 function PageHeaderContent({
     type,
+    pluginId,
     alternateDepiction,
     breadcrumbs,
     pageTitle,
@@ -130,7 +135,11 @@ function PageHeaderContent({
             <OverviewItem>
                 {iconNames.length > 0 && (
                     <OverviewItemDepiction>
-                        <Icon name={iconNames} large />
+                        {type && pluginId ? (
+                            <ItemDepiction itemType={type} pluginId={pluginId} />
+                        ) : (
+                            <Icon name={iconNames} large />
+                        )}
                     </OverviewItemDepiction>
                 )}
                 <OverviewItemDescription>
@@ -168,8 +177,8 @@ export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) 
     const pageHeader = <PageHeader {...pageHeaderProps} />;
     return {
         pageHeader,
-        updateType: (update) => {
-            updatePageHeader({ type: update });
+        updateType: (itemType: string, pluginId?: string) => {
+            updatePageHeader({ type: itemType, pluginId });
         },
         updatePageTitle: (update) => {
             updatePageHeader({ pageTitle: update, autogeneratePageTitle: false });

@@ -102,11 +102,11 @@ export const ItemDepiction = ({ itemType, pluginId, size = { large: true } }: IP
             const icon = await getCustomPluginIcon(itemType, pluginId, taskPluginOverviews);
             setCustomPluginIcon(icon);
         }
-    }, []);
+    }, [taskPluginOverviews, itemType, pluginId]);
 
     React.useEffect(() => {
         fetchValidatedCustomPluginIcon();
-    }, []);
+    }, [taskPluginOverviews]);
 
     return customPluginIcon ? (
         <Depiction
