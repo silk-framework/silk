@@ -26,5 +26,6 @@ export function initialCommonState(): ICommonState {
         initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {}, templatingEnabled: false },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),
+        taskPluginOverviews: [],
     };
 }

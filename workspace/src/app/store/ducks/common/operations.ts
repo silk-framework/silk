@@ -12,7 +12,7 @@ import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/ty
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
-import {IProjectTask, TaskType} from "@ducks/shared/typings";
+import { IProjectTask, TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
@@ -20,6 +20,7 @@ import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
+import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
 
 const {
     setError,
@@ -27,6 +28,7 @@ const {
     updateAvailableDTypes,
     setProjectId,
     setInitialSettings,
+    setTaskPluginOverviews,
     setSelectedArtefactDType,
     closeArtefactModal,
     selectArtefact,
@@ -47,6 +49,14 @@ const fetchCommonSettingsAsync = () => {
         try {
             const data = await requestInitFrontend();
             dispatch(setInitialSettings(data));
+
+            const overviewItems = await requestArtefactList({});
+            const taskPluginOverviews = Object.keys(overviewItems).map((key) => ({
+                key,
+                ...overviewItems[key],
+            }));
+            await fillCustomPluginStore(taskPluginOverviews);
+            dispatch(setTaskPluginOverviews(taskPluginOverviews));
 
             const selectedLng = fetchStoredLang();
             if (!selectedLng) {
@@ -307,8 +317,8 @@ const fetchCreateTaskAsync = (
         dispatch(setModalError({}));
         try {
             const data = await requestCreateTask(payload, currentProjectId);
-            const newTask = data.data
-            const newTaskId = newTask.id
+            const newTask = data.data;
+            const newTaskId = newTask.id;
             await createTagsAndAddToMetadata({
                 label,
                 description,
@@ -319,16 +329,16 @@ const fetchCreateTaskAsync = (
 
             batch(() => {
                 dispatch(closeArtefactModal());
-                alternativeCallback ?
-                    alternativeCallback(newTask) :
-                    dispatch(
-                        routerOp.goToTaskPage({
-                            id: newTaskId,
-                            type: taskType,
-                            projectId: currentProjectId,
-                            label,
-                        })
-                    );
+                alternativeCallback
+                    ? alternativeCallback(newTask)
+                    : dispatch(
+                          routerOp.goToTaskPage({
+                              id: newTaskId,
+                              type: taskType,
+                              projectId: currentProjectId,
+                              label,
+                          })
+                      );
             });
         } catch (e) {
             if (e.isFetchError) {

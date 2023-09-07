@@ -13,6 +13,7 @@ import {
     OverviewItem,
     Depiction,
     OverviewItemDescription,
+    OverviewItemDepiction,
     OverviewItemLine,
     SimpleDialog,
     Spacing,
@@ -242,18 +243,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
                                 <>
                                     <OverviewItem key={t.id} className="copy-modal-item" hasSpacing={true}>
-                                        <Depiction
-                                            image={
-                                                <ItemDepiction
-                                                    itemType={t.taskType}
-                                                    pluginId={t.pluginId}
-                                                    size={{ large: true }}
-                                                />
-                                            }
-                                            ratio="1:1"
-                                            padding="medium"
-                                            backgroundColor="dark"
-                                        />
+                                        <OverviewItemDepiction>
+                                            <ItemDepiction itemType={t.taskType} pluginId={t.pluginId} />
+                                        </OverviewItemDepiction>
                                         <OverviewItemDescription>
                                             <OverviewItemLine>
                                                 <Tooltip content={`Open ${t.taskType} "${t.label}" in a new window`}>

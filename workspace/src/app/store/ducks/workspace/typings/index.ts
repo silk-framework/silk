@@ -51,6 +51,7 @@ export interface IProjectExecutionStatus {
 export interface IRecentlyViewedItem {
     projectId: string;
     projectLabel: string;
+    // E.g. "workflow", "transform", "task", "dataset"
     itemType: string;
     taskId?: string;
     taskLabel?: string;

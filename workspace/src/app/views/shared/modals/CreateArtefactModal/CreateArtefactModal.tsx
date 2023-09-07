@@ -18,6 +18,7 @@ import {
     OverflowText,
     OverviewItem,
     OverviewItemActions,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
@@ -339,13 +340,13 @@ export function CreateArtefactModal() {
                     } else {
                         !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                         await dispatch(
-                        commonOp.createArtefactAsync(
-                            formValues,
-                            type,
-                            dataParameters,
-                            templateParameters.current,
-                            newTaskPreConfiguration?.alternativeCallback
-                        )
+                            commonOp.createArtefactAsync(
+                                formValues,
+                                type,
+                                dataParameters,
+                                templateParameters.current,
+                                newTaskPreConfiguration?.alternativeCallback
+                            )
                         );
                         setSearchValue("");
                     }
@@ -588,7 +589,7 @@ export function CreateArtefactModal() {
         .every((searchWord) => "project".includes(searchWord));
 
     // Filter artefact list and add project item
-    let artefactListWithProject = artefactsList
+    let artefactListWithProject: IPluginOverview[] = artefactsList
         .filter(
             (artefact) =>
                 selectedDType === "all" ||
@@ -605,7 +606,6 @@ export function CreateArtefactModal() {
                     "common.dataTypes.projectDesc",
                     "Projects let you group related items. All items that depend on each other need to be in the same project."
                 ),
-                taskType: "project",
             },
             ...artefactListWithProject,
         ];
@@ -900,17 +900,12 @@ export function CreateArtefactModal() {
                                                             onClick={() => handleArtefactSelect(artefact)}
                                                             onKeyDown={handleEnter}
                                                         >
-                                                            <Depiction
-                                                                image={
-                                                                    <ItemDepiction
-                                                                        itemType={artefact.taskType}
-                                                                        pluginId={artefact.key}
-                                                                    />
-                                                                }
-                                                                ratio="1:1"
-                                                                backgroundColor="dark"
-                                                                padding="medium"
-                                                            />
+                                                            <OverviewItemDepiction>
+                                                                <ItemDepiction
+                                                                    itemType={artefact.taskType}
+                                                                    pluginId={artefact.key}
+                                                                />
+                                                            </OverviewItemDepiction>
                                                             <OverviewItemDescription>
                                                                 <OverviewItemLine>
                                                                     <strong>
