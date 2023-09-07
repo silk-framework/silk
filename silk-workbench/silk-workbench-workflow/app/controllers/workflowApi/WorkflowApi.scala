@@ -1,6 +1,6 @@
 package controllers.workflowApi
 
-import akka.stream.scaladsl.{FileIO, StreamConverters}
+import akka.stream.scaladsl.FileIO
 import akka.util.ByteString
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
@@ -9,7 +9,7 @@ import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils.VariableWorkflowRequestConfig
-import controllers.workflowApi.workflow.{ConfigPortConfig, PluginPortConfig, PortSchema, PortSchemaProperty, WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workflowApi.workflow._
 import controllers.workspace.activityApi.StartActivityResponse
 import controllers.workspaceApi.coreApi.PluginApi
 import controllers.workspaceApi.search.ItemType
@@ -20,8 +20,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
-import org.silkframework.runtime.activity.UserExecutionContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
@@ -554,12 +553,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                           )
                           workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, _) = projectAndTask[Workflow](projectId, workflowId)
-    val customTaskPortConfigs: Seq[(String, WorkflowNodePortConfig)] = for(customTask <- project.tasks[CustomTask]) yield {
-      val taskId = customTask.id.toString
-      val portConfig: WorkflowNodePortConfig = customTask.data.inputSchemataOpt match {
-        case Some(inputSchema) => WorkflowNodePortConfig(inputSchema.size)
-        case None => WorkflowNodePortConfig(1, None)
-      }
+    val tasksWithProprietaryPortsConfig = project.tasks[CustomTask] ++ project.tasks[TransformSpec] ++ project.tasks[LinkSpec]
+    val byTaskId: Seq[(String, WorkflowNodePortConfig)] = for(task <- tasksWithProprietaryPortsConfig) yield {
+      val taskId = task.id.toString
+      val portConfig = WorkflowNodePortConfig(task.data.inputPorts, task.data.outputPort)
       (taskId, portConfig)
     }
     val taskPlugins = PluginApi.taskplugins().map(pluginDescription => {
@@ -567,14 +564,17 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       val parameters = pluginDescription.parameters.filter(_.visibleInDialog).map(p => PortSchemaProperty(p.name))
       pluginId.toString -> PluginPortConfig(ConfigPortConfig(PortSchema(None, parameters)))
     }).toMap
+    val flexiblePortConfig = WorkflowNodePortConfig(1, None,
+      inputPortsDefinition = MultipleSameTypePortsDefinition(FlexiblePortDefinition),
+      outputPortsDefinition = SinglePortPortsDefinition(FlexiblePortDefinition)
+    )
     val workflowNodesPortConfig = WorkflowNodesPortConfig(
       byItemType = Map(
-        ItemType.dataset.id -> WorkflowNodePortConfig(1, None),
-        ItemType.workflow.id -> WorkflowNodePortConfig(1, None),
-        ItemType.linking.id -> WorkflowNodePortConfig(2),
-        ItemType.transform.id -> WorkflowNodePortConfig(1)
+        // Datasets and workflows always have the same ports config
+        ItemType.dataset.id -> flexiblePortConfig,
+        ItemType.workflow.id -> flexiblePortConfig
       ),
-      byTaskId = customTaskPortConfigs.toMap,
+      byTaskId = byTaskId.toMap,
       // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI
       byNodeId = Map.empty,
       byPluginId = taskPlugins
