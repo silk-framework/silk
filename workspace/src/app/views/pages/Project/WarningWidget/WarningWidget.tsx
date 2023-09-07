@@ -165,7 +165,6 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
 
     return warningList.length > 0 ? (
         <>
-            <Spacing />
             <Card>
                 {showNotFoundModal.show && projectId && showNotFoundModal.taskId ? (
                     <FixTaskDataNotFoundModal
@@ -210,6 +209,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
                     <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
                 </CardContent>
             </Card>
+            <Spacing />
         </>
     ) : null;
 };

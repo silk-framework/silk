@@ -229,7 +229,7 @@ object ClassPluginDescription {
     val pluginTypes =
       for {
         superType <- getSuperTypes(pluginClass).toSeq
-        typeAnnotation <- getPluginType(superType)
+        typeAnnotation <- PluginTypeDescription.forClassOpt(superType)
       } yield {
         typeAnnotation
       }
@@ -238,18 +238,6 @@ object ClassPluginDescription {
       pluginTypes
     } else {
       throw new IllegalArgumentException(s"Class $pluginClass does not inherit from a class that is a plugin type.")
-    }
-  }
-
-  private def getPluginType(pluginClass: Class[_]): Option[PluginTypeDescription] = {
-    val typeAnnotations = pluginClass.getAnnotationsByType(classOf[PluginType])
-    if(typeAnnotations.length > 1) {
-      throw new IllegalArgumentException(s"Class ${pluginClass.getName} has multiple ${classOf[PluginType].getName} annotations.")
-    } else {
-      for(typeAnnotation <- typeAnnotations.headOption) yield {
-        val customDescriptionGenerator = typeAnnotation.customDescription().getDeclaredConstructor().newInstance()
-        PluginTypeDescription(pluginClass, customDescriptionGenerator)
-      }
     }
   }
 

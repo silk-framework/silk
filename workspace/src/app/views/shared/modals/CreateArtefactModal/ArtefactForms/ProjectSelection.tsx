@@ -3,6 +3,7 @@ import { FieldItem, SuggestField, Notification, Button, AlertDialog } from "@ecc
 import { useTranslation } from "react-i18next";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { ProjectIdAndLabel } from "../CreateArtefactModal";
+import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 
 interface ProjectSelectionProps {
     /** handle project selection **/
@@ -40,35 +41,38 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
     /**
      * Warning prompt that shows when there are task form changes other label/description
      */
-    const warningModalForChangingProject = (
-        <AlertDialog
-            danger
-            size="tiny"
-            isOpen={true}
-            title={t("CreateModal.projectContext.resetModalTitle", "Project change warning")}
-            actions={[
-                <Button
-                    text={t("CreateModal.projectContext.changeProjectButton", "Ok")}
-                    onClick={() => {
-                        resetForm();
-                        setCurrentProject(newProject!);
-                    }}
-                />,
-                <Button text={t("common.action.cancel", "Cancel")} onClick={onClose} />,
-            ]}
-        >
-            <p>
-                {t(
-                    "CreateModal.projectContext.configResetInfo",
-                    "All settings except title/description are going to be reset."
-                )}
-            </p>
-        </AlertDialog>
-    );
+    const WarningModalForChangingProject = () => {
+        const onSubmit = () => {
+            resetForm();
+            setCurrentProject(newProject!);
+        };
+        useHotKey({ hotkey: "enter", handler: onSubmit });
+        return (
+            <AlertDialog
+                danger
+                size="tiny"
+                isOpen={true}
+                canEscapeKeyClose={true}
+                onClose={onClose}
+                title={t("CreateModal.projectContext.resetModalTitle", "Project change warning")}
+                actions={[
+                    <Button text={t("CreateModal.projectContext.changeProjectButton", "Ok")} onClick={onSubmit} />,
+                    <Button text={t("common.action.cancel", "Cancel")} onClick={onClose} />,
+                ]}
+            >
+                <p>
+                    {t(
+                        "CreateModal.projectContext.configResetInfo",
+                        "All settings except title/description are going to be reset."
+                    )}
+                </p>
+            </AlertDialog>
+        );
+    };
 
     return (
         <>
-            {showWarningModal && newProject ? warningModalForChangingProject : null}
+            {showWarningModal && newProject ? <WarningModalForChangingProject /> : null}
             <FieldItem
                 key={"copy-label"}
                 labelProps={{

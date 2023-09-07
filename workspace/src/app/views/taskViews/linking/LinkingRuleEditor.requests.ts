@@ -178,11 +178,10 @@ export const addPathToReferenceEntitiesCache = (
         body: {
             path,
             toTarget,
-            reloadCache: true
-        }
-    })
-}
-
+            reloadCache: true,
+        },
+    });
+};
 
 const linkingRuleEditorRequests = {
     fetchLinkingCachedPaths,

@@ -26,6 +26,9 @@ import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
+import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -63,6 +66,9 @@ export const RuleEditorCanvas = () => {
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
     // Until fixed, we will track selections ourselves and use them where bugs exist.
     const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });
+    // Needed to disable hot keys
+    const { isOpen } = useSelector(commonSel.artefactModalSelector);
+    const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
 
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {
@@ -78,7 +84,7 @@ export const RuleEditorCanvas = () => {
                 cloneNodes(nodeIds);
             }
         },
-        enabled: !ruleEditorUiContext.modalShown,
+        enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
 
     /** Selection helper methods. */
@@ -533,7 +539,8 @@ export const RuleEditorCanvas = () => {
                     zoomOnDoubleClick={false}
                     minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
                     maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
-                    multiSelectionKeyCode={18} // ALT
+                    multiSelectionKeyCode={isOpen ? null : (18 as any)} // ALT
+                    deleteKeyCode={isOpen ? null : (undefined as any)}
                     scrollOnDrag={{
                         scrollStepSize: 0.1,
                         scrollInterval: 50,

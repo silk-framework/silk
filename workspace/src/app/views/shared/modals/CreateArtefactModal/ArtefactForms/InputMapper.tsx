@@ -132,7 +132,7 @@ export function InputMapper({
             return <Switch {...inputAttributes} />;
         // NumericInput does not support onChange, see https://github.com/palantir/blueprint/issues/3943
         case INPUT_TYPES.INTEGER:
-            return <TextField {...inputAttributes} />;
+            return <TextField {...inputAttributes} escapeToBlur={true} />;
         case INPUT_TYPES.TEXTAREA:
             return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
@@ -140,7 +140,7 @@ export function InputMapper({
         case INPUT_TYPES.MULTILINE_STRING:
             return <CodeEditor mode="undefined" {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
-            return <TextField {...inputAttributes} type={"password"} />;
+            return <TextField {...inputAttributes} type={"password"} escapeToBlur={true} />;
         case INPUT_TYPES.TARGET_VOCABULARY:
             return <DefaultTargetVocabularySelection {...inputAttributes} />;
         case INPUT_TYPES.RESOURCE:
@@ -173,6 +173,6 @@ export function InputMapper({
         case INPUT_TYPES.OPTION_INT:
         case INPUT_TYPES.STRING:
         default:
-            return <TextFieldWithCharacterWarnings {...inputAttributes} />;
+            return <TextFieldWithCharacterWarnings {...inputAttributes} escapeToBlur={true} />;
     }
 }

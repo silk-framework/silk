@@ -1,6 +1,5 @@
-import React, { useContext } from "react";
-import { Button, MenuItem, Select } from "@eccenca/gui-elements";
-import { SuggestionListContext } from "../SuggestionContainer";
+import React from "react";
+import { MenuItem, Select } from "@eccenca/gui-elements";
 import { SuggestionTypeValues } from "../suggestion.typings";
 
 // Select<T> is a generic component to work with your data types.
@@ -16,8 +15,6 @@ interface IProps {
 }
 
 export default function TypesList({ onChange, selected }: IProps) {
-    const context = useContext(SuggestionListContext);
-
     const areTypesEqual = (typeA: string, typeB: string) => {
         return typeA.toLowerCase() === typeB.toLowerCase();
     };

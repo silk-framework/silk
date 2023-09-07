@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import { IModalItem } from "@ducks/shared/typings";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
+import {IArtefactModal} from "@ducks/common/typings";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -93,7 +94,19 @@ export function SearchList() {
     };
 
     const handleCreateArtefact = () => {
-        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
+        const itemToCreate: Pick<IArtefactModal, "selectedDType" | "newTaskPreConfiguration"> = {
+            selectedDType: appliedFilters.itemType ?? "all"
+        }
+        if(projectId && itemToCreate.selectedDType === "all") {
+            itemToCreate.selectedDType = "workflow"
+            itemToCreate.newTaskPreConfiguration = {
+                taskPluginId: "workflow",
+                metaData: {
+                    label: t("pages.workspace.firstWorkflow")
+                }
+            }
+        }
+        dispatch(commonOp.createNewTask(itemToCreate));
     };
 
     const isEmpty = !isLoading && !data.length;
@@ -110,6 +123,9 @@ export function SearchList() {
     const emptyListWithoutFilters: boolean = isEmpty && !appliedFilters.textQuery && !appliedFacets.length;
     const promptCreate = !!projectId || appliedFilters.itemType === "project" || !appliedFilters.itemType;
 
+    const firstItemLabel = projectId && appliedFilters.itemType == null ?
+        t("common.dataTypes.workflow") :
+        itemTypeLabel()
     const EmptyContainer = emptyListWithoutFilters ? (
         <EmptyList
             depiction={<Icon name={["artefact-" + appliedFilters.itemType]} large />}
@@ -121,7 +137,9 @@ export function SearchList() {
                 </p>
             }
             textCallout={
-                promptCreate && <strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>
+                promptCreate && <strong>{t("common.messages.createFirstItems", {
+                    items: firstItemLabel
+                })}</strong>
             }
             actionButtons={
                 promptCreate
@@ -132,7 +150,7 @@ export function SearchList() {
                               onClick={handleCreateArtefact}
                               elevated
                           >
-                              {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
+                              {t("common.action.CreateSmth", { smth: firstItemLabel })}
                           </Button>,
                       ]
                     : []

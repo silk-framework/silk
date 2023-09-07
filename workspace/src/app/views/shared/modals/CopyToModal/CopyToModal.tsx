@@ -175,6 +175,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             size="small"
             title={modalTitle}
             isOpen={true}
+            canEscapeKeyClose={true}
             onClose={onDiscard}
             actions={[
                 <Button

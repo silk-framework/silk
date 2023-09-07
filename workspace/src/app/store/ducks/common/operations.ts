@@ -12,7 +12,7 @@ import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/ty
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
-import { TaskType } from "@ducks/shared/typings";
+import {IProjectTask, TaskType} from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
@@ -33,6 +33,7 @@ const {
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,
+    createNewTask,
     setCachedArtefactProperty,
     fetchArtefactsList,
     setArtefactsList,
@@ -207,7 +208,9 @@ const createArtefactAsync = (
     taskType: TaskType | "Project",
     dataParameters: ArtefactDataParameters | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** If this is set, then instead of redirecting to the newly created task, this function is called. */
+    alternativeCallback?: (newTask: IProjectTask) => any
 ) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
@@ -225,7 +228,8 @@ const createArtefactAsync = (
                                 selectedArtefact.key,
                                 taskType as TaskType,
                                 dataParameters,
-                                variableTemplateParameterSet
+                                variableTemplateParameterSet,
+                                alternativeCallback
                             )
                         ));
                 } else {
@@ -276,7 +280,9 @@ const fetchCreateTaskAsync = (
     taskType: TaskType,
     dataParameters: { [key: string]: string } | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** If this is set, then instead of redirecting to the newly created task, this function is called. */
+    alternativeCallback?: (newTask: IProjectTask) => any
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
@@ -311,23 +317,28 @@ const fetchCreateTaskAsync = (
         dispatch(setModalError({}));
         try {
             const data = await requestCreateTask(payload, currentProjectId);
+            const newTask = data.data
+            const newTaskId = newTask.id
             await createTagsAndAddToMetadata({
                 label,
                 description,
                 tags,
                 projectId: currentProjectId,
-                taskId: data.data.id,
+                taskId: newTaskId,
             });
+
             batch(() => {
                 dispatch(closeArtefactModal());
-                dispatch(
-                    routerOp.goToTaskPage({
-                        id: data.data.id,
-                        type: taskType,
-                        projectId: currentProjectId,
-                        label,
-                    })
-                );
+                alternativeCallback ?
+                    alternativeCallback(newTask) :
+                    dispatch(
+                        routerOp.goToTaskPage({
+                            id: newTaskId,
+                            type: taskType,
+                            projectId: currentProjectId,
+                            label,
+                        })
+                    );
             });
         } catch (e) {
             if (e.isFetchError) {
@@ -437,6 +448,7 @@ const commonOps = {
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,
+    createNewTask,
     setProjectId,
     setTaskId,
     setSelectedArtefactDType,

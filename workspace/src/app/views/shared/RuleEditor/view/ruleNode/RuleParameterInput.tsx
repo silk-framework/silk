@@ -18,7 +18,7 @@ import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import {LanguageFilterProps, PathInputOperator} from "./PathInputOperator";
+import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
