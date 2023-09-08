@@ -7,12 +7,12 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Seconds, Span}
-import org.silkframework.config.{CustomTask, PlainTask, Prefixes, Task}
+import org.silkframework.config.{CustomTask, PlainTask, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, SimpleExecutionReport}
-import org.silkframework.runtime.activity.{ActivityContext, UserContext, ValueHolder}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.activity.{ActivityContext, ValueHolder}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, WorkspaceFactory}
@@ -175,7 +175,7 @@ case class TestCustomTaskExecutor() extends LocalExecutor[TestCustomTask] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     task.data.reportHolder = context.value
     task.data.updateReport(0, isDone = false)
     while(!context.value().isDone) {

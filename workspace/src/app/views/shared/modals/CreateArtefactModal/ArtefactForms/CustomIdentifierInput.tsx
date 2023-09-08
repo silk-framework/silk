@@ -66,6 +66,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
 
     return (
         <ArtefactFormParameter
+            projectId={projectId}
             parameterId={IDENTIFIER}
             disabled={!!taskId}
             label={
@@ -90,6 +91,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
                     disabled={!!taskId}
                     rightElement={taskId ? copyButton : undefined}
                     {...otherProps}
+                    escapeToBlur={true}
                 />
             )}
         />

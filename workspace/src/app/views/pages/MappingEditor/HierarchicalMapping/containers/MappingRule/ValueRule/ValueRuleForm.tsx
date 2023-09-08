@@ -5,7 +5,7 @@ import {
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { AutoSuggestion, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
@@ -361,7 +361,7 @@ export function ValueRuleForm(props: IProps) {
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <>
-                    <AutoSuggestion
+                    <CodeAutocompleteField
                         id={"value-path-auto-suggestion"}
                         label="Value path"
                         initialValue={initialValues.sourceProperty ?? ""}

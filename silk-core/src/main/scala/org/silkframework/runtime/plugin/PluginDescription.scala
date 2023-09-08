@@ -38,6 +38,9 @@ trait PluginDescription[+T] {
   /** The plugin types for this plugin. Ideally just one. */
   val pluginTypes: Seq[PluginTypeDescription]
 
+  /** The plugin icon as Data URL string. If the string is empty, a generic icon is used. */
+  val icon: Option[String]
+
   /**
     * Creates an instance of this plugin with the given parameters.
     *
@@ -129,7 +132,7 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
-        val evaluatedValue = template.evaluate()
+        val evaluatedValue = template.evaluate(context.templateVariables.all)
         try {
           stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
         } catch {

@@ -278,12 +278,16 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
   }
 
   def getBytes(key: String, txnOpt: Option[Txn[ByteBuffer]]): Option[ByteBuffer] = {
+    getBytes(createKeyBuffer(key), txnOpt)
+  }
+
+  def getBytes(key: ByteBuffer, txnOpt: Option[Txn[ByteBuffer]]): Option[ByteBuffer] = {
     checkState()
     var value = txnOpt match {
-      case Some(txn) => db.get(txn, createKeyBuffer(key))
-      case None => withReadTransaction { txn => db.get(txn, createKeyBuffer(key)) }
+      case Some(txn) => db.get(txn, key)
+      case None => withReadTransaction { txn => db.get(txn, key) }
     }
-    if(config.compressValues && value != null) {
+    if (config.compressValues && value != null) {
       value = CompressionHelper.lz4decompressByteBuffer(value)
     }
     Option(value)

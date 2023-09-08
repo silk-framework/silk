@@ -26,13 +26,13 @@ private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[Trans
   // The maximum number of erroneous values to be held for each rule.
   private val maxSampleErrors = 10
 
-  def addRuleError(rule: TransformRule, entity: Entity, ex: Throwable): Unit = {
+  def addRuleError(rule: TransformRule, entity: Entity, ex: Throwable, operatorId: Option[Identifier] = None): Unit = {
     val currentRuleResult = ruleResults(rule.id)
 
     val updatedRuleResult =
       if(currentRuleResult.sampleErrors.size < maxSampleErrors) {
         val values = rule.sourcePaths.map(p => entity.evaluate(UntypedPath(p.operators)))
-        currentRuleResult.withError(RuleError(entity.uri, values, ex))
+        currentRuleResult.withError(RuleError.fromException(entity.uri, values, ex, operatorId))
       } else {
         currentRuleResult.withError()
       }

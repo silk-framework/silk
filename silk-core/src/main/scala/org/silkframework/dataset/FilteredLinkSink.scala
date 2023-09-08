@@ -18,10 +18,10 @@ case class FilteredLinkSink(linkSink: LinkSink, filterFn: Link => Boolean) exten
   /**
    * Filter the link before writing it to the underlying link sink.
    */
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     if(filterFn(link)) {
-      linkSink.writeLink(link, predicateUri)
+      linkSink.writeLink(link, predicateUri, inversePredicateUri)
     }
   }
 

@@ -41,6 +41,7 @@ export const UriAttributeParameterInput = ({ onValueChange, initialValue }: Prop
                     onChange={onChange}
                     hasStateDanger={validationFailed}
                     defaultValue={initialValue}
+                    escapeToBlur={true}
                 />
             )}
         />

@@ -1,4 +1,4 @@
-package org.silkframework.runtime.plugin
+package org.silkframework.runtime.plugin.types
 
 /**
   * A trait for enumeration parameters with some additional generic methods.

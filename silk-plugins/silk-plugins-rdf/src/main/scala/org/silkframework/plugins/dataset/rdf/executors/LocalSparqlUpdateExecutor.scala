@@ -7,12 +7,11 @@ import org.silkframework.execution.local._
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
-import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.iterator.TraversableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.workspace.ProjectTask
 
 /**
   * Local executor for [[SparqlUpdateCustomTask]].
@@ -23,19 +22,15 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
     val reportUpdater = SparqlUpdateExecutionReportUpdater(task, context)
-    val projectResources = task match {
-      case projectTask: ProjectTask[SparqlUpdateCustomTask] => projectTask.project.resources
-      case _ => throw new RuntimeException("The LocalSparqlUpdate operator cannot be executed with non-project tasks.")
-    }
 
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
-      val taskProperties = createTaskProperties(Some(input.task), output.task, projectResources)
+      val taskProperties = createTaskProperties(Some(input.task), output.task, pluginContext.resources)
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
@@ -53,12 +48,12 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         val expectedProperties = getInputProperties(expectedSchema)
         if (updateTask.isStaticTemplate) {
           // Static template needs to be executed exactly once
-          executeTemplate(batchEmitter, reportUpdater, updateTask, projectResources, outputTask = output.task)
+          executeTemplate(batchEmitter, reportUpdater, updateTask, pluginContext.resources, outputTask = output.task)
         } else {
           for (input <- inputs) {
             if(expectedProperties.isEmpty) {
               // Template without input path placeholders should be executed once per input, e.g. it uses input task properties
-              executeTemplate(batchEmitter, reportUpdater, updateTask, projectResources, inputTask = Some(input.task), outputTask = output.task)
+              executeTemplate(batchEmitter, reportUpdater, updateTask, pluginContext.resources, inputTask = Some(input.task), outputTask = output.task)
             } else {
               executeOnInput(batchEmitter, expectedProperties, input)
             }

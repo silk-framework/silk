@@ -80,7 +80,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "task")
   }
   private def resultAsMap(searchResultObject: JsObject): Map[String, String] = searchResultObject.value
-      .filter(v => v._1 != "itemLinks" && v._1 != "tags") // Filter out item links and tags, since they are no string
+      .filter(v => v._2.isInstanceOf[JsString]) // Filter out non-string values
       .view.mapValues(_.as[String]).toMap
 
   it should "return all tasks (pages) for a unrestricted search" in {

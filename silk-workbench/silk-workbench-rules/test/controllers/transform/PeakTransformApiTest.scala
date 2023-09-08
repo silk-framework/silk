@@ -1,6 +1,7 @@
 package controllers.transform
 
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
@@ -52,7 +53,7 @@ class PeakTransformApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvid
 
   private def transformRule(transformer: Transformer): ComplexMapping = {
     val transformation = TransformInput(transformer = transformer,
-      inputs = Seq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
+      inputs = IndexedSeq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
     ComplexMapping(operator = transformation)
   }
 

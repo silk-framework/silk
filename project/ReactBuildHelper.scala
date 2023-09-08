@@ -17,7 +17,7 @@ object ReactBuildHelper {
   lazy val yarnCommand: String = sys.props.get("os.name") match {
     case Some(os) if os.toLowerCase.contains("win") =>
       // On windows, we need to provide the path of the yarn script manually
-      process("where.exe" :: "yarnpkg.cmd" :: Nil).trim
+      process("where.exe" :: "yarnpkg.cmd" :: Nil).trim.takeWhile(c => c != '\n' && c != '\r')
     case _ =>
       "yarnpkg"
   }

@@ -2,13 +2,15 @@ import { IProjectTask } from "@ducks/shared/typings";
 import {
     Icon,
     IconButton,
+    Label,
     Notification,
     OverflowText,
+    OverviewItemList,
     PropertyName,
     PropertyValue,
-    PropertyValueList,
     PropertyValuePair,
-    Spacing,
+    Toolbar,
+    ToolbarSection,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
@@ -121,50 +123,62 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     }, {});
 
     return (
-        <OverflowText passDown>
-            <PropertyValueList>
-                {Object.entries(taskParameterValues)
-                    // Only non-empty parameter values are shown
-                    .filter(([paramId, { value }]) => value.trim() !== "")
-                    .map(([paramId, { value, templateValue }]) => {
-                        return (
-                            <PropertyValuePair hasDivider key={paramId}>
-                                <PropertyName title={paramId}>{paramId}</PropertyName>
-                                <PropertyValue>
-                                    <code style={fixStyle}>{value}</code>
-                                    {taskResourceParameterType[paramId]?.type === "resource" && (
-                                        <>
-                                            <Spacing vertical size="large" hasDivider />
-                                            <IconButton
-                                                data-test-id={"resource-download-btn"}
-                                                name="item-download"
-                                                text={t("common.action.download")}
-                                                small
-                                                href={`${CONTEXT_PATH}/workspace/projects/${
-                                                    taskData.project
-                                                }/files?path=${encodeURIComponent(value)}`}
-                                            />
-                                        </>
-                                    )}
-                                    {templateValue != null && (
-                                        <>
-                                            <Spacing vertical={true} size={"small"} />
-                                            <Icon
-                                                name={"form-template"}
-                                                intent={"info"}
-                                                tooltipText={
-                                                    t("widget.TaskConfigWidget.templateValueInfo") +
-                                                    `\n\n\`\`\`${templateValue}\`\`\``
-                                                }
-                                                tooltipProps={{ placement: "top", markdownEnabler: "```" }}
-                                            />
-                                        </>
-                                    )}
-                                </PropertyValue>
-                            </PropertyValuePair>
-                        );
-                    })}
-            </PropertyValueList>
-        </OverflowText>
+        <OverviewItemList hasDivider>
+            {Object.entries(taskParameterValues)
+                // Only non-empty parameter values are shown
+                .filter(([paramId, { value }]) => value.trim() !== "")
+                .map(([paramId, { value, templateValue }]) => {
+                    return (
+                        <Toolbar noWrap key={paramId}>
+                            <ToolbarSection canGrow canShrink>
+                                <PropertyValuePair hasDivider>
+                                    <PropertyName
+                                        style={{
+                                            whiteSpace: "nowrap",
+                                        }}
+                                        title={paramId}
+                                        size="large"
+                                    >
+                                        <Label
+                                            isLayoutForElement="span"
+                                            text={<OverflowText inline>{paramId}</OverflowText>}
+                                            style={fixStyle}
+                                        />
+                                    </PropertyName>
+                                    <PropertyValue>
+                                        <OverflowText>
+                                            <code style={fixStyle}>{value}</code>
+                                        </OverflowText>
+                                    </PropertyValue>
+                                </PropertyValuePair>
+                            </ToolbarSection>
+                            <ToolbarSection>
+                                {taskResourceParameterType[paramId]?.type === "resource" && (
+                                    <IconButton
+                                        data-test-id={"resource-download-btn"}
+                                        name="item-download"
+                                        text={t("common.action.download")}
+                                        small
+                                        href={`${CONTEXT_PATH}/workspace/projects/${
+                                            taskData.project
+                                        }/files?path=${encodeURIComponent(value)}`}
+                                    />
+                                )}
+                                {templateValue != null && (
+                                    <Icon
+                                        name={"form-template"}
+                                        intent={"info"}
+                                        tooltipText={
+                                            t("widget.TaskConfigWidget.templateValueInfo") +
+                                            `\n\n\`\`\`${templateValue}\`\`\``
+                                        }
+                                        tooltipProps={{ placement: "top", markdownEnabler: "```" }}
+                                    />
+                                )}
+                            </ToolbarSection>
+                        </Toolbar>
+                    );
+                })}
+        </OverviewItemList>
     );
 }

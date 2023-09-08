@@ -164,49 +164,52 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
     if (isLoading) return <Loading description={t("widget.WarningWidget.loading", "Loading log messages.")} />;
 
     return warningList.length > 0 ? (
-        <Card>
-            {showNotFoundModal.show && projectId && showNotFoundModal.taskId ? (
-                <FixTaskDataNotFoundModal
-                    onReload={async () => await fixTask(projectId, showNotFoundModal.taskId!, {}, {}, {})}
-                    onClose={() => setShowNotFoundModal({ show: false })}
-                />
-            ) : null}
-            <CardHeader>
-                <CardTitle>
-                    <h2>{t("widget.WarningWidget.title", "Error log")}</h2>
-                </CardTitle>
-            </CardHeader>
-            <Divider />
-            <CardContent>
-                <ul>
-                    {warningList.map((warn, id) => {
-                        const actions: JSX.Element[] = projectId
-                            ? [
-                                  <FixTaskButton
-                                      text={t("widget.WarningWidget.fixTask")}
-                                      handleClick={() => handleInitFixTask(warn.taskId, projectId, warn.taskLabel)}
-                                  />,
-                                  <IconButton
-                                      name={"artefact-report"}
-                                      data-test-id={"taskLoadingReportBtn"}
-                                      minimal
-                                      text={t("common.action.ShowSmth", { smth: "report" })}
-                                      onClick={() => handleOpenMarkDown(warn.taskId, projectId)}
-                                  />,
-                              ]
-                            : [];
-                        return (
-                            <li key={"notification_" + id} data-test-id={"project-task-loading-error-notification"}>
-                                <Notification danger actions={actions}>
-                                    {warn.errorSummary}
-                                </Notification>
-                                <Spacing size={"tiny"} />
-                            </li>
-                        );
-                    })}
-                </ul>
-                <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
-            </CardContent>
-        </Card>
+        <>
+            <Card>
+                {showNotFoundModal.show && projectId && showNotFoundModal.taskId ? (
+                    <FixTaskDataNotFoundModal
+                        onReload={async () => await fixTask(projectId, showNotFoundModal.taskId!, {}, {}, {})}
+                        onClose={() => setShowNotFoundModal({ show: false })}
+                    />
+                ) : null}
+                <CardHeader>
+                    <CardTitle>
+                        <h2>{t("widget.WarningWidget.title", "Error log")}</h2>
+                    </CardTitle>
+                </CardHeader>
+                <Divider />
+                <CardContent>
+                    <ul>
+                        {warningList.map((warn, id) => {
+                            const actions: JSX.Element[] = projectId
+                                ? [
+                                      <FixTaskButton
+                                          text={t("widget.WarningWidget.fixTask")}
+                                          handleClick={() => handleInitFixTask(warn.taskId, projectId, warn.taskLabel)}
+                                      />,
+                                      <IconButton
+                                          name={"artefact-report"}
+                                          data-test-id={"taskLoadingReportBtn"}
+                                          minimal
+                                          text={t("common.action.ShowSmth", { smth: "report" })}
+                                          onClick={() => handleOpenMarkDown(warn.taskId, projectId)}
+                                      />,
+                                  ]
+                                : [];
+                            return (
+                                <li key={"notification_" + id} data-test-id={"project-task-loading-error-notification"}>
+                                    <Notification danger actions={actions}>
+                                        {warn.errorSummary}
+                                    </Notification>
+                                    <Spacing size={"tiny"} />
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
+                </CardContent>
+            </Card>
+            <Spacing />
+        </>
     ) : null;
 };

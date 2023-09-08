@@ -17,7 +17,7 @@ class TableLinkSink(entitySink: EntitySink) extends LinkSink {
       TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true)), singleEntity = false)
   }
 
-  override def writeLink(link: Link, predicateUri: String)
+  override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                         (implicit userContext: UserContext, prefixes: Prefixes){
     entitySink.writeEntity(link.source, IndexedSeq(Seq(link.source), Seq(link.target)))
   }

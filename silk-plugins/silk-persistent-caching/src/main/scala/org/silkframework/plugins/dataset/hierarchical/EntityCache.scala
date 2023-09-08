@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.hierarchical
 
 import org.silkframework.runtime.caching.{HandleTooLargeKeyStrategy, PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.StreamUtils.ByteBufferBackedInputStream
 
 import java.io._
 import java.nio.ByteBuffer
@@ -93,26 +94,4 @@ private case class HierarchicalEntityCache() extends Closeable {
 
 }
 
-private class ByteBufferBackedInputStream(val buffer: ByteBuffer) extends InputStream {
-
-  override def available: Int = buffer.remaining
-
-  override def read: Int = {
-    if (buffer.hasRemaining) {
-      buffer.get & 0xFF
-    } else {
-      -1
-    }
-  }
-
-  override def read(bytes: Array[Byte], off: Int, len: Int): Int = {
-    if (!buffer.hasRemaining) {
-      -1
-    } else {
-      val remainingLen = Math.min(len, buffer.remaining)
-      buffer.get(bytes, off, remainingLen)
-      remainingLen
-    }
-  }
-}
 

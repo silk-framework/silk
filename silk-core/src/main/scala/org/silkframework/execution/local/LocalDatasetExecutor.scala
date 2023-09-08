@@ -117,9 +117,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     DatasetSpec.checkDatasetAllowsWriteAccess(Some(dataset.fullLabel), dataset.readOnly)
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
-      case LinksTable(links, linkType, _) =>
+      case LinksTable(links, linkType, inverseLinkType, _) =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(dataset, linkSink, links, linkType)
+          writeLinks(dataset, linkSink, links, linkType, inverseLinkType)
         }
       case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset, execution) { entitySink =>
@@ -331,13 +331,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri)
+  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri, inverseLinkType: Option[Uri])
                         (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport]): Unit = {
     implicit val report: ExecutionReportUpdater = WriteLinksReportUpdater(dataset, context)
     val startTime = System.currentTimeMillis()
     sink.init()
     for (link <- links) {
-      sink.writeLink(link, linkType.uri)
+      sink.writeLink(link, linkType.uri, inverseLinkType.map(_.uri))
       report.increaseEntityCounter()
     }
     val time = (System.currentTimeMillis - startTime) / 1000.0

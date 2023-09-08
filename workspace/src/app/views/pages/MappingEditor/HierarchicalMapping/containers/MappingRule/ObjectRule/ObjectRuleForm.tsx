@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
 import {
-    AutoSuggestion,
+    CodeAutocompleteField,
     Button,
     FieldItem,
     Notification,
@@ -350,7 +350,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 ? initialValues.sourceProperty
                 : initialValues.sourceProperty.value;
         sourcePropertyInput = (
-            <AutoSuggestion
+            <CodeAutocompleteField
                 id={"object-value-path-auto-suggestion"}
                 label="Value path"
                 initialValue={valuePath}
@@ -397,7 +397,7 @@ export const ObjectRuleForm = (props: IProps) => {
             );
         } else {
             patternInput = (
-                <AutoSuggestion
+                <CodeAutocompleteField
                     id={"uri-pattern-auto-suggestion"}
                     label="URI pattern"
                     initialValue={initialUriPattern}

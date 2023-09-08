@@ -26,17 +26,25 @@ trait RdfSink {
     * @return (serialized statements as N-Triples, triple count)
     */
   def formatLink(link: Link,
-                           predicateUri: String): (String, Int) = {
+                 predicateUri: String,
+                 inversePredicateUri: Option[String]): (String, Int) = {
     formatterOpt match {
       case Some(formatter) =>
-        val model = formatter.formatAsRDF(link, predicateUri)
+        val model = formatter.formatAsRDF(link, predicateUri, inversePredicateUri)
         val outputStream = new ByteArrayOutputStream()
         RDFDataMgr.write(outputStream, model, Lang.NTRIPLES)
         val result = outputStream.toString("UTF-8")
         (result, result.split("\n").length)
       case None =>
-        val result = "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
-        (result, 1)
+        val statement = "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
+        inversePredicateUri match {
+          case Some(inversePredicateUri) =>
+            val inverseStatement = "<" + link.target + "> <" + inversePredicateUri + "> <" + link.source + "> .\n"
+            (statement + inverseStatement, 2)
+          case None =>
+            (statement, 1)
+        }
+
     }
   }
 

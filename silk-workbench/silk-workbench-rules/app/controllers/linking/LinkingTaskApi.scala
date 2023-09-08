@@ -3,7 +3,7 @@ package controllers.linking
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
-import controllers.linking.evaluation.{EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
+import controllers.linking.evaluation.{AddPathToReferenceEntitiesCacheRequest, EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
@@ -19,11 +19,10 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation.{DetailedEvaluator, EvaluatedLink, EvaluatedLinkWithDecision, ReferenceEntities, ReferenceLinks}
+import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
 import org.silkframework.serialization.json.JsonSerialization
@@ -37,7 +36,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
-import play.api.mvc._
+import play.api.mvc.{Action, _}
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
@@ -138,9 +137,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def putRule(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
 
     try {
       val updatedRule = linkageRule(request)
@@ -607,6 +604,58 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
 
     Ok
+  }
+
+  @Operation(
+    summary = "Add path to the reference entities cache",
+    description = "Adds a path to the reference entities cache.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def addPathToReferenceEntitiesCache(@Parameter(
+                                        name = "project",
+                                        description = "The project identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
+                                      projectId: String,
+                                      @Parameter(
+                                        name = "task",
+                                        description = "The task identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
+                                      linkingTaskId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val (project, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
+    validateJson[AddPathToReferenceEntitiesCacheRequest] { request =>
+      implicit val prefixes: Prefixes = project.config.prefixes
+      val typedPath = UntypedPath.parse(request.path).asStringTypedPath
+      val entitiesCacheControl = linkingTask.activity[ReferenceEntitiesCache].control
+      entitiesCacheControl.underlying match {
+        case entitiesCache: ReferenceEntitiesCache =>
+          if(request.toTarget) {
+           entitiesCache.addTargetPathToCache(typedPath)
+          } else {
+            entitiesCache.addSourcePathToCache(typedPath)
+          }
+          if(request.reloadCache) {
+            entitiesCacheControl.startBlocking()
+          }
+          NoContent
+        case _ =>
+          throw NotFoundException("No entities cache found.")
+      }
+    }
   }
 
   // Get the project and linking task

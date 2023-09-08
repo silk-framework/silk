@@ -17,6 +17,8 @@ const currentTaskIdSelector = createSelector([commonSelector], (common) => commo
 
 const initialSettingsSelector = createSelector([commonSelector], (common) => common.initialSettings);
 
+const taskPluginOverviewsSelector = createSelector([commonSelector], (common) => common.taskPluginOverviews);
+
 const exportTypesSelector = createSelector([commonSelector], (common) => common.exportTypes);
 
 const commonSelectors = {
@@ -25,6 +27,7 @@ const commonSelectors = {
     availableDTypesSelector,
     artefactModalSelector,
     initialSettingsSelector,
+    taskPluginOverviewsSelector,
     currentTaskIdSelector,
     currentProjectIdSelector,
     exportTypesSelector,

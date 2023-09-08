@@ -227,7 +227,7 @@ object JsonSerializers {
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
         val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), ParameterValuesJsonFormat.read(value))
-        TransformInput(id, transformer, inputs.toList)
+        TransformInput(id, transformer, inputs.toIndexedSeq)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
       }
@@ -916,6 +916,8 @@ object JsonSerializers {
     final val OPERATOR = "operator"
     final val FILTER = "filter"
     final val LINKTYPE = "linkType"
+    final val INVERSELINKTYPE = "inverseLinkType"
+    final val EXCLUDE_SELF_REFERENCES = "excludeSelfReferences"
     final val UI_ANNOTATIONS = "uiAnnotations"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkageRule = {
@@ -923,6 +925,8 @@ object JsonSerializers {
         operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
         linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
+        inverseLinkType = optionalValue(value, INVERSELINKTYPE).map(fromJson[Uri](_)),
+        excludeSelfReferences = booleanValueOption(value, EXCLUDE_SELF_REFERENCES).getOrElse(false),
         layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
         uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
@@ -933,6 +937,8 @@ object JsonSerializers {
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),
         LINKTYPE -> toJson(value.linkType),
+        INVERSELINKTYPE -> toJsonOpt(value.inverseLinkType),
+        EXCLUDE_SELF_REFERENCES -> value.excludeSelfReferences,
         LAYOUT -> toJson(value.layout),
         UI_ANNOTATIONS -> toJson(value.uiAnnotations)
       )
@@ -1383,6 +1389,15 @@ object JsonSerializers {
 
   def toJson[T](value: T)(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue]): JsValue = {
     format.write(value)
+  }
+
+  def toJsonOpt[T](value: Option[T])(implicit format: JsonFormat[T], writeContext: WriteContext[JsValue]): JsValue = {
+    value match {
+      case Some(v) =>
+        format.write(v)
+      case None =>
+        JsNull
+    }
   }
 
   def toJsonEmptyContext[T](value: T)(implicit format: JsonFormat[T]): JsValue = {

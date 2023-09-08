@@ -1,7 +1,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
-import org.silkframework.runtime.templating.GlobalTemplateVariables
+import org.silkframework.runtime.templating.TemplateVariables
 
 import scala.xml.{Elem, Node}
 
@@ -58,8 +58,8 @@ object ParameterObjectValue {
   */
 case class ParameterTemplateValue(template: String) extends ParameterValue {
 
-  def evaluate(): String = {
-    GlobalTemplateVariables.resolveTemplateValue(template)
+  def evaluate(templateVariables: TemplateVariables): String = {
+    templateVariables.resolveTemplateValue(template)
   }
 
 }
@@ -73,12 +73,12 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
     * Converts the root parameter values to a string map.
     * Nested values are ignored.
     */
-  def toStringMap: Map[String, String] = {
+  def toStringMap(implicit pluginContext: PluginContext): Map[String, String] = {
     values.collect {
       case (key, ParameterStringValue(value)) =>
         (key, value)
       case (key, template: ParameterTemplateValue) =>
-        (key, template.evaluate())
+        (key, template.evaluate(pluginContext.templateVariables.all))
     }
   }
 

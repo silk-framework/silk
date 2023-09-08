@@ -15,6 +15,8 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 interface IProps {
     projectId: string;
     taskId: string;
+    /** Is called with the task data as soon as it is available. */
+    pluginDataCallback?: (task: IPluginDetails) => any;
 }
 
 export interface ITaskSchemaAndData {
@@ -88,6 +90,7 @@ export function TaskConfig(props: IProps) {
             const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
             if (taskData.data.type) {
                 const taskDescription = await artefactProperties(taskData.data.type);
+                props.pluginDataCallback?.(taskDescription);
                 setLabelledTaskData({ taskData, taskDescription });
             }
         } catch (ex) {
@@ -116,10 +119,10 @@ export function TaskConfig(props: IProps) {
         <Card data-test-id={"taskConfigWidget"}>
             <CardHeader>
                 <CardTitle>
-                    <h3>
+                    <h2>
                         {t("widget.TaskConfigWidget.title", "Configuration")}
                         {titlePostfix}
-                    </h3>
+                    </h2>
                 </CardTitle>
                 <CardOptions>
                     <IconButton
@@ -131,7 +134,7 @@ export function TaskConfig(props: IProps) {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !labelledTaskData ? (
                     <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (

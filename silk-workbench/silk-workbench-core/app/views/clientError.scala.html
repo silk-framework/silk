@@ -1,10 +1,6 @@
 @import config.WorkbenchConfig.WorkspaceReact
 @(errorMessage: String)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
-@header = { }
-
-@toolbar = { }
-
 @content = {
   <div class="mdl-grid mdl-grid--centered">
     <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
@@ -26,4 +22,8 @@
   </div>
 }
 
-@main(None, "")(header)(toolbar)(content)
+@frame{
+
+}{
+  @content
+}

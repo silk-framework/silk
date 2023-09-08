@@ -4,8 +4,8 @@ import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, Sugges
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Identifier
 

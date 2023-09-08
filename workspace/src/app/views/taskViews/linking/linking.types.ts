@@ -11,8 +11,12 @@ export interface ILinkingRule {
         limit?: number;
         unambiguous?: boolean;
     };
-    /** The property URI of the link, e.g. owl:sameAs. */
+    /** The property URI of the link, e.g. owl:sameAs, that will connect the source entity to the target entity. */
     linkType: string;
+    /** The optional inverse property URI of the link that would connect the target entity to the source entity. */
+    inverseLinkType?: string | null;
+    /** If enabled, links will not be generated from a resource to itself. */
+    excludeSelfReferences: boolean;
     /** Layout information of the link rule operators. */
     layout: RuleLayout;
     /** Visual annotations to be displayed in the editor. */

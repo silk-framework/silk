@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Header } from "../Header/Header";
 import { RecentlyViewedModal } from "../../shared/modals/RecentlyViewedModal";
 import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
+import { KeyboardShortcutsModal } from "../Header/KeyboardShortcutsModal";
 
 interface IProps {
     children: React.ReactNode;
@@ -31,6 +32,7 @@ export function AppLayout({ children }: IProps) {
                 </ApplicationContent>
             </ApplicationContainer>
             <RecentlyViewedModal />
+            <KeyboardShortcutsModal />
         </>
     );
 }

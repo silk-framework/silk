@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -62,10 +62,10 @@ sealed trait TransformRule extends Operator with HasMetaData {
     * @return The transformed values.
     * @throws ValidationException If a value failed to be transformed or a generated value doesn't match the target type.
     */
-  def apply(entity: Entity): Seq[String] = {
+  def apply(entity: Entity): Value = {
     val values = operator(entity)
     // Validate values
-    target.foreach(_.validate(values))
+    target.foreach(_.validate(values.values))
     values
   }
 
@@ -579,15 +579,15 @@ private object UriPattern {
     val segments = UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).segments
     val inputs = {
       if(segments == IndexedSeq(PathPart("", _))) {
-        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", UntypedPath.empty))))
+        IndexedSeq(TransformInput("uri", UriFixTransformer(), IndexedSeq(PathInput("path", UntypedPath.empty))))
       } else {
         segments.zipWithIndex.map { case (segment, idx) =>
           segment match {
             case PathPart(serializedPath, _) if idx == 0 =>
               // There is a path at the start of the URI pattern, this value needs to become a valid URI
-              TransformInput("fixUri" + idx, UriFixTransformer(), Seq(PathInput("path" + idx, UntypedPath.parse(serializedPath))))
+              TransformInput("fixUri" + idx, UriFixTransformer(), IndexedSeq(PathInput("path" + idx, UntypedPath.parse(serializedPath))))
             case PathPart(serializedPath, _) =>
-              TransformInput("encode" + idx, UrlEncodeTransformer(), Seq(PathInput("path" + idx, UntypedPath.parse(serializedPath))))
+              TransformInput("encode" + idx, UrlEncodeTransformer(), IndexedSeq(PathInput("path" + idx, UntypedPath.parse(serializedPath))))
             case ConstantPart(value, _) =>
               TransformInput("constant" + idx, ConstantTransformer(value))
           }

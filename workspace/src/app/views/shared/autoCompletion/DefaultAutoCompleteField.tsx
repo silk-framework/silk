@@ -1,8 +1,7 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import { AutoCompleteField } from "@eccenca/gui-elements";
+import { SuggestField, suggestFieldUtils } from "@eccenca/gui-elements";
 import { autoCompleteItemRenderer } from "../../pages/MappingEditor/HierarchicalMapping/components/AutoComplete";
 
 interface Props {
@@ -27,7 +26,7 @@ export const DefaultAutoCompleteField = ({ onChange, onSearch, initialValue, new
         : (query: string) => t("ParameterWidget.AutoComplete.createNewItem", { query });
 
     return (
-        <AutoCompleteField<IAutocompleteDefaultResponse, string>
+        <SuggestField<IAutocompleteDefaultResponse, string>
             inputProps={
                 id
                     ? {
@@ -45,7 +44,7 @@ export const DefaultAutoCompleteField = ({ onChange, onSearch, initialValue, new
             itemValueString={autoCompleteValue}
             createNewItem={{
                 itemFromQuery: (value: string) => ({ value: value }),
-                itemRenderer: createNewItemRendererFactory(customItemPrefixFn),
+                itemRenderer: suggestFieldUtils.createNewItemRendererFactory(customItemPrefixFn),
             }}
             reset={{
                 resetValue: "",

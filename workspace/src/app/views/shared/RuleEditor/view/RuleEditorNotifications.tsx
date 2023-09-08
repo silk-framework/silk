@@ -18,10 +18,10 @@ export const RuleEditorNotifications = ({
     nodeJumpToHandler,
 }: RuleEditorNotificationsProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const initTimestamp = React.useRef(Date.now())
-    const {messages, notifications} = useNotificationsQueue();
+    const initTimestamp = React.useRef(Date.now());
+    const { messages, notifications } = useNotificationsQueue();
     const [t] = useTranslation();
-    const diErrorMessages = messages.filter(diError => diError.timestamp > initTimestamp.current)
+    const diErrorMessages = messages.filter((diError) => diError.timestamp > initTimestamp.current);
 
     useEffect(() => {
         setIsOpen(!!integratedView);
@@ -87,7 +87,11 @@ export const RuleEditorNotifications = ({
                     </div>
                 }
             >
-                <Icon name="application-warning" onClick={() => toggleNotifications()} />
+                <Icon
+                    name="application-warning"
+                    data-test-id="evaluation-warning-icon"
+                    onClick={() => toggleNotifications()}
+                />
             </ContextOverlay>
             <Spacing vertical size="tiny" />
         </>

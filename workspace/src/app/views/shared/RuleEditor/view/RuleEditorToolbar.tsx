@@ -23,6 +23,7 @@ import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
+import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -36,6 +37,7 @@ export const RuleEditorToolbar = () => {
     const [showCreateStickyModal, setShowCreateStickyModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
     const integratedView = !!ruleEditorContext.viewActions?.integratedView;
+    const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
 
     useHotKey({
         hotkey: "mod+z",
@@ -43,7 +45,7 @@ export const RuleEditorToolbar = () => {
             e.preventDefault && e.preventDefault();
             modelContext.undo();
         },
-        enabled: !ruleEditorUiContext.modalShown,
+        enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
     useHotKey({
         hotkey: "mod+shift+z",
@@ -51,7 +53,7 @@ export const RuleEditorToolbar = () => {
             e.preventDefault && e.preventDefault();
             modelContext.redo();
         },
-        enabled: !ruleEditorUiContext.modalShown,
+        enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
 
     // Warn of unsaved changes
@@ -77,6 +79,10 @@ export const RuleEditorToolbar = () => {
         }
     }, [modelContext.unsavedChanges]);
 
+    React.useEffect(() => {
+        ruleEvaluationContext.fetchTriggerEvaluationFunction?.(startEvaluation);
+    }, [ruleEvaluationContext.startEvaluation, ruleEvaluationContext.toggleEvaluationResults]);
+
     const saveLinkingRule = async (e) => {
         e.preventDefault();
         setSavingWorkflow(true);
@@ -84,7 +90,10 @@ export const RuleEditorToolbar = () => {
         setSavingWorkflow(false);
     };
 
+    // Start evaluation for the whole rule tree
     const startEvaluation = () => {
+        // Reset sub-tre evaluation if set
+        ruleEvaluationContext.setEvaluationRootNode(undefined);
         ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditorContext.editedItem, false);
         toggleEvaluation(true);
     };

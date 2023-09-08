@@ -1,6 +1,6 @@
 package org.silkframework.rule;
 
-import org.silkframework.runtime.plugin.EnumerationParameterType;
+import org.silkframework.runtime.plugin.types.EnumerationParameterType;
 
 /**
  * Possible execution backends for the Silk linking execution.
