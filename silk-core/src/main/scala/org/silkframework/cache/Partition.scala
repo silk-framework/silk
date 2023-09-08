@@ -14,8 +14,9 @@
 
 package org.silkframework.cache
 
-import java.io._
+import org.silkframework.entity.Entity.EntitySerializer
 
+import java.io._
 import org.silkframework.entity.{Entity, EntitySchema}
 
 class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
@@ -26,7 +27,7 @@ class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
   def serialize(stream: DataOutput): Unit = {
     stream.writeInt(entities.length)
     for (i <- entities.indices) {
-      entities(i).serialize(stream)
+      EntitySerializer.serialize(entities(i), stream)
       indices(i).serialize(stream)
     }
   }
@@ -62,7 +63,7 @@ object Partition {
     val indices = new Array[BitsetIndex](partitionSize)
 
     for (i <- 0 until partitionSize) {
-      entities(i) = Entity.deserialize(stream, desc)
+      entities(i) = EntitySerializer.deserialize(stream, desc)
       indices(i) = BitsetIndex.deserialize(stream)
     }
 

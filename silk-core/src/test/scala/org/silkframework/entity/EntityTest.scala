@@ -1,11 +1,12 @@
 package org.silkframework.entity
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
-
-import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.entity.Entity.EntitySerializer.{deserialize, serialize}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.util.Uri
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 
 class EntityTest extends AnyFlatSpec with Matchers {
@@ -33,10 +34,10 @@ class EntityTest extends AnyFlatSpec with Matchers {
   def serialized(entity: Entity): Entity = {
     // Serialize entity
     val outputStream = new ByteArrayOutputStream()
-    entity.serialize(new DataOutputStream(outputStream))
+    serialize(entity, new DataOutputStream(outputStream))
     // Deserialize entity
     val inputStream = new ByteArrayInputStream(outputStream.toByteArray)
-    Entity.deserialize(new DataInputStream(inputStream), entity.schema)
+    deserialize(new DataInputStream(inputStream), entity.schema)
   }
 
   /* COMPLEX ENTITIES */
@@ -52,13 +53,13 @@ class EntityTest extends AnyFlatSpec with Matchers {
   "Multiple entities" should "serialize/deserialize correctly" in {
     val outputStream = new ByteArrayOutputStream()
     val dataOutputStream = new DataOutputStream(outputStream)
-    se1.serialize(dataOutputStream)
-    se2.serialize(dataOutputStream)
+    serialize(se1, dataOutputStream)
+    serialize(se2, dataOutputStream)
     // Deserialize entity
     val inputStream = new ByteArrayInputStream(outputStream.toByteArray)
     val dataInputStream = new DataInputStream(inputStream)
-    val re1 = Entity.deserialize(dataInputStream, subSchema1)
-    val re2 = Entity.deserialize(dataInputStream, subSchema2)
+    val re1 = deserialize(dataInputStream, subSchema1)
+    val re2 = deserialize(dataInputStream, subSchema2)
     re1 shouldBe se1
     re2 shouldBe se2
   }

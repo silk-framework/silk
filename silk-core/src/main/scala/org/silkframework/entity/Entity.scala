@@ -14,14 +14,15 @@
 
 package org.silkframework.entity
 
-import java.io.{DataInput, DataOutput}
-
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml, GenericExecutionFailure}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.failures.FailureClass
+import org.silkframework.util.StreamUtils.ByteBufferBackedInputStream
 import org.silkframework.util.Uri
 
+import java.io.{ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream}
+import java.nio.ByteBuffer
 import scala.language.existentials
 import scala.xml.Node
 
@@ -207,16 +208,6 @@ case class Entity(
     </Entity>
   }
 
-  def serialize(stream: DataOutput) {
-    stream.writeUTF(uri)
-    for (valueSet <- values) {
-      stream.writeInt(valueSet.size)
-      for (value <- valueSet) {
-        stream.writeUTF(value)
-      }
-    }
-  }
-
   override def toString: String = failure match{
     case Some(f) => uri + " failed with: " + f.getMessage
     case None => uri + "{\n  " + values + "\n}"
@@ -293,20 +284,58 @@ object Entity {
     )
   }
 
-  def deserialize(stream: DataInput, desc: EntitySchema): Entity = {
-    //Read URI
-    val uri = stream.readUTF()
+  /**
+    * De-/Serializes entities from/to bytes.
+    * Does not serialize the entity schema, which needs to be serialized separately.
+    */
+  object EntitySerializer {
 
-    //Read Values
-    def readValue = Seq.fill(stream.readInt)(stream.readUTF)
+    def serialize(entity: Entity, stream: DataOutput) {
+      stream.writeUTF(entity.uri)
+      for (valueSet <- entity.values) {
+        stream.writeInt(valueSet.size)
+        for (value <- valueSet) {
+          stream.writeUTF(value)
+        }
+      }
+    }
 
-    desc match{
-      case mes: MultiEntitySchema =>
-        val values = IndexedSeq.fill(mes.pivotSchema.typedPaths.size)(readValue)
-        Entity(uri, values, mes)
-      case es: EntitySchema =>
-        val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
-        Entity(uri, values, es)
+    def serializeToArray(entity: Entity): Array[Byte] = {
+      val byteStream = new ByteArrayOutputStream
+      val objectStream = new DataOutputStream(byteStream)
+      try {
+        serialize(entity, objectStream)
+      } finally {
+        objectStream.close()
+      }
+      byteStream.toByteArray
+    }
+
+    def deserialize(buffer: ByteBuffer, schema: EntitySchema): Entity = {
+      val inputStream = new DataInputStream(new ByteBufferBackedInputStream(buffer))
+      try {
+        deserialize(inputStream, schema)
+      } finally {
+        inputStream.close()
+      }
+    }
+
+    def deserialize(stream: DataInput, schema: EntitySchema): Entity = {
+      //Read URI
+      val uri = stream.readUTF()
+
+      //Read Values
+      def readValue = Seq.fill(stream.readInt)(stream.readUTF)
+
+      schema match {
+        case mes: MultiEntitySchema =>
+          val values = IndexedSeq.fill(mes.pivotSchema.typedPaths.size)(readValue)
+          Entity(uri, values, mes)
+        case es: EntitySchema =>
+          val values = IndexedSeq.fill(schema.typedPaths.size)(readValue)
+          Entity(uri, values, es)
+      }
     }
   }
+
 }
