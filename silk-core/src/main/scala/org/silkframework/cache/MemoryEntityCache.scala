@@ -14,12 +14,10 @@
 
 package org.silkframework.cache
 
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.RuntimeConfig
 import org.silkframework.entity.{Entity, EntitySchema, Index}
-import org.silkframework.config.RuntimeConfig
 
+import java.util.logging.{Level, Logger}
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -43,7 +41,7 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
   /**
    * Adds a single entity to the cache.
    */
-  override def write(entity: Entity) {
+  override def write(entity: Entity): Unit = {
     if (!allEntities.contains(entity.uri)) {
       val indices = if(runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
@@ -56,36 +54,36 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
     }
   }
 
-  override def clear() {
+  override def clear(): Unit = {
     logger.log(Level.FINE, "Clearing the memory cache.")
     entityCounter = 0
     blocks = IndexedSeq.tabulate(blockCount)(new Block(_))
     allEntities = Set[String]()
   }
 
-  override def close() { }
+  override def close(): Unit = { }
 
-  override def size = entityCounter
+  override def size: Int = entityCounter
 
   /**
    * Reads a partition of a block.
    */
-  override def read(block: Int, partition: Int) = blocks(block)(partition)
+  override def read(block: Int, partition: Int): Partition = blocks(block)(partition)
 
   override def blockCount: Int = runtimeConfig.blocking.enabledBlocks
 
   /**
    * The number of partitions in a specific block.
    */
-  override def partitionCount(block: Int) = blocks(block).partitionCount
+  override def partitionCount(block: Int): Int = blocks(block).partitionCount
 
   private class Block(block: Int) {
     private val entities = ArrayBuffer(ArrayBuffer[Entity]())
     private val indices = ArrayBuffer(ArrayBuffer[BitsetIndex]())
 
-    def apply(index: Int) = Partition(entities(index).toArray, indices(index).toArray)
+    def apply(index: Int): Partition = Partition(entities(index).toArray, indices(index).toArray)
 
-    def add(entity: Entity, index: BitsetIndex) {
+    def add(entity: Entity, index: BitsetIndex): Unit = {
       if (entities.last.size < runtimeConfig.partitionSize) {
         entities.last.append(entity)
         indices.last.append(index)
@@ -97,7 +95,7 @@ class MemoryEntityCache(val entitySchema: EntitySchema,
       }
     }
 
-    def partitionCount = if(entities.head.isEmpty) 0 else entities.size
+    def partitionCount: Int = if(entities.head.isEmpty) 0 else entities.size
   }
 
 }
