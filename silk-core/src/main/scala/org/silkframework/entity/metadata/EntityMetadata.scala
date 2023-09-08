@@ -55,7 +55,7 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
 
   /**
     * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
-    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
+    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.adapt]]
  *
     * @param failure  - the exception caught
     * @param taskId   - the identifier pointing out the current task
@@ -67,7 +67,8 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
 
   /**
     * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
-    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
+    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.adapt]]
+    *
     * @param failure - the exception caught wraped in a [[FailureClass]]
     */
   def addFailure(failure: FailureClass): EntityMetadata[Serialization]

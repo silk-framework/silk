@@ -336,8 +336,8 @@ object TransformSpec {
           val outputPaths = childRule.target.map(t => UntypedPath(t.propertyUri).asStringTypedPath).toIndexedSeq
           RuleSchemata(
             transformRule = childRule,
-            inputSchema = inputSchema.copy(typedPaths = inputPaths),
-            outputSchema = outputSchema.copy(typedPaths = outputPaths)
+            inputSchema = inputSchema.adapt(typedPaths = inputPaths),
+            outputSchema = outputSchema.adapt(typedPaths = outputPaths)
           )
         }
       }

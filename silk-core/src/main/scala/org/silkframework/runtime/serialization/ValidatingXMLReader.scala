@@ -78,13 +78,13 @@ class ValidatingXMLReader(schemaPath: String) {
       val xr = parser.getXMLReader
       val vh = schema.newValidatorHandler()
       vh.setErrorHandler(new ErrorHandler {
-        def warning(ex: SAXParseException) {}
+        def warning(ex: SAXParseException): Unit = {}
 
-        def error(ex: SAXParseException) {
+        def error(ex: SAXParseException): Unit = {
           addError(ex)
         }
 
-        def fatalError(ex: SAXParseException) {
+        def fatalError(ex: SAXParseException): Unit = {
           addError(ex)
         }
       })
@@ -110,7 +110,7 @@ class ValidatingXMLReader(schemaPath: String) {
       }
     }
 
-    override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes) {
+    override def startElement(uri: String, _localName: String, qname: String, attributes: Attributes): Unit = {
       // Add all errors for this element before advancing
       for(idAttribute <- Option(attributes.getValue("id"))) {
         // Try to get identifier of this element
@@ -137,7 +137,7 @@ class ValidatingXMLReader(schemaPath: String) {
     /**
      * Formats a XSD validation exception.
      */
-    private def addError(ex: SAXParseException) = {
+    private def addError(ex: SAXParseException): Unit = {
       //The error message without prefixes like "cvc-complex-type.2.4.b:"
       val error = ex.getMessage.split(':').tail.mkString.trim
 

@@ -242,7 +242,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     implicit val writeContext: WriteContext[Node] = WriteContext.fromProject[Node](project)
     val cachedEntitySchema = CachedEntitySchemata.CachedEntitySchemaXmlFormat.read(xmlValue)
     val newCachedEntitySchema = cachedEntitySchema.copy(
-      configuredSchema = cachedEntitySchema.configuredSchema.copy(
+      configuredSchema = cachedEntitySchema.configuredSchema.adapt(
         typedPaths = cachedEntitySchema.configuredSchema.typedPaths ++ Seq(
           TypedPath("\\someBackwardPathToParent/nameAfterBack", ValueType.STRING)
         )

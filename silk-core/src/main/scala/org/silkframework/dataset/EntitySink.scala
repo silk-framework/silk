@@ -28,7 +28,7 @@ trait EntitySink extends DataSink {
   /**
     * Closes writing a table of entities.
     */
-  def closeTable()(implicit userContext: UserContext)
+  def closeTable()(implicit userContext: UserContext): Unit
 
   /**
    * Writes a new entity.
@@ -45,8 +45,11 @@ trait EntitySink extends DataSink {
     * @param entity - the entity to write
     */
   def writeEntity(entity: Entity)
-                 (implicit userContext: UserContext): Unit = if(! entity.hasFailed)
-    writeEntity(entity.uri, entity.values)
+                 (implicit userContext: UserContext): Unit = {
+    if(!entity.hasFailed) {
+      writeEntity(entity.uri, entity.values)
+    }
+  }
 }
 
 /**

@@ -174,7 +174,7 @@ trait WorkspaceProvider extends AnyPlugin {
   /** Removes the external task loading error that might exist. */
   private[workspace] def removeExternalTaskLoadingError(projectId: String, taskId: String): Unit = synchronized {
     val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
-    externalLoadingErrors.put(projectId, loadingErrors.filter(_.taskId != taskId))
+    externalLoadingErrors.put(projectId, loadingErrors.filter(_.taskId.toString != taskId))
   }
 }
 

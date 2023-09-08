@@ -156,7 +156,7 @@ class ComparisonToRestrictionConverter {
           case Some(operator) => And(Seq(operator, newSparqlRestriction))
           case None => newSparqlRestriction
         }
-        entitySchema.copy(filter = Restriction(Some(updatedFilterOperator)))
+        entitySchema.adapt(filter = Restriction(Some(updatedFilterOperator)))
       case None => entitySchema
     }
   }

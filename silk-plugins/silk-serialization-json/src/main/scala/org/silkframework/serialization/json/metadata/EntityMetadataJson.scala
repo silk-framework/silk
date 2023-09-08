@@ -16,7 +16,7 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) e
 
   /**
     * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
-    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
+    * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.adapt]]
     *
     * @param failure - the exception caught wrapped in a FailureClass
     */

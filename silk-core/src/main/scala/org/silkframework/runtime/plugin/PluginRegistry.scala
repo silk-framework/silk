@@ -220,10 +220,10 @@ object PluginRegistry {
    * Registers all plugins from a directory of jar files.
    * Also registers all plugins on the classpath.
    */
-  def registerJars(jarDir: File) {
+  def registerJars(jarDir: File): Unit = {
     //Collect all jar file in the specified directory
     val jarFiles = Option(jarDir.listFiles())
-      .getOrElse(Array.empty)
+      .getOrElse(Array.empty[File])
       .filter(_.getName.endsWith(".jar"))
 
     //Load all found classes

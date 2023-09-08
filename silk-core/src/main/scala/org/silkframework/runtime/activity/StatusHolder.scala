@@ -47,7 +47,7 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
   /**
    * Updates the current status.
    */
-  def update(newStatus: Status, logStatus: Boolean = true) {
+  def update(newStatus: Status, logStatus: Boolean = true): Unit = {
     // Log new status change if requested
     if(logStatus) {
       val message = newStatus.toString + " " + projectAndTaskId.getOrElse("")
@@ -77,7 +77,7 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
    *
    * @param message The new status message
    */
-  def updateMessage(message: String, logStatus: Boolean = true) {
+  def updateMessage(message: String, logStatus: Boolean = true): Unit = {
     update(Status.Running(message, status.progress), logStatus)
   }
 
@@ -86,7 +86,7 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
    *
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  def updateProgress(progress: Double, logStatus: Boolean = true) {
+  def updateProgress(progress: Double, logStatus: Boolean = true): Unit = {
     update(Status.Running(status.message, Some(progress)), logStatus)
   }
 
@@ -108,7 +108,7 @@ class StatusHolder(log: Logger = Logger.getLogger(classOf[StatusHolder].getName)
    * @param message The new status message
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  def update(message: String, progress: Double) {
+  def update(message: String, progress: Double): Unit = {
     update(Status.Running(message, Some(progress)))
   }
 }

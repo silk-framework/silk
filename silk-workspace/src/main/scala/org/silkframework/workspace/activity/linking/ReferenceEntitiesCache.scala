@@ -80,7 +80,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
   private def addAdditionalPathsToSchema(schema: EntitySchema, additionalPaths: mutable.LinkedHashSet[TypedPath]): EntitySchema = synchronized {
     // Remove duplicate paths from additional paths first
     schema.typedPaths.foreach(p => additionalPaths.remove(p))
-    schema.copy(typedPaths = schema.typedPaths ++ additionalPaths)
+    schema.adapt(typedPaths = schema.typedPaths ++ additionalPaths)
   }
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"referenceEntitiesCache.xml")

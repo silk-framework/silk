@@ -34,19 +34,19 @@ object CollectLogs {
   }
 
   private class LogCollector extends Handler {
-    var records = List[LogRecord]()
+    var records: List[LogRecord] = List[LogRecord]()
 
-    def publish(record: LogRecord) {
+    def publish(record: LogRecord): Unit = {
       if (isLoggable(record)) {
         records ::= record
       }
     }
 
-    def flush() {
+    def flush(): Unit = {
 
     }
 
-    def close() {
+    def close(): Unit = {
 
     }
   }

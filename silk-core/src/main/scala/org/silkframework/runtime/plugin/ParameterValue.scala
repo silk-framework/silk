@@ -3,7 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
 
-import scala.xml.{Elem, Node}
+import scala.xml.Node
 
 /**
   * The value of a plugin parameter.
@@ -136,6 +136,6 @@ object ParameterValues {
   def empty: ParameterValues = ParameterValues(Map.empty)
 
   def fromStringMap(values: Map[String, String] = Map.empty, templates: Map[String, String] = Map.empty): ParameterValues = {
-    ParameterValues(values.view.mapValues(ParameterStringValue).toMap) merge ParameterValues(templates.view.mapValues(ParameterTemplateValue).toMap)
+    ParameterValues(values.view.mapValues(ParameterStringValue.apply).toMap) merge ParameterValues(templates.view.mapValues(ParameterTemplateValue.apply).toMap)
   }
 }

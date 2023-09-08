@@ -77,12 +77,12 @@ trait ActivityControl[T] {
    * Activities need to override cancelExecution() to allow cancellation.
    * Calls cancelExecution() on child activities recursively
    */
-  def cancel()(implicit user: UserContext)
+  def cancel()(implicit user: UserContext): Unit
 
   /**
    * Resets the value of this activity to its initial value.
    */
-  def reset()(implicit userContext: UserContext)
+  def reset()(implicit userContext: UserContext): Unit
 
   /**
     * Returns the underlying activity.

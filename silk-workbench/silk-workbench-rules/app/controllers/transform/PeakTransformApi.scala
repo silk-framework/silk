@@ -176,7 +176,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
       val initialRuleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath).copy(transformRule = rule)
       val ruleSchemata = if(objectPath.isDefined && objectPath.get.nonEmpty) {
-        val inputSchema = initialRuleSchemata.inputSchema.copy(subPath = UntypedPath(initialRuleSchemata.inputSchema.subPath.operators ++ UntypedPath.parse(objectPath.get).operators))
+        val inputSchema = initialRuleSchemata.inputSchema.adapt(subPath = UntypedPath(initialRuleSchemata.inputSchema.subPath.operators ++ UntypedPath.parse(objectPath.get).operators))
         RuleSchemata(initialRuleSchemata.transformRule, inputSchema, initialRuleSchemata.outputSchema)
       } else {
         initialRuleSchemata

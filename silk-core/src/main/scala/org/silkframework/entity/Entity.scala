@@ -41,7 +41,7 @@ case class Entity(
     metadata: EntityMetadata[_] = EntityMetadataXml()
   ) extends Serializable {
 
-  def copy(
+  def adapt(
     uri: Uri = this.uri,
     values: IndexedSeq[Seq[String]] = this.values,
     schema: EntitySchema = this.schema,
@@ -76,7 +76,7 @@ case class Entity(
     * @param es - the schema
     * @return
     */
-  def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
+  def applyNewSchema(es: EntitySchema): Entity = adapt(schema = es, projectValuesIfNewSchema = false)
 
   val failure: Option[GenericExecutionFailure] = {
     if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
@@ -290,7 +290,7 @@ object Entity {
     */
   object EntitySerializer {
 
-    def serialize(entity: Entity, stream: DataOutput) {
+    def serialize(entity: Entity, stream: DataOutput): Unit = {
       stream.writeUTF(entity.uri)
       for (valueSet <- entity.values) {
         stream.writeInt(valueSet.size)

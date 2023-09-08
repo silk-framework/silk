@@ -1,5 +1,6 @@
 package org.silkframework.entity.metadata
-
+
+
 import org.silkframework.{config, dataset}
 import org.silkframework.dataset.EmptyDataset
 import org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException
@@ -67,7 +68,7 @@ class EntityMetadataTestXml extends AnyFlatSpec with Matchers {
     implicit val Tag = classOf[LazyMetadataXml[DPair[String]]]
     val pair =  new DPair("s", "t")
     val metadata = new EntityMetadataXml(Map(serializer.metadataId -> LazyMetadataXml(pair, serializer)))
-    val entity = entity2.copy(metadata = metadata)
+    val entity = entity2.adapt(metadata = metadata)
 
     val lazyMetadata = entity.metadata.getLazyMetadata[DPair[String]](serializer.metadataId)
     lazyMetadata.serialized.toString.contains("<Target>t</Target>") shouldBe true

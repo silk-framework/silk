@@ -190,7 +190,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriAttribute match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false))
+          entitySchema.adapt(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false))
         case None =>
           entitySchema
       }
@@ -232,7 +232,7 @@ object DatasetSpec {
       * Initializes this writer.
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
-                          (implicit userContext: UserContext, prefixes: Prefixes){
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       checkDatasetAllowsWriteAccess(None, readOnly)
       if (isOpen) {
         entitySink.close()
@@ -264,7 +264,7 @@ object DatasetSpec {
     /**
       * Closes the current table.
       */
-    override def closeTable()(implicit userContext: UserContext) {
+    override def closeTable()(implicit userContext: UserContext): Unit = {
       if (entitySink != null) entitySink.closeTable()
       isOpen = false
     }
@@ -272,7 +272,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close()(implicit userContext: UserContext) {
+    override def close()(implicit userContext: UserContext): Unit = {
       if (entitySink != null) entitySink.close()
       isOpen = false
     }
@@ -314,7 +314,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close()(implicit userContext: UserContext) {
+    override def close()(implicit userContext: UserContext): Unit = {
       if (linkSink != null) linkSink.close()
       isOpen = false
       log.info(s"Wrote $linkCount links.")

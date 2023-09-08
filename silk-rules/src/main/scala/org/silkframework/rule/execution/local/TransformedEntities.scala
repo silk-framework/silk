@@ -103,7 +103,7 @@ class TransformedEntities(task: Task[TransformSpec],
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
           val typedPaths = uriTypePaths.map(_._1)
           val values = uriTypePaths.map(_._2)
-          Entity(entity.uri, values, entity.schema.copy(typedPaths = typedPaths))
+          Entity(entity.uri, values, entity.schema.adapt(typedPaths = typedPaths))
         }
 
         def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation

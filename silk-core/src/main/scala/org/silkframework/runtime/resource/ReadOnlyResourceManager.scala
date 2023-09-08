@@ -4,9 +4,9 @@ case class ReadOnlyResourceManager(loader: ResourceLoader) extends ResourceManag
 
   override def get(name: String, mustExist: Boolean): WritableResource = new ReadOnlyResource(loader.get(name, mustExist))
 
-  override def list = loader.list
+  override def list: List[String] = loader.list
 
-  override def listChildren = loader.listChildren
+  override def listChildren: List[String] = loader.listChildren
 
   override def basePath: String = loader.basePath
 
@@ -14,7 +14,7 @@ case class ReadOnlyResourceManager(loader: ResourceLoader) extends ResourceManag
 
   override def parent: Option[ResourceManager] = for(parent <- loader.parent) yield ReadOnlyResourceManager(parent)
 
-  override def delete(name: String) {
+  override def delete(name: String): Unit = {
     throw new UnsupportedOperationException("ReadOnlyResourceManager does not support deleting resources.")
   }
 }

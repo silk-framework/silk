@@ -571,7 +571,7 @@ object StringParameterType {
 
     override def toString(value: Option[Enum[_]])(implicit pluginContext: PluginContext): String = {
       value match {
-        case Some(enum) => enumerationTypeParameter.toString(enum)
+        case Some(e) => enumerationTypeParameter.toString(e)
         case None => ""
       }
     }

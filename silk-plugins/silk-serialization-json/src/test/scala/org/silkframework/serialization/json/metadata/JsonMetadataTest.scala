@@ -84,7 +84,7 @@ class JsonMetadataTest extends AnyFlatSpec with Matchers {
   it should "be able to create an arbitrary metadata object and handle it normally" in{
     val pair =  new DPair("s", "t")
     val metadata = new EntityMetadataJson(Map(serializer.metadataId -> LazyMetadataJson(pair, serializer)))
-    val entity = entity2.copy(metadata = metadata)
+    val entity = entity2.adapt(metadata = metadata)
 
     val lazyMetadata = entity.metadata.getLazyMetadata[DPair[String]](serializer.metadataId)
     lazyMetadata.serialized.toString.replaceAll("\\s+", "").contains("\"Target\":\"t\"") shouldBe true

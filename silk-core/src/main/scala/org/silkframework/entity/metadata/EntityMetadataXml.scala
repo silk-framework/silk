@@ -69,12 +69,14 @@ object EntityMetadataXml{
     */
   object XmlSerializer extends XmlMetadataSerializer[EntityMetadata[Node]]{
     override def read(node: Node)(implicit readContext: ReadContext): EntityMetadata[Node] = {
-      val metaMap = for(meta <- node \ "Metadata") yield{
-        val key = (meta \ "MetaId").text.trim
-        val serializer = XmlMetadataSerializer.getSerializationFormat[CT](key).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + key))
-        key -> LazyMetadataXml((meta \ "MetaValue").head, serializer)(serializer.valueType.asInstanceOf[Class[CT]])
-      }
-      EntityMetadataXml(metaMap.toMap)
+//      val metaMap = for(meta <- node \ "Metadata") yield{
+//        val key = (meta \ "MetaId").text.trim
+//        val serializer = XmlMetadataSerializer.getSerializationFormat[CT](key).getOrElse(throw new IllegalArgumentException("Unknown metadata category: " + key))
+//        key -> LazyMetadataXml((meta \ "MetaValue").head, serializer)(serializer.valueType.asInstanceOf[Class[CT]])
+//      }
+//      EntityMetadataXml(metaMap.toMap)
+      // TODO fix type error
+      ???
     }
 
     override def write(em: EntityMetadata[Node])(implicit writeContext: WriteContext[Node]): Node =

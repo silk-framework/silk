@@ -54,10 +54,10 @@ trait MetadataInjector[Typ, Ser] extends Serializable {
   def injectMetadata(entity: Entity, obj: Option[Any]): Entity = {
     computeAndValidate(entity, obj) match{
       case Some(lm) => entity.metadata match{
-        case empty: EntityMetadata[_] if empty.isEmpty => entity.copy(metadata = getEmptyMetadataInstance.addReplaceMetadata(metadataId, lm))
+        case empty: EntityMetadata[_] if empty.isEmpty => entity.adapt(metadata = getEmptyMetadataInstance.addReplaceMetadata(metadataId, lm))
         case inst: EntityMetadata[_] => inst.get(metadataId) match{
-          case Some(m) if m.isReplaceable || m.metadata.isEmpty => entity.copy(metadata = inst.asInstanceOf[EntityMetadata[Ser]].addReplaceMetadata(metadataId, lm))
-          case None => entity.copy(metadata = inst.asInstanceOf[EntityMetadata[Ser]].addReplaceMetadata(metadataId, lm))
+          case Some(m) if m.isReplaceable || m.metadata.isEmpty => entity.adapt(metadata = inst.asInstanceOf[EntityMetadata[Ser]].addReplaceMetadata(metadataId, lm))
+          case None => entity.adapt(metadata = inst.asInstanceOf[EntityMetadata[Ser]].addReplaceMetadata(metadataId, lm))
           case _ => entity
         }
         case _ => throw new IllegalStateException("No metadata map found for entity " + entity.uri)

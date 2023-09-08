@@ -27,7 +27,7 @@ case class EntitySchema(
     * overriding the default case class copy(). to deal with Sub-Schemata
     * NOTE: providing subSchemata will automatically transform this schema in a MultiEntitySchema
     */
-  def copy(
+  def adapt(
             typeUri: Uri = this.typeUri,
             typedPaths: IndexedSeq[TypedPath] = this.typedPaths,
             filter: Restriction = this.filter,
@@ -141,7 +141,7 @@ case class EntitySchema(
 
   lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.toUntypedPath.normalizedSerialization)
 
-  def child(path: UntypedPath): EntitySchema = copy(subPath = UntypedPath(subPath.operators ::: path.operators))
+  def child(path: UntypedPath): EntitySchema = adapt(subPath = UntypedPath(subPath.operators ::: path.operators))
 
   /**
     * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
@@ -152,7 +152,7 @@ case class EntitySchema(
     */
   def renameProperty(oldName: TypedPath, newName: TypedPath): EntitySchema ={
     val sourceSchema = getSchemaOfProperty(oldName)
-    val targetSchema = sourceSchema.map(sa => sa.copy(
+    val targetSchema = sourceSchema.map(sa => sa.adapt(
       typedPaths = sa.typedPaths.map(tp => if(tp.equals(oldName)) TypedPath(newName.operators, tp.valueType, tp.isAttribute) else tp)
     ))
     targetSchema.getOrElse(this)
@@ -178,7 +178,7 @@ case class EntitySchema(
           tps.flatMap(tp => if(tp.valueType == ValueType.UNTYPED) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
             case None =>
-              throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
+              throw new IllegalArgumentException(tp.toString + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
           }).toIndexedSeq,
           es.filter,
           es.subPath
@@ -253,10 +253,10 @@ object EntitySchema {
         val subs = mes.subSchemata.map{ sub =>
           val tps = sub.typedPaths.distinct.diff(seen)
           seen = seen ++ tps
-          sub.copy(typedPaths = tps)
+          sub.adapt(typedPaths = tps)
         }
-        mes.copy(es.typeUri, pivot.typedPaths, es.filter, es.subPath, subs)
-      case nes: EntitySchema => nes.copy(typedPaths = nes.typedPaths.distinct)
+        mes.adapt(es.typeUri, pivot.typedPaths, es.filter, es.subPath, subs)
+      case nes: EntitySchema => nes.adapt(typedPaths = nes.typedPaths.distinct)
     }
   }
 

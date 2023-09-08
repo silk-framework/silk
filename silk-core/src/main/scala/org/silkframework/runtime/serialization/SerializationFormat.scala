@@ -59,13 +59,13 @@ abstract class SerializationFormat[T: ClassTag, U: ClassTag] extends AnyPlugin w
   SerializationFormat.registerSerializationFormat(this)
 }
 
-object SerializationFormat{
+object SerializationFormat {
 
   /* Serializer Registry */
 
   private val SerializerRegistry = new mutable.HashMap[(ClassTag[_], ClassTag[_]), SerializationFormat[_, _]]
 
-  def registerSerializationFormat(sf: SerializationFormat[_, _])(): Unit ={
+  def registerSerializationFormat(sf: SerializationFormat[_, _]): Unit ={
     //add entry for each mime type
     SerializerRegistry.put((ClassTag(sf.valueType), ClassTag(sf.serializedType)), sf)
   }
