@@ -1,12 +1,12 @@
 package controllers.workflowApi
 
-import controllers.workflowApi.workflow.{WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workflowApi.workflow._
 import helper.IntegrationTestTrait
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, InputPorts, Port, Task, UnknownSchemaPort}
+import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
@@ -43,13 +43,20 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     project.addTask("fourPort", TestCustomTask(Some(4)))
     val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
     val portConfig = JsonHelpers.fromJsonValidated[WorkflowNodesPortConfig](responseJson)
-    val noSchemaConfig = Some(WorkflowNodePortConfig(1, None))
-    val singleFlexiblePortConfig = Some(WorkflowNodePortConfig(0, Some(0)))
+    val noSchemaConfig = Some(workflowNodePortConfig(1, None))
+    val singleFlexiblePortConfig = Some(WorkflowNodePortConfig(1,Some(1),FixedSizePortsDefinition(Seq(FlexiblePortDefinition)),SinglePortPortsDefinition(FlexiblePortDefinition)))
     portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe singleFlexiblePortConfig
-    portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe Some(WorkflowNodePortConfig(1, Some(1)))
+    portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe
+      Some(WorkflowNodePortConfig(1, Some(1),
+        FixedSizePortsDefinition(Seq(FixedSchemaPortDefinition(PortSchema(Some(""),List(PortSchemaProperty("some/path")))))),
+        SinglePortPortsDefinition(FlexiblePortDefinition)
+      ))
+    val fixedPortDef = FixedSchemaPortDefinition(PortSchema(Some("uri"),List()))
     portConfig.byTaskId.get("noSchema") mustBe noSchemaConfig
-    portConfig.byTaskId.get("onePort") mustBe Some(WorkflowNodePortConfig(1, Some(1)))
-    portConfig.byTaskId.get("fourPort") mustBe Some(WorkflowNodePortConfig(4, Some(4)))
+    portConfig.byTaskId.get("onePort") mustBe Some(workflowNodePortConfig(1, Some(1),
+      inputPortsDefinition = FixedSizePortsDefinition(List(fixedPortDef))))
+    portConfig.byTaskId.get("fourPort") mustBe Some(workflowNodePortConfig(4, Some(4),
+      inputPortsDefinition = FixedSizePortsDefinition(List(fixedPortDef, fixedPortDef, fixedPortDef, fixedPortDef))))
   }
 
   it should "return a 503 when too many concurrent variable workflows are started" in {
@@ -86,6 +93,14 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
       BlockingTask.finishCounter must not be 0
     }
     executeWorkflowAsync(CREATED)
+  }
+
+  private def workflowNodePortConfig(min: Int,
+                                     max: Option[Int],
+                                     inputPortsDefinition: PortsDefinition = MultipleSameTypePortsDefinition(FlexiblePortDefinition),
+                                     outputPortsDefinition: PortsDefinition = SinglePortPortsDefinition(UnknownTypePortDefinition)
+                                    ): WorkflowNodePortConfig = {
+    WorkflowNodePortConfig(min, max, inputPortsDefinition, outputPortsDefinition)
   }
 
   /** The properties that should be changed.

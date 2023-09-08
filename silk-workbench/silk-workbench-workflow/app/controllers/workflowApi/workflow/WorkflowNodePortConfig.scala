@@ -2,7 +2,7 @@ package controllers.workflowApi.workflow
 
 import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, Port, UnknownSchemaPort}
 import org.silkframework.entity.EntitySchema
-import play.api.libs.json.{Format, JsObject, JsResult, JsSuccess, JsValue, Json, OFormat}
+import play.api.libs.json.{Format, JsArray, JsObject, JsResult, JsSuccess, JsValue, Json, OFormat}
 
 /** The port configuration of all nodes in a workflow.
   * This specifies how many input ports each node offers.
@@ -177,7 +177,7 @@ object WorkflowNodesPortConfig {
           val portDefinition = Json.fromJson[PortDefinition]((json \ "portDefinition").as[JsObject])
           portDefinition.map(pd => MultipleSameTypePortsDefinition(pd))
         case "fixed" =>
-          val portDefinitions = Json.fromJson[Seq[PortDefinition]]((json \ "portDefinitions").as[JsObject])
+          val portDefinitions = Json.fromJson[Seq[PortDefinition]]((json \ "portDefinitions").as[JsArray])
           portDefinitions.map(pds => FixedSizePortsDefinition(pds))
         case "none" =>
           JsSuccess(ZeroPortsDefinition)
