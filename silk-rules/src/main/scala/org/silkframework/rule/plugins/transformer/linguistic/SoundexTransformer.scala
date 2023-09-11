@@ -33,7 +33,6 @@ private object SoundexAlgorithm {
 
   def compute(string: String): Option[String] = compute(string.toCharArray).map(_.mkString)
 
-  @annotation.tailrec
   private val transcode: ((Array[Char], Char, Array[Char]) => Array[Char]) = (i, pc, o) =>
     if (i.length == 0) {
       o
@@ -90,7 +89,6 @@ private object RefinedSoundexAlgorithm {
 
   def compute(a: String): Option[String] = compute(a.toCharArray).map(_.mkString)
 
-  @annotation.tailrec
   private val transcode: ((Array[Char], Array[Char]) => Array[Char]) = (i, o) =>
     if (i.length == 0) {
       o

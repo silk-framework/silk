@@ -5,7 +5,6 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.PluginType
-import play.api.libs.json.{Format, Json}
 
 /** (Maybe temporary solution) Plugin to resolve various meta data of Silk paths that are otherwise not available. */
 @PluginType()
@@ -34,6 +33,7 @@ trait PathMetaDataPlugin[T] extends AnyPlugin {
   */
 case class PathMetaData(value: String, label: Option[String], valueType: String)
 
-object PathMetaData {
-  implicit val pathMetaDataFormat: Format[PathMetaData] = Json.format[PathMetaData]
-}
+//TODO move to JSON module
+//object PathMetaData {
+//  implicit val pathMetaDataFormat: Format[PathMetaData] = Json.format[PathMetaData]
+//}

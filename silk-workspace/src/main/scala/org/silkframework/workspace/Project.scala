@@ -14,10 +14,10 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config._
+import org.silkframework.config.*
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{HasValue, UserContext}
+import org.silkframework.runtime.activity.{Activity, HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.templating.TemplateVariablesManager
@@ -29,6 +29,7 @@ import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException,
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
+import scala.runtime.TypeBox
 import scala.util.control.NonFatal
 
 /**
@@ -108,7 +109,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
       try {
-        activities ::= new ProjectActivity(this, factory())
+        activities = new ProjectActivity(this, factory())(ClassTag(factory.pluginClass)) :: activities
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load project activity '$factory' in project '${initialConfig.id}'."
@@ -133,7 +134,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @throws NotFoundException
     */
   def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
-    projectActivities.find(_.name == activityName)
+    projectActivities.find(_.name.toString == activityName)
       .getOrElse(throw NotFoundException(s"Project '$id' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
   }
@@ -146,7 +147,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
    * Writes the updated project configuration.
    */
-  def config_=(project : ProjectConfig)(implicit userContext: UserContext) {
+  def config_=(project : ProjectConfig)(implicit userContext: UserContext): Unit = {
     provider.putProject(project)
     logger.info(s"Project meta data updated for ${project.labelAndId()}.")
     cachedConfig = project
@@ -157,7 +158,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * existing prefixes with the same prefix name.
     * @param additionalPrefixes The prefixes that should be added to the project config.
     */
-  def setAdditionalPrefixes(additionalPrefixes: Prefixes) {
+  def setAdditionalPrefixes(additionalPrefixes: Prefixes): Unit = {
     cachedConfig = cachedConfig.copy(prefixes = cachedConfig.prefixes ++ additionalPrefixes)
   }
 

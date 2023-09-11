@@ -14,12 +14,14 @@
 
 package org.silkframework.rule.plugins.transformer
 
+import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
+import org.silkframework.rule.test.TransformerTest
 import org.silkframework.test.PluginTest
 
-class LowerCaseTransformerTest extends PluginTest {
+class LowerCaseTransformerTest extends TransformerTest[LowerCaseTransformer] {
 
-  private val transformer = pluginObject
+  private def transformer = pluginObject
 
   "LowerCaseTransformer" should "return '123'" in {
     transformer.evaluate("123") should equal("123")
@@ -28,6 +30,4 @@ class LowerCaseTransformerTest extends PluginTest {
   "LowerCaseTransformer" should "return 'abc'" in {
     transformer.evaluate("ABc") should equal("abc")
   }
-
-  override protected def pluginObject = LowerCaseTransformer()
 }

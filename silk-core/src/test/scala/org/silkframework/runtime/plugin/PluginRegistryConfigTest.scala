@@ -1,5 +1,6 @@
 package org.silkframework.runtime.plugin
-
+
+
 import org.silkframework.util.ConfigTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -9,7 +10,7 @@ class PluginRegistryConfigTest extends AnyFlatSpec with Matchers with ConfigTest
   behavior of "PluginRegistry.Config"
 
   it should "load plugin blacklist" in {
-    PluginRegistry.Config.blacklistedPlugins() shouldBe Set("GeoLocationTypeDiscoverer", "script", "legacyId1", "legacyId2")
+    PluginRegistry.Config.blacklistedPlugins().map(_.toString) shouldBe Set("GeoLocationTypeDiscoverer", "script", "legacyId1", "legacyId2")
   }
 
   /** The properties that should be changed.

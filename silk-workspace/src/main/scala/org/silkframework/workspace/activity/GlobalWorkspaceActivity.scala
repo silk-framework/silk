@@ -16,8 +16,6 @@ class GlobalWorkspaceActivity[ActivityType <: HasValue : ClassTag](factory: Glob
 
   override def taskOption: Option[ProjectTask[_ <: TaskSpec]] = None
 
-  override def factory: GlobalWorkspaceActivityFactory[_] = factory
-
   def autoRun: Boolean = factory.autoRun
 
   override protected def createInstanceFromParameterValues(config: ParameterValues): ActivityControl[ActivityType#ValueType] = {

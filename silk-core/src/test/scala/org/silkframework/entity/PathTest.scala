@@ -1,5 +1,6 @@
 package org.silkframework.entity
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
 import org.silkframework.runtime.validation.ValidationException
@@ -150,7 +151,7 @@ class PathTest extends AnyFlatSpec with Matchers {
     (UntypedPath.parse("\\ex:p") == UntypedPath.parse("ex:p")) shouldBe false
     (UntypedPath.parse("/ex:p").hashCode == UntypedPath.parse("ex:p").hashCode) shouldBe true
     (UntypedPath.parse("\\ex:p").hashCode == UntypedPath.parse("ex:p").hashCode) shouldBe false
-    (UntypedPath.parse("ex:p") == "ex:p") shouldBe false
+    (UntypedPath.parse("ex:p").toString == "ex:p") shouldBe false
   }
 
   it should "be convertable to a string typed path" in {

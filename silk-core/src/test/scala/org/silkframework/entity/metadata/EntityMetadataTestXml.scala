@@ -17,7 +17,7 @@ import org.scalatest.matchers.should.Matchers
 class EntityMetadataTestXml extends AnyFlatSpec with Matchers {
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
-  implicit val throwableTag = classOf[FailureClass]
+  implicit val throwableTag: Class[FailureClass] = classOf[FailureClass]
 
   val alibiTask = config.PlainTask("alibi", dataset.DatasetSpec(EmptyDataset))
   val testException = new EntityException("", new Exception("test", new IllegalArgumentException("some cause")), alibiTask.id)

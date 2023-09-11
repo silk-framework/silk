@@ -53,7 +53,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   private def loadTask(name: Identifier, taskResources: ResourceLoader)
                       (implicit context: PluginContext): LoadedTask[TransformSpec] = {
     try {
-      implicit val readContext = ReadContext.fromPluginContext()
+      implicit val readContext: ReadContext = ReadContext.fromPluginContext()
       // Currently the transform spec is distributed in two xml files
       val datasetXml = loadResourceAsXml(taskResources, "dataset.xml")
       val rulesXml = loadResourceAsXml(taskResources, "rules.xml")

@@ -1,5 +1,6 @@
 package org.silkframework.rule
-
+
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
@@ -9,6 +10,7 @@ import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableReso
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.dataset.DatasetSpec
 
 class TransformedDataSourceTest extends AnyFlatSpec with Matchers {
   behavior of "Transformed Data Source"
@@ -30,7 +32,7 @@ class TransformedDataSourceTest extends AnyFlatSpec with Matchers {
     val entityUris = entities.map(_.uri.toString).toSet
     val mappingRule = RootMappingRule(MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
       DirectMapping(sourcePath = UntypedPath("ID"), mappingTarget = MappingTarget("ID"))))
-    val transformedDataSource = new TransformedDataSource(csvDataset.source, entitySchema, mappingRule, PlainTask("dataset", null))
+    val transformedDataSource = new TransformedDataSource(csvDataset.source, entitySchema, mappingRule, PlainTask("dataset", TransformSpec.empty))
     val transformedEntities = transformedDataSource.retrieve(entitySchema).entities
     val transformedUris = transformedEntities.map(_.uri.toString).toSet
     entityUris must have size 3

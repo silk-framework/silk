@@ -106,18 +106,17 @@ case class KoreanTranslitDistance(minChar: Char = '0', maxChar: Char = 'z') exte
   }
 
   private def getKoSoundex(in: String): String = {
-
-        // 1st pass
-	    var out="";
-	    var x = in.toLowerCase().toCharArray()
-		for(i <- 0 until x.length) {
-		  if (x(i) == 'g') out += 'k'
-		  else if (x(i) == 'd') out += 't'
-		  else if (x(i) == 'b') out += 'p'
-		  else if (x(i) == 'l') out += 'r'
-		  else out += x(i)
-		}
-        x = out.toLowerCase().toCharArray()
-		x.mkString("").replace(" ","")
-	}
+    // 1st pass
+    var out = "";
+    var x = in.toLowerCase().toCharArray()
+    for (i <- 0 until x.length) {
+      if (x(i) == 'g') out += 'k'
+      else if (x(i) == 'd') out += 't'
+      else if (x(i) == 'b') out += 'p'
+      else if (x(i) == 'l') out += 'r'
+      else out += x(i)
+    }
+    x = out.toLowerCase().toCharArray()
+    x.mkString("").replace(" ", "")
+  }
 }

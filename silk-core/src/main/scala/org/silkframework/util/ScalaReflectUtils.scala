@@ -1,9 +1,8 @@
 package org.silkframework.util
 
-import scala.reflect._
-import scala.reflect.runtime.{universe => ru}
-import scala.reflect.runtime.universe._
-import scala.reflect.api
+
+
+import scala.reflect.*
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -22,9 +21,11 @@ object ScalaReflectUtils {
     * @return
     */
   def implementedAsDef(symbolName: String, clazz: Class[_]): Boolean = {
-    val runtimeMirror = runtime.currentMirror
-    val typeSymbol = runtimeMirror.classSymbol(clazz).toType
-    typeSymbol.decls.exists(d => d.name.encodedName.toString == symbolName && d.isMethod)
+    //TODO update to Scala 3
+//    val runtimeMirror = runtime.currentMirror
+//    val typeSymbol = runtimeMirror.classSymbol(clazz).toType
+//    typeSymbol.decls.exists(d => d.name.encodedName.toString == symbolName && d.isMethod)
+    false
   }
 
   /**
@@ -33,7 +34,7 @@ object ScalaReflectUtils {
     * @param name - the full class name
     * @return
     */
-  def stringToTypeTag(name: String): Try[ru.TypeTag[CA]] = classToTypeTag(Class.forName(name))
+  def stringToTypeTag(name: String): Try[quoted.Type[CA]] = classToTypeTag(Class.forName(name))
 
   /**
     * Will create a TypeTag from a given class
@@ -41,19 +42,21 @@ object ScalaReflectUtils {
     * @param cls - the class
     * @return - the pertaining TypeTag
     */
-  def classToTypeTag(cls: Class[_]): Try[ru.TypeTag[CA]] = Try {
-    val mirror = ru.runtimeMirror(cls.getClassLoader) // obtain runtime mirror
-    val sym = mirror.classSymbol(cls) // obtain class symbol for `c`
-    val tpe = sym.selfType // obtain type object for `c`
-    // create a type tag which contains above type object
-    ru.TypeTag(mirror, new api.TypeCreator {
-      def apply[U <: api.Universe with Singleton](m: api.Mirror[U]): U#Type = if (m eq mirror) {
-        tpe.asInstanceOf[U#Type]
-      }
-      else {
-        throw new IllegalArgumentException(s"Type tag defined in $mirror cannot be migrated to other mirrors.")
-      }
-    }).asInstanceOf[ru.TypeTag[CA]]
+  def classToTypeTag(cls: Class[_]): Try[quoted.Type[CA]] = Try {
+    //TODO update to Scala 3
+//    val mirror = ru.runtimeMirror(cls.getClassLoader) // obtain runtime mirror
+//    val sym = mirror.classSymbol(cls) // obtain class symbol for `c`
+//    val tpe = sym.selfType // obtain type object for `c`
+//    // create a type tag which contains above type object
+//    ru.TypeTag(mirror, new api.TypeCreator {
+//      def apply[U <: api.Universe with Singleton](m: api.Mirror[U]): U#Type = if (m eq mirror) {
+//        tpe.asInstanceOf[U#Type]
+//      }
+//      else {
+//        throw new IllegalArgumentException(s"Type tag defined in $mirror cannot be migrated to other mirrors.")
+//      }
+//    }).asInstanceOf[ru.TypeTag[CA]]
+???
   }
 
   /**
@@ -63,9 +66,11 @@ object ScalaReflectUtils {
     * @tparam T - the type
     * @return
     */
-  def companionOf[T](implicit tt: ru.TypeTag[T]): Any = {
-    val companionMirror = ru.runtimeMirror(getClass.getClassLoader).reflectModule(ru.typeOf[T].typeSymbol.companion.asModule)
-    companionMirror.instance
+  def companionOf[T](implicit tt: quoted.Type[T]): Any = {
+    //TODO update to Scala 3
+//    val companionMirror = ru.runtimeMirror(getClass.getClassLoader).reflectModule(ru.typeOf[T].typeSymbol.companion.asModule)
+//    companionMirror.instance
+???
   }
 
   /**
@@ -76,31 +81,34 @@ object ScalaReflectUtils {
     * @param methodParams - if member is a method we might need its parameters
     * @tparam R - the expected type of the member
     */
-  def retrieveClassMember[R](memberName: String, obj: Any, methodParams: Array[Any] = Array()): Option[R] =
-    classToTypeTag(obj.getClass) match {
-      case Success(typeTag) =>
-        val symbol = typeTag.tpe.member(TermName(memberName)).asMethod
-        val m = ru.runtimeMirror(obj.getClass.getClassLoader)
-        val im = m.reflect(obj)
-        if (symbol.isMethod) {
-          Option(im.reflectMethod(symbol).apply(methodParams).asInstanceOf[R])
-        }
-        else { //else we assume you want a field
-          Option(im.reflectField(symbol).get.asInstanceOf[R])
-        }
-      case Failure(f) => throw f
+  def retrieveClassMember[R](memberName: String, obj: Any, methodParams: Array[Any] = Array()): Option[R] = {
+  //TODO update to Scala 3
+//    classToTypeTag(obj.getClass) match {
+//      case Success(typeTag) =>
+//        val symbol = typeTag.tpe.member(TermName(memberName)).asMethod
+//        val m = ru.runtimeMirror(obj.getClass.getClassLoader)
+//        val im = m.reflect(obj)
+//        if (symbol.isMethod) {
+//          Option(im.reflectMethod(symbol).apply(methodParams).asInstanceOf[R])
+//        }
+//        else { //else we assume you want a field
+//          Option(im.reflectField(symbol).get.asInstanceOf[R])
+//        }
+//      case Failure(f) => throw f
+???
     }
 
 
   def listMembers(obj: Any): Map[String, Any] ={
-    val mi = ru.runtimeMirror(obj.getClass.getClassLoader)
-    classToTypeTag(obj.getClass) match {
-      case Success(typeTag) =>
-        typeTag.tpe.members.collect{
-          case m: TermSymbol if m.isVal => Try{mi.reflect(obj).reflectField(m.asTerm)}.map(x => (m.name.decodedName.toString, x.get)).toOption
-        }.flatten.toMap
-      case Failure(f) => throw f
-    }
+//    val mi = ru.runtimeMirror(obj.getClass.getClassLoader)
+//    classToTypeTag(obj.getClass) match {
+//      case Success(typeTag) =>
+//        typeTag.tpe.members.collect{
+//          case m: TermSymbol if m.isVal => Try{mi.reflect(obj).reflectField(m.asTerm)}.map(x => (m.name.decodedName.toString, x.get)).toOption
+//        }.flatten.toMap
+//      case Failure(f) => throw f
+//    }
+???
   }
 
   /**
@@ -135,11 +143,13 @@ object ScalaReflectUtils {
     * @tparam Res - the result type
     * @return - an Option of the searched result type
     */
-  def invokeCompanionFunction[Typ, Res](functionName: String, args: Array[Any])(implicit tt: ru.TypeTag[Typ]): Option[Res] = {
-    val c = companionOf[Typ](tt)
-    val mirror = ru.runtimeMirror(c.getClass.getClassLoader).reflect(c)
-    val func = mirror.symbol.typeSignature.member(ru.TermName(functionName)).asMethod
-    val res = mirror.reflectMethod(func)(args: _*).asInstanceOf[Option[_]]
-    res.map(_.asInstanceOf[Res])
+  def invokeCompanionFunction[Typ, Res](functionName: String, args: Array[Any])(implicit tt: quoted.Type[Typ]): Option[Res] = {
+    //TODO update to Scala 3
+    //    val c = companionOf[Typ](tt)
+    //    val mirror = ru.runtimeMirror(c.getClass.getClassLoader).reflect(c)
+    //    val func = mirror.symbol.typeSignature.member(ru.TermName(functionName)).asMethod
+    //    val res = mirror.reflectMethod(func)(args: _*).asInstanceOf[Option[_]]
+    //    res.map(_.asInstanceOf[Res])
+    ???
   }
 }

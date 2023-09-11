@@ -29,7 +29,7 @@ class OutputWriter(links: Seq[Link], linkType: Uri, inversePredicateUri: Option[
   override def name = "Writing output"
 
   override def run(context: ActivityContext[Unit])
-                  (implicit userContext: UserContext) {
+                  (implicit userContext: UserContext): Unit = {
     output.foreach(_.clear())
     output.foreach(_.init())
 

@@ -3,6 +3,7 @@ package org.silkframework.execution
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
 
@@ -24,9 +25,9 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   }
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
-                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): ExecType#DataType
+                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): EntityType[ExecType]
 
-  protected def write(data: ExecType#DataType, task: Task[DatasetSpec[DatasetType]], execution: ExecType)
+  protected def write(data: EntityType[ExecType], task: Task[DatasetSpec[DatasetType]], execution: ExecType)
                      (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit
 
   /**
@@ -37,13 +38,12 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     * @param execution
     * @return
     */
-  final override def execute(
-    task: Task[DatasetSpec[DatasetType]],
-    inputs: Seq[ExecType#DataType],
-    output: ExecutorOutput,
-    execution: ExecType,
-    context: ActivityContext[ExecutionReport]
-  )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
+  final override def execute(task: Task[DatasetSpec[DatasetType]],
+                             inputs: Seq[EntityType[ExecType]],
+                             output: ExecutorOutput,
+                             execution: ExecType,
+                             context: ActivityContext[ExecutionReport])
+                            (implicit pluginContext: PluginContext): Option[EntityType[ExecType]] = {
     implicit val c = context
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val user: UserContext = pluginContext.user

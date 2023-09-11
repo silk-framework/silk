@@ -1,5 +1,6 @@
 package org.silkframework.runtime.caching
-
+
+
 import org.silkframework.util.TestFileUtils
 
 import java.nio.ByteBuffer
@@ -179,7 +180,7 @@ class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
         store.put(tooLongKeyB, someValueB, None)
         // Clash of keys
         store.size() mustBe 1
-        store.getString(tooLongKeyA, None) mustBe someValueB
+        store.getString(tooLongKeyA, None) mustBe Some(someValueB)
       }
     }
     withStore(tooLargeKeyStrategy = HandleTooLargeKeyStrategy.TruncateKeyWithHash) { store =>
@@ -188,8 +189,8 @@ class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
         store.put(tooLongKeyB, someValueB, None)
         // No clash of keys
         store.size() mustBe 2
-        store.getString(tooLongKeyA, None) mustBe someValueA
-        store.getString(tooLongKeyB, None) mustBe someValueB
+        store.getString(tooLongKeyA, None) mustBe Some(someValueA)
+        store.getString(tooLongKeyB, None) mustBe Some(someValueB)
       }
     }
   }

@@ -14,19 +14,19 @@ import scala.runtime.BoxedUnit
   *
   * @param task           The task this activity belongs to.
   * @param defaultFactory The initial activity factory for generating the activity.
-  * @tparam DataType The type of the task.
+  * @tparam TaskType The type of the task.
   */
-class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[DataType],
-                                                                                         defaultFactory: TaskActivityFactory[DataType, ActivityType])
+class TaskActivity[TaskType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag](val task: ProjectTask[TaskType],
+                                                                                         defaultFactory: TaskActivityFactory[TaskType, ActivityType])
     extends WorkspaceActivity[ActivityType] {
 
   def project: Project = task.project
 
   override def projectOpt: Option[Project] = Some(project)
 
-  override def taskOption: Option[ProjectTask[DataType]] = Option(task)
+  override def taskOption: Option[ProjectTask[TaskType]] = Option(task)
 
-  override def factory: TaskActivityFactory[DataType, ActivityType] = defaultFactory
+  override def factory: TaskActivityFactory[TaskType, ActivityType] = defaultFactory
 
   def autoRun: Boolean = defaultFactory.autoRun
 

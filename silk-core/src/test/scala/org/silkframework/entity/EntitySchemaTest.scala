@@ -1,5 +1,6 @@
 package org.silkframework.entity
-
+
+
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
@@ -24,8 +25,8 @@ class EntitySchemaTest extends AnyFlatSpec with Matchers {
 
   it should "not equal the schema from EntityTest cos of untyped path" in{
     schema equals entityTest.schema shouldBe false                  //fails cos of different uri
-   complexSchema equals entityTest.complexSchema shouldBe false     //fails cos of different value Type
- }
+    complexSchema equals entityTest.complexSchema shouldBe false     //fails cos of different value Type
+  }
 
   it should "equal the schema from EntityTest when using untyped" in{
     complexSchema equalsUntyped entityTest.complexSchema shouldBe true

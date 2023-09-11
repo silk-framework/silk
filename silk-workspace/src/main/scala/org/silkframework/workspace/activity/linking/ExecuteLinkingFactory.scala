@@ -74,7 +74,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
 
   private def loadInputs()
                         (implicit executionType: ExecutionType,
-                         pluginContext: PluginContext, userContext: UserContext): DPair[ExecutionType#DataType] = {
+                         pluginContext: PluginContext, userContext: UserContext): DPair[EntityType[ExecutionType]] = {
     for (((selection, schema), sourceOrTarget) <- task.data.dataSelections zip task.data.entityDescriptions zip Seq(true, false)) yield {
       loadInput(selection, schema, Some(sourceOrTarget))
     }
@@ -86,7 +86,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
                         entitySchema: EntitySchema,
                         sourceOrTarget: Option[Boolean])
                        (implicit execution: ExecutionType,
-                        pluginContext: PluginContext, userContext: UserContext): ExecutionType#DataType = {
+                        pluginContext: PluginContext, userContext: UserContext): EntityType[ExecutionType] = {
     val updatedEntitySchema = sourceOrTarget.map(sot =>
       comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
     ).getOrElse(entitySchema)

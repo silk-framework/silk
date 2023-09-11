@@ -49,8 +49,7 @@ private object RefinedNysiisAlgorithm {
   private val deduplicate: (Array[Char] => Array[Char]) = (ca) =>
     if (ca.length <= 1) ca
     else ca.sliding(2).withFilter(a => a(0) != a(1)).map(a => a(0)).toArray[Char] :+ ca.last
-
-  @annotation.tailrec
+  
   private val transcode: ((Array[Char], Char, Array[Char], Array[Char]) => Array[Char]) = (l, c, r, o) =>
     if (c == '\u0000' && r.length == 0) o
     else {
@@ -173,8 +172,7 @@ private object NysiisAlgorithm {
   private val deduplicate: (Array[Char] => Array[Char]) = (ca) =>
     if (ca.length <= 1) ca
     else ca.sliding(2).withFilter(a => a(0) != a(1)).map(_(0)).toArray[Char] :+ ca.last
-
-  @annotation.tailrec
+  
   private val transcodeCenter: ((Array[Char], Char, Array[Char], Array[Char]) => Array[Char]) = (l, c, r, o) =>
     if (c == '\u0000' && r.length == 0) o
     else {

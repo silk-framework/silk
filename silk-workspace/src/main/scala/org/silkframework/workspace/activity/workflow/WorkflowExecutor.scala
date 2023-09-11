@@ -48,9 +48,9 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def execute[TaskType <: TaskSpec](operation: String,
                                               nodeId: Identifier,
                                               task: Task[TaskType],
-                                              inputs: Seq[ExecType#DataType],
+                                              inputs: Seq[EntityType[ExecutionType]],
                                               output: ExecutorOutput)
-                                             (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
+                                             (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[EntityType[ExecutionType]] = {
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)(workflowRunContext.userContext)
     val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
@@ -73,9 +73,9 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def executeAndClose[TaskType <: TaskSpec, ResultType](operation: String,
                                                                   nodeId: Identifier,
                                                                   task: Task[TaskType],
-                                                                  inputs: Seq[ExecType#DataType],
+                                                                  inputs: Seq[EntityType[ExecutionType]],
                                                                   output: ExecutorOutput)
-                                                                 (process: Option[ExecType#DataType] => ResultType)
+                                                                 (process: Option[EntityType[ExecutionType]] => ResultType)
                                                                  (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): ResultType = {
     val result = execute(operation, nodeId, task, inputs, output)
     try {
@@ -94,7 +94,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * @param task task that is executed
     * @param workflowRunContext Workflow Context
     */
-  protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
+  protected def updateProgress(operation: String, task: Task[_ <: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
     val taskLabel = task.fullLabel
     val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
     workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)

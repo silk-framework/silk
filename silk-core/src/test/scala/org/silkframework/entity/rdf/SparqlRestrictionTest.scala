@@ -1,12 +1,13 @@
 package org.silkframework.entity.rdf
-
+
+
 import org.silkframework.config.Prefixes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
 
-  implicit val prefixes = {
+  implicit val prefixes: Prefixes = {
     Prefixes(Map(
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",

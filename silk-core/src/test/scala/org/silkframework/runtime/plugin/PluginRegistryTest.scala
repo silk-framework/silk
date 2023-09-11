@@ -1,5 +1,6 @@
 package org.silkframework.runtime.plugin
-
+
+
 import org.silkframework.runtime.plugin.StringParameterType.StringType
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.scalatest.flatspec.AnyFlatSpec
@@ -12,7 +13,7 @@ class PluginRegistryTest extends AnyFlatSpec with Matchers {
   it should "return plugin descriptions for registered classes" in  {
     PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe None
     PluginRegistry.registerPlugin(classOf[TestPlugin])
-    PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe ('defined)
+    PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe defined
 
     PluginRegistry.unregisterPlugin(classOf[TestPlugin])
     PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe None

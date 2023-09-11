@@ -67,7 +67,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     var activities = List[GlobalWorkspaceActivity[_ <: HasValue]]()
     for(factory <- factories) {
       try {
-        activities ::= new GlobalWorkspaceActivity(factory()(PluginContext.empty))
+        activities = new GlobalWorkspaceActivity(factory()(PluginContext.empty))(ClassTag(factory.pluginClass)) :: activities
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load workspace activity '$factory'."
@@ -210,7 +210,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
                     file: File,
                     marshaller: ProjectMarshallingTrait,
                     overwrite: Boolean = false)
-                   (implicit userContext: UserContext) {
+                   (implicit userContext: UserContext): Unit = {
     loadUserProjects()
     synchronized {
       findProject(name) match {

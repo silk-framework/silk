@@ -195,7 +195,7 @@ private class PorterStemmer {
     done
   }
 
-  def step1() {
+  def step1(): Unit = {
     var m = calcM(word)
 
     // step 1a

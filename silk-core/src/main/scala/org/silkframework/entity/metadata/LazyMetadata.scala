@@ -41,7 +41,7 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
     * the final metadata object lazily computed
     * NOTE: should be implemented as lazy val!
     */
-  val metadata: Option[Typ]
+  def metadata: Option[Typ]
 
   /**
     * Providing the default mime type to be used with the serializer

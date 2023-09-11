@@ -15,11 +15,12 @@
 package org.silkframework.rule.plugins.transformer
 
 import org.silkframework.rule.plugins.transformer.substring.StripUriPrefixTransformer
+import org.silkframework.rule.test.TransformerTest
 import org.silkframework.test.PluginTest
 
-class StripUriPrefixTransformerTest extends PluginTest {
+class StripUriPrefixTransformerTest extends TransformerTest[StripUriPrefixTransformer] {
 
-  private val transformer = pluginObject
+  private def transformer = pluginObject
 
   "StripUriPrefixTransformer" should "return 'Apple'" in {
     transformer.evaluate("http://dbpedia.org/resource/Apple") should equal("Apple")
@@ -28,7 +29,5 @@ class StripUriPrefixTransformerTest extends PluginTest {
   "StripUriPrefixTransformer" should "return 'Moon'" in {
     transformer.evaluate("http://dbpedia.org/resource#Moon") should equal("Moon")
   }
-
-  override protected def pluginObject = StripUriPrefixTransformer()
 
 }

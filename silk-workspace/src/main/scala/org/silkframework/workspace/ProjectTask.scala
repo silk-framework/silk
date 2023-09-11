@@ -14,8 +14,8 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config._
-import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
+import org.silkframework.config.*
+import org.silkframework.runtime.activity.{Activity, HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -59,7 +59,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (factory <- factories) {
       try {
-        activities ::= new TaskActivity(this, factory)
+        activities = new TaskActivity(this, factory)(ClassTag(factory.taskType), ClassTag(factory.activityType)) :: activities
       } catch {
         case NonFatal(ex) =>
           log.log(Level.WARNING, s"Could not load task activity '${factory.pluginSpec.id}' in task '$id' in project '${module.project.id}'.", ex)
@@ -172,7 +172,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * @throws NoSuchElementException If no activity with the specified name has been found.
     */
   def activity(activityName: String): TaskActivity[TaskType, _ <: HasValue] = {
-    taskActivities.find(_.name == activityName)
+    taskActivities.find(_.name.toString == activityName)
         .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.id}' does not contain an activity named '$activityName'. " +
             s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
   }

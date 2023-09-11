@@ -225,7 +225,7 @@ class CsvSource(file: Resource,
     }
 
     private def retrieveNext(): Unit = {
-      do {
+      while {
         parser.parseNext() match {
           case Some(line) =>
             index += 1
@@ -235,7 +235,8 @@ class CsvSource(file: Resource,
             // Reached the end of the file
             return
         }
-      } while(nextEntity.isEmpty)
+        nextEntity.isEmpty
+      } do()
     }
 
     private def readEntity(line: Array[String]): Option[Entity] = {

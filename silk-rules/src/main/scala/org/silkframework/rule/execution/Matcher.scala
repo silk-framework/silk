@@ -189,13 +189,13 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     private var sourcePartitions = new Array[Int](caches.source.blockCount)
     private var targetPartitions = new Array[Int](caches.target.blockCount)
 
-    override def run() {
+    override def run(): Unit = {
       try {
         var sourceLoading = true
         var targetLoading = true
         var loaderSuccessful = true
 
-        do {
+        while {
           sourceLoading = loaders.source.status().isRunning
           targetLoading = loaders.target.status().isRunning
           loaderSuccessful = !Seq(loaders.source, loaders.target).exists(_.status.get.exists(_.failed))
@@ -205,7 +205,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
           Thread.sleep(500)
 
-        } while((sourceLoading || targetLoading) && loaderSuccessful)
+          (sourceLoading || targetLoading) && loaderSuccessful
+        } do()
         val failedLoaders = Seq(loaders.source, loaders.target).filter(_.status.get.exists(_.failed))
         if(failedLoaders.nonEmpty) { // One of the loaders failed
           val loaderErrorMessages =
@@ -220,7 +221,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
     }
 
-    private def updateSourcePartitions() {
+    private def updateSourcePartitions(): Unit = {
       val newSourcePartitions = {
         for (block <- 0 until caches.source.blockCount) yield {
           caches.source.partitionCount(block)
@@ -237,7 +238,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       sourcePartitions = newSourcePartitions
     }
 
-    private def updateTargetPartitions() {
+    private def updateTargetPartitions(): Unit = {
       val newTargetPartitions = {
         for (block <- 0 until caches.target.blockCount) yield {
           caches.target.partitionCount(block)
@@ -254,7 +255,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       targetPartitions = newTargetPartitions
     }
 
-    private def newMatcher(block: Int, sourcePartition: Int, targetPartition: Int) {
+    private def newMatcher(block: Int, sourcePartition: Int, targetPartition: Int): Unit = {
       executor.submit(new PartitionMatcher(block, sourcePartition, targetPartition))
       taskCount += 1
     }

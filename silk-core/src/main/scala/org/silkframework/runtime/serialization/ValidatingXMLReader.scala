@@ -92,9 +92,9 @@ class ValidatingXMLReader(schemaPath: String) {
       xr.setContentHandler(vh)
 
       //Parse XML
-      scopeStack.push(TopScope)
+      scopeStack = scopeStack.appended(TopScope)
       xr.parse(inputSource)
-      scopeStack.pop()
+      scopeStack = scopeStack.dropRight(1)
 
       //Add errors without an id
       for(error <- currentErrors) {

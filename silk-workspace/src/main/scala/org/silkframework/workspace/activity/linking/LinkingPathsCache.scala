@@ -39,7 +39,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
   private var transformSpecObserverFunctions: Option[TransformSpec => Unit] = None
 
-  private def setTransformSpecObserverFunction()(implicit userContext: UserContext) {
+  private def setTransformSpecObserverFunction()(implicit userContext: UserContext): Unit = {
     val fn: TransformSpec => Unit = _ => {
       this.startDirty(task.activity[LinkingPathsCache].control)
     }

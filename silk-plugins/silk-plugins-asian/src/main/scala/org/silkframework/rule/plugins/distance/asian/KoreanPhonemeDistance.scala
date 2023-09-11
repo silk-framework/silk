@@ -23,33 +23,32 @@ import scala.Array._
 import scala.math.{abs, max, min}
 
 @Plugin(
-  id = "koreanPhonemeDistance",
-  categories = Array("Language"),
-  label = "Korean phoneme distance",
-  description = "Korean phoneme distance."
+	id = "koreanPhonemeDistance",
+	categories = Array("Language"),
+	label = "Korean phoneme distance",
+	description = "Korean phoneme distance."
 )
 case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') extends SingleValueDistanceMeasure {
 	private val q = 1
 
-  override def evaluate(str1: String, str2: String, limit: Double) = {
+	override def evaluate(str1: String, str2: String, limit: Double): Double = {
 
-    var kpd=0.0
-    var src = str1.replace(" ","")
-    var tgt = str2.replace(" ","")
+		var kpd=0.0
+		var src = str1.replace(" ","")
+		var tgt = str2.replace(" ","")
 
-    var qu = (limit/3).toInt
-    var th=0
-    if(limit%3==0) th=qu else th=qu+1
+		var qu = (limit/3).toInt
+		var th=0
+		if(limit%3==0) th=qu else th=qu+1
 
-    if (abs(str1.length - str2.length) > th)
-      kpd = Double.PositiveInfinity
-    else
-      kpd = getPhonemeDistance(src, tgt)
+		if (abs(str1.length - str2.length) > th)
+			kpd = Double.PositiveInfinity
+		else
+			kpd = getPhonemeDistance(src, tgt)
 
-    kpd
-  }
-	private def getPhonemeDistance(str1:String, str2:String) : Double = {
-
+		kpd
+	}
+	private def getPhonemeDistance(str1:String, str2:String): Double = {
 		var minKpd=Double.PositiveInfinity
 		var lo_str =""
 		var sh_str =""
@@ -84,7 +83,7 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
 			var mat_chAr = shMatrix(i).toCharArray();
 			for (j <- 0 to lo_strlen-1) {
 				pairDistMat(i)(j) = evaluateDistance(getKoreanPhonemes(Character.toString(lo_chAr(j))),
-									getKoreanPhonemes(Character.toString(mat_chAr(j))));
+					getKoreanPhonemes(Character.toString(mat_chAr(j))));
 			}
 		}
 
@@ -154,7 +153,7 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
 		//initialization
 		var chArr = new Array[Array[Char]](list.size)
 		for (i <- (0 to list.size - 1)) {
-		   chArr(i) = new Array[Char](str_len)
+			chArr(i) = new Array[Char](str_len)
 		}
 
 		var strArr = new Array[String](list.size)
@@ -181,33 +180,33 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
 	private def getKoreanPhonemes(in: String): String = {
 		//19
 		val choseong = Array[Char](
-				'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
-				'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ' );
+			'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ',
+			'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ' );
 
 		//21
 		val joongseong = Array[Char](
-				'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ',
-				'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ',
-				'ㅣ');
+			'ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ',
+			'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ',
+			'ㅣ');
 
 		//28
 		val jongseong = Array[Char](
-				' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ',
-				'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ',
-				'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ');
+			' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ',
+			'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ',
+			'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ');
 
-	  var out=""
+		var out=""
 		for(syllable <- in) {
 			if (syllable >= 0XAC00 && syllable <= 0XD7A3) {
-			  var	uniValue = syllable - 0xAC00;
-			  var	Jong = uniValue % 28;
-			  var	Jung = ( ( uniValue - Jong ) / 28 ) % 21;
-			  var	Cho = (( ( uniValue - Jong ) / 28 ) / 21);
-			  out += choseong(Cho).toString()+joongseong(Jung).toString()+jongseong(Jong).toString()
+				var	uniValue = syllable - 0xAC00;
+				var	Jong = uniValue % 28;
+				var	Jung = ( ( uniValue - Jong ) / 28 ) % 21;
+				var	Cho = (( ( uniValue - Jong ) / 28 ) / 21);
+				out += choseong(Cho).toString()+joongseong(Jung).toString()+jongseong(Jong).toString()
 			} else {
-			  out+= syllable
+				out+= syllable
 			}
-	    }
+		}
 		out = out.replaceAll(" ","")
 		out
 	}
@@ -216,92 +215,92 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
 		Index.oneDim(Set.empty, BigInt(maxChar - minChar + 1).pow(q).toInt)
 	}
 
-    /**
-     * Fast implementation of the levenshtein distance.
-     * Based on: Gonzalo Navarro - A guided tour to approximate string matching
-     */
+	/**
+		* Fast implementation of the levenshtein distance.
+		* Based on: Gonzalo Navarro - A guided tour to approximate string matching
+		*/
 	override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
-      val qGrams = str.qGrams(q)
-      val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
+		val qGrams = str.qGrams(q)
+		val qGramsReordered = qGrams.drop(q - 1) ++ qGrams.take(q - 1)
 
-      val indices = qGramsReordered.take(limit.toInt * q + 1).map(indexQGram).toSet
+		val indices = qGramsReordered.take(limit.toInt * q + 1).map(indexQGram).toSet
 
-      Index.oneDim(indices, BigInt(maxChar - minChar + 1).pow(q).toInt)
+		Index.oneDim(indices, BigInt(maxChar - minChar + 1).pow(q).toInt)
 	}
 
 	private def indexQGram(qGram: String): Int = {
-	  def combine(index: Int, char: Char) = {
-		val croppedChar = min(max(char, minChar), maxChar)
-		index * (maxChar - minChar + 1) + croppedChar - minChar
-	  }
+		def combine(index: Int, char: Char) = {
+			val croppedChar = min(max(char, minChar), maxChar)
+			index * (maxChar - minChar + 1) + croppedChar - minChar
+		}
 
-	  qGram.foldLeft(0)(combine)
+		qGram.foldLeft(0)(combine)
 	}
-    /**
-     * Fast implementation of the levenshtein distance.
-     * Based on: Gonzalo Navarro - A guided tour to approximate string matching
-     */
-    private def evaluateDistance(row: String, col: String): Double = {
-      //Handle trivial cases when one string is empty
-      if (row.isEmpty) return col.length
-      if (col.isEmpty) return row.length
+	/**
+		* Fast implementation of the levenshtein distance.
+		* Based on: Gonzalo Navarro - A guided tour to approximate string matching
+		*/
+	private def evaluateDistance(row: String, col: String): Double = {
+		//Handle trivial cases when one string is empty
+		if (row.isEmpty) return col.length
+		if (col.isEmpty) return row.length
 
-      //Create two row vectors
-      var r0 = new Array[Int](row.length + 1)
-      var r1 = new Array[Int](row.length + 1)
+		//Create two row vectors
+		var r0 = new Array[Int](row.length + 1)
+		var r1 = new Array[Int](row.length + 1)
 
-      // Initialize the first row
-      var rowIdx = 1
-      while(rowIdx <= row.length) {
-        r0(rowIdx) = rowIdx
-        rowIdx += 1
-      }
+		// Initialize the first row
+		var rowIdx = 1
+		while(rowIdx <= row.length) {
+			r0(rowIdx) = rowIdx
+			rowIdx += 1
+		}
 
-      //Build the matrix
-      var rowC: Char = 0
-      var colC: Char = 0
-      var iCol = 1
-      while(iCol <= col.length) {
-        //Set the first element to the column number
-        r1(0) = iCol;
+		//Build the matrix
+		var rowC: Char = 0
+		var colC: Char = 0
+		var iCol = 1
+		while(iCol <= col.length) {
+			//Set the first element to the column number
+			r1(0) = iCol;
 
-        colC = col.charAt(iCol - 1)
+			colC = col.charAt(iCol - 1)
 
-        //Compute current column
-        var iRow = 1
-        while(iRow <= row.length) {
-          rowC = row.charAt(iRow - 1)
+			//Compute current column
+			var iRow = 1
+			while(iRow <= row.length) {
+				rowC = row.charAt(iRow - 1)
 
-          // Find minimum cost
-          val cost = if (rowC == colC) 0 else 1
+				// Find minimum cost
+				val cost = if (rowC == colC) 0 else 1
 
-          val min = min3(
-            r0(iRow) + 1, // deletion
-            r1(iRow - 1) + 1, // insertion
-            r0(iRow - 1) + cost) // substitution
+				val min = min3(
+					r0(iRow) + 1, // deletion
+					r1(iRow - 1) + 1, // insertion
+					r0(iRow - 1) + cost) // substitution
 
-          //Update row
-          r1(iRow) = min
+				//Update row
+				r1(iRow) = min
 
-          iRow += 1
-        }
+				iRow += 1
+			}
 
-        //Swap the rows
-        val vTmp = r0;
-        r0 = r1;
-        r1 = vTmp;
+			//Swap the rows
+			val vTmp = r0;
+			r0 = r1;
+			r1 = vTmp;
 
-        iCol += 1
-      }
+			iCol += 1
+		}
 
-      r0(row.length)
-    }
+		r0(row.length)
+	}
 
-    @inline
-    private def min3(x: Int, y: Int, z: Int) = {
-      if(x <= y)
-        if(z <= x) z else x
-      else
-        if(z <= y) z else y
-    }
+	@inline
+	private def min3(x: Int, y: Int, z: Int) = {
+		if(x <= y)
+			if(z <= x) z else x
+		else
+			if(z <= y) z else y
+	}
 }

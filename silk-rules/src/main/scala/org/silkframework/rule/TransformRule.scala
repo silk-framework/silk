@@ -555,10 +555,10 @@ object TransformRule {
     case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData, _, _) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
       ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
-    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
+    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), IndexedSeq()), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)
     // Type Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), IndexedSeq()), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)
     // Complex Mapping
     case _ => complexMapping
@@ -615,7 +615,7 @@ private object UriPattern {
       case PathInput(id, path) => true
       case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
-      case TransformInput(id, ConstantTransformer(constant), Nil) => true
+      case TransformInput(id, ConstantTransformer(constant), IndexedSeq()) => true
       case _ => false
     }
   }
@@ -625,7 +625,7 @@ private object UriPattern {
       case PathInput(id, path) => "{" + path.serialize() + "}"
       case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
-      case TransformInput(id, ConstantTransformer(constant), Nil) => constant
+      case TransformInput(id, ConstantTransformer(constant), IndexedSeq()) => constant
     }.mkString("")
   }
 }

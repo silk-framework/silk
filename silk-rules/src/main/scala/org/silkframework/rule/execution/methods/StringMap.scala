@@ -151,7 +151,7 @@ object StringMap {
       coordinates
     }
 
-    private def nextsm(kd: Int) {
+    private def nextsm(kd: Int): Unit = {
       if ( kd <= 0 )
         return
 
@@ -199,7 +199,7 @@ object StringMap {
       nextsm(kd-1)
     }
 
-    private def choosePivot(dim: Int) {
+    private def choosePivot(dim: Int): Unit = {
       var seeda: Int = 0
       var seedb: Int = dim //The original algorithm chooses a random index here. We make it deterministic by choosing the same indices each time.
 

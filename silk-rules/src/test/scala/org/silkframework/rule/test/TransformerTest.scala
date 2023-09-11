@@ -37,7 +37,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   transformTests.foreach(_.addTest())
 
   // Forward one transformer for general plugin testing.
-  override protected lazy val pluginObject: AnyPlugin = {
+  override protected lazy val pluginObject: T = {
     require(transformTests.nonEmpty, s"$pluginClass does not define any TransformExample annotation.")
     transformTests.head.transformer
   }
