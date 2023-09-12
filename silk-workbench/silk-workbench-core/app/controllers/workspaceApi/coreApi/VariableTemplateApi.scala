@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
+import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
@@ -177,14 +178,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     if(variable.name != variableName) {
       throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
     }
-    val variables = project.templateVariables.all.variables
-    val updatedVariables = variables.indexWhere(_.name == variableName) match {
-      case -1 =>
-        TemplateVariables(variables :+ variable)
-      case index: Int =>
-        TemplateVariables(variables.updated(index, variable))
-    }
-    project.templateVariables.put(updatedVariables.resolved(GlobalTemplateVariables.all))
+    UpdateVariableModification(project, variable).execute()
     Ok
   }
 
@@ -227,31 +221,8 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      )
                      variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-
-    // Make sure that variable exists
-    val variable = project.templateVariables.get(variableName)
-
-    // Remove variable and update
-    val currentVariables = project.templateVariables.all
-    val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
-    try {
-      val resolvedVariables = updatedVariables.resolved(GlobalTemplateVariables.all)
-      project.templateVariables.put(resolvedVariables)
-      Ok
-    } catch {
-      case ex: TemplateVariablesEvaluationException =>
-        // Check if the evaluation failed because this variable is used in other variables.
-        val dependentVariables =
-          ex.issues.collect {
-            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable) =>
-              dependentVar.name
-          }
-        if(dependentVariables.nonEmpty) {
-          throw CannotDeleteUsedVariableException(variableName, dependentVariables)
-        } else {
-          throw ex
-        }
-    }
+    DeleteVariableModification(project, variableName).execute()
+    Ok
   }
 
   @Operation(
