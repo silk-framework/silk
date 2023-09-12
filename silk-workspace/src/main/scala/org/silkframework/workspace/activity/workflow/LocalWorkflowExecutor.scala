@@ -144,6 +144,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                         (process: Option[LocalEntities] => T)
                                         (implicit workflowRunContext: WorkflowRunContext): T = {
     val operatorTask = task(operatorNode)
+    // TODO CMEM-3662: Do not execute workflow operators with no outputs twice
     try {
       val inputPorts = operatorTask.data.inputPorts
       val inputs = operatorNode.inputNodes

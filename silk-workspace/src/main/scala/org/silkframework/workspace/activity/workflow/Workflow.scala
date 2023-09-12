@@ -57,7 +57,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow with the layer index, i.e.
     * in which layer this operator would be executed.
     */
-  lazy val topologicalSortedNodesWithLayerIndex: IndexedSeq[(WorkflowNode, Int)] = {
+  private lazy val topologicalSortedNodesWithLayerIndex: IndexedSeq[(WorkflowNode, Int)] = {
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val pureOutputNodes = outputs.toSet -- inputs
@@ -69,7 +69,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     var operatorsToSort = rest
     while (operatorsToSort.nonEmpty) {
       layer += 1
-      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.allInputs.forall(done))
+      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.allNodesWithIncomingEdges.forall(done))
       if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow!")
       }

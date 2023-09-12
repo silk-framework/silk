@@ -64,7 +64,14 @@ sealed trait WorkflowNode {
     }
   }
 
+  /** All nodes given in this list should be computed before this node. */
+  def dependencyInputs: Seq[NodeReference]
+
+  /** All nodes that input any kind of data into this node. */
   def allInputs: Seq[NodeReference] = (inputs ++ configInputs).distinct
+
+  /** All nodes that are connected to this node with an incoming edge. */
+  def allNodesWithIncomingEdges: Seq[NodeReference] = (allInputs ++ dependencyInputs).distinct
 }
 
 object WorkflowNode {
@@ -94,7 +101,8 @@ case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
                             position: (Int, Int),
                             nodeId: WorkflowNode#NodeReference,
                             outputPriority: Option[Double],
-                            configInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
+                            configInputs: Seq[WorkflowNode#NodeReference],
+                            dependencyInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
 
 object WorkflowOperator {
   implicit val workflowOperatorXmlFormat: XmlFormat[WorkflowOperator] = new XmlFormat[WorkflowOperator] {
@@ -103,6 +111,7 @@ object WorkflowOperator {
       val outputStr = (op \ "@outputs").text
       val errorOutputStr = (op \ "@errorOutputs").text
       val configInputStr = (op \ "@configInputs").text
+      val dependencyInputStr = (op \ "@dependencyInputs").text
       val task = (op \ "@task").text
       WorkflowOperator(
         inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
@@ -112,7 +121,8 @@ object WorkflowOperator {
         position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
         nodeId = WorkflowNode.parseNodeId(op, task),
         outputPriority = WorkflowNode.parseOutputPriority(op),
-        configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
+        configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq,
+        dependencyInputs = if (dependencyInputStr.isEmpty) Seq.empty else dependencyInputStr.split(',').toSeq
       )
     }
 
@@ -126,7 +136,8 @@ object WorkflowOperator {
         errorOutputs={op.errorOutputs.mkString(",")}
         id={op.nodeId}
         outputPriority={op.outputPriority map (priority => Text(priority.toString))}
-        configInputs={op.configInputs.mkString(",")}/>
+        configInputs={op.configInputs.mkString(",")}
+        dependencyInputs={op.dependencyInputs.mkString(",")}/>
     }
   }
 }
@@ -137,7 +148,8 @@ case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
                            position: (Int, Int),
                            nodeId: WorkflowNode#NodeReference,
                            outputPriority: Option[Double],
-                           configInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
+                           configInputs: Seq[WorkflowNode#NodeReference],
+                           dependencyInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
 
 object WorkflowDataset {
   implicit val workflowDatasetXmlFormat: XmlFormat[WorkflowDataset] = new XmlFormat[WorkflowDataset] {
@@ -145,6 +157,7 @@ object WorkflowDataset {
       val inputs = taskIds((ds \ "@inputs").text)
       val outputs = taskIds((ds \ "@outputs").text)
       val configInputStr = (ds \ "@configInputs").text
+      val dependencyInputStr = (ds \ "@dependencyInputs").text
       val task = (ds \ "@task").text
       WorkflowDataset(
         inputs = inputs,
@@ -153,7 +166,8 @@ object WorkflowDataset {
         position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
         nodeId = WorkflowNode.parseNodeId(ds, task),
         outputPriority = WorkflowNode.parseOutputPriority(ds),
-        configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
+        configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq,
+        dependencyInputs = if (dependencyInputStr.isEmpty) Seq.empty else dependencyInputStr.split(',').toSeq
       )
     }
 
@@ -166,7 +180,8 @@ object WorkflowDataset {
         outputs={ds.outputs.mkString(",")}
         id={ds.nodeId}
         outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
-        configInputs={ds.configInputs.mkString(",")}/>
+        configInputs={ds.configInputs.mkString(",")}
+        dependencyInputs={ds.dependencyInputs.mkString(",")}/>
     }
   }
 }

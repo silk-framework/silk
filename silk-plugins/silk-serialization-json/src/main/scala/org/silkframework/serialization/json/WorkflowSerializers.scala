@@ -85,6 +85,7 @@ object WorkflowSerializers {
   private final val TASK = "task"
   private final val INPUTS = "inputs"
   private final val CONFIG_INPUTS = "configInputs"
+  private final val DEPENDENCY_INPUTS = "dependencyInputs"
   private final val OUTPUTS = "outputs"
   private final val ERROR_OUTPUTS = "errorOutputs"
   private final val ID = "id"
@@ -101,7 +102,8 @@ object WorkflowSerializers {
         position = nodePosition(value),
         nodeId = nodeId(value),
         outputPriority = outputPriority(value),
-        configInputs = configInputs(value)
+        configInputs = configInputs(value),
+        dependencyInputs = dependencyInputs(value)
       )
     }
 
@@ -115,7 +117,8 @@ object WorkflowSerializers {
         ERROR_OUTPUTS -> JsArray(op.errorOutputs.map(JsString)),
         ID -> op.nodeId.toString,
         OUTPUT_PRIORITY -> op.outputPriority,
-        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
+        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString)),
+        DEPENDENCY_INPUTS -> JsArray(op.dependencyInputs.map(JsString))
       )
     }
   }
@@ -129,7 +132,8 @@ object WorkflowSerializers {
         position = nodePosition(value),
         nodeId = nodeId(value),
         outputPriority = outputPriority(value),
-        configInputs = configInputs(value)
+        configInputs = configInputs(value),
+        dependencyInputs = dependencyInputs(value)
       )
     }
 
@@ -142,7 +146,8 @@ object WorkflowSerializers {
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ID -> op.nodeId,
         OUTPUT_PRIORITY -> op.outputPriority,
-        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
+        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString)),
+        DEPENDENCY_INPUTS -> JsArray(op.dependencyInputs.map(JsString))
       )
     }
   }
@@ -174,6 +179,10 @@ object WorkflowSerializers {
 
     protected def configInputs(value: JsValue): Seq[String] = {
       optionalValue(value, CONFIG_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty)
+    }
+
+    protected def dependencyInputs(value: JsValue): Seq[String] = {
+      optionalValue(value, DEPENDENCY_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty)
     }
   }
 }
