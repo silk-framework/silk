@@ -90,7 +90,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
                                       alternativeTaskId: Option[Identifier],
                                       resources: ResourceLoader)
                                      (implicit xmlFormat: XmlFormat[TaskType], context: PluginContext): LoadedTask[TaskType] = {
-    implicit val readContext: ReadContext = ReadContext.fromPluginContext()
+    implicit val readContext: ReadContext = ReadContext.fromPluginContext()(context)
     loadTaskSafelyFromXML(extractTaskMetaData(resources, resourceName), resourceName, alternativeTaskId)
   }
 
@@ -99,7 +99,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
                                       alternativeTaskId: Option[Identifier],
                                       resources: ResourceLoader)
                                      (implicit xmlFormat: XmlFormat[TaskType], context: PluginContext): LoadedTask[TaskType] = {
-    implicit val readContext: ReadContext = ReadContext.fromPluginContext()
+    implicit val readContext: ReadContext = ReadContext.fromPluginContext()(context)
     loadTaskSafelyFromXML(extractTaskMetaData(taskXml), resourceName, alternativeTaskId)
   }
 

@@ -103,7 +103,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
                           schema = new Schema(implementation = classOf[String], defaultValue = "en")
                         )
                         langPref: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, linkingTask) = projectAndTask[LinkSpec](projectId, linkingTaskId)
+    implicit val (project: Project, linkingTask: ProjectTask[LinkSpec]) = projectAndTask[LinkSpec](projectId, linkingTaskId)
     val datasetSelection = if (targetPaths) linkingTask.target else linkingTask.source
     val entitySchemaOpt = linkingTask.activity[LinkingPathsCache].value.get.map(value => if(targetPaths) value.target else value.source)
     val cachedEntitySchemata = entitySchemaOpt.map(es => CachedEntitySchemata(es, None, linkingTask.id, None))

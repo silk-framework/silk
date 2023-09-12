@@ -163,7 +163,7 @@ object ProjectUtils {
     datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
   }
 
-  implicit val datasetTaskJsonFormat = new TaskJsonFormat[GenericDatasetSpec]()
+  implicit val datasetTaskJsonFormat: TaskJsonFormat[GenericDatasetSpec] = new TaskJsonFormat[GenericDatasetSpec]()
 
   /** Creates all datasets found in the JSON document
     *

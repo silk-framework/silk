@@ -31,7 +31,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
   implicit val autoCompletionResultJsonFormat: Format[AutoCompletionResult] = Json.format[AutoCompletionResult]
-
+  implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
+  
   /** Search tasks by text search query. */
   @Operation(
     summary = "Search Tasks",

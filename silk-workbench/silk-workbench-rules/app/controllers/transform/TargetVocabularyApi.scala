@@ -3,7 +3,7 @@ package controllers.transform
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.transform.doc.TargetVocabularyApiDoc
-import controllers.util.SerializationUtils._
+import controllers.util.SerializationUtils.*
 import controllers.workspace.workspaceRequests.{VocabularyInfo, VocabularyInfos}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -19,7 +19,7 @@ import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.transform.{VocabularyCache, VocabularyCacheValue}
-import org.silkframework.workspace.{Project, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -71,7 +71,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                     schema = new Schema(implementation = classOf[String])
                   )
                   typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = VocabularyCacheValue.targetVocabularies(task)
     val fullTypeUri = Uri.parse(typeUri, project.config.prefixes)
 
@@ -126,7 +126,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                         schema = new Schema(implementation = classOf[String])
                       )
                       propertyUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = VocabularyCacheValue.targetVocabularies(task)
     val fullPropertyUri = Uri.parse(propertyUri, project.config.prefixes)
 
@@ -181,7 +181,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                               schema = new Schema(implementation = classOf[String])
                             )
                             uri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = VocabularyCacheValue.targetVocabularies(task)
     val fullUri = Uri.parse(uri, project.config.prefixes)
 
@@ -389,7 +389,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                         schema = new Schema(implementation = classOf[String])
                       )
                       transformTaskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+    implicit val (project: Project, transformTask: ProjectTask[TransformSpec]) = projectAndTask[TransformSpec](projectId, transformTaskId)
     transformTask.activity[VocabularyCache].control.waitUntilFinished()
     val vocabularies = VocabularyCacheValue.targetVocabularies(transformTask)
     val vocabInfoSeq = vocabularies map { vocab =>

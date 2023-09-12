@@ -44,7 +44,7 @@
             <span class="bp4-button-text">Open legacy workspace</span>
         </button>
 
-        @if(!projects.exists(_.id == exampleName)) {
+        @if(!projects.exists(_.id.toString == exampleName)) {
           <button id="start-load-example" class="bp4-button eccgui-button" onclick="loadExample()" style="margin-left: 5px;">
               <span class="bp4-button-text">Load Example</span>
           </button>

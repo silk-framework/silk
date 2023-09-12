@@ -32,8 +32,3 @@ trait PathMetaDataPlugin[T] extends AnyPlugin {
   * @param valueType Human-readable type of the path's values.
   */
 case class PathMetaData(value: String, label: Option[String], valueType: String)
-
-//TODO move to JSON module
-//object PathMetaData {
-//  implicit val pathMetaDataFormat: Format[PathMetaData] = Json.format[PathMetaData]
-//}

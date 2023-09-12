@@ -44,7 +44,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
                        resources: ResourceLoader)
                       (implicit context: PluginContext): LoadedTask[DatasetSpec[Dataset]] = {
     // Load the data set
-    implicit val readContext: ReadContext = ReadContext.fromPluginContext()
+    implicit val readContext: ReadContext = ReadContext.fromPluginContext()(context)
     loadTaskSafelyFromXML(resourceName, Some(Identifier(resourceName.stripSuffix(".xml"))), resources)
   }
 

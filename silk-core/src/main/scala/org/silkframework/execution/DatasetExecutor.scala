@@ -24,10 +24,10 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     task.data
   }
 
-  protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
-                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): EntityType[ExecType]
+  protected def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
+                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): ExecType#DataType
 
-  protected def write(data: EntityType[ExecType], task: Task[DatasetSpec[DatasetType]], execution: ExecType)
+  protected def write(data: ExecType#DataType, dataset: Task[DatasetSpec[DatasetType]], execution: ExecType)
                      (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit
 
   /**
@@ -39,11 +39,11 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     * @return
     */
   final override def execute(task: Task[DatasetSpec[DatasetType]],
-                             inputs: Seq[EntityType[ExecType]],
+                             inputs: Seq[ExecType#DataType],
                              output: ExecutorOutput,
                              execution: ExecType,
                              context: ActivityContext[ExecutionReport])
-                            (implicit pluginContext: PluginContext): Option[EntityType[ExecType]] = {
+                            (implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     implicit val c = context
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val user: UserContext = pluginContext.user

@@ -14,7 +14,7 @@ import org.silkframework.entity.paths.{PathOperator, TypedPath, UntypedPath}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -95,7 +95,7 @@ class SourcePathsApi @Inject() () extends InjectedController with UserContextAct
     if(unusedOnly && usedOnly) {
       throw BadUserInputException("Only one of the following parameters can be true, but both of them were true: unusedOnly, usedOnly")
     }
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     Ok(Json.toJson(typedRuleValuePaths(task, ruleId, maxDepth, unusedOnly, usedOnly).map(_.serialize())))
   }
@@ -159,7 +159,7 @@ class SourcePathsApi @Inject() () extends InjectedController with UserContextAct
                                  schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                                )
                                objectInfo: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, transformTask) = getProjectAndTask[TransformSpec](projectId, transformTaskId)
+    implicit val (project: Project, transformTask: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectId, transformTaskId)
     implicit val prefixes: Prefixes = project.config.prefixes
     val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
     val typedPaths = typedRuleValuePaths(transformTask, mappingRuleId, maxDepth)

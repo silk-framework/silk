@@ -2,7 +2,8 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.io.StringReader
 import org.apache.jena.rdf.model.ModelFactory
-import org.apache.jena.rdf.model.impl.StatementImpl
+import org.apache.jena.rdf.model.impl.StatementImpl
+
 import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
@@ -29,7 +30,7 @@ class QuadIteratorTest extends AnyFlatSpec with Matchers with MockitoSugar {
     model.isEmpty shouldBe false
     oldModel.isEmpty shouldBe false
     if(!oldModel.isIsomorphicWith(model)) {
-      fail(model + " is not isomorphic with " + oldModel)
+      fail(model.toString + " is not isomorphic with " + oldModel)
     }
 
     // adding some edge cases
@@ -49,7 +50,7 @@ class QuadIteratorTest extends AnyFlatSpec with Matchers with MockitoSugar {
 
     // the twice serialized graph should be isomorphic to the origin graph
     if(!oldModel.isIsomorphicWith(model)) {
-      fail(model + " is not isomorphic with " + oldModel)
+      fail(model.toString + " is not isomorphic with " + oldModel)
     }
   }
 

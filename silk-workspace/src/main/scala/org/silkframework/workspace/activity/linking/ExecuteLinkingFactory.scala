@@ -58,7 +58,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
 
     // Generate links
     context.status.updateMessage("Generating links")
-    val links = ExecutorRegistry.execute(task, inputs, ExecutorOutput.empty, execution, context) match {
+    val links = ExecutorRegistry.execute[LinkSpec, ExecutionType](task, inputs, ExecutorOutput.empty, execution, context) match {
       case Some(result) => result
       case None => throw AbortExecutionException("Linking task did not generate any links")
     }
@@ -74,7 +74,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
 
   private def loadInputs()
                         (implicit executionType: ExecutionType,
-                         pluginContext: PluginContext, userContext: UserContext): DPair[EntityType[ExecutionType]] = {
+                         pluginContext: PluginContext, userContext: UserContext): DPair[ExecutionType#DataType] = {
     for (((selection, schema), sourceOrTarget) <- task.data.dataSelections zip task.data.entityDescriptions zip Seq(true, false)) yield {
       loadInput(selection, schema, Some(sourceOrTarget))
     }
@@ -86,7 +86,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
                         entitySchema: EntitySchema,
                         sourceOrTarget: Option[Boolean])
                        (implicit execution: ExecutionType,
-                        pluginContext: PluginContext, userContext: UserContext): EntityType[ExecutionType] = {
+                        pluginContext: PluginContext, userContext: UserContext): ExecutionType#DataType = {
     val updatedEntitySchema = sourceOrTarget.map(sot =>
       comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
     ).getOrElse(entitySchema)

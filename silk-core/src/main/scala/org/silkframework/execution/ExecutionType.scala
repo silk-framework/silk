@@ -1,6 +1,6 @@
 package org.silkframework.execution
 
-import org.silkframework.execution.local.{LocalEntities, LocalExecution}
+import org.silkframework.execution.EntityHolder
 
 /**
   * An execution type.
@@ -11,10 +11,3 @@ trait ExecutionType {
   type DataType <: EntityHolder
 
 }
-
-/**
-  * The concrete entity holder type for a specific execution
-  * @tparam ExecType
-  */
-type EntityType[ExecType <: ExecutionType] <: EntityHolder = ExecType match
-  case _ => LocalEntities

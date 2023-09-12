@@ -1,21 +1,22 @@
 package controllers.transform
 
 import controllers.core.UserContextActions
-import controllers.transform.TransformTaskApi._
+import controllers.transform.TransformTaskApi.*
 import controllers.transform.doc.TransformTaskApiDoc
-import controllers.util.ProjectUtils._
-import controllers.util.SerializationUtils._
+import controllers.util.ProjectUtils.*
+import controllers.util.SerializationUtils.*
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.apache.jena.rdf.model.Model
 import org.silkframework.config.{MetaData, Prefixes, Task}
-import org.silkframework.dataset._
-import org.silkframework.entity._
+import org.silkframework.dataset.*
+import org.silkframework.entity.*
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
-import org.silkframework.rule._
+import org.silkframework.rule.*
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -23,13 +24,13 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.*
 import org.silkframework.util.{Identifier, IdentifierGenerator, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json._
-import play.api.mvc._
+import play.api.libs.json.*
+import play.api.mvc.*
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
@@ -73,7 +74,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                          schema = new Schema(implementation = classOf[String])
                        )
                        taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime[TransformTask](task, Some(project))
@@ -221,7 +222,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  schema = new Schema(implementation = classOf[String])
                )
                taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime(task.data.mappingRule, Some(project))
@@ -271,7 +272,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  schema = new Schema(implementation = classOf[String])
                )
                taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
     implicit val readContext: ReadContext = ReadContext(resources, prefixes, validationEnabled = true)
@@ -344,7 +345,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                 in = ParameterIn.QUERY,
                 schema = new Schema(implementation = classOf[Boolean]))
               convertToComplex: Option[Boolean]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-      implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+      implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
       implicit val prefixes: Prefixes = project.config.prefixes
       processRule(task, ruleId) { rule =>
         if (convertToComplex.getOrElse(false)) {
@@ -417,7 +418,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                 schema = new Schema(implementation = classOf[String])
               )
               ruleId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
     implicit val readContext: ReadContext = ReadContext.fromProject(project).copy(identifierGenerator = identifierGenerator(task), validationEnabled = true)
@@ -478,7 +479,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                    schema = new Schema(implementation = classOf[String])
                  )
                  rule: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     try {
@@ -558,7 +559,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                    schema = new Schema(implementation = classOf[String])
                  )
                  afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     task.synchronized {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task), validationEnabled = true)
       processRule(task, ruleName) { parentRule =>
@@ -737,7 +738,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                  schema = new Schema(implementation = classOf[String])
                )
                afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     val (_, fromTask) = getProjectAndTask[TransformSpec](sourceProject, sourceTask)
     implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
@@ -803,7 +804,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                      schema = new Schema(implementation = classOf[String])
                    )
                    ruleName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    implicit val (project: Project, task: ProjectTask[TransformSpec]) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     task.synchronized {
@@ -816,7 +817,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
             if (newOrder.toSet == currentOrder.toSet) {
               val newPropertyRules =
                 for (id <- newOrder) yield {
-                  parentRule.operator.children.find(_.id == id).get
+                  parentRule.operator.children.find(_.id.toString == id).get
                 }
               val newRules = currentRules.uriRule.toSeq ++ currentRules.typeRules ++ newPropertyRules
               updateRule(parentRule.update(parentRule.operator.withChildren(newRules)))
@@ -950,9 +951,9 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
-        implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, None)
+        implicit val (resourceManager: ResourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, None)
         val dataSource = createDataSource(xmlRoot, None)
-        val (model, entitySink) = createEntitySink(xmlRoot)
+        val (model: Model, entitySink: EntitySink) = createEntitySink(xmlRoot)
         executeTransform(task, entitySink, dataSource, errorEntitySinkOpt = None)
         val acceptedContentType = request.acceptedTypes.headOption.map(_.toString()).getOrElse("application/n-triples")
         result(model, acceptedContentType, "Data transformed successfully!")

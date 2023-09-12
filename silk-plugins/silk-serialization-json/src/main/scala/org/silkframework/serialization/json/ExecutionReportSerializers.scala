@@ -115,7 +115,7 @@ object ExecutionReportSerializers {
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformReport = {
-      implicit val taskFormat = new TaskJsonFormat[TransformSpec]()
+      implicit val taskFormat: TaskJsonFormat[TransformSpec] = new TaskJsonFormat[TransformSpec]()
       TransformReport(
         task = taskFormat.read(requiredValue(value, TASK)),
         entityCount = numberValue(value, ENTITY_COUNTER).intValue,
@@ -204,7 +204,7 @@ object ExecutionReportSerializers {
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowExecutionReport = {
-      implicit val taskFormat = new TaskJsonFormat[Workflow]()
+      implicit val taskFormat: TaskJsonFormat[Workflow] = new TaskJsonFormat[Workflow]()
       val taskReports = requiredValue(value, TASK_REPORTS) match {
         case jsArray: JsArray =>
           for(report <- jsArray.value) yield {

@@ -9,7 +9,7 @@
 
 @datasets = @{ WorkspaceFactory().workspace.project(project).tasks[GenericDatasetSpec].toSeq }
 
-@transformationTask = @{ WorkspaceFactory().workspace.project(project).tasks[TransformSpec].find(_.id == task) }
+@transformationTask = @{ WorkspaceFactory().workspace.project(project).tasks[TransformSpec].find(_.id.toString == task) }
 
 @currentInput = @{ transformationTask.map(_.data.selection) }
 

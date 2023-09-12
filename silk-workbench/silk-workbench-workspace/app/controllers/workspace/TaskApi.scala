@@ -135,7 +135,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
               )
               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext.fromProject(project)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")

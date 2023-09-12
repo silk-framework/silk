@@ -1,6 +1,7 @@
-import sbt.{File, taskKey, _}
+import sbt.{File, taskKey, *}
 
-import java.io._
+import java.io.*
+import scala.collection.immutable.Seq
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
@@ -74,7 +75,7 @@ lazy val commonSettings = Seq(
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
@@ -82,7 +83,7 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.5",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5",
 
   // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
@@ -398,22 +399,22 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
     name := "Silk Workbench Workflow"
   )
 
-lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
-  .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk Workbench OpenAPI",
-    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.4" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.12",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.78",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "4.18.1"
-  )
+//lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
+//  .enablePlugins(PlayScala)
+//  .dependsOn(workbenchCore)
+//  .settings(commonSettings: _*)
+//  .settings(
+//    name := "Silk Workbench OpenAPI",
+//    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.4" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
+//    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.12",
+//    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.78",
+//    libraryDependencies += "org.webjars" % "swagger-ui" % "4.18.1"
+//  )
 
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
-    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, workbenchWorkflow, plugins)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
     .settings(commonSettings: _*)
     .settings(
       name := "Silk Workbench",

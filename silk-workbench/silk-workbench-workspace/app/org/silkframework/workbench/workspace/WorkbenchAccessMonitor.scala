@@ -71,11 +71,11 @@ case class WorkspaceTask(projectId: String, taskId: String) extends WorkspaceIte
 /** A list that keeps its element sorted by how recent they have been added.
   * If the list exceeds its capacity it will remove it's least recently added item.
   * Re-adding the same item will put it into the most-recently-added position. */
-case class MostRecentlyOrderedList[T](capacity: Int) {
+case class MostRecentlyOrderedList[T](maxCapacity: Int) {
   // stores the items in an ordered way
   private val linkedHashMap = new util.LinkedHashMap[T, T] {
     override def removeEldestEntry(eldest: util.Map.Entry[T, T]): Boolean = {
-      this.size() > capacity
+      this.size() > maxCapacity
     }
   }
 

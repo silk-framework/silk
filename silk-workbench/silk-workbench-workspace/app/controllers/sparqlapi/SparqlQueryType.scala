@@ -1,17 +1,16 @@
 package controllers.sparqlapi
 
 import scala.util.matching.Regex
-import scala.language.implicitConversions
 
 object SparqlQueryType extends Enumeration {
-  case class Val(name: String, regex: Regex) extends super.Val(name)
+  case class QueryType(name: String, regex: Regex) extends super.Val(name)
 
   implicit def valueToVal(x: Value): Val = x.asInstanceOf[Val]
 
-  val ASK         = Val("ASK", "(?s)(ask|ASK)\\s+(WHERE|where)\\s*\\{".r)
-  val CONSTRUCT   = Val("CONSTRUCT", "(?s)(construct|CONSTRUCT)\\s*\\{\\.*(WHERE|where)\\s*\\{".r)
-  val DESCRIBE    = Val("DESCRIBE", "(?s)(describe|DESCRIBE)\\s+".r)
-  val SELECT      = Val("SELECT", "(?s)(select|SELECT)\\s+(\\?|\\*).*(WHERE|where)\\s*\\{".r)
+  val ASK         = QueryType("ASK", "(?s)(ask|ASK)\\s+(WHERE|where)\\s*\\{".r)
+  val CONSTRUCT   = QueryType("CONSTRUCT", "(?s)(construct|CONSTRUCT)\\s*\\{\\.*(WHERE|where)\\s*\\{".r)
+  val DESCRIBE    = QueryType("DESCRIBE", "(?s)(describe|DESCRIBE)\\s+".r)
+  val SELECT      = QueryType("SELECT", "(?s)(select|SELECT)\\s+(\\?|\\*).*(WHERE|where)\\s*\\{".r)
 
   def determineSparqlQueryType(query: String): SparqlQueryType.Val ={
     SparqlQueryType.SELECT.regex.findFirstMatchIn(query) match{

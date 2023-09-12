@@ -135,12 +135,12 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       Seq.empty
     }
   }
+}
 
-  case class DmLink(path: String, defaultLabel: String, icon: Option[String])
+case class DmLink(path: String, defaultLabel: String, icon: Option[String])
 
-  object DmLink {
-    implicit val dmLinkFormat: Format[DmLink] = Json.format[DmLink]
-  }
+object DmLink {
+  implicit val dmLinkFormat: Format[DmLink] = Json.format[DmLink]
 }
 
 

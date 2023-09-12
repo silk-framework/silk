@@ -84,7 +84,7 @@ class SparqlProtocolApi @Inject() () extends InjectedController with UserContext
         val queryResults = SparqlQueryType.determineSparqlQueryType(query) match {
           case SparqlQueryType.ASK => sparqlEndpoint.ask(query)
           case SparqlQueryType.SELECT => sparqlEndpoint.select(query)
-          case typ: SparqlQueryType.Val => return ErrorResult(SparqlUnsupportedQueryTypeError(Some(typ)))
+          case typ: SparqlQueryType.QueryType => return ErrorResult(SparqlUnsupportedQueryTypeError(Some(typ)))
         }
         Using.resource(queryResults) { queryResults =>
           chosenMediaType match {
@@ -124,7 +124,7 @@ object SparqlProtocolApi{
     override def httpErrorCode: Option[Int] = Some(Status.NOT_ACCEPTABLE)
   }
 
-  case class SparqlUnsupportedQueryTypeError(queryType: Option[SparqlQueryType.Val]) extends RequestException(
+  case class SparqlUnsupportedQueryTypeError(queryType: Option[SparqlQueryType.QueryType]) extends RequestException(
     s"${queryType.map(_.name).getOrElse("Unknown query type ")} is unsupported. Currently these query types are supported: SELECT, ASK", None){
     override def errorTitle: String = s"Unsupported Query Type."
     override def httpErrorCode: Option[Int] = Some(Status.NOT_IMPLEMENTED)

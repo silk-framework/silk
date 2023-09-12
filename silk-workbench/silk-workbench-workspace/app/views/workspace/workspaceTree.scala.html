@@ -130,7 +130,7 @@
     @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.id}')")
     @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.id}')")
     @button("Export", "Export project", "document-export.png", s"exportProject('${project.id}')")
-    @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
+    @if(PluginRegistry.availablePlugins[ProjectExecutor[_]].nonEmpty) {
       @button("Execute", "Execute project", "document-export.png", s"executeProject('${project.id}')")
     }
     @button("Clone", "Clone project", "clone.png", s"cloneProject('${project.id}')")

@@ -18,9 +18,9 @@ import org.scalatest.matchers.should.Matchers
 class JsonMetadataTest extends AnyFlatSpec with Matchers {
   val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
-  implicit val throwableTag = classOf[FailureClass]
-  implicit val dpairTag = classOf[DPair[String]]
-  implicit val Tag = classOf[LazyMetadataJson[DPair[String]]]
+  implicit val throwableTag: Class[FailureClass] = classOf[FailureClass]
+  implicit val dpairTag: Class[DPair[String]] = classOf[DPair[String]]
+  implicit val Tag: Class[LazyMetadataJson[DPair[String]]] = classOf[LazyMetadataJson[DPair[String]]]
 
   val alibiTask = config.PlainTask("alibi", dataset.DatasetSpec(EmptyDataset))
   val testException = new EntityException("", new Exception("test", new IllegalArgumentException("some cause")), alibiTask.id)

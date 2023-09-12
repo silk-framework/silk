@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
-
+
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -23,7 +24,7 @@ class WorkflowReconfigurationIntegrationTest extends AnyFlatSpec with Matchers w
 
   it should "re-configure tasks in a workflow execution" in {
     executeWorkflow(workflowId)
-    project.resources.get(outputFile).loadAsString().split("[\r\n]+") mustBe Seq(
+    project.resources.get(outputFile).loadAsString().split("[\r\n]+") mustBe Array(
       "name|id",
       "Max Noe|2"
     )

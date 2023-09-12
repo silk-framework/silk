@@ -27,8 +27,8 @@ case class approximatelyEqualToOption(r: Option[Double]) extends BeMatcher[Optio
     case _ => {
       MatchResult(
         l.isDefined == r.isDefined,
-        l + " is not approximately equal to " + r,
-        l + " is approximately equal to " + r
+        l.toString + " is not approximately equal to " + r,
+        l.toString + " is approximately equal to " + r
       )
     }
   }

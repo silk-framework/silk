@@ -5,7 +5,7 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
 import controllers.linking.evaluation.{AddPathToReferenceEntitiesCacheRequest, EvaluateCurrentLinkageRuleRequest, LinkRuleEvaluationStats, LinkageRuleEvaluationResult}
 import controllers.linking.linkingTask.LinkingTaskApiUtils
-import controllers.util.ProjectUtils._
+import controllers.util.ProjectUtils.*
 import controllers.util.SerializationUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -13,30 +13,32 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.apache.jena.rdf.model.Model
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, LinkSink}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity._
+import org.silkframework.entity.*
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation._
-import org.silkframework.rule.execution.{Linking, GenerateLinks => GenerateLinksActivity}
+import org.silkframework.plugins.path.{PathMetaData, PathMetaDataPlugin, StandardMetaDataPlugin}
+import org.silkframework.rule.evaluation.*
+import org.silkframework.rule.execution.{Linking, GenerateLinks as GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
-import org.silkframework.runtime.validation._
+import org.silkframework.runtime.validation.*
 import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
-import org.silkframework.util.Identifier._
+import org.silkframework.util.Identifier.*
 import org.silkframework.util.{DPair, Identifier, StringUtils, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
-import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils.*
 import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json._
-import play.api.mvc.{Action, _}
+import play.api.libs.json.*
+import play.api.mvc.{Action, *}
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
@@ -46,6 +48,8 @@ import scala.collection.mutable
 class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log = Logger.getLogger(getClass.getName)
+
+  implicit val pathMetaDataFormat: Format[PathMetaData] = Json.format[PathMetaData]
 
   /** Fetches a linking task. */
   def getLinkingTask(projectName: String,
@@ -128,7 +132,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def getRule(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val prefixes: Prefixes = project.config.prefixes
     val ruleXml = XmlSerialization.toXml(task.data.rule)
 
     Ok(ruleXml)
@@ -180,7 +184,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def getLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val prefixes: Prefixes = project.config.prefixes
     val linkSpecXml = XmlSerialization.toXml(task.data)
 
     Ok(linkSpecXml)
@@ -189,9 +193,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def putLinkSpec(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
 
     request.body.asXml match {
       case Some(xml) => {
@@ -784,7 +788,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                           schema = new Schema(implementation = classOf[Int], defaultValue = "1000")
                                         )
                                         linkLimit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskId)
+    implicit val (project: Project, task: ProjectTask[LinkSpec]) = getProjectAndTask[LinkSpec](projectName, linkingTaskId)
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -864,12 +868,12 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
         try{
-          val (project, task) = projectAndTask(projectName, taskName)
+          val (project: Project, task: ProjectTask[LinkSpec]) = projectAndTask(projectName, taskName)
           implicit val prefixes: Prefixes = project.config.prefixes
-          implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, None)
+          implicit val (resourceManager: ResourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, None)
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
-          val (model, linkSink) = createLinkSink(xmlRoot)
+          val (model: Model, linkSink: LinkSink) = createLinkSink(xmlRoot)
           val link = new GenerateLinksActivity(task, DPair(linkSource, linkTarget), Some(linkSink))
           Activity(link).startBlocking()
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
@@ -958,7 +962,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                             schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                           )
                           includeReferenceLinks: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
+    implicit val (project: Project, task: ProjectTask[LinkSpec]) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
     val sources = task.dataSources
     implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
     implicit val prefixes: Prefixes = project.config.prefixes
@@ -1034,7 +1038,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                  )
                                  linkingTaskName: String,
                                  ): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-    implicit val (project, linkTask) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
+    implicit val (project: Project, linkTask: ProjectTask[LinkSpec]) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
 
     validateJson[EvaluateCurrentLinkageRuleRequest] { request =>
       processLinkingTaskRequest(linkTask, request)
@@ -1198,17 +1202,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     )
   }
 
-  /**
-    * Result statistics.
-    * @param overallLinkCount The overall link count for the requested links before any filters are applied.
-    * @param filteredLinkCount The link count after all filters (text, link decision etc.) have been applied.
-    */
-  private case class ResultStats(overallLinkCount: Int, filteredLinkCount: Int)
-
-  private object ResultStats {
-    implicit val resultStatsFormat: Format[ResultStats] = Json.format[ResultStats]
-  }
-
   private def linkEvaluationJsonResult(evaluationActivityStats: Option[LinkRuleEvaluationStats],
                                        linkingRule: LinkageRule,
                                        links: Seq[Link],
@@ -1247,4 +1240,16 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       .flatMap(_._2)
       .mkString(" ")
   }
+}
+
+/**
+  * Result statistics.
+  *
+  * @param overallLinkCount  The overall link count for the requested links before any filters are applied.
+  * @param filteredLinkCount The link count after all filters (text, link decision etc.) have been applied.
+  */
+private case class ResultStats(overallLinkCount: Int, filteredLinkCount: Int)
+
+private object ResultStats {
+  implicit val resultStatsFormat: Format[ResultStats] = Json.format[ResultStats]
 }

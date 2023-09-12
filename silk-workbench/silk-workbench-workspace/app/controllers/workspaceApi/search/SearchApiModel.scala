@@ -56,7 +56,6 @@ object SearchApiModel {
       }
     }
   }
-  lazy implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
   lazy implicit val keywordFacetValueReads: Format[KeywordFacetValue] = Json.format[KeywordFacetValue]
   lazy implicit val facetResultWrites: Format[FacetResult] = new Format[FacetResult] {
     override def writes(facetResult: FacetResult): JsValue = {

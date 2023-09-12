@@ -21,7 +21,7 @@ case class LocalExecution(useLocalInternalDatasets: Boolean,
                           replaceDataSources: Map[String, Dataset] = Map.empty,
                           replaceSinks: Map[String, Dataset] = Map.empty) extends ExecutionType {
 
-  type DataType = LocalEntities
+  override type DataType = LocalEntities
 
   private val internalDatasets: mutable.Map[Option[String], InternalDatasetTrait] = mutable.Map.empty
   private val shutdownHooks = new ConcurrentHashMap[Identifier, () => Unit]()

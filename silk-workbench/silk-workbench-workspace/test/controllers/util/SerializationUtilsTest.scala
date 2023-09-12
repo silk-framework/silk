@@ -71,7 +71,7 @@ class SerializationUtilsTest extends AnyFlatSpec with Matchers with MockitoSugar
   }
 
   it must "deserialize the object with the given compile type" in {
-    implicit val r = mock[Request[AnyContent]]
+    implicit val r: Request[AnyContent] = mock[Request[AnyContent]]
     when(r.mediaType).thenReturn(None)
     val json = SerializationUtils.serializeToStringCompileType[TestTrait](testObject, Seq(APPLICATION_JSON))
     when(r.body).thenReturn(AnyContentAsJson(Json.parse(json.get)))
@@ -83,7 +83,7 @@ class SerializationUtilsTest extends AnyFlatSpec with Matchers with MockitoSugar
   }
 
   it must "return a BadRequestException if there are validation errors during the parsing" in {
-    implicit val r = mock[Request[AnyContent]]
+    implicit val r: Request[AnyContent] = mock[Request[AnyContent]]
     when(r.mediaType).thenReturn(None)
     val json = """{"type":"pathInput","id":"id","path":"/unknown:path"}"""
     when(r.body).thenReturn(AnyContentAsJson(Json.parse(json)))

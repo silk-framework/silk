@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 /**
   * Activity that exists only once per workspace and is independent of projects or tasks.
   */
-class GlobalWorkspaceActivity[ActivityType <: HasValue : ClassTag](factory: GlobalWorkspaceActivityFactory[ActivityType])
+class GlobalWorkspaceActivity[ActivityType <: HasValue : ClassTag](override val factory: GlobalWorkspaceActivityFactory[ActivityType])
     extends WorkspaceActivity[ActivityType] {
   override def projectOpt: Option[Project] = None
 

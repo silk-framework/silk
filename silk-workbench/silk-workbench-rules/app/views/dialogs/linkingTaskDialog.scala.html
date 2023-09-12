@@ -9,7 +9,7 @@
 
 @transformTasks = @{ WorkspaceFactory().workspace.project(project).tasks[TransformSpec] }
 
-@linkingTask = @{ WorkspaceFactory().workspace.project(project).tasks[LinkSpec].find(_.id == task) }
+@linkingTask = @{ WorkspaceFactory().workspace.project(project).tasks[LinkSpec].find(_.id.toString == task) }
 
 @currentInputs = @{ linkingTask.map(_.data.dataSelections) }
 

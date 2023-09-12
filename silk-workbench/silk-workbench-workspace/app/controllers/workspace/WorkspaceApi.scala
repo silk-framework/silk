@@ -298,7 +298,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val context: PluginContext = PluginContext.fromProject(project)
 
-    val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
+    val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor[_]]
     if (projectExecutors.isEmpty) {
       ErrorResult(BadUserInputException("No project executor available"))
     } else {

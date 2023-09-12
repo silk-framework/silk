@@ -15,9 +15,9 @@ import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
 @PluginType()
 trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugin {
 
-  def execute(task: Task[TaskType], inputs: Seq[EntityType[ExecType]], output: ExecutorOutput,
+  def execute(task: Task[TaskType], inputs: Seq[ExecType#DataType], output: ExecutorOutput,
               execution: ExecType, context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-             (implicit pluginContext: PluginContext): Option[EntityType[ExecType]]
+             (implicit pluginContext: PluginContext): Option[ExecType#DataType]
 
 }
 

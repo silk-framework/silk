@@ -62,7 +62,7 @@ abstract class ExecutionReportManagerTest extends AnyFlatSpec with Matchers {
   private def loadReport(name: String): ExecutionReport = {
     val inputStream = getClass.getResourceAsStream(name)
     try {
-      implicit val rc = ReadContext.fromPluginContext()
+      implicit val rc: ReadContext = ReadContext.fromPluginContext()
       ExecutionReportSerializers.ExecutionReportJsonFormat.read(Json.parse(inputStream))
     } finally {
       inputStream.close()

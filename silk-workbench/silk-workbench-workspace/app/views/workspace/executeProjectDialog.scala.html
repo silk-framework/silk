@@ -8,7 +8,7 @@
 
 @widgets.pluginDialog(project,
                       name = project.id,
-                      plugins = PluginRegistry.availablePlugins[ProjectExecutor],
+                      plugins = PluginRegistry.availablePlugins[ProjectExecutor[_]],
                       currentObj = None,
                       resources = Nil) {
 

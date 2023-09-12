@@ -56,7 +56,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
     val inputStream = new FileInputStream(file)
     try {
-      implicit val rc = ReadContext.fromPluginContext()
+      implicit val rc: ReadContext = ReadContext.fromPluginContext()(pluginContext)
       reportJsonFormat.read(Json.parse(inputStream))
     } finally {
       inputStream.close()
@@ -66,7 +66,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
   override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport])
                         (implicit pluginContext: PluginContext): Unit = synchronized {
-    implicit val wc = WriteContext.fromPluginContext[JsValue]()
+    implicit val wc: WriteContext[JsValue] = WriteContext.fromPluginContext[JsValue]()(pluginContext)
     val reportJson = reportJsonFormat.write(report)
 
     removeOldReports(retentionTime)
