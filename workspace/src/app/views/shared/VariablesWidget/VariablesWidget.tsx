@@ -58,7 +58,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 setLoadingVariables(false);
             }
         })();
-    }, [refetch]);
+    }, [refetch, projectId]);
 
     const handleModalOpen = React.useCallback((variable = undefined) => {
         setSelectedVariable(variable);
