@@ -46,3 +46,10 @@ case class CannotUpdateVariableUsedByTaskException(variableName: String, task: T
 
   override val errorTitle: String = "Cannot update variable"
 }
+
+case class CannotUpdateVariablesUsedByTaskException(task: Task[_ <: TaskSpec], cause: Throwable)
+  extends CannotModifyVariablesUsedByTaskException(s"Cannot update variables, because of their usage in task ${task.labelAndId}: ${cause.getMessage}",
+    task.id, cause) {
+
+  override val errorTitle: String = "Cannot update variables"
+}

@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification}
+import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
@@ -91,7 +91,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variables = Json.fromJson[TemplateVariablesFormat](request.body).get.convert
-    project.templateVariables.put(variables.resolved(GlobalTemplateVariables.all))
+    UpdateVariablesModification(project, variables).execute()
     Ok
   }
 
