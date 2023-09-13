@@ -12,14 +12,30 @@ import scala.collection.mutable
 import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
+/**
+  * Modifies the current project variables.
+  * Updates all tasks that use variables that have been modified.
+  */
 abstract class Modification {
 
+  /**
+    * The project whose variables are to be modified.
+    */
   def project: Project
 
+  /**
+    * Implements the concrete variables modification.
+    */
   protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables
 
+  /**
+    * Generates an exception if a variable could not be updated, because a task would become invalid.
+    */
   protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException
 
+  /**
+    * Updates the project variables and all tasks that use updated variables.
+    */
   def execute()(implicit user: UserContext): Unit = {
     val currentVariables = project.templateVariables.all
     val newVariables = updateVariables(currentVariables)
