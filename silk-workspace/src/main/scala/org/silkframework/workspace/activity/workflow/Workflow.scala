@@ -127,6 +127,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
         depNode.addPrecedingNode(precedingNode)
         precedingNode.addFollowingNode(depNode)
       }
+      // TODO
       for (outputNode <- node.outputs) {
         val followingNode = workflowNodeMap.getOrElse(outputNode,
           throw new scala.RuntimeException("Unsatisfiable output dependency in workflow! Dependency: " + outputNode))
@@ -550,6 +551,12 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
       pNode <- precedingNodes.filter(_.nodeId == input)) yield {
       pNode
     }
+  }
+
+  /** The direct dependency input nodes as [[WorkflowDependencyNode]] */
+  def dependencyInputNodes: Seq[WorkflowDependencyNode] = {
+    val nodeSet = workflowNode.dependencyInputs.toSet
+    precedingNodes.filter(n => nodeSet.contains(n.nodeId)).toSeq
   }
 
   /** The config input nodes as [[WorkflowDependencyNode]] */
