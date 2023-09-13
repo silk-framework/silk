@@ -127,7 +127,8 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         position = (0, 0),
         nodeId = taskId1,
         outputPriority = None,
-        configInputs = Seq.empty
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
       )
 
     operators +=
@@ -139,7 +140,8 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         position = (0, 0),
         nodeId = taskId2,
         outputPriority = None,
-        configInputs = Seq.empty
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
       )
 
     val workflow = Workflow(WorkflowOperatorsParameter(operators.toSeq), WorkflowDatasetsParameter(datasets.toSeq))

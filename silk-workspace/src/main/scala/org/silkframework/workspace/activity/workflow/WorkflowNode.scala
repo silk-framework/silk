@@ -71,7 +71,7 @@ sealed trait WorkflowNode {
   def allInputs: Seq[NodeReference] = (inputs ++ configInputs).distinct
 
   /** All nodes that are connected to this node with an incoming edge. */
-  def allNodesWithIncomingEdges: Seq[NodeReference] = (allInputs ++ dependencyInputs).distinct
+  def allIncomingNodes: Seq[NodeReference] = (allInputs ++ dependencyInputs).distinct
 }
 
 object WorkflowNode {

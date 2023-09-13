@@ -74,6 +74,7 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
         position = (100, 100),
         blockingTaskId,
         None,
+        Seq.empty,
         Seq.empty
       )))
     ))
