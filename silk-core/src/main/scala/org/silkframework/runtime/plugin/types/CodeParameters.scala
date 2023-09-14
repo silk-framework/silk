@@ -41,3 +41,7 @@ object XmlCodeParameter {
 }
 
 case class YamlCodeParameter(var str: String) extends CodeParameter
+
+case class PythonCodeParameter(var str: String) extends CodeParameter
+
+case class TurtleCodeParameter(var str: String) extends CodeParameter

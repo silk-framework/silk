@@ -201,7 +201,7 @@ object StringParameterType {
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
-      YamlCodeParameterType)
+      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType)
   }
 
   /**
@@ -756,5 +756,17 @@ object StringParameterType {
     override def codeMode: String = "yaml"
 
     override def fromString(str: String)(implicit context: PluginContext): YamlCodeParameter = YamlCodeParameter(str)
+  }
+
+  private object TurtleCodeParameterType extends CodeParameterType[TurtleCodeParameter] {
+    override def codeMode: String = "turtle"
+
+    override def fromString(str: String)(implicit context: PluginContext): TurtleCodeParameter = TurtleCodeParameter(str)
+  }
+
+  private object PythonCodeParameterType extends CodeParameterType[PythonCodeParameter] {
+    override def codeMode: String = "python"
+
+    override def fromString(str: String)(implicit context: PluginContext): PythonCodeParameter = PythonCodeParameter(str)
   }
 }
