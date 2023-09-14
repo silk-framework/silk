@@ -7,6 +7,8 @@ import org.silkframework.workspace.Project
 
 case class UpdateVariableModification(project: Project, variable: TemplateVariable) extends Modification {
 
+  override def operation: String = s"Updated variable $variable"
+
   override protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables = {
     val variables = currentVariables.variables
     val updatedVariables = variables.indexWhere(_.name == variable.name) match {

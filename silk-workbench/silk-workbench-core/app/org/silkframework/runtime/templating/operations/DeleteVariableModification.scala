@@ -7,6 +7,8 @@ import org.silkframework.workspace.Project
 
 case class DeleteVariableModification(project: Project, variableName: String) extends Modification {
 
+  override def operation: String = s"Deleted variable '$variableName'"
+
   override protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables = {
     // Make sure that variable exists
     val variable = project.templateVariables.get(variableName)

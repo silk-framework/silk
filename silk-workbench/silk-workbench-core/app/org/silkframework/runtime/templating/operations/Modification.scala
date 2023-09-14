@@ -8,6 +8,7 @@ import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, Te
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
+import java.util.logging.Logger
 import scala.collection.mutable
 import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
@@ -18,10 +19,17 @@ import scala.util.control.NonFatal
   */
 abstract class Modification {
 
+  private val log: Logger = Logger.getLogger(getClass.getName)
+
   /**
     * The project whose variables are to be modified.
     */
   def project: Project
+
+  /**
+    * Brief description of the done operation, e.g., "Deleted variables".
+    */
+  def operation: String
 
   /**
     * Implements the concrete variables modification.
@@ -39,11 +47,16 @@ abstract class Modification {
   def execute()(implicit user: UserContext): Unit = {
     val currentVariables = project.templateVariables.all
     val newVariables = updateVariables(currentVariables)
-    updateTasks(project, newVariables)
+    val updatedTaskIds = updateTasks(project, newVariables)
     project.templateVariables.put(newVariables)
+    if(updatedTaskIds.nonEmpty) {
+      log.info(s"$operation. The following tasks have been updated: " + updatedTaskIds)
+    } else {
+      log.info(s"$operation. No tasks have been updated.")
+    }
   }
 
-  private def updateTasks(project: Project, newVariables: TemplateVariables)(implicit user: UserContext): Unit = {
+  private def updateTasks(project: Project, newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
     val currentVariables = project.templateVariables.all
 
     val currentContext: PluginContext = PluginContext.fromProject(project)
@@ -69,6 +82,8 @@ abstract class Modification {
     for ((id, updatedTask) <- updatedTasks) {
       project.updateAnyTask(id, updatedTask)
     }
+
+    updatedTasks.map(_._1)
   }
 
   private def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
