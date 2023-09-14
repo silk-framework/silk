@@ -2,7 +2,7 @@ import { Button, FieldItem, IconButton, Notification, SimpleDialog, TextArea, Te
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
-import { createNewVariable } from "../requests";
+import { createNewVariable, updateVariable } from "../requests";
 import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
 
 interface VariableModalProps {
@@ -137,47 +137,32 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     }, []);
 
     /**
-     * adds new variable or updates existing variable
+     * adds new variable or updates existing variable to project variables list
      */
-    const addNewVariable = React.useCallback(async () => {
+    const upsertVariable = React.useCallback(async () => {
         const error = validationChecker();
         if (error?.name || error?.valueOrTemplate) return;
         try {
             setLoading(true);
             setErrorMessage("");
-            const newVar = {
+
+            const formPayload = {
                 name,
                 value: valueState.current.currentInputValue || null,
                 description,
                 template: valueState.current.currentTemplateValue || null,
                 isSensitive: false,
                 scope: taskId ? "task" : "project",
-            } as const;
-
-            const { variableAlreadyExist, newVariables } = variables.reduce(
-                (acc, variable) => {
-                    if (variable.name === name) {
-                        acc.newVariables.push({
-                            ...variable,
-                            ...newVar,
-                        });
-                        acc.variableAlreadyExist = true;
-                    } else {
-                        acc.newVariables.push(variable);
-                    }
-                    return acc;
-                },
-                { newVariables: [] as Variable[], variableAlreadyExist: false }
-            );
-
-            if (!variableAlreadyExist) {
-                newVariables.push(newVar);
-            }
-
-            const updatedVariables = {
-                variables: newVariables,
             };
-            await createNewVariable(updatedVariables, projectId, taskId);
+
+            if (isEditMode) {
+                await updateVariable(formPayload, projectId, name);
+            } else {
+                const updatedVariables = {
+                    variables: [...variables, formPayload],
+                };
+                await createNewVariable(updatedVariables, projectId, taskId);
+            }
             resetModalState();
             refresh();
             closeModal();
@@ -186,7 +171,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [name, valueState, description, taskId]);
+    }, [name, valueState, description, taskId, isEditMode]);
 
     const handleModalClose = React.useCallback(() => {
         closeModal();
@@ -215,8 +200,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                         key="add"
                         data-test-id="variable-modal-submit-btn"
                         affirmative
-                        onClick={addNewVariable}
-                        disabled={loading}
+                        onClick={upsertVariable}
+                        disabled={loading || !!validationError?.name || !!validationError?.valueOrTemplate}
                         loading={loading}
                     >
                         {!isEditMode ? t("common.action.add") : t("common.action.update")}
