@@ -49,6 +49,7 @@ object PagingSparqlTraversable {
   /**
     * Executes a SPARQL query.
     */
+  @FunctionalInterface
   trait QueryExecutor {
 
     def execute(query: String): InputStream

@@ -4,7 +4,7 @@
 @import org.silkframework.workspace.WorkspaceFactory
 @import org.silkframework.workspace.activity.workflow.Workflow
 
-@workflowTask = @{ WorkspaceFactory().workspace.project(project).tasks[Workflow].find(_.id == task) }
+@workflowTask = @{ WorkspaceFactory().workspace.project(project).tasks[Workflow].find(_.id.toString == task) }
 
 @widgets.dialog(title = "Workflow Task") {
   @if(task.isEmpty) {

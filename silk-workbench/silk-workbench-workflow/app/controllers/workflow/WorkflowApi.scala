@@ -1,7 +1,7 @@
 package controllers.workflow
 
 import controllers.core.UserContextActions
-import controllers.util.ProjectUtils._
+import controllers.util.ProjectUtils.*
 import controllers.util.SerializationUtils
 import controllers.workflow.doc.WorkflowApiDoc
 import controllers.workspace.activityApi.StartActivityResponse
@@ -21,10 +21,10 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
-import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
-import play.api.libs.json.{JsArray, JsString, _}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
+import play.api.libs.json.{JsArray, JsString, *}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, *}
 
 import javax.inject.Inject
 
@@ -171,7 +171,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
                                   schema = new Schema(implementation = classOf[String])
                                 )
                                 workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    implicit val (project: Project, workflowTask: ProjectTask[Workflow]) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val resultValue = activity.startBlockingAndGetValue(workflowConfiguration)
@@ -244,7 +244,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
                                               schema = new Schema(implementation = classOf[String])
                                             )
                                             workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    implicit val (project: Project, workflowTask: ProjectTask[Workflow]) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
@@ -292,7 +292,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
                                         schema = new Schema(implementation = classOf[String])
                                       )
                                       workflowExecutionId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContest =>
-    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    implicit val (project: Project, workflowTask: ProjectTask[Workflow]) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     activity.removeActivityInstance(Identifier(workflowExecutionId))

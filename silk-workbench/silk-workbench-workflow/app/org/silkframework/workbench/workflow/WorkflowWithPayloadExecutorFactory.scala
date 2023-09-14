@@ -167,7 +167,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
     // Create data sources from request payload
     val dataSources = {
       // Allow to read from project resources
-      implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, primaryResourceManager)
+      implicit val (resourceManager: ResourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, primaryResourceManager)
       createDatasets(xmlRoot, Some(variableDatasets.dataSources.toSet), xmlElementTag = "DataSources")
     }
     // Sink

@@ -8,9 +8,8 @@ import controllers.workspace.activityApi.StartActivityResponse
 import helper.IntegrationTestTrait
 
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.scalatest.BeforeAndAfterAll
 import org.silkframework.runtime.resource.FileResource
-import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
@@ -137,7 +136,7 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
       checkResponseExactStatusCode(
         executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML), NO_CONTENT)
       val outputCsvResource = project.resources.get(outputCsv)
-      outputCsvResource.loadAsString().split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
+      outputCsvResource.loadAsString().split("[\\r\\n]+") mustBe Array("targetProp1,targetProp2", "input value A,XYZ")
       outputCsvResource.delete()
     }
   }
@@ -268,8 +267,8 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
         )
       )
     )
-    response.body must startWith (s"${targetProp(1)}|${targetProp(2)}")
-    response.body must include ("sourceVal1|sourceVal2")
+    response.body[String] must startWith (s"${targetProp(1)}|${targetProp(2)}")
+    response.body[String] must include ("sourceVal1|sourceVal2")
   }
 
   val (exampleFile, exampleResource): (File, FileResource) = {

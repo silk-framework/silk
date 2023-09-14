@@ -1,13 +1,13 @@
 package controllers.transform
 
 import org.silkframework.entity.ValueType
-import org.silkframework.rule._
+import org.silkframework.rule.*
 import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS}
 import org.silkframework.workspace.ProjectTask
-import play.api.libs.json.{JsArray, JsString, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future}
 import scala.xml.XML
 
@@ -71,7 +71,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
     // Do some spot checks
     (json \ "rules" \ "uriRule" \ "pattern").as[String] mustBe "http://example.org/{PersonID}"
-    (json \ "rules" \ "propertyRules").as[JsArray].value mustBe Array.empty
+    (json \ "rules" \ "propertyRules").as[JsArray].value mustBe Array.empty[JsValue]
   }
 
   "Append new direct mapping rule to root" in {

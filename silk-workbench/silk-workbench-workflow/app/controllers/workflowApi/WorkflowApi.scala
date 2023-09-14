@@ -23,6 +23,7 @@ import org.silkframework.runtime.activity.UserExecutionContext
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
 import play.api.libs.json.Json
@@ -240,7 +241,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     */
   private def variableWorkflowResult(projectName: String,
                                      workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    implicit val (project: Project, workflowTask: ProjectTask[Workflow]) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val VariableWorkflowRequestConfig(workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
@@ -367,7 +368,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                      schema = new Schema(implementation = classOf[String])
                                    )
                                    workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val (project: Project, workflowTask: ProjectTask[Workflow]) = getProjectAndTask[Workflow](projectName, workflowTaskName)
     val VariableWorkflowRequestConfig(workflowConfig, _) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfig)
@@ -421,7 +422,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                     schema = new Schema(implementation = classOf[String])
                                   )
                                   instanceId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val (_, workflowTask: ProjectTask[Workflow]) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     // Make sure that the activity has been successful
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor].instance(instanceId)
@@ -510,7 +511,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                      schema = new Schema(implementation = classOf[String])
                    )
                    workflowId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
-    val (project, workflow) = projectAndTask[Workflow](projectId, workflowId)
+    val (project: Project, workflow: ProjectTask[Workflow]) = projectAndTask[Workflow](projectId, workflowId)
     Ok(Json.toJson(WorkflowInfo.fromWorkflow(workflow, project)))
   }
 
@@ -551,7 +552,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                             schema = new Schema(implementation = classOf[String])
                           )
                           workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val (project, _) = projectAndTask[Workflow](projectId, workflowId)
+    val (project: Project, _) = projectAndTask[Workflow](projectId, workflowId)
     val customTaskPortConfigs: Seq[(String, WorkflowNodePortConfig)] = for(customTask <- project.tasks[CustomTask]) yield {
       val taskId = customTask.id.toString
       val portConfig: WorkflowNodePortConfig = customTask.data.inputSchemataOpt match {

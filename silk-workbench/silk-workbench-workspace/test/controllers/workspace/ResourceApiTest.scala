@@ -34,7 +34,7 @@ class ResourceApiTest extends AnyFlatSpec with IntegrationTestTrait with Matcher
 
   it should "download the content of a nested file" in {
     val url = resourceApi.getFile(projectId, nestedResourcePath).url
-    checkResponse(client.url(s"$baseUrl$url").get()).body mustBe "test"
+    checkResponse(client.url(s"$baseUrl$url").get()).body[String] mustBe "test"
   }
 
   it should "fetch file meta data of a nested file" in {
