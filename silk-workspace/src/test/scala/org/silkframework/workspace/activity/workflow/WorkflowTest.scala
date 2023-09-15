@@ -100,7 +100,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "build the DAG correctly for a workflow ending in an operator" in {
     val dag = testWorkflowEndingInOperator.workflowDependencyGraph
-    dag.startNodes.map(_.nodeId) mustBe Set(DS_A, DS_B)
+    dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B)
     dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM)
   }
 
@@ -111,7 +111,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "build the DAG correctly for a workflow with disjunct data flows and multiple output nodes" in {
     val dag = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.workflowDependencyGraph
-    dag.startNodes.map(_.nodeId) mustBe Set(DS_A, DS_B, DS_C)
+    dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, DS_C)
     dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM, OP_1, OP_2)
   }
 

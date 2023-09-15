@@ -70,7 +70,7 @@ export const KeyboardShortcutsModal = () => {
         >
             <OverviewItemList columns={1}>
                 {sectionKeys.map((sectionKey) => (
-                    <section>
+                    <section key={sectionKey}>
                         <TitleSubsection>
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
                         </TitleSubsection>
