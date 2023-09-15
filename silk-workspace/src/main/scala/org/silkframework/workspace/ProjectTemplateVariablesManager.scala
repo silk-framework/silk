@@ -30,7 +30,7 @@ class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer)
     // Make sure that all variables are in the project scope.
     for(variable <- variables.variables) {
       if(variable.scope != projectScope) {
-        throw new InvalidScopeException(s"Variable '${variable.name}' has an invalid scope '${variable.scope}'." +
+        throw new InvalidScopeException(s"Variable '${variable.name}' has an invalid scope '${variable.scope}'. " +
           s"Currently, only variables in the '$projectScope' scope can be modified.")
       }
     }
