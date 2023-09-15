@@ -8,7 +8,7 @@ import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsObject, JsValue}
 
-case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) extends EntityMetadata[JsValue]{
+case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) extends EntityMetadataLegacy[JsValue]{
 
   def this() = this(Map())
 
@@ -20,21 +20,21 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) e
     *
     * @param failure - the exception caught wrapped in a FailureClass
     */
-  override def addFailure(failure: FailureClass): EntityMetadata[JsValue] = {
-    val lm = IrreplaceableMetadataJson(failure, EntityMetadata.FAILURE_KEY)(classOf[FailureClass])
-    addReplaceMetadata(EntityMetadata.FAILURE_KEY, lm)
+  override def addFailure(failure: FailureClass): EntityMetadataLegacy[JsValue] = {
+    val lm = IrreplaceableMetadataJson(failure, EntityMetadataLegacy.FAILURE_KEY)(classOf[FailureClass])
+    addReplaceMetadata(EntityMetadataLegacy.FAILURE_KEY, lm)
   }
 
   /**
     * providing an empty instance
     */
-  override def emptyEntityMetadata: EntityMetadata[JsValue] = EntityMetadataJson()
+  override def emptyEntityMetadata: EntityMetadataLegacy[JsValue] = EntityMetadataJson()
 
   /**
     * The serializer used to serialize this EntityMetadata object
     */
-  override val serializer: SerializationFormat[EntityMetadata[JsValue], JsValue] =
-    EntityMetadataJson.JsonSerializer.asInstanceOf[SerializationFormat[EntityMetadata[JsValue], JsValue]]
+  override val serializer: SerializationFormat[EntityMetadataLegacy[JsValue], JsValue] =
+    EntityMetadataJson.JsonSerializer.asInstanceOf[SerializationFormat[EntityMetadataLegacy[JsValue], JsValue]]
 
   /**
     * Will insert a new [[LazyMetadata]] object into the metadata map
@@ -43,7 +43,7 @@ case class EntityMetadataJson(metadata: Map[String, LazyMetadata[_, JsValue]]) e
     * @param lm  - the [[LazyMetadata]] object
     * @return - the updated map
     */
-  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, JsValue]): EntityMetadata[JsValue] =
+  override def addReplaceMetadata(key: String, lm: LazyMetadata[_, JsValue]): EntityMetadataLegacy[JsValue] =
     EntityMetadataJson((metadata.toSeq.filterNot(_._1 == key) ++ Seq(key -> lm)).toMap)
 }
 
@@ -60,15 +60,15 @@ object EntityMetadataJson{
     new EntityMetadataJson(resMap)
   }
 
-  def apply(t: FailureClass): EntityMetadataJson = apply(Map(EntityMetadata.FAILURE_KEY -> t))(classOf[FailureClass])
+  def apply(t: FailureClass): EntityMetadataJson = apply(Map(EntityMetadataLegacy.FAILURE_KEY -> t))(classOf[FailureClass])
 
-  def apply(base: EntityMetadata[JsValue]): EntityMetadataJson = EntityMetadataJson(base.metadata)
+  def apply(base: EntityMetadataLegacy[JsValue]): EntityMetadataJson = EntityMetadataJson(base.metadata)
 
   def apply(value: String): EntityMetadataJson = apply(JsonSerializer.fromString(value, JsonFormat.MIME_TYPE_APPLICATION)(ReadContext(EmptyResourceManager(), Prefixes.empty)))
 
-  EntityMetadata.registerNewEntityMetadataFormat(EntityMetadataJson())
+  EntityMetadataLegacy.registerNewEntityMetadataFormat(EntityMetadataJson())
 
-  object JsonSerializer extends JsonMetadataSerializer[EntityMetadata[JsValue]] {
+  object JsonSerializer extends JsonMetadataSerializer[EntityMetadataLegacy[JsValue]] {
 
     private def extractKey(source: String): String ={
       if(source == null || source.isEmpty){
@@ -106,7 +106,7 @@ object EntityMetadataJson{
       *   ...
       * }
       */
-    override def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): EntityMetadata[JsValue] = {
+    override def fromString(value: String, mimeType: String)(implicit readContext: ReadContext): EntityMetadataLegacy[JsValue] = {
       if(value == null || value.trim.isEmpty)
         return EntityMetadataJson()
       val lines = value.split("\n")
@@ -127,7 +127,7 @@ object EntityMetadataJson{
     /**
       * Formats a JSON value as string.
       */
-    override def toString(value: EntityMetadata[JsValue], mimeType: String)(implicit writeContext: WriteContext[JsValue]): String = {
+    override def toString(value: EntityMetadataLegacy[JsValue], mimeType: String)(implicit writeContext: WriteContext[JsValue]): String = {
       if(value.isEmpty)
         return ""
       val sb = new StringBuilder("{")
@@ -157,15 +157,15 @@ object EntityMetadataJson{
       new EntityMetadataJson(map.asInstanceOf[Map[String, LazyMetadata[_, JsValue]]])
     }
 
-    override def write(em: EntityMetadata[JsValue])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(em: EntityMetadataLegacy[JsValue])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(em.metadata.map(ent => ent._1 -> ent._2.serialized))
     }
 
     /**
-      * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
+      * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadataLegacy]]
       * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
       */
-    override def metadataId: String = EntityMetadata.METADATA_KEY
+    override def metadataId: String = EntityMetadataLegacy.METADATA_KEY
 
     override def replaceableMetadata: Boolean = true    //has no importance for EntityMetadata
   }

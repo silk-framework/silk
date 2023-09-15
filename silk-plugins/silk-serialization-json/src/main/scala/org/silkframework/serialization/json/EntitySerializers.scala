@@ -2,10 +2,12 @@ package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{Entity, EntitySchema, Restriction, ValueType}
+import org.silkframework.entity._
+import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.metadata.FailureClassSerializerJson
 import org.silkframework.util.{DPair, Uri}
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
@@ -86,6 +88,25 @@ object EntitySerializers {
       )
 
       Json.obj("taskLabel" -> value.taskLabel,"attributes" -> header, "values" -> valuesJson)
+    }
+  }
+
+  implicit object EntityMetadataJsonFormat extends JsonFormat[EntityMetadata] {
+
+    private val FAILURE = "source"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): EntityMetadata = {
+      EntityMetadata(
+        failure = optionalValue(value, FAILURE).map(FailureClassSerializerJson().read)
+      )
+    }
+
+    override def write(value: EntityMetadata)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      var json = Json.obj()
+      for(failure <- value.failure) {
+        json += (FAILURE, FailureClassSerializerJson().write(failure))
+      }
+      json
     }
   }
 

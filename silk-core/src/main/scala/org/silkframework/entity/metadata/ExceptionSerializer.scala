@@ -105,7 +105,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[GenericExecutionF
   }
 
   /**
-    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
+    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadataLegacy]]
     * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
     */
   override def metadataId: String = ExceptionSerializer.ID

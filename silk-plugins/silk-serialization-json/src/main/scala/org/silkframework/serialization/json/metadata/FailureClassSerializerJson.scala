@@ -1,18 +1,18 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.{FailureClassSerializer, GenericExecutionFailure}
+import org.silkframework.entity.metadata.FailureClassSerializer
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.failures.FailureClass._
 import org.silkframework.failures.{AccumulatedFailureClass, FailureClass}
-import org.silkframework.failures.FailureClass.{TASK_ID_TAG, _}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json
 import play.api.libs.json.{JsObject, JsValue}
-import org.silkframework.serialization.json.JsonHelpers._
 
 case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureClass] {
 
   /**
-    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
+    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadataLegacy]]
     * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
     */
   override def metadataId: String = FailureClassSerializer.METADATA_ID

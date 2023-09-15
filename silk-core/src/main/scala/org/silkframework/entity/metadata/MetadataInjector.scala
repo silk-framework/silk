@@ -14,7 +14,7 @@ trait MetadataInjector[Typ, Ser] extends Serializable {
   def serializer: SerializationFormat[Typ, Ser] with MetadataSerializer
 
   /**
-    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
+    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadataLegacy]]
     * NOTE: Implement this as a def, else the automatic registration of this injector will fail.
     */
   def metadataId: String
@@ -43,7 +43,7 @@ trait MetadataInjector[Typ, Ser] extends Serializable {
     })
   }
 
-  private def getEmptyMetadataInstance: EntityMetadata[Ser] = EntityMetadata.empty[Ser](serializer.serializedType.asInstanceOf[Class[Ser]]) match{
+  private def getEmptyMetadataInstance: EntityMetadataLegacy[Ser] = EntityMetadataLegacy.empty[Ser](serializer.serializedType.asInstanceOf[Class[Ser]]) match{
     case Some(em) => em
     case None => throw new NotImplementedError("No implementation of [[EntityMetadata]] for serialization type " + serializer.serializedType.getName + " was found.")
   }
@@ -52,17 +52,7 @@ trait MetadataInjector[Typ, Ser] extends Serializable {
     * Generates new metadata objects for each Entity and stores it under the metadataId in the EntityMetadata container
     */
   def injectMetadata(entity: Entity, obj: Option[Any]): Entity = {
-    computeAndValidate(entity, obj) match{
-      case Some(lm) => entity.metadata match{
-        case empty: EntityMetadata[_] if empty.isEmpty => entity.copy(metadata = getEmptyMetadataInstance.addReplaceMetadata(metadataId, lm))
-        case inst: EntityMetadata[_] => inst.get(metadataId) match{
-          case Some(m) if m.isReplaceable || m.metadata.isEmpty => entity.copy(metadata = inst.asInstanceOf[EntityMetadata[Ser]].addReplaceMetadata(metadataId, lm))
-          case None => entity.copy(metadata = inst.asInstanceOf[EntityMetadata[Ser]].addReplaceMetadata(metadataId, lm))
-          case _ => entity
-        }
-        case _ => throw new IllegalStateException("No metadata map found for entity " + entity.uri)
-      }
-      case None => entity
-    }
+    //TODO remove entire class
+    entity
   }
 }
