@@ -152,17 +152,19 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                 description,
                 template: valueState.current.currentTemplateValue || null,
                 isSensitive: false,
-                scope: taskId ? "task" : "project",
+                scope: "project",
             };
 
-            if (isEditMode) {
-                await updateVariable(formPayload, projectId, name);
-            } else {
-                const updatedVariables = {
-                    variables: [...variables, formPayload],
-                };
-                await createNewVariable(updatedVariables, projectId, taskId);
-            }
+            isEditMode
+                ? await updateVariable(formPayload, projectId, name)
+                : await createNewVariable(
+                      {
+                          variables: [...variables, formPayload],
+                      },
+                      projectId,
+                      taskId
+                  );
+
             resetModalState();
             refresh();
             closeModal();
