@@ -49,22 +49,12 @@ trait LazyMetadata[Typ, Ser] extends Serializable {
   val defaultMimeType: String
 
   /**
-    * Indicates whether this metadata object might be overwritten by subsequent object with the same metadataId
-    */
-  val isReplaceable: Boolean = ! classOf[IrreplaceableMetadata].isAssignableFrom(this.getClass)
-
-  /**
     * indicates whether this is an empty LazyMetadata instance
     */
   def isEmpty: Boolean
 
   override def toString: String = string
 }
-
-/**
-  * Objects claiming this trait cannot be replaced or deleted from an EntityMetadata map
-  */
-trait IrreplaceableMetadata
 
 object LazyMetadata extends Serializable {
 

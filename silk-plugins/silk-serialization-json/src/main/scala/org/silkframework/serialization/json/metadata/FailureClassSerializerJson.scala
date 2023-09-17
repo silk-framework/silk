@@ -12,7 +12,7 @@ import play.api.libs.json.{JsObject, JsValue}
 case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureClass] {
 
   /**
-    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadataLegacy]]
+    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
     * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
     */
   override def metadataId: String = FailureClassSerializer.METADATA_ID

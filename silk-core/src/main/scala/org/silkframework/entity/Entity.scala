@@ -33,7 +33,7 @@ import scala.xml.Node
   * @param values        - A list of values of the properties defined in the provided EntitySchema
   * @param schema      - The EntitySchema defining the nature of this entity
   * @param metadata - metadata object containing all available metadata information about this object
-  *                 an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadataLegacy.failure]] is set. It becomes sealed.
+  *                 an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
   */
 case class Entity(
     uri: Uri,
