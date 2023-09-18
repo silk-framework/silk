@@ -124,6 +124,11 @@ object ValueType {
     Right(AnyDateValueType()),
     Right(AnyDateTimeValueType())
   )
+  
+  lazy val valueTypeClasses: Seq[Class[_ <: AnyPlugin]] = allValueType.map {
+    case Left((_, clazz)) => clazz
+    case Right(obj) => obj.getClass
+  }
 
   lazy val valueTypeMapByStringId: Map[String, Either[Class[_ <: AnyPlugin], ValueType]] = allValueType.map {
     case Left((id, clazz)) => (id, Left(clazz))

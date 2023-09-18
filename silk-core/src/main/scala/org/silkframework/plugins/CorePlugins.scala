@@ -32,7 +32,11 @@ import scala.language.existentials
   */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = datasets ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = valueTypes ++ datasets ++ serializers :+ classOf[LocalExecutionManager]
+
+  private def valueTypes: Seq[Class[_ <: AnyPlugin]] = {
+    ValueType.valueTypeClasses
+  }
 
   private def datasets: Seq[Class[_ <: AnyPlugin]] =
     classOf[InternalDataset] ::
@@ -46,8 +50,4 @@ class CorePlugins extends PluginModule {
     DatasetTaskXmlFormat.getClass ::
     CustomTaskFormat.getClass ::
     EntitySchemaFormat.getClass :: Nil
-
-  private def valueTypes: Seq[Class[_ <: AnyPlugin]] = {
-    ValueType.valueTypeIdMapByClass.keys.toSeq
-  }
 }
