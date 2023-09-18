@@ -219,7 +219,8 @@
                 "general": {
                     "label": "Build",
                     "shortcuts": {
-                        "quick-search": "Quick search"
+                        "quick-search": "Quick search",
+                        "help": "Open keyboard shortcut help"
                     }
                 },
                 "rule-editors": {
@@ -243,11 +244,11 @@
                 }
             },
             "keys": {
-                "ctrl": "Ctrl",
+                "ctrl": "^Ctrl",
                 "cmd": "⌘Command",
                 "shift": "⇧Shift",
                 "backspace": "←Backpace",
-                "alt": "Alt",
+                "alt": "⌥Option/Alt",
                 "mouse select": "mouse select"
             }
         }
