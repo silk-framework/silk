@@ -9,9 +9,11 @@ import javax.xml.transform.Transformer
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.{Document, Element}
 
+import java.rmi.UnexpectedException
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
-import scala.xml.Node
+import scala.xml.{Elem, MetaData, Node, PCData, Text, TopScope, UnprefixedAttribute}
 import scala.xml.parsing.NoBindingFactoryAdapter
 
 /**
@@ -33,15 +35,6 @@ abstract class StreamXmlFormat[T: ClassTag] {
     }
     placeOnNextTag()
     read
-  }
-
-  /** Convert DOM Node to Scala XML Node */
-  def asXml(dom: org.w3c.dom.Node): Node = {
-    val dom2sax = new DOM2SAX(dom)
-    val adapter = new NoBindingFactoryAdapter
-    dom2sax.setContentHandler(adapter)
-    dom2sax.parse()
-    adapter.rootElem
   }
 
   def withTag(tag: String)(block: => Unit)(implicit outputStream: OutputStream): Unit = {
@@ -116,44 +109,41 @@ abstract class StreamXmlFormat[T: ClassTag] {
   }
 
   /** Reads the current element of the stream as an XML Node.
-    * The stream will be positioned on the END element of that element afterwards. */
-  def readCurrentElementAsNode(implicit streamReader: XMLStreamReader): Node = {
-    assert(streamReader.isStartElement, "Trying to read an element from XML, but XML stream is positioned at event type: " + streamReader.getEventType)
-    val loader = documentBuilderFactory.newDocumentBuilder()
-    implicit val document: Document = loader.newDocument()
-    val root = createElementFromStream()
-    var currentElement: org.w3c.dom.Node = root
-    while(currentElement != null) {
-      streamReader.next() match {
-        case XMLStreamConstants.START_ELEMENT =>
-          val newElement = createElementFromStream()
-          currentElement.appendChild(newElement)
-          currentElement = newElement
-        case XMLStreamConstants.END_ELEMENT =>
-          currentElement = currentElement.getParentNode
-        case XMLStreamConstants.CHARACTERS =>
-          currentElement.appendChild(document.createTextNode(streamReader.getText))
-        case XMLStreamConstants.CDATA =>
-          currentElement.appendChild(document.createCDATASection(streamReader.getText))
-        case _ =>
-          // Other events are not supported
+    * The stream will be positioned directly after END element of that element afterwards. */
+  private def readCurrentElementAsNode(implicit reader: XMLStreamReader): Node = {
+    assert(reader.isStartElement, "Trying to read an element from XML, but XML stream is positioned at event type: " + reader.getEventType)
+
+    // Remember label and attributes
+    val label = reader.getLocalName
+    val attributes = readAttributes()
+
+    // Collect child nodes
+    val children = new ArrayBuffer[Node]()
+    reader.next()
+    while (!reader.isEndElement) {
+      if (reader.isStartElement) {
+        children.append(readCurrentElementAsNode)
+      } else if (reader.isCharacters) {
+        children.append(Text(reader.getText))
+        reader.next()
+      } else {
+        reader.next()
       }
     }
-    asXml(root)
+
+    // Move to the element after the end element.
+    reader.next()
+
+    Elem(null, label, attributes, TopScope, true, children: _*)
   }
 
-  // Creates an element from the current stream. Stream needs to be set to START_ELEMENT
-  private def createElementFromStream()(implicit streamReader: XMLStreamReader, document: Document): Element = {
-    val element = document.createElement(streamReader.getLocalName)
-    copyAttributes(streamReader, element)
-    element
-  }
-
-  // Copies attributes from the stream into the element
-  private def copyAttributes(streamReader: XMLStreamReader, element: Element): Unit = {
+  // Reads attributes of the current element
+  private def readAttributes()(implicit streamReader: XMLStreamReader): MetaData = {
+    var metaData: MetaData = scala.xml.Null
     for (i <- 0 until streamReader.getAttributeCount) {
-      element.setAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i))
+      metaData = metaData.copy(new UnprefixedAttribute(streamReader.getAttributeLocalName(i), Text(streamReader.getAttributeValue(i)), scala.xml.Null))
     }
+    metaData
   }
 }
 
