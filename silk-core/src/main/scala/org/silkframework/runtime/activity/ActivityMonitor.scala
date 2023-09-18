@@ -20,7 +20,7 @@ import scala.reflect.ClassTag._
 class ActivityMonitor[T](name: String,
                          parent: Option[ActivityContext[_]] = None,
                          progressContribution: Double = 0.0,
-                         initialValue: => Option[T] = None,
+                         initialValue: Option[T] = None,
                          val contextMetaData: Option[ActivityContextData[_]] = None,
                          projectAndTaskId: Option[ProjectAndTaskIds] = None) extends ActivityContext[T] {
 

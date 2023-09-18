@@ -84,7 +84,7 @@ lazy val commonSettings = Seq(
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
   dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
 
   // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
   // Can be removed as soon as there are newer stable versions of logback
@@ -367,7 +367,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .settings(
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
-    libraryDependencies += "com.typesafe.play" %% "filters-helpers" % "2.9.0-M6",
+    libraryDependencies += "com.typesafe.play" % "play-filters-helpers_3" % "2.9.0-RC1",
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.0-M6" % "test"
   )
 
