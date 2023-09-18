@@ -2,10 +2,10 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.FileResource
-import org.silkframework.util.HttpURLConnectionUtils._
+import org.silkframework.runtime.resource.{DoSomethingOnGC, FileResource}
+import org.silkframework.util.HttpURLConnectionUtils.*
 
-import java.io._
+import java.io.*
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.nio.file.Files
 import java.util.logging.Logger
@@ -286,21 +286,16 @@ case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUplo
                                         graph: String,
                                         contentType: String,
                                         comment: Option[String],
-                                        userContext: UserContext) extends OutputStream {
+                                        userContext: UserContext) extends OutputStream with DoSomethingOnGC {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
   implicit private val uc: UserContext = userContext
 
   @volatile
   private var initialized = false
-  private var fileResource: Option[FileResource] = None
 
   private lazy val tempFile: File = {
     val file = Files.createTempFile("graphStoreUpload", ".nt").toFile
     file.deleteOnExit()
-    // Make sure this file is also deleted if the output stream is not correctly closed
-    val resource = FileResource(file)
-    resource.setDeleteOnGC(true)
-    fileResource = Some(resource)
     initialized = true
     file
   }
@@ -312,6 +307,14 @@ case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUplo
 
   override def write(i: Int): Unit = {
     outputStream.write(i)
+  }
+
+  override def write(b: Array[Byte]): Unit = {
+    outputStream.write(b, 0, b.length)
+  }
+
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+    outputStream.write(b, off, len)
   }
 
   override def close(): Unit = {
@@ -326,6 +329,10 @@ case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUplo
     } finally {
       Try(tempFile.delete())
     }
+  }
+
+  override def finalAction(): Unit = {
+    Try(tempFile.delete())
   }
 }
 
