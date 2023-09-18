@@ -1,13 +1,13 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.{FailureClassSerializer, GenericExecutionFailure}
+import org.silkframework.entity.metadata.FailureClassSerializer
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.failures.FailureClass._
 import org.silkframework.failures.{AccumulatedFailureClass, FailureClass}
-import org.silkframework.failures.FailureClass.{TASK_ID_TAG, _}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json
 import play.api.libs.json.{JsObject, JsValue}
-import org.silkframework.serialization.json.JsonHelpers._
 
 case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureClass] {
 

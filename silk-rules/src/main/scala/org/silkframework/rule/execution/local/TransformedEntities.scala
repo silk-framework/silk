@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
+import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
 import org.silkframework.failures.EntityException
@@ -131,13 +131,13 @@ class TransformedEntities(task: Task[TransformSpec],
     }
   }
 
-  private def buildErrorMetadata(): EntityMetadata[_] = {
+  private def buildErrorMetadata(): EntityMetadata = {
     if(!errorFlag) {
-      EntityMetadataXml()
+      EntityMetadata()
     } else if(errors.size == 1) {
-      EntityMetadataXml(new EntityException("", errors.head, task.id))
+      EntityMetadata(new EntityException("", errors.head, task.id))
     } else {
-      EntityMetadataXml(new EntityException("Multiple errors: " + errors.map(_.getMessage).mkString(", "), errors.head, task.id))
+      EntityMetadata(new EntityException("Multiple errors: " + errors.map(_.getMessage).mkString(", "), errors.head, task.id))
     }
   }
 
