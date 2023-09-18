@@ -14,18 +14,16 @@
 
 package org.silkframework.runtime.serialization
 
-import java.io._
+import java.io.*
 import javax.xml.XMLConstants
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
-
 import org.silkframework.runtime.validation.{ValidationError, ValidationException}
 import org.silkframework.util.Identifier
-import org.xml.sax.{Attributes, ErrorHandler, InputSource, SAXParseException}
+import org.xml.sax.{Attributes, ContentHandler, ErrorHandler, InputSource, Locator, SAXParseException}
 
-import scala.xml._
-import scala.xml.parsing.NoBindingFactoryAdapter
+import scala.xml.*
 
 /**
  * Parses an XML input source and validates it against the schema.
@@ -57,11 +55,11 @@ class ValidatingXMLReader(schemaPath: String) {
   /**
    * Reads an XML stream while validating it using a xsd schema file.
    */
-  private class XmlReader extends NoBindingFactoryAdapter {
+  private class XmlReader extends ContentHandler {
     private var currentErrors = List[String]()
     private var validationErrors = List[ValidationError]()
 
-    def read(inputSource: InputSource, schemaPath: String): Elem = {
+    def read(inputSource: InputSource, schemaPath: String): Unit = {
       //Load XML Schema
       val schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
       val schemaStream = getClass.getClassLoader.getResourceAsStream(schemaPath)
@@ -92,9 +90,7 @@ class ValidatingXMLReader(schemaPath: String) {
       xr.setContentHandler(vh)
 
       //Parse XML
-      scopeStack = scopeStack.appended(TopScope)
       xr.parse(inputSource)
-      scopeStack = scopeStack.dropRight(1)
 
       //Add errors without an id
       for(error <- currentErrors) {
@@ -102,10 +98,7 @@ class ValidatingXMLReader(schemaPath: String) {
       }
 
       //Return result
-      if (validationErrors.isEmpty) {
-        rootElem.asInstanceOf[Elem]
-      }
-      else {
+      if (validationErrors.nonEmpty) {
         throw new ValidationException(validationErrors.reverse)
       }
     }
@@ -119,7 +112,6 @@ class ValidatingXMLReader(schemaPath: String) {
             Some(Identifier(idAttribute))
           } catch {
             case ex: Exception =>
-              println(_localName + ": " + ex.getMessage)
               validationErrors ::= ValidationError(ex.getMessage, None, Some(_localName))
               None
           }
@@ -130,8 +122,6 @@ class ValidatingXMLReader(schemaPath: String) {
 
         currentErrors = Nil
       }
-
-      super.startElement(uri, _localName, qname, attributes)
     }
 
     /**
@@ -143,6 +133,26 @@ class ValidatingXMLReader(schemaPath: String) {
 
       currentErrors ::= error
     }
+
+    override def setDocumentLocator(locator: Locator): Unit = {}
+
+    override def startDocument(): Unit = {}
+
+    override def endDocument(): Unit = {}
+
+    override def startPrefixMapping(prefix: String, uri: String): Unit = {}
+
+    override def endPrefixMapping(prefix: String): Unit = {}
+
+    override def endElement(uri: String, localName: String, qName: String): Unit = {}
+
+    override def characters(ch: Array[Char], start: Int, length: Int): Unit = {}
+
+    override def ignorableWhitespace(ch: Array[Char], start: Int, length: Int): Unit = {}
+
+    override def processingInstruction(target: String, data: String): Unit = {}
+
+    override def skippedEntity(name: String): Unit = {}
   }
 
 }

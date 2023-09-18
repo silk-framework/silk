@@ -71,9 +71,9 @@ object SimilarityOperator {
 
 
     def read(node: Node)(implicit readContext: ReadContext): SimilarityOperator = {
-      node match {
-        case node@ <Aggregate>{_}</Aggregate> => fromXml[Aggregation](node)
-        case node@ <Compare>{_}</Compare> => fromXml[Comparison](node)
+      node.label match {
+        case "Aggregate" => fromXml[Aggregation](node)
+        case "Compare" => fromXml[Comparison](node)
       }
     }
 
