@@ -18,7 +18,10 @@ import { commonSel } from "@ducks/common";
 
 const sectionKeys = ["general", "workflow-editor", "rule-editors"] as const;
 const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; commands: string[] }>> = {
-    general: [{ key: "quick-search", commands: ["/"] }],
+    general: [
+        { key: "quick-search", commands: ["/"] },
+        { key: "help", commands: ["?"] }
+    ],
     "rule-editors": [
         { key: "duplicate-nodes", commands: ["ctrl+d", "cmd+d"] },
         {
