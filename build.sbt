@@ -76,7 +76,7 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.4.7",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
@@ -86,20 +86,6 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
 
-  // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
-  // Can be removed as soon as there are newer stable versions of logback
-  dependencyOverrides += "org.slf4j" % "slf4j-api" % "1.7.36",
-
-  // The assembly plugin cannot resolve multiple dependencies to commons logging
-  (assembly / assemblyMergeStrategy) := {
-    case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
-    case PathList(xs @ _*) if xs.last endsWith ".class" => MergeStrategy.first
-    case PathList(xs @ _*) if xs.last endsWith ".xsd" => MergeStrategy.first
-    case PathList(xs @ _*) if xs.last endsWith ".dtd" => MergeStrategy.first
-    case other =>
-      val oldStrategy = (assembly / assemblyMergeStrategy).value
-      oldStrategy(other)
-  },
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -148,7 +134,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ahc-ws-standalone_3" % "2.2.0-M4"
+    libraryDependencies += "com.typesafe.play" % "play-ahc-ws-standalone_3" % "2.2.2"
   )
 
 /////////////////////////////////////////////// ///////////////////////////////
@@ -367,8 +353,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .settings(
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
-    libraryDependencies += "com.typesafe.play" % "play-filters-helpers_3" % "2.9.0-RC1",
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.0-M6" % "test"
+    libraryDependencies += "com.typesafe.play" % "play-filters-helpers_3" % "2.9.0-RC2",
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.0-RC2" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -378,7 +364,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ahc-ws-standalone_3" % "2.2.0-M4" % "test"
+    libraryDependencies += "com.typesafe.play" % "play-ahc-ws-standalone_3" % "2.2.2" % "test"
   )
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))

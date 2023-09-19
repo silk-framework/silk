@@ -13,7 +13,7 @@ import javax.inject.Inject
 import scala.collection.immutable.ArraySeq
 
 @Tag(name = "Plugins")
-class PluginApi @Inject() () extends InjectedController with UserContextActions {
+class PluginApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) with UserContextActions {
 
   @Operation(
     summary = "All plugins",
