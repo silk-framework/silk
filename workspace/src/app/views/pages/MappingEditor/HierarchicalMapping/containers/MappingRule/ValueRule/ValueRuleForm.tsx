@@ -257,7 +257,17 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const handleChangePropertyType = (value) => {
-        const valueType = { nodeType: value };
+        const valueType = { nodeType: value } as Record<string, string>;
+        switch (value) {
+            case "CustomValueType":
+                valueType.uri = "";
+                break;
+            case "LanguageValueType":
+                valueType.lang = "";
+                break;
+            default:
+                null;
+        }
         handleChangeValue("valueType", valueType, setValueType);
     };
 
