@@ -248,11 +248,15 @@ export function ValueRuleForm(props: IProps) {
         handleChangeValue(statePropertyName, value, setValueFunction);
     };
 
+    function isValidURI(uri) {
+        const uriPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+        return uriPattern.test(uri);
+    }
+
     const handleCustomURITextField = (event) => {
         const value = event.target.value;
-        const validationOutput = validateUriString(value);
-        console.log("VALIDATION_OUTPUT", validationOutput);
-        setCustomURIErrorMsg(typeof validationOutput === "string" ? validationOutput : undefined);
+        const isValid = isValidURI(value);
+        setCustomURIErrorMsg(value.length && !isValid ? "Invalid uri entered" : undefined);
         const valueType = { nodeType: "CustomValueType", uri: value };
         handleChangeValue("valueType", valueType, setValueType);
     };
