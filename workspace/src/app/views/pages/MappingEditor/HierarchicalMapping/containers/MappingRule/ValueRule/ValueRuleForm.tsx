@@ -251,6 +251,7 @@ export function ValueRuleForm(props: IProps) {
     const handleCustomURITextField = (event) => {
         const value = event.target.value;
         const validationOutput = validateUriString(value);
+        console.log("VALIDATION_OUTPUT", validationOutput);
         setCustomURIErrorMsg(typeof validationOutput === "string" ? validationOutput : undefined);
         const valueType = { nodeType: "CustomValueType", uri: value };
         handleChangeValue("valueType", valueType, setValueType);
@@ -265,8 +266,6 @@ export function ValueRuleForm(props: IProps) {
             case "LanguageValueType":
                 valueType.lang = "";
                 break;
-            default:
-                null;
         }
         handleChangeValue("valueType", valueType, setValueType);
     };
