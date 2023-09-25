@@ -336,16 +336,20 @@ export function CreateArtefactModal() {
                                 updateExistingTask?.alternativeUpdateFunction
                             )
                         );
+                        updateExistingTask.successHandler?.({
+                            projectId: updateExistingTask.projectId,
+                            taskId: updateExistingTask.taskId,
+                        });
                     } else {
                         !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                         await dispatch(
-                        commonOp.createArtefactAsync(
-                            formValues,
-                            type,
-                            dataParameters,
-                            templateParameters.current,
-                            newTaskPreConfiguration?.alternativeCallback
-                        )
+                            commonOp.createArtefactAsync(
+                                formValues,
+                                type,
+                                dataParameters,
+                                templateParameters.current,
+                                newTaskPreConfiguration?.alternativeCallback
+                            )
                         );
                         setSearchValue("");
                     }
