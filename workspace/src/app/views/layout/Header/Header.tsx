@@ -35,6 +35,7 @@ import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
 import { UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
+import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -49,6 +50,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
+    //general keyboard shortcuts
+    useKeyboardHeaderShortcuts();
     const diUserMenuItems = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
     const diUserMenuFooter = pluginRegistry.pluginReactComponent<UserMenuFooterProps>(
         SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER
