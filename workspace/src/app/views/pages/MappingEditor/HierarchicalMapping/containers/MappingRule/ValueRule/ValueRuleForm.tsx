@@ -248,14 +248,23 @@ export function ValueRuleForm(props: IProps) {
         handleChangeValue(statePropertyName, value, setValueFunction);
     };
 
-    function isValidURI(uri) {
+    function isValidURIOrPrefixedName(input) {
+        // Regular expression pattern for valid URIs
         const uriPattern = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
-        return uriPattern.test(uri);
+
+        // Regular expression pattern for valid URNs
+        const urnPattern = /^urn:[a-zA-Z0-9][a-zA-Z0-9-]{0,31}:[a-zA-Z0-9()+,\-.:=@;$_!*'%/?#]+$/i;
+
+        // Regular expression pattern for valid prefixed names (e.g., rdf:type)
+        const prefixedNamePattern = /^[a-zA-Z0-9-]+:[a-zA-Z0-9-]+$/;
+
+        // Test if the input matches any of the patterns
+        return uriPattern.test(input) || urnPattern.test(input) || prefixedNamePattern.test(input);
     }
 
     const handleCustomURITextField = (event) => {
         const value = event.target.value;
-        const isValid = isValidURI(value);
+        const isValid = isValidURIOrPrefixedName(value);
         setCustomURIErrorMsg(value.length && !isValid ? "Invalid uri entered" : undefined);
         const valueType = { nodeType: "CustomValueType", uri: value };
         handleChangeValue("valueType", valueType, setValueType);
