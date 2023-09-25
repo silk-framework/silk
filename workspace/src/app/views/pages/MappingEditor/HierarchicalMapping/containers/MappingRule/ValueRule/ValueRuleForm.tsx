@@ -265,7 +265,7 @@ export function ValueRuleForm(props: IProps) {
     const handleCustomURITextField = (event) => {
         const value = event.target.value;
         const isValid = isValidURIOrPrefixedName(value);
-        setCustomURIErrorMsg(value.length && !isValid ? "Invalid uri entered" : undefined);
+        setCustomURIErrorMsg(value.length && !isValid ? "Invalid URI entered" : undefined);
         const valueType = { nodeType: "CustomValueType", uri: value };
         handleChangeValue("valueType", valueType, setValueType);
     };
