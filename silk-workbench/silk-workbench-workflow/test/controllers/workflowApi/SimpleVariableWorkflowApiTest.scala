@@ -234,11 +234,11 @@ class SimpleVariableWorkflowApiTest extends AnyFlatSpec with BeforeAndAfterAll
     project.addTask[GenericDatasetSpec](outputDataset, DatasetSpec(InMemoryDataset()))
     val workflow = Workflow(
       operators = Seq(
-        WorkflowOperator(inputs = Seq(inputDataset), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, None, Seq.empty, Seq.empty)
+        WorkflowOperator(inputs = Seq(Some(inputDataset)), task = transformTask, outputs = Seq(outputDataset), Seq(), (0, 0), transformTask, None, Seq.empty, Seq.empty)
       ),
       datasets = Seq(
         WorkflowDataset(Seq(), inputDataset, Seq(transformTask), (0, 0), inputDataset, None, Seq.empty, Seq.empty),
-        WorkflowDataset(Seq(transformTask), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty, Seq.empty)
+        WorkflowDataset(Seq(Some(transformTask)), outputDataset, Seq(), (0, 0), outputDataset, None, Seq.empty, Seq.empty)
       ),
       uiAnnotations = UiAnnotations(),
       replaceableInputs = Seq(inputDataset),

@@ -133,7 +133,7 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
 
     operators +=
       WorkflowOperator(
-        inputs = Seq(taskId1),
+        inputs = Seq(Some(taskId1)),
         task = taskId2,
         outputs = Seq(),
         errorOutputs = Seq.empty,

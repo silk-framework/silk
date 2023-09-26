@@ -12,6 +12,7 @@ import org.silkframework.workspace._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.workspace.activity.workflow.WorkflowNode.convertStringToOption
 
 class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with TestUserContextTrait {
   behavior of "Workflow"
@@ -52,8 +53,8 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
         WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, Seq.empty, Seq.empty)),
         WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, Seq.empty, Seq.empty))),
       endNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(TRANSFORM_2), DS_B, List(), (0, 0), DS_B2, None, Seq.empty, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty, Seq.empty))
+        WorkflowDependencyNode(WorkflowDataset(List(Some(TRANSFORM_2)), DS_B, List(), (0, 0), DS_B2, None, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(Some(GENERATE_OUTPUT)), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty, Seq.empty))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -327,7 +328,7 @@ object WorkflowTest {
 
   def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None,
                dependencyInputs: Seq[String] = Seq.empty): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty, dependencyInputs)
+    WorkflowOperator(inputs = inputs.map(convertStringToOption), task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty, dependencyInputs)
   }
 
   def dataset(task: String,
@@ -337,6 +338,6 @@ object WorkflowTest {
               outputs: Seq[String] = Seq.empty,
               configInputs: Seq[String] = Seq.empty,
               dependencyInputs: Seq[String] = Seq.empty): WorkflowDataset = {
-    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority, configInputs, dependencyInputs)
+    WorkflowDataset(inputs.map(convertStringToOption), task, outputs, (0, 0), nodeId, outputPriority, configInputs, dependencyInputs)
   }
 }

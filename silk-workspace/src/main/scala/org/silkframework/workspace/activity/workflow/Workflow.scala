@@ -144,7 +144,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   private def validateAndGetReplaceableDatasetsOfCurrentWorkflow(): AllReplaceableDatasets = {
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
-    val workflowDatasetInputs = operators.flatMap(_.inputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    val workflowDatasetInputs = operators.flatMap(_.inputs.flatten.flatMap(datasetNodeMap.get)).distinct.toSet
     val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
     if (replaceableInputUsedAsOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
@@ -319,7 +319,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /**
     * The tasks that this task writes to.
     */
-  override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.nonEmpty).map(_.task).toSet
+  override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.exists(_.isDefined)).map(_.task).toSet
 
   /**
     * All tasks in this workflow.
@@ -547,7 +547,7 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
   /** The direct input nodes as [[WorkflowDependencyNode]] */
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (
-      input <- workflowNode.inputs;
+      input <- workflowNode.inputs.flatten;
       pNode <- precedingNodes.filter(_.nodeId == input)) yield {
       pNode
     }

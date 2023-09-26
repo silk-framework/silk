@@ -2,7 +2,8 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
-import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE, fromJson, toJson, UiAnnotationsJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE, UiAnnotationsJsonFormat, fromJson, toJson}
+import org.silkframework.workspace.activity.workflow.WorkflowNode.{convertOptionToString, convertStringToOption}
 import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.annotation.UiAnnotations
 import play.api.libs.json._
@@ -112,7 +113,7 @@ object WorkflowSerializers {
         POSX -> op.position._1,
         POSY -> op.position._2,
         TASK -> op.task.toString,
-        INPUTS -> JsArray(op.inputs.map(JsString)),
+        INPUTS -> JsArray(op.inputs.map(convertOptionToString).map(JsString)),
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ERROR_OUTPUTS -> JsArray(op.errorOutputs.map(JsString)),
         ID -> op.nodeId.toString,
@@ -142,7 +143,7 @@ object WorkflowSerializers {
         POSX -> op.position._1,
         POSY -> op.position._2,
         TASK -> op.task.toString,
-        INPUTS -> JsArray(op.inputs.map(JsString)),
+        INPUTS -> JsArray(op.inputs.map(convertOptionToString).map(JsString)),
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ID -> op.nodeId,
         OUTPUT_PRIORITY -> op.outputPriority,
@@ -169,8 +170,8 @@ object WorkflowSerializers {
       stringValue(value, TASK)
     }
 
-    protected def inputs(value: JsValue): IndexedSeq[String] = {
-      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value).toIndexedSeq)
+    protected def inputs(value: JsValue): IndexedSeq[Option[String]] = {
+      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.asOpt[JsString].flatMap(vo => convertStringToOption(vo.value))).toIndexedSeq)
     }
 
     protected def outputs(value: JsValue): IndexedSeq[String] = {
