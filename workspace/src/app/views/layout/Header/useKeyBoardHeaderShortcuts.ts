@@ -15,12 +15,10 @@ export const useKeyboardHeaderShortcuts = () => {
     const { artefactsList } = useSelector(commonSel.artefactModalSelector);
 
     const focusOnSearchBar = React.useCallback(() => {
-        setTimeout(() => {
-            const searchbar = document.querySelector("[data-test-id='search-bar']") as HTMLInputElement;
-            if (searchbar) {
-                searchbar.focus();
-            }
-        }, 0);
+        const searchbar = document.querySelector("[data-test-id='search-bar']") as HTMLInputElement;
+        if (searchbar) {
+            searchbar.focus();
+        }
     }, []);
 
     const handlePageNavigation = React.useCallback((filter: string) => {

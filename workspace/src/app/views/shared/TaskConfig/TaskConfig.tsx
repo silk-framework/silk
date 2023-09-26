@@ -11,6 +11,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import useHotKey from "../HotKeyHandler/HotKeyHandler";
 
 interface IProps {
     projectId: string;
@@ -36,6 +37,14 @@ export function TaskConfig(props: IProps) {
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
     const [t] = useTranslation();
+
+    useHotKey({
+        hotkey: "e c",
+        handler: () => {
+            openConfigModal();
+            return false;
+        },
+    });
 
     // Fetch artefact description from cache or fetch and update
     const artefactProperties = async (artefactId: string) => {

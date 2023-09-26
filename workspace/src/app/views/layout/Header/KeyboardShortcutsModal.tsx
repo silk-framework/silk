@@ -16,11 +16,33 @@ import useHotKey from "../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 
-const sectionKeys = ["general", "workflow-editor", "rule-editors"] as const;
+const sectionKeys = ["general", "workflow-editor", "rule-editors", "projects", "tasks"] as const;
 const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; commands: string[] }>> = {
     general: [
         { key: "quick-search", commands: ["/"] },
-        { key: "help", commands: ["?"] }
+        { key: "help", commands: ["?"] },
+        { key: "browse-projects", commands: ["g", "*then", "p"] },
+        { key: "browse-datasets", commands: ["g", "*then", "d"] },
+        { key: "browse-workflows", commands: ["g", "*then", "w"] },
+        { key: "browse-transform-tasks", commands: ["g", "*then", "t"] },
+        { key: "browse-linking-tasks", commands: ["g", "*then", "l"] },
+        { key: "browse-tasks", commands: ["g", "*then", "o"] },
+        { key: "browse-activities-tasks", commands: ["g", "*then", "a"] },
+        { key: "create-project", commands: ["c", "*then", "p"] },
+        { key: "create-workflow", commands: ["c", "*then", "w"] },
+        { key: "create-dataset", commands: ["c", "*then", "p"] },
+        { key: "create-transform", commands: ["c", "*then", "t"] },
+        { key: "create-linking", commands: ["c", "*then", "l"] },
+        { key: "create-task", commands: ["c", "*then", "o"] },
+        { key: "create-new-item", commands: ["c", "*then", "n"] },
+    ],
+    projects: [
+        { key: "manage-prefixes", commands: ["e", "*then", "p"] },
+        { key: "edit-summary", commands: ["e", "*then", "s"] },
+    ],
+    tasks: [
+        { key: "update-tasks", commands: ["e", "*then", "c"] },
+        { key: "edit-summary", commands: ["e", "*then", "s"] },
     ],
     "rule-editors": [
         { key: "duplicate-nodes", commands: ["ctrl+d", "cmd+d"] },
@@ -99,16 +121,26 @@ export const KeyboardShortcutsModal = () => {
                                         }}
                                     >
                                         <TagList>
-                                            {shortcut.commands.map((command) => (
-                                                <Tag key={command}>
-                                                    {command
-                                                        .split("+")
-                                                        .map((key) => {
-                                                            return t(`header.keyboardShortcutsModal.keys.${key}`, key);
-                                                        })
-                                                        .join(" + ")}
-                                                </Tag>
-                                            ))}
+                                            {shortcut.commands.map((command, i) => {
+                                                return command.startsWith("*") ? (
+                                                    <React.Fragment key={command + i}>
+                                                        {" "}
+                                                        <p>{command.replace("*", "")}</p>{" "}
+                                                    </React.Fragment>
+                                                ) : (
+                                                    <Tag key={command}>
+                                                        {command
+                                                            .split("+")
+                                                            .map((key) => {
+                                                                return t(
+                                                                    `header.keyboardShortcutsModal.keys.${key}`,
+                                                                    key
+                                                                );
+                                                            })
+                                                            .join(" + ")}
+                                                    </Tag>
+                                                );
+                                            })}
                                         </TagList>
                                     </PropertyValue>
                                 </PropertyValuePair>

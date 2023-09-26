@@ -220,7 +220,35 @@
                     "label": "Build",
                     "shortcuts": {
                         "quick-search": "Quick search",
-                        "help": "Open keyboard shortcut help"
+                        "help": "Open keyboard shortcut help",
+                        "browse-projects": "Browse projects",
+                        "browse-datasets": "Browse datasets",
+                        "browse-workflows": "Browse workflows",
+                        "browse-tasks": "Browse tasks",
+                        "browse-transform-tasks": "Browse transform tasks",
+                        "browse-linking-tasks": "Browse linking tasks",
+                        "browse-activities-tasks": "Browse activities tasks",
+                        "create-project": "Create project",
+                        "create-workflow": "Create workflow",
+                        "create-dataset": "Create dataset",
+                        "create-transform": "Create Transform",
+                        "create-linking": "Create Linking",
+                        "create-task": "Create Task",
+                        "create-new-item": "Create new item"
+                    }
+                },
+                "projects": {
+                    "label": "Projects",
+                    "shortcuts": {
+                        "manage-prefixes": "Manage Prefixes",
+                        "edit-summary": "Edit Summary"
+                    }
+                },
+                "tasks": {
+                    "label": "Tasks",
+                    "shortcuts": {
+                        "edit-summary": "Edit Summary",
+                        "update-tasks": "Update tasks"
                     }
                 },
                 "rule-editors": {

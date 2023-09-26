@@ -39,6 +39,7 @@ import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { MultiTagSelect } from "../MultiTagSelect";
+import useHotKey from "../HotKeyHandler/HotKeyHandler";
 
 export const getDateData = (dateTime: number | string) => {
     const then = new Date(dateTime);
@@ -74,6 +75,19 @@ export function Metadata(props: IProps) {
     const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
     const [selectedTags, setSelectedTags] = React.useState<Keywords>([...(data.tags ?? [])]);
     const [t] = useTranslation();
+
+    useHotKey({
+        hotkey: "e s",
+        handler: () => {
+            setIsEditing(true);
+            setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
+            const labelInput = document.querySelector("[data-focus-id='metadata-label-input']") as HTMLInputElement;
+            if (labelInput) {
+                labelInput.focus();
+            }
+            return false;
+        },
+    });
 
     // Form errors
     const [errors, setErrors] = useState({
@@ -270,6 +284,7 @@ export function Metadata(props: IProps) {
                                 <TextField
                                     name="label"
                                     id="label"
+                                    data-focus-id="metadata-label-input"
                                     onChange={onLabelChange}
                                     defaultValue={formEditData?.label}
                                     hasStateDanger={errors.form.label ? true : false}
