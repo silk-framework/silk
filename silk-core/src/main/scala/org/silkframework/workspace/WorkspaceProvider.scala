@@ -330,12 +330,7 @@ case class TaskLoadingError(projectId: Option[Identifier],
                             label: Option[String] = None,
                             description: Option[String] = None,
                             factoryFunction: Option[(ParameterValues, PluginContext) => LoadedTask[_ <: TaskSpec]],
-                            originalParameterValues: Option[OriginalTaskData]) {
-
-
-
-
-}
+                            originalParameterValues: Option[OriginalTaskData])
 
 /** Data necessary to restore a task that has failed loading. */
 case class OriginalTaskData(pluginId: String,

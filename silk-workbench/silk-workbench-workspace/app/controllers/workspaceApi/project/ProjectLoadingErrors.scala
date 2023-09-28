@@ -72,7 +72,7 @@ object ProjectLoadingErrors {
 
     override def errorTitle: String = "Task loading error"
 
-    override def httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_INTERNAL_ERROR)
+    override def httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_BAD_REQUEST)
 
     override def additionalJson: JsObject = {
       Json.obj(
