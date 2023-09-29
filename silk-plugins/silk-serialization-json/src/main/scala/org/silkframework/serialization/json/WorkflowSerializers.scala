@@ -183,7 +183,7 @@ object WorkflowSerializers {
     }
 
     protected def dependencyInputs(value: JsValue): Seq[String] = {
-      optionalValue(value, DEPENDENCY_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty)
+      optionalValue(value, DEPENDENCY_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty).distinct
     }
   }
 }
