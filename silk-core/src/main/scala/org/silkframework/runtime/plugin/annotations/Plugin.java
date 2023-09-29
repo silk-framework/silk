@@ -45,4 +45,10 @@ public @interface Plugin {
    * in which case the local file name can be provided instead of the full classpath.
    */
   String documentationFile() default "";
+
+  /**
+   * Optional icon as data URL string. If not set the plugin will have a generic icon.
+   * This icon is rendered in the UI.
+   */
+  String pluginIcon() default "";
 }

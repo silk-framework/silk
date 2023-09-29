@@ -588,10 +588,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                    schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                  )
                  maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val valueTypeBlacklist = Set(ValueType.CUSTOM_VALUE_TYPE_ID)
     val valueTypes = PluginRegistry.availablePlugins[ValueType].sortBy(_.label)
-    val filteredValueTypes = valueTypes.filterNot(v => valueTypeBlacklist.contains(v.id))
-    val completions = Completions(filteredValueTypes.map(valueTypeCompletion))
+    val completions = Completions(valueTypes.map(valueTypeCompletion))
     Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
   }
 

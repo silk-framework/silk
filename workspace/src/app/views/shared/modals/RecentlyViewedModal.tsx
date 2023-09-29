@@ -8,7 +8,7 @@ import {
     Notification,
     OverflowText,
     OverviewItem,
-    Depiction,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
     SimpleDialog,
@@ -130,12 +130,9 @@ export function RecentlyViewedModal() {
                 hasSpacing
                 onClick={handleSelectClick}
             >
-                <Depiction
-                    image={<ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />}
-                    ratio="1:1"
-                    backgroundColor="dark"
-                    padding="medium"
-                />
+                <OverviewItemDepiction>
+                    <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
+                </OverviewItemDepiction>
                 <OverviewItemDescription style={{ maxWidth: "50vw" }}>
                     <OverviewItemLine>
                         <h4>

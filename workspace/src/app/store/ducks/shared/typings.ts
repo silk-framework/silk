@@ -1,4 +1,5 @@
 import { Keywords } from "@ducks/workspace/typings";
+import { ItemType } from "@ducks/router/operations";
 
 export interface IRequestAutocompletePayload {
     pluginId: string;
@@ -47,6 +48,24 @@ export const TaskTypes: ITaskTypes = {
 };
 
 export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
+
+/** Converts the task type from the backend to the item type of the UI. */
+export const convertTaskTypeToItemType = (taskType: TaskType | undefined): ItemType => {
+    switch (taskType) {
+        case "Dataset":
+            return "dataset";
+        case "Linking":
+            return "linking";
+        case "Transform":
+            return "transform";
+        case "Workflow":
+            return "workflow";
+        case "CustomTask":
+            return "task";
+        default:
+            return "task";
+    }
+};
 
 export type RuleOperatorType = "AggregationOperator" | "TransformOperator" | "ComparisonOperator";
 

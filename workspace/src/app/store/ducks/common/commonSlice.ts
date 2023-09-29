@@ -11,7 +11,8 @@ import {
     IPluginDetails,
     IExportTypes,
     IInitFrontend,
-    IProjectTaskUpdatePayload, IArtefactModal,
+    IProjectTaskUpdatePayload,
+    IArtefactModal,
 } from "@ducks/common/typings";
 import { setStoredLang } from "../../../../language";
 
@@ -58,6 +59,10 @@ export const commonSlice = createSlice({
     reducers: {
         setInitialSettings: (state, action: PayloadAction<IInitFrontend>) => {
             state.initialSettings = action.payload;
+        },
+
+        setTaskPluginOverviews: (state, action: PayloadAction<IPluginOverview[]>) => {
+            state.taskPluginOverviews = action.payload;
         },
 
         fetchAvailableDTypes: (state) => {
@@ -147,10 +152,13 @@ export const commonSlice = createSlice({
             state.artefactModal.loading = action.payload;
         },
 
-        createNewTask: (state, action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>) => {
-            const {newTaskPreConfiguration, selectedDType} = action.payload
-            state.artefactModal.newTaskPreConfiguration = newTaskPreConfiguration
-            state.artefactModal.selectedDType = selectedDType
+        createNewTask: (
+            state,
+            action: PayloadAction<Pick<IArtefactModal, "newTaskPreConfiguration" | "selectedDType">>
+        ) => {
+            const { newTaskPreConfiguration, selectedDType } = action.payload;
+            state.artefactModal.newTaskPreConfiguration = newTaskPreConfiguration;
+            state.artefactModal.selectedDType = selectedDType;
             state.artefactModal.isOpen = true;
         },
 

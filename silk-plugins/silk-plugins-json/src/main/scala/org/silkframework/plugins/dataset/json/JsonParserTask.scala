@@ -9,8 +9,7 @@ import org.silkframework.util.Uri
 @Plugin(
   id = "JsonParserOperator",
   label = "Parse JSON",
-  description = "Takes exactly one input and reads either the defined inputPath or the first value of the first entity as " +
-      "a JSON document. Then executes incoming requests as if this were a JSON dataset, e.g. form a transformation task."
+  description = "Parses incoming entities as a JSON dataset. Typically, it is used before a transformation task. Takes exactly one input."
 )
 case class JsonParserTask(@Param("The Silk path expression of the input entity that contains the JSON document. If " +
     "not set, the value of the first defined property will be taken.")

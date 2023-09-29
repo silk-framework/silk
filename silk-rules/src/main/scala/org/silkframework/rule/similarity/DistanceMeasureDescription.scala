@@ -8,7 +8,7 @@ case class DistanceMeasureDescription(range: DistanceMeasureRange,
                                       cardinality: Option[DistanceMeasureCardinality],
                                       examples: OperatorExampleValues[DistanceMeasureExampleValue]) extends CustomPluginDescription {
 
-  def generateDocumentation(sb: StringBuilder): Unit = {
+  override def generateDocumentation(sb: StringBuilder): Unit = {
     sb ++= "\n### Characteristics\n"
     sb ++= range.description
     for(c <- cardinality) {
@@ -18,23 +18,34 @@ case class DistanceMeasureDescription(range: DistanceMeasureRange,
     examples.markdownFormatted(sb)
   }
 
+  override def additionalProperties(): Map[String, String] = {
+    Map(
+      distanceMeasureRangeProperty -> range.id
+    )
+  }
 }
 
 object DistanceMeasureDescription {
 
+  private val distanceMeasureRangeProperty: String = "distanceMeasureRange"
+
   sealed trait DistanceMeasureRange {
+    def id: String
     def description: String
   }
 
   case object NormalizedMeasure extends DistanceMeasureRange {
+    override def id: String = "normalized"
     override def description: String = "This distance measure is normalized, i.e., all distances are between 0 (exact match) and 1 (no similarity)."
   }
 
   case object UnboundMeasure extends DistanceMeasureRange {
+    override def id: String = "unbounded"
     override def description: String = "This distance measure is not normalized, i.e., all distances start at 0 (exact match) and increase the more different the values are."
   }
 
   case object BooleanMeasure extends DistanceMeasureRange {
+    override def id: String = "boolean"
     override def description: String = "This is a boolean distance measure, i.e., all distances are either 0 or 1."
   }
 
