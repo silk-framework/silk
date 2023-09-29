@@ -309,7 +309,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     * At the moment, a workflow does not have any output.
     * It still declares an output, so it can be used to model dependencies.
     */
-  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
+  override def outputPort: Option[Port] = None
 
   /**
     * The tasks that this task reads from.
