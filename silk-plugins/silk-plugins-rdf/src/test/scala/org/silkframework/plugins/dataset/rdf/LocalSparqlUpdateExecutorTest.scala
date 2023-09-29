@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 
-import org.silkframework.config.{CustomTask, PlainTask, Prefixes, Task}
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, PlainTask, Port, Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.ExecutorOutput
@@ -113,9 +113,9 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
 
 class DummyTaskSpec(params: Map[String, String]) extends CustomTask {
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
 
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = None
 
   override def parameters(implicit pluginContext: PluginContext): ParameterValues = ParameterValues.fromStringMap(params)
 
