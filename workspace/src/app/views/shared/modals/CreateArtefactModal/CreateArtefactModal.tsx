@@ -5,7 +5,6 @@ import {
     Button,
     Card,
     CardActionsAux,
-    Depiction,
     Grid,
     GridColumn,
     GridRow,
