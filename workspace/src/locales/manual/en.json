@@ -221,6 +221,7 @@
                     "shortcuts": {
                         "quick-search": "Quick search",
                         "help": "Open keyboard shortcut help",
+                        "go-home": "Go home",
                         "browse-projects": "Browse projects",
                         "browse-datasets": "Browse datasets",
                         "browse-workflows": "Browse workflows",

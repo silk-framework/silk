@@ -21,6 +21,7 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
     general: [
         { key: "quick-search", commands: ["/"] },
         { key: "help", commands: ["?"] },
+        { key: "go-home", commands: ["g", "*then", "h"] },
         { key: "browse-projects", commands: ["g", "*then", "p"] },
         { key: "browse-datasets", commands: ["g", "*then", "d"] },
         { key: "browse-workflows", commands: ["g", "*then", "w"] },
@@ -128,7 +129,7 @@ export const KeyboardShortcutsModal = () => {
                                                         <p>{command.replace("*", "")}</p>{" "}
                                                     </React.Fragment>
                                                 ) : (
-                                                    <Tag key={command}>
+                                                    <Tag key={command + i}>
                                                         {command
                                                             .split("+")
                                                             .map((key) => {

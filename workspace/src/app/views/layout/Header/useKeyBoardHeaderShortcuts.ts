@@ -1,6 +1,6 @@
 import React from "react";
 import { workspaceOp } from "@ducks/workspace";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { Mousetrap } from "../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { SERVE_PATH } from "../../../constants/path";
 import { routerOp } from "@ducks/router";
@@ -8,10 +8,14 @@ import { commonOp, commonSel } from "@ducks/common";
 import { DATA_TYPES } from "../../../constants";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router";
 
 export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch();
     const [t] = useTranslation();
+    const location = useLocation();
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const taskId = useSelector(commonSel.currentTaskIdSelector);
     const { artefactsList } = useSelector(commonSel.artefactModalSelector);
 
     const focusOnSearchBar = React.useCallback(() => {
@@ -21,18 +25,33 @@ export const useKeyboardHeaderShortcuts = () => {
         }
     }, []);
 
-    const handlePageNavigation = React.useCallback((filter: string) => {
-        dispatch(
-            workspaceOp.applyFiltersOp({
-                itemType: filter,
-            })
-        );
-        dispatch(workspaceOp.changePageOp(1));
-        focusOnSearchBar();
-        return false;
-    }, []);
+    const handlePageNavigation = React.useCallback(
+        (filter: string) => {
+            batch(() => {
+                if (taskId) {
+                    dispatch(routerOp.goToPage(SERVE_PATH));
+                }
+                dispatch(
+                    workspaceOp.applyFiltersOp({
+                        itemType: filter,
+                    })
+                );
+                dispatch(workspaceOp.changePageOp(1));
+            });
+            focusOnSearchBar();
+            return false;
+        },
+        [projectId, taskId]
+    );
 
     const headerShortcuts = [
+        {
+            hotKey: "g h",
+            handler: () => {
+                dispatch(routerOp.goToPage(SERVE_PATH));
+                return false;
+            },
+        },
         {
             hotKey: "g p",
             handler: () => handlePageNavigation("project"),
@@ -149,5 +168,5 @@ export const useKeyboardHeaderShortcuts = () => {
                     Mousetrap.unbind(shortcut.hotKey, shortcut.handler);
                 });
         }
-    }, [artefactsList]);
+    }, [artefactsList, projectId, taskId]);
 };
