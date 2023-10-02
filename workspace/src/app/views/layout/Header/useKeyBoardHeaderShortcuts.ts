@@ -8,15 +8,12 @@ import { commonOp, commonSel } from "@ducks/common";
 import { DATA_TYPES } from "../../../constants";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router";
 
 export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch();
     const [t] = useTranslation();
-    const location = useLocation();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
-    const { artefactsList } = useSelector(commonSel.artefactModalSelector);
 
     const focusOnSearchBar = React.useCallback(() => {
         const searchbar = document.querySelector("[data-test-id='search-bar']") as HTMLInputElement;
@@ -54,7 +51,7 @@ export const useKeyboardHeaderShortcuts = () => {
         },
         {
             hotKey: "g p",
-            handler: () => handlePageNavigation("project"),
+            handler: () => !projectId && handlePageNavigation("project"),
         },
         {
             hotKey: "g w",
@@ -106,28 +103,48 @@ export const useKeyboardHeaderShortcuts = () => {
         {
             hotKey: "c w",
             handler: () => {
-                dispatch(commonOp.selectArtefact(artefactsList.find((a) => a.key === DATA_TYPES.WORKFLOW)));
+                dispatch(
+                    commonOp.createNewTask({
+                        selectedDType: "workflow",
+                        newTaskPreConfiguration: { taskPluginId: "workflow" },
+                    })
+                );
                 return false;
             },
         },
         {
             hotKey: "c d",
             handler: () => {
-                dispatch(commonOp.selectArtefact(artefactsList.find((a) => a.key === DATA_TYPES.DATASET)));
+                dispatch(
+                    commonOp.createNewTask({
+                        selectedDType: "dataset",
+                        newTaskPreConfiguration: { taskPluginId: "dataset" },
+                    })
+                );
                 return false;
             },
         },
         {
             hotKey: "c t",
             handler: () => {
-                dispatch(commonOp.selectArtefact(artefactsList.find((a) => a.key === DATA_TYPES.TRANSFORM)));
+                dispatch(
+                    commonOp.createNewTask({
+                        selectedDType: "transform",
+                        newTaskPreConfiguration: { taskPluginId: "transform" },
+                    })
+                );
                 return false;
             },
         },
         {
             hotKey: "c l",
             handler: () => {
-                dispatch(commonOp.selectArtefact(artefactsList.find((a) => a.key === "linking")));
+                dispatch(
+                    commonOp.createNewTask({
+                        selectedDType: "linking",
+                        newTaskPreConfiguration: { taskPluginId: "linking" },
+                    })
+                );
                 return false;
             },
         },
@@ -156,17 +173,15 @@ export const useKeyboardHeaderShortcuts = () => {
     }, []);
 
     React.useEffect(() => {
-        if (artefactsList.length) {
-            //bind shortcuts
-            headerShortcuts.forEach((shortcut) => {
-                Mousetrap.bind(shortcut.hotKey, shortcut.handler);
-            });
+        //bind shortcuts
+        headerShortcuts.forEach((shortcut) => {
+            Mousetrap.bind(shortcut.hotKey, shortcut.handler);
+        });
 
-            //unbind shortcuts
-            return () =>
-                headerShortcuts.forEach((shortcut) => {
-                    Mousetrap.unbind(shortcut.hotKey, shortcut.handler);
-                });
-        }
-    }, [artefactsList, projectId, taskId]);
+        //unbind shortcuts
+        return () =>
+            headerShortcuts.forEach((shortcut) => {
+                Mousetrap.unbind(shortcut.hotKey, shortcut.handler);
+            });
+    }, [projectId, taskId]);
 };

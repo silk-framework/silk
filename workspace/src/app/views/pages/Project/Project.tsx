@@ -123,6 +123,7 @@ const Project = () => {
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}
+                                        selectFirstResultItemOnEnter
                                     />
                                 </GridColumn>
                             </GridRow>

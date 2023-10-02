@@ -31,7 +31,7 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
         { key: "browse-activities-tasks", commands: ["g", "*then", "a"] },
         { key: "create-project", commands: ["c", "*then", "p"] },
         { key: "create-workflow", commands: ["c", "*then", "w"] },
-        { key: "create-dataset", commands: ["c", "*then", "p"] },
+        { key: "create-dataset", commands: ["c", "*then", "d"] },
         { key: "create-transform", commands: ["c", "*then", "t"] },
         { key: "create-linking", commands: ["c", "*then", "l"] },
         { key: "create-task", commands: ["c", "*then", "o"] },
@@ -94,13 +94,14 @@ export const KeyboardShortcutsModal = () => {
                 </Button>,
             ]}
         >
-            <OverviewItemList columns={1}>
+            <OverviewItemList hasDivider columns={1}>
                 {sectionKeys.map((sectionKey) => (
-                    <section>
+                    <section key={sectionKey}>
+                        <Spacing size="medium" />
                         <TitleSubsection>
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
                         </TitleSubsection>
-                        <OverviewItemList densityHigh hasDivider>
+                        <OverviewItemList densityHigh columns={2}>
                             {shortcuts[sectionKey].map((shortcut, i) => (
                                 <PropertyValuePair style={{ width: "100%" }} hasSpacing key={sectionKey + shortcut.key}>
                                     <PropertyName
