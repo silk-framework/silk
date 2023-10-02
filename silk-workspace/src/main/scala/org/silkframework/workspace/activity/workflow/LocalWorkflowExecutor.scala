@@ -109,7 +109,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     // First execute all execution dependencies of this node
     node.dependencyInputNodes foreach { nodeExecutedBefore =>
       if (!workflowRunContext.alreadyExecuted.contains(nodeExecutedBefore.workflowNode)) {
-        executeWorkflowNode(node, ExecutorOutput.empty) { _ =>
+        executeWorkflowNode(nodeExecutedBefore, ExecutorOutput.empty) { _ =>
           workflowRunContext.alreadyExecuted.add(nodeExecutedBefore.workflowNode)
         }
       }
