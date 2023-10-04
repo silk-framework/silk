@@ -13,7 +13,6 @@ export const useKeyboardHeaderShortcuts = () => {
     const dispatch = useDispatch();
     const [t] = useTranslation();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const taskId = useSelector(commonSel.currentTaskIdSelector);
 
     const focusOnSearchBar = React.useCallback(() => {
         const searchbar = document.querySelector("[data-test-id='search-bar']") as HTMLInputElement;
@@ -25,8 +24,8 @@ export const useKeyboardHeaderShortcuts = () => {
     const handlePageNavigation = React.useCallback(
         (filter: string) => {
             batch(() => {
-                if (taskId) {
-                    dispatch(routerOp.goToPage(SERVE_PATH));
+                if (projectId) {
+                    dispatch(routerOp.goToPage(`${SERVE_PATH}/projects/${projectId}`));
                 }
                 dispatch(
                     workspaceOp.applyFiltersOp({
@@ -38,7 +37,7 @@ export const useKeyboardHeaderShortcuts = () => {
             focusOnSearchBar();
             return false;
         },
-        [projectId, taskId]
+        [projectId]
     );
 
     const headerShortcuts = [
@@ -165,14 +164,6 @@ export const useKeyboardHeaderShortcuts = () => {
     ];
 
     React.useEffect(() => {
-        dispatch(
-            commonOp.fetchArtefactsListAsync({
-                textQuery: "",
-            })
-        );
-    }, []);
-
-    React.useEffect(() => {
         //bind shortcuts
         headerShortcuts.forEach((shortcut) => {
             Mousetrap.bind(shortcut.hotKey, shortcut.handler);
@@ -183,5 +174,5 @@ export const useKeyboardHeaderShortcuts = () => {
             headerShortcuts.forEach((shortcut) => {
                 Mousetrap.unbind(shortcut.hotKey, shortcut.handler);
             });
-    }, [projectId, taskId]);
+    }, [projectId]);
 };
