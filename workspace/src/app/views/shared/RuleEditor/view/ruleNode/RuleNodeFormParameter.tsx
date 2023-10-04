@@ -6,7 +6,7 @@ import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import {LanguageFilterProps} from "./PathInputOperator";
+import { LanguageFilterProps } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -71,7 +71,7 @@ export const RuleNodeFormParameter = ({
                 tooltipProps: {
                     rootBoundary: "viewport",
                 },
-                info: paramSpec.required ? "required" : undefined,
+                info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
             }}
             messageText={validationResult.message}
             hasStateDanger={validationResult.intent === "danger"}

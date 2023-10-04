@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
 import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
@@ -40,13 +40,13 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
     templatingEngine.generate(placeholderAssignments, taskProperties)
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    Some(Seq(expectedInputSchema))
+  override def inputPorts: InputPorts = {
+    FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
   }
 
   def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
 
-  override def outputSchemaOpt: Option[EntitySchema] = Some(SparqlUpdateEntitySchema.schema)
+  override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
 
   def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
 }

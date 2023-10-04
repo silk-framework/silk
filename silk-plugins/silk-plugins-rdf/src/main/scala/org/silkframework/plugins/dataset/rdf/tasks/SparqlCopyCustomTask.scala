@@ -1,9 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
-import org.silkframework.config.CustomTask
+import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
-import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.QuadEntityTable
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
@@ -35,18 +34,11 @@ case class SparqlCopyCustomTask(
   }
   validateQuery()
 
-  /**
-    * The schemata of the input data for this task.
-    * A separate entity schema is returned for each input.
-    * Or None is returned, which means that this task can handle any number of inputs and any kind
-    * of entity schema.
-    * A result of Some(Seq()) on the other hand means that this task has no inputs at all.
-    */
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(SparqlEndpointEntitySchema.schema))
+  override def inputPorts: InputPorts = {
+    FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
+  }
 
-  /**
-    * The schema of the output data.
-    * Returns None, if the schema is unknown or if no output is written by this task.
-    */
-  override def outputSchemaOpt: Option[EntitySchema] = Some(QuadEntityTable.schema)
+  override def outputPort: Option[Port] = {
+    Some(FixedSchemaPort(QuadEntityTable.schema))
+  }
 }

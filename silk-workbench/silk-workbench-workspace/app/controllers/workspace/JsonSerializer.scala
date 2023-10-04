@@ -119,14 +119,6 @@ object JsonSerializer {
     )
   }
 
-  def pluginConfig(pluginConfig: PluginDescription[_]): JsObject = {
-    JsObject(
-      ("id" -> JsString(pluginConfig.id)) ::
-      ("label" -> JsString(pluginConfig.label)) ::
-      ("description" -> JsString(pluginConfig.description)) :: Nil
-    )
-  }
-
   def marshaller(marshaller: ProjectMarshallingTrait): JsObject = {
     JsObject(
       ("id" -> JsString(marshaller.id)) ::

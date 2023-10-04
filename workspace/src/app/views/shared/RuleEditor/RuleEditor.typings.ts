@@ -1,10 +1,10 @@
-import {NodeContentProps} from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
-import {PluginType, RuleOperatorType} from "@ducks/shared/typings";
-import {ValidIconName} from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
-import {IPreConfiguredRuleOperator} from "./view/sidebar/RuleEditorOperatorSidebar.typings";
-import {RuleEditorNodeParameterValue} from "./model/RuleEditorModel.typings";
-import {IPropertyAutocomplete} from "@ducks/common/typings";
-import {RuleNodeContentProps} from "./view/ruleNode/NodeContent";
+import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
+import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
+import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
+import { DistanceMeasureRange, IPropertyAutocomplete } from "@ducks/common/typings";
+import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -86,6 +86,10 @@ export interface IParameterSpecification {
     autoCompletion?: IPropertyAutocomplete;
     /** Custom validation function for this parameter. */
     customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult;
+    /** for threshold input values */
+    distanceMeasureRange?: DistanceMeasureRange;
+    /** some required fields have additional labels to specify what values are acceptable */
+    requiredLabel?: string;
 }
 
 export interface IParameterValidationResult {
@@ -94,10 +98,19 @@ export interface IParameterValidationResult {
     intent?: "primary" | "success" | "warning" | "danger";
 }
 
-export const supportedCodeRuleParameterTypes = ["code-markdown", "code-python", "code-sparql", "code-sql", "code-turtle",
-    "code-xml", "code-jinja2", "code-yaml", "code-json"] as const
-type SupportedModesTuple = typeof supportedCodeRuleParameterTypes
-export type SupportedRuleParameterCodeModes = SupportedModesTuple[number]
+export const supportedCodeRuleParameterTypes = [
+    "code-markdown",
+    "code-python",
+    "code-sparql",
+    "code-sql",
+    "code-turtle",
+    "code-xml",
+    "code-jinja2",
+    "code-yaml",
+    "code-json",
+] as const;
+type SupportedModesTuple = typeof supportedCodeRuleParameterTypes;
+export type SupportedRuleParameterCodeModes = SupportedModesTuple[number];
 
 export type RuleParameterType =
     | "boolean"

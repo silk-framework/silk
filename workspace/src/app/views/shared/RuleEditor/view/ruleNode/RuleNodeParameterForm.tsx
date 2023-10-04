@@ -4,7 +4,7 @@ import { RuleNodeFormParameter } from "./RuleNodeFormParameter";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { partitionArray } from "../../../../../utils/basicUtils";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import {LanguageFilterProps} from "./PathInputOperator";
+import { LanguageFilterProps } from "./PathInputOperator";
 
 export interface RuleNodeParametersProps {
     nodeId: string;

@@ -5,7 +5,7 @@ import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import {RuleEditorNodeParameterValue, ruleEditorNodeParameterValue} from "../../model/RuleEditorModel.typings";
+import { RuleEditorNodeParameterValue, ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
@@ -18,9 +18,9 @@ import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import {LanguageFilterProps, PathInputOperator} from "./PathInputOperator";
-import {supportedCodeRuleParameterTypes} from "../../RuleEditor.typings";
-import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror"
+import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
+import { supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
+import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -53,8 +53,8 @@ export const RuleParameterInput = ({
     languageFilter,
 }: RuleParameterInputProps) => {
     const _onChange = ruleParameter.update;
-    const onChangeRef = React.useRef(_onChange)
-    onChangeRef.current = _onChange
+    const onChangeRef = React.useRef(_onChange);
+    onChangeRef.current = _onChange;
     const ruleEditorContext = React.useContext(RuleEditorContext);
     const modelContext = React.useContext(RuleEditorModelContext);
     const { registerError } = useErrorHandler();
@@ -63,8 +63,8 @@ export const RuleParameterInput = ({
     const defaultValueWithLabel = ruleParameter.currentValue() ?? ruleParameter.initialValue;
     const defaultValue = ruleEditorNodeParameterValue(defaultValueWithLabel);
     const onChange = React.useCallback((value: RuleEditorNodeParameterValue): any => {
-        onChangeRef.current(value)
-    }, [])
+        onChangeRef.current(value);
+    }, []);
     const inputAttributes = {
         id: uniqueId,
         name: uniqueId,
@@ -109,26 +109,32 @@ export const RuleParameterInput = ({
         hasBackDrop: !insideModal,
     });
 
-    if(ruleParameter.parameterSpecification.type === "code" ||
-        ruleParameter.parameterSpecification.type.startsWith("code-")) {
-        const sizeParameters = large ? undefined : {height: "100px"}
-        if (supportedCodeRuleParameterTypes.find(m => m === ruleParameter.parameterSpecification.type)) {
-            return <CodeEditor
-                mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes}
-                outerDivAttributes={{
-                    ...preventEventsFromBubblingToReactFlow
-                }}
-                {...inputAttributes}
-                {...sizeParameters}
-            />;
+    if (
+        ruleParameter.parameterSpecification.type === "code" ||
+        ruleParameter.parameterSpecification.type.startsWith("code-")
+    ) {
+        const sizeParameters = large ? undefined : { height: "100px" };
+        if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
+            return (
+                <CodeEditor
+                    mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes}
+                    outerDivAttributes={{
+                        ...preventEventsFromBubblingToReactFlow,
+                    }}
+                    {...inputAttributes}
+                    {...sizeParameters}
+                />
+            );
         } else {
-            return <CodeEditor
-                outerDivAttributes={{
-                    ...preventEventsFromBubblingToReactFlow
-                }}
-                {...inputAttributes}
-                {...sizeParameters}
-            />;
+            return (
+                <CodeEditor
+                    outerDivAttributes={{
+                        ...preventEventsFromBubblingToReactFlow,
+                    }}
+                    {...inputAttributes}
+                    {...sizeParameters}
+                />
+            );
         }
     }
 

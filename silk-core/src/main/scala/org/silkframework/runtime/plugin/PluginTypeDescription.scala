@@ -63,4 +63,10 @@ trait CustomPluginDescription {
     */
   def generateDocumentation(sb: StringBuilder): Unit
 
+  /**
+    * Additional properties (key-value pairs) for this plugin type.
+    * Should be returned in JSON representations.
+    */
+  def additionalProperties(): Map[String, String] = Map.empty
+
 }

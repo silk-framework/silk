@@ -15,7 +15,9 @@ export interface IPageLabels {
     itemType?: string;
 }
 
-const itemTypeToPathMap = {
+export type ItemType = "dataset" | "transform" | "linking" | "workflow" | "task";
+
+const itemTypeToPathMap: Record<string, ItemType> = {
     Transform: "transform",
     Linking: "linking",
     Workflow: "workflow",

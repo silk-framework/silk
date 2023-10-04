@@ -43,4 +43,30 @@ object StreamUtils {
       outputChannel.close()
     }
   }
+
+  /**
+    * InputStream that is reading from a ByteBuffer.
+    */
+  class ByteBufferBackedInputStream(val buffer: ByteBuffer) extends InputStream {
+
+    override def available: Int = buffer.remaining
+
+    override def read: Int = {
+      if (buffer.hasRemaining) {
+        buffer.get & 0xFF
+      } else {
+        -1
+      }
+    }
+
+    override def read(bytes: Array[Byte], off: Int, len: Int): Int = {
+      if (!buffer.hasRemaining) {
+        -1
+      } else {
+        val remainingLen = Math.min(len, buffer.remaining)
+        buffer.get(bytes, off, remainingLen)
+        remainingLen
+      }
+    }
+  }
 }

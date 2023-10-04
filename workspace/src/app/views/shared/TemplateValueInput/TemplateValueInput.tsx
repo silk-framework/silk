@@ -124,6 +124,7 @@ const TemplateValueInput = React.forwardRef(
                                 defaultValue={valueStateRef.current.inputValueBeforeSwitch}
                                 onChange={onElementValueChange}
                                 autoFocus={!!existingVariableName}
+                                escapeToBlur={true}
                             />
                         )}
                     </ToolbarSection>
