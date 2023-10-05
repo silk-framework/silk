@@ -75,16 +75,14 @@ export function Metadata(props: IProps) {
     const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
     const [selectedTags, setSelectedTags] = React.useState<Keywords>([...(data.tags ?? [])]);
     const [t] = useTranslation();
+    const labelInputRef = React.useRef<HTMLInputElement | null>(null);
 
     useHotKey({
         hotkey: "e s",
         handler: () => {
             setIsEditing(true);
             setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
-            const labelInput = document.querySelector("[data-focus-id='metadata-label-input']") as HTMLInputElement;
-            if (labelInput) {
-                labelInput.focus();
-            }
+            labelInputRef.current?.focus();
             return false;
         },
     });
@@ -284,7 +282,8 @@ export function Metadata(props: IProps) {
                                 <TextField
                                     name="label"
                                     id="label"
-                                    data-focus-id="metadata-label-input"
+                                    inputRef={labelInputRef}
+                                    data-test-id="metadata-label-input"
                                     onChange={onLabelChange}
                                     defaultValue={formEditData?.label}
                                     hasStateDanger={errors.form.label ? true : false}
