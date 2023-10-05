@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.sparql
-
+
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.SparqlPathBuilder
 import org.silkframework.runtime.validation.ValidationException
@@ -42,6 +43,14 @@ class SparqlPathBuilderTest extends AnyFlatSpec with Matchers {
     }
     build(s"?a/<urn:prop:PropA>/#lang") should be(equalIgnoringWhitespace("OPTIONAL { ?s <urn:prop:PropA> ?v0 . }"))
     build(s"?a/<urn:prop:PropA>/#text") should be(equalIgnoringWhitespace("OPTIONAL { ?s <urn:prop:PropA> ?v0 . }"))
+  }
+
+  it should "not allow property filters with invalid URIs" in {
+    the[ValidationException] thrownBy build(s"$p1[property = \"value\"]") should have message
+      "Property filter [property = \"value\"] is not valid, because 'property' is not a valid URI."
+
+    val thrown2 = the [ValidationException] thrownBy build(s"$p1[@lang = \"en\"]")
+    thrown2.getMessage should include ("If a language filter was intended, use single quotes: [@lang = 'en']")
   }
 
   def build(path: String, useOptional: Boolean = true): String = SparqlPathBuilder(Seq(UntypedPath.parse(path)), useOptional = useOptional)
