@@ -6,10 +6,11 @@ import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
 import { useInvisibleCharacterCleanUpModal } from "../modals/InvisibleCharacterCleanUpModal";
 import { useSearch } from "../../../hooks/useSearch";
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceSel } from "@ducks/workspace";
+import { batch, useDispatch, useSelector } from "react-redux";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { DATA_TYPES } from "../../../constants";
 import { routerOp } from "@ducks/router";
+import { IPageLabels } from "@ducks/router/operations";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<
@@ -63,22 +64,25 @@ export function SearchBar({
 
     const searchOnEnter = React.useCallback(() => {
         const firstResult = workspaceSearchResult[0];
-        const labels: Record<string, string> = {};
-        if (firstResult && firstResult.itemLinks) {
+        const labels: IPageLabels = {};
+        if (firstResult && firstResult.itemLinks?.length) {
             if (firstResult.type === DATA_TYPES.PROJECT) {
                 labels.projectLabel = firstResult.label;
             } else {
                 labels.taskLabel = firstResult.label;
             }
-            dispatch(routerOp.goToPage(firstResult.itemLinks[0].path, labels));
+            labels.itemType = firstResult.type;
+            onClear();
+            setTimeout(() => dispatch(routerOp.goToPage(firstResult.itemLinks![0].path, labels)), 0);
         }
     }, [workspaceSearchResult]);
 
     const handleEnterPress = () => {
         if (selectFirstResultItemOnEnter) {
             searchOnEnter();
+        } else {
+            onEnter ? onEnter() : onEnterRefreshSearch();
         }
-        onEnter ? onEnter() : onEnterRefreshSearch();
     };
 
     return (
