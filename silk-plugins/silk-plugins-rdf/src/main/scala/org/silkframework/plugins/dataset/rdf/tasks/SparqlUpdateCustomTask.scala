@@ -5,7 +5,7 @@ import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 
 @Plugin(
   id = "sparqlUpdateOperator",
@@ -16,7 +16,7 @@ The output of this operator should be connected to the SPARQL datasets to which 
 )
 case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
                                          example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }")
-                                  sparqlUpdateTemplate: MultilineStringParameter,
+                                  sparqlUpdateTemplate: SparqlCodeParameter,
                                   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
                                   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
                                   @Param("The templating mode. 'Simple' only allows simple URI and literal insertions, whereas 'Velocity Engine' supports complex templating." +
