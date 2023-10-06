@@ -62,7 +62,9 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
 
                     let treeNodeInfo = {
                         hasCaret: false,
-                        id: matchingRuleType.id,
+                        // Having an ID with the same name as a property of the Object prototype will lead to an exception.
+                        // This is a "bug" in Blueprint (Object creation via {} instead of Object.create(null)).
+                        id: `id_${matchingRuleType.id}`,
                         isExpanded: treeExpansionMap.get(idx),
                         label: "",
                         childNodes: [],

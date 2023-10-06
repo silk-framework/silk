@@ -76,7 +76,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         () =>
             evaluatedEntityResults.current?.evaluatedEntities.map((entity, i) => ({
                 uri: entity.uris[0],
-                id: `${i}`,
+                id: `id_${i}`,
             })) ?? [],
         [evaluatedEntityResults.current]
     );
