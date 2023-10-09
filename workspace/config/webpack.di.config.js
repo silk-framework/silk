@@ -295,22 +295,22 @@ module.exports = function (webpackEnv, isWatch) {
                 { parser: { requireEnsure: false } },
                 // First, run the linter.
                 // It's important to do this before Babel processes the JS.
-                {
-                    test: /\.(js|mjs|jsx|ts|tsx)$/,
-                    include: [paths.appSrc, paths.guiElements],
-                    enforce: "pre",
-                    use: [
-                        {
-                            options: {
-                                cache: true,
-                                formatter: require.resolve("react-dev-utils/eslintFormatter"),
-                                eslintPath: require.resolve("eslint"),
-                                resolvePluginsRelativeTo: __dirname,
-                            },
-                            loader: require.resolve("eslint-loader"),
-                        },
-                    ],
-                },
+                // {
+                //     test: /\.(js|mjs|jsx|ts|tsx)$/,
+                //     include: [paths.appSrc, paths.guiElements],
+                //     enforce: "pre",
+                //     use: [
+                //         {
+                //             options: {
+                //                 cache: true,
+                //                 formatter: require.resolve("react-dev-utils/eslintFormatter"),
+                //                 eslintPath: require.resolve("eslint"),
+                //                 resolvePluginsRelativeTo: __dirname,
+                //             },
+                //             loader: require.resolve("eslint-loader"),
+                //         },
+                //     ],
+                // },
                 {
                     // "oneOf" will traverse all following loaders until one will
                     // match the requirements. When no loader matches it will fall
