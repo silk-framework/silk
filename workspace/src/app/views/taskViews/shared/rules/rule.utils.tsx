@@ -10,6 +10,8 @@ import {
     RuleEditorValidationNode,
     RuleParameterType,
     RuleValidationError,
+    SupportedRuleParameterCodeModes,
+    supportedCodeRuleParameterTypes,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -261,8 +263,14 @@ const convertRuleOperator = (
 
 // Converts the parameter type of the plugin to any of the supported types of the parameter UI component
 const convertPluginParameterType = (pluginParameterType: string): RuleParameterType => {
+    if (pluginParameterType.startsWith("code-")) {
+        if (supportedCodeRuleParameterTypes.find((m) => m === pluginParameterType)) {
+            return pluginParameterType as SupportedRuleParameterCodeModes;
+        }
+    }
     switch (pluginParameterType) {
         case "template":
+            return "code-jinja2";
         case "multiline string":
             return "textArea";
         case "int":

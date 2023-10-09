@@ -181,8 +181,8 @@ export const ArtefactFormParameter = ({
             helperText={helperText}
         >
             <Toolbar
-                onMouseOver={showVariableTemplateInput ? undefined : onMouseOver}
-                onMouseOut={showVariableTemplateInput ? undefined : onMouseOut}
+                onMouseOver={supportVariableTemplateElement ? onMouseOver : undefined}
+                onMouseOut={supportVariableTemplateElement ? onMouseOut : undefined}
                 style={{ alignItems: "flex-start" }}
                 noWrap
             >
@@ -190,7 +190,7 @@ export const ArtefactFormParameter = ({
                     canGrow
                     style={{
                         alignSelf: "center",
-                        maxWidth: showVariableTemplateInput ? "calc(100% - 3.5px - 32px)" : "auto", // set full width minus tiny spacing and icon button width
+                        maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
                     }}
                 >
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
@@ -232,6 +232,8 @@ export const ArtefactFormParameter = ({
                                 showVariableTemplateInput ? "back" : "to"
                             }-btn`}
                             onClick={switchShowVariableTemplateInput}
+                            onFocus={showSwitchButton ? undefined : () => setShowRareActions(true)}
+                            onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
                             hasStatePrimary={showVariableTemplateInput}

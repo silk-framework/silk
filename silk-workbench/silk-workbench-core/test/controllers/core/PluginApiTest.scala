@@ -1,18 +1,16 @@
 package controllers.core
 
 import helper.IntegrationTestTrait
-
-import org.silkframework.config.CustomTask
-import org.silkframework.entity.EntitySchema
-import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
-import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin._
-import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginDescriptionSerializers}
-import org.silkframework.workspace.WorkspaceReadTrait
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, Port}
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
+import org.silkframework.rule.TransformSpec
+import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.serialization.json.{PluginDescriptionSerializers, PluginParameterJsonPayload}
+import org.silkframework.workspace.WorkspaceReadTrait
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers {
   behavior of "Plugin API"
@@ -98,8 +96,8 @@ case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletion
                                             autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true, autoCompletionDependsOnParameters = Array("otherParam"))
                                      completableParam: String,
                                      otherParam: String) extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def outputPort: Option[Port] = None
 }
 
 case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {

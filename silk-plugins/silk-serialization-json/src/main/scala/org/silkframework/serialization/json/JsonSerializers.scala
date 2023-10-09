@@ -284,7 +284,7 @@ object JsonSerializers {
       val typeId = value.id
       val additionalAttributes = value match {
         case CustomValueType(typeUri) =>
-          Some(URI -> JsString(typeUri))
+          Some(URI -> JsString(writeContext.prefixes.shorten(typeUri)))
         case LanguageValueType(lang) =>
           Some(LANG -> JsString(lang))
         case _ =>
