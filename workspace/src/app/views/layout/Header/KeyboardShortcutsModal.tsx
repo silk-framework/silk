@@ -124,15 +124,13 @@ export const KeyboardShortcutsModal = () => {
                                     >
                                         <TagList>
                                             {shortcut.commands.map((command, i) => {
+                                                const keyDirective = command.replace("*", "");
                                                 return command.startsWith("*") ? (
                                                     <React.Fragment key={command + i}>
                                                         {" "}
                                                         <p>
                                                             {t(
-                                                                `header.keyboardShortcutsModal.key-directives.${command.replace(
-                                                                    "*",
-                                                                    ""
-                                                                )}`
+                                                                `header.keyboardShortcutsModal.key-directives.${keyDirective}`
                                                             )}
                                                         </p>
                                                     </React.Fragment>
