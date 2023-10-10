@@ -4,6 +4,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.doc.WorkspaceApiDoc
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
+import controllers.workspaceApi.project.ProjectLoadingErrors
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -44,7 +45,11 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     )
   )
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
-    WorkspaceFactory().workspace.reload()
+    val workspace = WorkspaceFactory().workspace
+    workspace.reload()
+    for(project <- workspace.projects) {
+      ProjectLoadingErrors.tryReloadTasks(project)
+    }
     Ok
   }
 
@@ -290,7 +295,9 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
                     )
                     projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request =>
     implicit userContext =>
-      WorkspaceFactory().workspace.reloadProject(Identifier(projectId))
+      val workspace = WorkspaceFactory().workspace
+      workspace.reloadProject(Identifier(projectId))
+      ProjectLoadingErrors.tryReloadTasks(workspace.project(projectId))
       NoContent
   }
 

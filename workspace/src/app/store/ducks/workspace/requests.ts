@@ -12,7 +12,7 @@ import {
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import {IAutocompleteDefaultResponse, IProjectTask} from "@ducks/shared/typings";
+import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 
 export interface ISearchListRequest {
     limit?: number;

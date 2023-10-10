@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{FixedNumberOfInputs, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, PlainTask, Port, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
@@ -145,9 +145,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                         (implicit workflowRunContext: WorkflowRunContext): T = {
     val operatorTask = task(operatorNode)
     try {
-      val schemataOpt = operatorTask.data.inputSchemataOpt
+      val inputPorts = operatorTask.data.inputPorts
       val inputs = operatorNode.inputNodes
-      executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs) { inputResults =>
+      executeWorkflowOperatorInputs(operatorNode, inputPorts, inputs) { inputResults =>
         if (executorOutput.requestedSchema.isDefined && inputResults.exists(_.isEmpty)) {
           throw WorkflowExecutionException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
         }
@@ -184,22 +184,22 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   // Execute all inputs of a workflow operator to generate input values for this operator
   private def executeWorkflowOperatorInputs[T](operatorNode: WorkflowDependencyNode,
-                                               schemataOpt: Option[Seq[EntitySchema]],
+                                               inputPorts: InputPorts,
                                                inputs: Seq[WorkflowDependencyNode])
                                               (process: Seq[Option[LocalEntities]] => T)
                                               (implicit workflowRunContext: WorkflowRunContext): T = {
     val operatorTask = task(operatorNode)
 
-    def executeOnInputs(inputs: Seq[(WorkflowDependencyNode, Option[EntitySchema])])(processAll: Seq[Option[LocalEntities]] => T): T = {
+    def executeOnInputs(inputs: Seq[(WorkflowDependencyNode, Port)])(processAll: Seq[Option[LocalEntities]] => T): T = {
       inputs match {
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -207,27 +207,27 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
     }
 
-    schemataOpt match {
-      case Some(schemata) =>
+    inputPorts match {
+      case FixedNumberOfInputs(ports) =>
         /* FIXME: Detect schema mismatch between inputs and requested schemata. Transform input entities to match requested schema automatically
                   and output warning */
-        val useInputs = checkInputsAgainstSchema(operatorNode, inputs, schemata)
-        executeOnInputs(useInputs.zip(schemata.map(Some(_))))(process)
-      case None =>
-        executeOnInputs(inputs.map(input => (input, None)))(process)
+        val useInputs = checkInputsAgainstSchema(operatorNode, inputs, ports)
+        executeOnInputs(useInputs.zip(ports))(process)
+      case FlexibleNumberOfInputs() =>
+        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)
     }
   }
 
   private def checkInputsAgainstSchema(operatorNode: WorkflowDependencyNode,
                                        inputs: Seq[WorkflowDependencyNode],
-                                       schemata: Seq[EntitySchema]): Seq[WorkflowDependencyNode] = {
-    if (schemata.size < inputs.size) {
+                                       ports: Seq[Port]): Seq[WorkflowDependencyNode] = {
+    if (ports.size < inputs.size) {
       throw WorkflowExecutionException("Number of inputs is larger than the number of input schemata for workflow node "
           + operatorNode.nodeId + ". This cannot be handled!")
-    } else if (schemata.nonEmpty && inputs.size < schemata.size && inputs.nonEmpty) {
+    } else if (ports.nonEmpty && inputs.size < ports.size && inputs.nonEmpty) {
       // TODO: Temporary hack: Duplicate last input if more schemata are defined. Remove as soon as explicit task ports are implemented.
       val lastInput = inputs.last
-      val duplicatedInputs = for (i <- 1 to (schemata.size - inputs.size)) yield lastInput
+      val duplicatedInputs = for (i <- 1 to (ports.size - inputs.size)) yield lastInput
       inputs ++ duplicatedInputs
       /* TODO: In some cases it should be possible to say "Node does not need an input, but if an input is given, use this schema"
                since this is not possible currently, we ignore this if branch
@@ -299,7 +299,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       transformTask <- project.taskOption[TransformSpec](operatorNode.workflowNode.task)
       errorSink <- transformTask.errorEntitySink
     } {
-      executeWorkflowOperatorInputs(operatorNode, transformTask.data.inputSchemataOpt, operatorNode.inputNodes) { inputResults =>
+      executeWorkflowOperatorInputs(operatorNode, transformTask.data.inputPorts, operatorNode.inputNodes) { inputResults =>
         executeAndClose("Executing", operatorNode.nodeId, transformTask, inputResults.flatten, executorOutput) { result =>
           for (output <- result) {
             ErrorOutputWriter.write(output, errorSink)

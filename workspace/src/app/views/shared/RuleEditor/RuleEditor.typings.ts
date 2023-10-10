@@ -98,6 +98,20 @@ export interface IParameterValidationResult {
     intent?: "primary" | "success" | "warning" | "danger";
 }
 
+export const supportedCodeRuleParameterTypes = [
+    "code-markdown",
+    "code-python",
+    "code-sparql",
+    "code-sql",
+    "code-turtle",
+    "code-xml",
+    "code-jinja2",
+    "code-yaml",
+    "code-json",
+] as const;
+type SupportedModesTuple = typeof supportedCodeRuleParameterTypes;
+export type SupportedRuleParameterCodeModes = SupportedModesTuple[number];
+
 export type RuleParameterType =
     | "boolean"
     | "int"
@@ -107,7 +121,8 @@ export type RuleParameterType =
     | "password"
     | "resource"
     | "textArea"
-    | "pathInput";
+    | "pathInput"
+    | SupportedRuleParameterCodeModes;
 
 interface NodePosition {
     x: number;

@@ -1,9 +1,10 @@
 package org.silkframework.runtime.templating
 
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.silkframework.runtime.validation.BadUserInputException
 
-class TemplateVariableTest extends FlatSpec with Matchers {
+class TemplateVariableTest extends AnyFlatSpec with Matchers {
 
   behavior of "TemplateVariable"
 

@@ -76,10 +76,10 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
-  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def inputPorts: InputPorts = FlexibleNumberOfInputs()
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
-  override lazy val outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
 
   /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources

@@ -21,7 +21,7 @@ import io.swagger.v3.oas.annotations.tags.{Tag => OpenApiTag}
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
@@ -655,26 +655,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       validateJsonFromJsonFormat[ReloadFailedTaskRequest] { request =>
         project.loadingErrors.find(_.taskId.toString == request.taskId) match {
           case Some(loadingError) =>
-            loadingError.factoryFunction match {
-              case Some(reloadFunction) =>
-                reloadFunction(request.parameterValues.getOrElse(ParameterValues.empty), PluginContext.fromProject(project)).taskOrError match {
-                  case Left(error) =>
-                    val taskLoadingError = ProjectLoadingErrors.fromTaskLoadingError(error)
-                    val taskLoadingErrorJson = Json.toJson(taskLoadingError)
-                    val response = Json.obj(
-                      "title" -> "Task loading error",
-                      "detail"-> s"The task could not be loaded. Summary: ${taskLoadingError.errorSummary}",
-                      "taskLoadingError" -> taskLoadingErrorJson
-                    )
-                    BadRequest(response)
-                  case Right(task) =>
-                    project.updateAnyTask(task.id, task.data)
-                    project.removeLoadingError(task.id)
-                    NoContent
-                }
-              case None =>
-                NotFound("The task cannot be reloaded.")
-            }
+            ProjectLoadingErrors.reloadTask(project, loadingError, request.parameterValues)
+            NoContent
           case None =>
             NotFound
         }

@@ -85,6 +85,6 @@ class XmlDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait
   }
 
   private def testOutputTemplate(outputTemplate: String) = {
-    XmlDataset(InMemoryResourceManager.apply().get("test.xml"), outputTemplate = MultilineStringParameter(outputTemplate))
+    XmlDataset(InMemoryResourceManager.apply().get("test.xml"), outputTemplate = outputTemplate)
   }
 }

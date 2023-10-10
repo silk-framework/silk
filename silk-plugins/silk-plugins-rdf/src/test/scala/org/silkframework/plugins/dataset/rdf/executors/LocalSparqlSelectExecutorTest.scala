@@ -26,7 +26,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
   it should "not run out of memory and fetch first entity immediately on large result sets" in {
     val quickReactionTime = 500 // quick in the sense that it won't take too long even on a heavy-loaded CI system
     val activityContextMock = TestMocks.activityContextMock()
-    val task = SparqlSelectCustomTask(MultilineStringParameter("SELECT * WHERE {?s ?p ?o}"))
+    val task = SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}")
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
     val sparqlEndpoint = new SparqlEndpoint {
       override def sparqlParams: SparqlParams = ???
@@ -51,7 +51,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
 
 
   it should "pass query timeout to SPARQL endpoint if a query timeout is configured" in {
-    val task = SparqlSelectCustomTask(MultilineStringParameter("SELECT * WHERE {?s ?p ?o}"), sparqlTimeout = timeout)
+    val task = SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}", sparqlTimeout = timeout)
     var correctTimeout = false
     val activityContextMock = TestMocks.activityContextMock()
     val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)

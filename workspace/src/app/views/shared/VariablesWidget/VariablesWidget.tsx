@@ -156,7 +156,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.VariableWidget.title", "Variables")}</h2>
+                        <h2>{t("widget.VariableWidget.title", "Project Variables")}</h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton

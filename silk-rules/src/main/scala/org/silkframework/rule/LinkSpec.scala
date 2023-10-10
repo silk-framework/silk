@@ -14,8 +14,7 @@
 
 package org.silkframework.rule
 
-import java.util.logging.Logger
-import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{DefaultConfig, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
@@ -24,17 +23,16 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
-import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
-import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -119,18 +117,18 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
   }
 
   /**
-    * The schemata of the input data for this task.
-    * A separate entity schema is returned for each input.
+    * Accepts exactly two inputs.
     */
-  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    Some(entityDescriptions.toSeq)
+  override lazy val inputPorts: InputPorts = {
+    FixedNumberOfInputs(entityDescriptions.toSeq.map(FixedSchemaPort))
   }
 
   /**
-    * The schema of the output data.
-    * Returns None, if the schema is unknown or if no output is written by this task.
+    * Output are the generated links.
     */
-  override lazy val outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
+  override lazy val outputPort: Option[Port] = {
+    Some(FixedSchemaPort(LinksTable.linkEntitySchema))
+  }
 
   override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
 
