@@ -11,8 +11,9 @@ import org.scalatest.matchers.should.Matchers
 class SparqlPathBuilderTest extends AnyFlatSpec with Matchers {
 
   // Example properties
-  val p1 = "<1>"
-  val p2 = "<2>"
+  val p1 = "<urn:prop:p1>"
+  val p2 = "<urn:prop:p2>"
+  val p3 = "<urn:prop:p3>"
 
   "SparqlPathBuilder" should "build SPARQL patterns for simple paths" in {
     build(s"?a/$p1") should be(equalIgnoringWhitespace(s"OPTIONAL { ?s $p1 ?v0 . }"))
@@ -25,7 +26,7 @@ class SparqlPathBuilderTest extends AnyFlatSpec with Matchers {
   }
 
   it should "include Filter statements" in {
-    build(s"?a/<1>[<2> = <3>]") should be(equalIgnoringWhitespace("OPTIONAL { ?s <1> ?v0 . ?v0 <2> ?f1 . FILTER(?f1 = <3>). }"))
+    build(s"?a/$p1[$p2 = $p3]") should be(equalIgnoringWhitespace(s"OPTIONAL { ?s $p1 ?v0 . ?v0 $p2 ?f1 . FILTER(?f1 = $p3). }"))
   }
 
   it should "check for special paths and generate the correct query" in {
