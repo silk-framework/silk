@@ -71,7 +71,7 @@ export const RuleNodeFormParameter = ({
                 tooltipProps: {
                     rootBoundary: "viewport",
                 },
-                info: paramSpec.required ? "required" : undefined,
+                info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
             }}
             messageText={validationResult.message}
             hasStateDanger={validationResult.intent === "danger"}

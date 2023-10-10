@@ -219,7 +219,8 @@
                 "general": {
                     "label": "Build",
                     "shortcuts": {
-                        "quick-search": "Quick search"
+                        "quick-search": "Quick search",
+                        "help": "Open keyboard shortcut help"
                     }
                 },
                 "rule-editors": {
@@ -243,11 +244,11 @@
                 }
             },
             "keys": {
-                "ctrl": "Ctrl",
+                "ctrl": "^Ctrl",
                 "cmd": "⌘Command",
                 "shift": "⇧Shift",
                 "backspace": "←Backpace",
-                "alt": "Alt",
+                "alt": "⌥Option/Alt",
                 "mouse select": "mouse select"
             }
         }
@@ -403,7 +404,11 @@
             "float": "must be a valid floating point number",
             "integer": "must be a valid integer number",
             "isRequired": "{{field}} is required",
-            "parameter": "Parameter validation failed. Please fix the issues first."
+            "parameter": "Parameter validation failed. Please fix the issues first.",
+            "threshold": {
+                "normalized": "Must be a number from 0...1",
+                "unbounded": "Must be a number from 0...∞"
+            }
         }
     },
     "http": {
@@ -617,7 +622,14 @@
                 "weightLabel": "Weight",
                 "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
                 "thresholdLabel": "Threshold",
-                "thresholdDesc": "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+                "thresholdRequired": {
+                    "normalized": "required 0...1",
+                    "unbounded": "required 0...∞"
+                },
+                "thresholdDesc": {
+                    "normalized": "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
+                    "unbounded": "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+                }
             }
         },
         "toolbar": {

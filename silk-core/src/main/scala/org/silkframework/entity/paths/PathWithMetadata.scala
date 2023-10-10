@@ -40,6 +40,7 @@ object PathWithMetadata{
   val META_FIELD_IS_ATTRIBUTE: String = "isAttribute"
   val META_FIELD_ORIGIN_NAME: String = "originalName"
   val META_FIELD_VALUE_TYPE: String = "valueType"
+  val META_FIELDS: Seq[String] = Seq(META_FIELD_IS_ATTRIBUTE, META_FIELD_ORIGIN_NAME, META_FIELD_VALUE_TYPE)
 
   /**
     * converts TypedPath  to PathWIthMetadata

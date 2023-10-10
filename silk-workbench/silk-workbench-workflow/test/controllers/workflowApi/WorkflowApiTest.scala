@@ -6,7 +6,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.{CustomTask, Task}
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, InputPorts, Port, Task, UnknownSchemaPort}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
@@ -44,7 +44,8 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
     val portConfig = JsonHelpers.fromJsonValidated[WorkflowNodesPortConfig](responseJson)
     val noSchemaConfig = Some(WorkflowNodePortConfig(1, None))
-    portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe noSchemaConfig
+    val singleFlexiblePortConfig = Some(WorkflowNodePortConfig(0, Some(0)))
+    portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe singleFlexiblePortConfig
     portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe Some(WorkflowNodePortConfig(1, Some(1)))
     portConfig.byTaskId.get("noSchema") mustBe noSchemaConfig
     portConfig.byTaskId.get("onePort") mustBe Some(WorkflowNodePortConfig(1, Some(1)))
@@ -102,13 +103,18 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
 }
 
 case class TestCustomTask(nrPorts: IntOptionParameter) extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = nrPorts map { nr =>
-    for(_ <- 1 to nr) yield {
-      EntitySchema(Uri("uri"), typedPaths = IndexedSeq.empty)
-    }
+  override def inputPorts: InputPorts = nrPorts.value match {
+    case Some(number) =>
+      FixedNumberOfInputs(
+        for (_ <- 1 to number) yield {
+          FixedSchemaPort(EntitySchema(Uri("uri"), typedPaths = IndexedSeq.empty))
+        }
+      )
+    case None =>
+      FlexibleNumberOfInputs()
   }
 
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = Some(UnknownSchemaPort)
 }
 
 object BlockingTask {
@@ -120,8 +126,8 @@ object BlockingTask {
 
 /** Task that blocks until externally released. */
 case class BlockingTask() extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def outputPort: Option[Port] = None
 }
 
 case class BlockingTaskExecutor() extends Executor[BlockingTask, ExecutionType] {

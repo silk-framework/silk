@@ -74,7 +74,9 @@ export const objectToFlatRecord = (
 /** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"].
  *  If the original values are reified values with optional labels, this reified structure is kept in the flat object.
  **/
-export const existingTaskValuesToFlatParameters = (updateTask: Pick<UpdateTaskProps, "parameterValues" | "variableTemplateValues"> | undefined) => {
+export const existingTaskValuesToFlatParameters = (
+    updateTask: Pick<UpdateTaskProps, "parameterValues" | "variableTemplateValues"> | undefined
+) => {
     if (updateTask) {
         return objectToFlatRecord(updateTask.parameterValues, updateTask.variableTemplateValues, true);
     } else {

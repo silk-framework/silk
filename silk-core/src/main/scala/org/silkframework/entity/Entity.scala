@@ -15,7 +15,7 @@
 package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml, GenericExecutionFailure}
+import org.silkframework.entity.metadata.{EntityMetadata, GenericExecutionFailure}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.StreamUtils.ByteBufferBackedInputStream
@@ -28,32 +28,33 @@ import scala.xml.Node
 
 /**
   * An Entity can represent an instance of any given concept
+ *
   * @param uri         - an URI as identifier
   * @param values        - A list of values of the properties defined in the provided EntitySchema
   * @param schema      - The EntitySchema defining the nature of this entity
-  * @param metadata    - metadata object containing all available metadata information about this object
-  *                    an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
+  * @param metadata - metadata object containing all available metadata information about this object
+  *                 an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
   */
 case class Entity(
     uri: Uri,
     values: IndexedSeq[Seq[String]],
     schema: EntitySchema,
-    metadata: EntityMetadata[_] = EntityMetadataXml()
+    metadata: EntityMetadata = EntityMetadata()
   ) extends Serializable {
 
   def copy(
-    uri: Uri = this.uri,
-    values: IndexedSeq[Seq[String]] = this.values,
-    schema: EntitySchema = this.schema,
-    metadata: EntityMetadata[_] = this.metadata,
-    failureOpt: Option[FailureClass] = None,
-    projectValuesIfNewSchema: Boolean = false
+            uri: Uri = this.uri,
+            values: IndexedSeq[Seq[String]] = this.values,
+            schema: EntitySchema = this.schema,
+            metadata: EntityMetadata = this.metadata,
+            failureOpt: Option[FailureClass] = None,
+            projectValuesIfNewSchema: Boolean = false
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None =>
       val actualVals = if(schema != this.schema && projectValuesIfNewSchema) shiftProperties(schema) else values  //here we remap value indices for possible shifts of typed paths
       val actualMetadata = failureOpt match{
-        case Some(f) if metadata.failure.metadata.isEmpty => metadata.addFailure(f)
+        case Some(f) if metadata.failure.isEmpty => metadata.withFailure(f)
         case _ => metadata
       }
       new Entity(uri, actualVals, schema, actualMetadata)
@@ -79,7 +80,7 @@ case class Entity(
   def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
 
   val failure: Option[GenericExecutionFailure] = {
-    if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
+    if(metadata.failure.isEmpty) {                                                    // if no failure has occurred yet
       if(uri.uri.trim.isEmpty){
         Some(GenericExecutionFailure(new IllegalArgumentException("Entity with an empty URI is not allowed.")))
       }
@@ -90,7 +91,7 @@ case class Entity(
         None
       }}
     else {
-      metadata.failure.metadata.map(_.rootCause)   //propagate former failure
+      metadata.failure.map(_.rootCause)   //propagate former failure
     }
   }
 
@@ -240,10 +241,7 @@ object Entity {
   }
 
   def apply(uri: String, values: IndexedSeq[Seq[String]], schema: EntitySchema, failureOpt: Option[FailureClass]): Entity = {
-    new Entity(uri, values, schema, failureOpt match{
-      case Some(t) => EntityMetadataXml(t)
-      case None => EntityMetadataXml()
-    })
+    new Entity(uri, values, schema, EntityMetadata(failureOpt))
   }
 
   /**
