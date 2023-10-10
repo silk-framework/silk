@@ -93,6 +93,7 @@ export const KeyboardShortcutsModal = () => {
                     {t("common.action.close", "Close")}
                 </Button>,
             ]}
+            forceTopPosition
         >
             <OverviewItemList hasDivider columns={1}>
                 {sectionKeys.map((sectionKey) => (
