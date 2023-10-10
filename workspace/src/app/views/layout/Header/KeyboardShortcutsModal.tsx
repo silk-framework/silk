@@ -93,6 +93,7 @@ export const KeyboardShortcutsModal = () => {
                     {t("common.action.close", "Close")}
                 </Button>,
             ]}
+            forceTopPosition
         >
             <OverviewItemList hasDivider columns={1}>
                 {sectionKeys.map((sectionKey) => (
@@ -124,10 +125,15 @@ export const KeyboardShortcutsModal = () => {
                                     >
                                         <TagList>
                                             {shortcut.commands.map((command, i) => {
+                                                const keyDirective = command.replace("*", "");
                                                 return command.startsWith("*") ? (
                                                     <React.Fragment key={command + i}>
                                                         {" "}
-                                                        <p>{command.replace("*", "")}</p>{" "}
+                                                        <p>
+                                                            {t(
+                                                                `header.keyboardShortcutsModal.key-directives.${keyDirective}`
+                                                            )}
+                                                        </p>
                                                     </React.Fragment>
                                                 ) : (
                                                     <Tag key={command + i}>

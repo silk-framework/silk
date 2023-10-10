@@ -24,9 +24,12 @@ export const useKeyboardHeaderShortcuts = () => {
     const handlePageNavigation = React.useCallback(
         (filter: string) => {
             batch(() => {
-                if (projectId) {
+                if (projectId && filter !== "project") {
                     dispatch(routerOp.goToPage(`${SERVE_PATH}/projects/${projectId}`));
+                } else if (projectId && filter === "project") {
+                    dispatch(routerOp.goToPage(SERVE_PATH));
                 }
+
                 dispatch(
                     workspaceOp.applyFiltersOp({
                         itemType: filter,
@@ -50,7 +53,7 @@ export const useKeyboardHeaderShortcuts = () => {
         },
         {
             hotKey: "g p",
-            handler: () => !projectId && handlePageNavigation("project"),
+            handler: () => handlePageNavigation("project"),
         },
         {
             hotKey: "g w",

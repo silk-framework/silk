@@ -215,6 +215,9 @@
         "keyboardShortcutsModal": {
             "title": "Keyboard shortcuts",
             "categories-title": "Sections",
+            "key-directives": {
+                "then": "then"
+            },
             "categories": {
                 "general": {
                     "label": "Build",

@@ -246,6 +246,7 @@ export function RecentlyViewedModal() {
                     {t("common.action.close")}
                 </Button>
             }
+            forceTopPosition
         >
             {loading ? <Loading delay={0} /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
         </SimpleDialog>
