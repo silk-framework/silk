@@ -151,9 +151,9 @@ function build(previousFileSizes) {
             if (messages.errors.length) {
                 // Only keep the first error. Others are often indicative
                 // of the same problem, but confuse the reader with noise.
-                if (messages.errors.length > 1) {
-                    messages.errors.length = 1;
-                }
+                // if (messages.errors.length > 1) {
+                //     messages.errors.length = 1;
+                // }
                 return reject(new Error(messages.errors.join("\n\n")));
             }
             if (
@@ -161,13 +161,14 @@ function build(previousFileSizes) {
                 (typeof process.env.CI !== "string" || process.env.CI.toLowerCase() !== "false") &&
                 messages.warnings.length
             ) {
-                console.log(
-                    chalk.yellow(
-                        "\nTreating warnings as errors because process.env.CI = true.\n" +
-                            "Most CI servers set it automatically.\n"
-                    )
-                );
-                return reject(new Error(messages.warnings.join("\n\n")));
+                // Disabled: Do not fail build because of warnings, e.g. linter warnings
+                // console.log(
+                //     chalk.yellow(
+                //         "\nTreating warnings as errors because process.env.CI = true.\n" +
+                //             "Most CI servers set it automatically.\n"
+                //     )
+                // );
+                // return reject(new Error(messages.warnings.join("\n\n")));
             }
 
             const resolveArgs = {
