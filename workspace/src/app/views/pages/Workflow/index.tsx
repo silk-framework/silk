@@ -9,6 +9,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "../../shared/typings";
+import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 
 export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
@@ -59,6 +60,8 @@ export default function WorkflowPage() {
             <WorkspaceSide>
                 <Section>
                     <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
+                    <Spacing />
+                    <VariablesWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

@@ -92,6 +92,8 @@ trait TaskSpec {
     * @param updatedParameters A list of parameter values to be updated.
     *                          This can be a subset of all available parameters.
     *                          Parameter values that are not provided remain unchanged.
+    * @param dropExistingValues If true, the caller is expected to provide values for all parameters.
+    *                           If false, the updated parameters can be a subset of all available parameters.
     */
   def withParameters(updatedParameters: ParameterValues, dropExistingValues: Boolean = false)(implicit context: PluginContext): TaskSpec
 
