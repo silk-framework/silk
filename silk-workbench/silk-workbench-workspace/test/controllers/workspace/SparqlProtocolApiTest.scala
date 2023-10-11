@@ -1,9 +1,8 @@
 package controllers.workspace
 
 import java.net.URLEncoder
-
 import controllers.sparqlapi.SparqlProtocolApi
-import helper.IntegrationTestTrait
+import helper.{IntegrationTestTrait, RequestFailedException}
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.http.MimeTypes
@@ -218,7 +217,7 @@ class SparqlProtocolApiTest extends PlaySpec with IntegrationTestTrait with Sing
       .addHttpHeaders("Accept" -> "text/turtle")
       .addHttpHeaders("Content-Type" -> MimeTypes.FORM)
     val encodedQuery = URLEncoder.encode(query, "UTF-8")
-    val error = intercept[AssertionError](
+    val error = intercept[RequestFailedException](
       checkResponse(request.post[String]("query=" + encodedQuery))
     )
     error.getMessage.contains("text/turtle") mustBe true
@@ -230,7 +229,7 @@ class SparqlProtocolApiTest extends PlaySpec with IntegrationTestTrait with Sing
       .url(s"$baseUrl/workspace/rdfdataset/$projectId/$filmDescriptions/sparql")
       .addHttpHeaders("Accept" -> SparqlProtocolApi.SPARQLXMLRESULT)
       .addQueryStringParameters(("query", query))
-    val error = intercept[AssertionError](
+    val error = intercept[RequestFailedException](
       checkResponse(request.get())
     )
     error.getMessage.contains("Unsupported Query Type") mustBe true

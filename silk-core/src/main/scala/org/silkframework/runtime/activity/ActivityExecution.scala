@@ -175,6 +175,9 @@ private class ActivityExecution[T](activity: Activity[T],
           }
       }
     }
+    for (ex <- status().exception) {
+      throw ex
+    }
   }
 
   override def underlying: Activity[T] = activity
