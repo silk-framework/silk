@@ -37,7 +37,10 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>();
     const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [currentRuleId, setCurrentRuleId] = React.useState<string>("root");
+    const [currentRuleId, setCurrentRuleId] = React.useState<string>(() => {
+        const ruleId = new URLSearchParams(window.location.search).get("ruleId");
+        return ruleId ?? "root";
+    });
     const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
     const [error, setError] = React.useState<string>("");
     const [t] = useTranslation();
@@ -98,6 +101,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                             currentRuleId={currentRuleId}
                             handleRuleNavigation={handleRuleNavigation}
                             startFullScreen={startFullScreen}
+                            trackRuleInUrl
                         />
                     </GridColumn>
                     <GridColumn className="diapp-linking-evaluation">

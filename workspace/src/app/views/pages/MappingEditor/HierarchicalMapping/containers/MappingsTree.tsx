@@ -36,6 +36,8 @@ interface MappingTreeProps {
     startFullScreen?: boolean;
 }
 
+//React.useState<Map<string, boolean>>(new Map());
+
 /** Tree structure of nested object mapping rules of a transform task. */
 const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     ruleTree,
@@ -47,7 +49,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     startFullScreen,
 }) => {
     const [navigationLoading, setNavigationLoading] = React.useState<boolean>(false);
-    const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<string, boolean>>(new Map());
     const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo[]>([]);
     const [data, setData] = React.useState();
     const [t] = useTranslation();
@@ -70,11 +71,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         };
     }, []);
 
-    //caters for when a ruleId is in the search query, make sure it's expanded on load.
-    React.useEffect(() => {
-        setTreeExpansionMap((prev) => new Map([...prev, [currentRuleId, true]]));
-    }, [currentRuleId]);
-
     React.useEffect(() => {
         updateNavigationTree();
     }, [ruleTree, currentRuleId]);
@@ -83,15 +79,21 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         if (data) {
             setTreeNodes([buildTree(data)]);
         }
-    }, [data, treeExpansionMap, currentRuleId]);
+    }, [data, currentRuleId]);
 
-    const handleNodeExpand = React.useCallback((node) => {
-        setTreeExpansionMap((prev) => new Map([...prev, [node.id, true]]));
-    }, []);
+    const handleNodeExpand = React.useCallback(
+        (node) => {
+            setTreeNodes([buildTree(data, { nodeId: node.id, expanded: true })]);
+        },
+        [data, currentRuleId]
+    );
 
-    const handleNodeCollapse = React.useCallback((node) => {
-        setTreeExpansionMap((prev) => new Map([...prev, [node.id, false]]));
-    }, []);
+    const handleNodeCollapse = React.useCallback(
+        (node) => {
+            setTreeNodes([buildTree(data, { nodeId: node.id, expanded: false })]);
+        },
+        [data, currentRuleId]
+    );
 
     const renderRuleIcon = (ruleId) => {
         if (!ruleValidation || ruleValidation[ruleId] === undefined) {
@@ -104,7 +106,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     };
 
     const buildTree = React.useCallback(
-        (parent): TreeNodeInfo => {
+        (parent, config?: { nodeId: string; expanded: boolean }): TreeNodeInfo => {
             const { id, type: parentType, rules = {} } = parent;
 
             let allRules = [] as any[];
@@ -158,10 +160,18 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                     </Button>
                 </div>
             );
-            return {
+
+            let isExpanded =
+                config && config.nodeId === id
+                    ? config.expanded
+                    : currentRuleId === id
+                    ? true
+                    : parentType === MAPPING_RULE_TYPE_ROOT;
+
+            const tree = {
                 id,
                 hasCaret: !!childNodes.length,
-                isExpanded: treeExpansionMap.get(id) ?? parentType === MAPPING_RULE_TYPE_ROOT,
+                isExpanded,
                 label,
                 icon: !childNodes.length ? (
                     <Icon
@@ -170,10 +180,18 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                         className="ecc-silk-mapping__treenav--item-toggler"
                     />
                 ) : undefined,
-                childNodes: childNodes.map((child) => buildTree(child)),
+                childNodes: childNodes.map((child) => {
+                    const subtree = buildTree(child, config);
+                    if (!config && subtree.isExpanded) {
+                        isExpanded = true;
+                    }
+                    return subtree;
+                }),
             };
+            tree.isExpanded = isExpanded;
+            return tree;
         },
-        [treeExpansionMap, currentRuleId]
+        [currentRuleId]
     );
 
     const getRuleById = (searchId) => {
