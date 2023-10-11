@@ -169,13 +169,15 @@ private class ActivityExecution[T](activity: Activity[T],
         case NonFatal(ex) =>
           status() match {
             case Finished(false, _, _, Some(cause)) =>
-              throw cause
+              if(!activity.wasCancelled()) {
+                throw cause
+              }
             case _ =>
               throw ex
           }
       }
     }
-    for (ex <- status().exception) {
+    for (ex <- status().exception if !activity.wasCancelled()) {
       throw ex
     }
   }
