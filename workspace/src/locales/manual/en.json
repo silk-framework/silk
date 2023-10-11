@@ -893,7 +893,7 @@
             "title": "Activity overview"
         },
         "VariableWidget": {
-            "title": "Variables",
+            "title": "Project Variables",
             "noVariables": "No variables set.",
             "form": {
                 "name": "Name",
