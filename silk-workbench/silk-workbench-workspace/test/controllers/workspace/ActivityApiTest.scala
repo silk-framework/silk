@@ -21,7 +21,7 @@ import java.time.Duration
 
 class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTestTrait with BeforeAndAfterAll with Eventually {
 
-  private val projectId = "project"
+  private val projectId = "ActivityApiTest-project"
   private val taskId = "messageTask"
   private val simpleActivityId = "SimpleActivityFactory"
   private val multiActivityId = "MultiActivityFactory"
