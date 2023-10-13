@@ -126,6 +126,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                         ? t("linkingEvaluationTabView.table.header.expandTrees")
                                                         : t("linkingEvaluationTabView.table.header.expandRows")
                                                 }
+                                                toggleIcon={allRowsExpanded && !expandRowTrees ? "toggler-rowexpand" : undefined}
                                             />
                                             <TableHeader>{headers[0].header}</TableHeader>
                                         </TableRow>
