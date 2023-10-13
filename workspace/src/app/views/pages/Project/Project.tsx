@@ -17,7 +17,7 @@ import {
     WorkspaceSide,
 } from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { routerSel } from "@ducks/router";
+import { routerOp, routerSel } from "@ducks/router";
 import { commonOp, commonSel } from "@ducks/common";
 import Metadata from "../../shared/Metadata";
 import SearchList from "../../shared/SearchList";
@@ -35,6 +35,7 @@ import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
+import { IPageLabels } from "@ducks/router/operations";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -49,10 +50,15 @@ const Project = () => {
     const qs = useSelector(routerSel.routerSearchSelector);
     const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
+    const dataArrayRef = React.useRef(data);
 
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
+
+    React.useEffect(() => {
+        dataArrayRef.current = data;
+    }, [data]);
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -93,6 +99,21 @@ const Project = () => {
         autogeneratePageTitle: true,
     });
 
+    const handleEnterPressed = () => {
+        const firstResult = dataArrayRef.current[0];
+        const labels: IPageLabels = {};
+        if (firstResult && firstResult.itemLinks?.length) {
+            if (firstResult.type === DATA_TYPES.PROJECT) {
+                labels.projectLabel = firstResult.label;
+            } else {
+                labels.taskLabel = firstResult.label;
+            }
+            labels.itemType = firstResult.type;
+            handleSearch("");
+            setTimeout(() => dispatch(routerOp.goToPage(firstResult.itemLinks![0].path, labels)), 0);
+        }
+    };
+
     return !projectId ? (
         <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
     ) : error?.status === 404 ? (
@@ -123,7 +144,7 @@ const Project = () => {
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}
-                                        selectFirstResultItemOnEnter
+                                        onEnter={handleEnterPressed}
                                     />
                                 </GridColumn>
                             </GridRow>

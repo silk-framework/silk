@@ -6,11 +6,6 @@ import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
 import { useInvisibleCharacterCleanUpModal } from "../modals/InvisibleCharacterCleanUpModal";
 import { useSearch } from "../../../hooks/useSearch";
-import { batch, useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { DATA_TYPES } from "../../../constants";
-import { routerOp } from "@ducks/router";
-import { IPageLabels } from "@ducks/router/operations";
 
 /** The omitted properties are only set by this component and not propagated to SearchInput. */
 type ISearchBarSearchInputProps = Omit<
@@ -31,8 +26,6 @@ interface IProps extends ISearchBarSearchInputProps {
 
     /** Optional onEnter handler. Default is to refresh the current search. */
     onEnter?: () => any;
-    /** Optional property to select the first result item when Enter key is pressed. this doesn't override the existing OnEnter */
-    selectFirstResultItemOnEnter?: boolean;
 }
 
 /** A simple search bar. */
@@ -44,13 +37,10 @@ export function SearchBar({
     focusOnCreation = false,
     warnOfInvisibleCharacters = true,
     onEnter,
-    selectFirstResultItemOnEnter,
     ...otherProps
 }: IProps) {
     const [t] = useTranslation();
     const { query, setQuery, onChange, onEnter: onEnterRefreshSearch, onClear } = useSearch(onSearch, textQuery);
-    const workspaceSearchResult = useSelector(workspaceSel.resultsSelector);
-    const dispatch = useDispatch();
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
@@ -62,28 +52,7 @@ export function SearchBar({
         callbackDelay: 200,
     });
 
-    const searchOnEnter = React.useCallback(() => {
-        const firstResult = workspaceSearchResult[0];
-        const labels: IPageLabels = {};
-        if (firstResult && firstResult.itemLinks?.length) {
-            if (firstResult.type === DATA_TYPES.PROJECT) {
-                labels.projectLabel = firstResult.label;
-            } else {
-                labels.taskLabel = firstResult.label;
-            }
-            labels.itemType = firstResult.type;
-            onClear();
-            setTimeout(() => dispatch(routerOp.goToPage(firstResult.itemLinks![0].path, labels)), 0);
-        }
-    }, [workspaceSearchResult]);
-
-    const handleEnterPress = () => {
-        if (selectFirstResultItemOnEnter) {
-            searchOnEnter();
-        } else {
-            onEnter ? onEnter() : onEnterRefreshSearch();
-        }
-    };
+    const enterPressed = onEnter ? onEnter : onEnterRefreshSearch;
 
     return (
         <Toolbar>
@@ -94,7 +63,7 @@ export function SearchBar({
                     data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
                     onFilterChange={onChange}
-                    onEnter={handleEnterPress}
+                    onEnter={enterPressed}
                     filterValue={query}
                     onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
