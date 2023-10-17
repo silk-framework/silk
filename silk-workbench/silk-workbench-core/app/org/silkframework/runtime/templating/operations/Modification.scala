@@ -6,7 +6,7 @@ import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -47,7 +47,7 @@ abstract class Modification {
   def execute()(implicit user: UserContext): Unit = {
     val currentVariables = project.templateVariables.all
     val newVariables = updateVariables(currentVariables)
-    val updatedTaskIds = updateTasks(project, newVariables)
+    val updatedTaskIds = updateTasks(newVariables)
     project.templateVariables.put(newVariables)
     if(updatedTaskIds.nonEmpty) {
       log.info(s"$operation. The following tasks have been updated: " + updatedTaskIds)
@@ -56,7 +56,28 @@ abstract class Modification {
     }
   }
 
-  private def updateTasks(project: Project, newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
+  /**
+    * Retrieves the tasks that would become invalid by this modification.
+    */
+  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    val currentVariables = project.templateVariables.all
+    val newVariables = updateVariables(currentVariables)
+    val currentContext: PluginContext = PluginContext.fromProject(project)
+    val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
+    for (task <- project.allTasks) yield {
+      try {
+        hasUpdatedTemplateValues(task.parameters(currentContext), currentVariables, newVariables)
+      } catch {
+        case _: TemplateEvaluationException =>
+          // Task update would fail with the modified variables.
+          updatedTasks.append(task)
+      }
+      task
+    }
+    updatedTasks.toSeq
+  }
+
+  private def updateTasks(newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
     val currentVariables = project.templateVariables.all
 
     val currentContext: PluginContext = PluginContext.fromProject(project)

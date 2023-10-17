@@ -9,6 +9,23 @@ case class DeleteVariableModification(project: Project, variableName: String) ex
 
   override def operation: String = s"Deleted variable '$variableName'"
 
+  /**
+    * Retrieves the variables that use this variable.
+    */
+  def dependentVariables(): Seq[String] = {
+    try {
+      updateVariables(project.templateVariables.all)
+      Seq.empty
+    } catch {
+      case ex: CannotDeleteUsedVariableException =>
+        ex.dependentVariables
+      case _: TemplateVariablesEvaluationException =>
+        Seq.empty
+      case ex: Throwable =>
+        throw ex
+    }
+  }
+
   override protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables = {
     // Make sure that variable exists
     val variable = project.templateVariables.get(variableName)
