@@ -35,6 +35,7 @@ import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
 import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
+import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -53,6 +54,7 @@ const Project = () => {
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
+    const { onEnter } = useSelectFirstResult();
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -119,11 +121,11 @@ const Project = () => {
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
-                                        selectFirstResultItemOnEnter
                                         textQuery={effectiveSearchQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}
+                                        onEnter={onEnter}
                                     />
                                 </GridColumn>
                             </GridRow>

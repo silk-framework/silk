@@ -26,9 +26,6 @@ interface IProps extends ISearchBarSearchInputProps {
 
     /** Optional onEnter handler. Default is to refresh the current search. */
     onEnter?: () => any;
-
-    /** optional property to select the first result item when enter key is  pressed */
-    selectFirstResultItemOnEnter?: boolean;
 }
 
 /** A simple search bar. */
@@ -40,7 +37,6 @@ export function SearchBar({
     focusOnCreation = false,
     warnOfInvisibleCharacters = true,
     onEnter,
-    selectFirstResultItemOnEnter = false,
     ...otherProps
 }: IProps) {
     const [t] = useTranslation();
@@ -50,7 +46,7 @@ export function SearchBar({
         onChange,
         onEnter: onEnterRefreshSearch,
         onClear,
-    } = useSearch({ onSearch, searchQuery: textQuery, selectFirstResultItemOnEnter });
+    } = useSearch({ onSearch, searchQuery: textQuery });
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
