@@ -1,7 +1,7 @@
 import { coreApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { Variable } from "./typing";
+import { Variable, VariableDependencies } from "./typing";
 
 /**
  * Get variables per project
@@ -82,3 +82,9 @@ export const reorderVariablesRequest = (project, reorderedVariables: string[]) =
         method: "post",
         body: reorderedVariables,
     });
+
+export const getVariableDependencies = (
+    project: string,
+    variable: string
+): Promise<FetchResponse<VariableDependencies>> =>
+    fetch({ url: coreApi(`/variableTemplate/variables/${variable}/dependencies`), query: { project }, method: "get" });

@@ -52,6 +52,10 @@ export default function DeleteModal({
         confirmCheckbox.current?.blur();
     };
 
+    React.useEffect(() => {
+        // ()
+    }, []);
+
     // Only render content when modal is open
     const otherContent = !!render && isOpen ? render() : null;
     const [t] = useTranslation();

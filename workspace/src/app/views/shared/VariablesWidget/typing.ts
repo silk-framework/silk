@@ -12,3 +12,12 @@ export interface VariableWidgetProps {
     projectId: string;
     taskId?: string;
 }
+
+export interface VariableDependencies {
+    dependentVariables: string[];
+    dependentTasks: {
+        id: string;
+        label: string;
+        taskLink: string;
+    }[];
+}
