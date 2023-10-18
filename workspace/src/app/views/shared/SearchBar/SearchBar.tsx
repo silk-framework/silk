@@ -40,7 +40,13 @@ export function SearchBar({
     ...otherProps
 }: IProps) {
     const [t] = useTranslation();
-    const { query, setQuery, onChange, onEnter: onEnterRefreshSearch, onClear } = useSearch(onSearch, textQuery);
+    const {
+        query,
+        setQuery,
+        onChange,
+        onEnter: onEnterRefreshSearch,
+        onClear,
+    } = useSearch({ onSearch, searchQuery: textQuery });
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
         ? otherProps.emptySearchInputMessage
@@ -61,7 +67,7 @@ export function SearchBar({
                     data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
                     onFilterChange={onChange}
-                    onEnter={onEnter ?? onEnterRefreshSearch}
+                    onEnter={onEnter ? onEnter : onEnterRefreshSearch}
                     filterValue={query}
                     onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
