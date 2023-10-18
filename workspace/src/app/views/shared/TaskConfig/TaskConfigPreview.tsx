@@ -152,7 +152,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                     </PropertyValue>
                                 </PropertyValuePair>
                             </ToolbarSection>
-                            <ToolbarSection>
+                            <ToolbarSection style={{ minWidth: "50px", justifyContent: "right" }}>
                                 {taskResourceParameterType[paramId]?.type === "resource" && (
                                     <IconButton
                                         data-test-id={"resource-download-btn"}

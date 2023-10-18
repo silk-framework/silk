@@ -10,7 +10,15 @@ interface SearchHandlerReturnType {
     onEnter: () => void;
 }
 
-export const useSearch = (onSearch: (query: string) => void, searchQuery, delay = 500): SearchHandlerReturnType => {
+export const useSearch = ({
+    onSearch,
+    searchQuery,
+    delay = 500,
+}: {
+    onSearch: (query: string) => void;
+    searchQuery: string;
+    delay?: number;
+}): SearchHandlerReturnType => {
     const [query, setQuery] = React.useState<string>(searchQuery);
     const [isSearching, setIsSearching] = React.useState<boolean>(false);
 

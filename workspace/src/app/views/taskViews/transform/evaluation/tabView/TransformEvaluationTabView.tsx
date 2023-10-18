@@ -40,6 +40,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     const [currentRuleId, setCurrentRuleId] = React.useState<string>("root");
     const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
     const [error, setError] = React.useState<string>("");
+    const [expandRowTrees, setExpandRowTrees] = React.useState<boolean>(false);
     const [t] = useTranslation();
 
     React.useEffect(() => {
@@ -82,8 +83,16 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     );
 
     const expandAllRows = React.useCallback(() => {
-        setAllRowsExpanded((e) => !e);
-    }, []);
+        setAllRowsExpanded((e) => {
+            if (e && !expandRowTrees) {
+                //already expanded for first level
+                setExpandRowTrees(true);
+                return e;
+            }
+            setExpandRowTrees(false);
+            return !e;
+        });
+    }, [expandRowTrees]);
     /**
      * todo ui issues
      *  1. overflowing ui vertically and horizontally
@@ -111,9 +120,14 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                 isExpanded={allRowsExpanded}
                                                 onExpand={expandAllRows}
                                                 togglerText={
-                                                    allRowsExpanded
+                                                    allRowsExpanded && expandRowTrees
                                                         ? t("linkingEvaluationTabView.table.header.collapseRows")
+                                                        : allRowsExpanded && !expandRowTrees
+                                                        ? t("linkingEvaluationTabView.table.header.expandTrees")
                                                         : t("linkingEvaluationTabView.table.header.expandRows")
+                                                }
+                                                toggleIcon={
+                                                    allRowsExpanded && !expandRowTrees ? "toggler-rowexpand" : undefined
                                                 }
                                             />
                                             <TableHeader>{headers[0].header}</TableHeader>
@@ -128,6 +142,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                     {rows.map((rowItem, rowIdx) => (
                                                         <TransformEvaluationTabRow
                                                             zebra={rowIdx % 2 === 1}
+                                                            expandRowTrees={expandRowTrees}
                                                             key={rowIdx}
                                                             rowExpandedByParent={allRowsExpanded}
                                                             rowItem={rowItem}
