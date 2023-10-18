@@ -505,6 +505,7 @@
                 "score": "Score",
                 "linkState": "Link state",
                 "expandRows": "Expand all rows",
+                "expandTrees": "Expand all trees",
                 "collapseRows": "Collapse all rows"
             },
             "infoCollapsedInputValue": "Input values available",
