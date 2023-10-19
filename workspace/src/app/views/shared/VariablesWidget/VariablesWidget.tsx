@@ -133,9 +133,15 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     const renderDeleteVariable = React.useCallback(() => {
         if (!selectedVariable || !dependencies) return <></>;
+        const varyingDeleteTranslation =
+            dependencies.dependentTasks.length || dependencies.dependentVariables.length
+                ? "deletePromptWithDependencies"
+                : "deletePromptNoDep";
         return (
             <div>
-                {t("widget.VariableWidget.modalMessages.deletePrompt", { varname: selectedVariable.name })}
+                {t(`widget.VariableWidget.modalMessages.${varyingDeleteTranslation}`, {
+                    varname: selectedVariable.name,
+                })}
                 {(dependencies.dependentVariables?.length && (
                     <>
                         <Spacing />
