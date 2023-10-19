@@ -5,15 +5,15 @@ import {
     ContextMenu,
     Highlighter,
     IconButton,
+    Markdown,
     MenuDivider,
     MenuItem,
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    Depiction,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemDepiction,
     Spacing,
     Tag,
 } from "@eccenca/gui-elements";
@@ -30,7 +30,6 @@ import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import { Markdown } from "@eccenca/gui-elements";
 import highlightSearchWordsPluginFactory from "@eccenca/gui-elements/src/cmem/markdown/highlightSearchWords";
 import ProjectTags from "../ProjectTags/ProjectTags";
 

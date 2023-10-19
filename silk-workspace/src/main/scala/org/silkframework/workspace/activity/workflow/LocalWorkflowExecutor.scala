@@ -106,6 +106,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                              output: ExecutorOutput)
                             (process: Option[LocalEntities] => T)
                             (implicit workflowRunContext: WorkflowRunContext): T = {
+    // First execute all execution dependencies of this node
+    node.dependencyInputNodes foreach { nodeExecutedBefore =>
+      if (!workflowRunContext.alreadyExecuted.contains(nodeExecutedBefore.workflowNode)) {
+        executeWorkflowNode(nodeExecutedBefore, ExecutorOutput.empty) { _ =>
+          workflowRunContext.alreadyExecuted.add(nodeExecutedBefore.workflowNode)
+        }
+      }
+    }
     // Execute this node
     if (!cancelled) {
       node.workflowNode match {
@@ -113,6 +121,22 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           executeWorkflowDataset(node, output)(process)
         case operator: WorkflowOperator =>
           executeWorkflowOperator(node, output, operator)(process)
+      }
+    } else {
+      // Don't execute, workflow has been cancelled
+      process(None)
+    }
+  }
+
+  // Executes a workflow dependency if it has not been executed yet
+  def executeWorkflowExecutionDependency[T](node: WorkflowDependencyNode)
+                                           (process: Option[LocalEntities] => T)
+                                           (implicit workflowRunContext: WorkflowRunContext): Unit = {
+    if (!cancelled) {
+      if (!workflowRunContext.alreadyExecuted.contains(node.workflowNode)) {
+        executeWorkflowNode(node, ExecutorOutput.empty) { _ =>
+          workflowRunContext.alreadyExecuted.add(node.workflowNode)
+        }
       }
     } else {
       // Don't execute, workflow has been cancelled

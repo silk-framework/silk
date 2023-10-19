@@ -5,7 +5,6 @@ import {
     Button,
     Card,
     CardActionsAux,
-    Depiction,
     Grid,
     GridColumn,
     GridRow,
@@ -337,6 +336,10 @@ export function CreateArtefactModal() {
                                 updateExistingTask?.alternativeUpdateFunction
                             )
                         );
+                        updateExistingTask.successHandler?.({
+                            projectId: updateExistingTask.projectId,
+                            taskId: updateExistingTask.taskId,
+                        });
                     } else {
                         !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                         await dispatch(

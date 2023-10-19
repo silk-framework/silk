@@ -230,11 +230,12 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
+            WorkflowOperator(inputs = Seq(Some(DATASET_ID)), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0),
+              TRANSFORM_ID, None, configInputs = Seq.empty, dependencyInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty),
-            WorkflowDataset(Seq(TRANSFORM_ID), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), configInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), Seq.empty , dependencyInputs = Seq.empty),
+            WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))

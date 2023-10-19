@@ -197,7 +197,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   override def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = {
     val relatedWorkflowItems = for(workflow <- project.tasks[Workflow];
-        workflowNode <- workflow.data.nodes if workflowNode.inputs.contains(id.toString) || workflowNode.outputs.contains(id.toString)) yield {
+        workflowNode <- workflow.data.nodes if workflowNode.inputs.contains(Some(id.toString)) || workflowNode.outputs.contains(id.toString)) yield {
       workflowNode.task
     }
     relatedWorkflowItems.toSet

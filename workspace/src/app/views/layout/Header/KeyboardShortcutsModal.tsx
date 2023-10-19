@@ -97,8 +97,7 @@ export const KeyboardShortcutsModal = () => {
         >
             <OverviewItemList hasDivider columns={1}>
                 {sectionKeys.map((sectionKey) => (
-                    <section key={sectionKey}>
-                        <Spacing size="medium" />
+                    <section key={sectionKey} style={{ margin: "0.5em 0" }}>
                         <TitleSubsection>
                             {t(`header.keyboardShortcutsModal.categories.${sectionKey}.label`)}
                         </TitleSubsection>

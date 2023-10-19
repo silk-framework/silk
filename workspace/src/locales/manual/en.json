@@ -415,7 +415,8 @@
             "copied": "Copied",
             "unlimited": "unlimited",
             "added": "Added",
-            "removed": "Removed"
+            "removed": "Removed",
+            "paths": "Paths"
         }
     },
     "form": {
