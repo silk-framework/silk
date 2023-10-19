@@ -39,7 +39,8 @@ const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 const calculateBookmark = (
     id: string,
     unBookmarkedSuffix: string | undefined,
-    tabViews: Partial<IProjectTaskView & IItemLink>[]
+    tabViews: Partial<IProjectTaskView & IItemLink>[],
+    search = ""
 ) => {
     const pathnameArray = window.location.pathname.split("/");
     const [currentTab] = pathnameArray.slice(-1);
@@ -47,7 +48,7 @@ const calculateBookmark = (
     if (currentTabExist || (!!unBookmarkedSuffix && currentTab !== unBookmarkedSuffix)) {
         pathnameArray.splice(-1);
     }
-    return `${pathnameArray.join("/")}/${id}`;
+    return `${pathnameArray.join("/")}/${id}${search}`;
 };
 
 interface IProjectTaskTabView {
@@ -114,8 +115,10 @@ export function ProjectTaskTabView({
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [blockedTab, setBlockedTab] = React.useState<IItemLink | string | undefined>(undefined);
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
+    const [tabItemSearchMap, setTabItemSearchMap] = React.useState<Map<string, string>>(new Map());
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
+
     // Either the ID of an IItemLink or the view ID or undefined
     const activeTab: IProjectTaskView | IItemLink | undefined =
         activeIframePath?.id ?? itemLinkActive
@@ -183,7 +186,16 @@ export function ProjectTaskTabView({
             setOpenTabSwitchPrompt(false);
             setTabRouteChangeRequest(tabRoute?.id);
             !startFullscreen &&
-                dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)));
+                dispatch(
+                    history.replace(
+                        calculateBookmark(
+                            tabRoute?.id ?? "",
+                            taskId,
+                            viewsAndItemLink,
+                            tabItemSearchMap.get(tabRoute?.id ?? "")
+                        )
+                    )
+                );
         }
     };
 
@@ -211,6 +223,16 @@ export function ProjectTaskTabView({
             return taskViews[0]?.id ?? itemLinks[0];
         }
     };
+
+    React.useEffect(() => {
+        history.listen((location) => {
+            if (location.search) {
+                const pathnameArray = window.location.pathname.split("/");
+                const [currentTab] = pathnameArray.slice(-1);
+                setTabItemSearchMap((prev) => new Map([...prev, [currentTab, location.search]]));
+            }
+        });
+    }, []);
 
     React.useEffect(() => {
         if (iframeRef.current && selectedTab && itemLinks.length && taskViews) {
