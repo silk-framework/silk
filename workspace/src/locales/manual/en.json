@@ -904,7 +904,7 @@
             },
             "modalMessages": {
                 "deleteModalTitle": "Delete variable",
-                "deletePrompt": "The variable '{{varname}}' is used by other items! Deleting this variable will also delete all depending items listed below:"
+                "deletePrompt": "The variable '{{varname}}' is used by other variables! see dependency list below:"
             },
             "actions": {
                 "add": "Add variable",
