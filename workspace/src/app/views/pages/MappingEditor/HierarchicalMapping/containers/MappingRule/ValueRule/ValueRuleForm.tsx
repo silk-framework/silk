@@ -20,7 +20,6 @@ import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
-import { validateUriString } from "../../../../../../../views/pages/Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
 
 const LANGUAGES_LIST = [
     "en",

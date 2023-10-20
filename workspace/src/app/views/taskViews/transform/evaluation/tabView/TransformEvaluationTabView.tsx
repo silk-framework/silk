@@ -77,7 +77,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
         () =>
             evaluatedEntityResults.current?.evaluatedEntities.map((entity, i) => ({
                 uri: entity.uris[0],
-                id: `${i}`,
+                id: `id_${i}`,
             })) ?? [],
         [evaluatedEntityResults.current]
     );
@@ -126,7 +126,9 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                         ? t("linkingEvaluationTabView.table.header.expandTrees")
                                                         : t("linkingEvaluationTabView.table.header.expandRows")
                                                 }
-                                                toggleIcon={allRowsExpanded && !expandRowTrees ? "toggler-rowexpand" : undefined}
+                                                toggleIcon={
+                                                    allRowsExpanded && !expandRowTrees ? "toggler-rowexpand" : undefined
+                                                }
                                             />
                                             <TableHeader>{headers[0].header}</TableHeader>
                                         </TableRow>

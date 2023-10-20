@@ -82,7 +82,7 @@ export const newNode = ({
     error?: string;
 }): TreeNodeInfo<Partial<{ root: boolean; label: string }>> => {
     return {
-        id: rule.id,
+        id: `id_${rule.id}`,
         hasCaret: false,
         isExpanded: true,
         label: (
