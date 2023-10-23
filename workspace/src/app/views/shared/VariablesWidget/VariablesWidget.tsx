@@ -145,7 +145,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 {(dependencies.dependentVariables?.length && (
                     <>
                         <Spacing />
-                        <p>Dependent variables</p>
+                        <p>{t("widget.VariableWidget.dependencyTypes.variables", "Dependent variables")}</p>
                         <ul>
                             {dependencies.dependentVariables.map((variable) => (
                                 <li key={variable}>{variable}</li>
@@ -158,7 +158,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 {(dependencies.dependentTasks?.length && (
                     <>
                         <Spacing />
-                        <p>Dependent tasks</p>
+                        <p>{t("widget.VariableWidget.dependencyTypes.tasks", "Dependent tasks")}</p>
                         <ul>
                             {dependencies.dependentTasks.map((task) => (
                                 <li key={task.id}>
