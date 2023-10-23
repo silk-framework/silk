@@ -73,17 +73,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                     schema = new Schema(implementation = classOf[String], example = "file")
                   )
                   category: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val pluginTypes = Seq(
-      "org.silkframework.dataset.Dataset",
-      "org.silkframework.config.CustomTask"
-    )
-    val singlePlugins = Seq(
-      "workflow",
-      "transform",
-      "linking"
-    ) flatMap (pl => PluginRegistry.pluginDescriptionsById(pl, Some(Seq(classOf[TaskSpec]))))
-    val singlePluginsList = PluginList(ListMap("singleTasks" -> singlePlugins), addMarkdownDocumentation, overviewOnly = true)
-    pluginResult(addMarkdownDocumentation, pluginTypes, Some(singlePluginsList), textQuery, category, overviewOnly = true)
+    val singlePluginsList = PluginList(ListMap("singleTasks" -> PluginApi.specialTaskPlugins), addMarkdownDocumentation, overviewOnly = true)
+    pluginResult(addMarkdownDocumentation, PluginApi.taskPluginTypes, Some(singlePluginsList), textQuery, category, overviewOnly = true)
   }
 
   /** Return plugin description of a single plugin. */
@@ -380,5 +371,27 @@ object PluginApiCache {
           .toMap
       }
     }
+  }
+}
+
+object PluginApi {
+  val taskPluginTypes: Seq[String] = Seq(
+    "org.silkframework.dataset.Dataset",
+    "org.silkframework.config.CustomTask"
+  )
+
+  private def normalTaskPlugins(): Seq[PluginDescription[_]] = {
+    PluginList.load(taskPluginTypes, withMarkdownDocumentation = true).pluginDescriptions()
+  }
+
+  /** Plugins that are handled in a special way. */
+  lazy val specialTaskPlugins: Seq[PluginDescription[_]] = Seq(
+    "workflow",
+    "transform",
+    "linking"
+  ) flatMap (pluginId => PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec]))))
+
+  def taskplugins(): Seq[PluginDescription[_]] = {
+    specialTaskPlugins ++ normalTaskPlugins()
   }
 }

@@ -215,6 +215,8 @@ private class ActivityExecution[T](activity: Activity[T],
         ThreadLock.synchronized {
           runningThread = None
         }
+        // Clear interrupt flag
+        Thread.interrupted()
       }
     }
   }

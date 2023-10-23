@@ -20,10 +20,11 @@ interface TransformEvaluationTabRowProps {
     operatorPlugins: Array<IPluginDetails>;
     rules: Array<EvaluatedURIRule | EvaluatedComplexRule>;
     zebra?: boolean;
+    expandRowTrees: boolean;
 }
 
 const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = React.memo(
-    ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins, zebra = false }) => {
+    ({ rowItem, colSpan, rowExpandedByParent, entity, rules, operatorPlugins, zebra = false, expandRowTrees }) => {
         const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowExpandedByParent);
         const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<number, boolean>>(new Map());
         const [multipleTrees, setMultipleTrees] = React.useState<TreeNodeInfo[]>([]);
@@ -38,7 +39,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
             if (rowIsExpanded) {
                 buildTree();
             }
-        }, [treeExpansionMap, rowIsExpanded]);
+        }, [treeExpansionMap, rowIsExpanded, expandRowTrees]);
 
         const handleRowExpansion = React.useCallback(() => setRowIsExpanded((e) => !e), []);
 
@@ -62,8 +63,10 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
 
                     let treeNodeInfo = {
                         hasCaret: false,
-                        id: matchingRuleType.id,
-                        isExpanded: treeExpansionMap.get(idx),
+                        // Having an ID with the same name as a property of the Object prototype will lead to an exception.
+                        // This is a "bug" in Blueprint (Object creation via {} instead of Object.create(null)).
+                        id: `id_${matchingRuleType.id}`,
+                        isExpanded: expandRowTrees || treeExpansionMap.get(idx),
                         label: "",
                         childNodes: [],
                         nodeData: {
@@ -119,7 +122,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                     return treeNodeInfo;
                 })
             );
-        }, [treeExpansionMap]);
+        }, [treeExpansionMap, expandRowTrees]);
 
         return (
             <>
@@ -140,7 +143,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                         {multipleTrees.map((tree, idx) => (
                             <TableTree
                                 columnWidths={["30px", "100%"]}
-                                treeIsExpanded={!!treeExpansionMap.get(idx)}
+                                treeIsExpanded={expandRowTrees || !!treeExpansionMap.get(idx)}
                                 key={idx}
                                 nodes={[tree]}
                                 toggleTableExpansion={() => handleTreeExpansion(idx)}

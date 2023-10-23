@@ -5,7 +5,6 @@ import {
     Button,
     Card,
     CardActionsAux,
-    Depiction,
     Grid,
     GridColumn,
     GridRow,
@@ -337,6 +336,10 @@ export function CreateArtefactModal() {
                                 updateExistingTask?.alternativeUpdateFunction
                             )
                         );
+                        updateExistingTask.successHandler?.({
+                            projectId: updateExistingTask.projectId,
+                            taskId: updateExistingTask.taskId,
+                        });
                     } else {
                         !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                         await dispatch(
@@ -814,7 +817,7 @@ export function CreateArtefactModal() {
                             >
                                 {updateExistingTask ? t("common.action.update") : t("common.action.create")}
                             </Button>,
-                            <Button key="cancel" onClick={closeModal}>
+                            <Button key="cancel" data-test-id="create-dialog-cancel-btn" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
                             ...additionalButtons,

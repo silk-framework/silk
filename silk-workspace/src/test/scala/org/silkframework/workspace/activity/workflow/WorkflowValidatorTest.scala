@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.workflow
-
+
+
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.util.Identifier
@@ -54,7 +55,8 @@ class WorkflowValidatorTest extends AnyFlatSpec with Matchers with TestWorkspace
           position = (0, 0),
           nodeId = Identifier.random,
           outputPriority = None,
-          configInputs = Seq.empty
+          configInputs = Seq.empty,
+          dependencyInputs = Seq.empty
         )
       }
 

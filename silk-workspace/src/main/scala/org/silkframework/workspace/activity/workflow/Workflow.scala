@@ -57,7 +57,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     * A topologically sorted sequence of [[WorkflowOperator]] used in this workflow with the layer index, i.e.
     * in which layer this operator would be executed.
     */
-  lazy val topologicalSortedNodesWithLayerIndex: IndexedSeq[(WorkflowNode, Int)] = {
+  private lazy val topologicalSortedNodesWithLayerIndex: IndexedSeq[(WorkflowNode, Int)] = {
     val inputs = inputWorkflowNodeIds()
     val outputs = outputWorkflowNodeIds()
     val pureOutputNodes = outputs.toSet -- inputs
@@ -69,7 +69,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     var operatorsToSort = rest
     while (operatorsToSort.nonEmpty) {
       layer += 1
-      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.allInputs.forall(done))
+      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.allIncomingNodes.forall(done))
       if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow!")
       }
@@ -97,7 +97,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     val isolatedNodes = singleWorkflowNodes()
     val endNodes = (inputs.toSet -- outputs) ++ isolatedNodes
     val workflowNodeMap: Map[String, WorkflowDependencyNode] = constructNodeMap
-    val startDependencyNodes = startNodes.map(workflowNodeMap)
+    val startDependencyNodes = startNodes.toSeq.map(workflowNodeMap).sortBy(_.nodeId)
     val endDependencyNodes = sortWorkflowNodesByOutputPriority(endNodes.map(workflowNodeMap).toSeq)
     WorkflowDependencyGraph(startDependencyNodes, endDependencyNodes)
   }
@@ -127,6 +127,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
         depNode.addPrecedingNode(precedingNode)
         precedingNode.addFollowingNode(depNode)
       }
+      // TODO
       for (outputNode <- node.outputs) {
         val followingNode = workflowNodeMap.getOrElse(outputNode,
           throw new scala.RuntimeException("Unsatisfiable output dependency in workflow! Dependency: " + outputNode))
@@ -143,7 +144,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   private def validateAndGetReplaceableDatasetsOfCurrentWorkflow(): AllReplaceableDatasets = {
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
-    val workflowDatasetInputs = operators.flatMap(_.inputs.flatMap(datasetNodeMap.get)).distinct.toSet
+    val workflowDatasetInputs = operators.flatMap(_.inputs.flatten.flatMap(datasetNodeMap.get)).distinct.toSet
     val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
     if (replaceableInputUsedAsOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
@@ -279,21 +280,21 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
-  /** Returns node ids of workflow nodes that have inputs from other nodes */
+  /** Returns node ids of workflow nodes that have inputs (data or dependency) from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct
-    val nodesWithInputs = nodes.filter(n => n.allInputs.nonEmpty).map(_.nodeId)
+    val nodesWithInputs = nodes.filter(n => n.allIncomingNodes.nonEmpty).map(_.nodeId)
     (outputs ++ nodesWithInputs).distinct
   }
 
-  /** Returns node ids of workflow nodes that have neither inputs nor outputs */
+  /** Returns node ids of workflow nodes that have neither inputs nor outputs nor dependencies */
   def singleWorkflowNodes(): Seq[String] = {
-    nodes.filter(n => n.allInputs.isEmpty && n.outputs.isEmpty).map(_.nodeId)
+    nodes.filter(n => n.allIncomingNodes.isEmpty && n.outputs.isEmpty).map(_.nodeId)
   }
 
-  /** Returns node ids of workflow nodes that output data into other nodes */
+  /** Returns node ids of workflow nodes that have output connections (data or dependency) to other nodes */
   def outputWorkflowNodeIds(): Seq[String] = {
-    val inputs = nodes.flatMap(_.allInputs).distinct
+    val inputs = nodes.flatMap(_.allIncomingNodes).distinct
     val nodesWithOutputs = nodes.filter(_.outputs.nonEmpty).map(_.nodeId)
     (inputs ++ nodesWithOutputs).distinct
   }
@@ -308,7 +309,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     * At the moment, a workflow does not have any output.
     * It still declares an output, so it can be used to model dependencies.
     */
-  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
+  override def outputPort: Option[Port] = None
 
   /**
     * The tasks that this task reads from.
@@ -318,7 +319,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /**
     * The tasks that this task writes to.
     */
-  override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.nonEmpty).map(_.task).toSet
+  override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.exists(_.isDefined)).map(_.task).toSet
 
   /**
     * All tasks in this workflow.
@@ -436,7 +437,7 @@ case class AllReplaceableDatasets(dataSources: Seq[String], sinks: Seq[String]) 
 }
 
 /** The workflow dependency graph */
-case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
+case class WorkflowDependencyGraph(startNodes: Seq[WorkflowDependencyNode],
                                    endNodes: Seq[WorkflowDependencyNode])
 
 
@@ -546,10 +547,16 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
   /** The direct input nodes as [[WorkflowDependencyNode]] */
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (
-      input <- workflowNode.inputs;
+      input <- workflowNode.inputs.flatten;
       pNode <- precedingNodes.filter(_.nodeId == input)) yield {
       pNode
     }
+  }
+
+  /** The direct dependency input nodes as [[WorkflowDependencyNode]] */
+  def dependencyInputNodes: Seq[WorkflowDependencyNode] = {
+    val nodeSet = workflowNode.dependencyInputs.toSet
+    precedingNodes.filter(n => nodeSet.contains(n.nodeId)).toSeq
   }
 
   /** The config input nodes as [[WorkflowDependencyNode]] */

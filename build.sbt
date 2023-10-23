@@ -361,8 +361,8 @@ lazy val reactUI = (project in file("workspace"))
 
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, pluginsXml % "test->compile", pluginsRdf % "test->compile")
-  .aggregate(workspace)
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, pluginsXml % "test->compile", pluginsRdf % "test->compile", reactUI)
+  .aggregate(workspace, reactUI)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",
@@ -373,8 +373,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile", reactUI)
-  .aggregate(workbenchCore, reactUI)
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
+  .aggregate(workbenchCore)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace",
