@@ -128,9 +128,12 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
         // Redirect, get redirect URL
         val location = httpConnection.getHeaderField("Location")
         if(location.contains(":") && originalUrl.getProtocol != null && !location.startsWith(originalUrl.getProtocol + ":")) {
+          val fromProtocol = httpConnection.getURL.getProtocol
+          val toProtocol = location.split(":").head
           // Redirection to different protocols
           "Redirection to a different protocol happened. This is prevented for security reasons. Please change the protocol of the endpoint manually." +
-            s" Original protocol '${httpConnection.getURL.getProtocol}' redirected to protocol '${location.split(":").head}'."
+            s" Original protocol '$fromProtocol' redirected to protocol '$toProtocol'. " +
+            s"Changing the SPARQL endpoint URL to '$toProtocol${sparqlParams.uri.drop(fromProtocol.length)}' should solve the issue."
         } else {
           s"Problematic redirection (unknown reason) from URL '$originalUrl' to URL: '$location'"
         }
