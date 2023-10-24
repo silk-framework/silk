@@ -115,7 +115,6 @@ export function ProjectTaskTabView({
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [blockedTab, setBlockedTab] = React.useState<IItemLink | string | undefined>(undefined);
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
-    const [tabItemSearchMap, setTabItemSearchMap] = React.useState<Map<string, string>>(new Map());
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
 
@@ -174,6 +173,35 @@ export function ProjectTaskTabView({
         });
     }
 
+    const getTaskView = (selectedTab: IItemLink | string | undefined): IProjectTaskView | undefined => {
+        return (taskViews ?? []).find((tv) => tv.id === selectedTab);
+    };
+
+    /** Extracts the search query to propagate to the next task view. */
+    const extractSearchQuery = (toTaskView: IProjectTaskView): string => {
+        const queryParamsToKeep = toTaskView.queryParametersToKeep ?? [];
+
+        if (queryParamsToKeep.length) {
+            const keptParams = new URLSearchParams();
+            const currentSearchParams = new URLSearchParams(window.location.search);
+            let keep = false;
+            queryParamsToKeep.forEach((paramId) => {
+                if (currentSearchParams.has(paramId)) {
+                    const paramValue = currentSearchParams.get(paramId);
+                    keptParams.set(paramId, paramValue ?? "");
+                    keep = true;
+                }
+            });
+            if (keep) {
+                return "?" + keptParams.toString();
+            } else {
+                return "";
+            }
+        } else {
+            return "";
+        }
+    };
+
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string, overwrite = false) => {
         if (unsavedChanges && !overwrite) {
@@ -185,17 +213,10 @@ export function ProjectTaskTabView({
             setUnsavedChanges(false);
             setOpenTabSwitchPrompt(false);
             setTabRouteChangeRequest(tabRoute?.id);
+            const toTaskView = getTaskView(tabRoute?.id);
+            const queryToKeep = toTaskView ? extractSearchQuery(toTaskView) : "";
             !startFullscreen &&
-                dispatch(
-                    history.replace(
-                        calculateBookmark(
-                            tabRoute?.id ?? "",
-                            taskId,
-                            viewsAndItemLink,
-                            tabItemSearchMap.get(tabRoute?.id ?? "")
-                        )
-                    )
-                );
+                dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink, queryToKeep)));
         }
     };
 
@@ -223,16 +244,6 @@ export function ProjectTaskTabView({
             return taskViews[0]?.id ?? itemLinks[0];
         }
     };
-
-    React.useEffect(() => {
-        history.listen((location) => {
-            if (location.search) {
-                const pathnameArray = window.location.pathname.split("/");
-                const [currentTab] = pathnameArray.slice(-1);
-                setTabItemSearchMap((prev) => new Map([...prev, [currentTab, location.search]]));
-            }
-        });
-    }, []);
 
     React.useEffect(() => {
         if (iframeRef.current && selectedTab && itemLinks.length && taskViews) {

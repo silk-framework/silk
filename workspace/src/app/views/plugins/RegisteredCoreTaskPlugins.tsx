@@ -54,6 +54,7 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("transform", {
             id: "hierarchicalMappingEditor",
             label: "Mapping editor",
+            queryParametersToKeep: ["ruleId"],
             render(
                 projectId: string,
                 taskId: string,
@@ -74,6 +75,7 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("transform", {
             id: "TransformExecution",
             label: "Transform execution",
+            queryParametersToKeep: ["ruleId"],
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
                 return <TransformExecutionTab taskId={taskId} projectId={projectId} />;
             },
@@ -82,6 +84,7 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("transform", {
             id: "transformEvaluation",
             label: "Transform evaluation",
+            queryParametersToKeep: ["ruleId"],
             render(
                 projectId: string,
                 taskId: string,

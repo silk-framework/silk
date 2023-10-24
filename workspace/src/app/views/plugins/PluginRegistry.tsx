@@ -24,6 +24,8 @@ export interface IProjectTaskView {
     label: string;
     // Function that renders the view
     render: (projectId: string, taskId: string, viewActions?: IViewActions, startInFullScreen?: boolean) => JSX.Element;
+    /** The query parameters to get from other tabs or propagate to other tabs. */
+    queryParametersToKeep?: string[];
 }
 
 /** A plugin component that can receive arbitrary parameters. */
