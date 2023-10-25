@@ -29,8 +29,9 @@ class EvaluateTransform @Inject() (implicit accessMonitor: WorkbenchAccessMonito
     val task = project.task[TransformSpec](taskName)
     val ruleSchema = ruleName match {
       case Some(name) =>
+        val objectMappingId = task.data.objectMappingIdOfRule(name).getOrElse(name)
         task.data.ruleSchemataWithoutEmptyObjectRules
-            .find(_.transformRule.id.toString == name)
+            .find(_.transformRule.id.toString == objectMappingId)
             .getOrElse(throw new NotFoundException(s"Mapping rule '$name' is either an empty object rule, i.e. it has at most a URI rule, or is not part of task '$taskName' in project '$projectName'."))
       case None =>
         task.data.ruleSchemataWithoutEmptyObjectRules.head
