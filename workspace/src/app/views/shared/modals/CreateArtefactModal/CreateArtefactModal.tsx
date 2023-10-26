@@ -291,8 +291,8 @@ export function CreateArtefactModal() {
         }
     };
 
-    const handleBack = () => {
-        resetModal();
+    const handleBack = (closeModal?: boolean) => {
+        resetModal(closeModal);
     };
 
     const taskType = React.useCallback(
@@ -389,7 +389,6 @@ export function CreateArtefactModal() {
         form.reset();
         setFormValueChanges({});
         form.clearError();
-
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -540,7 +539,8 @@ export function CreateArtefactModal() {
                     registerForExternalChanges,
                     templateFlag,
                 }}
-                goBackOnEscape={handleBack}
+                // Close modal immediately from update dialog
+                goBackOnEscape={() => handleBack(true)}
             />
         );
     } else {
@@ -823,7 +823,11 @@ export function CreateArtefactModal() {
                             ...additionalButtons,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button data-test-id={"create-dialog-back-btn"} key="back" onClick={handleBack}>
+                                    <Button
+                                        data-test-id={"create-dialog-back-btn"}
+                                        key="back"
+                                        onClick={() => handleBack(false)}
+                                    >
                                         {t("common.words.back", "Back")}
                                     </Button>
                                 )}
