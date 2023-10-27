@@ -37,6 +37,11 @@ trait ExecutionReportUpdater {
   private var numberOfExecutions = 0
   private var error: Option[String] = None
 
+  if(entityLabelPlural != "Entities" && entityProcessVerb != "processed") {
+    // Change the status message if any of those are not the defaults
+    update(force = true, addEndTime = false)
+  }
+
   def additionalFields(): Seq[(String, String)] = Seq.empty
 
   /** Increases the number of entities that were processed/generated. */
@@ -96,7 +101,8 @@ trait ExecutionReportUpdater {
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, s"${entityLabelPlural.toLowerCase} $entityProcessVerb"))
+      val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage))
       lastUpdate = System.currentTimeMillis()
     }
   }
