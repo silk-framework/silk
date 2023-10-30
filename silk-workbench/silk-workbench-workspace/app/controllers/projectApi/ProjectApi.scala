@@ -168,10 +168,12 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       if(label == "") {
         throw BadUserInputException("The label must not be empty!")
       }
-      val generatedId = IdentifierUtils.generateProjectId(label)
+
+      val projectId = request.newTaskId.getOrElse(IdentifierUtils.generateProjectId(label).toString)
+
       val project = getProject(fromProjectId)
       val requestMetaData = request.metaData.asMetaData
-      val clonedProjectConfig = project.config.copy(id = generatedId, metaData = requestMetaData.copy(tags = requestMetaData.tags ++ project.metaData.tags))
+      val clonedProjectConfig = project.config.copy(id = projectId, metaData = requestMetaData.copy(tags = requestMetaData.tags ++ project.metaData.tags))
       val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
       WorkspaceIO.copyResources(project.resources, clonedProject.resources)
       // Clone tags
@@ -184,8 +186,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(clonedProject))
         clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
       }
-      val projectLink = ItemType.itemDetailsPage(ItemType.project, generatedId, generatedId).path
-      Created(Json.toJson(ItemCloneResponse(generatedId, projectLink)))
+      val projectLink = ItemType.itemDetailsPage(ItemType.project, projectId, projectId).path
+      Created(Json.toJson(ItemCloneResponse(projectId, projectLink)))
     }
   }
 

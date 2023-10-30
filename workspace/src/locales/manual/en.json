@@ -369,6 +369,7 @@
             "anErrorHasOccurred": "An error has occurred.",
             "allTypes": "All types",
             "cloneModalTitle": "New name of cloned {{item}}",
+            "cloneModalIdentifier": "Custom identifier for {{item}} (optional)",
             "cloneOf": "Copy of {{item}}",
             "copyModalTitle": "New name of copied {{item}}",
             "copyModalProjectSelect": "Select Project Target",

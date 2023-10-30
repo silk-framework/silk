@@ -100,11 +100,14 @@ export const requestCopyTask = async (projectId: string, taskId: string, payload
 export const requestCloneTask = async (
     taskId: string,
     projectId: string,
-    payload: any
+    payload: any,
+    newTask?: string
 ): Promise<FetchResponse<IClonedItem>> => {
+    const query = newTask ? { newTask } : {};
     return fetch({
         url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/clone`),
         method: "POST",
+        query,
         body: payload,
     });
 };

@@ -20,6 +20,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     // Value of the new label for the cloned project or task
     const [newLabel, setNewLabel] = useState(item.label || item.id || item.projectLabel || item.projectId);
     const [description, setDescription] = useState(item.description);
+    const [customTaskId, setCustomTaskId] = React.useState<string>("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     // Label of the project or task that should be cloned
@@ -60,9 +61,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 },
             };
 
+            const newTask = customTaskId.trim().replace(/\s/g, "-");
             const response = id
-                ? await requestCloneTask(id, projectId, payload)
-                : await requestCloneProject(projectId, payload);
+                ? await requestCloneTask(id, projectId, payload, newTask)
+                : await requestCloneProject(projectId, { ...payload, newTaskId: newTask });
             onConfirmed && onConfirmed(newLabel, response.data.detailsPage);
         } catch (e) {
             if (e.isFetchError) {
@@ -76,11 +78,14 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     };
 
     useHotKey({ hotkey: "enter", handler: handleCloning });
-    const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback((event): void => {
-        if (event.key === "Enter") {
-            handleCloning();
-        }
-    }, []);
+    const enterHandler: KeyboardEventHandler<HTMLInputElement> = React.useCallback(
+        (event): void => {
+            if (event.key === "Enter") {
+                handleCloning();
+            }
+        },
+        [item, description, newLabel, customTaskId]
+    );
 
     return loading ? (
         <Loading delay={0} />
@@ -123,9 +128,21 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }),
                 }}
             >
+                <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} autoFocus={true} />
+            </FieldItem>
+
+            <FieldItem
+                key={"label"}
+                labelProps={{
+                    htmlFor: "label",
+                    text: t("common.messages.cloneModalIdentifier", {
+                        item: item.id ? t("common.dataTypes.task") : t("common.dataTypes.project"),
+                    }),
+                }}
+            >
                 <TextField
-                    onChange={(e) => setNewLabel(e.target.value)}
-                    value={newLabel}
+                    onChange={(e) => setCustomTaskId(e.target.value)}
+                    value={customTaskId}
                     autoFocus={true}
                     onKeyUp={enterHandler}
                 />
