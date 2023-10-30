@@ -6,7 +6,7 @@ import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues
 import org.silkframework.runtime.templating.exceptions._
 import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.Project
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -56,27 +56,6 @@ abstract class Modification {
     }
   }
 
-  /**
-    * Retrieves the tasks that would become invalid by this modification.
-    */
-  def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    val currentVariables = project.templateVariables.all
-    val newVariables = updateVariables(currentVariables)
-    val currentContext: PluginContext = PluginContext.fromProject(project)
-    val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
-    for (task <- project.allTasks) yield {
-      try {
-        hasUpdatedTemplateValues(task.parameters(currentContext), currentVariables, newVariables)
-      } catch {
-        case _: TemplateEvaluationException =>
-          // Task update would fail with the modified variables.
-          updatedTasks.append(task)
-      }
-      task
-    }
-    updatedTasks.toSeq
-  }
-
   private def updateTasks(newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
     val currentVariables = project.templateVariables.all
 
@@ -107,7 +86,7 @@ abstract class Modification {
     updatedTasks.map(_._1)
   }
 
-  private def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
+  protected def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
     var updated = false
     breakable {
       for (parameters <- parameters.values.values) {

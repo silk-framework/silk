@@ -259,12 +259,8 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     val project = WorkspaceFactory().workspace.project(projectName)
     val modification = DeleteVariableModification(project, variableName)
     val dependentVariables = modification.dependentVariables()
-    if(dependentVariables.nonEmpty) {
-      Ok(Json.toJson(VariableDependencies(dependentVariables, Seq.empty)))
-    } else {
-      val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
-      Ok(Json.toJson(VariableDependencies(Seq.empty, dependentTaskLinks)))
-    }
+    val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
+    Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
   }
 
   @Operation(
