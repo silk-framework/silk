@@ -6,7 +6,7 @@ import play.api.libs.json.{Format, Json}
 /**
   * A request to clone a task.
   */
-case class ItemCloneRequest(metaData: ItemMetaData, newTaskId: Option[String])
+case class ItemCloneRequest(metaData: ItemMetaData, newTaskId: Option[String] = None)
 
 object ItemCloneRequest {
   implicit val taskCloneRequestFormat: Format[ItemCloneRequest] = Json.format[ItemCloneRequest]

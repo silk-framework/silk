@@ -169,7 +169,10 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         throw BadUserInputException("The label must not be empty!")
       }
 
-      val projectId = request.newTaskId.getOrElse(IdentifierUtils.generateProjectId(label).toString)
+      val projectId: String = request.newTaskId match {
+        case Some(value) if value.nonEmpty => value // Use the non-empty string
+        case _ => IdentifierUtils.generateProjectId(label).toString // Handle empty string or None case
+      }
 
       val project = getProject(fromProjectId)
       val requestMetaData = request.metaData.asMetaData

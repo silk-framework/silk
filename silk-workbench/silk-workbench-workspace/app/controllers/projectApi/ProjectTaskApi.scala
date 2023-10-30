@@ -266,7 +266,10 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         throw BadUserInputException(  "The label must not be empty!")
       }
 
-      val taskId = request.newTaskId.getOrElse(IdentifierUtils.generateProjectId(label).toString)
+      val projectId: String = request.newTaskId match {
+        case Some(value) if value.nonEmpty => value // Use the non-empty string
+        case _ => IdentifierUtils.generateProjectId(label).toString // Handle empty string or None case
+      }
 
       val (project, fromTask) = projectAndAnyTask(projectId, taskId)
       // Clone task spec, since task specs may contain state, e.g. RDF file dataset
