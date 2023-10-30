@@ -48,6 +48,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
     const [t] = useTranslation();
 
+    const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
+
     // initial loading of variables
     React.useEffect(() => {
         (async () => {
@@ -133,10 +135,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     const renderDeleteVariable = React.useCallback(() => {
         if (!selectedVariable || !dependencies) return <></>;
-        const varyingDeleteTranslation =
-            dependencies.dependentTasks.length || dependencies.dependentVariables.length
-                ? "deletePromptWithDependencies"
-                : "deletePromptNoDep";
+        const varyingDeleteTranslation = variableHasDependencies ? "deletePromptWithDependencies" : "deletePromptNoDep";
         return (
             <div>
                 {t(`widget.VariableWidget.modalMessages.${varyingDeleteTranslation}`, {
@@ -195,6 +194,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 isOpen={deleteModalOpen}
                 onDiscard={() => setDeleteModalOpen(false)}
                 removeLoading={isDeleting}
+                deleteDisabled={!!variableHasDependencies}
                 errorMessage={deleteErrorMsg}
                 render={renderDeleteVariable}
             />
