@@ -266,7 +266,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         throw BadUserInputException(  "The label must not be empty!")
       }
 
-      val projectId: String = request.newTaskId match {
+      val newTaskId: String = request.newTaskId match {
         case Some(value) if value.nonEmpty => value // Use the non-empty string
         case _ => IdentifierUtils.generateProjectId(label).toString // Handle empty string or None case
       }
@@ -276,10 +276,10 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       implicit val context: PluginContext = PluginContext.fromProject(project)
       val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
       val requestMetaData = request.metaData.asMetaData
-      project.addAnyTask(taskId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
+      project.addAnyTask(newTaskId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
       val itemType = ItemType.itemType(fromTask)
-      val taskLink = ItemType.itemDetailsPage(itemType, projectId, taskId).path
-      Created(Json.toJson(ItemCloneResponse(taskId, taskLink)))
+      val taskLink = ItemType.itemDetailsPage(itemType, projectId, newTaskId).path
+      Created(Json.toJson(ItemCloneResponse(newTaskId, taskLink)))
     }
   }
 
