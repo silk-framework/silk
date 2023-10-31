@@ -11,10 +11,12 @@ interface IProps {
     pluginId?: string;
     projectId?: string;
     taskId?: string;
+    /** Called when the task tab view is closed. Only valid when this is an overlay version of the task tabs. */
+    onCloseModal?: () => any;
 }
 
-/** An I-frame supported version for item links. */
-export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, projectId }: IProps) => {
+/** Shows custom views of a project task. */
+export const useProjectTaskTabsView = ({ srcLinks, startLink, pluginId, taskId, projectId, onCloseModal }: IProps) => {
     const [activeTab, setActiveTab] = useState<IItemLink | string | undefined>(startLink);
     const taskViews = pluginId ? pluginRegistry.taskViews(pluginId) : [];
     const menuItems = taskViews.map(({ id, label }) => (
@@ -43,7 +45,10 @@ export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, proj
             startWithLink={activeTab}
             startFullscreen={true}
             taskViewConfig={taskViewConfig}
-            handlerRemoveModal={() => changeTab(undefined)}
+            handlerRemoveModal={() => {
+                onCloseModal?.();
+                changeTab(undefined);
+            }}
         />
     ) : null;
 
