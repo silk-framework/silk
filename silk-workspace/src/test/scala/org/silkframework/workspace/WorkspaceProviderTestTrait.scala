@@ -250,7 +250,10 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     PlainTask(
       id = WORKFLOW_ID,
       data = miniWorkflow.data.copy(
-        operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
+        operators = miniWorkflow.operators.map(op => op.copy(position = (100, 100), outputs = op.outputs ++ Seq(CUSTOM_TASK_ID))) ++ Seq(
+          WorkflowOperator(inputs = Seq(), task = CUSTOM_TASK_ID, outputs = Seq(), Seq(), (0, 0),
+            CUSTOM_TASK_ID, None, configInputs = Seq(TRANSFORM_ID), dependencyInputs = Seq(DATASET_ID))
+        ),
         datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
       ),
       metaData = metaDataUpdated
