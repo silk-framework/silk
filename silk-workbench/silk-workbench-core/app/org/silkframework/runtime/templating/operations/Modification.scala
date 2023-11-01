@@ -47,7 +47,7 @@ abstract class Modification {
   def execute()(implicit user: UserContext): Unit = {
     val currentVariables = project.templateVariables.all
     val newVariables = updateVariables(currentVariables)
-    val updatedTaskIds = updateTasks(project, newVariables)
+    val updatedTaskIds = updateTasks(newVariables)
     project.templateVariables.put(newVariables)
     if(updatedTaskIds.nonEmpty) {
       log.info(s"$operation. The following tasks have been updated: " + updatedTaskIds)
@@ -56,7 +56,7 @@ abstract class Modification {
     }
   }
 
-  private def updateTasks(project: Project, newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
+  private def updateTasks(newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
     val currentVariables = project.templateVariables.all
 
     val currentContext: PluginContext = PluginContext.fromProject(project)
@@ -86,7 +86,7 @@ abstract class Modification {
     updatedTasks.map(_._1)
   }
 
-  private def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
+  protected def hasUpdatedTemplateValues(parameters: ParameterValues, currentVariables: TemplateVariables, newVariables: TemplateVariables): Boolean = {
     var updated = false
     breakable {
       for (parameters <- parameters.values.values) {

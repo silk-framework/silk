@@ -935,9 +935,14 @@
                 "infoBoxTitle": "Project variables",
                 "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
             },
+            "dependencyTypes": {
+                "tasks": "Dependent tasks",
+                "variables": "Dependent variables"
+            },
             "modalMessages": {
                 "deleteModalTitle": "Delete variable",
-                "deletePrompt": "Are you sure you want to delete variable '{{varname}}'?"
+                "deletePromptWithDependencies": "The variable '{{varname}}' cannot be deleted because it is used at the following places:",
+                "deletePromptNoDep": "Are you sure you want to delete variable '{{varname}}'?"
             },
             "actions": {
                 "add": "Add variable",

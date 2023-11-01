@@ -9,9 +9,11 @@ POST       /variableTemplate/variables        controllers.workspaceApi.coreApi.V
 GET        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.getVariable(project: String, name: String)
 PUT        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.putVariable(project: String, name: String)
 DELETE     /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.deleteVariable(project: String, name: String)
+GET        /variableTemplate/variables/:name/dependencies  controllers.workspaceApi.coreApi.VariableTemplateApi.variableDependencies(project: String, name: String)
 POST       /variableTemplate/reorderVariables controllers.workspaceApi.coreApi.VariableTemplateApi.reorderVariables(project: String)
 POST       /variableTemplate/validation       controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
 POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
+
 GET        /datasets/resourceBased    controllers.workspaceApi.coreApi.PluginApi.resourceBasedDatasetIds()
 
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()
