@@ -7,6 +7,8 @@ import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { IModalItem } from "@ducks/shared/typings";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
+import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
+import { debounce } from "lodash";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -20,7 +22,8 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     // Value of the new label for the cloned project or task
     const [newLabel, setNewLabel] = useState(item.label || item.id || item.projectLabel || item.projectId);
     const [description, setDescription] = useState(item.description);
-    const [customTaskId, setCustomTaskId] = React.useState<string>("");
+    const [customId, setCustomId] = React.useState<string>("");
+    const [identifierValidationMsg, setIdentifierValidationMsg] = React.useState<string>("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     // Label of the project or task that should be cloned
@@ -49,6 +52,43 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         }
     };
 
+    const verifyCustomId = debounce(
+        React.useCallback(
+            async (id: string) => {
+                if (id) {
+                    try {
+                        const res = !item.id
+                            ? await requestProjectIdValidation(id)
+                            : await requestTaskIdValidation(id, item.projectId);
+
+                        if (res.axiosResponse.status === 204) {
+                            setIdentifierValidationMsg("");
+                        }
+                    } catch (err) {
+                        if (err.httpStatus === 409) {
+                            setIdentifierValidationMsg(t("CreateModal.CustomIdentifierInput.validations.unique"));
+                        } else if (err.httpStatus === 400) {
+                            setIdentifierValidationMsg(t("CreateModal.CustomIdentifierInput.validations.invalid"));
+                        } else {
+                            setIdentifierValidationMsg("There has been an error validating the custom ID.");
+                        }
+                    }
+                }
+            },
+            [item]
+        ),
+        1000
+    );
+
+    const handleCustomIdChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const newCustomId = e.target.value.trim();
+            setCustomId(newCustomId);
+            verifyCustomId(newCustomId);
+        },
+        [item]
+    );
+
     const handleCloning = async () => {
         const { projectId, id } = item;
         setError(null);
@@ -61,10 +101,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 },
             };
 
-            const newTask = customTaskId.trim().replace(/\s/g, "-");
             const response = id
-                ? await requestCloneTask(id, projectId, payload, newTask)
-                : await requestCloneProject(projectId, { ...payload, newTaskId: newTask });
+                ? await requestCloneTask(id, projectId, payload, customId)
+                : await requestCloneProject(projectId, { ...payload, newTaskId: customId });
             onConfirmed && onConfirmed(newLabel, response.data.detailsPage);
         } catch (e) {
             if (e.isFetchError) {
@@ -84,7 +123,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 handleCloning();
             }
         },
-        [item, description, newLabel, customTaskId]
+        [item, description, newLabel, customId]
     );
 
     return loading ? (
@@ -120,7 +159,6 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             ]}
         >
             <FieldItem
-                key={"label"}
                 labelProps={{
                     htmlFor: "label",
                     text: t("common.messages.cloneModalTitle", {
@@ -132,17 +170,19 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             </FieldItem>
 
             <FieldItem
-                key={"label"}
                 labelProps={{
-                    htmlFor: "label",
+                    htmlFor: "customId",
                     text: t("common.messages.cloneModalIdentifier", {
                         item: item.id ? t("common.dataTypes.task") : t("common.dataTypes.project"),
                     }),
                 }}
+                hasStateDanger={!!identifierValidationMsg}
+                messageText={identifierValidationMsg}
             >
                 <TextField
-                    onChange={(e) => setCustomTaskId(e.target.value)}
-                    value={customTaskId}
+                    intent={!!identifierValidationMsg ? "danger" : "none"}
+                    onChange={handleCustomIdChange}
+                    value={customId}
                     autoFocus={true}
                     onKeyUp={enterHandler}
                 />
