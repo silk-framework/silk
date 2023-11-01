@@ -72,7 +72,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
     val parsedParameters = parseParameters(parameterValues)
     try {
       val plugin = constructor.newInstance(parsedParameters: _*)
-      plugin.templateValues = parameterValues.templates
+      plugin.init(this, parameterValues.templates)
       plugin
     } catch {
       case ex: InvocationTargetException => throw ex.getCause
