@@ -180,6 +180,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 messageText={identifierValidationMsg}
             >
                 <TextField
+                    data-test-id="clone-custom-id"
                     intent={!!identifierValidationMsg ? "danger" : "none"}
                     onChange={handleCustomIdChange}
                     value={customId}
