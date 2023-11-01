@@ -126,10 +126,10 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
-    libraryDependencies += "commons-io" % "commons-io" % "2.4",
+    libraryDependencies += "commons-io" % "commons-io" % "2.15.0",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
-    libraryDependencies += "xalan" % "xalan" % "2.7.2"
+    libraryDependencies += "xalan" % "xalan" % "2.7.3"
   )
 
 lazy val rules = (project in file("silk-rules"))
