@@ -138,8 +138,8 @@ lazy val rules = (project in file("silk-rules"))
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.5.4",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "4.7.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "4.7.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "4.9.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "4.9.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -160,7 +160,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.7.0" % "test",
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "4.9.0" % "test",
     libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.3"
 )
 
