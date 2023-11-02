@@ -22,6 +22,7 @@ class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrati
       "singleProject/dataset/miniCsv.xml",
       "singleProject/dataset/internalDataset.xml",
       "singleProject/resources/miniResource.csv",
+      "singleProject/variables.xml",
       "singleProject/tags.xml",
       "singleProject/config.xml"
     ))
@@ -40,6 +41,7 @@ class XmlWorkspaceExportIntegrationTest extends AnyFlatSpec with ExportIntegrati
       "singleProject/dataset/miniCsv.xml",
       "singleProject/dataset/internalDataset.xml",
       "singleProject/resources/miniResource.csv",
+      "singleProject/variables.xml",
       "singleProject/tags.xml",
       "singleProject/config.xml"
     ))
