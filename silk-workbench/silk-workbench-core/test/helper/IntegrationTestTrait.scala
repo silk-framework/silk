@@ -502,7 +502,7 @@ trait IntegrationTestTrait extends TaskApiClient
       val responseJson = checkResponse(response).json
       cachesLoaded = responseJson.as[JsBoolean].value
       if(!cachesLoaded)
-        Thread.sleep(1000)
+        Thread.sleep(200)
     } while(!cachesLoaded)
   }
 }

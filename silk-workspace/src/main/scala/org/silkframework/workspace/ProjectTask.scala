@@ -236,9 +236,3 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     metaData.tags.map(uri => project.tagManager.getTag(uri))
   }
 }
-
-object ProjectTask {
-
-  /* Do not persist updates more frequently than this (in seconds) */
-  val writeInterval = 3
-}
