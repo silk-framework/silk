@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource._
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngine, TemplateVariableValue}
+import org.silkframework.runtime.templating.{CompiledTemplate, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Workspace}
@@ -76,8 +76,6 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
       resources.list shouldBe empty
     }
 
-    implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources)
-
     // Project
     val project = workspace.readProject(projectName).get
 
@@ -88,6 +86,9 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     variables.map("linkLimit").value shouldBe "1000"
     variables.map("linkLimitTimesTen").value shouldBe "10000"
 
+    implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources,
+      templateVariables = InMemoryTemplateVariablesReader(variables, Set("project")))
+
     // Datasets
     val datasets = workspace.readTasks[GenericDatasetSpec](projectName)
     datasets.map(_.task.id.toString) should contain allOf("DBpedia", "linkedmdb")
@@ -95,10 +96,12 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     val linkedmdbDataset = datasets.find(_.task.id.toString == "linkedmdb").get.task
 
     // Linking task
-    val linkingTask = workspace.readTasks[LinkSpec](projectName)
-    linkingTask.map(_.task.id.toString) should contain("movies")
+    val linkingTasks = workspace.readTasks[LinkSpec](projectName)
+    linkingTasks.map(_.task.id.toString) should contain("movies")
     // Link limit is based on the linkLimitTimesTen template variable
-    linkingTask.find(_.task.id.toString == "movies").get.task.data.linkLimit shouldBe 10000
+    val linkingTask = linkingTasks.find(_.task.id.toString == "movies").get.task
+    linkingTask.data.linkLimit shouldBe 10000
+    linkingTask.templateValues shouldBe Map("linkLimit" -> "{{project.linkLimitTimesTen}}")
 
     // Tags
     val tag1 = Tag(Uri("urn:silkframework:tag:example+tag+1"), "example tag 1")
