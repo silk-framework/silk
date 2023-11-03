@@ -667,7 +667,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
               factoryFunctionOpt shouldBe defined
               factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
-                .map(_.throwable).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
+                .map(_.throwable.getCause).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
               // Check that original parameters are included
               loadingError.head.error.get.originalParameterValues shouldBe Some(
                 OriginalTaskData(
