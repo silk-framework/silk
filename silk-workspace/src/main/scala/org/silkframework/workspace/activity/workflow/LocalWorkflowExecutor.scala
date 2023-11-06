@@ -128,22 +128,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  // Executes a workflow dependency if it has not been executed yet
-  def executeWorkflowExecutionDependency[T](node: WorkflowDependencyNode)
-                                           (process: Option[LocalEntities] => T)
-                                           (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    if (!cancelled) {
-      if (!workflowRunContext.alreadyExecuted.contains(node.workflowNode)) {
-        executeWorkflowNode(node, ExecutorOutput.empty) { _ =>
-          workflowRunContext.alreadyExecuted.add(node.workflowNode)
-        }
-      }
-    } else {
-      // Don't execute, workflow has been cancelled
-      process(None)
-    }
-  }
-
   private def executeWorkflowOperatorInput[T](input: WorkflowDependencyNode,
                                               output: ExecutorOutput,
                                               requestingWorkflowOperator: Task[_ <: TaskSpec])
