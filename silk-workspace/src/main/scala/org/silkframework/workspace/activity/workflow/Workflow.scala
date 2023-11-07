@@ -127,7 +127,6 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
         depNode.addPrecedingNode(precedingNode)
         precedingNode.addFollowingNode(depNode)
       }
-      // TODO
       for (outputNode <- node.outputs) {
         val followingNode = workflowNodeMap.getOrElse(outputNode,
           throw new scala.RuntimeException("Unsatisfiable output dependency in workflow! Dependency: " + outputNode))
