@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
-import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
+import org.silkframework.config._
 import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
@@ -31,6 +31,10 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
 
   templatingEngine.validate()
 
+  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
+
+  def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
+
   /**
     * Generates The SPARQL Update query based on the placeholder assignments.
     * @param placeholderAssignments For each placeholder in the query template
@@ -41,14 +45,14 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
   }
 
   override def inputPorts: InputPorts = {
-    FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+    if(isStaticTemplate) {
+      FixedNumberOfInputs(Seq.empty)
+    } else {
+      FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+    }
   }
 
-  def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
-
   override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
-
-  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
 }
 
 object SparqlUpdateCustomTask {
