@@ -6,7 +6,7 @@ import java.io._
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
-val NEXT_VERSION = "3.7.0"
+val NEXT_VERSION = "3.11.0"
 val silkVersion = {
   val version = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
   val configPath = "silk-workbench/silk-workbench-core/conf/reference.conf"

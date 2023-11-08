@@ -56,8 +56,7 @@ sealed trait WorkflowNode {
                outputs: Seq[NodeReference] = outputs,
                position: (Int, Int) = position,
                nodeId: NodeReference = nodeId,
-               outputPriority: Option[Double] = outputPriority,
-               configInputs: Seq[NodeReference] = configInputs): WorkflowNode = {
+               outputPriority: Option[Double] = outputPriority): WorkflowNode = {
     this match {
       case wo: WorkflowOperator =>
         wo.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
