@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   */
 @Plugin(
   id = "getValueByIndex",
-  categories = Array("Sequence"),
+  categories = Array("Sequence", "Tokenization"),
   label = "Get value by index",
   description =
     """Returns the value found at the specified index. Fails or returns an empty result depending on failIfNoFound is set or not.
