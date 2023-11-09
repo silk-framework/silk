@@ -238,8 +238,6 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def resetMetaData(): Unit = {
     // Reset values
-    startTimestamp = None
-    startedByUser = UserContext.Empty
     cancelTimestamp = None
     cancelledByUser = UserContext.Empty
   }
