@@ -20,6 +20,7 @@ import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import Filterbar from "./Filterbar";
+import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 
 const WorkspaceSearch = () => {
     const dispatch = useDispatch();
@@ -32,6 +33,7 @@ const WorkspaceSearch = () => {
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
+    const { onEnter } = useSelectFirstResult();
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -69,6 +71,7 @@ const WorkspaceSearch = () => {
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}
+                                        onEnter={onEnter}
                                     />
                                 </GridColumn>
                             </GridRow>

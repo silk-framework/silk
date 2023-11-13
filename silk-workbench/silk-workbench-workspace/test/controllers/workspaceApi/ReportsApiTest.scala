@@ -7,8 +7,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.{Seconds, Span}
-import org.silkframework.config.{CustomTask, PlainTask, Task}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.config._
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, SimpleExecutionReport}
 import org.silkframework.runtime.activity.{ActivityContext, ValueHolder}
@@ -128,19 +127,21 @@ class ReportsApiTest extends AnyFlatSpec with IntegrationTestTrait with ReportsA
         position = (0, 0),
         nodeId = taskId1,
         outputPriority = None,
-        configInputs = Seq.empty
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
       )
 
     operators +=
       WorkflowOperator(
-        inputs = Seq(taskId1),
+        inputs = Seq(Some(taskId1)),
         task = taskId2,
         outputs = Seq(),
         errorOutputs = Seq.empty,
         position = (0, 0),
         nodeId = taskId2,
         outputPriority = None,
-        configInputs = Seq.empty
+        configInputs = Seq.empty,
+        dependencyInputs = Seq.empty
       )
 
     val workflow = Workflow(WorkflowOperatorsParameter(operators.toSeq), WorkflowDatasetsParameter(datasets.toSeq))
@@ -164,9 +165,9 @@ case class TestCustomTask() extends CustomTask {
     reportHolder.update(SimpleExecutionReport(PlainTask("dummmy", this), summary = Seq.empty, error = None, warnings = Seq.empty, isDone = isDone, entityCount = entityCount, operation = None))
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def inputPorts: InputPorts = FlexibleNumberOfInputs()
 
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = Some(UnknownSchemaPort)
 }
 
 case class TestCustomTaskExecutor() extends LocalExecutor[TestCustomTask] {

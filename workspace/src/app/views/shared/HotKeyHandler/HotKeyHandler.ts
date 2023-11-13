@@ -10,7 +10,7 @@ interface IProps {
     // Make the hot key trigger on a specific event type only, else it will be decided based on the hotkey.
     eventType?: EventType;
 }
-const Mousetrap = require("mousetrap");
+export const Mousetrap = require("mousetrap");
 
 type EventType = "keydown" | "keyup" | "keypress";
 /**

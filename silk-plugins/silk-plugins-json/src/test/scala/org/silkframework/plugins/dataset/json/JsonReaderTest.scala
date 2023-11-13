@@ -13,7 +13,8 @@
  */
 
 package org.silkframework.plugins.dataset.json
-
+
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.scalatest.flatspec.AnyFlatSpec
@@ -60,7 +61,18 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     val example = json("exampleArrays.json")
     val arrayItems = example.select("data" :: Nil)
     evaluate(arrayItems, "#id") should equal (Seq("65", "66"))
-    evaluate(arrayItems, "#text") should equal (Seq("A", "B"))
+    evaluate(arrayItems, "#text") should equal (Seq("\"A\"", "\"B\""))
+  }
+
+  it should "allow retrieving a JSON object as string" in {
+    val example = json("example.json")
+    val persons = example.select("persons" :: Nil)
+    evaluate(persons, "#text") should equal (Seq(
+      """{"id":"0","name":"John","phoneNumbers":[{"type":"home","number":"123"},{"type":"office","number":"456"}]}""",
+      """{"id":"1","name":"Max","phoneNumbers":[{"type":"home","number":"789"}]}"""))
+    evaluate(persons, "phoneNumbers/#text") should equal(Seq(
+      """[{"type":"home","number":"123"},{"type":"office","number":"456"}]""",
+      """[{"type":"home","number":"789"}]"""))
   }
 
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {

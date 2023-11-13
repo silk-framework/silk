@@ -10,7 +10,6 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
-import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
 import { IPluginDetails } from "@ducks/common/typings";
 
 export default function TaskPage() {
@@ -60,8 +59,6 @@ export default function TaskPage() {
                     <TaskConfig projectId={projectId} taskId={taskId} pluginDataCallback={pluginDataCallback} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
-                    <Spacing />
-                    <VariablesWidget projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

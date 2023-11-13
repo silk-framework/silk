@@ -27,6 +27,11 @@ import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/c
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 import Loading from "../../shared/Loading";
+import {
+    RuleEditorNodeParameterValue,
+    ruleEditorNodeParameterValue,
+} from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
+import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -227,15 +232,54 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         defaultValue: "1",
     });
 
-    const thresholdParameterSpec = ruleUtils.parameterSpecification({
-        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
-        description: t(
-            "RuleEditor.sidebar.parameter.thresholdDesc",
-            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
-        ),
-        type: "float",
-        defaultValue: "0.0",
-    });
+    const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
+        const varyingSpec = () => {
+            switch (pluginDetails.distanceMeasureRange) {
+                case "normalized":
+                    return {
+                        description: t(
+                            "RuleEditor.sidebar.parameter.thresholdDesc.normalized",
+                            "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity)."
+                        ),
+                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.normalized", "required 0..1"),
+                    };
+                case "unbounded":
+                    return {
+                        description: t(
+                            "RuleEditor.sidebar.parameter.thresholdDesc.unbounded",
+                            "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+                        ),
+                        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+                        requiredLabel: t("RuleEditor.sidebar.parameter.thresholdRequired.unbounded", "required 0..∞"),
+                    };
+                default:
+                    return {
+                        label: "",
+                        description: "",
+                    };
+            }
+        };
+
+        const customValidation = (distanceMeasureRange) => (parameterValue: RuleEditorNodeParameterValue) => {
+            const value = ruleEditorNodeParameterValue(parameterValue);
+            const float = Number(value);
+            if (Number.isNaN(float)) return invalidValueResult(t("form.validations.float"));
+            if (distanceMeasureRange === "normalized" && (float > 1 || float < 0))
+                return invalidValueResult(t("form.validations.threshold.normalized"));
+            if (distanceMeasureRange === "unbounded" && float < 0)
+                return invalidValueResult(t("form.validations.threshold.unbounded"));
+            return { valid: true };
+        };
+
+        return ruleUtils.parameterSpecification({
+            ...varyingSpec(),
+            type: "float",
+            defaultValue: "0.0",
+            customValidation: customValidation(pluginDetails.distanceMeasureRange),
+            distanceMeasureRange: pluginDetails.distanceMeasureRange,
+        });
+    };
 
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
@@ -315,10 +359,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 addAdditionParameterSpecifications={(pluginDetails) => {
                     switch (pluginDetails.pluginType) {
                         case "ComparisonOperator":
-                            return [
-                                ["threshold", thresholdParameterSpec],
-                                ["weight", weightParameterSpec],
-                            ];
+                            return pluginDetails.distanceMeasureRange === "boolean"
+                                ? [["weight", weightParameterSpec]]
+                                : [
+                                      ["threshold", thresholdParameterSpec(pluginDetails)],
+                                      ["weight", weightParameterSpec],
+                                  ];
                         case "AggregationOperator":
                             return [["weight", weightParameterSpec]];
                         default:

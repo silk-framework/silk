@@ -1,25 +1,24 @@
 package org.silkframework.workspace
 
 import org.mockito.Mockito._
-
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import org.silkframework.config._
-import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
-import org.silkframework.runtime.resource.{EmptyResourceManager, TestResourceManager}
+import org.silkframework.runtime.resource.TestResourceManager
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{ConfigTestTrait, Identifier, MockitoSugar}
 import org.silkframework.workspace.WorkspaceTest._
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository
+
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.immutable.ListMap
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.ClassTag
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
 class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with MockitoSugar with TestUserContextTrait {
   behavior of "Workspace"
@@ -153,8 +152,8 @@ object WorkspaceTest {
   }
 
   case class TestTask(testParam: String = "test value") extends CustomTask {
-    override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-    override def outputSchemaOpt: Option[EntitySchema] = None
+    override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+    override def outputPort: Option[Port] = None
   }
 
   case class TestActivityFactory() extends TaskActivityFactory[TestTask, TestActivity] {

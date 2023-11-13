@@ -25,9 +25,9 @@ import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.PluginSerializers.{ParameterValuesJsonFormat, PluginJsonFormat}
 import org.silkframework.util.{DPair, Identifier, IdentifierUtils, Uri}
-import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
+import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -284,7 +284,7 @@ object JsonSerializers {
       val typeId = value.id
       val additionalAttributes = value match {
         case CustomValueType(typeUri) =>
-          Some(URI -> JsString(typeUri))
+          Some(URI -> JsString(writeContext.prefixes.shorten(typeUri)))
         case LanguageValueType(lang) =>
           Some(LANG -> JsString(lang))
         case _ =>
@@ -811,7 +811,7 @@ object JsonSerializers {
       Comparison(
         id = identifier(value, "comparison"),
         weight = numberValue(value, WEIGHT).intValue,
-        threshold = numberValue(value, THRESHOLD).doubleValue,
+        threshold = numberValueOption(value, THRESHOLD).map(_.doubleValue).getOrElse(0.0),
         indexing = booleanValue(value, INDEXING),
         metric = metric,
         inputs =

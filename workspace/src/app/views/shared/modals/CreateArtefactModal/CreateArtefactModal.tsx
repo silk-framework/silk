@@ -5,7 +5,6 @@ import {
     Button,
     Card,
     CardActionsAux,
-    Depiction,
     Grid,
     GridColumn,
     GridRow,
@@ -292,8 +291,8 @@ export function CreateArtefactModal() {
         }
     };
 
-    const handleBack = () => {
-        resetModal();
+    const handleBack = (closeModal?: boolean) => {
+        resetModal(closeModal);
     };
 
     const taskType = React.useCallback(
@@ -337,6 +336,10 @@ export function CreateArtefactModal() {
                                 updateExistingTask?.alternativeUpdateFunction
                             )
                         );
+                        updateExistingTask.successHandler?.({
+                            projectId: updateExistingTask.projectId,
+                            taskId: updateExistingTask.taskId,
+                        });
                     } else {
                         !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                         await dispatch(
@@ -386,7 +389,6 @@ export function CreateArtefactModal() {
         form.reset();
         setFormValueChanges({});
         form.clearError();
-
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -537,7 +539,8 @@ export function CreateArtefactModal() {
                     registerForExternalChanges,
                     templateFlag,
                 }}
-                goBackOnEscape={handleBack}
+                // Close modal immediately from update dialog
+                goBackOnEscape={() => handleBack(true)}
             />
         );
     } else {
@@ -814,13 +817,17 @@ export function CreateArtefactModal() {
                             >
                                 {updateExistingTask ? t("common.action.update") : t("common.action.create")}
                             </Button>,
-                            <Button key="cancel" onClick={closeModal}>
+                            <Button key="cancel" data-test-id="create-dialog-cancel-btn" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
                             ...additionalButtons,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button data-test-id={"create-dialog-back-btn"} key="back" onClick={handleBack}>
+                                    <Button
+                                        data-test-id={"create-dialog-back-btn"}
+                                        key="back"
+                                        onClick={() => handleBack(false)}
+                                    >
                                         {t("common.words.back", "Back")}
                                     </Button>
                                 )}

@@ -3,9 +3,9 @@ package controllers.workspace
 import config.WorkbenchLinks
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.util.SerializationUtils
+import controllers.util.{SerializationUtils, TaskLink}
 import controllers.workspace.doc.TaskApiDoc
-import controllers.workspace.taskApi.{TaskApiUtils, TaskLink}
+import controllers.workspace.taskApi.TaskApiUtils
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -18,7 +18,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -435,7 +435,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
   private def dependentTaskLinkFormatter(project: Project)
                                         (implicit userContext: UserContext): String => JsValue = (taskId: String) => {
     val task = project.anyTask(taskId)
-    Json.toJson(TaskLink(task.id, task.metaData.label, WorkbenchLinks.editorLink(task)))
+    Json.toJson(TaskLink.fromTask(task))
   }
 
   @Operation(

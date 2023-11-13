@@ -1,7 +1,7 @@
 import { coreApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { Variable } from "./typing";
+import { Variable, VariableDependencies } from "./typing";
 
 /**
  * Get variables per project
@@ -17,8 +17,8 @@ export const getVariables = (project: string): Promise<FetchResponse<{ variables
     });
 
 /**
- * Add a new variable or update existing one
- * by modifying existing one and posting the full list of variables here
+ * Add a new variable
+ *
  * @param payload
  * @param project
  * @param task
@@ -36,6 +36,23 @@ export const createNewVariable = (
             task,
         },
         method: "post",
+        body: payload,
+    });
+
+/**
+ * Update a single variable
+ * @param project
+ * @param name
+ * @param payload
+ * @returns
+ */
+export const updateVariable = (payload, project: string, name: string): Promise<FetchResponse<any>> =>
+    fetch({
+        url: coreApi(`/variableTemplate/variables/${name}`),
+        query: {
+            project,
+        },
+        method: "put",
         body: payload,
     });
 
@@ -65,3 +82,9 @@ export const reorderVariablesRequest = (project, reorderedVariables: string[]) =
         method: "post",
         body: reorderedVariables,
     });
+
+export const getVariableDependencies = (
+    project: string,
+    variable: string
+): Promise<FetchResponse<VariableDependencies>> =>
+    fetch({ url: coreApi(`/variableTemplate/variables/${variable}/dependencies`), query: { project }, method: "get" });

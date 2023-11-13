@@ -2,8 +2,7 @@ package controllers.transform
 
 import controllers.autoCompletion.{AutoSuggestAutoCompletionResponse, CompletionBase, ReplacementInterval, ReplacementResults}
 import controllers.transform.autoCompletion._
-import helper.IntegrationTestTrait
-
+import helper.{IntegrationTestTrait, RequestFailedException}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
@@ -98,10 +97,10 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
   }
 
   it should "return a client error on invalid requests" in {
-    intercept[AssertionError] {
+    intercept[RequestFailedException] {
       partialSourcePathAutoCompleteRequest(jsonTransform, cursorPosition = -1)
     }
-    intercept[AssertionError] {
+    intercept[RequestFailedException] {
       partialSourcePathAutoCompleteRequest(jsonTransform, maxSuggestions = Some(0))
     }
   }

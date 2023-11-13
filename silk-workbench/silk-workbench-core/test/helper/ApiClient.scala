@@ -70,14 +70,20 @@ trait ApiClient {
   protected def checkResponse(futureResponse: Future[WSResponse],
                     responseCodePrefix: Char = '2'): WSResponse = {
     val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status.toString.head == responseCodePrefix, s"Expected status: ${responseCodePrefix}XX, received status: ${response.status}. Response Body: ${response.body}")
+    if(response.status.toString.head != responseCodePrefix) {
+      throw new RequestFailedException(s"Expected status: ${responseCodePrefix}XX, received status: ${response.status}. Response Body: ${response.body}", response)
+    }
     response
   }
 
   protected def checkResponseExactStatusCode(futureResponse: Future[WSResponse],
                                              responseCode: Int = 200): WSResponse = {
     val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status == responseCode, s"Expected status: $responseCode, received status: ${response.status}. Response Body: ${response.body}")
+    if(response.status != responseCode) {
+      throw new RequestFailedException(s"Expected status: $responseCode, received status: ${response.status}. Response Body: ${response.body}", response)
+    }
     response
   }
 }
+
+class RequestFailedException(message: String, val response: WSResponse) extends Exception(message)

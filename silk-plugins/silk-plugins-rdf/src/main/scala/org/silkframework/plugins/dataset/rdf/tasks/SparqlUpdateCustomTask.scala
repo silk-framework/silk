@@ -1,11 +1,11 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
-import org.silkframework.config.CustomTask
+import org.silkframework.config._
 import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 
 @Plugin(
   id = "sparqlUpdateOperator",
@@ -16,7 +16,7 @@ The output of this operator should be connected to the SPARQL datasets to which 
 )
 case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = SparqlUpdateCustomTask.sparqlUpdateTemplateDescription,
                                          example = "DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${\"PROP_FROM_ENTITY_SCHEMA2\"} }")
-                                  sparqlUpdateTemplate: MultilineStringParameter,
+                                  sparqlUpdateTemplate: SparqlCodeParameter,
                                   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
                                   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
                                   @Param("The templating mode. 'Simple' only allows simple URI and literal insertions, whereas 'Velocity Engine' supports complex templating." +
@@ -31,6 +31,10 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
 
   templatingEngine.validate()
 
+  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
+
+  def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
+
   /**
     * Generates The SPARQL Update query based on the placeholder assignments.
     * @param placeholderAssignments For each placeholder in the query template
@@ -40,15 +44,15 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
     templatingEngine.generate(placeholderAssignments, taskProperties)
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    Some(Seq(expectedInputSchema))
+  override def inputPorts: InputPorts = {
+    if(isStaticTemplate) {
+      FixedNumberOfInputs(Seq.empty)
+    } else {
+      FixedNumberOfInputs(Seq(FixedSchemaPort(expectedInputSchema)))
+    }
   }
 
-  def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
-
-  override def outputSchemaOpt: Option[EntitySchema] = Some(SparqlUpdateEntitySchema.schema)
-
-  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
+  override def outputPort: Option[Port] = Some(FixedSchemaPort(SparqlUpdateEntitySchema.schema))
 }
 
 object SparqlUpdateCustomTask {

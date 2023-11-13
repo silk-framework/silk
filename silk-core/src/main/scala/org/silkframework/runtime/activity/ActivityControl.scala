@@ -26,7 +26,7 @@ trait ActivityControl[T] {
 
   /**
     * Holds the timestamp when the activity has been started.
-    * Is None if the activity is not running at the moment.
+    * None, if the activity has not been started before.
     */
   def startTime: Option[Instant] = None
 

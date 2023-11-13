@@ -2,7 +2,8 @@ package controllers.workspaceApi.coreApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat}
+import controllers.util.TaskLink
+import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat, VariableDependencies}
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.templating.exceptions._
+import org.silkframework.runtime.templating.operations.{DeleteVariableModification, UpdateVariableModification, UpdateVariablesModification}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.WorkspaceFactory
@@ -90,7 +92,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                    projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val variables = Json.fromJson[TemplateVariablesFormat](request.body).get.convert
-    project.templateVariables.put(variables.resolved(GlobalTemplateVariables.all))
+    UpdateVariablesModification(project, variables).execute()
     Ok
   }
 
@@ -177,14 +179,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
     if(variable.name != variableName) {
       throw new BadUserInputException(s"Variable name provided in the URL ($variableName) does not match variable name in the request body (${variable.name})")
     }
-    val variables = project.templateVariables.all.variables
-    val updatedVariables = variables.indexWhere(_.name == variableName) match {
-      case -1 =>
-        TemplateVariables(variables :+ variable)
-      case index: Int =>
-        TemplateVariables(variables.updated(index, variable))
-    }
-    project.templateVariables.put(updatedVariables.resolved(GlobalTemplateVariables.all))
+    UpdateVariableModification(project, variable).execute()
     Ok
   }
 
@@ -227,31 +222,45 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
                      )
                      variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    DeleteVariableModification(project, variableName).execute()
+    Ok
+  }
 
-    // Make sure that variable exists
-    val variable = project.templateVariables.get(variableName)
-
-    // Remove variable and update
-    val currentVariables = project.templateVariables.all
-    val updatedVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
-    try {
-      val resolvedVariables = updatedVariables.resolved(GlobalTemplateVariables.all)
-      project.templateVariables.put(resolvedVariables)
-      Ok
-    } catch {
-      case ex: TemplateVariablesEvaluationException =>
-        // Check if the evaluation failed because this variable is used in other variables.
-        val dependentVariables =
-          ex.issues.collect {
-            case TemplateVariableEvaluationException(dependentVar, unboundEx: UnboundVariablesException) if unboundEx.missingVars.contains(variable) =>
-              dependentVar.name
-          }
-        if(dependentVariables.nonEmpty) {
-          throw CannotDeleteUsedVariableException(variableName, dependentVariables)
-        } else {
-          throw ex
-        }
-    }
+  @Operation(
+    summary = "Variable dependencies",
+    description = "Returns a list of variables and tasks that a to-be-removed variable depends on.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The dependencies",
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or variable does not exist."
+      )
+    )
+  )
+  def variableDependencies(@Parameter(
+                             name = "project",
+                             description = "The project identifier",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectName: String,
+                           @Parameter(
+                             name = "name",
+                             description = "The variable name",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val modification = DeleteVariableModification(project, variableName)
+    val dependentVariables = modification.dependentVariables()
+    val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
+    Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
   }
 
   @Operation(
@@ -447,11 +456,11 @@ object VariableTemplateApi {
 
   @Schema(description = "A list of template variables.")
   case class TemplateVariablesFormat(@ArraySchema(
-    schema = new Schema(
-      description = "List of variables.",
-      required = true,
-      implementation = classOf[TemplateVariableFormat]
-    ))
+                                       schema = new Schema(
+                                        description = "List of variables.",
+                                        required = true,
+                                        implementation = classOf[TemplateVariableFormat]
+                                     ))
                                      variables: Seq[TemplateVariableFormat]) {
     def convert: TemplateVariables = {
       TemplateVariables(variables.map(_.convert))
@@ -464,6 +473,20 @@ object VariableTemplateApi {
     }
   }
 
+  case class VariableDependencies(@ArraySchema(
+                                    schema = new Schema(
+                                      description = "List of dependent variables.",
+                                      implementation = classOf[String]
+                                  ))
+                                  dependentVariables: Seq[String],
+                                  @ArraySchema(
+                                    schema = new Schema(
+                                      description = "List of dependent tasks.",
+                                      implementation = classOf[TaskLink]
+                                    ))
+                                  dependentTasks: Seq[TaskLink])
+
   implicit val templateVariableFormat: OFormat[TemplateVariableFormat] = Json.format[TemplateVariableFormat]
   implicit val templateVariablesFormat: OFormat[TemplateVariablesFormat] = Json.format[TemplateVariablesFormat]
+  implicit val variableDependenciesFormat: OFormat[VariableDependencies] = Json.format[VariableDependencies]
 }

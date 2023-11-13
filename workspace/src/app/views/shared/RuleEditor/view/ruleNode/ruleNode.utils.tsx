@@ -34,7 +34,7 @@ const createOperatorTags = (
     return returnArray;
 };
 
-const invalidValueResult = (message: string): IParameterValidationResult => ({
+export const invalidValueResult = (message: string): IParameterValidationResult => ({
     valid: false,
     message,
     intent: "danger",

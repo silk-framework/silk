@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.PluginType
@@ -9,6 +9,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.TaskLoadingException.generateMessage
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.collection.mutable
@@ -259,7 +260,7 @@ object LoadedTask {
         LoadedTask.success[T](task)
       } catch {
         case ex: TaskLoadingException =>
-          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex.cause, label, description, Some(loadInternal), Some(ex.originalTaskData)))
+          LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex.withTask(taskId, label), label, description, Some(loadInternal), Some(ex.originalTaskData)))
         case NonFatal(ex) =>
           LoadedTask.failed[T](TaskLoadingError(projectId, taskId, ex, label, description, Some(loadInternal), None))
       }
@@ -338,7 +339,16 @@ case class OriginalTaskData(pluginId: String,
 
 /** An exception that carries the original parameter (simple parameters only!) values of a task if available.
   * Do not use directly. Use withTaskLoadingException instead. */
-case class TaskLoadingException(msg: String, originalTaskData: OriginalTaskData, cause: Throwable) extends RuntimeException(msg, cause)
+case class TaskLoadingException(originalTaskData: OriginalTaskData,
+                                cause: Throwable,
+                                taskId: Option[String] = None,
+                                label: Option[String] = None) extends RuntimeException(generateMessage(taskId, label, cause), cause) {
+
+  def withTask(taskId: String, label: Option[String]): TaskLoadingException = {
+    copy(taskId = Some(taskId), label = label)
+  }
+
+}
 
 object TaskLoadingException {
   /** This should be used where a TaskLoadingException should be thrown. */
@@ -351,7 +361,26 @@ object TaskLoadingException {
         // TaskLoadingException was thrown, just pass on
         throw ex
       case NonFatal(ex) =>
-        throw TaskLoadingException("Task has failed loading.", originalTaskData, ex)
+        throw TaskLoadingException(originalTaskData, ex)
     }
+  }
+
+  /**
+   * Generates an error message for a task loading error.
+   */
+  private def generateMessage(taskId: Option[String], label: Option[String], cause: Throwable): String = {
+    val taskLabel =
+      taskId match {
+        case Some(id) =>
+          label match {
+            case Some(l) =>
+              s" '$l' ($id)"
+            case None =>
+              s" $id"
+          }
+        case None =>
+          ""
+      }
+    s"Failed loading task$taskLabel: ${cause.getMessage}"
   }
 }

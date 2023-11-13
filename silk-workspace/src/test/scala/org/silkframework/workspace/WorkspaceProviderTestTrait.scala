@@ -2,11 +2,13 @@ package org.silkframework.workspace
 
 
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
+import org.silkframework.entity.Restriction
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput}
@@ -15,18 +17,16 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{Identifier, MockitoSugar, Uri}
+import org.silkframework.workspace.WorkspaceProviderTestPlugins.{FailingCustomTask, FailingTaskException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.silkframework.workspace.WorkspaceProviderTestPlugins.{FailingCustomTask, FailingTaskException}
 
 
 trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
@@ -230,11 +230,12 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
+            WorkflowOperator(inputs = Seq(Some(DATASET_ID)), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0),
+              TRANSFORM_ID, None, configInputs = Seq.empty, dependencyInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty),
-            WorkflowDataset(Seq(TRANSFORM_ID), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), configInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), Seq.empty , dependencyInputs = Seq.empty),
+            WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
@@ -249,8 +250,11 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     PlainTask(
       id = WORKFLOW_ID,
       data = miniWorkflow.data.copy(
-        operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
-        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
+        operators = miniWorkflow.operators.map(op => op.copy(position = (100, 100), outputs = op.outputs ++ Seq(CUSTOM_TASK_ID))) ++ Seq(
+          WorkflowOperator(inputs = Seq(), task = CUSTOM_TASK_ID, outputs = Seq(), Seq(), (0, 0),
+            CUSTOM_TASK_ID, None, configInputs = Seq(TRANSFORM_ID), dependencyInputs = Seq(DATASET_ID))
+        ),
+        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100), dependencyInputs = Seq(CUSTOM_TASK_ID)))
       ),
       metaData = metaDataUpdated
     )
@@ -663,7 +667,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
               factoryFunctionOpt shouldBe defined
               factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
-                .map(_.throwable).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
+                .map(_.throwable.getCause).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
               // Check that original parameters are included
               loadingError.head.error.get.originalParameterValues shouldBe Some(
                 OriginalTaskData(
@@ -712,8 +716,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
 @Plugin(id = "test", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def outputPort: Option[Port] = None
 }
 
 object WorkspaceProviderTestPlugins {
@@ -729,9 +733,9 @@ object WorkspaceProviderTestPlugins {
       throw new FailingTaskException("Failed!")
     }
 
-    override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+    override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
 
-    override def outputSchemaOpt: Option[EntitySchema] = None
+    override def outputPort: Option[Port] = None
   }
 
 }

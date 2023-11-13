@@ -1,8 +1,6 @@
 package org.silkframework.config
 
-/**
-  * Created on 8/2/16.
-  */
+/** Vocabulary used by tasks, e.g. for output entity schemata. */
 object SilkVocab {
   val namespace = "http://silkframework.org/vocab/"
 
@@ -26,15 +24,15 @@ object SilkVocab {
 
   // Triple input/output schema vocabulary
 
-  val TripleSchemaType: String = namespace + "/TripleSchemaType"
-  val QuadSchemaType: String = namespace + "/QuadSchemaType"
+  val TripleSchemaType: String = namespace + "TripleSchemaType"
+  val QuadSchemaType: String = namespace + "QuadSchemaType"
 
   // Empty table
-  val EmptySchemaType: String = namespace + "/EmptySchemaType"
+  val EmptySchemaType: String = namespace + "EmptySchemaType"
 
-  val SparqlEndpointSchemaType: String = namespace + "/SparqlEndpointSchemaType"
+  val SparqlEndpointSchemaType: String = namespace + "SparqlEndpointSchemaType"
 
-  val DatasetResourceSchemaType: String = namespace + "/DatasetResourceSchemaType"
+  val DatasetResourceSchemaType: String = namespace + "DatasetResourceSchemaType"
 
   val tripleSubject: String = namespace + "tripleSubject"
   val triplePredicate: String = namespace + "triplePredicate"
@@ -43,9 +41,9 @@ object SilkVocab {
   val quadContext: String = namespace + "quadContext"
 
   // SPARQL Update query schema vocabulary
-  val SparqlUpdateSchemaType: String = namespace + "/SparqlUpdateSchemaType"
+  val SparqlUpdateSchemaType: String = namespace + "SparqlUpdateSchemaType"
 
-  val sparqlUpdateQuery: String = namespace + "/sparqlUpdateQuery"
+  val sparqlUpdateQuery: String = namespace + "sparqlUpdateQuery"
 
   val internalUser: String = namespace + "internalUser"
 }

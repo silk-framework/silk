@@ -2,7 +2,7 @@ import React from "react";
 import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 
 //typing
-import { Variable, VariableWidgetProps } from "./typing";
+import { Variable, VariableDependencies, VariableWidgetProps } from "./typing";
 import {
     Card,
     CardContent,
@@ -13,6 +13,7 @@ import {
     Icon,
     IconButton,
     Label,
+    Link,
     Notification,
     OverflowText,
     OverviewItemList,
@@ -22,9 +23,10 @@ import {
     Spacing,
     Toolbar,
     ToolbarSection,
+    Tooltip,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { deleteVariableRequest, getVariables, reorderVariablesRequest } from "./requests";
+import { deleteVariableRequest, getVariableDependencies, getVariables, reorderVariablesRequest } from "./requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
@@ -43,7 +45,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [deleteModalOpen, setDeleteModalOpen] = React.useState<boolean>(false);
     const [deleteErrorMsg, setDeleteErrMsg] = React.useState<string>("");
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
+    const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
     const [t] = useTranslation();
+
+    const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
 
     // initial loading of variables
     React.useEffect(() => {
@@ -65,9 +70,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setModalOpen(true);
     }, []);
 
-    const handleDeleteModalOpen = React.useCallback((variable: Variable) => {
+    const handleDeleteModalOpen = React.useCallback(async (variable: Variable) => {
         setSelectedVariable(variable);
         setDeleteModalOpen(true);
+        setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
         setDeleteErrMsg("");
     }, []);
 
@@ -128,9 +134,47 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     );
 
     const renderDeleteVariable = React.useCallback(() => {
-        const varname = selectedVariable?.name ?? "";
-        return <div>{t("widget.VariableWidget.modalMessages.deletePrompt", { varname })}</div>;
-    }, [selectedVariable]);
+        if (!selectedVariable || !dependencies) return <></>;
+        const varyingDeleteTranslation = variableHasDependencies ? "deletePromptWithDependencies" : "deletePromptNoDep";
+        return (
+            <div>
+                {t(`widget.VariableWidget.modalMessages.${varyingDeleteTranslation}`, {
+                    varname: selectedVariable.name,
+                })}
+                {(dependencies.dependentVariables?.length && (
+                    <>
+                        <Spacing />
+                        <p>{t("widget.VariableWidget.dependencyTypes.variables", "Dependent variables")}</p>
+                        <ul>
+                            {dependencies.dependentVariables.map((variable) => (
+                                <li key={variable}>{variable}</li>
+                            ))}
+                        </ul>
+                    </>
+                )) ||
+                    null}
+
+                {(dependencies.dependentTasks?.length && (
+                    <>
+                        <Spacing />
+                        <p>{t("widget.VariableWidget.dependencyTypes.tasks", "Dependent tasks")}</p>
+                        <ul>
+                            {dependencies.dependentTasks.map((task) => (
+                                <li key={task.id}>
+                                    <Link href={task.taskLink} target="_blank">
+                                        <Tooltip content={t("common.action.openInNewTab")}>
+                                            {task.label ?? task.id}
+                                        </Tooltip>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </>
+                )) ||
+                    null}
+            </div>
+        );
+    }, [selectedVariable, dependencies]);
 
     return (
         <>
@@ -150,13 +194,14 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 isOpen={deleteModalOpen}
                 onDiscard={() => setDeleteModalOpen(false)}
                 removeLoading={isDeleting}
+                deleteDisabled={!!variableHasDependencies}
                 errorMessage={deleteErrorMsg}
                 render={renderDeleteVariable}
             />
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.VariableWidget.title", "Variables")}</h2>
+                        <h2>{t("widget.VariableWidget.title", "Project Variables")}</h2>
                     </CardTitle>
                     <CardOptions>
                         <IconButton

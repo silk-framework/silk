@@ -2,7 +2,8 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
-import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE, fromJson, toJson, UiAnnotationsJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE, UiAnnotationsJsonFormat, fromJson, toJson}
+import org.silkframework.workspace.activity.workflow.WorkflowNode.{convertOptionToString, convertStringToOption}
 import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.annotation.UiAnnotations
 import play.api.libs.json._
@@ -85,6 +86,7 @@ object WorkflowSerializers {
   private final val TASK = "task"
   private final val INPUTS = "inputs"
   private final val CONFIG_INPUTS = "configInputs"
+  private final val DEPENDENCY_INPUTS = "dependencyInputs"
   private final val OUTPUTS = "outputs"
   private final val ERROR_OUTPUTS = "errorOutputs"
   private final val ID = "id"
@@ -101,7 +103,8 @@ object WorkflowSerializers {
         position = nodePosition(value),
         nodeId = nodeId(value),
         outputPriority = outputPriority(value),
-        configInputs = configInputs(value)
+        configInputs = configInputs(value),
+        dependencyInputs = dependencyInputs(value)
       )
     }
 
@@ -110,12 +113,13 @@ object WorkflowSerializers {
         POSX -> op.position._1,
         POSY -> op.position._2,
         TASK -> op.task.toString,
-        INPUTS -> JsArray(op.inputs.map(JsString)),
+        INPUTS -> JsArray(op.inputs.map(convertOptionToString).map(JsString)),
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ERROR_OUTPUTS -> JsArray(op.errorOutputs.map(JsString)),
         ID -> op.nodeId.toString,
         OUTPUT_PRIORITY -> op.outputPriority,
-        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
+        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString)),
+        DEPENDENCY_INPUTS -> JsArray(op.dependencyInputs.map(JsString))
       )
     }
   }
@@ -129,7 +133,8 @@ object WorkflowSerializers {
         position = nodePosition(value),
         nodeId = nodeId(value),
         outputPriority = outputPriority(value),
-        configInputs = configInputs(value)
+        configInputs = configInputs(value),
+        dependencyInputs = dependencyInputs(value)
       )
     }
 
@@ -138,11 +143,12 @@ object WorkflowSerializers {
         POSX -> op.position._1,
         POSY -> op.position._2,
         TASK -> op.task.toString,
-        INPUTS -> JsArray(op.inputs.map(JsString)),
+        INPUTS -> JsArray(op.inputs.map(convertOptionToString).map(JsString)),
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ID -> op.nodeId,
         OUTPUT_PRIORITY -> op.outputPriority,
-        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
+        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString)),
+        DEPENDENCY_INPUTS -> JsArray(op.dependencyInputs.map(JsString))
       )
     }
   }
@@ -164,8 +170,8 @@ object WorkflowSerializers {
       stringValue(value, TASK)
     }
 
-    protected def inputs(value: JsValue): IndexedSeq[String] = {
-      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value).toIndexedSeq)
+    protected def inputs(value: JsValue): IndexedSeq[Option[String]] = {
+      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.asOpt[JsString].flatMap(vo => convertStringToOption(vo.value))).toIndexedSeq)
     }
 
     protected def outputs(value: JsValue): IndexedSeq[String] = {
@@ -174,6 +180,10 @@ object WorkflowSerializers {
 
     protected def configInputs(value: JsValue): Seq[String] = {
       optionalValue(value, CONFIG_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty)
+    }
+
+    protected def dependencyInputs(value: JsValue): Seq[String] = {
+      optionalValue(value, DEPENDENCY_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty).distinct
     }
   }
 }

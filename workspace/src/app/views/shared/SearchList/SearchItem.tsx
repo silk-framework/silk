@@ -5,15 +5,15 @@ import {
     ContextMenu,
     Highlighter,
     IconButton,
+    Markdown,
     MenuDivider,
     MenuItem,
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    Depiction,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemDepiction,
     Spacing,
     Tag,
 } from "@eccenca/gui-elements";
@@ -28,9 +28,8 @@ import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
-import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import { Markdown } from "@eccenca/gui-elements";
 import highlightSearchWordsPluginFactory from "@eccenca/gui-elements/src/cmem/markdown/highlightSearchWords";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
@@ -70,7 +69,7 @@ export default function SearchItem({
     const itemLinks = item.itemLinks ?? [{ path: "", label: "" }];
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
-    const { projectTabView, changeTab, menuItems } = useProjectTabsView({
+    const { projectTabView, changeTab, menuItems } = useProjectTaskTabsView({
         srcLinks: menuItemLinks.map((link) => ({ ...link, id: link.label })),
         pluginId: item.pluginId,
         projectId: item.projectId,

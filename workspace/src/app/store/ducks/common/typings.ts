@@ -88,6 +88,7 @@ export interface IOverviewArtefactItem {
     markdownDocumentation?: string;
 }
 
+export type DistanceMeasureRange = "boolean" | "unbounded" | "normalized";
 /** The full task plugin description, including detailed schema. */
 export interface IPluginDetails {
     title: string;
@@ -95,6 +96,7 @@ export interface IPluginDetails {
     taskType: TaskType;
     type: "object";
     categories: string[];
+    distanceMeasureRange?: DistanceMeasureRange;
     properties: {
         [key: string]: IArtefactItemProperty;
     };
@@ -143,6 +145,13 @@ export interface IProjectTaskUpdatePayload {
     alternativeUpdateFunction?: AlternativeTaskUpdateFunction;
     /** The title of the modal that will be displayed */
     alternativeTitle?: string;
+    /** Function that is being called when the task has been successfully updated. */
+    successHandler?: (updateInfo: TaskUpdateInfo) => any;
+}
+
+interface TaskUpdateInfo {
+    projectId: string;
+    taskId: string;
 }
 
 export type MetaDataFactoryFunction = (pluginDetails: IPluginDetails) => IMetadata;

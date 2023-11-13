@@ -254,7 +254,8 @@ case class UntypedValueType() extends ValueType with Serializable {//renamed fro
 /** A custom type that is used for all types not covered by any other types. */
 @Plugin(
   id = ValueType.CUSTOM_VALUE_TYPE_ID,
-  label = "Custom Type"
+  label = "Custom Type",
+  description = "Manually specify a type URI"
 )
 case class CustomValueType(typeUri: String) extends ValueType {
 

@@ -169,11 +169,16 @@ private class ActivityExecution[T](activity: Activity[T],
         case NonFatal(ex) =>
           status() match {
             case Finished(false, _, _, Some(cause)) =>
-              throw cause
+              if(!activity.wasCancelled()) {
+                throw cause
+              }
             case _ =>
               throw ex
           }
       }
+    }
+    for (ex <- status().exception if !activity.wasCancelled()) {
+      throw ex
     }
   }
 
@@ -210,6 +215,8 @@ private class ActivityExecution[T](activity: Activity[T],
         ThreadLock.synchronized {
           runningThread = None
         }
+        // Clear interrupt flag
+        Thread.interrupted()
       }
     }
   }
@@ -231,8 +238,6 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def resetMetaData(): Unit = {
     // Reset values
-    startTimestamp = None
-    startedByUser = UserContext.Empty
     cancelTimestamp = None
     cancelledByUser = UserContext.Empty
   }
