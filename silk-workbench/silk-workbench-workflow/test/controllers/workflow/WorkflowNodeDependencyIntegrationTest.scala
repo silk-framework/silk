@@ -15,6 +15,6 @@ class WorkflowNodeDependencyIntegrationTest extends AnyFlatSpec with Matchers wi
   override def workspaceProviderId: String = "inMemory"
 
   it should "execute a workflow that connects independent parts only via dependency connections" in {
-    Try(executeWorkflow("dependency-workflow")) mustBe Success[Unit]()
+    Try(executeWorkflow("dependency-workflow")).isSuccess mustBe true
   }
 }
