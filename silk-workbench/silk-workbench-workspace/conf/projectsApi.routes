@@ -16,10 +16,12 @@ POST          /:projectId/tags/createTags                              controlle
 DELETE        /:projectId/tags/:tag                                    controllers.projectApi.ProjectApi.deleteTag(projectId: String, tag: String)
 GET           /:projectId/uri                                          controllers.projectApi.ProjectApi.projectUri(projectId: String)
 
-# Project error report
+# Failed tasks and project error report
 
 GET           /:projectId/failedTasksReport                            controllers.projectApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
 GET           /:projectId/failedTasksReport/:taskId                    controllers.projectApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)
+GET           /:projectId/failedTaskParameters/:taskId                 controllers.projectApi.ProjectApi.failedTaskParameterValues(projectId: String, taskId: String)
+POST          /:projectId/reloadFailedTask                             controllers.projectApi.ProjectApi.reloadFailedTask(projectId: String)
 
 #################
 # Project Tasks
@@ -29,6 +31,7 @@ GET           /:projectId/tasks/:taskId/relatedItems                   controlle
 GET           /:projectId/tasks/:taskId/links                          controllers.projectApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
 GET           /:projectId/tasks/:taskId/itemInfo                       controllers.projectApi.ProjectTaskApi.itemInfo(projectId: String, taskId: String)
 POST          /:projectId/tasks/:taskId/clone                          controllers.projectApi.ProjectTaskApi.cloneTask(projectId: String, taskId: String)
+GET           /:projectId/datasets/:datasetId/characteristics          controllers.datasetApi.DatasetApi.datasetCharacteristics(projectId: String, datasetId: String)
 
 # Dataset specific endpoints
 POST          /:projectId/dataset/autoConfigure                        controllers.projectApi.ProjectTaskApi.postDatasetAutoConfigured(projectId: String)

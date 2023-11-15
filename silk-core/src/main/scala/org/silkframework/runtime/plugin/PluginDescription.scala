@@ -38,6 +38,12 @@ trait PluginDescription[+T] {
   /** The plugin types for this plugin. Ideally just one. */
   val pluginTypes: Seq[PluginTypeDescription]
 
+  /** The plugin icon as Data URL string. If the string is empty, a generic icon is used. */
+  val icon: Option[String]
+
+  /** Custom plugin descriptions */
+  lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescription.generate(pluginClass))
+
   /**
     * Creates an instance of this plugin with the given parameters.
     *
@@ -129,7 +135,7 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
-        val evaluatedValue = template.evaluate()
+        val evaluatedValue = template.evaluate(context.templateVariables.all)
         try {
           stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
         } catch {
@@ -137,8 +143,8 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$evaluatedValue' based on template '${template.template}', " +
               s"but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
-      case ParameterObjectValue(objValue) =>
-        objValue
+      case parameterObjectValue: ParameterObjectValue =>
+        parameterObjectValue.value(context)
       case _ =>
         throw new IllegalArgumentException(s"Expected a string parameter, but got $value.")
     }
@@ -147,8 +153,8 @@ trait PluginDescription[+T] {
   private def parseObjectParameter(objParam: PluginObjectParameterTypeTrait, value: ParameterValue)
                                   (implicit context: PluginContext): AnyRef = {
     value match {
-      case ParameterObjectValue(obj) =>
-        obj
+      case parameterObjectValue: ParameterObjectValue =>
+        parameterObjectValue.value(context)
       case values: ParameterValues =>
         objParam.pluginDescription match {
           case Some(pluginDesc: PluginDescription[_]) =>

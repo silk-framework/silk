@@ -4,6 +4,7 @@ import org.silkframework.config.{DefaultConfig, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.plugin.annotations.PluginType
+import org.silkframework.runtime.plugin.types._
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
@@ -87,6 +88,10 @@ object ParameterType {
 trait PluginObjectParameter extends AnyPlugin {
   /** defines if the parameter type has a schema definition, i.e. is composed completely from [[ParameterType]] elements. */
   def hasSchemaDefinition: Boolean = true
+
+  /** Defines if the parameter type is serialized. This should be true in general, except for parameters of classes that
+    * are not persisted or part of the HTTP API. */
+  def hasSerialization: Boolean = true
 }
 
 /** Plugin parameter type that is of type object and represents nested values. The default string representation is to JSON. */
@@ -109,10 +114,15 @@ case class PluginObjectParameterType(pluginObjectParameterClass: Class[_ <: AnyP
   override def name: String = "objectParameter"
 }
 
-/** Should be used for parameters that either too complex and cannot be edited in a generic plugin dialog or they are not
+/** Should be used for parameters that are either too complex and cannot be edited in a generic plugin dialog or they are not
   * composed of parameters that themselves have a schema. */
 trait PluginObjectParameterNoSchema extends PluginObjectParameter {
   override def hasSchemaDefinition: Boolean = false
+}
+
+/** This should ONLY be used for parameters of classes that are never persisted or part of the HTTP API. */
+trait PluginObjectParameterNoSchemaAndSerialization extends PluginObjectParameterNoSchema {
+  override def hasSerialization: Boolean = false
 }
 
 case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_ <: AnyPlugin]) extends PluginObjectParameterTypeTrait {
@@ -188,8 +198,10 @@ object StringParameterType {
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
-      SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType,
-      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
+      SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
+      Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
+      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType)
   }
 
   /**
@@ -629,6 +641,16 @@ object StringParameterType {
     override def fromString(str: String)(implicit context: PluginContext): GraphUriParameter = GraphUriParameter(str)
   }
 
+  object TemplateParameterType extends StringParameterType[TemplateParameter] {
+    override def name: String = "template"
+
+    override def description: String = "A template."
+
+    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str, context.templateVariables)
+
+    override def toString(value: TemplateParameter)(implicit pluginContext: PluginContext): String = value.templateStr
+  }
+
   object PasswordParameterType extends StringParameterType[PasswordParameter] {
     // This preamble should be added to all serializations to mark the string as a encrypted password, else it will be interpreted as plain
     final val PREAMBLE = "PASSWORD_PARAMETER:"
@@ -693,5 +715,58 @@ object StringParameterType {
     override def fromString(str: String)(implicit context: PluginContext): SparqlEndpointDatasetParameter = {
       SparqlEndpointDatasetParameter(str)
     }
+  }
+
+  trait CodeParameterType[T <: CodeParameter] extends StringParameterType[T] {
+    def codeMode: String
+
+    override lazy val name: String = s"code-${codeMode}"
+  }
+
+  private object Jinja2CodeParameterType extends CodeParameterType[Jinja2CodeParameter] {
+    override def codeMode: String = "jinja2"
+    override def fromString(str: String)(implicit context: PluginContext): Jinja2CodeParameter = Jinja2CodeParameter(str)
+  }
+
+  private object JsonCodeParameterType extends CodeParameterType[JsonCodeParameter] {
+    override def codeMode: String = "json"
+
+    override def fromString(str: String)(implicit context: PluginContext): JsonCodeParameter = JsonCodeParameter(str)
+  }
+
+  private object SparqlCodeParameterType extends CodeParameterType[SparqlCodeParameter] {
+    override def codeMode: String = "sparql"
+
+    override def fromString(str: String)(implicit context: PluginContext): SparqlCodeParameter = SparqlCodeParameter(str)
+  }
+
+  private object SqlCodeParameterType extends CodeParameterType[SqlCodeParameter] {
+    override def codeMode: String = "sql"
+
+    override def fromString(str: String)(implicit context: PluginContext): SqlCodeParameter = SqlCodeParameter(str)
+  }
+
+  private object XmlCodeParameterType extends CodeParameterType[XmlCodeParameter] {
+    override def codeMode: String = "xml"
+
+    override def fromString(str: String)(implicit context: PluginContext): XmlCodeParameter = XmlCodeParameter(str)
+  }
+
+  private object YamlCodeParameterType extends CodeParameterType[YamlCodeParameter] {
+    override def codeMode: String = "yaml"
+
+    override def fromString(str: String)(implicit context: PluginContext): YamlCodeParameter = YamlCodeParameter(str)
+  }
+
+  private object TurtleCodeParameterType extends CodeParameterType[TurtleCodeParameter] {
+    override def codeMode: String = "turtle"
+
+    override def fromString(str: String)(implicit context: PluginContext): TurtleCodeParameter = TurtleCodeParameter(str)
+  }
+
+  private object PythonCodeParameterType extends CodeParameterType[PythonCodeParameter] {
+    override def codeMode: String = "python"
+
+    override def fromString(str: String)(implicit context: PluginContext): PythonCodeParameter = PythonCodeParameter(str)
   }
 }

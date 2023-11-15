@@ -26,6 +26,13 @@ import java.lang.annotation.*;
 @Documented
 public @interface PluginType {
 
+  /**
+   * A human-readable label for this plugin type.
+   * If not provided the label will be generated from the class name.
+   * Thus, overwriting the label is usually not necessary.
+   */
+  String label() default "";
+
   /** Optional custom metadata about this plugin. */
   Class<? extends CustomPluginDescriptionGenerator> customDescription() default NoCustomPluginDescription.class;
 

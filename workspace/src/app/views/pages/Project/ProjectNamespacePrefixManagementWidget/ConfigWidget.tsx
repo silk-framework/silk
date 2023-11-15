@@ -20,6 +20,7 @@ import {
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
+import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
 
 const VISIBLE_COUNT = 5;
 
@@ -34,6 +35,14 @@ export const ProjectNamespacePrefixManagementWidget = () => {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const { isLoading } = configurationWidget;
+
+    useHotKey({
+        hotkey: "e p",
+        handler: () => {
+            handleOpen();
+            return false;
+        },
+    });
 
     useEffect(() => {
         if (projectId) {

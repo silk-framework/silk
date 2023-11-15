@@ -30,15 +30,26 @@ const SearchInput = ({
     ...restProps
 }: ISearchInputProps) => {
     const [t] = useTranslation();
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
+
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             onEnter();
+        }
+
+        if (e.key === "Escape") {
+            if (filterValue?.length) {
+                onClearanceHandler();
+            } else {
+                inputRef.current?.blur();
+            }
         }
     };
 
     return (
         <SearchField
             {...restProps}
+            inputRef={inputRef}
             autoFocus={focusOnCreation}
             onChange={onFilterChange}
             onBlur={onBlur}

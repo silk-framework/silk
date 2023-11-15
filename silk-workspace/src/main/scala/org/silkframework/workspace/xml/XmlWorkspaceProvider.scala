@@ -11,7 +11,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
-import org.silkframework.workspace.{LoadedTask, ProjectConfig, WorkspaceProvider}
+import org.silkframework.workspace.{LoadedTask, ProjectConfig, TemplateVariablesSerializer, WorkspaceProvider}
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -99,6 +99,14 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     */
   def projectCache(name: Identifier): ResourceManager = {
     resources.child(name)
+  }
+
+  /**
+    * Access to project variables.
+    */
+  def projectVariables(projectName: Identifier)
+                      (implicit userContext: UserContext): TemplateVariablesSerializer = {
+    new XmlTemplateVariablesSerializer(resources.child(projectName))
   }
 
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)

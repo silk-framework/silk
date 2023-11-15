@@ -15,6 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginType}
+import org.silkframework.runtime.plugin.types.EnumerationParameterType
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
@@ -35,11 +36,18 @@ import scala.language.existentials
   * @param parameters The parameters of the plugin class.
   * @param constructor The constructor for creating a new instance of this plugin.
   * @param pluginTypes The plugin types for this plugin. Ideally just one.
+  * @param icon The plugin icon as Data URL string. If the string is empty, a generic icon is used.
   * @tparam T The class that implements this plugin.
   */
-class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
-                                              val documentation: String, val parameters: Seq[ClassPluginParameter], constructor: Constructor[T],
-                                              val pluginTypes: Seq[PluginTypeDescription]) extends PluginDescription[T] {
+class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
+                                              val categories: Seq[String],
+                                              val label: String,
+                                              val description: String,
+                                              val documentation: String,
+                                              val parameters: Seq[ClassPluginParameter],
+                                              constructor: Constructor[T],
+                                              val pluginTypes: Seq[PluginTypeDescription],
+                                              val icon: Option[String]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -128,6 +136,8 @@ object ClassPluginDescription {
     } {
       customDescription.generateDocumentation(docBuilder)
     }
+    val pluginIconString = annotation.pluginIcon().trim
+    val pluginIcon = if(pluginIconString.isEmpty || !pluginIconString.startsWith("data:")) None else Some(annotation.pluginIcon().trim)
 
     new ClassPluginDescription(
       id = annotation.id,
@@ -137,21 +147,28 @@ object ClassPluginDescription {
       documentation = docBuilder.toString,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass),
-      pluginTypes = pluginTypes
+      pluginTypes = pluginTypes,
+      icon = pluginIcon
     )
   }
 
   private def createFromClass[T <: AnyPlugin](pluginClass: Class[T]): ClassPluginDescription[T] = {
-    new ClassPluginDescription(
-      id = Identifier.fromAllowed(pluginClass.getSimpleName),
-      label = pluginClass.getSimpleName,
-      categories = Seq(PluginCategories.uncategorized),
-      description = "",
-      documentation = "",
-      parameters = getParameters(pluginClass),
-      constructor = getConstructor(pluginClass),
-      pluginTypes = getPluginTypes(pluginClass)
-    )
+    try {
+      new ClassPluginDescription(
+        id = Identifier.fromAllowed(pluginClass.getSimpleName),
+        label = pluginClass.getSimpleName,
+        categories = Seq(PluginCategories.uncategorized),
+        description = "",
+        documentation = "",
+        parameters = getParameters(pluginClass),
+        constructor = getConstructor(pluginClass),
+        pluginTypes = getPluginTypes(pluginClass),
+        icon = None
+      )
+    } catch {
+      case ex: InvalidPluginException =>
+        throw new InvalidPluginException(s"Cannot extract plugin description for plugin class '${pluginClass.getCanonicalName}'. Details: ${ex.getMessage}", ex)
+    }
   }
 
   private def loadMarkdownDocumentation(pluginClass: Class[_], classpath: String): String = {
@@ -212,7 +229,7 @@ object ClassPluginDescription {
     val pluginTypes =
       for {
         superType <- getSuperTypes(pluginClass).toSeq
-        typeAnnotation <- getPluginType(superType)
+        typeAnnotation <- PluginTypeDescription.forClassOpt(superType)
       } yield {
         typeAnnotation
       }
@@ -221,18 +238,6 @@ object ClassPluginDescription {
       pluginTypes
     } else {
       throw new IllegalArgumentException(s"Class $pluginClass does not inherit from a class that is a plugin type.")
-    }
-  }
-
-  private def getPluginType(pluginClass: Class[_]): Option[PluginTypeDescription] = {
-    val typeAnnotations = pluginClass.getAnnotationsByType(classOf[PluginType])
-    if(typeAnnotations.length > 1) {
-      throw new IllegalArgumentException(s"Class ${pluginClass.getName} has multiple ${classOf[PluginType].getName} annotations.")
-    } else {
-      for(typeAnnotation <- typeAnnotations.headOption) yield {
-        val customDescriptionGenerator = typeAnnotation.customDescription().getDeclaredConstructor().newInstance()
-        PluginTypeDescription(pluginClass, customDescriptionGenerator)
-      }
     }
   }
 

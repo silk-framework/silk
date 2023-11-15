@@ -15,7 +15,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
-import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{LoadedTask, Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Ok
@@ -177,7 +177,7 @@ object ProjectUtils {
     val dataSources = (workflowJson \ propertyName).as[JsArray]
     implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
     val datasets = for (dataSource <- dataSources.value.toIndexedSeq) yield {
-      JsonSerializers.fromJson[Task[GenericDatasetSpec]](dataSource)
+      JsonSerializers.fromJson[LoadedTask[GenericDatasetSpec]](dataSource).task
     }
     allowedDatasetIds match {
       case Some(ids) =>
@@ -224,13 +224,16 @@ object ProjectUtils {
   /**
     * Reads all resource elements and load them into an in-memory resource manager, use project resources as fallback.
     *
-    * @param xmlRoot The element that contains the resource elements
+    * @param xmlRoot                The element that contains the resource elements
+    * @param primaryResourceManager An optional resource manager that is used a primary resource manager in the chain.
     * @return The resource manager used for creating the sink and the in-memory resource manager to store results
     */
   def createInMemoryResourceManagerForResources(xmlRoot: NodeSeq,
                                                 projectName: String,
-                                                withProjectResources: Boolean)
+                                                withProjectResources: Boolean,
+                                                primaryResourceManager: Option[ResourceManager])
                                                (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
+    // Write resources from the variable workflow config into the in-memory resource manager
     val resourceManager = InMemoryResourceManager()
     for (inputResource <- xmlRoot \ "resource") {
       val resourceId = inputResource \ s"@name"
@@ -238,17 +241,19 @@ object ProjectUtils {
           get(resourceId.text).
           writeString(inputResource.text)
     }
-    wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
+    wrapProjectResourceManager(projectName, withProjectResources, resourceManager, primaryResourceManager)
   }
 
   def createInMemoryResourceManagerForResources(workflowJson: JsValue,
                                                 projectName: String,
-                                                withProjectResources: Boolean)
+                                                withProjectResources: Boolean,
+                                                primaryResourceManager: Option[ResourceManager])
                                                (implicit userContext: UserContext): (ResourceManager, ResourceManager) = {
-    val resourceManager = InMemoryResourceManager()
+    // Write resources from the variable workflow config into the in-memory resource manager
+    val inMemoryResourceManager = InMemoryResourceManager()
     val resources = (workflowJson \ "Resources").as[JsObject]
     for ((resourceId, resourceJs) <- resources.fields){
-      val managedResource = resourceManager.
+      val managedResource = inMemoryResourceManager.
           get(resourceId)
       val resourceStringValue = resourceJs match {
         case jsObject: JsObject =>
@@ -262,17 +267,33 @@ object ProjectUtils {
       }
       managedResource.writeString(resourceStringValue)
     }
-    wrapProjectResourceManager(projectName, withProjectResources, resourceManager)
+    wrapProjectResourceManager(projectName, withProjectResources, inMemoryResourceManager, primaryResourceManager)
   }
 
-  private def wrapProjectResourceManager(projectName: String, withProjectResources: Boolean, resourceManager: ResourceManager)
-                                        (implicit userContext: UserContext)= {
-    if (withProjectResources) {
-      val projectResourceManager = getProject(projectName).resources
-      (FallbackResourceManager(resourceManager, projectResourceManager, writeIntoFallbackLoader = true, basePath = projectResourceManager.basePath), resourceManager)
-    } else {
-      (resourceManager, resourceManager)
+  /** Wrap additional resource manager around the project's resource manager. The provided resource manager are checked before
+    * the project resource manager.
+    *
+    * @param projectId               ID of the project
+    * @param withProjectResources    If the project's resource manager should be wrapped, else it will not be included in the resource manager chain.
+    * @param inMemoryResourceManager A resource manager containing in-memory resources.
+    * @param primaryResourceManager  An optional resource manager that is used a primary resource manager in the chain.
+    */
+  private def wrapProjectResourceManager(projectId: String,
+                                         withProjectResources: Boolean,
+                                         inMemoryResourceManager: InMemoryResourceManager,
+                                         primaryResourceManager: Option[ResourceManager])
+                                        (implicit userContext: UserContext) = {
+    var wrappedResourceManager: ResourceManager = inMemoryResourceManager
+    primaryResourceManager foreach  { optionalPrimaryResourceManager =>
+      wrappedResourceManager = FallbackResourceManager(optionalPrimaryResourceManager, wrappedResourceManager, writeIntoFallbackLoader = true, basePath = optionalPrimaryResourceManager.basePath)
     }
+    if (withProjectResources) {
+      val projectResourceManager = getProject(projectId).resources
+      wrappedResourceManager = FallbackResourceManager(wrappedResourceManager, projectResourceManager, writeIntoFallbackLoader = true, basePath = projectResourceManager.basePath)
+    }
+    val resultResourceManager = primaryResourceManager
+      .getOrElse(inMemoryResourceManager)
+    (wrappedResourceManager, resultResourceManager)
   }
 
   /**

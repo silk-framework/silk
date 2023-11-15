@@ -211,6 +211,80 @@
     "RelatedItems": {
         "title": "Related items"
     },
+    "header": {
+        "keyboardShortcutsModal": {
+            "title": "Keyboard shortcuts",
+            "categories-title": "Sections",
+            "key-directives": {
+                "then": "then"
+            },
+            "categories": {
+                "general": {
+                    "label": "Build",
+                    "shortcuts": {
+                        "quick-search": "Quick search",
+                        "help": "Open keyboard shortcut help",
+                        "go-home": "Go home",
+                        "browse-projects": "Browse projects",
+                        "browse-datasets": "Browse datasets",
+                        "browse-workflows": "Browse workflows",
+                        "browse-tasks": "Browse tasks",
+                        "browse-transform-tasks": "Browse transform tasks",
+                        "browse-linking-tasks": "Browse linking tasks",
+                        "browse-activities-tasks": "Browse activities tasks",
+                        "create-project": "Create project",
+                        "create-workflow": "Create workflow",
+                        "create-dataset": "Create dataset",
+                        "create-transform": "Create Transform",
+                        "create-linking": "Create Linking",
+                        "create-task": "Create Task",
+                        "create-new-item": "Create new item"
+                    }
+                },
+                "projects": {
+                    "label": "Projects",
+                    "shortcuts": {
+                        "manage-prefixes": "Manage Prefixes",
+                        "edit-summary": "Edit Summary"
+                    }
+                },
+                "tasks": {
+                    "label": "Tasks",
+                    "shortcuts": {
+                        "edit-summary": "Edit Summary",
+                        "update-tasks": "Update tasks"
+                    }
+                },
+                "rule-editors": {
+                    "label": "Linking editor",
+                    "shortcuts": {
+                        "duplicate-nodes": "Duplicate selected nodes",
+                        "undo": "Undo change",
+                        "redo": "Redo change",
+                        "delete": "Remove selected elements",
+                        "multiselect": "Select multiple nodes",
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                    }
+                },
+                "workflow-editor": {
+                    "label": "Workflow editor",
+                    "shortcuts": {
+                        "delete": "Remove selected elements",
+                        "multiselect": "Select multiple nodes",
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                    }
+                }
+            },
+            "keys": {
+                "ctrl": "^Ctrl",
+                "cmd": "⌘Command",
+                "shift": "⇧Shift",
+                "backspace": "←Backpace",
+                "alt": "⌥Option/Alt",
+                "mouse select": "mouse select"
+            }
+        }
+    },
     "common": {
         "action": {
             "showIdentifier": "Show identifier",
@@ -259,7 +333,8 @@
             "configure": "Configure",
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
-            "filterOff": "Remove filter"
+            "filterOff": "Remove filter",
+            "showMoreDetails": "Show more details"
         },
         "app": {
             "build": "Workbench",
@@ -340,7 +415,8 @@
             "copied": "Copied",
             "unlimited": "unlimited",
             "added": "Added",
-            "removed": "Removed"
+            "removed": "Removed",
+            "paths": "Paths"
         }
     },
     "form": {
@@ -361,7 +437,11 @@
             "float": "must be a valid floating point number",
             "integer": "must be a valid integer number",
             "isRequired": "{{field}} is required",
-            "parameter": "Parameter validation failed. Please fix the issues first."
+            "parameter": "Parameter validation failed. Please fix the issues first.",
+            "threshold": {
+                "normalized": "Must be a number from 0...1",
+                "unbounded": "Must be a number from 0...∞"
+            }
         }
     },
     "http": {
@@ -426,6 +506,7 @@
                 "score": "Score",
                 "linkState": "Link state",
                 "expandRows": "Expand all rows",
+                "expandTrees": "Expand all trees",
                 "collapseRows": "Collapse all rows"
             },
             "infoCollapsedInputValue": "Input values available",
@@ -453,7 +534,9 @@
                 "query": "Queries",
                 "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
                 "vocab": "Vocabularies",
-                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
+                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog.",
+                "thesaurus": "Thesauri",
+                "thesaurusTooltip": "The thesaurus module provides an interface for browsing, editing, structuring and linking concepts in a taxonomy based on SKOS."
             },
             "dmBrowser": "Explore",
             "open": "Open navigation",
@@ -484,7 +567,8 @@
         "workspace": {
             "contents": "Contents",
             "createProject": "Create Project",
-            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
+            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file.",
+            "firstWorkflow": "Workflow 1"
         }
     },
     "RuleEditor": {
@@ -506,6 +590,13 @@
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
                 "referenceLinks": "Open reference links UI in new tab"
+            },
+            "PathNotInCacheModal": {
+                "loadAndReEvaluate": "Load and re-evaluate",
+                "missingPath": "Path not loaded",
+                "pathCouldNotBeAdded": "Path could not be loaded.",
+                "messagePartA": "Values for the input path",
+                "messagePartB": "are not available for evaluation. Fetching the path values from the data source may take some time. Do you want to load the values and repeat the evaluation?"
             }
         },
         "node": {
@@ -515,6 +606,10 @@
                 },
                 "remove": {
                     "label": "Remove"
+                },
+                "subtree": {
+                    "label": "Evaluate subtree",
+                    "description": "Evaluate linking tree partially until this operator node."
                 }
             },
             "executionButtons": {
@@ -561,7 +656,14 @@
                 "weightLabel": "Weight",
                 "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
                 "thresholdLabel": "Threshold",
-                "thresholdDesc": "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+                "thresholdRequired": {
+                    "normalized": "required 0...1",
+                    "unbounded": "required 0...∞"
+                },
+                "thresholdDesc": {
+                    "normalized": "The maximum distance. This distance measure is normalized, i.e., the threshold must be between 0 (exact match) and 1 (no similarity).",
+                    "unbounded": "The maximum distance. Distances start at 0 (exact match) and increase the more different the values may be."
+                }
             }
         },
         "toolbar": {
@@ -735,9 +837,17 @@
                 "title": "Edit linkage rule configuration"
             },
             "parameters": {
+                "inverseLinkType": {
+                    "label": "Inverse link type",
+                    "description": "The inverse property URI of the link. For RDF based datasets this will be the property that connects the target to the source resources."
+                },
+                "excludeSelfReferences": {
+                    "label": "Exclude self references",
+                    "description": "If enabled, no links are generated from a resource to itself."
+                },
                 "linkType": {
                     "label": "Link type",
-                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the linked resources."
+                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the source to the target resource."
                 },
                 "limit": {
                     "label": "Target link limit",
@@ -815,6 +925,39 @@
             "reloadAllCaches": "Reload all caches",
             "title": "Activity overview"
         },
+        "VariableWidget": {
+            "title": "Project Variables",
+            "noVariables": "No variables set.",
+            "form": {
+                "name": "Name",
+                "value": "Value",
+                "description": "Description",
+                "infoBoxTitle": "Project variables",
+                "infoBoxDescription": "User-defined project variables. They can be used in dataset and task parameters and in the template transform operator. Variables may use templates that access other preceding project variables or globally configured variables."
+            },
+            "dependencyTypes": {
+                "tasks": "Dependent tasks",
+                "variables": "Dependent variables"
+            },
+            "modalMessages": {
+                "deleteModalTitle": "Delete variable",
+                "deletePromptWithDependencies": "The variable '{{varname}}' cannot be deleted because it is used at the following places:",
+                "deletePromptNoDep": "Are you sure you want to delete variable '{{varname}}'?"
+            },
+            "actions": {
+                "add": "Add variable",
+                "edit": "Edit variable"
+            },
+            "formErrors": {
+                "nameAlreadyExists": "Name already exists",
+                "nameMustBeSpecified": "Name must be specified",
+                "mustProvideValOrTemplate": "Must provide value or template"
+            },
+            "errorMessages": {
+                "loadingVariables": "Could not load variables for project '{{projectId}}'",
+                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand"
+            }
+        },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
@@ -823,7 +966,15 @@
         },
         "WarningWidget": {
             "loading": "Loading log messages.",
-            "title": "Error log"
+            "title": "Error log",
+            "fixTask": "Fix task",
+            "fixTaskInitFailed": "Could not load data in oder to fix task.",
+            "fixTaskModalTitle": "Fix task '{{taskLabel}}'",
+            "FixTaskDataNotFoundModal": {
+                "title": "Reload failed task",
+                "warningMessage": "Either the plugin data or the original task data was not available. Click button to reload the task. Details: {{details}}",
+                "reloadButton": "Reload task"
+            }
         }
     },
     "DatasetUriPropertyParameter": {
@@ -1014,6 +1165,10 @@
         "invalidTemplate": "Invalid template value",
         "switchToTemplate": "Switch to template input that allows to use global variables like this 'EXAMPLE'. Templates follows the Jinja syntax.",
         "switchToValue": "Variable template usage is active. You can use Jinja template syntax, e.g. for accessing global variables use 'EXAMPLE'. Click to switch back to direct value input."
+    },
+    "PathInputOperator": {
+        "languageButtonTooltip": "Set a language filter. Only values for the chosen language will be fetched.",
+        "noFilter": "No language filter"
     },
     "MappingTree": {
         "loadingRules": "Loading rules",

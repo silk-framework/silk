@@ -78,7 +78,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         Seq()
       case _: JsValue if path.isEmpty =>
         Seq(this)
-      case _: JsValue if path.nonEmpty =>
+      case _: JsValue =>
         Seq()
     }
   }
@@ -124,7 +124,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
           case JsonDataset.specialPaths.ID =>
             Seq(nodeId(value))
           case JsonDataset.specialPaths.TEXT =>
-            nodeToValue(value, generateUris)
+            Seq(value.toString())
           case _ =>
             children(prop).flatMap(child => child.evaluate(tail, generateUris))
         }

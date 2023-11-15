@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
-    Button,
     Card,
     CardContent,
     CardHeader,
+    CardOptions,
     CardTitle,
     Divider,
+    HelperClasses,
     Highlighter,
     IconButton,
     Spacing,
@@ -18,9 +19,6 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-    Toolbar,
-    ToolbarSection,
-    HelperClasses,
 } from "@eccenca/gui-elements";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
@@ -93,37 +91,33 @@ export const FileWidget = () => {
                     <CardTitle>
                         <h2>{t("widget.FileWidget.files", "Files")}</h2>
                     </CardTitle>
+                    <CardOptions>
+                        <IconButton
+                            name="item-add-artefact"
+                            data-test-id="project-files-widget-add-file-btn"
+                            text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
+                            onClick={toggleFileUploader}
+                        />
+                    </CardOptions>
                 </CardHeader>
                 <Divider />
-                <CardContent>
+                <CardContent style={{ maxHeight: "25vh" }}>
                     {isLoading ? (
                         <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : (
                         <>
                             {(!!textQuery || !!filesList.length) && (
-                                <Toolbar>
-                                    <ToolbarSection canGrow>
-                                        <SearchBar
-                                            textQuery={textQuery}
-                                            onSearch={onSearch}
-                                            data-test-id={"file-search-bar"}
-                                            focusOnCreation={!!textQuery.length}
-                                        />
-                                    </ToolbarSection>
-                                    <ToolbarSection>
-                                        <Spacing size="tiny" vertical />
-                                        <Button
-                                            elevated
-                                            text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
-                                            onClick={toggleFileUploader}
-                                        />
-                                    </ToolbarSection>
-                                </Toolbar>
+                                <SearchBar
+                                    textQuery={textQuery}
+                                    onSearch={onSearch}
+                                    data-test-id={"file-search-bar"}
+                                    focusOnCreation={!!textQuery.length}
+                                />
                             )}
                             {!!filesList.length && <Spacing size="tiny" />}
                             {!!filesList.length && (
                                 <TableContainer>
-                                    <Table>
+                                    <Table columnWidths={["40%", "25%", "25%", "60px"]}>
                                         <TableHead>
                                             <TableRow>
                                                 {headers.map((property) => (
@@ -147,6 +141,7 @@ export const FileWidget = () => {
                                                                     : file[property.key];
                                                             return (
                                                                 <TableCell
+                                                                    alignVertical="middle"
                                                                     key={property.key}
                                                                     className={
                                                                         property.key === "name"
@@ -165,10 +160,7 @@ export const FileWidget = () => {
                                                                 </TableCell>
                                                             );
                                                         })}
-                                                        <TableCell
-                                                            key={"fileActions"}
-                                                            className="bx--table-column-menu"
-                                                        >
+                                                        <TableCell alignVertical="middle" key={"fileActions"}>
                                                             <div style={{ display: "flex" }}>
                                                                 <IconButton
                                                                     data-test-id={"resource-download-btn"}
@@ -202,7 +194,7 @@ export const FileWidget = () => {
                                 filesList.length > Math.min(pagination.total, pagination.minPageSize) &&
                                     paginationElement
                             }
-                            {!textQuery && !filesList.length && <EmptyFileWidget onFileAdd={toggleFileUploader} />}
+                            {!textQuery && !filesList.length && <EmptyFileWidget />}
                         </>
                     )}
                 </CardContent>

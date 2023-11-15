@@ -1,12 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
 import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -24,7 +24,7 @@ import scala.util.Try
   "a FROM clause will be added to the query at execution time, except when there already exists a GRAPH or FROM clause in the query. FROM NAMED clauses are not injected."
 )
 case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
-                                  selectQuery: MultilineStringParameter,
+                                  selectQuery: SparqlCodeParameter,
                                   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
                                   limit: String = "",
                                  @Param(label = "Optional SPARQL dataset",
@@ -43,9 +43,13 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
     Try(limit.toInt).filter(_ > 0).toOption
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(SparqlEndpointEntitySchema.schema))
+  override def inputPorts: InputPorts = {
+    FixedNumberOfInputs(Seq(FixedSchemaPort(SparqlEndpointEntitySchema.schema)))
+  }
 
-  override def outputSchemaOpt: Option[EntitySchema] = Some(outputSchema)
+  override def outputPort: Option[Port] = {
+    Some(FixedSchemaPort(outputSchema))
+  }
 
   val outputSchema: EntitySchema = {
     val query = QueryFactory.create(selectQuery.str)

@@ -117,9 +117,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     DatasetSpec.checkDatasetAllowsWriteAccess(Some(dataset.fullLabel), dataset.readOnly)
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
-      case LinksTable(links, linkType, _) =>
+      case LinksTable(links, linkType, inverseLinkType, _) =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(dataset, linkSink, links, linkType)
+          writeLinks(dataset, linkSink, links, linkType, inverseLinkType)
         }
       case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset, execution) { entitySink =>
@@ -142,7 +142,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
-        uploadFilesViaGraphStore(dataset, graphStoreFiles)
+        val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
+        uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
       case et: LocalEntities =>
@@ -252,7 +253,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
-                                       table: GraphStoreFileUploadTable)
+                                       table: GraphStoreFileUploadTable,
+                                       reportUpdater: ExecutionReportUpdater)
                                       (implicit userContext: UserContext): Unit = {
     val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
     dataset.data match {
@@ -267,6 +269,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
             for(fileResource <- table.files) {
               graphStore.uploadFileToGraph(targetGraph, fileResource.file, "application/n-triples", None) // Only N-Triples supported
+              reportUpdater.increaseEntityCounter()
             }
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
@@ -275,6 +278,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         throw new ValidationException("No dataset spec found!")
     }
+    reportUpdater.executionDone()
   }
 
   // Write the resource from the resource entity table to the dataset's resource
@@ -331,13 +335,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri)
+  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri, inverseLinkType: Option[Uri])
                         (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport]): Unit = {
     implicit val report: ExecutionReportUpdater = WriteLinksReportUpdater(dataset, context)
     val startTime = System.currentTimeMillis()
     sink.init()
     for (link <- links) {
-      sink.writeLink(link, linkType.uri)
+      sink.writeLink(link, linkType.uri, inverseLinkType.map(_.uri))
       report.increaseEntityCounter()
     }
     val time = (System.currentTimeMillis - startTime) / 1000.0
@@ -406,6 +410,16 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
+  }
+
+  case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+
+    override def entityLabelPlural: String = "Files"
+
+    override def operationLabel: Option[String] = Some("upload")
+
+    override def entityProcessVerb: String = "uploaded"
   }
 }
 

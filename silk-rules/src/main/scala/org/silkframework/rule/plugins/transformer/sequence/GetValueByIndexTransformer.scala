@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   */
 @Plugin(
   id = "getValueByIndex",
-  categories = Array("Sequence"),
+  categories = Array("Sequence", "Tokenization"),
   label = "Get value by index",
   description =
     """Returns the value found at the specified index. Fails or returns an empty result depending on failIfNoFound is set or not.
@@ -27,7 +27,7 @@ case class GetValueByIndexTransformer(index: Int,
       vs.drop(index).headOption match {
         case None if failIfNotFound =>
           throw new IndexOutOfBoundsException("No value at index " + index + ".")
-        case None if !failIfNotFound =>
+        case None =>
           Seq()
         case Some(v) =>
           if(emptyStringToEmptyResult && v.isEmpty) {

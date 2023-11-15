@@ -5,6 +5,8 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse, ProjectUriResponse}
 import controllers.projectApi.doc.ProjectApiDoc
+import controllers.projectApi.requests.OriginalTaskDataResponse.OriginalTaskDataJsonFormat
+import controllers.projectApi.requests.ReloadFailedTaskRequest
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors
@@ -20,6 +22,7 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
 import org.silkframework.util.{Identifier, IdentifierUtils}
@@ -599,7 +602,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                     )
                                     taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectId)
-    project.loadingErrors.find(_.taskId == taskId) match {
+    project.loadingErrors.find(_.taskId.toString == taskId) match {
       case Some(loadingError) =>
         val failedTask = ProjectLoadingErrors.fromTaskLoadingError(loadingError)
         val taskLabel = failedTask.taskLabel.filter(_.trim != "").getOrElse(failedTask.taskId)
@@ -617,6 +620,98 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       case None =>
         NotFound
     }
+  }
+
+  @Operation(
+    summary = "Reload failed task",
+    description = "Reload a task that has failed loading before. It is possible to overwrite some of the original parameters of the task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success"
+      )
+    ))
+  @RequestBody(
+    description = "Request to reload a failed task.",
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ReloadFailedTaskRequest]),
+        examples = Array(new ExampleObject(ProjectApiDoc.reloadFailedTaskRequestExample))
+      )
+    )
+  )
+  def reloadFailedTask(@Parameter(
+                        name = "projectId",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      val project = getProject(projectId)
+      implicit val readContext: ReadContext = ReadContext.fromProject(project)
+      validateJsonFromJsonFormat[ReloadFailedTaskRequest] { request =>
+        project.loadingErrors.find(_.taskId.toString == request.taskId) match {
+          case Some(loadingError) =>
+            ProjectLoadingErrors.reloadTask(project, loadingError, request.parameterValues)
+            NoContent
+          case None =>
+            NotFound
+        }
+      }
+  }
+
+  @Operation(
+    summary = "Failed tasks parameters values",
+    description = "Get the parameters of a failed task if available. Only simple parameters are returned.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(ProjectApiDoc.failedTaskParameterValuesResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or failed task does not exist or no parameter values were found."
+      )
+    ))
+  def failedTaskParameterValues(@Parameter(
+                                  name = "projectId",
+                                  description = "The project identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                projectId: String,
+                                @Parameter(
+                                  name = "taskId",
+                                  description = "The task identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request =>
+    implicit userContext =>
+      val project = getProject(projectId)
+      project.loadingErrors.find(_.taskId.toString == taskId) match {
+        case Some(loadingError) =>
+          loadingError.originalParameterValues match {
+            case Some(parameterValues) =>
+              implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
+              Ok(OriginalTaskDataJsonFormat.write(parameterValues))
+            case None =>
+              NotFound("Original parameter values are not available for this task failing error.")
+          }
+        case None =>
+          NotFound(s"No task loading error found for project '${project.fullLabel}' and task '$taskId'")
+      }
   }
 
   /** Get an error report for tasks that failed loading. */

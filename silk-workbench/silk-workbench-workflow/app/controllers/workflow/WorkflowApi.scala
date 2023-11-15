@@ -16,6 +16,7 @@ import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
@@ -244,6 +245,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
                                             )
                                             workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfiguration)

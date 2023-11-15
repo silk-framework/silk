@@ -165,9 +165,23 @@ export const partialAutoCompleteLinkingInputPaths = (
     });
 };
 
-/**
- * linkLimit: Int ?= 1000, timeoutInMs: Int ?= 30000, includeReferenceLinks: Boolean ?= false
- */
+/** Adds an additional path to the reference entities cache of a linking task. */
+export const addPathToReferenceEntitiesCache = (
+    projectId: string,
+    linkingTaskId: string,
+    path: string,
+    toTarget: boolean
+): Promise<FetchResponse<void>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceEntitiesCache/path`),
+        method: "POST",
+        body: {
+            path,
+            toTarget,
+            reloadCache: true,
+        },
+    });
+};
 
 const linkingRuleEditorRequests = {
     fetchLinkingCachedPaths,

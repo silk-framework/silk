@@ -10,7 +10,11 @@ import scala.collection.immutable.ListMap
   */
 case class PluginList(pluginsByType: ListMap[String, Seq[PluginDescription[_]]],
                       serializeMarkdownDocumentation: Boolean,
-                      overviewOnly: Boolean)
+                      overviewOnly: Boolean) {
+  def pluginDescriptions(): Seq[PluginDescription[_]] = {
+    pluginsByType.values.flatten.toSeq
+  }
+}
 
 object PluginList {
   def load(pluginTypes: Seq[String],

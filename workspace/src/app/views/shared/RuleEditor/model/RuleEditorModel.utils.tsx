@@ -17,6 +17,7 @@ import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { IconButton } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 /** Constants */
 
@@ -70,6 +71,8 @@ export interface IOperatorCreateContext {
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
+    /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
+    languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -113,6 +116,7 @@ function createOperatorNode(
             text={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
         />
     );
+    const type = nodeType(node.pluginType, node.pluginId);
 
     const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
@@ -128,6 +132,7 @@ function createOperatorNode(
             <RuleNodeMenu
                 nodeId={node.nodeId}
                 t={operatorContext.t}
+                nodeType={type}
                 handleDeleteNode={nodeOperations.handleDeleteNode}
                 ruleOperatorDescription={node.description}
                 ruleOperatorDocumentation={node.markdownDocumentation}
@@ -159,7 +164,7 @@ function createOperatorNode(
 
     return {
         id: node.nodeId,
-        type: nodeType(node.pluginType, node.pluginId),
+        type,
         position,
         data,
     };
@@ -486,3 +491,7 @@ export const ruleEditorModelUtilsFactory = (
         nodesById,
     };
 };
+
+const defaultUtils = ruleEditorModelUtilsFactory();
+
+export default defaultUtils;

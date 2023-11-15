@@ -43,6 +43,7 @@ POST          /tasks/:project/:task/reloadCache                                 
 GET           /tasks/:project/:task/pathCacheValue/source                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = false, withMetaData: Boolean ?= false, langPref: String ?= "en")
 GET           /tasks/:project/:task/pathCacheValue/target                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = true, withMetaData: Boolean ?= false, langPref: String ?= "en")
 PUT           /tasks/:project/:task/writeReferenceLinks                             controllers.linking.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
+POST          /tasks/:project/:task/referenceEntitiesCache/path                     controllers.linking.LinkingTaskApi.addPathToReferenceEntitiesCache(project: String, task: String)
 
 GET           /tasks/:project/:task/referenceLinksEvaluated                         controllers.linking.LinkingTaskApi.referenceLinksEvaluated(project: String, task: String, withEntitiesAndSchema: Boolean ?= false)
 POST          /tasks/:project/:linkingTaskId/referenceLinksEvaluated                controllers.linking.LinkingTaskApi.referenceLinksEvaluateLinkageRule(project: String, linkingTaskId: String, linkLimit: Int ?= 1000)

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import {
@@ -28,17 +28,21 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Filterbar from "../Workspace/Filterbar";
 import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
-import WarningWidget from "./WarningWidget";
+import { ProjectTaskLoadingErrors } from "./WarningWidget/WarningWidget";
 import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
 import { previewSlice } from "@ducks/workspace/previewSlice";
+import VariablesWidget from "../../../views/shared/VariablesWidget/VariablesWidget";
+import { useSelectFirstResult } from "../../../hooks/useSelectFirstResult";
 
 const Project = () => {
     const dispatch = useDispatch();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const currentSearchQuery = useRef<string>("");
+    currentSearchQuery.current = textQuery;
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
     const data = useSelector(workspaceSel.resultsSelector);
@@ -50,6 +54,7 @@ const Project = () => {
     // FIXME: Workaround to prevent search with a text query from another page sharing the same Redux state. Needs refactoring.
     const [searchInitialized, setSearchInitialized] = React.useState(false);
     const effectiveSearchQuery = searchInitialized ? textQuery : "";
+    const { onEnter } = useSelectFirstResult();
 
     React.useEffect(() => {
         setSearchInitialized(true);
@@ -120,6 +125,7 @@ const Project = () => {
                                         sorters={sorters}
                                         onSort={handleSort}
                                         onSearch={handleSearch}
+                                        onEnter={onEnter}
                                     />
                                 </GridColumn>
                             </GridRow>
@@ -164,13 +170,14 @@ const Project = () => {
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <FileWidget />
-                    <Spacing />
+                    <ProjectTaskLoadingErrors refreshProjectPage={() => handleSearch(currentSearchQuery.current)} />
                     <ConfigurationWidget />
                     <Spacing />
-                    <WarningWidget />
+                    <VariablesWidget projectId={projectId} />
                     <Spacing />
                     <ActivityInfoWidget />
+                    <Spacing />
+                    <FileWidget />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

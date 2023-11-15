@@ -32,8 +32,18 @@ export const stringValueAsJs = (valueType: string, value: OptionallyLabelledPara
     return v;
 };
 
-export const objectToFlatRecord = (object: object, replacementValues: Record<string, any>): Record<string, any> => {
-    const result: any = {};
+/**
+ * Turns a nested object to a flat object, e.g. {parent: {child: "value"}} becomes {"parent.child": "value"}.
+ * @param object            The input object.
+ * @param replacementValues Replacement values for specific parameters.
+ * @param labelValueFormat  If true all values that will be returned have the format {label?: string, value: any}
+ */
+export const objectToFlatRecord = (
+    object: object,
+    replacementValues: Record<string, any>,
+    labelValueFormat: boolean
+): Record<string, any> => {
+    const result: any = Object.create(null);
     const objToFlatRec = (obj: object, prefix: string) => {
         Object.entries(obj).forEach(([paramName, paramLabelAndValue]) => {
             const fullParameterId = `${prefix}${paramName}`;
@@ -52,7 +62,9 @@ export const objectToFlatRecord = (object: object, replacementValues: Record<str
                 result[prefix + paramName] =
                     replacementValues[fullParameterId] != null
                         ? { value: replacementValues[fullParameterId] }
-                        : paramLabelAndValue;
+                        : paramLabelAndValue?.value != null || !labelValueFormat
+                        ? paramLabelAndValue
+                        : { value: paramLabelAndValue };
             }
         });
     };
@@ -62,9 +74,11 @@ export const objectToFlatRecord = (object: object, replacementValues: Record<str
 /** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"].
  *  If the original values are reified values with optional labels, this reified structure is kept in the flat object.
  **/
-export const existingTaskValuesToFlatParameters = (updateTask: UpdateTaskProps | undefined) => {
+export const existingTaskValuesToFlatParameters = (
+    updateTask: Pick<UpdateTaskProps, "parameterValues" | "variableTemplateValues"> | undefined
+) => {
     if (updateTask) {
-        return objectToFlatRecord(updateTask.parameterValues, updateTask.variableTemplateValues);
+        return objectToFlatRecord(updateTask.parameterValues, updateTask.variableTemplateValues, true);
     } else {
         return {};
     }

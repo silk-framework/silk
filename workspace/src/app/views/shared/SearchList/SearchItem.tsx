@@ -5,12 +5,13 @@ import {
     ContextMenu,
     Highlighter,
     IconButton,
+    Markdown,
     MenuDivider,
     MenuItem,
     OverflowText,
     OverviewItem,
     OverviewItemActions,
-    Depiction,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
@@ -27,9 +28,8 @@ import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
-import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import { Markdown } from "@eccenca/gui-elements";
 import highlightSearchWordsPluginFactory from "@eccenca/gui-elements/src/cmem/markdown/highlightSearchWords";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
@@ -69,7 +69,7 @@ export default function SearchItem({
     const itemLinks = item.itemLinks ?? [{ path: "", label: "" }];
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
-    const { projectTabView, changeTab, menuItems } = useProjectTabsView({
+    const { projectTabView, changeTab, menuItems } = useProjectTaskTabsView({
         srcLinks: menuItemLinks.map((link) => ({ ...link, id: link.label })),
         pluginId: item.pluginId,
         projectId: item.projectId,
@@ -113,7 +113,7 @@ export default function SearchItem({
         if (!e?.ctrlKey && itemLinks.length > 0) {
             e.preventDefault();
             const detailsPath = itemLinks[0].path;
-            const labels: IPageLabels = {};
+            const labels: IPageLabels = Object.create(null);
             if (item.type === DATA_TYPES.PROJECT) {
                 labels.projectLabel = item.label;
             } else {
@@ -132,12 +132,9 @@ export default function SearchItem({
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
-                <Depiction
-                    image={<ItemDepiction itemType={item.type} pluginId={item.pluginId} />}
-                    ratio="1:1"
-                    backgroundColor="dark"
-                    padding="medium"
-                />
+                <OverviewItemDepiction>
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
+                </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <h4>

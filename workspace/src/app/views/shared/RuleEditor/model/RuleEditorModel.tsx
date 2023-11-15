@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import {
     Edge,
-    Node,
     Elements,
+    Node,
     OnLoadParams,
     removeElements,
     useStoreActions,
@@ -47,6 +47,7 @@ import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
+import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -888,7 +889,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
-                const newStickyProps: StickyNodePropType = {};
+                const newStickyProps: StickyNodePropType = Object.create(null);
                 const oldStickyProps = {
                     style: nodeUtils.generateStyleWithColor(node.data.style?.borderColor ?? "#000"),
                     content: node.data.businessData.stickyNote,
@@ -1470,6 +1471,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
 
+    const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
+        const node = nodeMap.get(nodeId);
+        if (node) {
+            const enabled =
+                node.node.pluginType === "PathInputOperator" &&
+                !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
+                    .languageFilter;
+            return {
+                enabled,
+                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
+            };
+        }
+    };
+
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
@@ -1484,6 +1499,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
+        languageFilterEnabled,
     });
 
     /** Auto-layout the rule nodes.
@@ -1491,6 +1507,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const autoLayout = (startTransaction: boolean = true) => {
         autoLayoutInternal(current.elements, true, startTransaction);
     };
+
+    React.useEffect(() => {
+        //make the current node id animated
+        changeElementsInternal((els) => {
+            const currentSubtreeNodeId = ruleEvaluationContext.evaluationRootNode();
+            return els.map((el) => {
+                if (el.id === currentSubtreeNodeId) {
+                    el.data = {
+                        ...el.data,
+                        animated: ruleEvaluationContext.evaluationRunning,
+                    };
+                }
+                return el;
+            });
+        });
+    }, [ruleEvaluationContext.evaluationRunning]);
 
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
     const ruleOperatorNodes = (): IRuleOperatorNode[] => {

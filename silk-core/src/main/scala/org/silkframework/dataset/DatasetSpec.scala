@@ -27,6 +27,7 @@ import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
 import java.util.logging.Logger
 import scala.language.implicitConversions
@@ -75,10 +76,10 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
-  override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def inputPorts: InputPorts = FlexibleNumberOfInputs()
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
-  override lazy val outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
 
   /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources
@@ -302,11 +303,11 @@ object DatasetSpec {
     /**
       * Writes a new link to this writer.
       */
-    override def writeLink(link: Link, predicateUri: String)
+    override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       //require(isOpen, "Output must be opened before writing statements to it")
 
-      linkSink.writeLink(link, predicateUri)
+      linkSink.writeLink(link, predicateUri, inversePredicateUri)
       linkCount += 1
     }
 
@@ -337,9 +338,12 @@ object DatasetSpec {
       if (node.label == "DataSource" || node.label == "Output") {
         // Read old format
         val id = (node \ "@id").text
-        new DatasetSpec(
-          plugin = Dataset((node \ "@type").text, XmlSerialization.deserializeParameters(node))
-        )
+        val pluginId = (node \ "@type").text
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginId, XmlSerialization.deserializeParameters(node))) { params =>
+          new DatasetSpec(
+            plugin = Dataset(pluginId, params)
+          )
+        }
       } else {
         // Read new format
         val id = (node \ "@id").text
@@ -347,12 +351,14 @@ object DatasetSpec {
         val readOnly: Boolean = (node \ "@readOnly").headOption.exists(_.text.toBoolean)
         // In outdated formats the plugin parameters are nested inside a DatasetPlugin node
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
-        val parameters = XmlSerialization.deserializeParameters(sourceNode)
-        new DatasetSpec(
-          plugin = Dataset((sourceNode \ "@type").text, parameters),
-          uriAttribute = uriProperty,
-          readOnly = readOnly
-        )
+        val pluginId = (sourceNode \ "@type").text
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginId, XmlSerialization.deserializeParameters(sourceNode))) { params =>
+          new DatasetSpec(
+            plugin = Dataset(pluginId, params),
+            uriAttribute = uriProperty,
+            readOnly = readOnly
+          )
+        }
       }
     }
 

@@ -5,8 +5,8 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.XmlCodeParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 
 @Plugin(
@@ -24,7 +24,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        @Param(label = "URI pattern", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
                        uriPattern: String = "",
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.", advanced = true)
-                       outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
+                       outputTemplate: XmlCodeParameter = XmlCodeParameter("<Root><?Entity?></Root>"),
                        @Param(value = "Streaming allows for reading large XML files.", advanced = true)
                        streaming: Boolean = true,
                        @Param(value = "Maximum depth of written XML. This acts as a safe guard if a recursive structure is written.", advanced = true)

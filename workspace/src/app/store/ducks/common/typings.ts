@@ -1,6 +1,7 @@
 import {
     IAutocompleteDefaultResponse,
     IMetadata,
+    IProjectTask,
     PluginType,
     TaskType,
     TemplateValueType,
@@ -87,6 +88,7 @@ export interface IOverviewArtefactItem {
     markdownDocumentation?: string;
 }
 
+export type DistanceMeasureRange = "boolean" | "unbounded" | "normalized";
 /** The full task plugin description, including detailed schema. */
 export interface IPluginDetails {
     title: string;
@@ -94,6 +96,7 @@ export interface IPluginDetails {
     taskType: TaskType;
     type: "object";
     categories: string[];
+    distanceMeasureRange?: DistanceMeasureRange;
     properties: {
         [key: string]: IArtefactItemProperty;
     };
@@ -107,18 +110,29 @@ export interface IPluginDetails {
 /** Overview version of an item description. */
 export interface IPluginOverview {
     key: string;
-    taskType?: string;
+    taskType?: TaskType;
     title?: string;
     description?: string;
     categories?: string[];
     markdownDocumentation?: string;
+    /** Plugin icon in Data URL format. */
+    pluginIcon?: string;
 }
+
+export type AlternativeTaskUpdateFunction = (
+    projectId: string,
+    taskId: string,
+    parameterData: object,
+    variableTemplateData: object,
+    dataParameters: Record<string, string> | undefined
+) => any | Promise<any>;
 
 /** Contains all data that is needed to render an update dialog. */
 export interface IProjectTaskUpdatePayload {
     projectId: string;
     taskId: string;
     taskPluginDetails: IPluginDetails;
+    /** Needed to display the task label in the modal title. */
     metaData: IMetadata;
     currentParameterValues: {
         [key: string]: string | object;
@@ -127,6 +141,41 @@ export interface IProjectTaskUpdatePayload {
     dataParameters?: {
         [key: string]: string;
     };
+    /** Function that is called instead of the task PATCH endpoint. */
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction;
+    /** The title of the modal that will be displayed */
+    alternativeTitle?: string;
+    /** Function that is being called when the task has been successfully updated. */
+    successHandler?: (updateInfo: TaskUpdateInfo) => any;
+}
+
+interface TaskUpdateInfo {
+    projectId: string;
+    taskId: string;
+}
+
+export type MetaDataFactoryFunction = (pluginDetails: IPluginDetails) => IMetadata;
+
+/** Contains additional data to pre-set some configs or parameters when creating a new task. */
+export interface TaskPreConfiguration {
+    /** Meta data to pre-configure the label or description of a task. */
+    metaData?: IMetadata;
+    /** Allows to set parameters of the task to be created, e.g. file resource or input source. */
+    preConfiguredParameterValues?: {
+        [key: string]: string | object;
+    };
+    /** When this is set the modal starts directly in the create-task step. */
+    taskPluginId?: string;
+    /** If it should be possible to create a project. */
+    showProjectItem?: boolean;
+    /** If set to false, then the widget to change the project for the task will not be shown. Default: false */
+    showProjectChangeWidget?: boolean;
+    /** Blacklist some plugins that should not be possible to create. */
+    pluginBlackList?: string[];
+    /** If this is set, then instead of redirecting to the newly created task, this function is called. */
+    alternativeCallback?: (newTask: IProjectTask) => any;
+    /** A factory function that should be called to generate meta data based on the selected plugin. */
+    metaDataFactoryFunction?: MetaDataFactoryFunction;
 }
 
 export interface ProjectTaskDownloadInfo {
@@ -142,6 +191,7 @@ export interface IExportTypes {
     mediaType: string;
 }
 
+/** State of the artefact modal. */
 export interface IArtefactModal {
     // If true, this modal is shown to the user
     isOpen: boolean;
@@ -170,6 +220,9 @@ export interface IArtefactModal {
     // If an existing task should be updated
     updateExistingTask?: IProjectTaskUpdatePayload;
 
+    /** Allows to pre-set some of the task parameters or meta data when creating a new task. */
+    newTaskPreConfiguration?: TaskPreConfiguration;
+
     error: any;
 }
 
@@ -182,6 +235,8 @@ export interface ICommonState {
     currentTaskId: string | undefined;
     locale: string;
     initialSettings: IInitFrontend;
+    /** The task plugin overview information. */
+    taskPluginOverviews: IPluginOverview[];
     authenticated: boolean;
     searchQuery: string;
     error?: any;
@@ -222,7 +277,7 @@ export interface IInitFrontend {
     templatingEnabled: boolean;
 }
 
-type HotKeyIds = "quickSearch";
+type HotKeyIds = "quickSearch" | "overview";
 
 export interface IDmLink {
     path: string;

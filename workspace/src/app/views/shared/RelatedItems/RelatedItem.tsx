@@ -18,7 +18,7 @@ import { IRelatedItem } from "@ducks/shared/typings";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
-import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
 interface IProps {
@@ -31,7 +31,7 @@ interface IProps {
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
     const dispatch = useDispatch();
-    const { projectTabView, changeTab, menuItems } = useProjectTabsView({
+    const { projectTabView, changeTab, menuItems } = useProjectTaskTabsView({
         srcLinks: relatedItem.itemLinks.slice(1),
         pluginId: relatedItem.pluginId,
         projectId: relatedItem.projectId,

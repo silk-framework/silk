@@ -3,8 +3,10 @@ package controllers.workflowApi.workflow
 import org.silkframework.config.Task
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.Project
-import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.workflow.{AllReplaceableDatasets, Workflow}
 import play.api.libs.json.{Format, Json}
+
+import scala.util.control.NonFatal
 
 /** Workflow information.
   *
@@ -20,7 +22,8 @@ case class WorkflowInfo(id: String,
                         projectId: String,
                         projectLabel: String,
                         variableInputs: Seq[String],
-                        variableOutputs: Seq[String]
+                        variableOutputs: Seq[String],
+                        warnings: Seq[String]
                        )
 
 object WorkflowInfo {
@@ -29,14 +32,26 @@ object WorkflowInfo {
   def fromWorkflow(workflow: Task[Workflow],
                    project: Project)
                   (implicit userContext: UserContext): WorkflowInfo = {
-    val variableDatasets = workflow.allReplaceableDatasets(project)
+    var warning: Option[String] = None
+    val variableDatasets = try{
+      workflow.allReplaceableDatasets(project)
+    } catch {
+      case NonFatal(ex) =>
+        warning = if(ex.getMessage != null) {
+          Some("Variable inputs and outputs could not be retrieved! Details: " + ex.getMessage)
+        } else {
+          Some("Variable inputs and outputs could not be retrieved!")
+        }
+        AllReplaceableDatasets(Seq.empty, Seq.empty)
+    }
     WorkflowInfo(
       workflow.id,
       workflow.fullLabel,
       project.id,
       project.config.metaData.formattedLabel(project.id, Int.MaxValue),
       variableDatasets.dataSources,
-      variableDatasets.sinks
+      variableDatasets.sinks,
+      warning.toSeq
     )
   }
 }

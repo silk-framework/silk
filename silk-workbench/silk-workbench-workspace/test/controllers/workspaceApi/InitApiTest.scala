@@ -1,6 +1,7 @@
 package controllers.workspaceApi
 
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
 import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
@@ -36,7 +37,7 @@ class InitApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers wi
   }
 
   private def initFrontendResult(httpHeaders: (String, String)*): collection.Map[String, JsValue] = {
-    val request = client.url(s"$baseUrl/api/workspace/initFrontend").withHttpHeaders(httpHeaders :_*)
+    val request = client.url(s"$baseUrl/api/workspace/initFrontend").addHttpHeaders(httpHeaders :_*)
     checkResponse(request.get()).json.as[JsObject].value
   }
 

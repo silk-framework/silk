@@ -15,6 +15,7 @@ import { fileValue } from "@ducks/shared/typings";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
+import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 
 interface IProps {
     projectId: string;
@@ -127,12 +128,21 @@ export function InputMapper({
         return <Spinner />;
     }
 
+    if (param.parameterType.startsWith("code-")) {
+        const mode = param.parameterType.substring(5);
+        if (supportedCodeEditorModes.find((m) => m === mode)) {
+            return <CodeEditor mode={mode as any} {...inputAttributes} />;
+        } else {
+            return <CodeEditor {...inputAttributes} />;
+        }
+    }
+
     switch (param.parameterType) {
         case INPUT_TYPES.BOOLEAN:
             return <Switch {...inputAttributes} />;
         // NumericInput does not support onChange, see https://github.com/palantir/blueprint/issues/3943
         case INPUT_TYPES.INTEGER:
-            return <TextField {...inputAttributes} />;
+            return <TextField {...inputAttributes} escapeToBlur={true} />;
         case INPUT_TYPES.TEXTAREA:
             return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
@@ -140,7 +150,7 @@ export function InputMapper({
         case INPUT_TYPES.MULTILINE_STRING:
             return <CodeEditor mode="undefined" {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
-            return <TextField {...inputAttributes} type={"password"} />;
+            return <TextField {...inputAttributes} type={"password"} escapeToBlur={true} />;
         case INPUT_TYPES.TARGET_VOCABULARY:
             return <DefaultTargetVocabularySelection {...inputAttributes} />;
         case INPUT_TYPES.RESOURCE:
@@ -173,6 +183,6 @@ export function InputMapper({
         case INPUT_TYPES.OPTION_INT:
         case INPUT_TYPES.STRING:
         default:
-            return <TextFieldWithCharacterWarnings {...inputAttributes} />;
+            return <TextFieldWithCharacterWarnings {...inputAttributes} escapeToBlur={true} />;
     }
 }

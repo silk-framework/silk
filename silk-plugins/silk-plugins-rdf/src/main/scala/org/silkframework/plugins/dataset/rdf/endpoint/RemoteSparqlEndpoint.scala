@@ -123,8 +123,24 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   private def checkResponseStatus(httpConnection: HttpURLConnection, requestType: String): Unit = {
     val status = httpConnection.getResponseCode
     if (status / 100 != 2) {
-      val errorMessage = httpConnection.errorMessage(" Error details: ").getOrElse("")
-      throw new ValidationException(s"$requestType failed on endpoint ${sparqlParams.uri} with code: $status.$errorMessage")
+      val errorMessage = if(status / 100 == 3) {
+        val originalUrl = httpConnection.getURL
+        // Redirect, get redirect URL
+        val location = httpConnection.getHeaderField("Location")
+        if(location.contains(":") && originalUrl.getProtocol != null && !location.startsWith(originalUrl.getProtocol + ":")) {
+          val fromProtocol = httpConnection.getURL.getProtocol
+          val toProtocol = location.split(":").head
+          // Redirection to different protocols
+          "Redirection to a different protocol happened. This is prevented for security reasons. Please change the protocol of the endpoint manually." +
+            s" Original protocol '$fromProtocol' redirected to protocol '$toProtocol'. " +
+            s"Changing the SPARQL endpoint URL to '$toProtocol${sparqlParams.uri.drop(fromProtocol.length)}' should solve the issue."
+        } else {
+          s"Problematic redirection (unknown reason) from URL '$originalUrl' to URL: '$location'"
+        }
+      } else {
+        httpConnection.errorMessage(" Error details: ").getOrElse("")
+      }
+      throw new ValidationException(s"$requestType failed on endpoint ${sparqlParams.uri} with code: $status. $errorMessage")
     }
   }
 

@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
+import org.silkframework.runtime.plugin.ParameterValues
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.reflect.ClassTag
@@ -19,7 +20,7 @@ class GlobalWorkspaceActivity[ActivityType <: HasValue : ClassTag](factory: Glob
 
   def autoRun: Boolean = factory.autoRun
 
-  override protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+  override protected def createInstanceFromParameterValues(config: ParameterValues): ActivityControl[ActivityType#ValueType] = {
     Activity(factory(), projectAndTaskId = None)
   }
 }

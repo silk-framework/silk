@@ -7,6 +7,7 @@ import org.silkframework.execution._
 import org.silkframework.rule.execution.{ComparisonToRestrictionConverter, Linking}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
@@ -49,6 +50,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
   override def run(context: ActivityContext[ExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     implicit val execution: ExecutionType = ExecutorRegistry.execution()
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
 
     // Execute inputs
     context.status.updateMessage("Loading inputs")
@@ -72,7 +74,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
 
   private def loadInputs()
                         (implicit executionType: ExecutionType,
-                         userContext: UserContext): DPair[ExecutionType#DataType] = {
+                         pluginContext: PluginContext, userContext: UserContext): DPair[ExecutionType#DataType] = {
     for (((selection, schema), sourceOrTarget) <- task.data.dataSelections zip task.data.entityDescriptions zip Seq(true, false)) yield {
       loadInput(selection, schema, Some(sourceOrTarget))
     }
@@ -84,7 +86,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
                         entitySchema: EntitySchema,
                         sourceOrTarget: Option[Boolean])
                        (implicit execution: ExecutionType,
-                        userContext: UserContext): ExecutionType#DataType = {
+                        pluginContext: PluginContext, userContext: UserContext): ExecutionType#DataType = {
     val updatedEntitySchema = sourceOrTarget.map(sot =>
       comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
     ).getOrElse(entitySchema)

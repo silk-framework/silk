@@ -39,9 +39,9 @@ trait AnyPlugin {
     * Creates a new instance of this plugin with updated parameters.
     *
     * @param updatedParameters A list of parameter values to be updated.
+    *                          Parameter values that are not provided remain unchanged.
     * @param dropExistingValues If true, the caller is expected to provide values for all parameters.
     *                           If false, the updated parameters can be a subset of all available parameters.
-    *                           Parameter values that are not provided remain unchanged.
     */
   def withParameters(updatedParameters: ParameterValues, dropExistingValues: Boolean = false)(implicit context: PluginContext): this.type = {
     val allParameters = if(dropExistingValues) updatedParameters else parameters merge updatedParameters

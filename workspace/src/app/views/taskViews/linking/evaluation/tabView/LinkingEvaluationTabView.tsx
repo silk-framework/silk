@@ -58,7 +58,7 @@ import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { getHistory } from "../../../../../store/configureStore";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
-import {extractSearchWords, createMultiWordRegex} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { extractSearchWords, createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -478,8 +478,8 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     }, []);
 
     const handleLinkingTabSwitch = React.useCallback((tabId: number, prevTabId: number) => {
-        if(prevTabId === tabId) {
-            return
+        if (prevTabId === tabId) {
+            return;
         }
         manualLinkChange.current = false;
         evaluationResults.current = undefined;
@@ -758,8 +758,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                             <TableBody>
                                 {rowData.map((row, rowIdx) => {
                                     const result = evaluationResults.current?.links[rowIdx]!;
-                                    const resultString = `${result.source} ${result.target}`.toLowerCase()
-                                    const expandedBecauseOfStringMatch = !!searchQuery.trim() && !multiWordSearchRegex.test(resultString)
+                                    const resultString = `${result.source} ${result.target}`.toLowerCase();
+                                    const expandedBecauseOfStringMatch =
+                                        !!searchQuery.trim() && !multiWordSearchRegex.test(resultString);
                                     return (
                                         <LinkingEvaluationRow
                                             key={rowIdx}

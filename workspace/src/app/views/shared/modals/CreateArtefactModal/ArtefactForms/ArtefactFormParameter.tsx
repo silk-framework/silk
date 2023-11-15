@@ -1,5 +1,5 @@
 import React, { memo, MouseEventHandler } from "react";
-import { AutoSuggestion, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, FieldItem, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import {
@@ -18,6 +18,8 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 
 interface Props {
+    //For task forms, project id is needed tor validation and autocompletion
+    projectId?: string;
     // ID of the parameter
     parameterId: string;
     // Label of the parameter
@@ -64,6 +66,7 @@ interface Props {
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
 export const ArtefactFormParameter = ({
+    projectId,
     parameterId,
     label,
     required = false,
@@ -178,8 +181,8 @@ export const ArtefactFormParameter = ({
             helperText={helperText}
         >
             <Toolbar
-                onMouseOver={showVariableTemplateInput ? undefined : onMouseOver}
-                onMouseOut={showVariableTemplateInput ? undefined : onMouseOut}
+                onMouseOver={supportVariableTemplateElement ? onMouseOver : undefined}
+                onMouseOut={supportVariableTemplateElement ? onMouseOut : undefined}
                 style={{ alignItems: "flex-start" }}
                 noWrap
             >
@@ -187,11 +190,12 @@ export const ArtefactFormParameter = ({
                     canGrow
                     style={{
                         alignSelf: "center",
-                        maxWidth: showVariableTemplateInput ? "calc(100% - 3.5px - 32px)" : "auto", // set full width minus tiny spacing and icon button width
+                        maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
                     }}
                 >
                     {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
+                            projectId={projectId}
                             parameterId={parameterId}
                             initialValue={
                                 valueState.current.templateValueBeforeSwitch ??
@@ -228,6 +232,8 @@ export const ArtefactFormParameter = ({
                                 showVariableTemplateInput ? "back" : "to"
                             }-btn`}
                             onClick={switchShowVariableTemplateInput}
+                            onFocus={showSwitchButton ? undefined : () => setShowRareActions(true)}
+                            onBlur={showRareActions ? () => setShowRareActions(false) : undefined}
                             minimal={false}
                             outlined
                             hasStatePrimary={showVariableTemplateInput}
@@ -241,21 +247,29 @@ export const ArtefactFormParameter = ({
 };
 
 interface TemplateInputComponentProps {
+    /** If a project ID is defined, also project variables will be auto-completed. */
+    projectId?: string;
+    /** ID for the input field. */
     parameterId: string;
     initialValue: string;
     onTemplateValueChange: (any) => any;
     setValidationError: (error?: string) => any;
     /** Called with a message that contains the currently evaluated template. */
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
+    /** optional parameter to make correct suggestions for when an existing variable is edited **/
+    variableName?: string;
 }
 
-const TemplateInputComponent = memo(
+/** The input component for the template value. */
+export const TemplateInputComponent = memo(
     ({
         parameterId,
         initialValue,
         onTemplateValueChange,
         setValidationError,
         evaluatedValueMessage,
+        projectId,
+        variableName,
     }: TemplateInputComponentProps) => {
         const { registerError } = useErrorHandler();
         const [t] = useTranslation();
@@ -284,7 +298,8 @@ const TemplateInputComponent = memo(
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition)).data;
+                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
+                    .data;
             } catch (error) {
                 registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
             }
@@ -293,7 +308,9 @@ const TemplateInputComponent = memo(
         const checkTemplate = React.useCallback(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
-                    const validationResponse = (await requestValidateTemplateString(inputString)).data;
+                    const validationResponse = (
+                        await requestValidateTemplateString(inputString, projectId, variableName)
+                    ).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
                             ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })
@@ -309,16 +326,14 @@ const TemplateInputComponent = memo(
         );
 
         return (
-            <>
-                <AutoSuggestion
-                    id={parameterId}
-                    initialValue={initialValue}
-                    onChange={onTemplateValueChange}
-                    fetchSuggestions={autoComplete}
-                    checkInput={checkTemplate}
-                    autoCompletionRequestDelay={200}
-                />
-            </>
+            <CodeAutocompleteField
+                id={parameterId}
+                initialValue={initialValue}
+                onChange={onTemplateValueChange}
+                fetchSuggestions={autoComplete}
+                checkInput={checkTemplate}
+                autoCompletionRequestDelay={200}
+            />
         );
     }
 );

@@ -2,7 +2,18 @@ GET        /taskPlugins                  controllers.workspaceApi.coreApi.Plugin
 GET        /ruleOperatorPlugins          controllers.workspaceApi.coreApi.PluginApi.ruleOperatorPlugins(addMarkdownDocumentation: Boolean ?= false, textQuery: Option[String] ?= None, category: Option[String] ?= None, overviewOnly: Option[Boolean] ?= None, inputOperatorsOnly: Option[Boolean] ?= None)
 GET        /plugins/:pluginId            controllers.workspaceApi.coreApi.PluginApi.plugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false, withLabels: Boolean ?= false)
 GET        /usages/plugins/:pluginId     controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
-POST       /variableTemplate/validation  controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
-POST       /variableTemplate/completion  controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
+
+# Template variables
+GET        /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.getVariables(project: String)
+POST       /variableTemplate/variables        controllers.workspaceApi.coreApi.VariableTemplateApi.putVariables(project: String)
+GET        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.getVariable(project: String, name: String)
+PUT        /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.putVariable(project: String, name: String)
+DELETE     /variableTemplate/variables/:name  controllers.workspaceApi.coreApi.VariableTemplateApi.deleteVariable(project: String, name: String)
+GET        /variableTemplate/variables/:name/dependencies  controllers.workspaceApi.coreApi.VariableTemplateApi.variableDependencies(project: String, name: String)
+POST       /variableTemplate/reorderVariables controllers.workspaceApi.coreApi.VariableTemplateApi.reorderVariables(project: String)
+POST       /variableTemplate/validation       controllers.workspaceApi.coreApi.VariableTemplateApi.validateTemplate()
+POST       /variableTemplate/completion       controllers.workspaceApi.coreApi.VariableTemplateApi.autoCompleteTemplate()
+
+GET        /datasets/resourceBased    controllers.workspaceApi.coreApi.PluginApi.resourceBasedDatasetIds()
 
 GET        /system/threadDump            controllers.workspaceApi.coreApi.SystemApi.threadDump()

@@ -8,6 +8,7 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    Label,
     OverflowText,
     PropertyName,
     PropertyValue,
@@ -19,7 +20,7 @@ import { LinkageRuleConfigModal } from "./LinkageRuleConfigModal";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { fetchLinkSpec, updateLinkageRule } from "../../../taskViews/linking/LinkingRuleEditor.requests";
 import { ILinkingRule, LabelledParameterValue } from "../../../taskViews/linking/linking.types";
-import { invalidUriChars } from "../../Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
+import { validateUriString } from "../../Project/ProjectNamespacePrefixManagementWidget/PrefixNew";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { requestSearchForGlobalVocabularyProperties } from "@ducks/workspace/requests";
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
@@ -38,7 +39,7 @@ export interface LinkageRuleConfigItem {
     description: string;
     /** Value of the parameter. */
     value: string | undefined;
-    /** */
+    /** The label that should be shown in the read-only view. */
     valueLabel?: string;
     /** Either validates or an error message is given. */
     validation: (value: string) => true | string;
@@ -46,7 +47,16 @@ export interface LinkageRuleConfigItem {
     placeholder?: string;
     /** Auto-complete search function. The parameter will be rendered as auto-complete field. */
     onSearch?: (textQuery: string, limit: number) => Promise<FetchResponse<IAutocompleteDefaultResponse[]>>;
+    /** If this should be shown in the read-only view. Default: true */
+    showReadOnly?: boolean;
+    /** The type of the input. */
+    type: "string" | "boolean";
 }
+
+const LINK_TYPE = "linkType";
+const INVERSE_LINK_TYPE = "inverseLinkType";
+const LIMIT = "limit";
+const EXCLUDE_SELF_REFERENCES = "excludeSelfReferences";
 
 export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const [loading, setLoading] = React.useState(false);
@@ -89,22 +99,16 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
         if (linkingRule) {
             setParameters([
                 {
-                    id: "linkType",
+                    id: LINK_TYPE,
                     label: t("widget.LinkingRuleConfigWidget.parameters.linkType.label"),
                     value: linkingRule.linkType,
                     description: t("widget.LinkingRuleConfigWidget.parameters.linkType.description"),
-                    validation: (value) => {
-                        const invalidCharMatches = value.match(invalidUriChars);
-                        if (invalidCharMatches && invalidCharMatches.index != null) {
-                            const invalidChar = value.substring(invalidCharMatches.index, invalidCharMatches.index + 1);
-                            return `Invalid character found in string: '${invalidChar}'`;
-                        }
-                        return true;
-                    },
+                    validation: validateUriString,
                     onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
+                    type: "string",
                 },
                 {
-                    id: "limit",
+                    id: LIMIT,
                     label: t("widget.LinkingRuleConfigWidget.parameters.limit.label"),
                     value: linkingRule.filter.limit != null ? `${linkingRule.filter.limit}` : "",
                     description: t("widget.LinkingRuleConfigWidget.parameters.limit.description"),
@@ -120,36 +124,62 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                         }
                     },
                     placeholder: unlimited,
+                    type: "string",
+                },
+                {
+                    id: INVERSE_LINK_TYPE,
+                    label: t("widget.LinkingRuleConfigWidget.parameters.inverseLinkType.label"),
+                    value: linkingRule.inverseLinkType ?? undefined,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.inverseLinkType.description"),
+                    validation: validateUriString,
+                    onSearch: (q: string, l: number) => requestSearchForGlobalVocabularyProperties(q, l, projectId),
+                    showReadOnly: !!linkingRule.inverseLinkType,
+                    type: "string",
+                },
+                {
+                    id: EXCLUDE_SELF_REFERENCES,
+                    label: t("widget.LinkingRuleConfigWidget.parameters.excludeSelfReferences.label"),
+                    value: `${linkingRule.excludeSelfReferences}`,
+                    description: t("widget.LinkingRuleConfigWidget.parameters.excludeSelfReferences.description"),
+                    validation: (value: string) => value === "true" || value === "false" || "No valid boolean value.",
+                    showReadOnly: linkingRule.excludeSelfReferences,
+                    type: "boolean",
                 },
             ]);
         }
     };
 
     const saveConfig = async (parameters: [string, string | undefined][]) => {
-        try {
-            const linkingRule = await fetchLinkingRule(false);
-            if (linkingRule) {
-                const paramValue = (parameterId: string): string | undefined => {
-                    const param = parameters.find(([paramId]) => paramId === parameterId);
-                    return param ? param[1] : undefined;
-                };
-                const linkType = paramValue("linkType");
-                if (linkType != null) {
-                    linkingRule.linkType = linkType;
-                }
-                const limit = paramValue("limit");
-                const limitNr = Number(limit);
-                if (limit != null && limit.trim() !== "" && Number.isInteger(limitNr)) {
-                    linkingRule.filter.limit = limitNr;
-                } else {
-                    linkingRule.filter.limit = undefined;
-                }
-                await updateLinkageRule(projectId, linkingTaskId, linkingRule);
-                setShowModal(false);
-                init();
+        const linkingRule = await fetchLinkingRule(false);
+        if (linkingRule) {
+            const paramValue = (parameterId: string): string | undefined => {
+                const param = parameters.find(([paramId]) => paramId === parameterId);
+                return param ? param[1] : undefined;
+            };
+            const linkType = paramValue(LINK_TYPE);
+            if (linkType != null) {
+                linkingRule.linkType = linkType;
             }
-        } catch (ex) {
-            registerError("LinkageRuleConfig-save-config", t("widget.LinkingRuleConfigWidget.saveError"), ex);
+            const inverseLinkType = paramValue(INVERSE_LINK_TYPE);
+            if (inverseLinkType != null && inverseLinkType.trim() === "") {
+                linkingRule.inverseLinkType = null;
+            } else if (inverseLinkType != null) {
+                linkingRule.inverseLinkType = inverseLinkType;
+            }
+            const limit = paramValue(LIMIT);
+            const limitNr = Number(limit);
+            if (limit != null && limit.trim() !== "" && Number.isInteger(limitNr)) {
+                linkingRule.filter.limit = limitNr;
+            } else {
+                linkingRule.filter.limit = undefined;
+            }
+            const excludeSelfReferences = paramValue(EXCLUDE_SELF_REFERENCES);
+            if (excludeSelfReferences != null) {
+                linkingRule.excludeSelfReferences = excludeSelfReferences === "true";
+            }
+            await updateLinkageRule(projectId, linkingTaskId, linkingRule);
+            setShowModal(false);
+            init();
         }
     };
 
@@ -172,22 +202,32 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                 </CardOptions>
             </CardHeader>
             <Divider />
-            <CardContent>
+            <CardContent style={{ maxHeight: "25vh" }}>
                 {loading || !parameters ? (
                     <Loading />
                 ) : (
                     <OverflowText passDown>
                         <PropertyValueList>
-                            {parameters.map((paramConfig) => {
-                                return (
-                                    <PropertyValuePair hasDivider key={paramConfig.id}>
-                                        <PropertyName title={paramConfig.label}>{paramConfig.label}</PropertyName>
-                                        <PropertyValue>
-                                            <code style={fixStyle}>{paramConfig.valueLabel ?? paramConfig.value}</code>
-                                        </PropertyValue>
-                                    </PropertyValuePair>
-                                );
-                            })}
+                            {parameters
+                                .filter((p) => p.showReadOnly == null || p.showReadOnly)
+                                .map((paramConfig) => {
+                                    return (
+                                        <PropertyValuePair hasDivider key={paramConfig.id}>
+                                            <PropertyName title={paramConfig.label} size="large">
+                                                <Label
+                                                    isLayoutForElement="span"
+                                                    text={<OverflowText inline>{paramConfig.label}</OverflowText>}
+                                                    style={fixStyle}
+                                                />
+                                            </PropertyName>
+                                            <PropertyValue>
+                                                <code style={fixStyle}>
+                                                    {paramConfig.valueLabel ?? paramConfig.value}
+                                                </code>
+                                            </PropertyValue>
+                                        </PropertyValuePair>
+                                    );
+                                })}
                         </PropertyValueList>
                     </OverflowText>
                 )}

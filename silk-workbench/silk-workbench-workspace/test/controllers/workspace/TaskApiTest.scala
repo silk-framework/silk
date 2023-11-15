@@ -1,7 +1,8 @@
 package controllers.workspace
 
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
-import helper.IntegrationTestTrait
+import helper.IntegrationTestTrait
+
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
@@ -343,8 +344,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     retrieveOrCreateProject(project).anyTask(datasetId).updateMetaData(MetaData(label = Some(datasetLabel)))
     def taskValuesWithLabel(taskId: String): Seq[(JsValue, Option[String])] = {
       val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
-          withHttpHeaders("Accept" -> "application/json").
-          get()).json.as[JsObject] \ DATA \ PARAMETERS).as[JsObject].fields
+        addHttpHeaders("Accept" -> "application/json").
+        get()).json.as[JsObject] \ DATA \ PARAMETERS).as[JsObject].fields
       parameters.map(p => ((p._2 \ "value").as[JsValue], (p._2 \ "label").asOpt[String])).toIndexedSeq
     }
     val sparqlSelect = "sparqlSelect"

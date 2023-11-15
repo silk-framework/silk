@@ -1,19 +1,19 @@
 package org.silkframework.workspace
 
 import org.silkframework.config._
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext, PluginDescription}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.templating.TemplateVariables
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 
 @Plugin(
   id = "inMemory",
@@ -28,13 +28,15 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all projects from the workspace.
     */
   override def readProjects()
-                           (implicit userContext: UserContext): Seq[ProjectConfig] = projects.values.map(_.config).toSeq
+                           (implicit userContext: UserContext): Seq[ProjectConfig] = synchronized {
+    projects.values.map(_.config).toSeq
+  }
 
   /**
     * Adds/Updates a project.
     */
   override def putProject(project: ProjectConfig)
-                         (implicit userContext: UserContext): Unit = {
+                         (implicit userContext: UserContext): Unit = synchronized {
     projects.get(project.id) match {
       case Some(existingProject) =>
         existingProject.config = project
@@ -47,7 +49,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Deletes a project.
     */
   override def deleteProject(name: Identifier)
-                            (implicit userContext: UserContext): Unit = {
+                            (implicit userContext: UserContext): Unit = synchronized {
     projects -= name
   }
 
@@ -58,7 +60,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                              importProvider: WorkspaceProvider,
                              importResources: ResourceManager,
                              targetResources: ResourceManager,
-                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
+                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = synchronized {
     WorkspaceIO.copyProject(importProvider, this, importResources, targetResources, project, alsoCopyResources)
   }
 
@@ -68,10 +70,18 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   override def projectCache(name: Identifier): ResourceManager = projects(name).cache
 
   /**
+    * Access to project variables.
+    */
+  def projectVariables(projectName: Identifier)
+                      (implicit userContext: UserContext): TemplateVariablesSerializer = {
+    projects(projectName).variables
+  }
+
+  /**
     * Adds/Updates a task in a project.
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)
-                                                (implicit userContext: UserContext): Unit = {
+                                                (implicit userContext: UserContext): Unit = synchronized {
     implicit val pluginContext: PluginContext = PluginContext(prefixes = Prefixes.empty, resources = resources, user = userContext)
     val taskType = implicitly[ClassTag[T]].runtimeClass
     val inMemoryTask =
@@ -90,7 +100,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all tasks of a specific type from a project.
     */
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
-                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = {
+                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = synchronized {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
 
     for(task <- projects(project).tasks.values.toSeq if requestedClass.isAssignableFrom(task.taskType)) yield {
@@ -102,7 +112,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all tasks of all types from a project.
     **/
   override def readAllTasks(project: Identifier)
-                           (implicit context: PluginContext): Seq[LoadedTask[_]] = {
+                           (implicit context: PluginContext): Seq[LoadedTask[_]] = synchronized {
     for (task <- projects(project).tasks.values.toSeq) yield {
       task.load(project)
     }
@@ -112,7 +122,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Deletes a task from a project.
     */
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
-                                                   (implicit userContext: UserContext): Unit = {
+                                                   (implicit userContext: UserContext): Unit = synchronized {
     projects(project).tasks -= task
   }
 
@@ -120,7 +130,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Retrieve a list of all available tags.
     */
   def readTags(project: Identifier)
-              (implicit userContext: UserContext): Iterable[Tag] = {
+              (implicit userContext: UserContext): Iterable[Tag] = synchronized {
     projects(project).tags.values
   }
 
@@ -129,7 +139,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Adding a tag with an existing URI, will overwrite the corresponding tag.
     */
   def putTag(project: Identifier, tag: Tag)
-            (implicit userContext: UserContext): Unit = {
+            (implicit userContext: UserContext): Unit = synchronized {
     projects(project).tags += ((tag.uri, tag))
   }
 
@@ -137,7 +147,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Remove a tag.
     */
   def deleteTag(project: Identifier, tagUri: String)
-               (implicit userContext: UserContext): Unit = {
+               (implicit userContext: UserContext): Unit = synchronized {
     projects(project).tags -= tagUri
   }
 
@@ -156,6 +166,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
 
     val cache = new InMemoryResourceManager
 
+    val variables = new InMemoryTemplateVariablesSerializer
+
   }
 
   abstract class InMemoryTask[T <: TaskSpec : ClassTag] {
@@ -170,14 +182,14 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                     metaData: MetaData) extends InMemoryTask[T] {
 
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
-      try {
-          LoadedTask.success[T](PlainTask(id, pluginDesc(parameters).asInstanceOf[T], metaData))
-      } catch {
-        case NonFatal(ex) =>
-          LoadedTask.failed[T](TaskLoadingError(Some(projectId), id, ex, metaData.label, metaData.description))
+      def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
+        val mergedParameters = parameters.merge(parameterValues)
+        TaskLoadingException.withTaskLoadingException(OriginalTaskData(pluginDesc.id, mergedParameters)) { params =>
+          LoadedTask.success[T](PlainTask(id, pluginDesc(params)(pluginContext).asInstanceOf[T], metaData)).task
+        }
       }
+      LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)
     }
-
   }
 
   protected case class InMemoryDataset[T <: TaskSpec : ClassTag](id: Identifier,
@@ -188,12 +200,32 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                                                                  uriAttribute: Option[Uri],
                                                                  readOnly: Boolean) extends InMemoryTask[T] {
     def load(projectId: Identifier)(implicit pluginContext: PluginContext): LoadedTask[T] = {
-      try {
-        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameters).asInstanceOf[Dataset], uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
-      } catch {
-        case NonFatal(ex) =>
-          LoadedTask.failed[T](TaskLoadingError(Some(projectId), id, ex, metaData.label, metaData.description))
+      def loadInternal(parameterValues: ParameterValues, pluginContext: PluginContext): Task[T] = {
+        LoadedTask.success[T](PlainTask[TaskSpec](id, DatasetSpec[Dataset](pluginDesc(parameterValues)(pluginContext).asInstanceOf[Dataset],
+          uriAttribute, readOnly), metaData).asInstanceOf[Task[T]])
       }
+
+      LoadedTask.factory[T](loadInternal, parameters, pluginContext, Some(projectId), id, metaData.label, metaData.description)
+    }
+  }
+
+  protected class InMemoryTemplateVariablesSerializer extends TemplateVariablesSerializer {
+
+    @volatile
+    private var variables = TemplateVariables.empty
+
+    /**
+      * Reads all variables at this scope.
+      */
+    override def readVariables()(implicit userContext: UserContext): TemplateVariables = {
+      variables
+    }
+
+    /**
+      * Updates all variables.
+      */
+    override def putVariables(variables: TemplateVariables)(implicit userContext: UserContext): Unit = {
+      this.variables = variables
     }
   }
 

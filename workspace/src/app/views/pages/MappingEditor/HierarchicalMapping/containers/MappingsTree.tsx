@@ -1,7 +1,17 @@
 import React from "react";
 import _ from "lodash";
 import { Icon } from "gui-elements-deprecated";
-import { InteractionGate, Notification, Tree, TreeNodeInfo } from "@eccenca/gui-elements";
+import {
+    InteractionGate,
+    Notification,
+    Tree,
+    TreeNodeInfo,
+    Button,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverflowText,
+} from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -26,6 +36,8 @@ interface MappingTreeProps {
     startFullScreen?: boolean;
 }
 
+//React.useState<Map<string, boolean>>(new Map());
+
 /** Tree structure of nested object mapping rules of a transform task. */
 const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     ruleTree,
@@ -37,7 +49,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     startFullScreen,
 }) => {
     const [navigationLoading, setNavigationLoading] = React.useState<boolean>(false);
-    const [treeExpansionMap, setTreeExpansionMap] = React.useState<Map<string, boolean>>(new Map());
     const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo[]>([]);
     const [data, setData] = React.useState();
     const [t] = useTranslation();
@@ -60,11 +71,6 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         };
     }, []);
 
-    //caters for when a ruleId is in the search query, make sure it's expanded on load.
-    React.useEffect(() => {
-        setTreeExpansionMap((prev) => new Map([...prev, [currentRuleId, true]]));
-    }, [currentRuleId]);
-
     React.useEffect(() => {
         updateNavigationTree();
     }, [ruleTree, currentRuleId]);
@@ -73,18 +79,24 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         if (data) {
             setTreeNodes([buildTree(data)]);
         }
-    }, [data, treeExpansionMap, currentRuleId]);
+    }, [data, currentRuleId]);
 
-    const handleNodeExpand = React.useCallback((node) => {
-        setTreeExpansionMap((prev) => new Map([...prev, [node.id, true]]));
-    }, []);
+    const handleNodeExpand = React.useCallback(
+        (node) => {
+            setTreeNodes([buildTree(data, { nodeId: node.id, expanded: true })]);
+        },
+        [data, currentRuleId]
+    );
 
-    const handleNodeCollapse = React.useCallback((node) => {
-        setTreeExpansionMap((prev) => new Map([...prev, [node.id, false]]));
-    }, []);
+    const handleNodeCollapse = React.useCallback(
+        (node) => {
+            setTreeNodes([buildTree(data, { nodeId: node.id, expanded: false })]);
+        },
+        [data, currentRuleId]
+    );
 
     const renderRuleIcon = (ruleId) => {
-        if (!ruleValidation || !ruleValidation.hasOwnProperty(ruleId)) {
+        if (!ruleValidation || ruleValidation[ruleId] === undefined) {
             return null;
         } else if (ruleValidation[ruleId] === "ok") {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
@@ -94,7 +106,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     };
 
     const buildTree = React.useCallback(
-        (parent): TreeNodeInfo => {
+        (parent, config?: { nodeId: string; expanded: boolean }): TreeNodeInfo => {
             const { id, type: parentType, rules = {} } = parent;
 
             let allRules = [] as any[];
@@ -109,11 +121,16 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
             const label = (
                 <div
-                    className={`ecc-silk-mapping__treenav--item${
+                    className={`ecc-silk-mapping__treenav--item ecc-silk-mapping__treenav--item--ignorestyles${
                         currentRuleId === id ? " ecc-silk-mapping__treenav--item-active" : ""
                     }`}
                 >
-                    <button
+                    <Button
+                        alignText="left"
+                        minimal
+                        fill
+                        active={currentRuleId === id}
+                        icon={renderRuleIcon(id) ?? undefined}
                         className="ecc-silk-mapping__treenav--item-handler"
                         data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
                         onClick={() => {
@@ -126,24 +143,35 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                             handleRuleNavigation({ newRuleId: id, parentId: undefined });
                         }}
                     >
-                        <span className="ecc-silk-mapping__treenav--item-maintitle">
-                            <span>
-                                {renderRuleIcon(id)}
-                                <RuleTitle rule={parent} />
-                            </span>
-                        </span>
-                        {parentType === MAPPING_RULE_TYPE_OBJECT && (
-                            <small className="ecc-silk-mapping__treenav--item-rule-subtitle">
-                                <RuleTypes rule={parent} />
-                            </small>
-                        )}
-                    </button>
+                        <OverviewItem densityHigh>
+                            <OverviewItemDescription>
+                                <OverviewItemLine className="ecc-silk-mapping__treenav--item-maintitle">
+                                    <RuleTitle rule={parent} />
+                                </OverviewItemLine>
+                                {parentType === MAPPING_RULE_TYPE_OBJECT && (
+                                    <OverviewItemLine small className="ecc-silk-mapping__treenav--item-rule-subtitle">
+                                        <OverflowText>
+                                            <RuleTypes rule={parent} />
+                                        </OverflowText>
+                                    </OverviewItemLine>
+                                )}
+                            </OverviewItemDescription>
+                        </OverviewItem>
+                    </Button>
                 </div>
             );
-            return {
+
+            let isExpanded =
+                config && config.nodeId === id
+                    ? config.expanded
+                    : currentRuleId === id
+                    ? true
+                    : parentType === MAPPING_RULE_TYPE_ROOT;
+
+            const tree = {
                 id,
                 hasCaret: !!childNodes.length,
-                isExpanded: treeExpansionMap.get(id) ?? parentType === MAPPING_RULE_TYPE_ROOT,
+                isExpanded,
                 label,
                 icon: !childNodes.length ? (
                     <Icon
@@ -152,10 +180,18 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                         className="ecc-silk-mapping__treenav--item-toggler"
                     />
                 ) : undefined,
-                childNodes: childNodes.map((child) => buildTree(child)),
+                childNodes: childNodes.map((child) => {
+                    const subtree = buildTree(child, config);
+                    if (!config && subtree.isExpanded) {
+                        isExpanded = true;
+                    }
+                    return subtree;
+                }),
             };
+            tree.isExpanded = isExpanded;
+            return tree;
         },
-        [treeExpansionMap, currentRuleId]
+        [currentRuleId]
     );
 
     const getRuleById = (searchId) => {

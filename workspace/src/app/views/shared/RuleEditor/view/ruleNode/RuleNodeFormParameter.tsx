@@ -6,6 +6,7 @@ import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { LanguageFilterProps } from "./PathInputOperator";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -16,7 +17,9 @@ interface RuleNodeFormParameterProps {
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean
+    insideModal: boolean;
+    /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
+    languageFilter?: LanguageFilterProps;
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
@@ -26,7 +29,8 @@ export const RuleNodeFormParameter = ({
     parameter,
     dependentValue,
     large,
-    insideModal
+    insideModal,
+    languageFilter,
 }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });
@@ -67,7 +71,7 @@ export const RuleNodeFormParameter = ({
                 tooltipProps: {
                     rootBoundary: "viewport",
                 },
-                info: paramSpec.required ? "required" : undefined,
+                info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
             }}
             messageText={validationResult.message}
             hasStateDanger={validationResult.intent === "danger"}
@@ -83,6 +87,7 @@ export const RuleNodeFormParameter = ({
                 dependentValue={dependentValue}
                 large={large}
                 insideModal={insideModal}
+                languageFilter={languageFilter}
             />
         </FieldItem>
     );

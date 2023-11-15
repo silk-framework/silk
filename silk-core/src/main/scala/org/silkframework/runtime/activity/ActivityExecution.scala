@@ -52,19 +52,12 @@ private class ActivityExecution[T](activity: Activity[T],
   override def startedBy: UserContext = startedByUser
 
   override def start()(implicit user: UserContext): Unit = {
-    initStatus(user)
-    // Execute activity
-    val forkJoin = new ForkJoinRunner()
-    forkJoinRunner = Some(forkJoin)
-    if (parent.isDefined && runningInDefaultPool) {
-      forkJoin.fork()
-    } else {
-      ActivityExecution.forkJoinPool.execute(forkJoin)
-    }
+    initStatus()
+    runForkJoin()
   }
 
   // Checks if the activity is already running (and fails if it is) and inits the status.
-  private def initStatus(user: UserContext, allowWaiting: Boolean = false): Unit = {
+  private def initStatus(allowWaiting: Boolean = false)(implicit user: UserContext): Unit = {
     StatusLock.synchronized {
       // Check if the current activity is still running
       if (status().isRunning && (!allowWaiting || !status().isInstanceOf[Waiting])) {
@@ -72,13 +65,13 @@ private class ActivityExecution[T](activity: Activity[T],
       }
       setStartMetaData(user)
     }
+    activity.resetCancelFlag()
   }
 
   override def startBlocking()(implicit user: UserContext): Unit = {
-    initStatus(user)
-    this.synchronized {
-      runActivity()
-    }
+    initStatus()
+    runForkJoin()
+    waitUntilFinished()
   }
 
   private def setStartMetaData(user: UserContext): Unit = {
@@ -88,17 +81,16 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
-    initStatus(user)
-    this.synchronized {
-      for (v <- initialValue)
-        value.update(v)
-      runActivity()
-      value()
-    }
+    initStatus()
+    for (v <- initialValue)
+      value.update(v)
+    runForkJoin()
+    waitUntilFinished()
+    value()
   }
 
   override def startPrioritized()(implicit user: UserContext): Unit = {
-    initStatus(user, allowWaiting = true)
+    initStatus(allowWaiting = true)
     user.user match {
       case Some(u) if u.uri.nonEmpty => log.info(s"Activity '${activity.name}' ${projectAndTaskId.map(_.toString).getOrElse("")} has been " +
         s"started prioritized, skipping the waiting queue. (triggered by user with URI: ${u.uri})")
@@ -110,8 +102,19 @@ private class ActivityExecution[T](activity: Activity[T],
         throw new IllegalStateException(s"Cannot prioritize activity '${this.activity.name}' because the current execution could not be cancelled.")
       }
     }
-    forkJoinRunner = None
-    ActivityExecution.priorityThreadPool.execute(() => runActivity())
+    runForkJoin(prioritized = true)
+  }
+
+  private def runForkJoin(prioritized: Boolean = false)(implicit user: UserContext): Unit = {
+    val forkJoin = new ForkJoinRunner()
+    forkJoinRunner = Some(forkJoin)
+    if (parent.isDefined && runningInOwnPool(prioritized)) {
+      forkJoin.fork()
+    } else if(prioritized) {
+      ActivityExecution.priorityThreadPool.execute(forkJoin)
+    } else {
+      ActivityExecution.forkJoinPool.execute(forkJoin)
+    }
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
@@ -130,10 +133,8 @@ private class ActivityExecution[T](activity: Activity[T],
       activity.cancelExecution()
       interruptEnabled.synchronized {
         if (interruptEnabled.get()) {
-          ThreadLock.synchronized {
-            runningThread foreach { thread =>
-              thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
-            }
+          runningThread foreach { thread =>
+            thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
           }
         }
       }
@@ -168,11 +169,16 @@ private class ActivityExecution[T](activity: Activity[T],
         case NonFatal(ex) =>
           status() match {
             case Finished(false, _, _, Some(cause)) =>
-              throw cause
+              if(!activity.wasCancelled()) {
+                throw cause
+              }
             case _ =>
               throw ex
           }
       }
+    }
+    for (ex <- status().exception if !activity.wasCancelled()) {
+      throw ex
     }
   }
 
@@ -183,8 +189,7 @@ private class ActivityExecution[T](activity: Activity[T],
     ThreadLock.synchronized {
       runningThread = Some(Thread.currentThread())
     }
-    activity.resetCancelFlag()
-    if (!parent.exists(_.status().isInstanceOf[Canceling])) {
+    if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
       val startTime = System.currentTimeMillis()
       startTimestamp = Some(Instant.ofEpochMilli(startTime))
       try {
@@ -210,6 +215,8 @@ private class ActivityExecution[T](activity: Activity[T],
         ThreadLock.synchronized {
           runningThread = None
         }
+        // Clear interrupt flag
+        Thread.interrupted()
       }
     }
   }
@@ -231,8 +238,6 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def resetMetaData(): Unit = {
     // Reset values
-    startTimestamp = None
-    startedByUser = UserContext.Empty
     cancelTimestamp = None
     cancelledByUser = UserContext.Empty
   }
@@ -306,5 +311,7 @@ object ActivityExecution {
   /**
     * Thread pool to execute prioritized threads.
     */
-  val priorityThreadPool: ExecutorService = Execution.createThreadPool("Activity-Prio")
+  val priorityThreadPool: ForkJoinPool = {
+    Execution.createForkJoinPool("Activity-Prio", size = poolSize)
+  }
 }

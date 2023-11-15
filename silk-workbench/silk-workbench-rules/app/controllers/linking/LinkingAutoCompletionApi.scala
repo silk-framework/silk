@@ -219,9 +219,10 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
     val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath = false)
     // Add known paths
     val completions = autoCompletion.Completions(relativePaths ++ dataSourceSpecialPathCompletions)
-    // Return filtered result
-    val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
     val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
+    // Return filtered result
+    val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions,
+      filterOutSingleExactQueryStringCompletion = operatorCompletions.forall(_.replacements.isEmpty))
     AutoCompletionApiUtils.partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
   }
 }

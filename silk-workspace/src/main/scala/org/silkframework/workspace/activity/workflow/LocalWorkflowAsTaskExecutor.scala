@@ -1,9 +1,10 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput}
+import org.silkframework.config.Task
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
+import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.workspace.ProjectTask
 
 /**
@@ -16,7 +17,8 @@ class LocalWorkflowAsTaskExecutor extends Executor[Workflow, LocalExecution] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    implicit val user: UserContext = pluginContext.user
     val projectTask = task match {
       case pt: ProjectTask[Workflow] => pt
       case _ => throw new IllegalArgumentException("Workflow has to be executed in a project context.")

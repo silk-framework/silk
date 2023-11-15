@@ -7,8 +7,7 @@ import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.config.{CustomTask, MetaData}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.config._
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
 import org.silkframework.serialization.json.JsonHelpers
@@ -22,7 +21,7 @@ import java.time.Duration
 
 class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTestTrait with BeforeAndAfterAll with Eventually {
 
-  private val projectId = "project"
+  private val projectId = "ActivityApiTest-project"
   private val taskId = "messageTask"
   private val simpleActivityId = "SimpleActivityFactory"
   private val multiActivityId = "MultiActivityFactory"
@@ -179,8 +178,8 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
 }
 
 case class MessageTask(message: String) extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def outputPort: Option[Port] = None
 }
 
 case class SimpleActivityFactory(sleepTime: Int = 0) extends TaskActivityFactory[MessageTask, Activity[String]] {

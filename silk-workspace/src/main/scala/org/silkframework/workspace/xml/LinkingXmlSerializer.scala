@@ -46,7 +46,9 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
       loadTaskSafelyFromXML("linkSpec.xml", None, taskResources).taskOrError match {
         case Right(linkSpec) => // TODO: Fix alternative ID
           val referenceLinks = taskResources.get("alignment.xml").read(ReferenceLinksReader.readReferenceLinks)
-          Right(PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks), linkSpec.metaData))
+          val updatedLinkSpec = linkSpec.data.copy(referenceLinks = referenceLinks)
+          updatedLinkSpec.templateValues = linkSpec.templateValues
+          Right(PlainTask(linkSpec.id, updatedLinkSpec, linkSpec.metaData))
         case left: Either[TaskLoadingError, Task[LinkSpec]] =>
           left
       }

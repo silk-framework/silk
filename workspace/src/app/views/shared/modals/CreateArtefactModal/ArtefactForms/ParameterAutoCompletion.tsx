@@ -1,7 +1,8 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React, { useEffect } from "react";
 import {
-    AutoCompleteField,
+    SuggestField,
+    suggestFieldUtils,
     Highlighter,
     OverflowText,
     OverviewItem,
@@ -13,14 +14,15 @@ import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { RegisterForExternalChangesFn } from "./InputMapper";
+import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
+import { HTMLInputProps as BlueprintHTMLInputProps } from "@blueprintjs/core/lib/esm/common/props";
 
-interface ParameterAutoCompletionProps {
+export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
     paramId: string;
     /** Unique ID/name of the parameter in the form. */
@@ -49,6 +51,12 @@ interface ParameterAutoCompletionProps {
     hasBackDrop?: boolean;
     /** Register for getting external updates for values. */
     registerForExternalChanges?: RegisterForExternalChangesFn;
+    /**
+     * Props to spread to the underlying input field. This is BlueprintJs specific. To control this input, use
+     * `onChange` instead of `inputProps.onChange`. The properties name, id, intent and readonly should not be overwritten, because they
+     * are maintained by this component.
+     */
+    inputProps?: BlueprintInputGroupProps & BlueprintHTMLInputProps;
 }
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
@@ -69,6 +77,7 @@ export const ParameterAutoCompletion = ({
     readOnly,
     hasBackDrop = false,
     registerForExternalChanges,
+    inputProps,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
@@ -143,7 +152,7 @@ export const ParameterAutoCompletion = ({
                 if (showErrorsInline) {
                     registerError("ParameterAutoCompletion.handleAutoCompleteInput", errorTitle, e);
                 } else {
-                    // This should be handled in the auto completion component
+                    // This should be handled in the auto-completion component
                     const details = parseErrorCauseMsg(e) ?? "";
                     throw new Error(details);
                 }
@@ -161,7 +170,7 @@ export const ParameterAutoCompletion = ({
     }
 
     return (
-        <AutoCompleteField<StringOrReifiedValue, IAutocompleteDefaultResponse>
+        <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
             onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
@@ -173,6 +182,7 @@ export const ParameterAutoCompletion = ({
                 id: formParamId,
                 intent: highlightInput ? "success" : intent,
                 readOnly: !!readOnly,
+                ...inputProps,
             }}
             reset={
                 !required
@@ -192,7 +202,7 @@ export const ParameterAutoCompletion = ({
                     ? undefined
                     : {
                           itemFromQuery: (query) => ({ value: query }),
-                          itemRenderer: createNewItemRendererFactory(
+                          itemRenderer: suggestFieldUtils.createNewItemRendererFactory(
                               (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
                               "item-add-artefact"
                           ),

@@ -15,7 +15,9 @@ export interface IPageLabels {
     itemType?: string;
 }
 
-const itemTypeToPathMap = {
+export type ItemType = "dataset" | "transform" | "linking" | "workflow" | "task";
+
+const itemTypeToPathMap: Record<string, ItemType> = {
     Transform: "transform",
     Linking: "linking",
     Workflow: "workflow",
@@ -35,7 +37,7 @@ export const itemTypeToPath = (itemType: string): string => {
 const setQueryString = (queryParams: IQueryParams) => {
     return (dispatch, getState) => {
         const location = getLocation(getState());
-        const currentQuery = {};
+        const currentQuery = Object.create(null);
 
         Object.keys(queryParams).forEach((paramName) => {
             const value = queryParams[paramName];
@@ -109,7 +111,7 @@ const replacePage = (path: string, pageLabels: IPageLabels) => {
 };
 
 const updateLocationState = (forPath: string, projectId: string, metaData: IMetadata) => {
-    const newLabels: IPageLabels = {};
+    const newLabels: IPageLabels = Object.create(null);
     if (projectId) {
         // Project ID exists, this must be a task
         newLabels.taskLabel = metaData.label;

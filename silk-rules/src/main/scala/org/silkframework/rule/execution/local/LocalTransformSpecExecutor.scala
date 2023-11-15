@@ -7,7 +7,8 @@ import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, T
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.TransformReport
-import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
@@ -20,7 +21,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val input = inputs.headOption.getOrElse {
       throw TaskException("No input given to transform specification executor " + task.id + "!")
     }
@@ -29,6 +30,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val flatInputs = flattenInputs(input).toIndexedSeq
     val outputTables = mutable.Buffer[LocalEntities]()
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
+    implicit val prefixes: Prefixes = pluginContext.prefixes
 
     for ((ruleSchema, index) <- ruleSchemata.zipWithIndex) {
       val input = flatInputs(index)

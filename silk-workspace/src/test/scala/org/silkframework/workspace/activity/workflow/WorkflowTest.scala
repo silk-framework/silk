@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.mockito.Mockito._
+import org.mockito.Mockito._
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -11,6 +11,8 @@ import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.workspace.activity.workflow.WorkflowNode.convertStringToOption
 
 class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with TestUserContextTrait {
   behavior of "Workflow"
@@ -36,17 +38,23 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     intercept[RuntimeException] {
       circularWorkflow.workflowDependencyGraph
     }
+    intercept[RuntimeException] {
+      circularWorkflowWithDependencies.topologicalSortedNodes
+    }
+    intercept[RuntimeException] {
+      circularWorkflowWithDependencies.workflowDependencyGraph
+    }
   }
 
   it should "generate a DAG of the node dependencies" in {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe WorkflowDependencyGraph(
-      startNodes = Set(
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, Seq.empty))),
+      startNodes = Seq(
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, Seq.empty, Seq.empty))),
       endNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(TRANSFORM_2), DS_B, List(), (0, 0), DS_B2, None, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty))
+        WorkflowDependencyNode(WorkflowDataset(List(Some(TRANSFORM_2)), DS_B, List(), (0, 0), DS_B2, None, Seq.empty, Seq.empty)),
+        WorkflowDependencyNode(WorkflowDataset(List(Some(GENERATE_OUTPUT)), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty, Seq.empty))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -71,6 +79,12 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     sortedNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, TRANSFORM)
   }
 
+  it should "create a correct DAG for a workflow with dependency connections" in {
+    val dag = workflowWithDependenciesBetweenOtherwiseIndependentWorkflowBranches.workflowDependencyGraph
+    dag.startNodes.map(_.nodeId) mustBe Iterable(DS_A)
+    dag.endNodes.map(_.nodeId) mustBe Seq(DS_B2)
+  }
+
   it should "sort by output priority" in {
     val nodes = Seq(
       dataset(DS_A, DS_A, outputPriority = None, outputs = Seq(TRANSFORM, LINKING)),
@@ -87,7 +101,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "build the DAG correctly for a workflow ending in an operator" in {
     val dag = testWorkflowEndingInOperator.workflowDependencyGraph
-    dag.startNodes.map(_.nodeId) mustBe Set(DS_A, DS_B)
+    dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B)
     dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM)
   }
 
@@ -98,7 +112,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
 
   it should "build the DAG correctly for a workflow with disjunct data flows and multiple output nodes" in {
     val dag = testWorkflowWithMultipleEndNodesAndDisjunctDataFlows.workflowDependencyGraph
-    dag.startNodes.map(_.nodeId) mustBe Set(DS_A, DS_B, DS_C)
+    dag.startNodes.map(_.nodeId) mustBe Seq(DS_A, DS_B, DS_C)
     dag.endNodes.map(_.nodeId) mustBe Seq(TRANSFORM, OP_1, OP_2)
   }
 
@@ -143,6 +157,31 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
       replaceableInputs = Seq(DS_A1),
       replaceableOutputs = Seq(OUTPUT)
     ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
+  }
+
+  it should "not return a re-configured input dataset as output dataset" in {
+    val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectA"))
+    for(datasetId <- Seq(DS_A, DS_B)) {
+      val dataset = CsvDataset(project.resources.get("file.csv"))
+      project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+    }
+    for(transformId <- Seq(TRANSFORM_1, TRANSFORM_2)) {
+      project.addTask[TransformSpec](transformId, TransformSpec(DatasetSelection(DS_A)))
+    }
+    reConfiguredDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+  }
+
+  it should "not return datasets as output datasets that only have tasks as inputs that generate no data" in {
+    val workspace = new Workspace(new InMemoryWorkspaceProvider(), InMemoryResourceRepository())
+    val project = workspace.createProject(ProjectConfig("projectA"))
+    for (datasetId <- Seq(DS_A, DS_B, DS_B2)) {
+      val dataset = CsvDataset(project.resources.get("file.csv"))
+      project.addTask[GenericDatasetSpec](datasetId, DatasetSpec(dataset))
+    }
+    project.addTask[Workflow](WORKFLOW, Workflow())
+    project.addTask[TransformSpec](TRANSFORM_2, TransformSpec(DatasetSelection(DS_A)))
+    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
   }
 }
 
@@ -237,15 +276,68 @@ object WorkflowTest {
     )
   }
 
-  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty)
+  // Circular workflow using dependencyInputs
+  val circularWorkflowWithDependencies: Workflow = {
+    Workflow(
+      operators = Seq(
+        operator(task = TRANSFORM_1, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM_1, dependencyInputs = Seq(DS_B2)),
+        operator(task = TRANSFORM_2, inputs = Seq(DS_A1), outputs = Seq(DS_B2), TRANSFORM_2)
+      ),
+      datasets = Seq(
+        dataset(DS_A, DS_A, outputs = Seq(TRANSFORM_1)),
+        dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_1)),
+        dataset(DS_A1, DS_A1, outputs = Seq(TRANSFORM_2), dependencyInputs = Seq(DS_B)),
+        dataset(DS_B2, DS_B2, inputs = Seq(TRANSFORM_2))
+      )
+    )
+  }
+
+  val workflowWithDependenciesBetweenOtherwiseIndependentWorkflowBranches: Workflow = circularWorkflowWithDependencies.copy(
+    operators = Seq(
+      operator(task = TRANSFORM_1, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM_1),
+      operator(task = TRANSFORM_2, inputs = Seq(DS_A1), outputs = Seq(DS_B2), TRANSFORM_2)
+    )
+  )
+
+  val reConfiguredDatasetWorkflow: Workflow = {
+    Workflow(
+      operators = Seq(
+        operator(task = TRANSFORM_1, inputs = Seq(), outputs = Seq(DS_A, DS_B), TRANSFORM_1),
+        operator(task = TRANSFORM_2, inputs = Seq(), outputs = Seq(DS_B), TRANSFORM_2),
+      ),
+      datasets = Seq(
+        dataset(DS_A, DS_A, outputs = Seq(), configInputs = Seq(TRANSFORM_1)),
+        dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_2), outputs = Seq(), configInputs = Seq(TRANSFORM_1))
+      )
+    )
+  }
+
+  val noSchemaInputDatasetWorkflow: Workflow = {
+    Workflow(
+      operators = Seq(
+        operator(task = TRANSFORM_2, inputs = Seq(DS_A), outputs = Seq(DS_B), TRANSFORM_2),
+        operator(task = WORKFLOW, inputs = Seq(), outputs = Seq(DS_A), WORKFLOW)
+      ),
+      datasets = Seq(
+        dataset(DS_A, DS_A, inputs = Seq(WORKFLOW, DS_B2), outputs = Seq(TRANSFORM_2)),
+        dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_2), outputs = Seq()),
+        dataset(DS_B2, DS_B2, inputs = Seq(), outputs = Seq(DS_A))
+      )
+    )
+  }
+
+  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None,
+               dependencyInputs: Seq[String] = Seq.empty): WorkflowOperator = {
+    WorkflowOperator(inputs = inputs.map(convertStringToOption), task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty, dependencyInputs)
   }
 
   def dataset(task: String,
               nodeId: String,
               outputPriority: Option[Double] = None,
-              inputs: Seq[String] = Seq(),
-              outputs: Seq[String] = Seq()): WorkflowDataset = {
-    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority, Seq.empty)
+              inputs: Seq[String] = Seq.empty,
+              outputs: Seq[String] = Seq.empty,
+              configInputs: Seq[String] = Seq.empty,
+              dependencyInputs: Seq[String] = Seq.empty): WorkflowDataset = {
+    WorkflowDataset(inputs.map(convertStringToOption), task, outputs, (0, 0), nodeId, outputPriority, configInputs, dependencyInputs)
   }
 }

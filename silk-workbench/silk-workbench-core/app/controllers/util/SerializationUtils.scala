@@ -48,9 +48,7 @@ object SerializationUtils {
   private def createWriteContext(project: Option[Project]): WriteContext[Any] = {
     project match {
       case Some(proj) =>
-        WriteContext[Any](prefixes = proj.config.prefixes, projectId = Some(proj.config.id), projectUri = proj.config.projectResourceUriOpt,
-          resources = proj.resources, user = UserContext.Empty
-        )
+        WriteContext.fromProject[Any](proj)(UserContext.Empty)
       case None =>
         WriteContext[Any](prefixes = Prefixes.default, projectId = None, resources = EmptyResourceManager(), user = UserContext.Empty)
     }

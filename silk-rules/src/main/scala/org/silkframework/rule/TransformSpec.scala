@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, InputPorts, MetaData, Port, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
@@ -11,12 +11,13 @@ import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
-import org.silkframework.workspace.WorkspaceReadTrait
+import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException, WorkspaceReadTrait}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.collection.mutable
@@ -77,9 +78,11 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
       ._1
   }
 
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq(inputSchema))
+  override def inputPorts: InputPorts = {
+    FixedNumberOfInputs(Seq(FixedSchemaPort(inputSchema)))
+  }
 
-  override def outputSchemaOpt: Some[EntitySchema] = Some(outputSchema)
+  override def outputPort: Some[Port] = Some(FixedSchemaPort(outputSchema))
 
   /**
     * The tasks that this task reads from.
@@ -196,6 +199,27 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
   }
 
+  /** Either the rule itself if it is an object mapping or the parent object mapping if it is a value rule. */
+  def objectMappingIdOfRule(ruleId: String): Option[String] = {
+    def searchId(transformRule: TransformRule,
+                               ruleId: String,
+                               parentRule: Option[String]): Option[String] = {
+      if (transformRule.id.toString == ruleId) {
+        if (transformRule.isInstanceOf[ContainerTransformRule]) {
+          Some(transformRule.id)
+        } else {
+          parentRule
+        }
+      } else {
+        transformRule.rules
+          .flatMap(rule => searchId(rule, ruleId, Some(transformRule.id)))
+          .headOption
+      }
+    }
+
+    searchId(mappingRule, ruleId, None)
+  }
+
   /* Recursively search for the rule in the transform spec rule tree and accumulate the source path.
    * Return all rules leading to the rule with their corresponding paths. The result list starts with the top most rule, i.e. root rule.
    * If the rule was not found it returns Mil.
@@ -216,7 +240,6 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
         case list: List[(TransformRule, List[PathOperator])] =>
           (transformRule, ruleSourcePath) :: list
       }
-
     }
   }
 
@@ -419,7 +442,9 @@ object TransformSpec {
       val transformSpec = TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
 
       // Apply templates
-      transformSpec.withParameters(XmlSerialization.deserializeParameters(node))
+      TaskLoadingException.withTaskLoadingException(OriginalTaskData("transform", XmlSerialization.deserializeParameters(node))) { params =>
+        transformSpec.withParameters(params)
+      }
     }
 
     /**

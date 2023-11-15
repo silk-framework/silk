@@ -7,7 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.util.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
@@ -41,6 +41,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
   private val task = PlainTask("JsonParser", jsonParserTask)
   private def inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
   private implicit val prefixes = Prefixes.empty
+  private implicit val pluginContext: PluginContext = PluginContext.empty
 
   PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])
 
@@ -76,5 +77,35 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     result mustBe defined
     val values = result.get.entities.flatMap(_.values).flatten.toSeq
     values mustBe Seq("1", "1")
+  }
+
+  it should "parse the JSON of multiple entities" in {
+    def jsonContent(id: Int): String =
+      s"""{
+         |  "rootId": 1,
+         |  "persons": [
+         |    {
+         |      "id": "${id}a",
+         |      "name": "John"
+         |    },
+         |    {
+         |      "id": "${id}b",
+         |      "name": "Max"
+         |    }
+         |  ]
+         |}
+      """.stripMargin
+    val entityCount = 3
+    val entities = Seq.tabulate(entityCount)( i =>
+      Entity("entity" + i, values = IndexedSeq(Seq(i.toString), Seq(jsonContent(i))), schema = entitySchema)
+    )
+    def inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
+
+    val result = executor.execute(task, Seq(inputEntities),
+      output = ExecutorOutput(None, Some(EntitySchema("", IndexedSeq(UntypedPath("id")).map(_.asStringTypedPath)))),
+      execution = LocalExecution(false)
+    )
+    result mustBe defined
+    result.get.entities.map(_.values.flatten.head).toSeq mustBe Seq("0a", "0b", "1a", "1b", "2a", "2b")
   }
 }

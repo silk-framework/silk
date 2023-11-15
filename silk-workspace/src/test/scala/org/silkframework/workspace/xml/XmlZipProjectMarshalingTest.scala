@@ -1,31 +1,35 @@
 package org.silkframework.workspace.xml
 
 
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{Prefixes, Tag}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource._
-import org.silkframework.util.Uri
+import org.silkframework.runtime.templating.{CompiledTemplate, InMemoryTemplateVariablesReader, TemplateEngine, TemplateVariableValue}
+import org.silkframework.util.{ConfigTestTrait, Uri}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Workspace}
 
-import java.io.{File, FileOutputStream}
+import java.io.{File, FileOutputStream, Writer}
 import java.nio.file.Files
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 /**
   * Tests for the XML zip based project marshalling
   */
-class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers {
+class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
 
   behavior of "Xml Zip project marshaling"
 
   implicit val userContext: UserContext = UserContext.Empty
 
   val projectName = "proj1"
+
+  PluginRegistry.registerPlugin(classOf[MockTemplateEngine])
 
   it should "marshal and unmarshal correctly" in {
     val file = new File(getClass.getResource("exampleProject.zip").getFile)
@@ -72,10 +76,18 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers {
       resources.list shouldBe empty
     }
 
-    implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources)
-
     // Project
     val project = workspace.readProject(projectName).get
+
+    // Variables
+    val variables = workspace.projectVariables(projectName).readVariables()
+    variables.map should contain key "linkLimit"
+    variables.map should contain key "linkLimitTimesTen"
+    variables.map("linkLimit").value shouldBe "1000"
+    variables.map("linkLimitTimesTen").value shouldBe "10000"
+
+    implicit val pluginContext: PluginContext = TestPluginContext(prefixes = Prefixes.default, resources = resources,
+      templateVariables = InMemoryTemplateVariablesReader(variables, Set("project")))
 
     // Datasets
     val datasets = workspace.readTasks[GenericDatasetSpec](projectName)
@@ -83,10 +95,13 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers {
     val dbpediaDataset = datasets.find(_.task.id.toString == "DBpedia").get.task
     val linkedmdbDataset = datasets.find(_.task.id.toString == "linkedmdb").get.task
 
-
     // Linking task
-    val linkingTask = workspace.readTasks[LinkSpec](projectName)
-    linkingTask.map(_.task.id.toString) should contain("movies")
+    val linkingTasks = workspace.readTasks[LinkSpec](projectName)
+    linkingTasks.map(_.task.id.toString) should contain("movies")
+    // Link limit is based on the linkLimitTimesTen template variable
+    val linkingTask = linkingTasks.find(_.task.id.toString == "movies").get.task
+    linkingTask.data.linkLimit shouldBe 10000
+    linkingTask.templateValues shouldBe Map("linkLimit" -> "{{project.linkLimitTimesTen}}")
 
     // Tags
     val tag1 = Tag(Uri("urn:silkframework:tag:example+tag+1"), "example tag 1")
@@ -95,5 +110,30 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers {
     project.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
     dbpediaDataset.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
     linkedmdbDataset.metaData.tags shouldBe Set()
+  }
+
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "config.variables.engine" -> Some("test_template_engine")
+  )
+
+}
+
+@Plugin(
+  id = "test_template_engine",
+  label = "Test Engine",
+)
+case class MockTemplateEngine() extends TemplateEngine {
+
+  override def compile(templateString: String): CompiledTemplate = {
+    templateString match {
+      case "{{project.linkLimitTimesTen}}" =>
+        new CompiledTemplate {
+          override def evaluate(values: Seq[TemplateVariableValue], writer: Writer): Unit = {
+            writer.write(values.find(_.name == "linkLimitTimesTen").get.values.mkString)
+          }
+        }
+      case _ =>
+        throw new IllegalArgumentException("Unexpected template: " + templateString)
+    }
   }
 }

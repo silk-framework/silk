@@ -8,11 +8,11 @@ import {
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
-import { IPluginOverview } from "@ducks/common/typings";
+import { AlternativeTaskUpdateFunction, IPluginOverview } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
-import { TaskType } from "@ducks/shared/typings";
+import { IProjectTask, TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
@@ -20,6 +20,7 @@ import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
+import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
 
 const {
     setError,
@@ -27,10 +28,12 @@ const {
     updateAvailableDTypes,
     setProjectId,
     setInitialSettings,
+    setTaskPluginOverviews,
     setSelectedArtefactDType,
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,
+    createNewTask,
     setCachedArtefactProperty,
     fetchArtefactsList,
     setArtefactsList,
@@ -46,6 +49,14 @@ const fetchCommonSettingsAsync = () => {
         try {
             const data = await requestInitFrontend();
             dispatch(setInitialSettings(data));
+
+            const overviewItems = await requestArtefactList({});
+            const taskPluginOverviews = Object.keys(overviewItems).map((key) => ({
+                key,
+                ...overviewItems[key],
+            }));
+            await fillCustomPluginStore(taskPluginOverviews);
+            dispatch(setTaskPluginOverviews(taskPluginOverviews));
 
             const selectedLng = fetchStoredLang();
             if (!selectedLng) {
@@ -148,7 +159,7 @@ const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
 
 /** Splits the form data into normal parameters/values and variable template parameters/values. */
 const splitParameterAndVariableTemplateParameters = (formData: any, variableTemplateParameterSet: Set<string>) => {
-    const parameters: Record<string, any> = {};
+    const parameters: Record<string, any> = Object.create(null);
     const variableTemplateParameters: Record<string, any> = {};
     Object.entries(formData).forEach(([key, value]) => {
         if (variableTemplateParameterSet.has(key)) {
@@ -165,7 +176,7 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 
 /** Builds a request object for project/task create call. */
 const buildTaskObject = (formData: Record<string, any>): object => {
-    const returnObject = {};
+    const returnObject = Object.create(null);
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
     // Add direct parameters
@@ -197,7 +208,9 @@ const createArtefactAsync = (
     taskType: TaskType | "Project",
     dataParameters: ArtefactDataParameters | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** If this is set, then instead of redirecting to the newly created task, this function is called. */
+    alternativeCallback?: (newTask: IProjectTask) => any
 ) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
@@ -215,7 +228,8 @@ const createArtefactAsync = (
                                 selectedArtefact.key,
                                 taskType as TaskType,
                                 dataParameters,
-                                variableTemplateParameterSet
+                                variableTemplateParameterSet,
+                                alternativeCallback
                             )
                         ));
                 } else {
@@ -254,8 +268,7 @@ const createTagsAndAddToMetadata = async (payload: {
 
 /** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
 const extractDataAttributes = (formData): ArtefactDataParameters => {
-    let returnValue: ArtefactDataParameters = {};
-    returnValue = {};
+    const returnValue: ArtefactDataParameters = Object.create(null);
     returnValue[URI_PROPERTY_PARAMETER_ID] = formData[URI_PROPERTY_PARAMETER_ID];
     returnValue[READ_ONLY_PARAMETER] = formData[READ_ONLY_PARAMETER];
     return returnValue;
@@ -267,7 +280,9 @@ const fetchCreateTaskAsync = (
     taskType: TaskType,
     dataParameters: { [key: string]: string } | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** If this is set, then instead of redirecting to the newly created task, this function is called. */
+    alternativeCallback?: (newTask: IProjectTask) => any
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
@@ -302,23 +317,28 @@ const fetchCreateTaskAsync = (
         dispatch(setModalError({}));
         try {
             const data = await requestCreateTask(payload, currentProjectId);
+            const newTask = data.data;
+            const newTaskId = newTask.id;
             await createTagsAndAddToMetadata({
                 label,
                 description,
                 tags,
                 projectId: currentProjectId,
-                taskId: data.data.id,
+                taskId: newTaskId,
             });
+
             batch(() => {
                 dispatch(closeArtefactModal());
-                dispatch(
-                    routerOp.goToTaskPage({
-                        id: data.data.id,
-                        type: taskType,
-                        projectId: currentProjectId,
-                        label,
-                    })
-                );
+                alternativeCallback
+                    ? alternativeCallback(newTask)
+                    : dispatch(
+                          routerOp.goToTaskPage({
+                              id: newTaskId,
+                              type: taskType,
+                              projectId: currentProjectId,
+                              label,
+                          })
+                      );
             });
         } catch (e) {
             if (e.isFetchError) {
@@ -335,7 +355,9 @@ const fetchUpdateTaskAsync = (
     formData: any,
     dataParameters: ArtefactDataParameters | undefined,
     // Parameters that are flagged to have variable template value
-    variableTemplateParameterSet: Set<string>
+    variableTemplateParameterSet: Set<string>,
+    /** Function that is called instead of the task PATCH endpoint. */
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
@@ -357,7 +379,11 @@ const fetchUpdateTaskAsync = (
         };
         dispatch(setModalError({}));
         try {
-            await requestUpdateProjectTask(projectId, itemId, payload);
+            if (alternativeUpdateFunction) {
+                await alternativeUpdateFunction(projectId, itemId, parameterData, variableTemplateData, dataParameters);
+            } else {
+                await requestUpdateProjectTask(projectId, itemId, payload);
+            }
             dispatch(closeArtefactModal());
         } catch (e) {
             dispatch(setModalError(e));
@@ -397,11 +423,13 @@ const fetchCreateProjectAsync = (formData: {
 const resetArtefactModal =
     (shouldClose: boolean = false) =>
     (dispatch) => {
-        dispatch(selectArtefact(undefined));
-        dispatch(setModalError({}));
-        if (shouldClose) {
-            dispatch(closeArtefactModal());
-        }
+        batch(() => {
+            dispatch(selectArtefact(undefined));
+            dispatch(setModalError({}));
+            if (shouldClose) {
+                dispatch(closeArtefactModal());
+            }
+        });
     };
 
 const changeLocale = (locale: string) => {
@@ -422,6 +450,7 @@ const commonOps = {
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,
+    createNewTask,
     setProjectId,
     setTaskId,
     setSelectedArtefactDType,

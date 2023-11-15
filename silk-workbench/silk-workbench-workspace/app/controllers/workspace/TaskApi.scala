@@ -3,9 +3,9 @@ package controllers.workspace
 import config.WorkbenchLinks
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.util.SerializationUtils
+import controllers.util.{SerializationUtils, TaskLink}
 import controllers.workspace.doc.TaskApiDoc
-import controllers.workspace.taskApi.{TaskApiUtils, TaskLink}
+import controllers.workspace.taskApi.TaskApiUtils
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -18,7 +18,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -82,11 +82,10 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                )
                projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
-      implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.id),
-        resources = project.resources)
+      implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       Created(JsonSerializers.GenericTaskJsonFormat.write(task)).
           withHeaders(LOCATION -> routes.TaskApi.getTask(projectName, task.id).path())
     }
@@ -136,7 +135,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
               )
               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
+    implicit val readContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
@@ -276,8 +275,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                                          project: Project,
                                          task: ProjectTask[_ <: TaskSpec])
                                         (implicit userContext: UserContext): Result = {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes,
-      projectId = Some(project.config.id), resources = project.resources)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
     // JSON only
     val jsObj: JsObject = JsonSerialization.toJson[Task[TaskSpec]](task).as[JsObject]
     val data = (jsObj \ DATA).as[JsObject]
@@ -437,7 +435,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
   private def dependentTaskLinkFormatter(project: Project)
                                         (implicit userContext: UserContext): String => JsValue = (taskId: String) => {
     val task = project.anyTask(taskId)
-    Json.toJson(TaskLink(task.id, task.metaData.label, WorkbenchLinks.editorLink(task)))
+    Json.toJson(TaskLink.fromTask(task))
   }
 
   @Operation(

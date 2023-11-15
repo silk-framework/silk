@@ -39,10 +39,11 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
     * As a path input does not have any children, an [IllegalArgumentException] will be thrown if the provided children sequence is nonempty.
     */
   override def withChildren(newChildren: Seq[Operator]): PathInput = {
-    if(newChildren.isEmpty)
+    if(newChildren.isEmpty) {
       this
-    else
+    } else {
       throw new IllegalArgumentException("PathInput cannot have any children")
+    }
   }
 
   /**
@@ -51,13 +52,9 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
    * @param entity The entity.
    * @return The values.
    */
-  override def apply(entity: Entity): Seq[String] = {
-    eval(entity)
-  }
-
-  private def eval(entity: Entity): Seq[String] = {
+  override def apply(entity: Entity): Value = {
     if(path.operators.isEmpty) {
-      Array(entity.uri.toString)
+      Value(Array(entity.uri.toString))
     } else {
       var index = cachedPathIndex
       if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index).normalizedSerialization != path.normalizedSerialization) {
@@ -67,7 +64,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
         }
         cachedPathIndex = index
       }
-      entity.evaluate(index)
+      Value(entity.evaluate(index))
     }
   }
 }

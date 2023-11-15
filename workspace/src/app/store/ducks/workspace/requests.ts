@@ -12,7 +12,7 @@ import {
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { IAutocompleteDefaultResponse, IProjectTask } from "@ducks/shared/typings";
 
 export interface ISearchListRequest {
     limit?: number;
@@ -118,7 +118,7 @@ export const requestCloneProject = async (projectId: string, payload: any): Prom
 };
 
 //missing-type
-export const requestCreateTask = async (payload, projectId): Promise<any | never> => {
+export const requestCreateTask = async (payload, projectId): Promise<FetchResponse<IProjectTask>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/tasks`),
         method: "POST",

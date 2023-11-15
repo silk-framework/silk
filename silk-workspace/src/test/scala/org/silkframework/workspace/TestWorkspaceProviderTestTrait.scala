@@ -60,6 +60,11 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     if(initWorkspaceBeforeAll) {
       WorkspaceFactory().workspace.projects // Initialize workspace before starting tests
     }
+    runAfterWorkspaceInit()
+  }
+
+  def runAfterWorkspaceInit(): Unit = {
+    // This is run right after the workspace has initialized.
   }
 
   override protected def afterAll(): Unit = {

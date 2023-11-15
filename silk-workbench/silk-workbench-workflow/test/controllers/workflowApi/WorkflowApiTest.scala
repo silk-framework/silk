@@ -1,23 +1,29 @@
 package controllers.workflowApi
 
-import controllers.workflowApi.workflow.{WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workflowApi.workflow._
 import helper.IntegrationTestTrait
-import org.scalatest.concurrent.Eventually.eventually
-import org.silkframework.config.{CustomTask, Prefixes, Task}
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, Executor, ExecutorOutput}
-import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.serialization.json.JsonHelpers
-import org.silkframework.util.{ConfigTestTrait, Uri}
+import org.silkframework.util.{ConfigTestTrait, FileUtils, Uri}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowOperator, WorkflowOperatorsParameter}
 import play.api.routing.Router
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
-class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with ConfigTestTrait with IntegrationTestTrait with Matchers {
+import java.io.File
+
+class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait with ConfigTestTrait
+  with IntegrationTestTrait with Matchers with BeforeAndAfterAll {
+
   behavior of "Workflow API"
 
   override def projectPathInClasspath: String = "2dc191ef-d583-4eb8-a8ed-f2a3fb94bd8f_WorkflowAPItestproject.zip"
@@ -37,12 +43,20 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     project.addTask("fourPort", TestCustomTask(Some(4)))
     val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
     val portConfig = JsonHelpers.fromJsonValidated[WorkflowNodesPortConfig](responseJson)
-    val noSchemaConfig = Some(WorkflowNodePortConfig(1, None))
-    portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe noSchemaConfig
-    portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe Some(WorkflowNodePortConfig(1, Some(1)))
+    val noSchemaConfig = Some(workflowNodePortConfig(1, None))
+    val singleFlexiblePortConfig = Some(WorkflowNodePortConfig(1,Some(1),FixedSizePortsDefinition(Seq(FlexiblePortDefinition)),SinglePortPortsDefinition(FlexiblePortDefinition)))
+    portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe singleFlexiblePortConfig
+    portConfig.byTaskId.get(customTaskWithSchemaFromInitialProject) mustBe
+      Some(WorkflowNodePortConfig(1, Some(1),
+        FixedSizePortsDefinition(Seq(FixedSchemaPortDefinition(PortSchema(Some(""),List(PortSchemaProperty("some/path")))))),
+        SinglePortPortsDefinition(FlexiblePortDefinition)
+      ))
+    val fixedPortDef = FixedSchemaPortDefinition(PortSchema(Some("uri"),List()))
     portConfig.byTaskId.get("noSchema") mustBe noSchemaConfig
-    portConfig.byTaskId.get("onePort") mustBe Some(WorkflowNodePortConfig(1, Some(1)))
-    portConfig.byTaskId.get("fourPort") mustBe Some(WorkflowNodePortConfig(4, Some(4)))
+    portConfig.byTaskId.get("onePort") mustBe Some(workflowNodePortConfig(1, Some(1),
+      inputPortsDefinition = FixedSizePortsDefinition(List(fixedPortDef))))
+    portConfig.byTaskId.get("fourPort") mustBe Some(workflowNodePortConfig(4, Some(4),
+      inputPortsDefinition = FixedSizePortsDefinition(List(fixedPortDef, fixedPortDef, fixedPortDef, fixedPortDef))))
   }
 
   it should "return a 503 when too many concurrent variable workflows are started" in {
@@ -60,13 +74,14 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
         position = (100, 100),
         blockingTaskId,
         None,
+        Seq.empty,
         Seq.empty
       )))
     ))
     def executeWorkflowAsync(expectedResponseCode: Int): Unit = {
       val url = controllers.workflowApi.routes.WorkflowApi.executeVariableWorkflowAsync(projectId, workflowId).url
       val response = client.url(s"$baseUrl$url")
-        .withHttpHeaders(CONTENT_TYPE -> "text/csv")
+        .addHttpHeaders(CONTENT_TYPE -> "text/csv")
         .post("")
       checkResponseExactStatusCode(response, expectedResponseCode)
     }
@@ -81,6 +96,14 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
     executeWorkflowAsync(CREATED)
   }
 
+  private def workflowNodePortConfig(min: Int,
+                                     max: Option[Int],
+                                     inputPortsDefinition: PortsDefinition = MultipleSameTypePortsDefinition(FlexiblePortDefinition),
+                                     outputPortsDefinition: PortsDefinition = SinglePortPortsDefinition(UnknownTypePortDefinition)
+                                    ): WorkflowNodePortConfig = {
+    WorkflowNodePortConfig(min, max, inputPortsDefinition, outputPortsDefinition)
+  }
+
   /** The properties that should be changed.
     * If the value is [[None]] then the property value is removed,
     * else it is set to the new value.
@@ -88,16 +111,26 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
   override def propertyMap: Map[String, Option[String]] = Map(
     WorkspaceActivity.MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY -> Some("2")
   )
+
+  override def afterAll(): Unit = {
+    super.afterAll()
+    FileUtils.toFileUtils(new File(FileUtils.tempDir)).deleteRecursiveOnExit()
+  }
 }
 
 case class TestCustomTask(nrPorts: IntOptionParameter) extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = nrPorts map { nr =>
-    for(_ <- 1 to nr) yield {
-      EntitySchema(Uri("uri"), typedPaths = IndexedSeq.empty)
-    }
+  override def inputPorts: InputPorts = nrPorts.value match {
+    case Some(number) =>
+      FixedNumberOfInputs(
+        for (_ <- 1 to number) yield {
+          FixedSchemaPort(EntitySchema(Uri("uri"), typedPaths = IndexedSeq.empty))
+        }
+      )
+    case None =>
+      FlexibleNumberOfInputs()
   }
 
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def outputPort: Option[Port] = Some(UnknownSchemaPort)
 }
 
 object BlockingTask {
@@ -109,8 +142,8 @@ object BlockingTask {
 
 /** Task that blocks until externally released. */
 case class BlockingTask() extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def outputPort: Option[Port] = None
 }
 
 case class BlockingTaskExecutor() extends Executor[BlockingTask, ExecutionType] {
@@ -119,7 +152,7 @@ case class BlockingTaskExecutor() extends Executor[BlockingTask, ExecutionType] 
                        output: ExecutorOutput,
                        execution: ExecutionType,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext, prefixes: Prefixes): Option[ExecutionType#DataType] = {
+                      (implicit pluginContext: PluginContext): Option[ExecutionType#DataType] = {
     while(BlockingTask.block) {
       Thread.sleep(1)
     }

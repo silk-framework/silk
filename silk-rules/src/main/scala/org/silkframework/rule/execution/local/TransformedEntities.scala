@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
+import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
 import org.silkframework.failures.EntityException
@@ -10,6 +10,7 @@ import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.Identifier
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -80,7 +81,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
         mappedEntity
       }
-    new TransformReportIterator(mappedEntities, report)
+    new TransformReportIterator(mappedEntities.thenClose(() => context.value.update(report.build())), report)
   }
 
   private def mapEntity(entity: Entity, report: TransformReportBuilder): Iterator[Entity] = {
@@ -130,13 +131,13 @@ class TransformedEntities(task: Task[TransformSpec],
     }
   }
 
-  private def buildErrorMetadata(): EntityMetadata[_] = {
+  private def buildErrorMetadata(): EntityMetadata = {
     if(!errorFlag) {
-      EntityMetadataXml()
+      EntityMetadata()
     } else if(errors.size == 1) {
-      EntityMetadataXml(new EntityException("", errors.head, task.id))
+      EntityMetadata(new EntityException("", errors.head, task.id))
     } else {
-      EntityMetadataXml(new EntityException("Multiple errors: " + errors.map(_.getMessage).mkString(", "), errors.head, task.id))
+      EntityMetadata(new EntityException("Multiple errors: " + errors.map(_.getMessage).mkString(", "), errors.head, task.id))
     }
   }
 
@@ -149,7 +150,11 @@ class TransformedEntities(task: Task[TransformSpec],
 
   private def evaluateRule(entity: Entity, rule: TransformRule, report: TransformReportBuilder): Seq[String] = {
     try {
-      rule(entity)
+      val result = rule(entity)
+      for(error <- result.errors) {
+        addError(report, rule, entity, error.error, Some(error.operatorId))
+      }
+      result.values
     } catch {
       case ex: ExecutionException if ex.abortExecution =>
         throw ex
@@ -161,9 +166,9 @@ class TransformedEntities(task: Task[TransformSpec],
     }
   }
 
-  private def addError(report: TransformReportBuilder, rule: TransformRule, entity: Entity, ex: Throwable): Unit = {
+  private def addError(report: TransformReportBuilder, rule: TransformRule, entity: Entity, ex: Throwable, operatorId: Option[Identifier] = None): Unit = {
     log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
-    report.addRuleError(rule, entity, ex)
+    report.addRuleError(rule, entity, ex, operatorId)
     errors.append(ex)
     errorFlag = true
     if(abortIfErrorsOccur) {

@@ -4,13 +4,13 @@ interface IProps {
     // The hotkey to support, e.g. "ctrl+e"
     hotkey?: string;
     // The event handler for the hot key combination. Return false if the event should not bubble up.
-    handler: (e: any) => void;
+    handler: (e: any) => any;
     // If the hot key should be active. If not set, the hot key will be active.
     enabled?: boolean;
     // Make the hot key trigger on a specific event type only, else it will be decided based on the hotkey.
     eventType?: EventType;
 }
-const Mousetrap = require("mousetrap");
+export const Mousetrap = require("mousetrap");
 
 type EventType = "keydown" | "keyup" | "keypress";
 /**

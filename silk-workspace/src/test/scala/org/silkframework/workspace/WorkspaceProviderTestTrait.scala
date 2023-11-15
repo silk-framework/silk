@@ -1,11 +1,14 @@
 package org.silkframework.workspace
 
 
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
+import org.silkframework.entity.Restriction
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput}
@@ -14,19 +17,19 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
-import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.ResourceNotFoundException
+import org.silkframework.runtime.templating.{TemplateVariable, TemplateVariables}
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{Identifier, MockitoSugar, Uri}
+import org.silkframework.workspace.WorkspaceProviderTestPlugins.{FailingCustomTask, FailingTaskException}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 
 
-trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar {
+trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoSugar with BeforeAndAfterAll {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
@@ -48,6 +51,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   private lazy val fileBasedDatasetWithHierarchicalFilePath = CsvDataset(project(emptyUserContext).resources.getInPath("some/nested/file.csv"))
 
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
+  PluginRegistry.registerPlugin(classOf[FailingCustomTask])
 
   def createWorkspaceProvider(): WorkspaceProvider
 
@@ -77,6 +81,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
         )
       ),
       linkType = "http://www.w3.org/2002/07/owl#sameAs",
+      inverseLinkType = Some("http://www.w3.org/2002/07/owl#sameAsInv"),
+      excludeSelfReferences = true,
       layout = RuleLayout(
         nodePositions = Map("compareNames" -> (1, 2))
       ),
@@ -130,9 +136,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                   ComplexMapping(
                     id = "complexId",
                     operator = TransformInput("lower", transformer = LowerCaseTransformer(),
-                      inputs = Seq(
+                      inputs = IndexedSeq(
                         TransformInput("concat", transformer = ConcatTransformer(),
-                          inputs = Seq(
+                          inputs = IndexedSeq(
                             PathInput("path", UntypedPath.parse("path"))
                           )
                         )
@@ -224,11 +230,12 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
+            WorkflowOperator(inputs = Seq(Some(DATASET_ID)), task = TRANSFORM_ID, outputs = Seq(OUTPUTS_DATASET_ID), Seq(), (0, 0),
+              TRANSFORM_ID, None, configInputs = Seq.empty, dependencyInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty),
-            WorkflowDataset(Seq(TRANSFORM_ID), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), configInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), Seq.empty , dependencyInputs = Seq.empty),
+            WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
             stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
@@ -243,8 +250,11 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     PlainTask(
       id = WORKFLOW_ID,
       data = miniWorkflow.data.copy(
-        operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
-        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
+        operators = miniWorkflow.operators.map(op => op.copy(position = (100, 100), outputs = op.outputs ++ Seq(CUSTOM_TASK_ID))) ++ Seq(
+          WorkflowOperator(inputs = Seq(), task = CUSTOM_TASK_ID, outputs = Seq(), Seq(), (0, 0),
+            CUSTOM_TASK_ID, None, configInputs = Seq(TRANSFORM_ID), dependencyInputs = Seq(DATASET_ID))
+        ),
+        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100), dependencyInputs = Seq(CUSTOM_TASK_ID)))
       ),
       metaData = metaDataUpdated
     )
@@ -280,9 +290,14 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       createdByUser = creationUserContext.user.map(u => Uri(u.uri)), lastModifiedByUser = updateUserContext.user.map(u => Uri(u.uri)))
   }
 
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    createProject(PROJECT_NAME)(specificUserContext)
+  }
+
   it should "read and write projects" in {
     val projectConfig2 = createProject(PROJECT_NAME_OTHER)(emptyUserContext)
-    val projectConfig = createProject(PROJECT_NAME)(specificUserContext)
+    val projectConfig = getProject(PROJECT_NAME).getOrElse(ProjectConfig("wrong"))
     val project = getProject(projectConfig.id).get
     val project2 = getProject(projectConfig2.id).get
     project.prefixes shouldBe projectConfig.prefixes
@@ -595,6 +610,90 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     }
   }
 
+  it should "allow managing project template variables" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Initially, it should return an empty variable list
+    val variables = workspaceProvider.projectVariables(PROJECT_NAME)
+    variables.readVariables().map shouldBe empty
+
+    // Add variables and read again
+    val templateVariables1 = TemplateVariables(Seq(
+      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project"),
+      TemplateVariable("myVar2", "myValue2", None, Some("test description"), isSensitive = true, "project"),
+      TemplateVariable("myVar3", "myValue3", None, None, isSensitive = true, "project")
+    ))
+    variables.putVariables(templateVariables1)
+    refreshTest {
+      variables.readVariables() shouldBe templateVariables1
+    }
+
+    // Modify variables and read again
+    val templateVariables2 = TemplateVariables(Seq(
+      TemplateVariable("myVar2", "myValue2", None, Some("test description 2"), isSensitive = true, "project"),
+      TemplateVariable("myVar4", "myValue4", None, None, isSensitive = true, "project"),
+      TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project")
+    ))
+    variables.putVariables(templateVariables2)
+    refreshTest {
+      variables.readVariables() shouldBe templateVariables2
+    }
+  }
+
+  it should "load tasks safely and allow to fix them" in {
+    implicit val us: UserContext = emptyUserContext
+    val failingTaskId = "failingTask1"
+    WorkspaceProviderTestPlugins.synchronized {
+      try {
+        WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+        val failingCustomTask = PlainTask(
+          id = failingTaskId,
+          data = FailingCustomTask()
+        )
+        workspaceProvider.putTask(PROJECT_NAME, failingCustomTask, projectResources)
+        refreshTest {
+          workspaceProvider.readTasks[CustomTask](PROJECT_NAME).filter(_.id.toString == failingTaskId) shouldBe Seq(LoadedTask(Right(failingCustomTask)))
+          workspaceProvider.readAllTasks(PROJECT_NAME).filter(_.task.id.toString == failingTaskId) shouldBe Seq(LoadedTask(Right(failingCustomTask)))
+        }
+        WorkspaceProviderTestPlugins.failingCustomTaskFailing = true
+        // Refresh the workspace to make sure that the loading error comes from the workspace provider and not the import workspace provider (XML workspace)
+        refreshTest {
+          // Test that the loading error contains a factory function that creates a new instance of the task and the original parameters.
+          def testLoadedTask(loadedTasks: Seq[LoadedTask[_]], shouldFail: Boolean): Unit = {
+            val loadingError = loadedTasks.filter(_.error.isDefined)
+            if(shouldFail) {
+              loadingError should have size 1
+              // Check factory function
+              val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
+              factoryFunctionOpt shouldBe defined
+              factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
+                .map(_.throwable.getCause).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
+              // Check that original parameters are included
+              loadingError.head.error.get.originalParameterValues shouldBe Some(
+                OriginalTaskData(
+                  "failTask",
+                  ParameterValues(Map("alwaysFail" -> ParameterStringValue("true")))
+                )
+              )
+              // Test with fixing parameters
+              factoryFunctionOpt.get(ParameterValues(Map("alwaysFail" -> ParameterStringValue("false"))), pluginContext).
+                task.data shouldBe a[FailingCustomTask]
+              WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+              factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).data shouldBe a[FailingCustomTask]
+            } else {
+              loadingError should have size 0
+            }
+          }
+          testLoadedTask(workspaceProvider.readTasks[CustomTask](PROJECT_NAME), shouldFail = WorkspaceProviderTestPlugins.failingCustomTaskFailing)
+          testLoadedTask(workspaceProvider.readAllTasks(PROJECT_NAME), shouldFail = WorkspaceProviderTestPlugins.failingCustomTaskFailing)
+          WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+        }
+      } finally {
+        WorkspaceProviderTestPlugins.failingCustomTaskFailing = false
+      }
+    }
+  }
+
   /** Executes the block before and after project refresh */
   private def withRefresh(projectName: String)(ex: => Unit)(implicit userContext: UserContext): Unit = {
     ex
@@ -617,6 +716,26 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
 @Plugin(id = "test", label = "test task")
 case class TestCustomTask(stringParam: String, numberParam: Int) extends CustomTask {
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
-  override def outputSchemaOpt: Option[EntitySchema] = None
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def outputPort: Option[Port] = None
+}
+
+object WorkspaceProviderTestPlugins {
+  class FailingTaskException(msg: String) extends RuntimeException(msg)
+  /** Plugin to test task loading failures. */
+  @volatile
+  var failingCustomTaskFailing = false
+  object failingCustomTaskLock
+
+  @Plugin(id = "failTask", label = "Task that always fails loading")
+  case class FailingCustomTask(alwaysFail: Boolean = true) extends CustomTask {
+    if(failingCustomTaskFailing && alwaysFail) {
+      throw new FailingTaskException("Failed!")
+    }
+
+    override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+
+    override def outputPort: Option[Port] = None
+  }
+
 }
