@@ -9,6 +9,8 @@ class XmlPlugins extends PluginModule {
     classOf[XmlParserTask],
     classOf[LocalXmlParserTaskExecutor],
     classOf[XSLTOperator],
-    classOf[LocalXSLTOperatorExecutor]
+    classOf[LocalXSLTOperatorExecutor],
+    classOf[ValidateXsdOperator],
+    classOf[LocalValidateXsdOperatorExecutor]
   )
 }
