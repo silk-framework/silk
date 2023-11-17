@@ -64,7 +64,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
         val timestamp = Instant.now()
         val report = workflowReport.report
         val errorMsg = ex.getMessage
-        val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation)
+        val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation, report.operationDesc)
         copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport, version + 1, timestamp)), version = version + 1)
       case None =>
         throw new NoSuchElementException(s"Invalid task node identifier: $nodeId")

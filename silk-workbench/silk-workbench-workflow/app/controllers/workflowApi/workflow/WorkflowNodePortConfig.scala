@@ -35,6 +35,13 @@ object WorkflowNodePortConfig {
           MultipleSameTypePortsDefinition(FlexiblePortDefinition),
           outDefinition
         )
+      case FixedNumberOfInputs(ports) if ports.isEmpty =>
+        WorkflowNodePortConfig(
+          ports.size,
+          Some(ports.size),
+          ZeroPortsDefinition,
+          outDefinition
+        )
       case FixedNumberOfInputs(ports) =>
         WorkflowNodePortConfig(
           ports.size,
@@ -112,7 +119,7 @@ case class SinglePortPortsDefinition(portDefinition: PortDefinition) extends Por
   override def portsType: String = "single"
 }
 
-/** No output port. */
+/** No input/output port. */
 object ZeroPortsDefinition extends PortsDefinition {
   override def portsType: String = "none"
 }

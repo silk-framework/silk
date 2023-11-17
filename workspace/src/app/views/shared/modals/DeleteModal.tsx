@@ -28,6 +28,8 @@ export interface IDeleteModalOptions extends TestableComponent {
     errorMessage?: string;
     /** Called when the Enter key is pressed and the optional confirmation is checked. */
     submitOnEnter?: boolean;
+    //optional prop to disable the delete button
+    deleteDisabled?: boolean;
 }
 
 export default function DeleteModal({
@@ -41,6 +43,8 @@ export default function DeleteModal({
     removeLoading = false,
     errorMessage,
     submitOnEnter = true,
+    deleteDisabled,
+
     ...otherProps
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -80,7 +84,7 @@ export default function DeleteModal({
                             key="remove"
                             disruptive
                             onClick={onConfirm}
-                            disabled={confirmationRequired && !isConfirmed}
+                            disabled={(confirmationRequired && !isConfirmed) || deleteDisabled}
                             data-test-id={"remove-item-button"}
                         >
                             {t("common.action.delete", "Delete")}

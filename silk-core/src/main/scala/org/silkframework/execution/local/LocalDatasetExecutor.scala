@@ -142,7 +142,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
-        uploadFilesViaGraphStore(dataset, graphStoreFiles)
+        val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
+        uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
       case et: LocalEntities =>
@@ -252,7 +253,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
-                                       table: GraphStoreFileUploadTable)
+                                       table: GraphStoreFileUploadTable,
+                                       reportUpdater: ExecutionReportUpdater)
                                       (implicit userContext: UserContext): Unit = {
     val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
     dataset.data match {
@@ -267,6 +269,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
             for(fileResource <- table.files) {
               graphStore.uploadFileToGraph(targetGraph, fileResource.file, "application/n-triples", None) // Only N-Triples supported
+              reportUpdater.increaseEntityCounter()
             }
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
@@ -275,6 +278,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         throw new ValidationException("No dataset spec found!")
     }
+    reportUpdater.executionDone()
   }
 
   // Write the resource from the resource entity table to the dataset's resource
@@ -407,6 +411,16 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
+  }
+
+  case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+
+    override def entityLabelPlural: String = "Files"
+
+    override def operationLabel: Option[String] = Some("upload")
+
+    override def entityProcessVerb: String = "uploaded"
   }
 }
 

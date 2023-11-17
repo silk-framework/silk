@@ -2,7 +2,8 @@ package controllers.workspaceApi.coreApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat}
+import controllers.util.TaskLink
+import controllers.workspaceApi.coreApi.VariableTemplateApi.{TemplateVariableFormat, TemplateVariablesFormat, VariableDependencies}
 import controllers.workspaceApi.coreApi.doc.VariableTemplateApiDoc
 import controllers.workspaceApi.coreApi.variableTemplate.{AutoCompleteVariableTemplateRequest, ValidateVariableTemplateRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -226,6 +227,43 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
   }
 
   @Operation(
+    summary = "Variable dependencies",
+    description = "Returns a list of variables and tasks that a to-be-removed variable depends on.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The dependencies",
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or variable does not exist."
+      )
+    )
+  )
+  def variableDependencies(@Parameter(
+                             name = "project",
+                             description = "The project identifier",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectName: String,
+                           @Parameter(
+                             name = "name",
+                             description = "The variable name",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           variableName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val modification = DeleteVariableModification(project, variableName)
+    val dependentVariables = modification.dependentVariables()
+    val dependentTaskLinks = modification.invalidTasks().map(task => TaskLink.fromTask(task))
+    Ok(Json.toJson(VariableDependencies(dependentVariables, dependentTaskLinks)))
+  }
+
+  @Operation(
     summary = "Reorder variables",
     description = "Reorders all variables.",
     responses = Array(
@@ -418,11 +456,11 @@ object VariableTemplateApi {
 
   @Schema(description = "A list of template variables.")
   case class TemplateVariablesFormat(@ArraySchema(
-    schema = new Schema(
-      description = "List of variables.",
-      required = true,
-      implementation = classOf[TemplateVariableFormat]
-    ))
+                                       schema = new Schema(
+                                        description = "List of variables.",
+                                        required = true,
+                                        implementation = classOf[TemplateVariableFormat]
+                                     ))
                                      variables: Seq[TemplateVariableFormat]) {
     def convert: TemplateVariables = {
       TemplateVariables(variables.map(_.convert))
@@ -435,6 +473,20 @@ object VariableTemplateApi {
     }
   }
 
+  case class VariableDependencies(@ArraySchema(
+                                    schema = new Schema(
+                                      description = "List of dependent variables.",
+                                      implementation = classOf[String]
+                                  ))
+                                  dependentVariables: Seq[String],
+                                  @ArraySchema(
+                                    schema = new Schema(
+                                      description = "List of dependent tasks.",
+                                      implementation = classOf[TaskLink]
+                                    ))
+                                  dependentTasks: Seq[TaskLink])
+
   implicit val templateVariableFormat: OFormat[TemplateVariableFormat] = Json.format[TemplateVariableFormat]
   implicit val templateVariablesFormat: OFormat[TemplateVariablesFormat] = Json.format[TemplateVariablesFormat]
+  implicit val variableDependenciesFormat: OFormat[VariableDependencies] = Json.format[VariableDependencies]
 }

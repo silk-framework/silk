@@ -6,6 +6,7 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.templating.{CombinedTemplateVariablesReader, GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.ResourceRepository
@@ -41,16 +42,22 @@ object WorkspaceIO {
                  (implicit userContext: UserContext): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
+    // Variables
+    val variables = inputWorkspace.projectVariables(updatedProjectConfig.id).readVariables()
+    outputWorkspace.projectVariables(updatedProjectConfig.id).putVariables(variables)
+    // Tags
     val tags = inputWorkspace.readTags(updatedProjectConfig.id)
     outputWorkspace.putTags(updatedProjectConfig.id, tags)
+    // Resources
     if(alsoCopyResources) {
       copyResources(inputResources, outputResources)
     }
-    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
-    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
-    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
-    copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
-    copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes)
+    // Tasks
+    copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
+    copyTasks[TransformSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
+    copyTasks[LinkSpec](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
+    copyTasks[Workflow](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
+    copyTasks[CustomTask](inputWorkspace, outputWorkspace, inputResources, outputResources, updatedProjectConfig.id, project.prefixes, variables)
     outputWorkspace.refreshProject(updatedProjectConfig.id, outputResources)
   }
 
@@ -74,9 +81,11 @@ object WorkspaceIO {
                                                   inputResources: ResourceManager,
                                                   outputResources: ResourceManager,
                                                   projectName: Identifier,
-                                                  prefixes: Prefixes)
+                                                  prefixes: Prefixes,
+                                                  variables: TemplateVariables)
                                                  (implicit userContext: UserContext): Unit = {
-    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext)
+    val variablesReader = CombinedTemplateVariablesReader(Seq(GlobalTemplateVariables, InMemoryTemplateVariablesReader(variables, Set("project"))))
+    implicit val inputContext: PluginContext = PluginContext(resources = inputResources, prefixes = prefixes, user = userContext, templateVariables = variablesReader)
     for(taskTry <- inputWorkspace.readTasks[T](projectName)) {
       taskTry.taskOrError match {
         case Right(task) =>

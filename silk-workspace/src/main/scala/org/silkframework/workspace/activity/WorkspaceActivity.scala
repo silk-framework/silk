@@ -135,7 +135,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
   /**
     * Holds the timestamp when the activity has been started.
-    * Is None if the activity is not running at the moment.
+    * None, if the activity has not been started before.
     */
   final def startTime: Option[Instant] = control.startTime
 
