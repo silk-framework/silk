@@ -1,12 +1,12 @@
 package org.silkframework.workspace
 
 import org.scalatest.{BeforeAndAfterAll, TestSuite}
-import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.config.MetaData
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.resources.SharedFileRepository
+import org.silkframework.workspace.resources.{ResourceRepository, SharedFileRepository}
 
 import java.io.{File, FileNotFoundException}
 
@@ -21,6 +21,11 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
 
   /** The workspace provider that is used for holding the test workspace. */
   def workspaceProviderId: String = "inMemoryRdfWorkspace"
+
+  /** Creates the resource repository for testing based on a temporary directory */
+  def createResourceRepository(dir: File): ResourceRepository = {
+    SharedFileRepository(dir.getAbsolutePath)
+  }
 
   def deleteRecursively(f: File): Unit = {
     if (f.isDirectory) {
@@ -46,7 +51,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    val replacementWorkspace = new Workspace(workspaceProvider, SharedFileRepository(tmpDir.getAbsolutePath))
+    val replacementWorkspace = new Workspace(workspaceProvider, createResourceRepository(tmpDir))
     val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.
