@@ -230,8 +230,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        inputs: Seq[WorkflowDependencyNode],
                                        ports: Seq[Port]): Seq[WorkflowDependencyNode] = {
     if (ports.size < inputs.size) {
-      throw WorkflowExecutionException("Number of inputs is larger than the number of input schemata for workflow node "
-          + operatorNode.nodeId + ". This cannot be handled!")
+      inputs
+      // Too many inputs are not considered an error anymore.
     } else if (ports.nonEmpty && inputs.size < ports.size && inputs.nonEmpty) {
       // TODO: Temporary hack: Duplicate last input if more schemata are defined. Remove as soon as explicit task ports are implemented.
       val lastInput = inputs.last

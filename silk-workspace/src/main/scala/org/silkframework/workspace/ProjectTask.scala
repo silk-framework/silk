@@ -133,6 +133,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     // Update (in-memory) data
     dataValueHolder.update(newData)
     metaDataValueHolder.update(metaDataToPersist)
+    // Restart each activity, don't wait for completion.
+    for (activity <- taskActivities if shouldAutoRun(activity)) {
+      activity.control.restart()
+    }
 
     log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
   }
@@ -206,10 +210,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private def persistTask(task: Task[TaskType])(implicit userContext: UserContext): Unit = {
     // Write task
     module.provider.putTask(project.id, task, module.project.resources)
-    // Restart each activity, don't wait for completion.
-    for (activity <- taskActivities if shouldAutoRun(activity)) {
-      activity.control.restart()
-    }
   }
 
   override def toString: String = {
