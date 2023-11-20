@@ -75,13 +75,6 @@ trait TaskSpec {
   def referencedResources: Seq[Resource] = Seq.empty
 
   /**
-    * Retrieves a list of properties to be displayed to the user.
-    * @return Properties as key-value pairs.
-    */
-  @deprecated("This does not cover nested parameters. Replaced by parameters()")
-  def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = Seq.empty
-
-  /**
     * Retrieves all parameter values for this task.
     */
   def parameters(implicit pluginContext: PluginContext): ParameterValues

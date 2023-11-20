@@ -1,7 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.runtime.plugin.annotations.PluginType
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory, PluginRegistry}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory, PluginRegistry}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.workspace.{OriginalTaskData, TaskLoadingException}
 
@@ -11,14 +11,7 @@ import scala.xml.Node
   * A custom task provided by a plugin.
   */
 @PluginType(label = "Workflow operator")
-trait CustomTask extends TaskSpec with AnyPlugin {
-
-  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
-    ("Type", pluginSpec.label) +: parameters.toStringMap.toSeq
-  }
-
-}
+trait CustomTask extends TaskSpec with AnyPlugin
 
 object CustomTask extends PluginFactory[CustomTask] {
 

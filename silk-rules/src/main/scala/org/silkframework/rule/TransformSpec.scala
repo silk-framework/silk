@@ -151,16 +151,6 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     new MultiEntitySchema(ruleSchemataWithoutEmptyObjectRules.head.outputSchema, ruleSchemataWithoutEmptyObjectRules.tail.map(_.outputSchema).toIndexedSeq)
   }
 
-  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
-    Seq(
-      ("Source", selection.inputId.toString),
-      ("Type", selection.typeUri.toString),
-      ("Restriction", selection.restriction.toString),
-      ("Output", output.value.map(_.toString).getOrElse(""))
-    )
-  }
-
   /**
     * Collects the input and output schemata of all rules recursively.
     */

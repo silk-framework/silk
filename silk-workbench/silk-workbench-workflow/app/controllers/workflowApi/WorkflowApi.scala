@@ -24,6 +24,7 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.activity.workflow.ReconfigureTask.ReconfigurablePluginDescription
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
 import play.api.libs.json.Json
@@ -561,7 +562,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     }
     val taskPlugins = PluginApi.taskplugins().map(pluginDescription => {
       val pluginId = pluginDescription.id
-      val parameters = pluginDescription.parameters.filter(_.visibleInDialog).map(p => PortSchemaProperty(p.name))
+      val parameters = pluginDescription.configProperties.map(PortSchemaProperty)
       pluginId.toString -> PluginPortConfig(ConfigPortConfig(PortSchema(None, parameters)))
     }).toMap
     val flexiblePortConfig = WorkflowNodePortConfig(1, None,

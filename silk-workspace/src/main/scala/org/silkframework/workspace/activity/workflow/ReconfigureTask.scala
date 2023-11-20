@@ -3,12 +3,39 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.entity.Entity
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValue, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin._
+
+import scala.collection.mutable
 
 /**
- * Adds a method to tasks that reconfigures them based on entity values.
+ * TODO comment
  */
 object ReconfigureTask {
+
+  implicit class ReconfigurablePluginDescription(pluginDesc: PluginDescription[_]) {
+
+    def configProperties: Seq[String] = {
+      val buffer = mutable.Buffer[String]()
+      collectConfigProperties(buffer)
+      buffer.toSeq
+    }
+
+    private def collectConfigProperties(buffer: mutable.Buffer[String], prefix: String = ""): Unit = {
+      for (param <- pluginDesc.parameters if param.visibleInDialog) {
+        param.parameterType match {
+          case _: StringParameterType[_] =>
+            buffer.append(prefix + param.name)
+          case pt: PluginObjectParameterTypeTrait =>
+            pt.pluginDescription match {
+              case Some(pd) =>
+                new ReconfigurablePluginDescription(pd).collectConfigProperties(buffer, prefix + param.name + "-")
+              case None =>
+                // Parameters not available
+            }
+        }
+      }
+    }
+  }
 
   implicit class ReconfigurableTask[T <: TaskSpec](task: Task[T]) {
     /**
@@ -35,7 +62,7 @@ object ReconfigureTask {
     //TODO optimize
     private def entityToParameterValues(parameterValues: ParameterValues, entity: Entity, prefix: String = ""): ParameterValues = {
       val updatedValues: Iterable[(String, ParameterValue)] =
-        for ((name, value) <- parameterValues.values.toSeq) yield {
+        for ((name, value) <- parameterValues.values) yield {
           value match {
             case _: ParameterStringValue =>
               entity.schema.findPath(UntypedPath(prefix + name)) match {

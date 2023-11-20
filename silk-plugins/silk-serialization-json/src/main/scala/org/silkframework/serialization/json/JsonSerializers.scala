@@ -1129,7 +1129,7 @@ object JsonSerializers {
 
     private def writeTaskProperties(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsArray(
-        for((key, value) <- task.data.properties) yield {
+        for((key, value) <- task.data.parameters.toStringMap.toSeq) yield {
           Json.obj(KEY -> key, VALUE -> value)
         }
       )

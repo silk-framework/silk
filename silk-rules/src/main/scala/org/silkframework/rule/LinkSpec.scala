@@ -134,17 +134,6 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   override def outputTasks: Set[Identifier] = output.value.toSet
 
-  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
-    Seq(
-      ("Source dataset", dataSelections.source.inputId.toString),
-      ("Target dataset", dataSelections.target.inputId.toString),
-      ("Source type", dataSelections.source.typeUri.toString),
-      ("Target type", dataSelections.target.typeUri.toString),
-      ("Source restriction", dataSelections.source.restriction.toString),
-      ("Target restriction", dataSelections.target.restriction.toString)
-    )
-  }
-
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
     rule.operator foreach (operator => extractResourcesFromSimilarityOperator(operator, resources))
