@@ -8,11 +8,11 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
-import org.silkframework.workspace.activity.workflow.ReconfigureTask.ReconfigurableTask
+import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
-class ReconfigureTaskTest extends AnyFlatSpec with Matchers {
+class ReconfigureTasksTest extends AnyFlatSpec with Matchers {
 
-  behavior of "ReconfigureTask"
+  behavior of "ReconfigureTasks"
 
   private implicit val pluginContext: PluginContext = PluginContext.empty
 

@@ -8,12 +8,14 @@ import org.silkframework.runtime.plugin._
 import scala.collection.mutable
 
 /**
- * TODO comment
+ * Groups methods related to the reconfiguration of tasks.
  */
-object ReconfigureTask {
+object ReconfigureTasks {
 
   implicit class ReconfigurablePluginDescription(pluginDesc: PluginDescription[_]) {
-
+    /**
+     * Returns the list of properties that are available to reconfigure this plugin.
+     */
     def configProperties: Seq[String] = {
       val buffer = mutable.Buffer[String]()
       collectConfigProperties(buffer)
@@ -55,13 +57,12 @@ object ReconfigureTask {
       if (configParameters.values.isEmpty) {
         task
       } else {
-        PlainTask(id = task.id, data = task.data.withParameters(configParameters), metaData = task.metaData).asInstanceOf[Task[T]]
+        PlainTask(id = task.id, data = task.data.withParameters(configParameters, dropExistingValues = true), metaData = task.metaData).asInstanceOf[Task[T]]
       }
     }
 
-    //TODO optimize
     private def entityToParameterValues(parameterValues: ParameterValues, entity: Entity, prefix: String = ""): ParameterValues = {
-      val updatedValues: Iterable[(String, ParameterValue)] =
+      val updatedValues =
         for ((name, value) <- parameterValues.values) yield {
           value match {
             case _: ParameterStringValue =>
@@ -82,7 +83,7 @@ object ReconfigureTask {
               name -> value
           }
         }
-      ParameterValues(updatedValues.toMap)
+      ParameterValues(updatedValues)
     }
   }
 }

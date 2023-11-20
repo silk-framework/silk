@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.workflow.ReconfigureTask.ReconfigurableTask
+import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
