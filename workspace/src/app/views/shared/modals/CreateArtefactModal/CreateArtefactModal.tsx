@@ -361,6 +361,8 @@ export function CreateArtefactModal() {
                         });
                     }
                 }
+            } catch(error) {
+                registerError("CreateArtefactModal.handleCreate", `Could not ${updateExistingTask ? "update" : "create"} task.`, error)
             } finally {
                 setActionLoading(false);
             }
@@ -732,7 +734,7 @@ export function CreateArtefactModal() {
     const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
     const notifications: JSX.Element[] = [];
 
-    if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage) {
+    if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage || error.isFetchError) {
         // Special case for fix task loading error
         const taskLoadingError = error.body?.taskLoadingError?.errorMessage ? (
             <div
@@ -747,7 +749,7 @@ export function CreateArtefactModal() {
                     error.errorMessage ||
                     t("common.messages.actionFailed", {
                         action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
-                        error: error.detail.replace(/^(assertion failed: )/, ""),
+                        error: (diErrorMessage(error) ?? "Unknown error").replace(/^(assertion failed: )/, ""),
                     })
                 }
                 danger
