@@ -16,6 +16,8 @@ import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
 
 interface IProps {
     projectId: string;
@@ -59,6 +61,9 @@ export function InputMapper({
     parameterCallbacks,
 }: IProps) {
     const [t] = useTranslation();
+    const {registerError: globalErrorHandler} = useErrorHandler()
+    const modalContext = React.useContext(CreateArtefactModalContext)
+    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
@@ -111,11 +116,7 @@ export function InputMapper({
                 })
             ).data;
         } catch (e) {
-            AppToaster.show({
-                message: e.detail,
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
+            registerError("InputMapper.handleFileSearch", "File search has failed.", e)
             return [];
         }
     };
