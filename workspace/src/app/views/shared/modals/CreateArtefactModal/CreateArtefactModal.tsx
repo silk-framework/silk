@@ -520,6 +520,10 @@ export function CreateArtefactModal() {
         []
     );
 
+    const propagateExternallyChangedParameterValue = React.useCallback((fullParamId: string, value: string) => {
+        externalParameterUpdateMap.current.get(fullParamId)?.({value})
+    }, [])
+
     if (updateExistingTask) {
         // Task update
         artefactForm = (
@@ -541,6 +545,7 @@ export function CreateArtefactModal() {
                 }}
                 // Close modal immediately from update dialog
                 goBackOnEscape={() => handleBack(true)}
+                propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
             />
         );
     } else {
@@ -578,6 +583,7 @@ export function CreateArtefactModal() {
                             }}
                             goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
+                            propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
                         />
                     );
                 }
