@@ -128,22 +128,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  // Executes a workflow dependency if it has not been executed yet
-  def executeWorkflowExecutionDependency[T](node: WorkflowDependencyNode)
-                                           (process: Option[LocalEntities] => T)
-                                           (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    if (!cancelled) {
-      if (!workflowRunContext.alreadyExecuted.contains(node.workflowNode)) {
-        executeWorkflowNode(node, ExecutorOutput.empty) { _ =>
-          workflowRunContext.alreadyExecuted.add(node.workflowNode)
-        }
-      }
-    } else {
-      // Don't execute, workflow has been cancelled
-      process(None)
-    }
-  }
-
   private def executeWorkflowOperatorInput[T](input: WorkflowDependencyNode,
                                               output: ExecutorOutput,
                                               requestingWorkflowOperator: Task[_ <: TaskSpec])
@@ -246,8 +230,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        inputs: Seq[WorkflowDependencyNode],
                                        ports: Seq[Port]): Seq[WorkflowDependencyNode] = {
     if (ports.size < inputs.size) {
-      throw WorkflowExecutionException("Number of inputs is larger than the number of input schemata for workflow node "
-          + operatorNode.nodeId + ". This cannot be handled!")
+      inputs
+      // Too many inputs are not considered an error anymore.
     } else if (ports.nonEmpty && inputs.size < ports.size && inputs.nonEmpty) {
       // TODO: Temporary hack: Duplicate last input if more schemata are defined. Remove as soon as explicit task ports are implemented.
       val lastInput = inputs.last

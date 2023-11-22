@@ -199,6 +199,27 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
   }
 
+  /** Either the rule itself if it is an object mapping or the parent object mapping if it is a value rule. */
+  def objectMappingIdOfRule(ruleId: String): Option[String] = {
+    def searchId(transformRule: TransformRule,
+                               ruleId: String,
+                               parentRule: Option[String]): Option[String] = {
+      if (transformRule.id.toString == ruleId) {
+        if (transformRule.isInstanceOf[ContainerTransformRule]) {
+          Some(transformRule.id)
+        } else {
+          parentRule
+        }
+      } else {
+        transformRule.rules
+          .flatMap(rule => searchId(rule, ruleId, Some(transformRule.id)))
+          .headOption
+      }
+    }
+
+    searchId(mappingRule, ruleId, None)
+  }
+
   /* Recursively search for the rule in the transform spec rule tree and accumulate the source path.
    * Return all rules leading to the rule with their corresponding paths. The result list starts with the top most rule, i.e. root rule.
    * If the rule was not found it returns Mil.
@@ -219,7 +240,6 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
         case list: List[(TransformRule, List[PathOperator])] =>
           (transformRule, ruleSourcePath) :: list
       }
-
     }
   }
 

@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, Port, TaskSpec}
+import org.silkframework.config.{FlexibleNumberOfInputs, InputPorts, Port, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.runtime.activity.UserContext
@@ -121,13 +121,12 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
     for (node <- nodes) {
       val depNode = workflowNodeMap(node.nodeId)
-      for (inputNode <- node.allInputs) {
+      for (inputNode <- node.allIncomingNodes) {
         val precedingNode = workflowNodeMap.getOrElse(inputNode,
           throw new scala.RuntimeException("Unsatisfiable input dependency in workflow! Dependency: " + inputNode))
         depNode.addPrecedingNode(precedingNode)
         precedingNode.addFollowingNode(depNode)
       }
-      // TODO
       for (outputNode <- node.outputs) {
         val followingNode = workflowNodeMap.getOrElse(outputNode,
           throw new scala.RuntimeException("Unsatisfiable output dependency in workflow! Dependency: " + outputNode))

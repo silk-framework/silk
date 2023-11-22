@@ -250,8 +250,11 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     PlainTask(
       id = WORKFLOW_ID,
       data = miniWorkflow.data.copy(
-        operators = miniWorkflow.operators.map(_.copy(position = (100, 100))),
-        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100)))
+        operators = miniWorkflow.operators.map(op => op.copy(position = (100, 100), outputs = op.outputs ++ Seq(CUSTOM_TASK_ID))) ++ Seq(
+          WorkflowOperator(inputs = Seq(), task = CUSTOM_TASK_ID, outputs = Seq(), Seq(), (0, 0),
+            CUSTOM_TASK_ID, None, configInputs = Seq(TRANSFORM_ID), dependencyInputs = Seq(DATASET_ID))
+        ),
+        datasets = miniWorkflow.datasets.map(_.copy(position = (100, 100), dependencyInputs = Seq(CUSTOM_TASK_ID)))
       ),
       metaData = metaDataUpdated
     )
@@ -664,7 +667,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               val factoryFunctionOpt = loadingError.head.error.get.factoryFunction
               factoryFunctionOpt shouldBe defined
               factoryFunctionOpt.get(ParameterValues(Map.empty), pluginContext).error
-                .map(_.throwable).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
+                .map(_.throwable.getCause).getOrElse(new RuntimeException()) shouldBe a[FailingTaskException]
               // Check that original parameters are included
               loadingError.head.error.get.originalParameterValues shouldBe Some(
                 OriginalTaskData(

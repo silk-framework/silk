@@ -1,18 +1,20 @@
 package controllers.workspace
 
-import java.io._
-import java.nio.charset.StandardCharsets
-
-import helper.IntegrationTestTrait
+import helper.{IntegrationTestTrait, RequestFailedException}
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
+import org.silkframework.runtime.validation.RequestException
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.resources.ResourceRepository
 import play.api.libs.ws.WSResponse
 import play.api.libs.ws.ahc.AhcWSResponse
 import play.shaded.ahc.org.asynchttpclient.request.body.multipart.FilePart
 import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpClient, Request, Response}
 
+import java.io._
+import java.nio.charset.StandardCharsets
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
@@ -20,7 +22,15 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
   protected override def routes = Some(classOf[workspace.Routes])
 
+  /** Accessing resources with these names will fail during the tests. */
+  @volatile
+  private var failOnResources: Set[String] = Set.empty
+
   override def workspaceProviderId: String = "inMemory"
+
+  override def createResourceRepository(dir: File): ResourceRepository = {
+    new TestResourceRepository(super.createResourceRepository(dir))
+  }
 
   "import the entire workspace" in {
     val workspaceBytes = ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes
@@ -35,6 +45,19 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     importWorkspace(exportedWorkspace)
 
     WorkspaceFactory().workspace.projects.map(_.config.id).toSet mustBe Set("example", "movies")
+  }
+
+  "fail to export if a project file cannot be accessed" in {
+    val workspaceBytes = ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes
+    importWorkspace(workspaceBytes)
+
+    failOnResources = Set("source.nt")
+
+    val exception = the[RequestFailedException] thrownBy exportProject("example")
+    (exception.response.json \ "title").as[String] mustBe CannotAccessResourceException.errorTitle
+
+    val exception2 = the[RequestFailedException] thrownBy exportWorkspace()
+    (exception2.response.json \ "title").as[String] mustBe CannotAccessResourceException.errorTitle
   }
 
   "import single project workspace as project" in {
@@ -83,6 +106,13 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     checkResponse(response)
   }
 
+  private def exportProject(project: String): Array[Byte] = {
+    val request = client.url(s"$baseUrl/projects/$project/export/xmlZip")
+    val response = request.get()
+    val result = checkResponse(response)
+    result.bodyAsBytes.toArray
+  }
+
   private def exportWorkspace(): Array[Byte] = {
     val request = client.url(s"$baseUrl/export/xmlZip")
     val response = request.get()
@@ -115,5 +145,31 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
       }
     })
     result.future
+  }
+
+  class TestResourceRepository(base: ResourceRepository) extends ResourceRepository {
+    override def get(project: Identifier): ResourceManager = new TestResourceManager(base.get(project))
+    override def sharedResources: Boolean = base.sharedResources
+    override def removeProjectResources(project: Identifier): Unit = base.removeProjectResources(project)
+  }
+
+  class TestResourceManager(base: ResourceManager) extends ResourceManager {
+    override def get(name: String, mustExist: Boolean): WritableResource = {
+      if(failOnResources.contains(name)) {
+        throw CannotAccessResourceException
+      }
+      base.get(name, mustExist)
+    }
+    override def child(name: String): ResourceManager = base.child(name)
+    override def parent: Option[ResourceManager] = base.parent
+    override def basePath: String = base.basePath
+    override def list: List[String] = base.list
+    override def listChildren: List[String] = base.listChildren
+    override def delete(name: String): Unit = base.delete(name)
+  }
+
+  object CannotAccessResourceException extends RequestException("test message", None) {
+    override def errorTitle: String = "Cannot access resource"
+    override def httpErrorCode: Option[Int] = None
   }
 }

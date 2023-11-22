@@ -86,8 +86,18 @@ object SparqlPathBuilder {
         }
       case BackwardOperator(property) => vars.newTempVar + " <" + property + "> " + subject + " .\n"
       case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " '" + lang + "') . \n"
-      case PropertyFilter(property, op, value) => subject + " <" + property.uri + "> " + vars.newFilterVar + " .\n" +
-        "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
+      case PropertyFilter(property, op, value) =>
+        val message = s"Property filter ${operators.head.serialize} is not valid, because '$property' is not a valid URI."
+        if(!property.isValidUri) {
+          if(property.uri == "@lang") {
+            val example = LanguageFilter(op, value.stripPrefix("\"").stripSuffix("\"")).serialize
+            throw new ValidationException(s"$message If a language filter was intended, use single quotes: $example")
+          } else {
+            throw new ValidationException(message)
+          }
+        }
+        subject + " <" + property.uri + "> " + vars.newFilterVar + " .\n" +
+          "FILTER(" + vars.curFilterVar + " " + op + " " + value + ") . \n"
     }
 
     if (operators.tail.nonEmpty) {

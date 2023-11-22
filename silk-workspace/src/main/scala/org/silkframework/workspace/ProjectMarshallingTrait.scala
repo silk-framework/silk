@@ -1,6 +1,5 @@
 package org.silkframework.workspace
 
-import java.io.{File, OutputStream}
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -13,6 +12,8 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.io.WorkspaceIO.copyResources
 import org.silkframework.workspace.resources.ResourceRepository
+
+import java.io.{File, OutputStream}
 
 /**
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
@@ -140,6 +141,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     val projectId = updatedProjectConfig.id
     outputWorkspaceProvider.putProject(updatedProjectConfig)
     outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
+    outputWorkspaceProvider.projectVariables(updatedProjectConfig.id).putVariables(project.templateVariables.all)
     if(alsoExportResources) {
       copyResources(resources, exportToResources)
     }

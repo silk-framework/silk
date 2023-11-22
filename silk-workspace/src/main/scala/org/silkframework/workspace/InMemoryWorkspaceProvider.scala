@@ -28,13 +28,15 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all projects from the workspace.
     */
   override def readProjects()
-                           (implicit userContext: UserContext): Seq[ProjectConfig] = projects.values.map(_.config).toSeq
+                           (implicit userContext: UserContext): Seq[ProjectConfig] = synchronized {
+    projects.values.map(_.config).toSeq
+  }
 
   /**
     * Adds/Updates a project.
     */
   override def putProject(project: ProjectConfig)
-                         (implicit userContext: UserContext): Unit = {
+                         (implicit userContext: UserContext): Unit = synchronized {
     projects.get(project.id) match {
       case Some(existingProject) =>
         existingProject.config = project
@@ -47,7 +49,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Deletes a project.
     */
   override def deleteProject(name: Identifier)
-                            (implicit userContext: UserContext): Unit = {
+                            (implicit userContext: UserContext): Unit = synchronized {
     projects -= name
   }
 
@@ -58,7 +60,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
                              importProvider: WorkspaceProvider,
                              importResources: ResourceManager,
                              targetResources: ResourceManager,
-                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = {
+                             alsoCopyResources: Boolean)(implicit user: UserContext): Unit = synchronized {
     WorkspaceIO.copyProject(importProvider, this, importResources, targetResources, project, alsoCopyResources)
   }
 
@@ -79,7 +81,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Adds/Updates a task in a project.
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], resources: ResourceManager)
-                                                (implicit userContext: UserContext): Unit = {
+                                                (implicit userContext: UserContext): Unit = synchronized {
     implicit val pluginContext: PluginContext = PluginContext(prefixes = Prefixes.empty, resources = resources, user = userContext)
     val taskType = implicitly[ClassTag[T]].runtimeClass
     val inMemoryTask =
@@ -98,7 +100,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all tasks of a specific type from a project.
     */
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier)
-                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = {
+                                                  (implicit context: PluginContext): Seq[LoadedTask[T]] = synchronized {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
 
     for(task <- projects(project).tasks.values.toSeq if requestedClass.isAssignableFrom(task.taskType)) yield {
@@ -110,7 +112,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all tasks of all types from a project.
     **/
   override def readAllTasks(project: Identifier)
-                           (implicit context: PluginContext): Seq[LoadedTask[_]] = {
+                           (implicit context: PluginContext): Seq[LoadedTask[_]] = synchronized {
     for (task <- projects(project).tasks.values.toSeq) yield {
       task.load(project)
     }
@@ -120,7 +122,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Deletes a task from a project.
     */
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
-                                                   (implicit userContext: UserContext): Unit = {
+                                                   (implicit userContext: UserContext): Unit = synchronized {
     projects(project).tasks -= task
   }
 
@@ -128,7 +130,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Retrieve a list of all available tags.
     */
   def readTags(project: Identifier)
-              (implicit userContext: UserContext): Iterable[Tag] = {
+              (implicit userContext: UserContext): Iterable[Tag] = synchronized {
     projects(project).tags.values
   }
 
@@ -137,7 +139,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Adding a tag with an existing URI, will overwrite the corresponding tag.
     */
   def putTag(project: Identifier, tag: Tag)
-            (implicit userContext: UserContext): Unit = {
+            (implicit userContext: UserContext): Unit = synchronized {
     projects(project).tags += ((tag.uri, tag))
   }
 
@@ -145,7 +147,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Remove a tag.
     */
   def deleteTag(project: Identifier, tagUri: String)
-               (implicit userContext: UserContext): Unit = {
+               (implicit userContext: UserContext): Unit = synchronized {
     projects(project).tags -= tagUri
   }
 
