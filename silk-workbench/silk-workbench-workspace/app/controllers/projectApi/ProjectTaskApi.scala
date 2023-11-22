@@ -263,18 +263,23 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     validateJson[ItemCloneRequest] { request =>
       val label = request.metaData.label.trim
       if(label == "") {
-        throw BadUserInputException("The label must not be empty!")
+        throw BadUserInputException(  "The label must not be empty!")
       }
-      val generatedId = IdentifierUtils.generateProjectId(label)
+
+      val newTaskId: String = request.newTaskId match {
+        case Some(value) if value.nonEmpty => value // Use the non-empty string
+        case _ => IdentifierUtils.generateProjectId(label).toString // Handle empty string or None case
+      }
+
       val (project, fromTask) = projectAndAnyTask(projectId, taskId)
       // Clone task spec, since task specs may contain state, e.g. RDF file dataset
       implicit val context: PluginContext = PluginContext.fromProject(project)
       val clonedTaskSpec = Try(fromTask.data.withParameters(ParameterValues.empty)).getOrElse(fromTask.data)
       val requestMetaData = request.metaData.asMetaData
-      project.addAnyTask(generatedId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
+      project.addAnyTask(newTaskId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
       val itemType = ItemType.itemType(fromTask)
-      val taskLink = ItemType.itemDetailsPage(itemType, projectId, generatedId).path
-      Created(Json.toJson(ItemCloneResponse(generatedId, taskLink)))
+      val taskLink = ItemType.itemDetailsPage(itemType, projectId, newTaskId).path
+      Created(Json.toJson(ItemCloneResponse(newTaskId, taskLink)))
     }
   }
 

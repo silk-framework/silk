@@ -97,15 +97,27 @@ export const requestCopyTask = async (projectId: string, taskId: string, payload
     });
 };
 
+/** Clone a task in the same project.
+ *
+ * @param taskId Task that should be cloned
+ * @param projectId Clone inside this project.
+ * @param payload Additional parameters.
+ * @param newTaskId Optional ID for the new task.
+ */
 export const requestCloneTask = async (
     taskId: string,
     projectId: string,
-    payload: any
+    payload: any,
+    newTaskId?: string
 ): Promise<FetchResponse<IClonedItem>> => {
+    let body = { ...payload };
+    if (newTaskId) {
+        body.newTaskId = newTaskId;
+    }
     return fetch({
         url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/clone`),
         method: "POST",
-        body: payload,
+        body,
     });
 };
 
