@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
-import org.silkframework.entity.Entity
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.plugin._
 
@@ -16,10 +16,10 @@ object ReconfigureTasks {
     /**
      * Returns the list of properties that are available to reconfigure this plugin.
      */
-    def configProperties: Seq[String] = {
+    def configProperties: IndexedSeq[String] = {
       val buffer = mutable.Buffer[String]()
       collectConfigProperties(buffer)
-      buffer.toSeq
+      buffer.toIndexedSeq
     }
 
     private def collectConfigProperties(buffer: mutable.Buffer[String], prefix: String = ""): Unit = {
@@ -40,6 +40,18 @@ object ReconfigureTasks {
   }
 
   implicit class ReconfigurableTask[T <: TaskSpec](task: Task[T]) {
+
+    /**
+     * Retrieves the schema of the config port of this task.
+     */
+    def configSchema: EntitySchema = {
+      val pluginDesc = PluginDescription.forTask(task)
+      EntitySchema(
+        typeUri = "",
+        typedPaths = for(property <- pluginDesc.configProperties) yield UntypedPath(property).asStringTypedPath
+      )
+    }
+
     /**
      * Reconfigures a task based on entity values.
      *

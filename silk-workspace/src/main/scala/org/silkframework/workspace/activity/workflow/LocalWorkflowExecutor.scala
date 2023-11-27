@@ -11,6 +11,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
+import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import java.util.logging.{Level, Logger}
 import scala.collection.immutable.Seq
@@ -397,6 +398,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                                  outputTask: Task[_ <: TaskSpec])
                                                 (process: Option[EntityHolder] => T)
                                                 (implicit workflowRunContext: WorkflowRunContext): T = {
-    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), None))(process)
+    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), Some(outputTask.configSchema)))(process)
   }
 }
