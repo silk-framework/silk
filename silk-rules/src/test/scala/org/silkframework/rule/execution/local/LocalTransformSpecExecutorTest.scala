@@ -1,18 +1,18 @@
 package org.silkframework.rule.execution.local
 
 
-import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
-import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
-import org.silkframework.rule._
-import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.util.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.PlainTask
+import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry}
+import org.silkframework.rule._
+import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, TestUserContextTrait}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.util.MockitoSugar
 
 class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
 
@@ -77,7 +77,8 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     val rootEntities = Seq(Entity("uri1", IndexedSeq(Seq("A")), rootEntitySchema))
     val objectEntities = Seq(Entity("uri1", IndexedSeq(Seq("B")), objectEntitySchema))
     val multiEntitySchema = MultiEntityTable(CloseableIterator(rootEntities.iterator), rootEntitySchema, transformTask, Seq(GenericEntityTable(objectEntities, objectEntitySchema, transformTask)))
-    val rootEntitiesResult = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true)).get
+    val context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
+    val rootEntitiesResult = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true), context).get
     val subTables = rootEntitiesResult.asInstanceOf[MultiEntityTable].subTables
     subTables must have size 1
     val objectEntitiesResult = subTables.head
@@ -91,6 +92,7 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     rootEntitiesSeq.flatMap(e => e.values).flatten mustBe Seq("A", objectEntityUri.toString)
     val rootEntityUri = rootEntitiesSeq.head.uri
     rootEntityUri must not be objectEntityUri
-
+    // Check report
+    context.value().entityCount mustBe 2
   }
 }
