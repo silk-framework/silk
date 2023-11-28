@@ -134,7 +134,7 @@ export const checkIfTaskSupportsDownload = async (
     fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/downloadInfo`) });
 
 /** Fetches the rule operator plugins used in the linking and transform operators. */
-export const requestRuleOperatorPluginDetails = (
+export const requestRuleOperatorPluginsDetails = (
     inputOperatorsOnly: boolean
 ): Promise<FetchResponse<{ [key: string]: IPluginDetails }>> => {
     return fetch({
@@ -142,6 +142,21 @@ export const requestRuleOperatorPluginDetails = (
         query: {
             inputOperatorsOnly: inputOperatorsOnly,
             addMarkdownDocumentation: true,
+        },
+    });
+};
+
+/** Fetches plugin description of a specific rule operator plugin */
+export const requestRuleOperatorPluginDetails = async (
+    pluginId: string,
+    addMarkdownDocumentation: boolean,
+    withLabels: boolean
+): Promise<FetchResponse<IPluginDetails>> => {
+    return fetch({
+        url: coreApi(`/ruleOperatorPlugins/${pluginId}`),
+        query: {
+            addMarkdownDocumentation: addMarkdownDocumentation,
+            withLabels: withLabels,
         },
     });
 };

@@ -19,7 +19,7 @@ import { connectWebSocket } from "../../../../services/websocketUtils";
 import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import { LinkingRuleActiveLearningResetModal } from "./dialogs/LinkingRuleActiveLearningResetModal";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import utils from "../LinkingRuleEditor.utils";
 import { IRuleOperator, IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../../shared/rules/rule.utils";
@@ -92,7 +92,7 @@ export const LinkingRuleActiveLearning = ({
 
     const fetchRuleOperators = async () => {
         try {
-            const operatorPlugins = Object.values((await requestRuleOperatorPluginDetails(false)).data);
+            const operatorPlugins = Object.values((await requestRuleOperatorPluginsDetails(false)).data);
             const operatorMap = new Map<string, IRuleOperator[]>();
             operatorPlugins.forEach((op) => operatorMap.set(op.pluginId, []));
             operatorPlugins.forEach((op) => {
