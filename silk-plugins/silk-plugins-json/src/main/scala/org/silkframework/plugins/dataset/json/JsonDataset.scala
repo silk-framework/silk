@@ -2,11 +2,12 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.{JsonCodeParameter, MultilineStringParameter}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.plugin.types.JsonCodeParameter
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.Identifier
 
 @Plugin(
@@ -29,16 +30,19 @@ case class JsonDataset(
                         @Param(value = "Maximum depth of written JSON. This acts as a safe guard if a recursive structure is written.", advanced = true)
                         maxDepth: Int = DEFAULT_MAX_SIZE,
                         @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
-                        streaming: Boolean = true) extends Dataset with ResourceBasedDataset {
+                        streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
-  override def source(implicit userContext: UserContext): DataSource = {
-    if(streaming) {
-      new JsonSourceStreaming(Identifier.fromAllowed(file.name), file, basePath, uriPattern)
-    } else {
-      file.checkSizeForInMemory()
-      JsonSourceInMemory(file, basePath, uriPattern)
+  override def mergeSchemata: Boolean = true
+
+  override def createSource(resource: Resource): DataSource = {
+    if (streaming) {
+      new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern)
+    }
+    else {
+      resource.checkSizeForInMemory()
+      JsonSourceInMemory(resource, basePath, uriPattern)
     }
   }
 
