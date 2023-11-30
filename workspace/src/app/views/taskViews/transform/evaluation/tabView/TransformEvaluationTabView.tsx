@@ -18,7 +18,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
 import { EvaluatedRuleEntityResult } from "./typing";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 import MappingsTree from "../../../../pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
@@ -52,7 +52,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                 setLoading(true);
                 const [results, plugins] = await Promise.all([
                     (await getEvaluatedEntities(projectId, transformTaskId, currentRuleId, 10, true)).data,
-                    Object.values((await requestRuleOperatorPluginDetails(false)).data),
+                    Object.values((await requestRuleOperatorPluginsDetails(false)).data),
                 ]);
                 operatorPlugins.current = plugins;
                 evaluatedEntityResults.current = results;

@@ -48,6 +48,8 @@ import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -70,6 +72,7 @@ interface RuleTreeNode {
  *  It contains the main (core) rule editor logic. */
 export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const { t } = useTranslation();
+    const { registerError } = useErrorHandler();
     /** If set, then the model cannot be modified. */
     const [readOnlyState] = React.useState<{ enabled: boolean }>({ enabled: false });
     /** react-flow instance used for fit-view (after init) and centering nodes from the model. */
@@ -977,12 +980,43 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      **/
 
     /** Add a new node from the rule operators list. */
-    const addNode = (
+    const addNode = async (
         ruleOperator: IRuleOperator,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters
     ) => {
-        const newNode = createNodeInternal(ruleOperator, position, overwriteParameterValues);
+        const parametersNeedingALabel = Object.entries(ruleOperator.parameterSpecification).filter(
+            ([paramId, paramSpec]) => {
+                return (
+                    paramSpec.autoCompletion?.autoCompleteValueWithLabels &&
+                    !overwriteParameterValues?.[paramId] &&
+                    paramSpec.defaultValue
+                );
+            }
+        );
+        const updatedOverwriteParameterValues = Object.create(null);
+        Object.entries(overwriteParameterValues ?? {}).forEach(([p, v]) => (updatedOverwriteParameterValues[p] = v));
+        if (parametersNeedingALabel.length) {
+            // Fetch labels for default parameters
+            try {
+                const pluginDetailsWithLabel = (
+                    await requestRuleOperatorPluginDetails(ruleOperator.pluginId, false, true)
+                ).data;
+                parametersNeedingALabel.forEach(([paramId]) => {
+                    const labelledValue = pluginDetailsWithLabel.properties[paramId]?.value;
+                    if (labelledValue) {
+                        updatedOverwriteParameterValues[paramId] = labelledValue;
+                    }
+                });
+            } catch (ex) {
+                registerError(
+                    "RuleEditorModel.requestRuleOperatorPluginDetails",
+                    "Could not fetch rule operator plugin details. Human-readable labels for default values might be missing.",
+                    ex
+                );
+            }
+        }
+        const newNode = createNodeInternal(ruleOperator, position, updatedOverwriteParameterValues);
         if (newNode) {
             changeElementsInternal((els) => {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
