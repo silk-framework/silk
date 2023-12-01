@@ -46,6 +46,9 @@ export interface IProps {
 
     /** Allows to set some config/parameters for a newly created task. */
     newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">;
+
+    /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
+    propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any
 }
 
 export interface UpdateTaskProps {
@@ -94,13 +97,24 @@ export function TaskForm({
     parameterCallbacks,
     goBackOnEscape = () => {},
     newTaskPreConfiguration,
+    propagateExternallyChangedParameterValue
 }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const dependentValues: React.MutableRefObject<Record<string, any>> = React.useRef<Record<string, any>>({});
+    const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map())
     const [doChange, setDoChange] = useState<boolean>(false);
     const { registerError } = useErrorHandler();
+
+    const addDependentParameter = React.useCallback((dependentParameter: string, dependsOn: string) => {
+        const m = dependentParameters.current!
+        if(m.has(dependsOn)) {
+            m.get(dependsOn)!.add(dependentParameter)
+        } else {
+            m.set(dependsOn, new Set([dependentParameter]))
+        }
+    }, [])
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     /** Initial values, these can be reified as {label, value} or directly set. */
@@ -256,6 +270,8 @@ export function TaskForm({
                     if (dependsOnParameters.includes(paramId)) {
                         dependentValues.current[fullParameterId] = currentValue;
                     }
+                    // Add dependent parameters
+                    (param.autoCompletion?.autoCompletionDependsOnParameters ?? []).forEach(dependsOn => addDependentParameter(fullParameterId, prefix + dependsOn))
                 }
             });
         };
@@ -313,6 +329,22 @@ export function TaskForm({
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
             if (!escapeKeyDisabled.current) {
                 escapeKeyDisabled.current = true;
+            }
+            if(dependentParameters.current.has(key)) {
+                // collect all dependent parameters
+                const dependentParametersTransitive = new Set<string>()
+                const collect = (currentParamId: string) => {
+                    const params = (dependentParameters.current?.get(currentParamId) ?? [])
+                    params.forEach(p => {
+                        dependentParametersTransitive.add(p)
+                        collect(p)
+                    })
+                }
+                collect(key)
+                dependentParametersTransitive.forEach(paramId => {
+                    handleChange(paramId)("")
+                    propagateExternallyChangedParameterValue(paramId, "")
+                })
             }
         },
         []
