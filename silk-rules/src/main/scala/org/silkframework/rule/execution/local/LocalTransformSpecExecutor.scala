@@ -6,7 +6,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, TaskException}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
-import org.silkframework.rule.execution.TransformReport
+import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
@@ -30,11 +30,12 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val flatInputs = flattenInputs(input).toIndexedSeq
     val outputTables = mutable.Buffer[LocalEntities]()
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
+    val report = new TransformReportBuilder(task, transformContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
 
     for ((ruleSchema, index) <- ruleSchemata.zipWithIndex) {
       val input = flatInputs(index)
-      val outputTable = transformEntities(task, ruleSchema, input, output.requestedSchema, transformContext)
+      val outputTable = transformEntities(task, ruleSchema, input, output.requestedSchema, report)
       outputTables.append(outputTable)
       context.status.updateProgress((index + 1.0) / ruleSchemata.size)
     }
@@ -46,7 +47,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
                         schemata: RuleSchemata,
                         input: LocalEntities,
                         requestedOutputSchema: Option[EntitySchema],
-                        context: ActivityContext[TransformReport])
+                        report: TransformReportBuilder)
                        (implicit prefixes: Prefixes): LocalEntities = {
 
     val rule = schemata.transformRule
@@ -60,21 +61,21 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         // If a specific output type is requested only execute rules of that requested type. Only the result table of the matching container rule will be returned.
         val inputTables = flattenInputs(input).toBuffer
         val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
-        addInputErrorsToTransformReport(inputTable, context)
+        addInputErrorsToTransformReport(inputTable, report)
         val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel, rule.withChildren(requestedRules), activeOutputSchema,
-          isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context).iterator
+          isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, activeOutputSchema, task)
       case _ =>
         // Else execute the complete mapping
-        addInputErrorsToTransformReport(input, context)
+        addInputErrorsToTransformReport(input, report)
         val transformedEntities = new TransformedEntities(task, input.entities, ruleLabel, rule, schemata.outputSchema,
-          isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context).iterator
+          isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report).iterator
         GenericEntityTable(transformedEntities, schemata.outputSchema, task)
     }
   }
 
-  private def addInputErrorsToTransformReport(inputTable: LocalEntities, context: ActivityContext[TransformReport]): Unit = {
-    context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
+  private def addInputErrorsToTransformReport(inputTable: LocalEntities, report: TransformReportBuilder): Unit = {
+    report.addGlobalErrors(inputTable.globalErrors)
   }
 
   // Tries to find the container rule that matches the requested output type.

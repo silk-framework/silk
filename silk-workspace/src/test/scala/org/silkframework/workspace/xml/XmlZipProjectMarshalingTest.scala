@@ -131,6 +131,7 @@ case class MockTemplateEngine() extends TemplateEngine {
           override def evaluate(values: Seq[TemplateVariableValue], writer: Writer): Unit = {
             writer.write(values.find(_.name == "linkLimitTimesTen").get.values.mkString)
           }
+          override def evaluate(values: Map[String, AnyRef], writer: Writer): Unit = ???
         }
       case _ =>
         throw new IllegalArgumentException("Unexpected template: " + templateString)

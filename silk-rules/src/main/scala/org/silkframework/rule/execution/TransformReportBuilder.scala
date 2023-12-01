@@ -5,26 +5,31 @@ import org.silkframework.entity.Entity
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.util.Identifier
 
 /**
   * A builder for generating transform reports.
   * Not thread safe!
   */
-private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[TransformRule],  previousReport: TransformReport) {
+class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext[TransformReport]) {
 
-  private var entityCounter = previousReport.entityCount
+  private var entityCounter = 0
 
-  private var entityErrorCounter = previousReport.entityErrorCount
+  private var entityErrorCounter = 0
 
-  private var ruleResults: Map[Identifier, RuleResult] = {
-    previousReport.ruleResults ++ rules.map(rule => (rule.id, RuleResult())).toMap
-  }
+  private var ruleResults: Map[Identifier, RuleResult] = Map.empty
 
   private var executionError: Option[String] = None
 
+  private var globalErrors: Seq[String] = Seq.empty
+
   // The maximum number of erroneous values to be held for each rule.
   private val maxSampleErrors = 10
+
+  def addRules(rules: Seq[TransformRule]): Unit = {
+    ruleResults ++= rules.map(rule => (rule.id, RuleResult())).toMap
+  }
 
   def addRuleError(rule: TransformRule, entity: Entity, ex: Throwable, operatorId: Option[Identifier] = None): Unit = {
     val currentRuleResult = ruleResults(rule.id)
@@ -40,6 +45,10 @@ private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[Trans
     ruleResults += ((rule.id, updatedRuleResult))
   }
 
+  def addGlobalErrors(errors: Seq[String]): Unit = {
+    globalErrors = globalErrors ++ errors
+  }
+
   def incrementEntityCounter(): Unit = {
     entityCounter += 1
   }
@@ -52,7 +61,10 @@ private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[Trans
     executionError = Some(error)
   }
 
-  def build(isDone: Boolean = false): TransformReport = {
-    TransformReport(task, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors, isDone, executionError)
+  def build(isDone: Boolean = false, logMessage: Boolean = false): Unit = {
+    context.value() = TransformReport(task, entityCounter, entityErrorCounter, ruleResults, globalErrors, isDone, executionError)
+    if(logMessage) {
+      context.status.updateMessage(s"Executing ($entityCounter Entities)")
+    }
   }
 }
