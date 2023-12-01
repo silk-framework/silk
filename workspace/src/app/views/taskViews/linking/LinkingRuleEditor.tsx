@@ -4,7 +4,7 @@ import { ILinkingRule, ILinkingTaskParameters, optionallyLabelledParameterToValu
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
@@ -158,7 +158,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
-            let operatorPlugins = Object.values((await requestRuleOperatorPluginDetails(false)).data);
+            let operatorPlugins = Object.values((await requestRuleOperatorPluginsDetails(false)).data);
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
             }

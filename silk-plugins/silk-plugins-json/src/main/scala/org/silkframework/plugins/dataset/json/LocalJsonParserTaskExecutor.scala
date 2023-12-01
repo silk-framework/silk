@@ -28,7 +28,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
     }
     output.requestedSchema.map { requestedSchema =>
       val entityTable = inputs.head
-      val entities = FileRewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
+      val entities = RewindableEntityIterator.load(entityTable.entities, entityTable.entitySchema)
 
       val pathIndex =  task.data.parsedInputPath match {
         case Some(path) => entityTable.entitySchema.indexOfPath(path)
