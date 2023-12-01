@@ -125,6 +125,10 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
             Seq(nodeId(value))
           case JsonDataset.specialPaths.TEXT =>
             Seq(value.toString())
+          case JsonDataset.specialPaths.LINE =>
+            Seq(value.position.line.toString)
+          case JsonDataset.specialPaths.COLUMN =>
+            Seq(value.position.column.toString)
           case _ =>
             children(prop).flatMap(child => child.evaluate(tail, generateUris))
         }

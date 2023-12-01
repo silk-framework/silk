@@ -5,7 +5,7 @@ import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.types.{JsonCodeParameter, MultilineStringParameter}
+import org.silkframework.runtime.plugin.types.JsonCodeParameter
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Identifier
 
@@ -55,7 +55,9 @@ case class JsonDataset(
         SpecialPathInfo(JsonDataset.specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(JsonDataset.specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
+        SpecialPathInfo(JsonDataset.specialPaths.BACKWARD_PATH, Some("Navigates back to parent object.")),
+        SpecialPathInfo(JsonDataset.specialPaths.LINE, Some("Line number of the selected JSON node."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(JsonDataset.specialPaths.COLUMN, Some("Column position of the selected JSON node."), SuggestedForEnum.ValuePathOnly)
       )
     )
   )
@@ -67,7 +69,9 @@ object JsonDataset {
     final val TEXT = "#text"
     final val ID = "#id"
     final val BACKWARD_PATH = "\\.."
-    final val all = Seq(ID, TEXT, BACKWARD_PATH)
+    final val LINE = "#line"
+    final val COLUMN = "#column"
+    final val all = Seq(ID, TEXT, BACKWARD_PATH, LINE, COLUMN)
   }
 
 }
