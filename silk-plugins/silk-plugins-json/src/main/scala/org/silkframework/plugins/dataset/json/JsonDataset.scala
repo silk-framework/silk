@@ -55,9 +55,9 @@ case class JsonDataset(
         SpecialPathInfo(JsonDataset.specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(JsonDataset.specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.BACKWARD_PATH, Some("Navigates back to parent object.")),
         SpecialPathInfo(JsonDataset.specialPaths.LINE, Some("Line number of the selected JSON node."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.COLUMN, Some("Column position of the selected JSON node."), SuggestedForEnum.ValuePathOnly)
+        SpecialPathInfo(JsonDataset.specialPaths.COLUMN, Some("Column position of the selected JSON node."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(JsonDataset.specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
       )
     )
   )
@@ -68,10 +68,10 @@ object JsonDataset {
   object specialPaths {
     final val TEXT = "#text"
     final val ID = "#id"
-    final val BACKWARD_PATH = "\\.."
     final val LINE = "#line"
     final val COLUMN = "#column"
-    final val all = Seq(ID, TEXT, BACKWARD_PATH, LINE, COLUMN)
+    final val BACKWARD_PATH = "\\.."
+    final val all = Seq(ID, TEXT, LINE, COLUMN, BACKWARD_PATH)
   }
 
 }
