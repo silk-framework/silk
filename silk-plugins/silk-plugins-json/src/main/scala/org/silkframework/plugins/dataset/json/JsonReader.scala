@@ -144,7 +144,7 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
     }
 
     private def getPosition(): JsonPosition = {
-      val location = parser.getCurrentLocation
+      val location = parser.currentTokenLocation
       JsonPosition(location.getLineNr, location.getColumnNr)
     }
 
