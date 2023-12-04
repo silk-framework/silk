@@ -101,7 +101,7 @@ export const ParameterAutoCompletion = ({
                 setHighlightInput(true);
                 onChange(externalValue);
             };
-            registerForExternalChanges(paramId, handleUpdates);
+            registerForExternalChanges(formParamId, handleUpdates);
         }
     }, [registerForExternalChanges]);
 
