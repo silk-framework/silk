@@ -29,7 +29,7 @@ class XmlTraverserTest extends AnyFlatSpec with Matchers {
     val objectResources = evaluate("/A/B", ValueType.URI)
     objectResources.size mustBe 6
     objectResources.map(_.take(14)).distinct mustBe Seq("urn:instance:B")
-    evaluate("/A", ValueType.URI) mustBe Seq("urn:instance:A#1133478415")
+    evaluate("/A", ValueType.URI) mustBe Seq("urn:instance:A#1-1")
     evaluate("/A", ValueType.STRING) mustBe Seq()
     evaluate("/A", ValueType.INT) mustBe Seq()
   }
@@ -38,7 +38,7 @@ class XmlTraverserTest extends AnyFlatSpec with Matchers {
     val xml = <A.B>Value</A.B>
     val traverser: XmlTraverser = createTraverser(xml)
     // Should not fail (CMEM-3752)
-    traverser.generateUri("") mustBe "urn:instance:AB#310208258"
+    traverser.generateUri("") mustBe "urn:instance:AB#1-1"
   }
 
   private def evaluate(pathStr: String, valueType: ValueType = ValueType.STRING)(implicit traverser: XmlTraverser) = {
@@ -53,7 +53,7 @@ class XmlTraverserTest extends AnyFlatSpec with Matchers {
 
   /** Convert Scala XML node to [[InMemoryXmlNode]] */
   def convertNode(node: Node): InMemoryXmlNode = {
-    val pos = XmlPosition(-1, -1)
+    val pos = XmlPosition(1, 1)
     node match {
       case Text(text) => InMemoryXmlText(text, pos)
       case Unparsed(text) => InMemoryXmlText(text, pos)
