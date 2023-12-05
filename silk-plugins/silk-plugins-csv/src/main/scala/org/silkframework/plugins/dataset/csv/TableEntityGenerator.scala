@@ -98,8 +98,8 @@ class TableEntityGenerator(entitySchema: EntitySchema, headerIndexMap: Map[Uri, 
 
 object TableEntityGenerator {
 
-  def apply(entitySchema: EntitySchema, header: Seq[Uri]): TableEntityGenerator = {
-    new TableEntityGenerator(entitySchema, header.zipWithIndex.toMap)
+  def apply(entitySchema: EntitySchema, header: Seq[Uri], allowMissingPaths: Boolean = false): TableEntityGenerator = {
+    new TableEntityGenerator(entitySchema, header.zipWithIndex.toMap, allowMissingPaths)
   }
 
 }

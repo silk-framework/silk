@@ -166,7 +166,7 @@ class CsvSource(file: Resource,
     }
 
     // Return new iterable that generates an entity for each line
-    val generator = TableEntityGenerator(entityDesc, propertyList.map(Uri(_)))
+    val generator = TableEntityGenerator(entityDesc, propertyList.map(Uri(_)), allowMissingPaths = true)
     val retrievedEntities = new EntityIterator(entityDesc, entities.toSet, generator) with AutoClose[Entity]
 
     val limitedEntities = limitOpt match {
