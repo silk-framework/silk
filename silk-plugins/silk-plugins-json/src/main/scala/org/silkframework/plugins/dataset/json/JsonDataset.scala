@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SuggestedForEnum, SupportedPathExpressions}
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SpecialPaths, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
@@ -46,21 +46,7 @@ case class JsonDataset(
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, jsonTemplate, maxDepth)
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics(
-    SupportedPathExpressions(
-      multiHopPaths = true,
-      backwardPaths = true,
-      propertyFilter = true,
-      specialPaths = Seq(
-        SpecialPathInfo(JsonDataset.specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.TEXT,
-          Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.LINE, Some("Line number of the selected JSON node."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.COLUMN, Some("Column position of the selected JSON node."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(JsonDataset.specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
-      )
-    )
-  )
+  override def characteristics: DatasetCharacteristics = JsonDataset.characteristics
 }
 
 object JsonDataset {
@@ -68,10 +54,23 @@ object JsonDataset {
   object specialPaths {
     final val TEXT = "#text"
     final val ID = "#id"
-    final val LINE = "#line"
-    final val COLUMN = "#column"
     final val BACKWARD_PATH = "\\.."
-    final val all = Seq(ID, TEXT, LINE, COLUMN, BACKWARD_PATH)
   }
+
+  final val characteristics: DatasetCharacteristics = DatasetCharacteristics(
+    SupportedPathExpressions(
+      multiHopPaths = true,
+      backwardPaths = true,
+      propertyFilter = true,
+      specialPaths = Seq(
+        SpecialPathInfo(specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(specialPaths.TEXT,
+          Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
+        SpecialPaths.LINE,
+        SpecialPaths.COLUMN,
+        SpecialPathInfo(specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
+      )
+    )
+  )
 
 }

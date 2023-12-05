@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import org.mozilla.universalchardet.UniversalDetector
 import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_IDX, IDX_PATH_MISSING}
@@ -161,7 +162,7 @@ class CsvSource(file: Resource,
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
-          if(property == CsvSource.INDEX_PATH) {
+          if(property == SpecialPaths.IDX.value) {
             IDX_PATH_IDX
           } else {
             missingColumns :+= property
@@ -431,10 +432,6 @@ class CsvSource(file: Resource,
     * @return
     */
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
-}
-
-object CsvSource {
-  final val INDEX_PATH = "#idx"
 }
 
 case class CsvAutoconfiguredParameters(detectedSeparator: String, codecName: String, linesToSkip: Option[Int])

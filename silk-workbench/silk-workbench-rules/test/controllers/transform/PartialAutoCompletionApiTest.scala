@@ -18,6 +18,7 @@ import test.Routes
 import scala.xml.{Node, XML}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 
 class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait {
 
@@ -28,7 +29,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
   private val allJsonPaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number",
     "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId", "department/tags/evenMoreNested/value")
 
-  private val jsonSpecialPaths = JsonDataset.specialPaths.all
+  private val jsonSpecialPaths = JsonDataset.characteristics.supportedPathExpressions.specialPaths.map(_.value)
   private val jsonSpecialPathsFull = fullPaths(jsonSpecialPaths)
   private val jsonOps = Seq("/", "\\", "[")
 
@@ -217,7 +218,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {
     jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
-      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, JsonDataset.specialPaths.LINE, JsonDataset.specialPaths.COLUMN).contains(p)) ++ Seq("\\")
+      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, SpecialPaths.LINE.value, SpecialPaths.COLUMN.value).contains(p)) ++ Seq("\\")
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
   }
 

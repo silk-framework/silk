@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SuggestedForEnum, SupportedPathExpressions}
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SpecialPaths, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
@@ -60,8 +60,6 @@ object XmlDataset {
     final val ID = "#id"
     final val TAG = "#tag"
     final val TEXT = "#text"
-    final val LINE = "#line"
-    final val COLUMN = "#column"
     final val ALL_CHILDREN = "*"
     final val ALL_CHILDREN_RECURSIVE = "**"
     final val BACKWARD_PATH = "\\.."
@@ -76,8 +74,8 @@ object XmlDataset {
         SpecialPathInfo(ID, Some("A document-wide unique ID of the entity."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(TAG, Some("The element tag of the entity."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(TEXT, Some("The concatenated text inside an element."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(LINE, Some("Line number of the selected XML node."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(COLUMN, Some("Column position of the selected XML node."), SuggestedForEnum.ValuePathOnly),
+        SpecialPaths.LINE,
+        SpecialPaths.COLUMN,
         SpecialPathInfo(ALL_CHILDREN, Some("Selects all direct children of the entity.")),
         SpecialPathInfo(ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth."))
       )

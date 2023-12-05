@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.runtime.resource.Resource
@@ -125,9 +126,9 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
             Seq(nodeId(value))
           case JsonDataset.specialPaths.TEXT =>
             Seq(value.toString())
-          case JsonDataset.specialPaths.LINE =>
+          case SpecialPaths.LINE.value =>
             Seq(value.position.line.toString)
-          case JsonDataset.specialPaths.COLUMN =>
+          case SpecialPaths.COLUMN.value =>
             Seq(value.position.column.toString)
           case _ =>
             children(prop).flatMap(child => child.evaluate(tail, generateUris))
