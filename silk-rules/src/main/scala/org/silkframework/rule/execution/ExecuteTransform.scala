@@ -47,6 +47,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val dataSource = input(userContext)
     val entitySink = output(userContext)
     val errorEntitySink = errorOutput(userContext)
+    val report = new TransformReportBuilder(task, context)
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")
@@ -56,7 +57,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     context.status.updateMessage("Retrieving entities")
     try {
       for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
-        transformEntities(dataSource, ruleSchemata, entitySink, errorEntitySink, context)
+        transformEntities(dataSource, ruleSchemata, entitySink, errorEntitySink, report, context)
         context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
       }
     } finally {
@@ -69,6 +70,7 @@ class ExecuteTransform(task: Task[TransformSpec],
                                 rule: RuleSchemata,
                                 entitySink: EntitySink,
                                 errorEntitySink: Option[EntitySink],
+                                reportBuilder: TransformReportBuilder,
                                 context: ActivityContext[TransformReport])
                                (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val singleEntity = rule.transformRule.target.exists(_.isAttribute)
@@ -82,7 +84,7 @@ class ExecuteTransform(task: Task[TransformSpec],
         throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
     }
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.label(), rule.transformRule, rule.outputSchema,
-      isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context).iterator
+      isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, report = reportBuilder).iterator
     var count = 0
     breakable {
       for (entity <- transformedEntities) {

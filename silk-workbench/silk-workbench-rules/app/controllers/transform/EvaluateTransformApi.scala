@@ -12,20 +12,20 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.evaluation.{DetailedEvaluator, Value}
+import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.{DetailedEntityJsonFormat, ValueJsonFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsNull, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
-import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
-import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
 
 import javax.inject.Inject
 
@@ -90,7 +90,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
                      name = "limit",
                      description = "The maximum number of results to be returned",
                      required = false,
-                     in = ParameterIn.PATH,
+                     in = ParameterIn.QUERY,
                      schema = new Schema(implementation = classOf[Int], defaultValue = "3")
                    )
                    limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -154,7 +154,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
                              name = "limit",
                              description = "The maximum number of results to be returned",
                              required = false,
-                             in = ParameterIn.PATH,
+                             in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[Int], defaultValue = "50")
                            )
                            limit: Int,
@@ -162,7 +162,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
                              name = "showOnlyEntitiesWithUris",
                              description = "If true, only entities are returned that generated a valid entity URI.",
                              required = false,
-                             in = ParameterIn.PATH,
+                             in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[Int], defaultValue = "false")
                            )
                            showOnlyEntitiesWithUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>

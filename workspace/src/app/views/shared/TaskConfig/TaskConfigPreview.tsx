@@ -147,7 +147,9 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                     </PropertyName>
                                     <PropertyValue>
                                         <OverflowText>
-                                            <code style={fixStyle}>{value}</code>
+                                            <code title={value.length > 30 ? value : undefined} style={fixStyle}>
+                                                {value}
+                                            </code>
                                         </OverflowText>
                                     </PropertyValue>
                                 </PropertyValuePair>

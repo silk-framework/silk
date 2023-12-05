@@ -102,18 +102,22 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
+  // Treat this execution as a dependency execution, not as a data input exececution.
+  private def executeAsDependency(node: WorkflowDependencyNode)
+                                 (implicit workflowRunContext: WorkflowRunContext): Unit = {
+    if (!workflowRunContext.alreadyExecuted.contains(node.workflowNode)) {
+      executeWorkflowNode(node, ExecutorOutput.empty) { _ =>
+        workflowRunContext.alreadyExecuted.add(node.workflowNode)
+      }
+    }
+  }
+
   def executeWorkflowNode[T](node: WorkflowDependencyNode,
                              output: ExecutorOutput)
                             (process: Option[LocalEntities] => T)
                             (implicit workflowRunContext: WorkflowRunContext): T = {
     // First execute all execution dependencies of this node
-    node.dependencyInputNodes foreach { nodeExecutedBefore =>
-      if (!workflowRunContext.alreadyExecuted.contains(nodeExecutedBefore.workflowNode)) {
-        executeWorkflowNode(nodeExecutedBefore, ExecutorOutput.empty) { _ =>
-          workflowRunContext.alreadyExecuted.add(nodeExecutedBefore.workflowNode)
-        }
-      }
-    }
+    node.dependencyInputNodes.foreach(executeAsDependency)
     // Execute this node
     if (!cancelled) {
       node.workflowNode match {
@@ -220,6 +224,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         /* FIXME: Detect schema mismatch between inputs and requested schemata. Transform input entities to match requested schema automatically
                   and output warning */
         val useInputs = checkInputsAgainstSchema(operatorNode, inputs, ports)
+        // Execute "ignorable" inputs as dependencies
+        useInputs.drop(ports.size).foreach(executeAsDependency)
+        // Only use defined inputs as actual data inputs
         executeOnInputs(useInputs.zip(ports))(process)
       case FlexibleNumberOfInputs() =>
         executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)

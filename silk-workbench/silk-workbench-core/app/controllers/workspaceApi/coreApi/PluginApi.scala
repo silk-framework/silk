@@ -136,6 +136,64 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     }
   }
 
+  /** Return plugin description of a single rule operator plugin. */
+  @Operation(
+    summary = "Rule operator plugin description",
+    description = "The plugin description of a specific rule operator plugin, including meta data and JSON schema.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = PluginApiDoc.pluginJsonDescription,
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(PluginApiDoc.ruleOpeartorPluginDescriptionExampleJson))
+        ))
+      )
+    ))
+  def ruleOperatorPlugin(@Parameter(
+                           name = "pluginId",
+                           description = "The rule operator plugin identifier.",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String], example = "csv")
+                         )
+                         pluginId: String,
+                         @Parameter(
+                           name = "addMarkdownDocumentation",
+                           description = "Add markdown documentation to the result.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean], example = "false")
+                         )
+                         addMarkdownDocumentation: Boolean,
+                         @Parameter(
+                           name = "pretty",
+                           description = "If true, JSON output will be pretty printed.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean], example = "true")
+                         )
+                         pretty: Boolean,
+                         @Parameter(
+                           name = "withLabels",
+                           description = "If true, all plugin parameter values will be reified in a new object that has an optional label property. A label is added for all auto-completable parameters that have the 'autoCompleteValueWithLabels' property set to true. This guarantees that a user always sees the label of such values.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean])
+                         )
+                         withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request =>
+    implicit userContext =>
+      PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[Transformer], classOf[DistanceMeasure], classOf[Aggregator]))).headOption match {
+        case Some(pluginDesc) =>
+          implicit val writeContext: WriteContext[JsValue] = WriteContext(prefixes = Prefixes.default, user = userContext, resources = EmptyResourceManager())
+          val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
+            taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
+          result(pretty, resultJson)
+        case None =>
+          NotFound
+      }
+  }
+
   @Operation(
     summary = "Plugin usages",
     description = "Returns a list of all usages of a given plugin. Currently lists usages in projects as tasks and as within linking and transform rules.",
@@ -195,6 +253,14 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     Ok(JsArray(resourceBasedDatasetPluginIds))
   }
 
+  val inputOperatorBase = Seq(
+    "org.silkframework.rule.input.Transformer"
+  )
+  val linkingOperatorsBase = Seq(
+    "org.silkframework.rule.similarity.DistanceMeasure",
+    "org.silkframework.rule.similarity.Aggregator"
+  )
+
   /** Rule (operator) plugins. */
   @Operation(
     summary = "Rule operator plugins",
@@ -248,13 +314,6 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Boolean]))
                           inputOperatorsOnly: Option[Boolean]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val inputOperatorBase = Seq(
-      "org.silkframework.rule.input.Transformer"
-    )
-    val linkingOperatorsBase = Seq(
-      "org.silkframework.rule.similarity.DistanceMeasure",
-      "org.silkframework.rule.similarity.Aggregator"
-    )
     val pluginTypes = if(inputOperatorsOnly.getOrElse(false)) inputOperatorBase else inputOperatorBase ++ linkingOperatorsBase
     pluginResult(addMarkdownDocumentation, pluginTypes, None, textQuery, category, overviewOnly = overviewOnly.getOrElse(false))
   }
