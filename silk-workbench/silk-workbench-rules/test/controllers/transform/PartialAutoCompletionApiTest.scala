@@ -160,7 +160,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     // The operators are proposed, so the path should also be shown
     rdfSuggestions("rdf:type") mustBe Seq("rdf:type") ++ rdfOps
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
-    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
+    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text", "/#line", "/#column") ++ jsonOps
     // Here, the backward operator would show up, so also show the path
     jsonSuggestions("name", 0, None) mustBe Seq("name", "\\")
   }
@@ -218,7 +218,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {
     jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
-      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, SpecialPaths.LINE.value, SpecialPaths.COLUMN.value).contains(p)) ++ Seq("\\")
+      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT).contains(p)) ++ Seq("\\")
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
   }
 
