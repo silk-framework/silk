@@ -741,16 +741,22 @@ export function CreateArtefactModal() {
                 data-test-id={"action-error-notification"}
             >{`${error.body.detail} ${error.body?.taskLoadingError?.errorMessage}`}</div>
         ) : undefined;
+        const actionFailed = () => {
+            const actionValue = updateExistingTask ? t("common.action.update") : t("common.action.create")
+            const errorMessage = (diErrorMessage(error) ?? "Unknown error").replace(/^(assertion failed: )/, "")
+            return t("common.messages.actionFailed", {
+                action: actionValue,
+                error: errorMessage,
+            })
+        }
+
         notifications.push(
             <Notification
                 onDismiss={resetModalError}
                 message={
                     taskLoadingError ||
                     error.errorMessage ||
-                    t("common.messages.actionFailed", {
-                        action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
-                        error: (diErrorMessage(error) ?? "Unknown error").replace(/^(assertion failed: )/, ""),
-                    })
+                    actionFailed()
                 }
                 danger
             />
