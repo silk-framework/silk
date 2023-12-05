@@ -26,6 +26,7 @@ import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/reque
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
 import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../../hooks/useModalError";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -55,6 +56,7 @@ interface CopyResponsePayload {
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
     const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id || "");
     const [error, setError] = React.useState<ErrorResponse | null>(null);
+    const checkAndDisplayError = useModalError({ setError });
     const [loading, setLoading] = React.useState<boolean>(false);
     const [label, setLabel] = React.useState<string | undefined>(item.label);
     const [targetProject, setTargetProject] = React.useState<string | undefined>(undefined);
@@ -119,17 +121,14 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             await copyTaskOrProject(projectId, payload, id);
             onConfirmed();
         } catch (e) {
-            if (e.isFetchError) {
-                setError((e as FetchError).errorResponse);
-            } else {
-                console.warn(e);
-            }
+            checkAndDisplayError(e);
         } finally {
             setLoading(false);
         }
     };
 
     const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
+        setError(null); //reset modal error here
         try {
             const payload = {
                 limit: 50,
@@ -141,7 +140,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             const results = (await requestSearchList(payload)).results;
             return removeFromList(results);
         } catch (err) {
-            console.warn({ err });
+            checkAndDisplayError(err);
             return [];
         }
     };

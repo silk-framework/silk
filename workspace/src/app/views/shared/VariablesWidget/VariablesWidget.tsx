@@ -32,7 +32,8 @@ import Loading from "../Loading";
 import NewVariableModal from "./modals/NewVariableModal";
 import reorderArray from "../../../views/pages/MappingEditor/HierarchicalMapping/utils/reorderArray";
 import DeleteModal from "../modals/DeleteModal";
-import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../hooks/useModalError";
 
 const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) => {
     const { registerError } = useErrorHandler();
@@ -43,7 +44,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const [refetch, setRefetch] = React.useState<number>(0);
     const [isDeleting, setIsDeleting] = React.useState<boolean>(false);
     const [deleteModalOpen, setDeleteModalOpen] = React.useState<boolean>(false);
-    const [deleteErrorMsg, setDeleteErrMsg] = React.useState<string>("");
+    const [deleteError, setDeleteError] = React.useState<ErrorResponse | undefined>();
+    const checkAndDisplayDeletionError = useModalError({ setError: setDeleteError });
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
     const [t] = useTranslation();
@@ -74,7 +76,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setSelectedVariable(variable);
         setDeleteModalOpen(true);
         setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
-        setDeleteErrMsg("");
+        setDeleteError(undefined);
     }, []);
 
     /**
@@ -83,13 +85,13 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const handleDeleteVariable = React.useCallback(async () => {
         if (!selectedVariable) return;
         setIsDeleting(true);
-        setDeleteErrMsg("");
+        setDeleteError(undefined);
         try {
             await deleteVariableRequest(projectId, selectedVariable.name);
             setRefetch((r) => ++r);
             setDeleteModalOpen(false);
         } catch (err) {
-            setDeleteErrMsg(err?.body?.detail);
+            checkAndDisplayDeletionError(err);
         } finally {
             setIsDeleting(false);
         }
@@ -195,7 +197,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 onDiscard={() => setDeleteModalOpen(false)}
                 removeLoading={isDeleting}
                 deleteDisabled={!!variableHasDependencies}
-                errorMessage={deleteErrorMsg}
+                errorMessage={deleteError && `Deletion failed: ${deleteError.asString()}`}
                 render={renderDeleteVariable}
             />
             <Card>

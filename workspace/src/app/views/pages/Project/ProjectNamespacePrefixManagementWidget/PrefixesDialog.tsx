@@ -20,13 +20,15 @@ interface IProps {
 /** Manages project prefix definitions. */
 const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: IProps) => {
     const dispatch = useDispatch();
-
     const prefixList = useSelector(workspaceSel.prefixListSelector);
     const configWidget = useSelector(workspaceSel.widgetsSelector).configuration;
     const { isLoading } = configWidget;
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
+    const widgetHasErrors = !!Object.keys(configWidget?.error ?? {}).length;
+
+    console.log({ widgetHasErrors });
 
     const [t] = useTranslation();
 
@@ -44,7 +46,9 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         if (selectedPrefix) {
             dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName, projectId));
         }
-        toggleRemoveDialog();
+        // if (!widgetHasErrors) {
+        //     toggleRemoveDialog();
+        // }
     };
 
     const handleAddOrUpdatePrefix = (prefix: IPrefixDefinition) => {
@@ -85,9 +89,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             <DeleteModal
                 isOpen={isOpenRemove}
                 data-test-id={"update-prefix-dialog"}
-                onDiscard={() => toggleRemoveDialog()}
+                onDiscard={() => {}}
                 onConfirm={handleConfirmRemove}
                 title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
+                errorMessage={widgetHasErrors ? `Deletion failed: ${configWidget.error.asString()}` : undefined}
             >
                 <p>{t("PrefixDialog.deletePrefix", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
             </DeleteModal>

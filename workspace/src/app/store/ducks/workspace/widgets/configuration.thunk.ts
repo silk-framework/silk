@@ -47,6 +47,7 @@ export const fetchProjectPrefixesAsync = (projectId: string) => {
 
 export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: string, projectId: string) => {
     return async (dispatch) => {
+        dispatch(setError(undefined));
         try {
             dispatch(toggleLoading());
 
@@ -66,12 +67,13 @@ export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: strin
 
 export const fetchRemoveProjectPrefixAsync = (prefixName: string, projectId: string) => {
     return async (dispatch) => {
+        dispatch(setError(undefined));
         try {
-            dispatch(toggleLoading());
+            // dispatch(toggleLoading());
 
             const data = await requestRemoveProjectPrefix(prefixName, projectId);
 
-            dispatch(updatePrefixList(data));
+            // dispatch(updatePrefixList(data));
         } catch (e) {
             dispatch(setError(e));
         } finally {

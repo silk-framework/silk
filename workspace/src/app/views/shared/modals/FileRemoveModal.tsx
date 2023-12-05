@@ -7,6 +7,8 @@ import { ITaskLink } from "@ducks/workspace/typings";
 import { Link } from "@eccenca/gui-elements";
 import { taskUrl } from "@ducks/router/operations";
 import { fileValue } from "@ducks/shared/typings";
+import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../hooks/useModalError";
 
 type UppyFileOrResource = UppyFile | { name: string; fullPath?: string; id: string };
 
@@ -20,7 +22,8 @@ interface IProps {
 
 export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
     const [t] = useTranslation();
-
+    const [error, setError] = React.useState<ErrorResponse | undefined>();
+    const checkAndDisplayError = useModalError({ setError });
     const [dependentTasks, setDependentTasks] = useState<ITaskLink[]>([]);
 
     // get file dependencies on open
@@ -31,6 +34,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
         };
 
         if (file) {
+            setError(undefined);
             openDeleteModal();
         }
     }, [file]);
@@ -44,8 +48,10 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
         try {
             await requestRemoveProjectResource(projectId, fileValue(file));
             onConfirm(file.id);
+        } catch (e) {
+            checkAndDisplayError(e);
         } finally {
-            closeDeleteModal();
+            setDependentTasks([]);
         }
     };
 
@@ -81,6 +87,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
             onConfirm={deleteFile}
             render={renderDeleteModal}
             title={t("widget.FileWidget.deleteFile", "Delete File")}
+            errorMessage={error && `Deletion failed: ${error.asString()}`}
         />
     );
 }

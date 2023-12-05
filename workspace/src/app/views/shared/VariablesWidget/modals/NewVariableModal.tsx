@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { Variable } from "../typing";
 import { createNewVariable, updateVariable } from "../requests";
 import TemplateValueInput from "../../../../views/shared/TemplateValueInput/TemplateValueInput";
+import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../../hooks/useModalError";
 
 interface VariableModalProps {
     /*
@@ -67,7 +69,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const [validationError, setValidationError] = React.useState<
         Partial<{ name: string; valueOrTemplate: string }> | undefined
     >();
-    const [errorMessage, setErrorMessage] = React.useState<string>("");
+    const [error, setError] = React.useState<ErrorResponse | undefined>();
+    const checkAndDisplayError = useModalError({ setError });
     const [t] = useTranslation();
     const isEditMode = targetVariable;
 
@@ -86,7 +89,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             currentTemplateValue: targetVariable?.template ?? "",
             currentInputValue: targetVariable?.value ?? "",
         };
-        setErrorMessage("");
+        setError(undefined);
     }, [targetVariable]);
 
     /**
@@ -126,7 +129,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const resetModalState = React.useCallback(() => {
         setName("");
         setDescription("");
-        setErrorMessage("");
+        setError(undefined);
         setValidationError(undefined);
         valueState.current = {
             inputValueBeforeSwitch: "",
@@ -144,7 +147,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
         if (error?.name || error?.valueOrTemplate) return;
         try {
             setLoading(true);
-            setErrorMessage("");
+            setError(undefined);
 
             const formPayload = {
                 name,
@@ -169,7 +172,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             refresh();
             closeModal();
         } catch (err) {
-            setErrorMessage(err?.body?.detail);
+            checkAndDisplayError(err);
         } finally {
             setLoading(false);
         }
@@ -177,7 +180,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
 
     const handleModalClose = React.useCallback(() => {
         closeModal();
-        setErrorMessage("");
+        setError(undefined);
         setValidationError(undefined);
     }, []);
 
@@ -196,7 +199,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                         onClick={() => setShowModalHelperText(true)}
                     />
                 }
-                notifications={errorMessage ? <Notification danger>{errorMessage}</Notification> : null}
+                notifications={error ? <Notification danger>{error.asString()}</Notification> : null}
                 actions={[
                     <Button
                         key="add"
