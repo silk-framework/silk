@@ -18,7 +18,7 @@ import org.silkframework.util.Identifier
   documentationFile = "JsonDatasetDocumentation.md"
 )
 case class JsonDataset(
-                        @Param("Json file.")
+                        @Param("Json file. This may also be a zip archive of multiple XML files that share the same schema.")
                         file: WritableResource,
                         @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
                         template: JsonCodeParameter = JsonCodeParameter(s"${JsonTemplate.placeholder}"),
@@ -30,7 +30,9 @@ case class JsonDataset(
                         @Param(value = "Maximum depth of written JSON. This acts as a safe guard if a recursive structure is written.", advanced = true)
                         maxDepth: Int = DEFAULT_MAX_SIZE,
                         @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
-                        streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
+                        streaming: Boolean = true,
+                        @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+                        override val zipFileRegex: String = ".*\\.json") extends Dataset with BulkResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
