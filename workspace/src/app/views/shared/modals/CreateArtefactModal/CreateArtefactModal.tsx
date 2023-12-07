@@ -78,6 +78,8 @@ export function CreateArtefactModal() {
 
     const [searchValue, setSearchValue] = useState("");
     const [documentationToShow, setDocumentationToShow] = useState<ArtefactDocumentation | undefined>(undefined);
+    const documentationIsShown = React.useRef(false);
+    documentationIsShown.current = !!documentationToShow;
     const [actionLoading, setActionLoading] = useState(false);
     const [t] = useTranslation();
 
@@ -292,7 +294,10 @@ export function CreateArtefactModal() {
     };
 
     const handleBack = (closeModal?: boolean) => {
-        resetModal(closeModal);
+        // Ignore back or close actions when (task) documentation is shown, else the create/update dialog will also close.
+        if (!documentationIsShown.current) {
+            resetModal(closeModal);
+        }
     };
 
     const taskType = React.useCallback(
@@ -961,7 +966,9 @@ export function CreateArtefactModal() {
                         <SimpleDialog
                             data-test-id={"artefact-documentation-modal"}
                             isOpen
-                            canEscapeKeyClose={true}
+                            showFullScreenToggler={true}
+                            enforceFocus={true}
+                            onClose={() => setDocumentationToShow(undefined)}
                             title={documentationToShow.title ?? "Documentation"}
                             actions={
                                 <Button
@@ -971,7 +978,7 @@ export function CreateArtefactModal() {
                                     }}
                                 />
                             }
-                            size="small"
+                            size="large"
                         >
                             <HtmlContentBlock>
                                 <Markdown allowHtml>
