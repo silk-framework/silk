@@ -41,9 +41,11 @@ const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report", ..
                 </Button>,
             ]}
         >
-            <HtmlContentBlock>
-                <Markdown>{markdown}</Markdown>
-            </HtmlContentBlock>
+            {markdown && (
+                <HtmlContentBlock>
+                    <Markdown>{markdown}</Markdown>
+                </HtmlContentBlock>
+            )}
         </SimpleDialog>
     );
 };

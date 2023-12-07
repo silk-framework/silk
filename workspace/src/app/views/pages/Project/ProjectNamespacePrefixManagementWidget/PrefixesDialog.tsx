@@ -1,14 +1,17 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import { Button, Notification, SimpleDialog } from "@eccenca/gui-elements";
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
+import { setError, updatePrefixList } from "@ducks/workspace/widgets/configuration.thunk";
+import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
+import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 
 interface IProps {
     projectId: string;
@@ -22,13 +25,12 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
     const dispatch = useDispatch();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
     const configWidget = useSelector(workspaceSel.widgetsSelector).configuration;
-    const { isLoading } = configWidget;
+    const [loading, setLoading] = React.useState<boolean>(false);
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
-    const widgetHasErrors = !!Object.keys(configWidget?.error ?? {}).length;
-
-    console.log({ widgetHasErrors });
+    const widgetError = useSelector(workspaceSel.widgetErrorSelector);
+    const widgetHasErrors = !!Object.keys(widgetError ?? {}).length;
 
     const [t] = useTranslation();
 
@@ -37,24 +39,46 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             setIsOpenRemove(false);
             setSelectedPrefix(undefined);
         } else {
+            dispatch(setError(undefined));
             setIsOpenRemove(true);
             setSelectedPrefix(prefix);
         }
     };
 
-    const handleConfirmRemove = () => {
-        if (selectedPrefix) {
-            dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName, projectId));
-        }
-        // if (!widgetHasErrors) {
-        //     toggleRemoveDialog();
-        // }
-    };
+    const handleConfirmRemove = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            if (selectedPrefix) {
+                const data = await requestRemoveProjectPrefix(selectedPrefix.prefixName, projectId);
+                dispatch(updatePrefixList(data));
+            }
 
-    const handleAddOrUpdatePrefix = (prefix: IPrefixDefinition) => {
-        const { prefixName, prefixUri } = prefix;
-        dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri, projectId));
-    };
+            if (!widgetHasErrors) {
+                toggleRemoveDialog();
+            }
+        } catch (err) {
+            dispatch(setError(err));
+        } finally {
+            setLoading(false);
+        }
+    }, [projectId, selectedPrefix, widgetError]);
+
+    const handleAddOrUpdatePrefix = React.useCallback(async (prefix: IPrefixDefinition) => {
+        try {
+            setLoading(true);
+            const { prefixName, prefixUri } = prefix;
+            const data = await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
+
+            batch(() => {
+                dispatch(widgetsSlice.actions.resetNewPrefix());
+                dispatch(updatePrefixList(data));
+            });
+        } catch (err) {
+            dispatch(setError(err));
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     return (
         <SimpleDialog
@@ -67,8 +91,9 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                     {t("common.action.close")}
                 </Button>
             }
+            notifications={widgetHasErrors ? <Notification danger>{widgetError.asString()}</Notification> : null}
         >
-            {isLoading ? (
+            {loading ? (
                 <Loading
                     description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")}
                     delay={0}
@@ -79,7 +104,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                         onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
                         existingPrefixes={existingPrefixes}
                     />
-                    <DataList isEmpty={!prefixList.length} isLoading={isLoading} hasSpacing hasDivider>
+                    <DataList isEmpty={!prefixList.length} isLoading={loading} hasSpacing hasDivider>
                         {prefixList.map((prefix, i) => (
                             <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />
                         ))}
@@ -89,10 +114,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             <DeleteModal
                 isOpen={isOpenRemove}
                 data-test-id={"update-prefix-dialog"}
-                onDiscard={() => {}}
+                onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
                 title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
-                errorMessage={widgetHasErrors ? `Deletion failed: ${configWidget.error.asString()}` : undefined}
+                errorMessage={widgetHasErrors ? `Deletion failed: ${widgetError.asString()}` : undefined}
             >
                 <p>{t("PrefixDialog.deletePrefix", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
             </DeleteModal>

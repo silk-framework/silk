@@ -7,8 +7,7 @@ export const widgetsSlice = createSlice({
     reducers: {
         toggleWidgetLoading(state, action) {
             const widgetName = action.payload;
-            // state[widgetName].error = {};
-            state[widgetName].isLoading = !state[action.payload].isLoading;
+            state[widgetName].isLoading = !state[widgetName].isLoading;
         },
         setWidgetError(state, action) {
             const { widgetName, error } = action.payload;

@@ -83,7 +83,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
             const markdown: string = await workspaceOp.fetchWarningMarkdownAsync(taskId, projectId);
             handleOpen();
             setCurrentMarkdown(markdown);
-        } catch {
+        } catch (err) {
             AppToaster.show({
                 message: t(
                     "http.error.not.markdown",
