@@ -2,9 +2,11 @@ package org.silkframework.workbench.utils
 
 import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
 import org.silkframework.util.StringUtils.toStringUtils
-import play.api.libs.json.{JsNull, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{Format, JsNull, JsObject, JsString, JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
+
+import scala.collection.immutable.ArraySeq
 
 /**
   * Generates error responses.
@@ -21,7 +23,8 @@ object ErrorResult {
     * @param ex The exception that specifies the request error.
     */
   def apply(ex: RequestException): Result = {
-    generateResult(ex.httpErrorCode.getOrElse(500), fromException(ex))
+    val status = ex.httpErrorCode.getOrElse(500)
+    generateResult(status, fromException(ex, (status / 100) == 5))
   }
 
   /**
@@ -31,7 +34,8 @@ object ErrorResult {
     * @param ex The exception that has been thrown.
     */
   def serverError(status: Int, ex: Throwable): Result = {
-    generateResult(status, fromException(ex))
+    val addStacktrace = (status / 100) == 5
+    generateResult(status, fromException(ex, addStacktrace))
   }
 
   /**
@@ -41,17 +45,18 @@ object ErrorResult {
     generateResult(status, format(title, detail))
   }
 
-  private def fromException(ex: Throwable): JsValue = {
-    val cause = Option(ex.getCause).map(fromException).getOrElse(JsNull)
+  private def fromException(ex: Throwable, addStacktrace: Boolean): JsValue = {
+    val stacktrace = if(addStacktrace) Json.obj("stacktrace" -> ErrorResult.Stacktrace.fromException(ex)) else Json.obj()
+    val cause = Option(ex.getCause).map(cause => fromException(cause, addStacktrace = false)).getOrElse(JsNull)
     ex match {
       case requestEx: RequestException with JsonRequestException =>
-        format(requestEx.errorTitle, requestEx.getMessage, cause, requestEx.additionalJson)
+        format(requestEx.errorTitle, requestEx.getMessage, cause, requestEx.additionalJson ++ stacktrace)
       case requestEx: RequestException =>
-        format(requestEx.errorTitle, requestEx.getMessage, cause)
+        format(requestEx.errorTitle, requestEx.getMessage, cause, stacktrace)
       case _ =>
         val errorTitle = ex.getClass.getSimpleName.replace("Exception", "Error")
         val readableTitle = errorTitle.toSentenceCase
-        format(readableTitle, ex.getMessage, cause)
+        format(readableTitle, ex.getMessage, cause, stacktrace)
     }
   }
 
@@ -88,4 +93,17 @@ object ErrorResult {
     Status(status)(value).as("application/problem+json")
   }
 
+  /** Stacktrace object. */
+  case class Stacktrace(exceptionClass: String, errorMessage: Option[String], lines: Seq[String], cause: Option[Stacktrace], suppressed: Seq[Stacktrace])
+
+  object Stacktrace {
+    implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
+
+    def fromException(exception: Throwable): Stacktrace = {
+      val lines = ArraySeq.unsafeWrapArray(exception.getStackTrace.map(_.toString))
+      val cause = Option(exception.getCause).map(fromException)
+      val suppressed = ArraySeq.unsafeWrapArray(exception.getSuppressed).map(fromException)
+      Stacktrace(exception.getClass.getName, Option(exception.getMessage), lines, cause, suppressed)
+    }
+  }
 }

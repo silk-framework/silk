@@ -1,24 +1,9 @@
 package controllers.errorReporting
 
+import org.silkframework.workbench.utils.ErrorResult.Stacktrace
 import play.api.libs.json.{Format, Json}
 
-import scala.collection.immutable.ArraySeq
-
 object ErrorReport {
-  /** Stacktrace object. */
-  case class Stacktrace(exceptionClass: String, errorMessage: Option[String], lines: Seq[String], cause: Option[Stacktrace], suppressed: Seq[Stacktrace])
-
-  object Stacktrace {
-    implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
-
-    def fromException(exception: Throwable): Stacktrace = {
-      val lines = ArraySeq.unsafeWrapArray(exception.getStackTrace.map(_.toString))
-      val cause = Option(exception.getCause).map(fromException)
-      val suppressed = ArraySeq.unsafeWrapArray(exception.getSuppressed).map(fromException)
-      Stacktrace(exception.getClass.getName, Option(exception.getMessage), lines, cause, suppressed)
-    }
-  }
-
   /** A single item of an error report, i.e. documents an individual error/exception. */
   case class ErrorReportItem(projectId: Option[String],
                              taskId: Option[String],
