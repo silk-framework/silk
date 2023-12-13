@@ -5,8 +5,7 @@ import getPathsRecursive from "../../utils/getUriPaths";
 import getUriOperatorsRecursive from "../../utils/getUriOperators";
 import ComplexDeleteButton from "../../elements/buttons/ComplexeDeleteButton";
 import { IconButton } from "@eccenca/gui-elements";
-import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
-import { IPluginDetails } from "@ducks/common/typings";
+import { useGetRuleOperatorPlugins } from "../../../../../../hooks/useGetOperatorPlugins";
 
 interface ObjectUriPatternProps {
     uriRule: any;
@@ -15,14 +14,7 @@ interface ObjectUriPatternProps {
 }
 
 const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor }: ObjectUriPatternProps) => {
-    const [plugins, setPlugins] = React.useState<Map<string, IPluginDetails>>(new Map());
-
-    React.useEffect(() => {
-        (async () => {
-            setPlugins(new Map(Object.entries((await requestRuleOperatorPluginsDetails(false)).data)));
-        })();
-    }, []);
-
+    const { getPluginDetailLabel } = useGetRuleOperatorPlugins();
     const { type, pattern } = uriRule;
 
     let uriPattern = <NotAvailable label="automatic default pattern" inline />;
@@ -47,7 +39,7 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor }: Objec
                 URI uses {paths.length} value {paths.length > 1 ? "paths" : "path"}:&nbsp;
                 <code>{paths.join(", ")}</code>&nbsp;and {operators.length}&nbsp; operator{" "}
                 {operators.length > 1 ? "functions" : "function"}:&nbsp;
-                <code>{operators.map((opId) => plugins.get(opId)?.title ?? opId).join(", ")}</code>.
+                <code>{operators.map(getPluginDetailLabel).join(", ")}</code>.
             </span>
         );
     } else {
