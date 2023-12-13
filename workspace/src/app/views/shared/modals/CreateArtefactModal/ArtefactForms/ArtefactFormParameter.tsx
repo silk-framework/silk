@@ -259,7 +259,7 @@ interface TemplateInputComponentProps {
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
-    handleCheckTemplateErrors?: (error?: string) => any;
+    handleTemplateErrors?: (error?: string) => any;
 }
 
 /** The input component for the template value. */
@@ -272,7 +272,7 @@ export const TemplateInputComponent = memo(
         evaluatedValueMessage,
         projectId,
         variableName,
-        handleCheckTemplateErrors,
+        handleTemplateErrors,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -306,7 +306,13 @@ export const TemplateInputComponent = memo(
                 return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
                     .data;
             } catch (error) {
-                registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
+                handleTemplateErrors
+                    ? handleTemplateErrors(error)
+                    : registerError(
+                          "ArtefactFormParameter.autoComplete",
+                          "Auto-completing the template has failed.",
+                          error
+                      );
             }
         }, []);
 
@@ -323,8 +329,8 @@ export const TemplateInputComponent = memo(
                     );
                     return processValidationError(validationResponse);
                 } catch (error) {
-                    handleCheckTemplateErrors
-                        ? handleCheckTemplateErrors(error)
+                    handleTemplateErrors
+                        ? handleTemplateErrors(error)
                         : registerError(
                               "ArtefactFormParameter.checkTemplate",
                               "Validating template has failed.",

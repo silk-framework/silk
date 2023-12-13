@@ -76,7 +76,12 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setDeleteError(undefined);
         setSelectedVariable(variable);
         setDeleteModalOpen(true);
-        setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
+        try {
+            const varDeps = (await getVariableDependencies(projectId, variable.name)).data;
+            setVariableDependencies(varDeps);
+        } catch (err) {
+            checkAndDisplayDeletionError(err);
+        }
     }, []);
 
     /**
@@ -176,7 +181,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                     null}
             </div>
         );
-    }, [selectedVariable, dependencies]);
+    }, [selectedVariable, dependencies, deleteError]);
 
     return (
         <>

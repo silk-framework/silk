@@ -12,6 +12,8 @@ import { useTranslation } from "react-i18next";
 import { setError, updatePrefixList } from "@ducks/workspace/widgets/configuration.thunk";
 import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
+import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
+import { useModalError } from "../../../../hooks/useModalError";
 
 interface IProps {
     projectId: string;
@@ -24,13 +26,12 @@ interface IProps {
 const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: IProps) => {
     const dispatch = useDispatch();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
-    const configWidget = useSelector(workspaceSel.widgetsSelector).configuration;
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [error, setError] = React.useState<ErrorResponse | undefined>();
+    const checkAndDisplayPrefixError = useModalError({ setError });
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
-    const widgetError = useSelector(workspaceSel.widgetErrorSelector);
-    const widgetHasErrors = !!Object.keys(widgetError ?? {}).length;
 
     const [t] = useTranslation();
 
@@ -39,29 +40,30 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             setIsOpenRemove(false);
             setSelectedPrefix(undefined);
         } else {
-            dispatch(setError(undefined));
             setIsOpenRemove(true);
             setSelectedPrefix(prefix);
         }
+        setError(undefined);
     };
 
     const handleConfirmRemove = React.useCallback(async () => {
         try {
             setLoading(true);
             if (selectedPrefix) {
+                setError(undefined);
                 const data = await requestRemoveProjectPrefix(selectedPrefix.prefixName, projectId);
                 dispatch(updatePrefixList(data));
-            }
 
-            if (!widgetHasErrors) {
-                toggleRemoveDialog();
+                if (data) {
+                    toggleRemoveDialog();
+                }
             }
         } catch (err) {
-            dispatch(setError(err));
+            checkAndDisplayPrefixError(err);
         } finally {
             setLoading(false);
         }
-    }, [projectId, selectedPrefix, widgetError]);
+    }, [projectId, selectedPrefix, error]);
 
     const handleAddOrUpdatePrefix = React.useCallback(async (prefix: IPrefixDefinition) => {
         try {
@@ -74,7 +76,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                 dispatch(updatePrefixList(data));
             });
         } catch (err) {
-            dispatch(setError(err));
+            checkAndDisplayPrefixError(err);
         } finally {
             setLoading(false);
         }
@@ -91,7 +93,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                     {t("common.action.close")}
                 </Button>
             }
-            notifications={widgetHasErrors ? <Notification danger>{widgetError.asString()}</Notification> : null}
+            notifications={error ? <Notification danger>{error.asString()}</Notification> : null}
         >
             {loading ? (
                 <Loading
@@ -117,7 +119,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
                 title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
-                errorMessage={widgetHasErrors ? `Deletion failed: ${widgetError.asString()}` : undefined}
+                errorMessage={error ? `Deletion failed: ${error.asString()}` : undefined}
             >
                 <p>{t("PrefixDialog.deletePrefix", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
             </DeleteModal>
