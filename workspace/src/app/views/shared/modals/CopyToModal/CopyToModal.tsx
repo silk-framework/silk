@@ -121,7 +121,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             await copyTaskOrProject(projectId, payload, id);
             onConfirmed();
         } catch (e) {
-            checkAndDisplayError(e);
+            checkAndDisplayError(e, t("copyModal.errorMessages.searchFailure", "Retrieving item list failed"));
         } finally {
             setLoading(false);
         }
@@ -140,7 +140,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             const results = (await requestSearchList(payload)).results;
             return removeFromList(results);
         } catch (err) {
-            checkAndDisplayError(err);
+            checkAndDisplayError(err, t("copyModal.errorMessages.copyFailure", "Failed to copy"));
             return [];
         }
     };
@@ -309,7 +309,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             {error && (
                 <>
                     <Spacing />
-                    <Notification message={error.asString()} danger />
+                    <Notification message={error.detail} danger />
                 </>
             )}
         </SimpleDialog>

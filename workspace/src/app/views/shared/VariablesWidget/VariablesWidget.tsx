@@ -80,7 +80,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             const varDeps = (await getVariableDependencies(projectId, variable.name)).data;
             setVariableDependencies(varDeps);
         } catch (err) {
-            checkAndDisplayDeletionError(err);
+            checkAndDisplayDeletionError(
+                err,
+                t("widget.VariableWidget.errorMessages.dependencyRetrievalFailure", "Failed to retrieve variable")
+            );
         }
     }, []);
 
@@ -96,7 +99,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             setRefetch((r) => ++r);
             setDeleteModalOpen(false);
         } catch (err) {
-            checkAndDisplayDeletionError(err);
+            checkAndDisplayDeletionError(
+                err,
+                t("widget.VariableWidget.errorMessages.variableDeletionFailure", "Failed to delete variable")
+            );
         } finally {
             setIsDeleting(false);
         }
@@ -202,7 +208,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 onDiscard={() => setDeleteModalOpen(false)}
                 removeLoading={isDeleting}
                 deleteDisabled={!!variableHasDependencies}
-                errorMessage={deleteError && `Deletion failed: ${deleteError.asString()}`}
+                errorMessage={deleteError && deleteError.detail}
                 render={renderDeleteVariable}
             />
             <Card>

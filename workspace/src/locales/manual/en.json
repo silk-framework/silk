@@ -748,6 +748,12 @@
             }
         }
     },
+    "copyModal": {
+        "errorMessages": {
+            "searchFailure": "Retrieving item list failed",
+            "copyFailure": "Failed to copy"
+        }
+    },
     "widget": {
         "ActivityInfoWidget": {
             "title": "Activities",
@@ -759,7 +765,13 @@
             "prefix": "Prefix",
             "prefixTitle": "Manage Prefixes",
             "prefix_plural": "Prefixes",
-            "title": "Configuration"
+            "title": "Configuration",
+            "modal": {
+                "errors": {
+                    "prefixDeletionFailure": "Prefix deletion failed",
+                    "prefixChangeFailure": "Prefix change failed"
+                }
+            }
         },
         "FacetsList": {
             "facet": {
@@ -813,6 +825,11 @@
                 "modified": "Last modified",
                 "name": "Name",
                 "size": "Size (bytes)"
+            },
+            "modal": {
+                "errorMessages": {
+                    "deleteFile": "File deletion failed"
+                }
             }
         },
         "Filterbar": {
@@ -956,7 +973,11 @@
             },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project '{{projectId}}'",
-                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand"
+                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand",
+                "variableUpsertFailure": "Variable add/update failed",
+                "templateUpdateFailure": "Variable template error",
+                "dependencyRetrievalFailure": "Failed to retrieve dependencies",
+                "variableDeletionFailure": "Failed to delete variable"
             }
         },
         "TaskConfigWidget": {

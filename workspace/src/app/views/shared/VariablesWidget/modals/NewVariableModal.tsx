@@ -172,7 +172,10 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             refresh();
             closeModal();
         } catch (err) {
-            checkAndDisplayError(err);
+            checkAndDisplayError(
+                err,
+                t("widget.VariableWidget.errorMessages.variableUpsertFailure", "Variable add/update failed")
+            );
         } finally {
             setLoading(false);
         }
@@ -199,7 +202,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                         onClick={() => setShowModalHelperText(true)}
                     />
                 }
-                notifications={error ? <Notification danger>{error.asString()}</Notification> : null}
+                notifications={error ? <Notification danger>{error.detail}</Notification> : null}
                 actions={[
                     <Button
                         key="add"
@@ -240,7 +243,12 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     ref={valueState}
                     projectId={projectId}
                     existingVariableName={targetVariable?.name}
-                    handleCheckTemplateErrors={checkAndDisplayError}
+                    handleCheckTemplateErrors={(err) =>
+                        checkAndDisplayError(
+                            err,
+                            t("widget.VariableWidget.errorMessages.templateUpdateFailure", "variable template error")
+                        )
+                    }
                 />
                 <FieldItem
                     labelProps={{

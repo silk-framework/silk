@@ -7,9 +7,8 @@ import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
-import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
-import { setError, updatePrefixList } from "@ducks/workspace/widgets/configuration.thunk";
+import { updatePrefixList } from "@ducks/workspace/widgets/configuration.thunk";
 import { requestChangePrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { ErrorResponse } from "../../../../services/fetch/responseInterceptor";
@@ -59,7 +58,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                 }
             }
         } catch (err) {
-            checkAndDisplayPrefixError(err);
+            checkAndDisplayPrefixError(
+                err,
+                t("widget.ConfigWidget.modal.errors.prefixDeletionFailure", "Prefix deletion failed")
+            );
         } finally {
             setLoading(false);
         }
@@ -77,7 +79,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                 });
             }
         } catch (err) {
-            checkAndDisplayPrefixError(err);
+            checkAndDisplayPrefixError(
+                err,
+                t("widget.ConfigWidget.modal.errors.prefixChangeFailure", "Prefix change failed")
+            );
         } finally {
             setLoading(false);
         }
@@ -94,7 +99,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                     {t("common.action.close")}
                 </Button>
             }
-            notifications={error ? <Notification danger>{error.asString()}</Notification> : null}
+            notifications={error ? <Notification danger>{error.detail}</Notification> : null}
         >
             <PrefixNew
                 onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
@@ -111,7 +116,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
                 title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
-                errorMessage={error ? `Deletion failed: ${error.asString()}` : undefined}
+                errorMessage={error ? error.detail : undefined}
             >
                 <p>{t("PrefixDialog.deletePrefix", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
             </DeleteModal>

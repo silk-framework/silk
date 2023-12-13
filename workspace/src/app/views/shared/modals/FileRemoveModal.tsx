@@ -49,7 +49,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
             await requestRemoveProjectResource(projectId, fileValue(file));
             onConfirm(file.id);
         } catch (e) {
-            checkAndDisplayError(e);
+            checkAndDisplayError(e, t("widget.FileWidget.modal.errorMessages.deleteFile"));
         } finally {
             setDependentTasks([]);
         }
@@ -87,7 +87,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
             onConfirm={deleteFile}
             render={renderDeleteModal}
             title={t("widget.FileWidget.deleteFile", "Delete File")}
-            errorMessage={error && `Deletion failed: ${error.asString()}`}
+            errorMessage={error && error.detail}
         />
     );
 }

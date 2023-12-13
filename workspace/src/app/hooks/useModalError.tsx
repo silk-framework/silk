@@ -11,11 +11,16 @@ export const useModalError = ({ setError }: useModalParams) => {
         setError(undefined);
     }, []);
 
-    return (e: any) => {
+    return (e: any, modalContextName: string) => {
+        const errorWithContextName = (error: any) => () => {
+            const errorCopy: Record<string, any> = { ...error };
+            errorCopy.detail = `${modalContextName}: \n ${error.asString()}`;
+            return errorCopy;
+        };
         if (e.isFetchError) {
-            setError((e as FetchError).errorResponse);
+            setError(errorWithContextName((e as FetchError).errorResponse));
         } else if (e.title === "Network Error") {
-            setError(e);
+            setError(errorWithContextName(e));
         } else {
             console.warn(e);
         }
