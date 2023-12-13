@@ -206,7 +206,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                         data-test-id="variable-modal-submit-btn"
                         affirmative
                         onClick={upsertVariable}
-                        disabled={loading || !!validationError?.name || !!validationError?.valueOrTemplate}
+                        disabled={loading || !!validationError?.name || !!validationError?.valueOrTemplate || !!error}
                         loading={loading}
                     >
                         {!isEditMode ? t("common.action.add") : t("common.action.update")}
@@ -240,6 +240,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     ref={valueState}
                     projectId={projectId}
                     existingVariableName={targetVariable?.name}
+                    handleCheckTemplateErrors={checkAndDisplayError}
                 />
                 <FieldItem
                     labelProps={{
