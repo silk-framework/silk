@@ -70,11 +70,12 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             setLoading(true);
             const { prefixName, prefixUri } = prefix;
             const data = await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
-
-            batch(() => {
-                dispatch(widgetsSlice.actions.resetNewPrefix());
-                dispatch(updatePrefixList(data));
-            });
+            if (data) {
+                batch(() => {
+                    dispatch(widgetsSlice.actions.resetNewPrefix());
+                    dispatch(updatePrefixList(data));
+                });
+            }
         } catch (err) {
             checkAndDisplayPrefixError(err);
         } finally {
@@ -95,24 +96,15 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             }
             notifications={error ? <Notification danger>{error.asString()}</Notification> : null}
         >
-            {loading ? (
-                <Loading
-                    description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")}
-                    delay={0}
-                />
-            ) : (
-                <>
-                    <PrefixNew
-                        onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
-                        existingPrefixes={existingPrefixes}
-                    />
-                    <DataList isEmpty={!prefixList.length} isLoading={loading} hasSpacing hasDivider>
-                        {prefixList.map((prefix, i) => (
-                            <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />
-                        ))}
-                    </DataList>
-                </>
-            )}
+            <PrefixNew
+                onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
+                existingPrefixes={existingPrefixes}
+            />
+            <DataList isEmpty={!prefixList.length} isLoading={loading} hasSpacing hasDivider>
+                {prefixList.map((prefix, i) => (
+                    <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />
+                ))}
+            </DataList>
             <DeleteModal
                 isOpen={isOpenRemove}
                 data-test-id={"update-prefix-dialog"}
