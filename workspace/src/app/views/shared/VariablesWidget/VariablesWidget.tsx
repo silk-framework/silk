@@ -73,10 +73,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     }, []);
 
     const handleDeleteModalOpen = React.useCallback(async (variable: Variable) => {
+        setDeleteError(undefined);
         setSelectedVariable(variable);
         setDeleteModalOpen(true);
         setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
-        setDeleteError(undefined);
     }, []);
 
     /**
