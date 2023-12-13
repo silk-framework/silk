@@ -1,5 +1,6 @@
 package org.silkframework.serialization.json
 
+import org.silkframework.execution.report.Stacktrace
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
@@ -159,18 +160,22 @@ object ExecutionReportSerializers {
         ENTITY -> ruleError.entity,
         VALUES -> ruleError.value,
         ERROR -> ruleError.message
-      )
+      ) ++ ruleError.exception.map(ex => Json.obj(STACKTRACE -> Json.toJson(Stacktrace.fromException(ex)))).getOrElse(JsObject.empty)
     }
 
     private def readRuleError(value: JsValue): RuleError = {
       RuleError(
         entity = stringValue(value, ENTITY),
         value = arrayValue(value, VALUES).as[Seq[Seq[String]]],
-        message = stringValue(value, ERROR)
+        message = stringValue(value, ERROR),
+        // We ignore operator ID and exceptions in serialized execution reports. These are currently only relevant immediately.
+        operatorId = None, exception = None
       )
     }
 
   }
+
+  implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
 
   implicit object WorkflowTaskReportJsonFormat extends JsonFormat[WorkflowTaskReport] {
 
@@ -266,6 +271,7 @@ object ExecutionReportSerializers {
     final val VALUES = "values"
     final val ERROR = "error"
 
+    final val STACKTRACE = "stacktrace"
   }
 
 }

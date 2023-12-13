@@ -1174,5 +1174,8 @@
     "MappingTree": {
         "loadingRules": "Loading rules",
         "noRulesFound": "No rules found"
+    },
+    "SampleError": {
+        "title": "Sample error details"
     }
 }
