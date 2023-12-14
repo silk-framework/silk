@@ -47,6 +47,7 @@ export const SampleErrorModal = ({sampleError, onClose}: SampleErrorModalProps) 
 const stacktraceToMarkdown = (stacktrace: Stacktrace, prefix: string = "* Stacktrace:"): string => {
     const lines = stacktrace.lines
     return `${prefix}
+  - Exception class: \`${stacktrace.exceptionClass}\`
   \`\`\`
   ${lines.length ? stacktrace.lines[0] : ""}${stacktrace.lines.slice(1).map(line => `\n    ${line}`)}
   \`\`\`

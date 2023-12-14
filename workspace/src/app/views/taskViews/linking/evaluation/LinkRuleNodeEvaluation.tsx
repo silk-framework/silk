@@ -14,6 +14,7 @@ import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
 import { EvaluationResultType } from "./LinkingRuleEvaluation";
+import {SampleError} from "../../../shared/SampleError/SampleError";
 
 const highlightedContainerClass = `${eccgui}-container--highlighted`;
 
@@ -77,7 +78,7 @@ export const LinkRuleNodeEvaluation = ({
                                 >
                                     <Tooltip
                                         content={
-                                            error ?? (
+                                            error?.error ?? (
                                                 <HtmlContentBlock>
                                                     {value.length === 1 && value[0]}
                                                     {value.length > 1 && (
@@ -105,10 +106,10 @@ export const LinkRuleNodeEvaluation = ({
                                         <span>
                                             {error ? (
                                                 <OverviewItemLine small>
-                                                    <Icon name="application-warning" intent="warning" />
+                                                    <SampleError sampleError={error} hasStateWarning />
                                                     <Spacing size="tiny" vertical />
                                                     <OverflowText className="linking__error-description">
-                                                        {error}
+                                                        {error.error}
                                                     </OverflowText>
                                                 </OverviewItemLine>
                                             ) : (

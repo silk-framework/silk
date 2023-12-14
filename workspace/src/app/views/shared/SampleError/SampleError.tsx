@@ -5,6 +5,8 @@ import {SampleErrorModal} from "./SampleErrorModal";
 interface SampleErrorProps {
     /** The sample error. */
     sampleError: SampleError
+    /** If the error report icon should be displayed with warning intent. */
+    hasStateWarning?: boolean
 }
 
 export interface SampleError {
@@ -29,7 +31,7 @@ export interface Stacktrace {
     cause?: Stacktrace
 }
 
-export const SampleError = ({sampleError}: SampleErrorProps) => {
+export const SampleError = ({sampleError, hasStateWarning = false}: SampleErrorProps) => {
     // Shows an error report modal with all the details
     const [showSameErrorReport, setShowSampleErrorReport] = React.useState(false)
 
@@ -42,8 +44,9 @@ export const SampleError = ({sampleError}: SampleErrorProps) => {
             key={"show-report"}
             data-test-id={"show-sample-error-btn"}
             name={"artefact-report"}
-            intent={"warning"}
+            hasStateWarning={hasStateWarning}
             onClick={onClick}
+            small={true}
         />
         {showSameErrorReport ?
             <SampleErrorModal
