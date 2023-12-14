@@ -13,7 +13,15 @@ interface SampleErrorModalProps {
 export const SampleErrorModal = ({sampleError, onClose}: SampleErrorModalProps) => {
     const [t] = useTranslation()
     const handleDownload = React.useCallback(() => {
-
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/markdown,' + encodeURIComponent(sampleErrorToMarkdown(sampleError)));
+        const now = new Date()
+        const timeSuffix = now.valueOf()
+        element.setAttribute('download', `sample_error_report_${timeSuffix}.md`);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
     }, [])
     return <SimpleDialog
         title={t("SampleError.title")}
@@ -47,7 +55,7 @@ ${stacktrace.cause ? stacktraceToMarkdown(stacktrace.cause, "  Cause:") : ""}
 }
 
 export const sampleErrorToMarkdown = (sampleError: SampleError): string => {
-    return `## Details
+    return `### Details
 
 * Error message: \`${sampleError.error}\`
 ${sampleError.entity ? "* Input entity URI: `" + sampleError.entity + "`" : ""}
