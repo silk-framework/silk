@@ -90,7 +90,7 @@ class TableEntityGenerator(entitySchema: EntitySchema, headerIndexMap: Map[Uri, 
    * The index of a path within a table.
    *
    * @param index     The column index of this path
-   * @param getColumn True, if the column number itself is be requested, False, if the value is requested.
+   * @param getColumn True, if the column number itself is being requested, False, if the value is requested.
    */
   private case class PathIndex(index: Int, getColumn: Boolean = false)
 
