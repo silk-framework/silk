@@ -3,7 +3,6 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.util.Identifier
 
 import scala.xml._
-import java.lang.StringBuilder
 
 /**
   * Minimalistic in-memory model of an XML node
@@ -39,6 +38,11 @@ sealed trait InMemoryXmlNode {
   /** Children of the XML node */
   def child: Array[InMemoryXmlNode] = Array.empty
 
+  /**
+   * Position of this XML node in the source file.
+   */
+  def position: XmlPosition
+
   def asArray: Array[InMemoryXmlNode] = {
     val array = new Array[InMemoryXmlNode](1)
     array(0) = this
@@ -49,10 +53,13 @@ sealed trait InMemoryXmlNode {
 }
 
 /** Represents an XML element */
-case class InMemoryXmlElem(override val id: String,
-                           label: String,
+case class InMemoryXmlElem(label: String,
                            override val attributes: Map[String, String],
-                           override val child: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
+                           override val child: Array[InMemoryXmlNode],
+                           override val position: XmlPosition) extends InMemoryXmlNode {
+
+  override def id: String = s"${position.line}-${position.column}"
+
   override def appendText(sb: StringBuilder): Unit = {
     var idx = 0
     while(idx < child.length) {
@@ -63,7 +70,8 @@ case class InMemoryXmlElem(override val id: String,
 }
 
 /** Represents a group of nodes. */
-case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
+case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode],
+                            override val position: XmlPosition) extends InMemoryXmlNode {
   override def appendText(sb: StringBuilder): Unit = {
     var idx = 0
     while(idx < nodes.length) {
@@ -84,14 +92,17 @@ case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode]) extends InMemoryXmlNo
 }
 
 /** XML Text node */
-case class InMemoryXmlText(value: String) extends InMemoryXmlNode {
+case class InMemoryXmlText(value: String,
+                           override val position: XmlPosition) extends InMemoryXmlNode {
   override def appendText(sb: StringBuilder): Unit = sb.append(value)
 
   override def label: String = "#PCDATA"
 }
 
 /** XML attribute node. */
-case class InMemoryXmlAttribute(attributeName: String, value: String) extends InMemoryXmlNode {
+case class InMemoryXmlAttribute(attributeName: String,
+                                value: String,
+                                override val position: XmlPosition) extends InMemoryXmlNode {
   override def appendText(sb: StringBuilder): Unit = sb.append(value)
 
   override def label: String = {
@@ -105,26 +116,15 @@ case class InMemoryXmlAttribute(attributeName: String, value: String) extends In
 }
 
 object InMemoryXmlNode {
-  /** Convert Scala XML node to [[InMemoryXmlNode]] */
-  def fromNode(node: Node): InMemoryXmlNode = {
-    node match {
-      case Text(text) => InMemoryXmlText(text)
-      case Unparsed(text) => InMemoryXmlText(text)
-      case PCData(text) => InMemoryXmlText(text)
-      case Group(nodes) => InMemoryXmlNodes(nodes.map(fromNode).toArray)
-      case e: Elem =>
-        InMemoryXmlElem(
-          id = e.hashCode.toString.replace('-', '1'),
-          label = e.label,
-          attributes = e.attributes.map(m => (m.key -> m.value.text)).toMap,
-          child = e.child.map(fromNode).toArray
-        )
-      case _ => throw new IllegalArgumentException(node.getClass.getName)
-    }
-  }
 
   /** Convert Scala XML attribute [[MetaData]] object to simple map. */
   def attributes(attr: MetaData): Map[String, String] = {
     attr.asAttrMap
   }
 }
+
+/**
+ * @param line Line number of the XML node
+ * @param column Column position of the XML node
+ */
+case class XmlPosition(line: Int, column: Int)

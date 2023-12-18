@@ -7,7 +7,6 @@ import org.silkframework.util.Identifier
 
 import java.net.URLEncoder
 import scala.collection.mutable.ArrayBuffer
-import scala.xml.Node
 
 /**
   * Implementation of XML access functions.
@@ -202,11 +201,15 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
   private def evaluateForwardOperator(op: ForwardOperator, buffer: ArrayBuffer[XmlTraverser]): Unit= {
     op.property.uri match {
       case "#id" =>
-        buffer += XmlTraverser(InMemoryXmlText(nodeId), Some(this))
+        buffer += XmlTraverser(InMemoryXmlText(nodeId, node.position), Some(this))
       case "#tag" =>
-        buffer += XmlTraverser(InMemoryXmlText(node.label), Some(this))
+        buffer += XmlTraverser(InMemoryXmlText(node.label, node.position), Some(this))
       case "#text" =>
-        buffer += XmlTraverser(InMemoryXmlText(node.text), Some(this))
+        buffer += XmlTraverser(InMemoryXmlText(node.text, node.position), Some(this))
+      case "#line" =>
+        buffer += XmlTraverser(InMemoryXmlText(node.position.line.toString, node.position), Some(this))
+      case "#column" =>
+        buffer += XmlTraverser(InMemoryXmlText(node.position.column.toString, node.position), Some(this))
       case "*" =>
         buffer ++= children
       case "**" =>
@@ -216,7 +219,8 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
           case Some(attrValue) =>
             buffer += XmlTraverser(InMemoryXmlAttribute(
               attributeName = uri,
-              value = attrValue
+              value = attrValue,
+              node.position
             ), Some(this))
           case None =>
             // Nothing to add
@@ -253,7 +257,8 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
           for(attributeValue <- elem.attributes.get(selector.substring(1))) {
             buffer += XmlTraverser(InMemoryXmlAttribute(
               attributeName = selector,
-              value = attributeValue
+              value = attributeValue,
+              position = elem.position
             ), Some(this))
           }
         case _ =>
@@ -328,7 +333,7 @@ object XmlTraverser {
     node.id
   }
 
-  def apply(node: Node): XmlTraverser = XmlTraverser(InMemoryXmlNode.fromNode(node))
+
 
   val emptySeq: Seq[XmlTraverser] = Seq.empty
   val emptyArray: Array[XmlTraverser] = Array.empty
