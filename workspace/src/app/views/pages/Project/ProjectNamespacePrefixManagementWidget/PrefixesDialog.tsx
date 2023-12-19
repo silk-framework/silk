@@ -45,6 +45,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
         setError(undefined);
     };
 
+    React.useEffect(() => {
+        setError(undefined)
+    }, [isOpen])
+
     const handleConfirmRemove = React.useCallback(async () => {
         try {
             setLoading(true);
@@ -70,6 +74,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
     const handleAddOrUpdatePrefix = React.useCallback(async (prefix: IPrefixDefinition) => {
         try {
             setLoading(true);
+            setError(undefined)
             const { prefixName, prefixUri } = prefix;
             const data = await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
             if (data) {
