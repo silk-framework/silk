@@ -84,14 +84,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
             handleOpen();
             setCurrentMarkdown(markdown);
         } catch (err) {
-            AppToaster.show({
-                message: t(
-                    "http.error.not.markdown",
-                    "Sorry but we can't find the markdown information for this report"
-                ),
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
+            registerErrorI18N("http.error.not.markdown", err)
         }
     };
     const fixTask: AlternativeTaskUpdateFunction = async (

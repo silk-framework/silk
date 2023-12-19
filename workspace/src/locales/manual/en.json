@@ -456,7 +456,7 @@
                 "authorized": "Not authorized",
                 "available": "Temporarily unavailable",
                 "found": "Not found",
-                "markdown": "Sorry but we can't find the markdown information for this report",
+                "markdown": "There was a problem fetching the error report",
                 "proxy": "Not authorized (proxy)",
                 "valid": "Invalid request"
             },
