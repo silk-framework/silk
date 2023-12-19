@@ -750,7 +750,7 @@
     },
     "copyModal": {
         "errorMessages": {
-            "searchFailure": "Retrieving item list failed",
+            "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"
         }
     },
