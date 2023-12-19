@@ -43,11 +43,18 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
         >
             <Depiction
                 padding="medium"
+                size="small"
                 ratio="1:1"
                 resizing="contain"
-                forceInlineSvg
-                image={<Icon name="application-warning" description="Notification menu icon" />}
-                badge={<Badge position={"bottom-right"}>{notificationQueue.notifications.length}</Badge>}
+                image={<Icon name="application-warning" description="Notification menu icon" large />}
+                badge={
+                    <Badge
+                        position={"top-right"}
+                        intent="warning"
+                        maxLength={2}
+                        children={notificationQueue.notifications.length}
+                    />
+                }
             />
         </ApplicationToolbarAction>
     );
