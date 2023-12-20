@@ -16,7 +16,7 @@ import {
 import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
@@ -272,10 +272,10 @@ export const TemplateInputComponent = memo(
         projectId,
         variableName,
     }: TemplateInputComponentProps) => {
-        const modalContext = React.useContext(CreateArtefactModalContext)
-        const {registerError: globalErrorHandler} = useErrorHandler()
+        const modalContext = React.useContext(CreateArtefactModalContext);
+        const { registerError: globalErrorHandler } = useErrorHandler();
         const [t] = useTranslation();
-        const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
+        const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
         const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
             let errorMessage = validationResult.parseError?.message;

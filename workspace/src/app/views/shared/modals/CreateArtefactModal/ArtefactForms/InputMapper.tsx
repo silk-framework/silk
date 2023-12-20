@@ -1,22 +1,23 @@
-import React, {useEffect} from "react";
-import {INPUT_TYPES} from "../../../../../constants";
-import {CodeEditor, Spinner, Switch, TextField} from "@eccenca/gui-elements";
-import {ITaskParameter} from "@ducks/common/typings";
-import {Intent} from "@blueprintjs/core";
+import React, { useEffect } from "react";
+import { INPUT_TYPES } from "../../../../../constants";
+import { CodeAutocompleteField, CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
+import { ITaskParameter } from "@ducks/common/typings";
+import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
-import {requestResourcesList} from "@ducks/shared/requests";
-import {defaultValueAsJs, stringValueAsJs} from "../../../../../utils/transformers";
-import {useSelector} from "react-redux";
-import {commonSel} from "@ducks/common";
-import {useTranslation} from "react-i18next";
-import {DefaultTargetVocabularySelection} from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
-import {fileValue} from "@ducks/shared/typings";
-import {ExtendedParameterCallbacks} from "./ParameterWidget";
-import {TextFieldWithCharacterWarnings} from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
-import {TextAreaWithCharacterWarnings} from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
-import {supportedCodeEditorModes} from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
+import { requestResourcesList } from "@ducks/shared/requests";
+import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
+import { useTranslation } from "react-i18next";
+import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
+import { fileValue } from "@ducks/shared/typings";
+import { ExtendedParameterCallbacks } from "./ParameterWidget";
+import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
+import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
+import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
+import { requestAutoCompleteTemplateString } from "../CreateArtefactModal.requests";
 
 interface IProps {
     projectId: string;
@@ -60,9 +61,9 @@ export function InputMapper({
     parameterCallbacks,
 }: IProps) {
     const [t] = useTranslation();
-    const {registerError: globalErrorHandler} = useErrorHandler()
-    const modalContext = React.useContext(CreateArtefactModalContext)
-    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
+    const { registerError: globalErrorHandler } = useErrorHandler();
+    const modalContext = React.useContext(CreateArtefactModalContext);
+    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
@@ -115,7 +116,7 @@ export function InputMapper({
                 })
             ).data;
         } catch (e) {
-            registerError("InputMapper.handleFileSearch", "File search has failed.", e)
+            registerError("InputMapper.handleFileSearch", "File search has failed.", e);
             return [];
         }
     };
@@ -137,6 +138,14 @@ export function InputMapper({
         }
     }
 
+    const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
+        try {
+            return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId)).data;
+        } catch (error) {
+            registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
+        }
+    }, []);
+
     switch (param.parameterType) {
         case INPUT_TYPES.BOOLEAN:
             return <Switch {...inputAttributes} />;
@@ -146,7 +155,18 @@ export function InputMapper({
         case INPUT_TYPES.TEXTAREA:
             return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
-            return <CodeEditor mode="sparql" {...inputAttributes} />;
+            // return <CodeEditor mode="sparql" {...inputAttributes} />;
+            return (
+                <CodeAutocompleteField
+                    multiline
+                    mode="sparql"
+                    initialValue={initialValue}
+                    fetchSuggestions={autoComplete}
+                    // checkInput={checkTemplate}
+                    autoCompletionRequestDelay={200}
+                    {...inputAttributes}
+                />
+            );
         case INPUT_TYPES.MULTILINE_STRING:
             return <CodeEditor mode="undefined" {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
