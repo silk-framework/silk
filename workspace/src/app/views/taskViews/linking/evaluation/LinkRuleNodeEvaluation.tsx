@@ -14,7 +14,7 @@ import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
 import { EvaluationResultType } from "./LinkingRuleEvaluation";
-import {SampleError} from "../../../shared/SampleError/SampleError";
+import { SampleError } from "../../../shared/SampleError/SampleError";
 
 const highlightedContainerClass = `${eccgui}-container--highlighted`;
 
@@ -72,13 +72,18 @@ export const LinkRuleNodeEvaluation = ({
                                     className={`evaluationLink${idx}`}
                                     onMouseEnter={() => onMouseEnter(idx)}
                                     onMouseLeave={() => onMouseLeave(idx)}
-                                    paddingTop="tiny"
-                                    paddingBottom="tiny"
+                                    paddingTop={error ? undefined : "small"}
+                                    paddingBottom={error ? undefined : "small"}
                                     style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
-                                    <Tooltip
-                                        content={
-                                            error?.error ?? (
+                                    {error ? (
+                                        <OverflowText className="linking__error-description">
+                                            <SampleError sampleError={error} hasStateWarning />
+                                            {error.error}
+                                        </OverflowText>
+                                    ) : (
+                                        <Tooltip
+                                            content={
                                                 <HtmlContentBlock>
                                                     {value.length === 1 && value[0]}
                                                     {value.length > 1 && (
@@ -96,24 +101,14 @@ export const LinkRuleNodeEvaluation = ({
                                                         </ul>
                                                     )}
                                                 </HtmlContentBlock>
-                                            )
-                                        }
-                                        placement="top"
-                                        rootBoundary="viewport"
-                                        targetTagName="div"
-                                        size="large"
-                                    >
-                                        <span>
-                                            {error ? (
-                                                <OverviewItemLine small>
-                                                    <SampleError sampleError={error} hasStateWarning />
-                                                    <Spacing size="tiny" vertical />
-                                                    <OverflowText className="linking__error-description">
-                                                        {error.error}
-                                                    </OverflowText>
-                                                </OverviewItemLine>
-                                            ) : (
-                                                value.slice(0, EXAMPLES_MAX - 1).map((value, i) => (
+                                            }
+                                            placement="top"
+                                            rootBoundary="viewport"
+                                            targetTagName="div"
+                                            size="large"
+                                        >
+                                            <span>
+                                                {value.slice(0, EXAMPLES_MAX - 1).map((value, i) => (
                                                     <Tag
                                                         key={i}
                                                         small={true}
@@ -124,15 +119,15 @@ export const LinkRuleNodeEvaluation = ({
                                                     >
                                                         {value}
                                                     </Tag>
-                                                ))
-                                            )}
-                                            {!error && value.length > EXAMPLES_MAX && (
-                                                <Tag small={true} minimal={true} round={true} htmlTitle={""}>
-                                                    +{value.length - EXAMPLES_MAX}
-                                                </Tag>
-                                            )}
-                                        </span>
-                                    </Tooltip>
+                                                ))}
+                                                {value.length > EXAMPLES_MAX && (
+                                                    <Tag small={true} minimal={true} round={true} htmlTitle={""}>
+                                                        +{value.length - EXAMPLES_MAX}
+                                                    </Tag>
+                                                )}
+                                            </span>
+                                        </Tooltip>
+                                    )}
                                 </WhiteSpaceContainer>
                             </li>
                         );
