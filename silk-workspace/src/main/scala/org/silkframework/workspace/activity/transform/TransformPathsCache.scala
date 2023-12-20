@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{CustomTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, DatasetSpec}
@@ -9,7 +9,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
@@ -28,20 +28,26 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
   /** The purpose of this value is to store the change notify callback function
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
-  private var datasetObserverFunctions: Option[GenericDatasetSpec => Unit] = None
+  private var datasetObserverFunctions: Option[TaskSpec => Unit] = None
+  private var observedInputTask: Option[Identifier] = None
 
-  private def setTransformSpecObserverFunction()(implicit userContext: UserContext) {
-    val fn: GenericDatasetSpec => Unit = _ => {
+  private def setTransformSpecObserverFunction()(implicit userContext: UserContext): Unit = {
+    val fn: TaskSpec => Unit = _ => {
       this.startDirty(transformTask.activity[TransformPathsCache].control)
     }
-
     // Only do this automatically if the input is a dataset
     val inputId = transformTask.data.selection.inputId
-    val inputTaskOpt = transformTask.project.taskOption[GenericDatasetSpec](inputId)
-    inputTaskOpt.foreach { inputTask =>
+    val inputDatasetOpt = transformTask.project.taskOption[GenericDatasetSpec](inputId)
+    inputDatasetOpt.foreach { inputDataset =>
+      inputDataset.dataValueHolder.subscribe(fn)
+    }
+    // or a CustomTask
+    val inputCustomTaskOpt = transformTask.project.taskOption[CustomTask](inputId)
+    inputCustomTaskOpt.foreach { inputTask =>
       inputTask.dataValueHolder.subscribe(fn)
     }
     datasetObserverFunctions = Some(fn)
+    observedInputTask = Some(inputId)
   }
 
   /**
@@ -53,7 +59,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
     implicit val prefixes: Prefixes = transformTask.project.config.prefixes
     implicit val pluginContext: PluginContext = PluginContext.fromProject(transformTask.project)
 
-    if(datasetObserverFunctions.isEmpty) {
+    if(datasetObserverFunctions.isEmpty || !observedInputTask.contains(transformTask.data.selection.inputId)) {
       setTransformSpecObserverFunction()
     }
 
