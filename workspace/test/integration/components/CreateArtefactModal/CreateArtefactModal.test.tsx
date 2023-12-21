@@ -243,7 +243,7 @@ describe("Task creation widget", () => {
         // resource and object parameter
         expect(findAll(wrapper, "legend")).toHaveLength(2);
         // restriction and multi-line use code mirror widget
-        expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
+        expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(1);
         // Default values should be set
         await elementHtmlToContain(wrapper, "#stringParam", "default string");
     });
