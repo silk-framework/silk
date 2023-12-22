@@ -75,6 +75,15 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
       """[{"type":"home","number":"789"}]"""))
   }
 
+  it should "support retrieving the line and column positions" in {
+    val example = json("example.json")
+    val persons = example.select("persons" :: Nil)
+    evaluate(persons, "#line") should equal(Seq("3", "18"))
+    evaluate(persons, "#column") should equal(Seq("5", "5"))
+    evaluate(persons, "name/#line") should equal(Seq("5", "20"))
+    evaluate(persons, "name/#column") should equal(Seq("15", "15"))
+  }
+
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {
     values.flatMap(value => value.evaluate(UntypedPath.parse(path).asStringTypedPath))
   }

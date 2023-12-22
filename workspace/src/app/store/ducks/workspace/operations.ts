@@ -7,11 +7,7 @@ import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import qs, { ParsedQs } from "qs";
-import {
-    fetchAddOrUpdatePrefixAsync,
-    fetchProjectPrefixesAsync,
-    fetchRemoveProjectPrefixAsync,
-} from "@ducks/workspace/widgets/configuration.thunk";
+import { fetchProjectPrefixesAsync } from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
@@ -50,7 +46,6 @@ const updateQueryString = () => {
         const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
         const { current, limit } = workspaceSel.paginationSelector(state);
-        //console.log("Applied sorters", appliedSorters);
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
@@ -311,8 +306,6 @@ const workspaceOps = {
     toggleFacetOp,
     setupFiltersFromQs,
     fetchProjectPrefixesAsync,
-    fetchAddOrUpdatePrefixAsync,
-    fetchRemoveProjectPrefixAsync,
     fetchWarningListAsync,
     fetchWarningMarkdownAsync,
     fetchResourcesListAsync,

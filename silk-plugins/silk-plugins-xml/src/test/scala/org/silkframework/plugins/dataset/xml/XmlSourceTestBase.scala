@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
@@ -11,6 +12,8 @@ import org.silkframework.util.Uri
 import scala.languageFeature.postfixOps
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import scala.collection.immutable.Seq
 
 //noinspection ScalaStyle
 abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
@@ -24,10 +27,10 @@ abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
 
   behavior of "XML Dataset"
 
-  personTests("persons.xml")
-  personTests("persons_unformatted.xml")
+  personTests("persons.xml", isFormatted = true)
+  personTests("persons_unformatted.xml", isFormatted = false)
 
-  def personTests(fileName: String): Unit = {
+  def personTests(fileName: String, isFormatted: Boolean): Unit = {
 
     val persons = XmlDoc(fileName)
 
@@ -185,6 +188,20 @@ abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
 
     it should s"allow the retrieval of single entities ($fileName)" in {
       (persons atPath "Person" entityWithUri "Person").uri shouldBe Uri("Person")
+    }
+
+    it should s"support retrieving the source position (#line and #column) ($fileName)" in {
+      if(isFormatted) {
+        (persons atPath "Person/ID" valuesAt "#line") shouldBe Seq(Seq("3"), Seq("25"))
+        (persons atPath "Person/ID" valuesAt "#column") shouldBe Seq(Seq("12"), Seq("12"))
+        (persons atPath "Person" valuesAt "Properties/Property/Key/#line") shouldBe Seq(Seq("11", "15", "19"), Seq())
+        (persons atPath "Person" valuesAt "Properties/Property/Key/#column") shouldBe Seq(Seq("14", "26", "15"), Seq())
+      } else {
+        (persons atPath "Person/ID" valuesAt "#line") shouldBe Seq(Seq("1"), Seq("9"))
+        (persons atPath "Person/ID" valuesAt "#column") shouldBe Seq(Seq("42"), Seq("26"))
+        (persons atPath "Person" valuesAt "Properties/Property/Key/#line") shouldBe Seq(Seq("6", "6", "6"), Seq())
+        (persons atPath "Person" valuesAt "Properties/Property/Key/#column") shouldBe Seq(Seq("32", "91", "147"), Seq())
+      }
     }
   }
 

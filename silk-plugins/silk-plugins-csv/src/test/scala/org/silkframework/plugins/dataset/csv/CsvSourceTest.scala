@@ -233,6 +233,13 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     entities.map(_.values.flatten.head).toSeq shouldBe Seq("1", "2", "3")
   }
 
+  it should "support #line and #column special forward path" in {
+    val s = source
+    val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("#line").asStringTypedPath, UntypedPath.parse("Name/#column").asStringTypedPath))
+    val entities = s.retrieve(schema, limitOpt = Some(3)).entities
+    entities.map(_.values.map(_.head)).toSeq shouldBe Seq(Seq("1", "1"), Seq("2", "1"), Seq("3", "1"))
+  }
+
   it should "respect the limit parameter" in {
     val s = source
     val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("Name").asStringTypedPath))
