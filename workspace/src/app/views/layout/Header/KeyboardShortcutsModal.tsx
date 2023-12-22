@@ -61,6 +61,11 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
     "workflow-editor": [
         { key: "delete", commands: ["backspace"] },
         { key: "multiselect", commands: ["shift+mouse select"] },
+        { key: "create-dataset", commands: ["c", "*then", "d"] },
+        { key: "create-transform", commands: ["c", "*then", "t"] },
+        { key: "create-linking", commands: ["c", "*then", "l"] },
+        { key: "create-task", commands: ["c", "*then", "o"] },
+        { key: "create-new-item", commands: ["c", "*then", "n"] },
     ],
 };
 

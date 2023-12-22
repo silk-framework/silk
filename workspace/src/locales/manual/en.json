@@ -271,7 +271,12 @@
                     "shortcuts": {
                         "delete": "Remove selected elements",
                         "multiselect": "Select multiple nodes",
-                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
+                        "create-dataset": "Create dataset",
+                        "create-transform": "Create Transform",
+                        "create-linking": "Create Linking",
+                        "create-task": "Create Task",
+                        "create-new-item": "Create new item"
                     }
                 }
             },
