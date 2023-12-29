@@ -17,7 +17,7 @@ import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSugg
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
-
+import { INPUT_TYPES } from "../../../../../constants";
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -63,6 +63,7 @@ interface Props {
         // The default value of the normal input
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
+    parameterType?: string;
 }
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
@@ -70,6 +71,7 @@ export const ArtefactFormParameter = ({
     projectId,
     parameterId,
     label,
+    parameterType,
     required = false,
     infoMessage,
     // Default is that the info message is an error
@@ -166,6 +168,11 @@ export const ArtefactFormParameter = ({
     }, []);
 
     const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
+    const multiline =
+        !showVariableTemplateInput &&
+        parameterType &&
+        (parameterType.startsWith("code-") ||
+            [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
 
     return (
         <FieldItem
@@ -194,7 +201,7 @@ export const ArtefactFormParameter = ({
                         maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
                     }}
                 >
-                    {supportVariableTemplateElement && showVariableTemplateInput ? (
+                    {supportVariableTemplateElement && (showVariableTemplateInput || multiline) ? (
                         <TemplateInputComponent
                             projectId={projectId}
                             parameterId={parameterId}
@@ -204,6 +211,7 @@ export const ArtefactFormParameter = ({
                                 initialValue ??
                                 ""
                             }
+                            multiline={!!multiline}
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
@@ -259,6 +267,7 @@ interface TemplateInputComponentProps {
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
+    multiline?: boolean;
 }
 
 /** The input component for the template value. */
@@ -271,6 +280,7 @@ export const TemplateInputComponent = memo(
         evaluatedValueMessage,
         projectId,
         variableName,
+        multiline,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -336,6 +346,7 @@ export const TemplateInputComponent = memo(
                 fetchSuggestions={autoComplete}
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
+                multiline={multiline}
             />
         );
     }

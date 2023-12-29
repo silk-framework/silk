@@ -17,7 +17,6 @@ import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/Text
 import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
-import { requestAutoCompleteTemplateString } from "../CreateArtefactModal.requests";
 
 interface IProps {
     projectId: string;
@@ -138,14 +137,6 @@ export function InputMapper({
         }
     }
 
-    const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
-        try {
-            return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId)).data;
-        } catch (error) {
-            registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
-        }
-    }, []);
-
     switch (param.parameterType) {
         case INPUT_TYPES.BOOLEAN:
             return <Switch {...inputAttributes} />;
@@ -155,18 +146,7 @@ export function InputMapper({
         case INPUT_TYPES.TEXTAREA:
             return <TextAreaWithCharacterWarnings {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
-            // return <CodeEditor mode="sparql" {...inputAttributes} />;
-            return (
-                <CodeAutocompleteField
-                    multiline
-                    mode="sparql"
-                    initialValue={initialValue}
-                    fetchSuggestions={autoComplete}
-                    // checkInput={checkTemplate}
-                    autoCompletionRequestDelay={200}
-                    {...inputAttributes}
-                />
-            );
+            return <CodeEditor mode="sparql" {...inputAttributes} />;
         case INPUT_TYPES.MULTILINE_STRING:
             return <CodeEditor mode="undefined" {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:

@@ -234,6 +234,7 @@ export const ParameterWidget = (props: IProps) => {
                 helperText={propertyHelperText}
                 infoMessage={errorText ? errorText : infoHelperText}
                 infoMessageDanger={!!errorText}
+                parameterType={propertyDetails.parameterType}
                 supportVariableTemplateElement={{
                     onChange: changeHandlers[formParamId],
                     startWithTemplateView: isTemplateParameter,
