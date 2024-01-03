@@ -101,7 +101,7 @@ trait PluginDescription[+T] {
   /**
     * Parses parameter values.
     */
-  protected def parseParameters(parameterValues: ParameterValues)(implicit context: PluginContext): Seq[AnyRef] = {
+  def parseParameters(parameterValues: ParameterValues)(implicit context: PluginContext): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.values.get(parameter.name) match {
         case Some(value) =>
