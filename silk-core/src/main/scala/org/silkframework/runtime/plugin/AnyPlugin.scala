@@ -20,40 +20,15 @@ package org.silkframework.runtime.plugin
 trait AnyPlugin {
 
   /**
-    * Must be called by the plugin description, after creation of a plugin.
-    */
-  def init(pluginSpec: PluginDescription[AnyPlugin], templateValues: Map[String, String]): Unit = {
-    this._pluginSpec = pluginSpec
-    this._templateValues = templateValues
-  }
-
-  @transient
-  @volatile
-  private var _pluginSpec: PluginDescription[AnyPlugin] = _
-
-  @transient
-  @volatile
-  private var _templateValues: Map[String, String] = _
+   * The description for this plugin.
+   */
+  @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = ClassPluginDescription(getClass)
 
   /**
-    * The description for this plugin.
+    * Holds all templates. Set by ClassPluginDescription.
     */
-  def pluginSpec: PluginDescription[AnyPlugin] = {
-    if(_pluginSpec == null) {
-      _pluginSpec = ClassPluginDescription(getClass)
-    }
-    _pluginSpec
-  }
-
-  /**
-    * Holds all templates.
-    */
-  def templateValues: Map[String, String] = {
-    if (_templateValues == null) {
-      _templateValues = Map.empty
-    }
-    _templateValues
-  }
+  @volatile
+  var templateValues: Map[String, String] = Map.empty
 
   /**
     * Retrieves all parameter values for this plugin.
