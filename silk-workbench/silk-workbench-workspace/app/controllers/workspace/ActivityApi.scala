@@ -401,7 +401,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     val (activity, activityLabel) = activityControl(projectName, taskName, activityName, activityInstance)
     implicit val writeContext = WriteContext.empty[JsValue]
 
-    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activityLabel, activity.startTime).write(activity.status()))
+    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activityLabel, activity.queueTime, activity.startTime).write(activity.status()))
   }
 
   @Operation(

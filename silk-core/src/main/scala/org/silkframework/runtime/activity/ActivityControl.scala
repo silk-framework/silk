@@ -25,7 +25,13 @@ trait ActivityControl[T] {
   def status: Observable[Status]
 
   /**
-    * Holds the timestamp when the activity has been started.
+   * Holds the timestamp when the activity has been added to the waiting queue.
+   * None, if the activity has not been queued before.
+   */
+  def queueTime: Option[Instant] = None
+
+  /**
+    * Holds the timestamp when the activity has started execution.
     * None, if the activity has not been started before.
     */
   def startTime: Option[Instant] = None
