@@ -18,6 +18,7 @@ import test.Routes
 import scala.xml.{Node, XML}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 
 class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait {
 
@@ -28,7 +29,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
   private val allJsonPaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number",
     "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId", "department/tags/evenMoreNested/value")
 
-  private val jsonSpecialPaths = JsonDataset.specialPaths.all
+  private val jsonSpecialPaths = JsonDataset.characteristics.supportedPathExpressions.specialPaths.map(_.value)
   private val jsonSpecialPathsFull = fullPaths(jsonSpecialPaths)
   private val jsonOps = Seq("/", "\\", "[")
 
@@ -159,7 +160,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     // The operators are proposed, so the path should also be shown
     rdfSuggestions("rdf:type") mustBe Seq("rdf:type") ++ rdfOps
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
-    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
+    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text", "/#line", "/#column") ++ jsonOps
     // Here, the backward operator would show up, so also show the path
     jsonSuggestions("name", 0, None) mustBe Seq("name", "\\")
   }

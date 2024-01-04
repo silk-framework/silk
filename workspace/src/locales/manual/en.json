@@ -271,7 +271,12 @@
                     "shortcuts": {
                         "delete": "Remove selected elements",
                         "multiselect": "Select multiple nodes",
-                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
+                        "create-dataset": "Create dataset",
+                        "create-transform": "Create Transform",
+                        "create-linking": "Create Linking",
+                        "create-task": "Create Task",
+                        "create-new-item": "Create new item"
                     }
                 }
             },
@@ -369,6 +374,7 @@
             "anErrorHasOccurred": "An error has occurred.",
             "allTypes": "All types",
             "cloneModalTitle": "New name of cloned {{item}}",
+            "cloneModalIdentifier": "Custom identifier for {{item}} (optional)",
             "cloneOf": "Copy of {{item}}",
             "copyModalTitle": "New name of copied {{item}}",
             "copyModalProjectSelect": "Select Project Target",
@@ -455,7 +461,7 @@
                 "authorized": "Not authorized",
                 "available": "Temporarily unavailable",
                 "found": "Not found",
-                "markdown": "Sorry but we can't find the markdown information for this report",
+                "markdown": "There was a problem fetching the error report",
                 "proxy": "Not authorized (proxy)",
                 "valid": "Invalid request"
             },
@@ -747,6 +753,12 @@
             }
         }
     },
+    "copyModal": {
+        "errorMessages": {
+            "searchFailure": "Retrieving project list failed",
+            "copyFailure": "Failed to copy"
+        }
+    },
     "widget": {
         "ActivityInfoWidget": {
             "title": "Activities",
@@ -758,7 +770,13 @@
             "prefix": "Prefix",
             "prefixTitle": "Manage Prefixes",
             "prefix_plural": "Prefixes",
-            "title": "Configuration"
+            "title": "Configuration",
+            "modal": {
+                "errors": {
+                    "prefixDeletionFailure": "Prefix deletion failed",
+                    "prefixChangeFailure": "Prefix change failed"
+                }
+            }
         },
         "FacetsList": {
             "facet": {
@@ -812,6 +830,11 @@
                 "modified": "Last modified",
                 "name": "Name",
                 "size": "Size (bytes)"
+            },
+            "modal": {
+                "errorMessages": {
+                    "deleteFile": "File deletion failed"
+                }
             }
         },
         "Filterbar": {
@@ -955,7 +978,11 @@
             },
             "errorMessages": {
                 "loadingVariables": "Could not load variables for project '{{projectId}}'",
-                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand"
+                "orderingVariables": "Cannot change position of variable: its own dependencies must be defined beforehand",
+                "variableUpsertFailure": "Variable add/update failed",
+                "templateUpdateFailure": "Variable template error",
+                "dependencyRetrievalFailure": "Failed to retrieve dependencies",
+                "variableDeletionFailure": "Failed to delete variable"
             }
         },
         "TaskConfigWidget": {
@@ -1173,5 +1200,8 @@
     "MappingTree": {
         "loadingRules": "Loading rules",
         "noRulesFound": "No rules found"
+    },
+    "SampleError": {
+        "title": "Sample error report"
     }
 }

@@ -31,9 +31,5 @@ export const fetchWarningListAsync = (projectId: string) => {
     };
 };
 
-export const fetchWarningMarkdownAsync = async (taskId: string, projectId: string) => {
-    try {
-        const data = await requestWarningMarkdown(taskId, projectId);
-        return data;
-    } catch {}
-};
+export const fetchWarningMarkdownAsync = async (taskId: string, projectId: string) =>
+    await requestWarningMarkdown(taskId, projectId);

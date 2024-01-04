@@ -42,7 +42,7 @@ import {
 import utils from "../LinkingRuleEvaluation.utils";
 import { IAggregationOperator, IComparisonOperator } from "../../linking.types";
 import { EvaluationResultType } from "../LinkingRuleEvaluation";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
@@ -131,7 +131,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     //fetch operator plugins
     React.useEffect(() => {
         (async () => {
-            setOperatorPlugins(Object.values((await requestRuleOperatorPluginDetails(false)).data));
+            setOperatorPlugins(Object.values((await requestRuleOperatorPluginsDetails(false)).data));
         })();
     }, []);
 

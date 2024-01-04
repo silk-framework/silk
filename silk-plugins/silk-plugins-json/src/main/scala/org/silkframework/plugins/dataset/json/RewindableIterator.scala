@@ -44,7 +44,7 @@ object RewindableEntityIterator {
         new InMemoryRewindableEntityIterator(Iterable(firstEntity))
       } else {
         // Load entities into file
-        FileRewindableEntityIterator.load(iterator, schema)
+        FileRewindableEntityIterator.load(CloseableIterator(Iterator(firstEntity) ++ iterator, iterator), schema)
       }
     }
   }

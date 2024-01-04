@@ -26,7 +26,7 @@
     "dependencies": {
         "@blueprintjs/core": "^4.9.0",
         "@blueprintjs/select": "^4.6.0",
-        "@eccenca/gui-elements": "^23.3.0",
+        "@eccenca/gui-elements": "^23.3.1",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.4.0",

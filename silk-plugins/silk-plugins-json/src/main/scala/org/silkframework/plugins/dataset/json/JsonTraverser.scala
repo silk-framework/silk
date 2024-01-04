@@ -1,14 +1,15 @@
 package org.silkframework.plugins.dataset.json
 
-import java.net.{URLDecoder, URLEncoder}
-import java.nio.charset.StandardCharsets
-
 import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
+
+import java.net.{URLDecoder, URLEncoder}
+import java.nio.charset.StandardCharsets
 
 /**
   * Data structure to traverse JSON files.
@@ -17,13 +18,13 @@ import play.api.libs.json._
   * @param parentOpt - the parent traverser for backward traversal
   * @param value     - the current json object
   */
-case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], value: JsValue) {
+case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], value: JsonNode) {
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
-      case obj: JsObject =>
+      case obj: JsonObject =>
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
-        obj.value.get(decodedProp).toSeq.map(value => asNewParent(prop, value))
-      case array: JsArray if array.value.nonEmpty =>
+        obj.values.get(decodedProp).toSeq.map(value => asNewParent(prop, value))
+      case array: JsonArray if array.value.nonEmpty =>
         array.value.flatMap(v => keepParent(v).children(prop)).toSeq
       case _ =>
         Nil
@@ -39,20 +40,20 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean, depth: Int): Seq[(Seq[PathOperator], ValueType)] = {
     assert(!(leafPathsOnly && innerPathsOnly), "Cannot set leafPathsOnly and innerPathsOnly to true at the same time!")
 
-    def fetchChildPaths(obj: JsObject) = {
-      obj.keys.toSeq.flatMap(key =>
-        asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(URLEncoder.encode(key, StandardCharsets.UTF_8.name)), leafPathsOnly, innerPathsOnly, depth - 1))
+    def fetchChildPaths(obj: JsonObject) = {
+      obj.values.keys.toSeq.flatMap(key =>
+        asNewParent(key, obj.values(key)).collectPaths(path :+ ForwardOperator(URLEncoder.encode(key, StandardCharsets.UTF_8.name)), leafPathsOnly, innerPathsOnly, depth - 1))
     }
 
     value match {
-      case obj: JsObject =>
+      case obj: JsonObject =>
         val childPaths = if(depth == 0) Seq() else fetchChildPaths(obj)
         if(leafPathsOnly) {
           childPaths
         } else {
           Seq(path -> ValueType.URI) ++ childPaths
         }
-      case array: JsArray if array.value.nonEmpty =>
+      case array: JsonArray if array.value.nonEmpty =>
         keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly, depth)
       case _ =>
         if (path.nonEmpty && !innerPathsOnly) {
@@ -70,29 +71,29 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     */
   def select(path: Seq[String]): Seq[JsonTraverser] = {
     value match {
-      case _: JsObject if path.nonEmpty =>
+      case _: JsonObject if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
-      case array: JsArray if array.value.nonEmpty =>
+      case array: JsonArray if array.value.nonEmpty =>
         array.value.flatMap(value => keepParent(value).select(path)).toSeq
-      case _: JsArray =>
+      case _: JsonArray =>
         Seq()
-      case _: JsValue if path.isEmpty =>
+      case _: JsonNode if path.isEmpty =>
         Seq(this)
-      case _: JsValue =>
+      case _: JsonNode =>
         Seq()
     }
   }
 
   def select(path: List[PathOperator]): Seq[JsonTraverser] = {
     value match {
-      case _: JsObject if path.nonEmpty =>
+      case _: JsonObject if path.nonEmpty =>
         selectOnObject(path)
-      case array: JsArray if array.value.nonEmpty =>
+      case array: JsonArray if array.value.nonEmpty =>
         val t = array.value.map(value => keepParent(value).select(path))
         t.flatten.toSeq
-      case JsNull =>
+      case _: JsonNull =>
         Seq() // JsNull is a JsValue, so it has to be handled before JsValue
-      case _: JsValue if path.isEmpty =>
+      case _: JsonNode if path.isEmpty =>
         Seq(this)
       case _ =>
         Seq()
@@ -125,6 +126,10 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
             Seq(nodeId(value))
           case JsonDataset.specialPaths.TEXT =>
             Seq(value.toString())
+          case SpecialPaths.LINE.value =>
+            Seq(value.position.line.toString)
+          case SpecialPaths.COLUMN.value =>
+            Seq(value.position.column.toString)
           case _ =>
             children(prop).flatMap(child => child.evaluate(tail, generateUris))
         }
@@ -146,35 +151,35 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
   private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator], generateUris: Boolean): Seq[String] = {
     this.value match {
-      case obj: JsObject if filter.evaluate("\"" + nodeToString(obj.value(filter.property.uri)) + "\"") =>
+      case obj: JsonObject if filter.evaluate("\"" + nodeToString(obj.values(filter.property.uri)) + "\"") =>
         evaluate(tail, generateUris)
-      case array: JsArray if array.value.nonEmpty =>
+      case array: JsonArray if array.value.nonEmpty =>
         array.value.flatMap(v => keepParent(v).evaluate(path, generateUris)).toSeq
       case _ =>
         Nil
     }
   }
 
-  def nodeToValue(jsValue: JsValue, generateUris: Boolean): Seq[String] = {
+  def nodeToValue(jsValue: JsonNode, generateUris: Boolean): Seq[String] = {
     jsValue match {
-      case array: JsArray =>
+      case array: JsonArray =>
         array.value.flatMap(nodeToValue(_, generateUris)).toSeq
-      case jsObject: JsObject =>
+      case jsObject: JsonObject =>
         Seq(generateUri(jsObject))
-      case JsNull =>
+      case _: JsonNull =>
         Seq()
-      case v: JsValue if !generateUris =>
+      case v: JsonNode if !generateUris =>
         Seq(nodeToString(v))
-      case v: JsValue =>
+      case v: JsonNode =>
         Seq(generateUri(v))
     }
   }
 
-  def generateUri(value: JsValue): String = {
+  def generateUri(value: JsonNode): String = {
     DataSource.generateEntityUri(taskId, nodeId(value))
   }
 
-  def nodeId(value: JsValue): String = {
+  def nodeId(value: JsonNode): String = {
     nodeToString(value).hashCode.toString
   }
 
@@ -183,27 +188,27 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   /**
     * Converts a simple json node, such as a number, to a string.
     */
-  private def nodeToString(json: JsValue): String = {
+  private def nodeToString(json: JsonNode): String = {
     json match {
-      case JsBoolean(v) => v.toString
-      case JsNumber(v) => v.toString
-      case JsString(v) => v.toString
-      case _ => json.toString()
+      case JsonBoolean(v, _) => v.toString
+      case JsonNumber(v, _) => v.toString
+      case JsonString(v, _) => v
+      case _ => json.toString
     }
   }
 
-  def asNewParent(prop: Uri, value: JsValue): JsonTraverser = JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), value)
+  def asNewParent(prop: Uri, value: JsonNode): JsonTraverser = JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), value)
 
-  def keepParent(value: JsValue): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, value)
+  def keepParent(value: JsonNode): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, value)
 }
 
 object JsonTraverser {
   def apply(taskId: Identifier, resource: Resource): JsonTraverser = {
-    JsonTraverser(taskId, None, Json.parse(resource.loadAsString()))
+    JsonTraverser(taskId, None, resource.read(JsonNodeSerializer.parse))
   }
 
-  def apply(taskId: Identifier, jsValue: JsValue): JsonTraverser = {
-    JsonTraverser(taskId, None, jsValue)
+  def apply(taskId: Identifier, json: JsonNode): JsonTraverser = {
+    JsonTraverser(taskId, None, json)
   }
 }
 

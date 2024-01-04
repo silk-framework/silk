@@ -5,9 +5,8 @@ import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
 import org.silkframework.failures.EntityException
-import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
+import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
-import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -34,7 +33,7 @@ class TransformedEntities(task: Task[TransformSpec],
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
-                          context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) {
+                          report: TransformReportBuilder)(implicit prefixes: Prefixes) {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -62,26 +61,21 @@ class TransformedEntities(task: Task[TransformSpec],
   private val errors = mutable.Buffer[Throwable]()
 
   def iterator: CloseableIterator[Entity] = {
-    val report = {
-      val prevReport = context.value.get.getOrElse(TransformReport(task))
-      new TransformReportBuilder(task, rules, prevReport)
-    }
-
     count = 0
     var lastUpdateTime = System.currentTimeMillis()
     var lastCount = 0
+    report.addRules(rules)
 
     val mappedEntities =
       for (entity <- entities; mappedEntity <- mapEntity(entity, report)) yield {
         if (count > lastCount && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
-          context.value.update(report.build())
-          context.status.updateMessage(s"Executing ($count Entities)")
+          report.build(logMessage = true)
           lastUpdateTime = System.currentTimeMillis()
           lastCount = count
         }
         mappedEntity
       }
-    new TransformReportIterator(mappedEntities.thenClose(() => context.value.update(report.build())), report)
+    new TransformReportIterator(mappedEntities.thenClose(() => report.build()), report)
   }
 
   private def mapEntity(entity: Entity, report: TransformReportBuilder): Iterator[Entity] = {
@@ -185,13 +179,13 @@ class TransformedEntities(task: Task[TransformSpec],
         if (iterator.hasNext) {
           true
         } else {
-          context.value() = report.build(isDone = true)
+          report.build(isDone = true)
           false
         }
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
-          context.value() = report.build(isDone = true)
+          report.build(isDone = true)
           throw ex
       }
     }
@@ -202,7 +196,7 @@ class TransformedEntities(task: Task[TransformSpec],
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
-          context.value() = report.build(isDone = true)
+          report.build(isDone = true)
           throw ex
       }
     }
