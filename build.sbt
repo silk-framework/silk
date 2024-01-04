@@ -85,6 +85,8 @@ lazy val commonSettings = Seq(
   dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
 
+  scalacOptions += "-opt:l:inline",
+  scalacOptions += "-opt:l:method",
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
