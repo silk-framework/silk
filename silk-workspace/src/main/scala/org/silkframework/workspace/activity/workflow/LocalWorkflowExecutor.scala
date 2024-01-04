@@ -46,6 +46,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
+    Thread.sleep(100000) 
     cancelled = false
     try {
       runWorkflow(context, updateUserContext(userContext))
