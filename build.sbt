@@ -75,7 +75,7 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.4.14",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
@@ -84,10 +84,6 @@ lazy val commonSettings = Seq(
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
   dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
   dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
-
-  // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
-  // Can be removed as soon as there are newer stable versions of logback
-  dependencyOverrides += "org.slf4j" % "slf4j-api" % "1.7.36",
 
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
