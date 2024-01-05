@@ -1,7 +1,7 @@
 import sbt.Keys.libraryDependencies
 import sbt.{File, taskKey, *}
 
-import java.io.*
+import java.io.FileWriter
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
