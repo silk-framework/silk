@@ -169,7 +169,6 @@ export const ArtefactFormParameter = ({
 
     const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
     const multiline =
-        !showVariableTemplateInput &&
         parameterType &&
         (parameterType.startsWith("code-") ||
             [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
@@ -201,7 +200,7 @@ export const ArtefactFormParameter = ({
                         maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
                     }}
                 >
-                    {supportVariableTemplateElement && (showVariableTemplateInput || multiline) ? (
+                    {supportVariableTemplateElement && showVariableTemplateInput ? (
                         <TemplateInputComponent
                             projectId={projectId}
                             parameterId={parameterId}
