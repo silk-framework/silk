@@ -1,5 +1,6 @@
 package org.silkframework.runtime.caching
-
+
+
 import org.silkframework.util.TestFileUtils
 
 import java.nio.ByteBuffer
@@ -14,6 +15,12 @@ class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
   behavior of "Persistent sorted key value store"
 
   val values = Seq("", " ", "123", "abc", "something longer with unicode char ඔ" * 10)
+
+  it should "check if it is working in general" in {
+    System.setProperty("os.arch", "XXX")
+    System.setProperty("os.name", "XXX")
+    an [LinkageError] shouldBe thrownBy { PersistentSortedKeyValueStore.check().get }
+  }
 
   it should "store and retrieve single string values to/from the store" in {
     withStore() { store =>
