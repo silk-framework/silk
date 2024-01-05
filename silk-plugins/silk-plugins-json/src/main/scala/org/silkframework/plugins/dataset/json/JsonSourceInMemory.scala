@@ -9,12 +9,11 @@ import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
-import play.api.libs.json.{JsArray, JsValue, Json}
 
 import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
-class JsonSourceInMemory(taskId: Identifier, input: JsValue, basePath: String, uriPattern: String) extends JsonSource(taskId, basePath, uriPattern) {
+class JsonSourceInMemory(taskId: Identifier, input: JsonNode, basePath: String, uriPattern: String) extends JsonSource(taskId, basePath, uriPattern) {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -106,14 +105,14 @@ class JsonSourceInMemory(taskId: Identifier, input: JsValue, basePath: String, u
 object JsonSourceInMemory {
 
   def apply(taskId: Identifier, str: String, basePath: String, uriPattern: String): JsonSourceInMemory = {
-    new JsonSourceInMemory(taskId, Json.parse(str), basePath, uriPattern)
+    new JsonSourceInMemory(taskId, JsonNodeSerializer.parse(str), basePath, uriPattern)
   }
 
   def apply(file: Resource, basePath: String, uriPattern: String): JsonSourceInMemory = {
     if(file.nonEmpty) {
-      new JsonSourceInMemory(Identifier.fromAllowed(file.name), file.read(Json.parse), basePath, uriPattern)
+      new JsonSourceInMemory(Identifier.fromAllowed(file.name), file.read(JsonNodeSerializer.parse), basePath, uriPattern)
     } else {
-      new JsonSourceInMemory(Identifier.fromAllowed(file.name), JsArray(), basePath, uriPattern)
+      new JsonSourceInMemory(Identifier.fromAllowed(file.name), JsonArray(Array.empty[JsonNode], JsonPosition(0, 0)), basePath, uriPattern)
     }
   }
 }

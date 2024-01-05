@@ -52,6 +52,7 @@ import { requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
+import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -137,7 +138,6 @@ export function CreateArtefactModal() {
         new Map<string, (value: { value: string; label?: string }) => any>()
     );
     const templateParameters = React.useRef(new Set<string>());
-    const NOTIFICATION_ID = "create-update-dialog";
 
     const setToBeAdded = React.useCallback((plugin: IPluginOverview | undefined) => {
         toBeAdded.current = plugin;
@@ -152,7 +152,7 @@ export function CreateArtefactModal() {
         }
     }, [infoMessage]);
 
-    const registerError = (errorId: string, errorMessage: string, error: any, notificationId: string) => {
+    const registerError = React.useCallback((errorId: string, errorMessage: string, error: any) => {
         const diServerMessage = diErrorMessage(error);
         const errorDetails = diServerMessage ? ` Details: ${diServerMessage}` : "";
         const m = errorMessage.trim().endsWith(".")
@@ -165,7 +165,7 @@ export function CreateArtefactModal() {
             cause: error,
         };
         dispatch(commonOp.setModalError(newError));
-    };
+    }, []);
 
     const resetModalError = () => {
         dispatch(commonOp.setModalError({}));
@@ -194,8 +194,7 @@ export function CreateArtefactModal() {
                     registerError(
                         "CreateArtefactModal-fetch-project-meta-data",
                         "Could not fetch project information",
-                        e,
-                        NOTIFICATION_ID
+                        e
                     );
                 }
             })();
@@ -257,12 +256,7 @@ export function CreateArtefactModal() {
             const results = (await requestSearchList(payload)).results;
             return results;
         } catch (err) {
-            registerError(
-                "CreateArtefactModal-getWorkspaceProjects",
-                "Could not fetch project list.",
-                err,
-                NOTIFICATION_ID
-            );
+            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err);
             return [];
         }
     };
@@ -368,6 +362,12 @@ export function CreateArtefactModal() {
                         });
                     }
                 }
+            } catch (error) {
+                registerError(
+                    "CreateArtefactModal.handleCreate",
+                    `Could not ${updateExistingTask ? "update" : "create"} task.`,
+                    error
+                );
             } finally {
                 setActionLoading(false);
             }
@@ -525,6 +525,10 @@ export function CreateArtefactModal() {
         []
     );
 
+    const propagateExternallyChangedParameterValue = React.useCallback((fullParamId: string, value: string) => {
+        externalParameterUpdateMap.current.get(fullParamId)?.({ value });
+    }, []);
+
     if (updateExistingTask) {
         // Task update
         artefactForm = (
@@ -546,6 +550,7 @@ export function CreateArtefactModal() {
                 }}
                 // Close modal immediately from update dialog
                 goBackOnEscape={() => handleBack(true)}
+                propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
             />
         );
     } else {
@@ -583,6 +588,7 @@ export function CreateArtefactModal() {
                             }}
                             goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
+                            propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
                         />
                     );
                 }
@@ -683,12 +689,7 @@ export function CreateArtefactModal() {
                 removeAfterSeconds: 5,
             });
         } catch (ex) {
-            registerError(
-                "CreateArtefactModal.handleAutConfigure",
-                "Auto-configuration has failed.",
-                ex,
-                NOTIFICATION_ID
-            );
+            registerError("CreateArtefactModal.handleAutConfigure", "Auto-configuration has failed.", ex);
         } finally {
             setAutoConfigPending(false);
         }
@@ -740,23 +741,26 @@ export function CreateArtefactModal() {
     const updateModalTitle = (updateData: IProjectTaskUpdatePayload) => updateData.metaData.label ?? updateData.taskId;
     const notifications: JSX.Element[] = [];
 
-    if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage) {
+    if (!!error.detail || !!error.errorMessage || !!error.body?.taskLoadingError?.errorMessage || error.isFetchError) {
         // Special case for fix task loading error
         const taskLoadingError = error.body?.taskLoadingError?.errorMessage ? (
             <div
                 data-test-id={"action-error-notification"}
             >{`${error.body.detail} ${error.body?.taskLoadingError?.errorMessage}`}</div>
         ) : undefined;
+        const actionFailed = () => {
+            const actionValue = updateExistingTask ? t("common.action.update") : t("common.action.create");
+            const errorMessage = (diErrorMessage(error) ?? "Unknown error").replace(/^(assertion failed: )/, "");
+            return t("common.messages.actionFailed", {
+                action: actionValue,
+                error: errorMessage,
+            });
+        };
+
         notifications.push(
             <Notification
-                message={
-                    taskLoadingError ||
-                    error.errorMessage ||
-                    t("common.messages.actionFailed", {
-                        action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
-                        error: error.detail.replace(/^(assertion failed: )/, ""),
-                    })
-                }
+                onDismiss={resetModalError}
+                message={taskLoadingError || error.errorMessage || actionFailed()}
                 danger
             />
         );
@@ -998,6 +1002,12 @@ export function CreateArtefactModal() {
             maxFileUploadSizeBytes={maxFileUploadSize}
         />
     ) : (
-        createDialog
+        <CreateArtefactModalContext.Provider
+            value={{
+                registerModalError: registerError,
+            }}
+        >
+            {createDialog}
+        </CreateArtefactModalContext.Provider>
     );
 }

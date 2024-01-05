@@ -56,12 +56,12 @@ trait EntityCache {
   /**
    * Removes all entities from this cache.
    */
-  def clear()
+  def clear(): Unit
 
   /**
    * Closes this cache and writes all unwritten entities.
    */
-  def close()
+  def close(): Unit
 
   /**
    *  The number of blocks in this cache.
@@ -81,7 +81,7 @@ trait EntityCache {
   /**
    * Reads entities from XML
    */
-  def fromXML(node: Node, entityDesc: EntitySchema) {
+  def fromXML(node: Node, entityDesc: EntitySchema): Unit = {
       var currentBlock = 0
 
       for (blockNode <- node \ "Block") {

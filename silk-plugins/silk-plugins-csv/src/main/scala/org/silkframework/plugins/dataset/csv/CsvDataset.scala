@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.csv
 
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPaths, SupportedPathExpressions}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.resource._
 
 @Plugin(
@@ -100,13 +101,24 @@ case class CsvDataset (
     quote
   }
 
-  def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(supportsMultipleTables = false)
+  def characteristics: DatasetCharacteristics = CsvDataset.csvDataCharacteristics
 }
 
 object CsvDataset {
 
   /** Warning: Do NOT increase the default value here, it will request heap memory of this amount for every read operation of a column. */
   val DEFAULT_MAX_CHARS_PER_COLUMN = 128000
+
+  final val csvDataCharacteristics = {
+    DatasetCharacteristics(SupportedPathExpressions(
+      specialPaths = Seq(
+        SpecialPaths.IDX,
+        SpecialPaths.LINE,
+        SpecialPaths.COLUMN
+      )),
+      supportsMultipleTables = false
+    )
+  }
 
   def fromSettings(settings: CsvSettings, file: WritableResource, ignoreBadLines: Boolean = false): CsvDataset = {
     new CsvDataset(

@@ -4,7 +4,7 @@ import { IComplexMappingRule, ITransformTaskParameters } from "./transform.types
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
-import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
 import {
@@ -75,7 +75,7 @@ export const TransformRuleEditor = ({
     /** Fetches the list of operators that can be used in a transform task. */
     const fetchTransformRuleOperatorList = async () => {
         try {
-            const response = (await requestRuleOperatorPluginDetails(true)).data;
+            const response = (await requestRuleOperatorPluginsDetails(true)).data;
             return Object.values(response);
         } catch (err) {
             registerError(

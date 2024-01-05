@@ -1,7 +1,8 @@
 package controllers.workspaceApi.project
 
-import controllers.errorReporting.ErrorReport.{ErrorReportItem, Stacktrace}
+import controllers.errorReporting.ErrorReport.ErrorReportItem
 import org.silkframework.config.MetaData
+import org.silkframework.execution.report.Stacktrace
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}

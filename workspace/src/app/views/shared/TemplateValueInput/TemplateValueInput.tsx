@@ -3,6 +3,7 @@ import React, { MouseEventHandler, MutableRefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { ValueStateRef } from "../VariablesWidget/modals/NewVariableModal";
 import { TemplateInputComponent } from "../modals/CreateArtefactModal/ArtefactForms/ArtefactFormParameter";
+import { ErrorResponse } from "services/fetch/responseInterceptor";
 
 interface TemplateValueInputProps {
     disabled?: boolean;
@@ -13,6 +14,8 @@ interface TemplateValueInputProps {
     /** ID of the input component. */
     parameterId?: string;
     existingVariableName?: string;
+    /** take note of any error found */
+    handleCheckTemplateErrors?: (error) => void;
 }
 
 const TemplateValueInput = React.forwardRef(
@@ -25,6 +28,7 @@ const TemplateValueInput = React.forwardRef(
             messageText,
             parameterId = "template-value-input",
             existingVariableName,
+            handleCheckTemplateErrors,
         }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
@@ -115,6 +119,7 @@ const TemplateValueInput = React.forwardRef(
                                 projectId={projectId}
                                 parameterId={parameterId}
                                 variableName={existingVariableName}
+                                handleTemplateErrors={handleCheckTemplateErrors}
                             />
                         ) : (
                             <TextField

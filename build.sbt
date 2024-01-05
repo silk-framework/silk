@@ -1,6 +1,7 @@
-import sbt.{File, taskKey, _}
+import sbt.Keys.libraryDependencies
+import sbt.{File, taskKey, *}
 
-import java.io._
+import java.io.FileWriter
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
@@ -58,7 +59,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.13.10",
+  scalaVersion := "2.13.12",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -73,32 +74,18 @@ lazy val commonSettings = Seq(
   (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.4" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "5.1.1" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.4.14",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
   libraryDependencies += "com.google.inject" % "guice" % "5.1.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.13.5",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.13.5",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
 
-  // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
-  // Can be removed as soon as there are newer stable versions of logback
-  dependencyOverrides += "org.slf4j" % "slf4j-api" % "1.7.36",
-
-  // The assembly plugin cannot resolve multiple dependencies to commons logging
-  (assembly / assemblyMergeStrategy) := {
-    case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
-    case PathList(xs @ _*) if xs.last endsWith ".class" => MergeStrategy.first
-    case PathList(xs @ _*) if xs.last endsWith ".xsd" => MergeStrategy.first
-    case PathList(xs @ _*) if xs.last endsWith ".dtd" => MergeStrategy.first
-    case other =>
-      val oldStrategy = (assembly / assemblyMergeStrategy).value
-      oldStrategy(other)
-  },
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -122,14 +109,15 @@ lazy val core = (project in file("silk-core"))
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.3.1",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
     libraryDependencies += "commons-io" % "commons-io" % "2.15.0",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
-    libraryDependencies += "xalan" % "xalan" % "2.7.2"
+    libraryDependencies += "xalan" % "xalan" % "2.7.3",
+    libraryDependencies += "xalan" % "serializer" % "2.7.3"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -186,8 +174,8 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.13.5",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.14.2",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.3"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -217,7 +205,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.9.4",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.3",
     libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.8"
   )
 
@@ -368,7 +356,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.1.0" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -437,14 +425,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk SingleMachine",
-    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "1.7.13",
-    // The assembly plugin cannot resolve multiple dependencies to commons logging
-    (assembly / assemblyMergeStrategy) := {
-      case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
-      case other =>
-        val oldStrategy = (assembly / assemblyMergeStrategy).value
-        oldStrategy(other)
-    }
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.5"
   )
 
 //lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))

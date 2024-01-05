@@ -201,8 +201,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
           s"(size: $currentSize, maximum size: $maxSize}). " +
           s"Configure '${Resource.maxInMemorySizeParameterName}' in order to increase this limit.")
       }
-      val lineNumber = reader.getLocation.getLineNumber
-      val columnNumber = reader.getLocation.getColumnNumber
+      val position = getPosition(reader)
 
       // Remember label
       val label = reader.getLocalName
@@ -219,7 +218,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         if(reader.isStartElement) {
           children.append(buildNode())
         } else if(reader.isCharacters) {
-          children.append(InMemoryXmlText(reader.getText))
+          children.append(InMemoryXmlText(reader.getText, getPosition(reader)))
           reader.next()
         } else {
           reader.next()
@@ -229,7 +228,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       // Move to the element after the end element.
       reader.next()
 
-      InMemoryXmlElem(s"$lineNumber-$columnNumber", label, attributes.toMap, children.toArray)
+      InMemoryXmlElem(label, attributes.toMap, children.toArray, position)
     }
   }
 
@@ -475,7 +474,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     val value = attributeValue(reader, attributeName.stripPrefix("@"))
     assert(value.isDefined, s"Cannot build attribute node for missing attribute '$attributeName'.")
     reader.next()
-    InMemoryXmlAttribute(attributeName, value.get)
+    InMemoryXmlAttribute(attributeName, value.get, getPosition(reader))
   }
 
   /**
@@ -581,6 +580,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     if (!paths.contains(path.dropRight(basePathLength))) {
       paths.put(if (basePathLength == 0) path else path.dropRight(basePathLength), idx.getAndIncrement())
     }
+  }
+
+  private def getPosition(reader: XMLStreamReader): XmlPosition = {
+    XmlPosition(
+      line = reader.getLocation.getLineNumber,
+      column = reader.getLocation.getColumnNumber
+    )
   }
 
   /**

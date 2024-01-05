@@ -191,7 +191,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             tree.isExpanded = isExpanded;
             return tree;
         },
-        [currentRuleId]
+        [currentRuleId, ruleValidation]
     );
 
     const getRuleById = (searchId) => {

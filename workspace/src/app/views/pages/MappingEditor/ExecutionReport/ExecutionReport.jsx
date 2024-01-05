@@ -20,6 +20,7 @@ import {
     TableRow,
 } from "@eccenca/gui-elements";
 import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
+import { SampleError } from "../../../shared/SampleError/SampleError";
 
 /**
  * Displays a task execution report.
@@ -227,15 +228,18 @@ export default class ExecutionReport extends React.Component {
     }
 
     renderRuleErrors(ruleResults) {
+        const actionFieldNeeded = !!ruleResults.sampleErrors[0]?.stacktrace;
+        const columnWidths = actionFieldNeeded ? ["30%", "30%", "35%", "5%"] : ["30%", "30%", "40%"];
         return (
             <>
                 <Spacing size="small" />
-                <Table className="di-execution-report-table" useZebraStyles columnWidths={["30%", "30%", "40%"]}>
+                <Table className="di-execution-report-table" useZebraStyles columnWidths={columnWidths}>
                     <TableHead>
                         <TableRow>
                             <TableHeader>Entity</TableHeader>
                             <TableHeader>Values</TableHeader>
                             <TableHeader>Issue</TableHeader>
+                            {actionFieldNeeded ? <TableHeader></TableHeader> : null}
                         </TableRow>
                     </TableHead>
                     <TableBody>{ruleResults.sampleErrors.map(this.renderRuleError)}</TableBody>
@@ -245,6 +249,7 @@ export default class ExecutionReport extends React.Component {
     }
 
     renderRuleError(ruleError, idx) {
+        const hasStackTrace = !!ruleError.stacktrace;
         return (
             <TableRow key={idx}>
                 <TableCell>
@@ -262,6 +267,11 @@ export default class ExecutionReport extends React.Component {
                         {ruleError.error}
                     </HtmlContentBlock>
                 </TableCell>
+                {hasStackTrace ? (
+                    <TableCell>
+                        <SampleError sampleError={ruleError} />
+                    </TableCell>
+                ) : null}
             </TableRow>
         );
     }

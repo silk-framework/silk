@@ -20,6 +20,8 @@ export interface EditorEdgeConnectionState {
     targetNodeId?: string;
     // This is only set if the edge is drawn from a target handle
     targetHandleId?: string;
+    // This is only set if the edge is drawn from a source handle
+    sourceHandleId?: string;
     // If the mouse is over a node
     overNode?: Node;
 }
