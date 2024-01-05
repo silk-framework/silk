@@ -402,7 +402,7 @@ export function ValueRuleForm(props: IProps) {
                         validationErrorText={"The entered value path is invalid."}
                         onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
                         fetchSuggestions={(input, cursorPosition) =>
-                            fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false)
+                            fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false, mappingEditorContext.taskContext)
                         }
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { pluginRegistry } from "../../../views/plugins/PluginRegistry";
 import { MenuItem } from "@eccenca/gui-elements";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import {TaskContext} from "./projectTaskTabView.typing";
 
 interface IProps {
     srcLinks: IItemLink[];
@@ -11,12 +12,14 @@ interface IProps {
     pluginId?: string;
     projectId?: string;
     taskId?: string;
+    /** Fetches the current task context. */
+    fetchTaskContext?: () => TaskContext
     /** Called when the task tab view is closed. Only valid when this is an overlay version of the task tabs. */
     onCloseModal?: () => any;
 }
 
 /** Shows custom views of a project task. */
-export const useProjectTaskTabsView = ({ srcLinks, startLink, pluginId, taskId, projectId, onCloseModal }: IProps) => {
+export const useProjectTaskTabsView = ({ srcLinks, startLink, pluginId, taskId, projectId, onCloseModal, fetchTaskContext }: IProps) => {
     const [activeTab, setActiveTab] = useState<IItemLink | string | undefined>(startLink);
     const taskViews = pluginId ? pluginRegistry.taskViews(pluginId) : [];
     const menuItems = taskViews.map(({ id, label }) => (
@@ -48,6 +51,9 @@ export const useProjectTaskTabsView = ({ srcLinks, startLink, pluginId, taskId, 
             handlerRemoveModal={() => {
                 onCloseModal?.();
                 changeTab(undefined);
+            }}
+            viewActions={{
+                taskContext: fetchTaskContext?.()
             }}
         />
     ) : null;

@@ -2,6 +2,7 @@ import superagent from '@eccenca/superagent';
 import Promise from 'bluebird';
 import {IUriPatternsResult} from "./types";
 import {CONTEXT_PATH} from "../../../../constants/path";
+import {TaskContext} from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 const CONTENT_TYPE_JSON = 'application/json';
 
@@ -292,12 +293,13 @@ const silkApi = {
     },
 
     getSuggestionsForAutoCompletion: function(projectId:string, transformTaskId:string, ruleId:string,
-                                              inputString:string, cursorPosition: number, isObjectPath: boolean): HttpResponsePromise<any> {
+                                              inputString:string, cursorPosition: number, isObjectPath: boolean,
+                                              taskContext?: TaskContext): HttpResponsePromise<any> {
         const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
-            .send({ inputString, cursorPosition, maxSuggestions: 50, isObjectPath });
+            .send({ inputString, cursorPosition, maxSuggestions: 50, isObjectPath, taskContext });
         return this.handleErrorCode(promise)
     },
 

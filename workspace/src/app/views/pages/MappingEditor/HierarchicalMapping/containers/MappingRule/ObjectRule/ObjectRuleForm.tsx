@@ -38,6 +38,8 @@ import { IUriPattern } from "../../../../api/types";
 import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { defaultUriPattern } from "./ObjectRule.utils";
+import taskConfig from "../../../../../../shared/TaskConfig";
+import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
 
 interface IProps {
     id?: string;
@@ -57,6 +59,7 @@ const pureUri = (uri: string) => (uri ? uri.replace(/^<|>$/g, "") : uri);
  * Provides the editable form for object mappings.
  */
 export const ObjectRuleForm = (props: IProps) => {
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     const [loading, setLoading] = useState(false);
     const [changed, setChanged] = useState(false);
     const [allowConfirm, setAllowConfirm] = useState(false);
@@ -360,7 +363,7 @@ export const ObjectRuleForm = (props: IProps) => {
                     handleChangeValue("sourceProperty", value);
                 }}
                 fetchSuggestions={(input, cursorPosition) =>
-                    fetchValuePathSuggestions(parentId, input, cursorPosition, true)
+                    fetchValuePathSuggestions(parentId, input, cursorPosition, true, mappingEditorContext.taskContext)
                 }
                 checkInput={checkValuePathValidity}
                 onInputChecked={setObjectPathValid}

@@ -1,8 +1,10 @@
 import { registerCorePlugins } from "./RegisteredCoreTaskPlugins";
+import {TaskContext} from "../shared/projectTaskTabView/projectTaskTabView.typing";
+
 /** A view / UI of a project task.
  * Each task can have multiple views.
  **/
-// Generic actions and callbacks on views
+// Generic actions, data and callbacks on views
 export interface IViewActions {
     // A callback that is executed every time the project task is saved from the view.
     onSave?: () => any;
@@ -13,6 +15,8 @@ export interface IViewActions {
     savedChanges?: (status: boolean) => void;
     /** Switches to another view of the same task, e.g. in a tab view. */
     switchToView?: (viewIdx: number) => any;
+    /** Optional task context. Contains additional information on how a task is (actually) used, e.g. in workflows. */
+    taskContext?: TaskContext
 }
 
 /** A project task view that is meant to be displayed for a specific project task.

@@ -21,6 +21,7 @@ import {
     IValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { CONTEXT_PATH } from "../../../../constants/path";
+import {TaskContext} from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 export const silkStore = rxmq.channel("silk.api");
 export const errorChannel = rxmq.channel("errors");
@@ -713,7 +714,8 @@ const getValuePathSuggestion = (
     ruleId: string,
     inputString: string,
     cursorPosition: number,
-    isObjectPath: boolean
+    isObjectPath: boolean,
+    taskContext?: TaskContext
 ): HttpResponsePromise<any> => {
     const { transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
@@ -722,7 +724,8 @@ const getValuePathSuggestion = (
         ruleId,
         inputString,
         cursorPosition,
-        isObjectPath
+        isObjectPath,
+        taskContext
     );
 };
 
@@ -732,18 +735,20 @@ const getValuePathSuggestion = (
  * @param inputString    The current path input string.
  * @param cursorPosition The cursor position inside the input string.
  * @param isObjectPath   If the suggestions are for an object path, i.e. the value path of an object mapping.
+ * @param taskContext    Optional task context that defines another input task as the configured one.
  */
 export const fetchValuePathSuggestions = (
     ruleId: string | undefined,
     inputString: string,
     cursorPosition: number,
-    isObjectPath: boolean
+    isObjectPath: boolean,
+    taskContext?: TaskContext
 ): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if (!ruleId) {
             resolve(undefined);
         } else {
-            getValuePathSuggestion(ruleId, inputString, cursorPosition, isObjectPath)
+            getValuePathSuggestion(ruleId, inputString, cursorPosition, isObjectPath, taskContext)
                 .then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err));
         }
