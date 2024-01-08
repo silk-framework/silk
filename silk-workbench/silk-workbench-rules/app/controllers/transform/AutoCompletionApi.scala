@@ -63,7 +63,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         description = "If the specified project, task or rule has not been found."
       )
   ))
-  def sourcePaths(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
+  def sourcePathsGET(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
                     required = true,
                     schema = new Schema(implementation = classOf[String])
                   )
@@ -98,21 +98,109 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                     schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                   )
                   maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    sourcePaths(projectName, taskName, ruleName, term, maxResults, None)
+  }
+
+  @Operation(
+    summary = "Mapping rule source paths",
+    description = "Given a search term, returns all possible completions for source property paths.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Source paths that match the given term",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.pathCompletionExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    ))
+  def sourcePathsPOST(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
+                        required = true,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String,
+                      @Parameter(
+                        name = "rule",
+                        description = "The rule identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      ruleName: String,
+                      @Parameter(
+                        name = "term",
+                        description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String], defaultValue = "")
+                      )
+                      term: String,
+                      @Parameter(
+                        name = "maxResults",
+                        description = "The maximum number of results.",
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                      )
+                      maxResults: Int): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    sourcePaths(projectName, taskName, ruleName, term, maxResults, Some(request))
+  }
+
+  private def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int,
+                          requestOpt: Option[Request[AnyContent]])
+                         (implicit userContext: UserContext): Result = {
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
-    var completions = Completions()
     withRule(task, ruleName) { case (_, sourcePath) =>
-      val isRdfInput = TransformUtils.isRdfInput(task)
-      val simpleSourcePath = AutoCompletionApiUtils.simplePath(sourcePath)
-      val forwardOnlySourcePath = AutoCompletionApiUtils.forwardOnlyPath(simpleSourcePath)
-      val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection.typeUri, task.activity[TransformPathsCache].value.get, simpleSourcePath.nonEmpty && isRdfInput)
-      // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
-      val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
-      // Add known paths
-      completions += relativeForwardPaths
+      val completions = requestOpt.flatMap(request => alternativeSourcePathCompletions(request, project)) match {
+        case Some(alternativeCompletions) =>
+          alternativeCompletions
+        case None =>
+          val isRdfInput = TransformUtils.isRdfInput(task)
+          val simpleSourcePath = AutoCompletionApiUtils.simplePath(sourcePath)
+          val forwardOnlySourcePath = AutoCompletionApiUtils.forwardOnlyPath(simpleSourcePath)
+          val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection.typeUri, task.activity[TransformPathsCache].value.get, simpleSourcePath.nonEmpty && isRdfInput)
+          // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
+          val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+          // Add known paths
+          Completions(relativeForwardPaths)
+      }
       // Return filtered result
       Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false, multiWordFilter = true).toJson)
+    }
+  }
+
+  private def alternativeSourcePathCompletions(request: Request[AnyContent], project: Project)
+                                              (implicit userContext: UserContext): Option[Completions] = {
+    request.body.asJson.flatMap { json =>
+      JsonHelpers.fromJsonValidated[SourcePathAutoCompletionRequest](json).taskContext.flatMap(taskContext => {
+        val inputOutputTasks = AutoCompletionApi.validateWorkflowContext(project, Some(taskContext))
+        inputOutputTasks.inputEntitySchema().flatMap(es => {
+          val labeledValues = es.typedPaths
+            .flatMap(_.property)
+            .map(prop => LabeledValue(prop.propertyUri, None))
+          if (labeledValues.nonEmpty) {
+            // Only show alternative completions if there is at least one target property
+            Some(labeledValueCompletions(labeledValues))
+          } else {
+            None
+          }
+        })
+      })
     }
   }
 

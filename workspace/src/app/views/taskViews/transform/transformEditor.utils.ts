@@ -7,13 +7,15 @@ import { EvaluationResultType } from "../linking/evaluation/LinkingRuleEvaluatio
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { autoCompleteTransformSourcePath } from "./transform.requests";
 import { EvaluatedTransformEntity } from "./transform.types";
+import {TaskContext} from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 export const inputPathTab = (
     projectId: string,
     transformTaskId: string,
     ruleId: string,
     baseOperator: IRuleOperator,
-    errorHandler: (err) => any
+    errorHandler: (err) => any,
+    taskContext?: TaskContext
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
     const category = "Source path";
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
