@@ -449,7 +449,7 @@ object PersistentSortedKeyValueStore {
    */
   def check(): Try[Unit] = {
     try {
-      val store = new PersistentSortedKeyValueStore("tempDatabase", temporary = true)
+      val store = new PersistentSortedKeyValueStore("bootTest", temporary = true)
       store.close()
       Success(())
     } catch {
