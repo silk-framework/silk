@@ -603,8 +603,15 @@ export const getRuleAsync = (id, isObjectMapping = false) => {
         });
 };
 
-export const autocompleteAsync = (data) => {
-    const { entity, input, ruleId = rootId } = data;
+interface AutoCompleteParams {
+    entity?: string
+    input: string
+    ruleId?: string
+    taskContext?: TaskContext
+}
+
+export const autocompleteAsync = (data: AutoCompleteParams) => {
+    const { entity, input, ruleId = rootId, taskContext } = data;
 
     let channel = "transform.task.rule.completions.";
     switch (entity) {
@@ -627,7 +634,7 @@ export const autocompleteAsync = (data) => {
     return silkStore
         .request({
             topic: channel,
-            data: { ...getApiDetails(), term: input, ruleId },
+            data: { ...getApiDetails(), term: input, ruleId, taskContext },
         })
         .map((returned) => {
             return { options: returned.body };

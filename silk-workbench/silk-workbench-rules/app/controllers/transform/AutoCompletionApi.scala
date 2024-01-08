@@ -167,7 +167,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         val inputAndOutputTasks = AutoCompletionApi.validateWorkflowContext(project, autoCompletionRequest.taskContext)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
-            autoCompletionRequest.isObjectPath.getOrElse(false), inputAndOutputTasks.inputTasksSchema())
+            autoCompletionRequest.isObjectPath.getOrElse(false), inputAndOutputTasks.inputEntitySchema())
           Ok(Json.toJson(autoCompletionResponse))
         }
       }
@@ -276,8 +276,9 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                 Some(false),
                 uriPatternAutoCompletionRequest.workflowTaskContext
               )
+              val alternativeInputSchema = AutoCompletionApi.validateWorkflowContext(project, uriPatternAutoCompletionRequest.workflowTaskContext).inputEntitySchema()
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
-                basePath, isObjectPath = false, AutoCompletionApi.validateWorkflowContext(project, uriPatternAutoCompletionRequest.workflowTaskContext).inputTasksSchema())
+                basePath, isObjectPath = false, alternativeInputSchema)
               val offset = pathPart.segmentPosition.originalStartIndex
               Ok(Json.toJson(autoCompletionResponse.copy(
                 inputString = uriPatternAutoCompletionRequest.inputString,
@@ -466,13 +467,26 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                              )
                              fullUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     var vocabularyFilter: Option[Seq[String]] = None
+    var alternativeCompletions: Option[Completions] = None
+    val project = WorkspaceFactory().workspace.project(projectName)
     request.body.asJson.foreach { json =>
       val request = JsonHelpers.fromJsonValidated[TargetPropertyAutoCompleteRequest](json)
       vocabularyFilter = request.vocabularies
+      if(request.taskContext.isDefined) {
+        val inputOutputTasks = AutoCompletionApi.validateWorkflowContext(project, request.taskContext)
+        inputOutputTasks.labeledOutputPaths().foreach(labeledPaths => {
+          val labeledValues = labeledPaths
+            .filter(_.path.propertyUri.isDefined)
+            .map(lp => LabeledValue(lp.path.propertyUri.get, lp.label))
+          if(labeledValues.nonEmpty) {
+            // Only show alternative completions if there is at least one target property
+            alternativeCompletions = Some(labeledValueCompletions(labeledValues))
+          }
+        })
+      }
     }
-    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    val completions = vocabularyPropertyCompletions(task, fullUris, vocabularyFilter)
+    val completions = alternativeCompletions.getOrElse(vocabularyPropertyCompletions(task, fullUris, vocabularyFilter))
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
@@ -646,6 +660,20 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     typeCompletions.distinct
   }
 
+  private case class LabeledValue(value: String, label: Option[String])
+
+  private def labeledValueCompletions(labeledValues: Seq[LabeledValue]): Completions = {
+    labeledValues.map { labeledValue =>
+      Completion(
+        value = labeledValue.value,
+        label = labeledValue.label,
+        description = None,
+        category = "labeledValue",
+        isCompletion = true
+      )
+    }
+  }
+
   private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec],
                                            // Return full URIs instead of prefixed URIs
                                             fullUris: Boolean,
@@ -740,47 +768,59 @@ object AutoCompletionApi {
   case class OutputTask(workflowContextTask: WorkflowTaskContextOutputTask,
                        task: Task[_ <: TaskSpec])
 
-  private def mergeEntitySchemas(entitySchemas: Seq[EntitySchema]): EntitySchema = {
-    val typedPaths = new ArrayBuffer[TypedPath]()
-    entitySchemas.foreach(es => typedPaths.addAll(es.typedPaths))
-    EntitySchema("", typedPaths.toIndexedSeq)
+  private def mergeLabeledPaths(labeledPaths: Seq[Seq[LabeledPath]]): Seq[LabeledPath] = {
+    labeledPaths.flatten.distinct
   }
+
+  case class LabeledPath(path: Path, label: Option[String])
 
   case class InputAndOutputTasks(inputTasks: Seq[InputTask],
                                  outputTasks: Seq[OutputTask]) {
-    def inputTasksSchema(): Option[EntitySchema] = {
+    private def entitySchemaToLabeledPaths(entitySchema: EntitySchema): Seq[LabeledPath] = {
+      entitySchema.typedPaths.map(tp => LabeledPath(tp, None))
+    }
+    private def inputPaths(): Option[Seq[TypedPath]] = {
       if(inputTasks.isEmpty) {
         None
       } else {
-        val entitySchemas = inputTasks.map(inputTask => {
+        val typedPaths = inputTasks.map(inputTask => {
           inputTask.task.data.outputPort match {
-            case Some(FixedSchemaPort(schema)) => schema
-            case _ => EntitySchema.empty
+            case Some(FixedSchemaPort(schema)) =>
+              schema.typedPaths
+            case _ =>
+              Seq.empty
           }
         })
-        Some(mergeEntitySchemas(entitySchemas))
+        Some(typedPaths.flatten.distinct)
       }
     }
 
-    def outputTasksSchema(): Option[EntitySchema] = {
+    def inputEntitySchema(): Option[EntitySchema] = {
+      inputPaths()
+        .map(ps => {
+          EntitySchema("", ps.toIndexedSeq)
+        })
+    }
+
+    def labeledOutputPaths(): Option[Seq[LabeledPath]] = {
       if(outputTasks.isEmpty) {
         None
       } else {
-        val entitySchemas = outputTasks.map(outputTask => {
+        val labeledPaths = outputTasks.map(outputTask => {
           if(outputTask.workflowContextTask.configPort) {
             val pd = PluginDescription.forTask(outputTask.task)
-            val parameters = pd.parameters.filter(_.visibleInDialog).map(_.name)
-            EntitySchema("", parameters.map(p => UntypedPath.parse(p).asStringTypedPath).toIndexedSeq)
+            val parameters = pd.parameters.filter(_.visibleInDialog)
+            parameters.map(p => LabeledPath(UntypedPath(p.name), Some(p.label)))
           } else {
             val port = outputTask.workflowContextTask.inputPort.get
             outputTask.task.data.inputPorts match {
               case FixedNumberOfInputs(ports) if port < ports.size =>
-                ports(port).schemaOpt.getOrElse(EntitySchema.empty)
-              case _ => EntitySchema.empty
+                entitySchemaToLabeledPaths(ports(port).schemaOpt.getOrElse(EntitySchema.empty))
+              case _ => Seq.empty
             }
           }
         })
-        Some(mergeEntitySchemas(entitySchemas))
+        Some(mergeLabeledPaths(labeledPaths))
       }
     }
   }

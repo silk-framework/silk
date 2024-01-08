@@ -34,6 +34,7 @@ import {extractSearchWords, matchesAllWords} from "@eccenca/gui-elements/src/com
 import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
 import {useTranslation} from "react-i18next";
+import {GlobalMappingEditorContext} from "../../../contexts/GlobalMappingEditorContext";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -73,6 +74,7 @@ interface IProps {
 
 /** The mapping suggestion widget */
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose, selectedVocabs, setSelectedVocabs}: IProps) {
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
@@ -151,7 +153,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         const maxResults = 20
         try {
             const {data} = await silkApi.retrieveTransformTargetProperties(project as string, transformTask as string, ruleId,
-                textQuery, maxResults, selectedVocabs)
+                textQuery, maxResults, selectedVocabs, true, mappingEditorContext.taskContext)
             if (Array.isArray(data)) {
                 return data.map(tp => {
                     return {

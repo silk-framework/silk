@@ -435,7 +435,6 @@ export function ProjectTaskTabView({
                 <Modal
                     size="fullscreen"
                     isOpen={true}
-                    canEscapeKeyClose={true}
                     onClose={handlerRemoveModal}
                     wrapperDivProps={modalPreventEvents}
                 >

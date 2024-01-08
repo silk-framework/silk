@@ -461,6 +461,7 @@ export function ValueRuleForm(props: IProps) {
                             onChange={handleChangeSelectBox.bind(null, "targetProperty", setTargetProperty)}
                             resetQueryToValue={true}
                             itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
+                            taskContext={mappingEditorContext.taskContext}
                         />
                         <AutoComplete
                             placeholder="Data type"

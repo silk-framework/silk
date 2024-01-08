@@ -184,10 +184,11 @@ silkStore.subject("transform.task.rule.completions.sourcePaths").subscribe(({ da
         .connect();
 });
 silkStore.subject("transform.task.rule.completions.targetProperties").subscribe(({ data, replySubject }) => {
-    const { project, transformTask, ruleId, term, maxResults = 30 } = data;
+    const { project, transformTask, ruleId, term, maxResults = 30, taskContext } = data;
 
-    superagent
-        .get(`${CONTEXT_PATH}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetProperties`)
+    const url = `${CONTEXT_PATH}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/targetProperties`
+    const client = taskContext ? superagent.post(url).send({taskContext}) : superagent.get(url)
+    client
         .query({
             term,
             maxResults,

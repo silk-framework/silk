@@ -314,6 +314,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 }}
                 resetQueryToValue={true}
                 itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
+                taskContext={mappingEditorContext.taskContext}
             />
         );
         entityRelationInput = (
@@ -511,6 +512,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         onChange={(value) => {
                             handleChangeValue("targetEntityType", value);
                         }}
+                        taskContext={mappingEditorContext.taskContext}
                     />
                     {targetCardinality}
                     {sourcePropertyInput}
