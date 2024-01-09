@@ -215,6 +215,7 @@ export const RuleParameterInput = ({
                 return (
                     <ParameterAutoCompletion
                         {...autoCompleteProps(ruleParameter.parameterSpecification.autoCompletion)}
+                        showErrorsInline={large}
                     />
                 );
             } else {

@@ -21,6 +21,7 @@ import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configura
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
 import { HTMLInputProps as BlueprintHTMLInputProps } from "@blueprintjs/core/lib/esm/common/props";
+import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -80,11 +81,13 @@ export const ParameterAutoCompletion = ({
     inputProps,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
+    const {registerError: globalErrorHandler} = useErrorHandler()
+    const modalContext = React.useContext(CreateArtefactModalContext)
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
-    const { registerError } = useErrorHandler();
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
     const [show, setShow] = React.useState(true);
+    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
 
     let onChangeUsed = onChange;
     if (highlightInput) {
@@ -101,7 +104,7 @@ export const ParameterAutoCompletion = ({
                 setHighlightInput(true);
                 onChange(externalValue);
             };
-            registerForExternalChanges(paramId, handleUpdates);
+            registerForExternalChanges(formParamId, handleUpdates);
         }
     }, [registerForExternalChanges]);
 
@@ -150,11 +153,11 @@ export const ParameterAutoCompletion = ({
             // For now hide 400 errors from user, since they are not helpful.
             if (!e.isHttpError || (e.isHttpError && e.httpStatus !== 400)) {
                 if (showErrorsInline) {
-                    registerError("ParameterAutoCompletion.handleAutoCompleteInput", errorTitle, e);
-                } else {
                     // This should be handled in the auto-completion component
                     const details = parseErrorCauseMsg(e) ?? "";
                     throw new Error(details);
+                } else {
+                    registerError("ParameterAutoCompletion.handleAutoCompleteInput", errorTitle, e);
                 }
             } else {
                 console.warn(e);

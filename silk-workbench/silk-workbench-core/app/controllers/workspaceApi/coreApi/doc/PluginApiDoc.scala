@@ -156,6 +156,82 @@ object PluginApiDoc {
       }
     """
 
+  final val ruleOpeartorPluginDescriptionExampleJson =
+    """
+       {
+        "title": "Excel map",
+        "categories": [
+            "Replace"
+        ],
+        "description": "Replaces values based on a map of values read from a file in Open XML format (XLSX).\nThe XLSX file may contain several sheets of the form:\n\nmapFrom,mapTo\n<source string>,<target string>\n... and more\n\nAn empty string can be created in Excel and alternatives by inserting =\"\" in the input line of a cell.\n\nIf there are multiple values for a single key, all values will be returned for the given key.\n\nNote that the mapping table will be cached in memory. If the Excel file is updated (even while transforming), the map will be reloaded within seconds.\n    ",
+        "type": "object",
+        "properties": {
+            "excelFile": {
+                "title": "Excel file",
+                "description": "Excel file inside the resources directory containing one or more sheets with mapping tables.",
+                "type": "string",
+                "parameterType": "resource",
+                "value": null,
+                "advanced": false,
+                "visibleInDialog": true,
+                "autoCompletion": {
+                    "allowOnlyAutoCompletedValues": true,
+                    "autoCompleteValueWithLabels": false,
+                    "autoCompletionDependsOnParameters": []
+                }
+            },
+            "sheetName": {
+                "title": "Sheet name",
+                "description": "The sheet that contains the mapping table or empty if the first sheet should be taken.",
+                "type": "string",
+                "parameterType": "string",
+                "value": "",
+                "advanced": false,
+                "visibleInDialog": true
+            },
+            "skipLines": {
+                "title": "Skip lines",
+                "description": "How many rows to skip before reading the mapping table. By default the expected header row is skipped.",
+                "type": "string",
+                "parameterType": "int",
+                "value": "1",
+                "advanced": false,
+                "visibleInDialog": true
+            },
+            "strict": {
+                "title": "Strict",
+                "description": "If set to true, the operator throws validation errors for values it cannot map. If set to false, the chosen conflict strategy will be applied for missing values.",
+                "type": "string",
+                "parameterType": "boolean",
+                "value": "true",
+                "advanced": false,
+                "visibleInDialog": true
+            },
+            "conflictStrategy": {
+                "title": "Conflict strategy",
+                "description": "Determines how values that cannot be found in the mapping table are treated. Only has an effect if 'strict' is set to false. If 'retain' is chosen, the original value will be forwarded. If 'remove' is chosen, no value will be output.",
+                "type": "string",
+                "parameterType": "enumeration",
+                "value": {
+                    "value": "retain",
+                    "label": "Retain Value"
+                },
+                "advanced": false,
+                "visibleInDialog": true,
+                "autoCompletion": {
+                    "allowOnlyAutoCompletedValues": true,
+                    "autoCompleteValueWithLabels": true,
+                    "autoCompletionDependsOnParameters": []
+                }
+            }
+        },
+        "required": [
+            "excelFile"
+        ],
+        "pluginId": "excelMap"
+    }
+    """
+
   final val pluginJsonDescription =
     """
 Contains the typical meta data of a plugin like title, categories and description.

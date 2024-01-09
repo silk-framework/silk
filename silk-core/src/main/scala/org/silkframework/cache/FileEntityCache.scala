@@ -38,7 +38,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
   @volatile
   private var entityCount = 0
 
-  override def write(entity: Entity) {
+  override def write(entity: Entity): Unit = {
     val indices = if (runtimeConfig.blocking.isEnabled) indexFunction(entity).flatten else Set(0)
 
     for ((block, index) <- indices.groupBy(i => math.abs(i % blockCount))) {
@@ -57,15 +57,15 @@ class FileEntityCache(val entitySchema: EntitySchema,
 
   override def blockCount: Int = runtimeConfig.blocking.enabledBlocks
 
-  override def partitionCount(block: Int) = {
+  override def partitionCount(block: Int): Int = {
     require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
 
     blocks(block).partitionCount
   }
 
-  override def size = entityCount
+  override def size: Int = entityCount
 
-  override def clear() {
+  override def clear(): Unit =  {
     logger.log(Level.FINE, s"Clearing the file cache [ path :: ${dir.getAbsolutePath} ].")
 
     try {
@@ -83,7 +83,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
     logger.log(Level.FINE, "Cache cleared.")
   }
 
-  override def close() {
+  override def close(): Unit =  {
     logger.log(Level.FINER, s"Closing file cache [ size :: ${blocks.length} ].")
 
     val blockWrittenFlag = for (block <- blocks) yield {
@@ -117,7 +117,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
       }
     }
 
-    private def load() {
+    private def load(): Unit =  {
       //Retrieve the number of existing partitions
       partitionCount = {
         if (blockDir.exists) {
@@ -157,7 +157,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
       count = 0
     }
 
-    def clear() {
+    def clear(): Unit =  {
       partitionCount = 0
       initCurrentPartition(removeTempData = true)
     }
@@ -183,7 +183,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
       }
     }
 
-    private def writePartitionToFile() {
+    private def writePartitionToFile(): Unit =  {
       if (partitionCount == 0) {
         blockDir.safeMkdirs()
       }

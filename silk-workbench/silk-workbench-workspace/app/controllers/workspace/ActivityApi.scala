@@ -5,7 +5,7 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.errorReporting.ErrorReport.{ErrorReportItem, Stacktrace}
+import controllers.errorReporting.ErrorReport.ErrorReportItem
 import controllers.util.{AkkaUtils, SerializationUtils}
 import controllers.workspace.activityApi.ActivityListResponse.ActivityListEntry
 import controllers.workspace.activityApi.{ActivityFacade, StartActivityResponse}
@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.TaskSpec
+import org.silkframework.execution.report.Stacktrace
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}

@@ -7,6 +7,7 @@ import play.api.libs.json._
 
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import scala.collection.immutable.ListMap
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -65,13 +66,16 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
   }
 
   /**
-    * Builds a JSON node for a given element that includes all its children.
-    * On return, the parser will be positioned on the element that directly follows the element.
-    */
-  def buildNode(): JsValue = {
+   * Builds a JSON node for a given element that includes all its children.
+   * On return, the parser will be positioned on the element that directly follows the element.
+   */
+  def buildNode(): JsonNode = {
     new NodeBuilder().buildNode()
   }
 
+  /**
+   * Closes the underlying parser.
+   */
   override def close(): Unit = {
     parser.close()
   }
@@ -86,22 +90,23 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
       * Builds a JSON node for a given element that includes all its children.
       * On return, the parser will be positioned on the element that directly follows the element.
       */
-    def buildNode(): JsValue = {
+    def buildNode(): JsonNode = {
+      val position = getPosition()
       val value = parser.currentToken match {
         case JsonToken.START_ARRAY =>
           buildArrayNode()
         case JsonToken.START_OBJECT =>
           buildObjectNode()
         case JsonToken.VALUE_STRING =>
-          JsString(parser.getText)
+          JsonString(parser.getText, position)
         case JsonToken.VALUE_NUMBER_INT |
              JsonToken.VALUE_NUMBER_FLOAT =>
-          JsNumber(parser.getDecimalValue)
+          JsonNumber(parser.getDecimalValue, position)
         case JsonToken.VALUE_TRUE |
              JsonToken.VALUE_FALSE =>
-          JsBoolean(parser.getBooleanValue)
+          JsonBoolean(parser.getBooleanValue, position)
         case JsonToken.VALUE_NULL =>
-          JsNull
+          JsonNull(position)
         case token: JsonToken =>
           throw new ValidationException(s"Unexpected token: $token.")
       }
@@ -112,28 +117,35 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
       value
     }
 
-    private def buildArrayNode(): JsArray = {
+    private def buildArrayNode(): JsonArray = {
       assert(currentToken == JsonToken.START_ARRAY)
+      val position = getPosition()
       nextTokenSafe()
-      val children = new ArrayBuffer[JsValue]()
+      val children = new ArrayBuffer[JsonNode]()
       while(currentToken != JsonToken.END_ARRAY) {
         children += buildNode()
       }
-      JsArray(children)
+      JsonArray(children, position)
     }
 
-    private def buildObjectNode(): JsObject = {
+    private def buildObjectNode(): JsonObject = {
       assert(currentToken == JsonToken.START_OBJECT)
+      val position = getPosition()
       nextTokenSafe()
-      val children = new ArrayBuffer[(String, JsValue)]()
-      while(currentToken != JsonToken.END_OBJECT) {
+      val children = new ArrayBuffer[(String, JsonNode)]()
+      while (currentToken != JsonToken.END_OBJECT) {
         assert(currentToken == JsonToken.FIELD_NAME)
         nextTokenSafe()
         val key = parser.getCurrentName
         val value = buildNode()
         children += (key -> value)
       }
-      JsObject(children.toMap)
+      JsonObject(ListMap() ++ children, position)
+    }
+
+    private def getPosition(): JsonPosition = {
+      val location = parser.currentTokenLocation
+      JsonPosition(location.getLineNr, location.getColumnNr)
     }
 
     def nextTokenSafe(): Unit = {

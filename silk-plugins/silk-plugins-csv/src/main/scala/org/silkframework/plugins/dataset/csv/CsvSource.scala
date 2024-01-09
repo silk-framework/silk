@@ -4,7 +4,6 @@ import org.mozilla.universalchardet.UniversalDetector
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_IDX, IDX_PATH_MISSING}
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
@@ -154,26 +153,21 @@ class CsvSource(file: Resource,
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
-    // Retrieve the indices of the request paths
+    // Collect missing columns
     var missingColumns = Seq[String]()
-    val indices =
-      for (path <- entityDesc.typedPaths) yield {
-        val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
-        val propertyIndex = propertyList.indexOf(property.toString)
-        if (propertyIndex == -1) {
-          if(property == CsvSource.INDEX_PATH) {
-            IDX_PATH_IDX
-          } else {
-            missingColumns :+= property
-            IDX_PATH_MISSING
-          }
-        } else {
-          propertyIndex
+    for (path <- entityDesc.typedPaths) {
+      val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
+      val propertyIndex = propertyList.indexOf(property)
+      if (propertyIndex == -1) {
+        if(!property.startsWith("#")) {
+          missingColumns :+= property
         }
       }
+    }
 
     // Return new iterable that generates an entity for each line
-    val retrievedEntities = new EntityIterator(entityDesc, entities.toSet, indices) with AutoClose[Entity]
+    val generator = TableEntityGenerator(entityDesc, propertyList.map(Uri(_)), allowMissingPaths = true)
+    val retrievedEntities = new EntityIterator(entityDesc, entities.toSet, generator) with AutoClose[Entity]
 
     val limitedEntities = limitOpt match {
       case Some(limit) =>
@@ -194,7 +188,7 @@ class CsvSource(file: Resource,
 
   private class EntityIterator(entityDesc: EntitySchema,
                                entities: Set[String],
-                               indices: IndexedSeq[Int]) extends CloseableIterator[Entity] {
+                               generator: TableEntityGenerator) extends CloseableIterator[Entity] {
 
     private val parser: CsvParser = csvParser(properties.trim.isEmpty)
 
@@ -244,16 +238,10 @@ class CsvSource(file: Resource,
         // Check if line provides enough values
         if (propertyList.size <= line.length) {
           //Extract requested values
-          val values = collectValues(indices, line, index)
           val entityURI = generateEntityUri(index, line)
           //Build entity
           if (entities.isEmpty || entities.contains(entityURI)) {
-            val entityValues: IndexedSeq[Seq[String]] = splitArrayValue(values)
-            Some(Entity(
-              uri = entityURI,
-              values = entityValues,
-              schema = entityDesc
-            ))
+            Some(generator.generate(entityURI, splitArrayValue(line), index, index))
           } else {
             // Entity is not part of the entity URI set
             None
@@ -274,17 +262,6 @@ class CsvSource(file: Resource,
       if (!ignoreBadLines) {
         assert(propertyList.size <= entry.length, s"Invalid line ${index + 1}: '${entry.toSeq}' in resource '${file.name}' with " +
           s"${entry.length} elements. Expected number of elements ${propertyList.size}.")
-      }
-    }
-
-    private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
-      indices map {
-        case IDX_PATH_MISSING =>
-          null // splitArrayValue will generate an empty sequence from this.
-        case IDX_PATH_IDX =>
-          entityIdx.toString
-        case idx: Int if idx >= 0 =>
-          entry(idx)
       }
     }
 
@@ -431,10 +408,6 @@ class CsvSource(file: Resource,
     * @return
     */
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
-}
-
-object CsvSource {
-  final val INDEX_PATH = "#idx"
 }
 
 case class CsvAutoconfiguredParameters(detectedSeparator: String, codecName: String, linesToSkip: Option[Int])

@@ -86,11 +86,11 @@ object TransformReport {
     * @param value The erroneous value
     * @param message The error description
     */
-  case class RuleError(entity: String, value: Seq[Seq[String]], message: String, operatorId: Option[Identifier] = None)
+  case class RuleError(entity: String, value: Seq[Seq[String]], message: String, operatorId: Option[Identifier] = None, exception: Option[Throwable])
 
   object RuleError {
     def fromException(entity: String, value: Seq[Seq[String]], exception: Throwable, operatorId: Option[Identifier] = None): RuleError = {
-      new RuleError(entity, value, exception.getMessage, operatorId)
+      new RuleError(entity, value, exception.getMessage, operatorId, Some(exception))
     }
   }
 
