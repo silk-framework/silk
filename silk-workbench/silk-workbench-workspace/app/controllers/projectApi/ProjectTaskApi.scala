@@ -2,6 +2,7 @@ package controllers.projectApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.projectApi.requests.{TaskContextRequest, TaskContextResponse, TaskMetaData}
 import controllers.util.SerializationUtils.serializeCompileTime
 import controllers.util.{SerializationUtils, TextSearchUtils}
 import controllers.workspace.doc.{LegacyDatasetApiDoc => DatasetApiDoc}
@@ -13,14 +14,19 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask, WorkflowTaskContextTask}
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
@@ -330,6 +336,53 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     }
   }
 
+  @Operation(
+    summary = "Task context",
+    description = "Retrieves additional information to the given task context.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("TODO"))
+          )
+        )
+      )
+    )
+  )
+  def taskContext(@Parameter(
+                    name = "projectId",
+                    description = "The project identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[TaskContextRequest] { request =>
+      val project = getProject(projectId)
+      val inOutTasks = ProjectTaskApi.validateTaskContext(project, Some(request.taskContext))
+      val inputTasks: Seq[TaskMetaData] = inOutTasks.inputTasks.map(inputTask => {
+        val taskSpec = inputTask.task.data
+        val hasSchema = taskSpec.outputPort.exists(_.schemaOpt.isDefined)
+        TaskMetaData(inputTask.workflowContextTask.id, inputTask.task.fullLabel, inputTask.task.isInstanceOf[DatasetSpec[_]], hasSchema)
+      })
+      val outputTasks: Seq[TaskMetaData] = inOutTasks.outputTasks.map(outputTask => {
+        val taskSpec = outputTask.task.data
+        var hasSchema = outputTask.workflowContextTask.configPort
+        val inputPort = outputTask.workflowContextTask.inputPort
+        taskSpec.inputPorts match {
+          case FixedNumberOfInputs(ports) if !hasSchema && inputPort.isDefined && inputPort.get >= 0 && inputPort.get < ports.size =>
+            hasSchema = ports(inputPort.get).schemaOpt.isDefined
+          case _ =>
+        }
+        TaskMetaData(outputTask.workflowContextTask.id, outputTask.task.fullLabel, outputTask.task.isInstanceOf[DatasetSpec[_]], hasSchema)
+      })
+      Ok(Json.toJson(TaskContextResponse(inputTasks, outputTasks)))
+    }
+  }
+
   private def filterRelatedItems(relatedItems: Seq[RelatedItem], textQuery: Option[String]): Seq[RelatedItem] = {
     val searchWords =  TextSearchUtils.extractSearchTerms(textQuery.getOrElse(""))
     if(searchWords.isEmpty) {
@@ -405,4 +458,93 @@ object ProjectTaskApi {
     }
 ]
 """
+
+  /** Validates a workflow context
+    *
+    * @param project             The project the workflow is in.
+    * @param workflowTaskContext The workflow context that should be validated
+    */
+  def validateTaskContext(project: Project,
+                          workflowTaskContext: Option[WorkflowTaskContext])
+                         (implicit userContext: UserContext): InputAndOutputTasks = {
+    var inputTasks: Seq[(WorkflowTaskContextInputTask, Task[_ <: TaskSpec])] = Seq.empty
+    var outputTasks: Seq[(WorkflowTaskContextOutputTask, Task[_ <: TaskSpec])] = Seq.empty
+    workflowTaskContext.foreach(c => {
+      def checkTasks[T <: WorkflowTaskContextTask](tasks: Option[Seq[T]]): Seq[(T, Task[_ <: TaskSpec])] = {
+        tasks match {
+          case Some(ts) =>
+            ts.map(t => (t, project.anyTask(t.id)))
+          case None => Seq.empty
+        }
+      }
+
+      inputTasks = checkTasks(c.inputTasks)
+      outputTasks = checkTasks(c.outputTasks)
+    })
+    InputAndOutputTasks(inputTasks.map(t => InputTask(t._1, t._2)), outputTasks.map(t => OutputTask(t._1, t._2)))
+  }
+
+  case class InputTask(workflowContextTask: WorkflowTaskContextInputTask,
+                       task: Task[_ <: TaskSpec])
+
+  case class OutputTask(workflowContextTask: WorkflowTaskContextOutputTask,
+                        task: Task[_ <: TaskSpec])
+
+  private def mergeLabeledPaths(labeledPaths: Seq[Seq[LabeledPath]]): Seq[LabeledPath] = {
+    labeledPaths.flatten.distinct
+  }
+
+  case class LabeledPath(path: Path, label: Option[String])
+
+  case class InputAndOutputTasks(inputTasks: Seq[InputTask],
+                                 outputTasks: Seq[OutputTask]) {
+    private def entitySchemaToLabeledPaths(entitySchema: EntitySchema): Seq[LabeledPath] = {
+      entitySchema.typedPaths.map(tp => LabeledPath(tp, None))
+    }
+
+    private def inputPaths(): Option[Seq[TypedPath]] = {
+      if (inputTasks.isEmpty) {
+        None
+      } else {
+        val typedPaths = inputTasks.map(inputTask => {
+          inputTask.task.data.outputPort match {
+            case Some(FixedSchemaPort(schema)) =>
+              schema.typedPaths
+            case _ =>
+              Seq.empty
+          }
+        })
+        Some(typedPaths.flatten.distinct)
+      }
+    }
+
+    def inputEntitySchema(): Option[EntitySchema] = {
+      inputPaths()
+        .map(ps => {
+          EntitySchema("", ps.toIndexedSeq)
+        })
+    }
+
+    def labeledOutputPaths(): Option[Seq[LabeledPath]] = {
+      if (outputTasks.isEmpty) {
+        None
+      } else {
+        val labeledPaths = outputTasks.map(outputTask => {
+          if (outputTask.workflowContextTask.configPort) {
+            val pd = PluginDescription.forTask(outputTask.task)
+            val parameters = pd.parameters.filter(_.visibleInDialog)
+            parameters.map(p => LabeledPath(UntypedPath(p.name), Some(p.label)))
+          } else {
+            val port = outputTask.workflowContextTask.inputPort.get
+            outputTask.task.data.inputPorts match {
+              case FixedNumberOfInputs(ports) if port < ports.size =>
+                entitySchemaToLabeledPaths(ports(port).schemaOpt.getOrElse(EntitySchema.empty))
+              case _ => Seq.empty
+            }
+          }
+        })
+        Some(mergeLabeledPaths(labeledPaths))
+      }
+    }
+  }
 }

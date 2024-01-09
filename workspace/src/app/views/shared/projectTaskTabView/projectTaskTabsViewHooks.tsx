@@ -1,10 +1,9 @@
-import { IItemLink } from "@ducks/shared/typings";
-import { ProjectTaskTabView } from "./ProjectTaskTabView";
-import React, { useState } from "react";
-import { pluginRegistry } from "../../../views/plugins/PluginRegistry";
-import { MenuItem } from "@eccenca/gui-elements";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
-import {TaskContext} from "./projectTaskTabView.typing";
+import {IItemLink} from "@ducks/shared/typings";
+import {ProjectTaskTabView} from "./ProjectTaskTabView";
+import React, {useState} from "react";
+import {pluginRegistry, ViewActionsTaskContext} from "../../../views/plugins/PluginRegistry";
+import {MenuItem} from "@eccenca/gui-elements";
+import {getItemLinkIcons} from "../../../utils/getItemLinkIcons";
 
 interface IProps {
     srcLinks: IItemLink[];
@@ -12,8 +11,8 @@ interface IProps {
     pluginId?: string;
     projectId?: string;
     taskId?: string;
-    /** Fetches the current task context. */
-    fetchTaskContext?: () => TaskContext
+    /** Fetches the current view task context information. */
+    fetchTaskContext?: () => ViewActionsTaskContext | undefined
     /** Called when the task tab view is closed. Only valid when this is an overlay version of the task tabs. */
     onCloseModal?: () => any;
 }
@@ -37,6 +36,7 @@ export const useProjectTaskTabsView = ({ srcLinks, startLink, pluginId, taskId, 
         setActiveTab(linkItem);
     };
     const taskViewConfig = pluginId ? { pluginId, taskId, projectId } : undefined;
+    const taskContext = fetchTaskContext?.()
     const returnElement: JSX.Element | null = activeTab ? (
         <ProjectTaskTabView
             srcLinks={srcLinks.map((link) => {
@@ -53,7 +53,7 @@ export const useProjectTaskTabsView = ({ srcLinks, startLink, pluginId, taskId, 
                 changeTab(undefined);
             }}
             viewActions={{
-                taskContext: fetchTaskContext?.()
+                taskContext
             }}
         />
     ) : null;

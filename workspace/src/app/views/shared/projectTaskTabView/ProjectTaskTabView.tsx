@@ -331,6 +331,9 @@ export function ProjectTaskTabView({
     let tabNr = 1;
 
     const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
+        const suffix = getTaskView(selectedTab)?.supportsTaskContext && viewActions?.taskContext ?
+            viewActions.taskContext.taskViewSuffix?.(viewActions.taskContext.context) :
+            undefined
         return (
             <Card
                 className="diapp-iframewindow__content"
@@ -340,7 +343,7 @@ export function ProjectTaskTabView({
             >
                 <CardHeader>
                     <CardTitle>
-                        <h2>{tLabel(activeTab?.label ?? "")}</h2>
+                        <h2>{tLabel(activeTab?.label ?? "")} {suffix}</h2>
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&

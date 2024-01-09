@@ -55,6 +55,7 @@ export const registerCorePlugins = () => {
             id: "hierarchicalMappingEditor",
             label: "Mapping editor",
             queryParametersToKeep: ["ruleId"],
+            supportsTaskContext: true,
             render(
                 projectId: string,
                 taskId: string,

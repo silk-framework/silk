@@ -18,6 +18,7 @@ export interface AutoCompletionRequest {
 export interface TaskContext {
     /** The input configuration of the task inside the workflow. */
     inputTasks?: TaskContextInputTask[]
+    /** The output configurations of the task inside the workflow. */
     outputTasks?: TaskContextOutputTask[]
 }
 

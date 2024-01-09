@@ -3,8 +3,9 @@ package controllers.transform
 import controllers.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, Completion, Completions}
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.projectApi.ProjectTaskApi
 import controllers.shared.autoCompletion.AutoCompletionApiUtils
-import controllers.transform.AutoCompletionApi.{Categories, InputAndOutputTasks}
+import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
 import controllers.transform.doc.AutoCompletionApiDoc
 import controllers.transform.transformTask.TransformUtils
@@ -14,8 +15,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.DatasetCharacteristics
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
 import org.silkframework.entity.{EntitySchema, ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
@@ -25,14 +25,12 @@ import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCacheValue}
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask, WorkflowTaskContextTask}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
 import java.util.logging.Logger
 import javax.inject.Inject
-import scala.collection.mutable.ArrayBuffer
 import scala.language.implicitConversions
 
 /**
@@ -188,7 +186,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                                               (implicit userContext: UserContext): Option[Completions] = {
     request.body.asJson.flatMap { json =>
       JsonHelpers.fromJsonValidated[SourcePathAutoCompletionRequest](json).taskContext.flatMap(taskContext => {
-        val inputOutputTasks = AutoCompletionApi.validateWorkflowContext(project, Some(taskContext))
+        val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, Some(taskContext))
         inputOutputTasks.inputEntitySchema().flatMap(es => {
           val labeledValues = es.typedPaths
             .flatMap(_.property)
@@ -252,7 +250,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
-        val inputAndOutputTasks = AutoCompletionApi.validateWorkflowContext(project, autoCompletionRequest.taskContext)
+        val inputAndOutputTasks = ProjectTaskApi.validateTaskContext(project, autoCompletionRequest.taskContext)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
             autoCompletionRequest.isObjectPath.getOrElse(false), inputAndOutputTasks.inputEntitySchema())
@@ -364,7 +362,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                 Some(false),
                 uriPatternAutoCompletionRequest.workflowTaskContext
               )
-              val alternativeInputSchema = AutoCompletionApi.validateWorkflowContext(project, uriPatternAutoCompletionRequest.workflowTaskContext).inputEntitySchema()
+              val alternativeInputSchema = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext).inputEntitySchema()
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
                 basePath, isObjectPath = false, alternativeInputSchema)
               val offset = pathPart.segmentPosition.originalStartIndex
@@ -561,7 +559,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       val request = JsonHelpers.fromJsonValidated[TargetPropertyAutoCompleteRequest](json)
       vocabularyFilter = request.vocabularies
       if(request.taskContext.isDefined) {
-        val inputOutputTasks = AutoCompletionApi.validateWorkflowContext(project, request.taskContext)
+        val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, request.taskContext)
         inputOutputTasks.labeledOutputPaths().foreach(labeledPaths => {
           val labeledValues = labeledPaths
             .filter(_.path.propertyUri.isDefined)
@@ -822,93 +820,6 @@ object AutoCompletionApi {
     autoCompletionRequest.maxSuggestions foreach { maxSuggestions =>
       if(maxSuggestions <= 0) {
         throw BadUserInputException("Parameter 'maxSuggestions' must not be negative or zero!")
-      }
-    }
-  }
-
-  /** Validates a workflow context
-    *
-    * @param project             The project the workflow is in.
-    * @param workflowTaskContext The workflow context that should be validated
-    */
-  def validateWorkflowContext(project: Project,
-                              workflowTaskContext: Option[WorkflowTaskContext])
-                             (implicit userContext: UserContext): InputAndOutputTasks = {
-    var inputTasks: Seq[(WorkflowTaskContextInputTask, Task[_ <: TaskSpec])] = Seq.empty
-    var outputTasks: Seq[(WorkflowTaskContextOutputTask, Task[_ <: TaskSpec])] = Seq.empty
-    workflowTaskContext.foreach(c => {
-      def checkTasks[T <: WorkflowTaskContextTask](tasks: Option[Seq[T]]): Seq[(T, Task[_ <: TaskSpec])] = {
-        tasks match {
-          case Some(ts) =>
-            ts.map(t => (t, project.anyTask(t.id)))
-          case None => Seq.empty
-        }
-      }
-      inputTasks = checkTasks(c.inputTasks)
-      outputTasks = checkTasks(c.outputTasks)
-    })
-    InputAndOutputTasks(inputTasks.map(t => InputTask(t._1, t._2)), outputTasks.map(t => OutputTask(t._1, t._2)))
-  }
-
-  case class InputTask(workflowContextTask: WorkflowTaskContextInputTask,
-                       task: Task[_ <: TaskSpec])
-
-  case class OutputTask(workflowContextTask: WorkflowTaskContextOutputTask,
-                       task: Task[_ <: TaskSpec])
-
-  private def mergeLabeledPaths(labeledPaths: Seq[Seq[LabeledPath]]): Seq[LabeledPath] = {
-    labeledPaths.flatten.distinct
-  }
-
-  case class LabeledPath(path: Path, label: Option[String])
-
-  case class InputAndOutputTasks(inputTasks: Seq[InputTask],
-                                 outputTasks: Seq[OutputTask]) {
-    private def entitySchemaToLabeledPaths(entitySchema: EntitySchema): Seq[LabeledPath] = {
-      entitySchema.typedPaths.map(tp => LabeledPath(tp, None))
-    }
-    private def inputPaths(): Option[Seq[TypedPath]] = {
-      if(inputTasks.isEmpty) {
-        None
-      } else {
-        val typedPaths = inputTasks.map(inputTask => {
-          inputTask.task.data.outputPort match {
-            case Some(FixedSchemaPort(schema)) =>
-              schema.typedPaths
-            case _ =>
-              Seq.empty
-          }
-        })
-        Some(typedPaths.flatten.distinct)
-      }
-    }
-
-    def inputEntitySchema(): Option[EntitySchema] = {
-      inputPaths()
-        .map(ps => {
-          EntitySchema("", ps.toIndexedSeq)
-        })
-    }
-
-    def labeledOutputPaths(): Option[Seq[LabeledPath]] = {
-      if(outputTasks.isEmpty) {
-        None
-      } else {
-        val labeledPaths = outputTasks.map(outputTask => {
-          if(outputTask.workflowContextTask.configPort) {
-            val pd = PluginDescription.forTask(outputTask.task)
-            val parameters = pd.parameters.filter(_.visibleInDialog)
-            parameters.map(p => LabeledPath(UntypedPath(p.name), Some(p.label)))
-          } else {
-            val port = outputTask.workflowContextTask.inputPort.get
-            outputTask.task.data.inputPorts match {
-              case FixedNumberOfInputs(ports) if port < ports.size =>
-                entitySchemaToLabeledPaths(ports(port).schemaOpt.getOrElse(EntitySchema.empty))
-              case _ => Seq.empty
-            }
-          }
-        })
-        Some(mergeLabeledPaths(labeledPaths))
       }
     }
   }
