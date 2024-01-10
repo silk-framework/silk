@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.json
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, _}
@@ -302,6 +303,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     entities1.head.values.head mustBe Seq("A", "B")
     entities2.head.values.head mustBe entities3.map(_.uri.uri)
   }
+
   it should "not generate any entities for this object path" in {
     val source = createSource(resources.get("objectPathTest.json"), "", "")
     val entities = source.retrieve(EntitySchema("pathA/pathA", typedPaths = IndexedSeq(UntypedPath("#text").asStringTypedPath))).entities.toList

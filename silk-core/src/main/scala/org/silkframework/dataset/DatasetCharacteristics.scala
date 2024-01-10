@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
+import org.silkframework.entity.paths.UntypedPath
 
 /** Characteristics of a data source.
   *
@@ -38,13 +39,25 @@ object DatasetCharacteristics {
     * @param value       The path value.
     * @param description Description of the semantics of the special path.
     */
-  case class SpecialPathInfo(value: String, description: Option[String], suggestedFor: SuggestedForEnum.Value = SuggestedForEnum.All)
+  case class SpecialPathInfo(value: String, description: Option[String], suggestedFor: SuggestedForEnum.Value = SuggestedForEnum.All) {
+    lazy val path: UntypedPath = UntypedPath(value)
+  }
 
   object SuggestedForEnum extends Enumeration {
     type SuggestedForEnum = Value
 
     val All, ValuePathOnly, ObjectPathOnly = Value
   }
+
+  /**
+   * Special paths that are typically supported by datasets.
+   */
+  object SpecialPaths {
+    val IDX: SpecialPathInfo = SpecialPathInfo("#idx", Some("Returns the index of the entity."), SuggestedForEnum.All)
+    val LINE: SpecialPathInfo = SpecialPathInfo("#line", Some("Line number of the selected value."), SuggestedForEnum.All)
+    val COLUMN: SpecialPathInfo = SpecialPathInfo("#column", Some("Column position of the selected value."), SuggestedForEnum.All)
+  }
+
 
 }
 

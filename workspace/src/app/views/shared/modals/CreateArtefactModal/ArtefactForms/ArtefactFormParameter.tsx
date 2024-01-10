@@ -16,7 +16,7 @@ import {
 import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
@@ -259,6 +259,7 @@ interface TemplateInputComponentProps {
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
+    handleTemplateErrors?: (error?: string) => any;
 }
 
 /** The input component for the template value. */
@@ -271,11 +272,12 @@ export const TemplateInputComponent = memo(
         evaluatedValueMessage,
         projectId,
         variableName,
+        handleTemplateErrors,
     }: TemplateInputComponentProps) => {
-        const modalContext = React.useContext(CreateArtefactModalContext)
-        const {registerError: globalErrorHandler} = useErrorHandler()
+        const modalContext = React.useContext(CreateArtefactModalContext);
+        const { registerError: globalErrorHandler } = useErrorHandler();
         const [t] = useTranslation();
-        const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
+        const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
         const processValidationError = React.useCallback((validationResult: IValidationResult): IValidationResult => {
             let errorMessage = validationResult.parseError?.message;
@@ -304,7 +306,13 @@ export const TemplateInputComponent = memo(
                 return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
                     .data;
             } catch (error) {
-                registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
+                handleTemplateErrors
+                    ? handleTemplateErrors(error)
+                    : registerError(
+                          "ArtefactFormParameter.autoComplete",
+                          "Auto-completing the template has failed.",
+                          error
+                      );
             }
         }, []);
 
@@ -321,7 +329,13 @@ export const TemplateInputComponent = memo(
                     );
                     return processValidationError(validationResponse);
                 } catch (error) {
-                    registerError("ArtefactFormParameter.checkTemplate", "Validating template has failed.", error);
+                    handleTemplateErrors
+                        ? handleTemplateErrors(error)
+                        : registerError(
+                              "ArtefactFormParameter.checkTemplate",
+                              "Validating template has failed.",
+                              error
+                          );
                     evaluatedValueMessage?.(undefined);
                 }
             },

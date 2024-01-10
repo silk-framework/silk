@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.TaskSpec
+import org.silkframework.execution.report.Stacktrace
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}

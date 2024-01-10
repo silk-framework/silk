@@ -2,6 +2,7 @@ package controllers.errorReporting
 
 import org.silkframework.workbench.utils.ErrorResult.Stacktrace
 import play.api.libs.json.{Format, Json}
+import org.silkframework.serialization.json.ExecutionReportSerializers._
 
 object ErrorReport {
   /** A single item of an error report, i.e. documents an individual error/exception. */

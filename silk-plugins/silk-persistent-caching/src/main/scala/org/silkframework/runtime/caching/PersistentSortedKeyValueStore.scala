@@ -18,7 +18,7 @@ import java.nio.file.Files
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.{Level, Logger}
-import scala.util.Try;
+import scala.util.{Failure, Success, Try};
 
 /**
   * A file system backed ordered key value store containing a single DB.
@@ -442,6 +442,22 @@ object PersistentSortedKeyValueStore {
   }
 
   def byteBufferToString(byteBuffer: ByteBuffer): String = UTF_8.decode(byteBuffer).toString
+
+  /**
+   * Checks if PersistentValueStore is working as expected.
+   * Can be used in a boot check.
+   */
+  def check(): Try[Unit] = {
+    try {
+      val store = new PersistentSortedKeyValueStore("bootTest", temporary = true)
+      store.close()
+      Success(())
+    } catch {
+      case ex: Throwable =>
+        // We need to catch all throwables here, because LinkageError might be thrown if LMDB does not include a library for the host OS.
+        Failure(ex)
+    }
+  }
 
   /** The max. size of the DB. Does not hurt to over-estimate. Actions will fail if limit is reached. */
   final val defaultMaxSizeInBytes: ConfigValue[Long] = (config: Config) => {

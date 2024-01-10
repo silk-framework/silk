@@ -56,8 +56,13 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 Object.entries(obj)
                     .filter(([key]) => {
                         const pd = paramDescriptions[key];
-                        const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
-                        return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
+                        // It is possible that a new version of the task plugin has changed or removed parameters. Ignore parameters without parameter spec.
+                        if(!pd) {
+                            return false
+                        } else {
+                            const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
+                            return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
+                        }
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);
