@@ -48,6 +48,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
     const checkAndDisplayDeletionError = useModalError({ setError: setDeleteError });
     const [dropChangeLoading, setDropChangeLoading] = React.useState<boolean>(false);
     const [dependencies, setVariableDependencies] = React.useState<VariableDependencies>();
+    const [errorNotification, setErrorNotification] = React.useState<JSX.Element | null>(null);
     const [t] = useTranslation();
 
     const variableHasDependencies = dependencies?.dependentTasks.length || dependencies?.dependentVariables.length;
@@ -69,6 +70,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     const handleModalOpen = React.useCallback((variable = undefined) => {
         setSelectedVariable(variable);
+        setErrorNotification(null);
         setModalOpen(true);
     }, []);
 
@@ -77,8 +79,8 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
         setSelectedVariable(variable);
         setDeleteModalOpen(true);
         try {
-            const varDeps = (await getVariableDependencies(projectId, variable.name)).data;
-            setVariableDependencies(varDeps);
+            setErrorNotification(null);
+            setVariableDependencies((await getVariableDependencies(projectId, variable.name)).data);
         } catch (err) {
             checkAndDisplayDeletionError(
                 err,
@@ -127,6 +129,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
             }
             const reorderedVariables = reorderArray(variables, fromPos, toPos) as Variable[];
             try {
+                setErrorNotification(null);
                 setDropChangeLoading(true);
                 const res = await reorderVariablesRequest(
                     projectId,
@@ -137,7 +140,14 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 }
             } catch (err) {
                 if (err && (err as FetchError).isFetchError) {
-                    registerError("VariableWidgetError", err.body.title, err);
+                    const errorNotification = registerError(
+                        "VariableWidgetError",
+                        err.body.title,
+                        err,
+                        "VariablesWidget",
+                        () => setErrorNotification(null)
+                    );
+                    setErrorNotification(errorNotification);
                 }
             } finally {
                 setDropChangeLoading(false);
@@ -226,6 +236,7 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                         />
                     </CardOptions>
                 </CardHeader>
+                {errorNotification}
                 <Divider />
                 <CardContent style={{ maxHeight: "25vh" }}>
                     {loadingVariables ? (
