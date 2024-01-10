@@ -249,7 +249,7 @@ class HierarchicalMapping extends React.Component {
             <GlobalMappingEditorContext.Provider
                 value={{
                     valueTypeLabels: this.state.valueTypeLabels,
-                    taskContext: this.props.viewActions.taskContext
+                    taskContext: this.props.viewActions.taskContext?.context
                 }}
             >
                 <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import {
     Button,
     Card,
@@ -15,6 +16,7 @@ import {
     GridRow,
     IconButton,
     Modal,
+    Notification,
     modalPreventEvents,
     Spacing,
 } from "@eccenca/gui-elements";
@@ -117,6 +119,7 @@ export function ProjectTaskTabView({
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
+    const [warnings, setWarnings] = React.useState<string[] | undefined>(undefined)
 
     // Either the ID of an IItemLink or the view ID or undefined
     const activeTab: IProjectTaskView | IItemLink | undefined =
@@ -133,6 +136,13 @@ export function ProjectTaskTabView({
             }
         }
     }, [projectId, taskId, taskViewConfig?.pluginId]);
+
+    React.useEffect(() => {
+        const warnings = viewActions?.taskContext ?
+            viewActions?.taskContext?.taskContextNotification?.(viewActions.taskContext.context) :
+            undefined
+        setWarnings(warnings ? warnings.map(w => w.message) : undefined)
+    }, [viewActions?.taskContext])
 
     React.useEffect(() => {
         if (tabRouteChangeRequest != null) {
@@ -420,6 +430,9 @@ export function ProjectTaskTabView({
                         </>
                     )}
                 </CardContent>
+                {warnings && (
+                    <CardContentWarnings warnings={warnings} />
+                )}
             </Card>
         );
     };
@@ -460,3 +473,28 @@ export function ProjectTaskTabView({
         </ErrorBoundary>
     );
 }
+
+interface CardContentWarningsProps {
+    /** The warning messages that should be displayed. */
+    warnings: string[]
+}
+
+const CardContentWarnings = React.memo(({warnings}: CardContentWarningsProps) => {
+    const [warningsStack, setWarningStack] = React.useState(warnings)
+    const removeWarning = React.useCallback((warningToRemove: string) => {
+        setWarningStack(prevWarnings => prevWarnings.filter(w => w !== warningToRemove))
+    }, [])
+    return warningsStack.length ? <CardContent className={`${eccgui}-dialog__notifications`}>
+            {
+                warningsStack.map(warning => {
+                    return <Notification
+                        warning
+                        onDismiss={() => removeWarning(warning)}
+                    >{warning}</Notification>
+
+                })
+            }
+        </CardContent> :
+        null
+
+})
