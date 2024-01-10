@@ -162,7 +162,8 @@ object SearchApiModel {
       val pluginLabel = PluginDescription.forTask(task).label
       val taskLabel = task.fullLabel
       val description = task.metaData.description.getOrElse("")
-      val searchInProperties = if(matchTaskProperties) task.data.properties(PluginContext.fromProject(task.project)).map(p => p._2).mkString(" ") else ""
+      implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
+      val searchInProperties = if(matchTaskProperties) task.data.parameters.toStringMap.values.mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
