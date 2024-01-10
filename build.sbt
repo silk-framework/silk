@@ -214,7 +214,7 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
   .settings(commonSettings: _*)
   .settings(
     name := "Persistent caching",
-    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.3"
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.9.0"
   )
 
 // Aggregate all plugins

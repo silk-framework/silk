@@ -1,19 +1,42 @@
 package org.silkframework.runtime.caching
-
-import org.silkframework.util.TestFileUtils
+
+
+import org.lmdbjava.LmdbException
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.util.{ConfigTestTrait, TestFileUtils}
 
 import java.nio.ByteBuffer
+import java.nio.file.Files
 import java.util
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Future}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
+import org.silkframework.util.FileUtils._
 
 class PersistentSortedKeyValueStoreTest extends AnyFlatSpec with Matchers {
   behavior of "Persistent sorted key value store"
 
   val values = Seq("", " ", "123", "abc", "something longer with unicode char ඔ" * 10)
+
+  it should "check if it is working in general" in {
+    // This check should work
+    PersistentSortedKeyValueStore.check()
+
+    // Create a file where LMDB would place its database in order to break it
+    val dir = Files.createTempDirectory("ldmbBootTest")
+    val dbBaseDir = dir.resolve("tmp")
+    dbBaseDir.toFile.mkdirs()
+    Files.createFile(dbBaseDir.resolve("bootTest"))
+
+    // The check should fail now
+    ConfigTestTrait.withConfig(("caches.persistence.directory" -> Some(dir.toFile.getCanonicalPath))) {
+      an [LmdbException] shouldBe thrownBy { PersistentSortedKeyValueStore.check().get }
+    }
+
+    // Cleanup
+    dir.toFile.deleteRecursive()
+  }
 
   it should "store and retrieve single string values to/from the store" in {
     withStore() { store =>
