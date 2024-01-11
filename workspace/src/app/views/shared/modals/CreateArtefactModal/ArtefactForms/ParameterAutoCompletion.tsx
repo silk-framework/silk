@@ -21,7 +21,7 @@ import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configura
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
 import { HTMLInputProps as BlueprintHTMLInputProps } from "@blueprintjs/core/lib/esm/common/props";
-import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -81,13 +81,13 @@ export const ParameterAutoCompletion = ({
     inputProps,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
-    const {registerError: globalErrorHandler} = useErrorHandler()
-    const modalContext = React.useContext(CreateArtefactModalContext)
+    const { registerError: globalErrorHandler } = useErrorHandler();
+    const modalContext = React.useContext(CreateArtefactModalContext);
     const [externalValue, setExternalValue] = React.useState<{ value: string; label?: string } | undefined>(undefined);
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
     const [show, setShow] = React.useState(true);
-    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
+    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
     let onChangeUsed = onChange;
     if (highlightInput) {

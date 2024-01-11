@@ -105,6 +105,8 @@ object BulkResourceBasedDataset {
     resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
   }
 
+  def isZip(resource: Resource): Boolean = resource.name.endsWith(".zip")
+
   /**
     * Returns all sub resources inside a bulk resource.
     *

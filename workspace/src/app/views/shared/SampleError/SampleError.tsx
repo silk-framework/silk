@@ -1,59 +1,57 @@
 import React from "react";
-import {IconButton} from "@eccenca/gui-elements"
-import {SampleErrorModal} from "./SampleErrorModal";
+import { IconButton } from "@eccenca/gui-elements";
+import { SampleErrorModal } from "./SampleErrorModal";
 
 interface SampleErrorProps {
     /** The sample error. */
-    sampleError: SampleError
+    sampleError: SampleError;
     /** If the error report icon should be displayed with warning intent. */
-    hasStateWarning?: boolean
+    hasStateWarning?: boolean;
 }
 
 export interface SampleError {
     /** The entity URI for which the error happened. */
-    entity: string
+    entity: string;
     /** The input values, e.g. for the operator that threw the error. */
-    values: string[][]
+    values: string[][];
     /** The main error message. */
-    error: string
+    error: string;
     /** Optional stacktrace. */
-    stacktrace?: Stacktrace
+    stacktrace?: Stacktrace;
 }
 
 export interface Stacktrace {
     /** The error message on the current level of the stacktrace. */
-    errorMessage: string
+    errorMessage: string;
     /** The class of the exception. */
-    exceptionClass: string
+    exceptionClass: string;
     /** The lines of the stacktrace for the current level, i.e. without causes. */
-    lines: string[]
+    lines: string[];
     /** The optional cause, i.e. a nested stacktrace. */
-    cause?: Stacktrace
+    cause?: Stacktrace;
 }
 
-export const SampleError = ({sampleError, hasStateWarning = false}: SampleErrorProps) => {
+export const SampleError = ({ sampleError, hasStateWarning = false }: SampleErrorProps) => {
     // Shows an error report modal with all the details
-    const [showSameErrorReport, setShowSampleErrorReport] = React.useState(false)
+    const [showSameErrorReport, setShowSampleErrorReport] = React.useState(false);
 
     const onClick = React.useCallback(() => {
-        setShowSampleErrorReport(old => !old)
-    }, [])
+        setShowSampleErrorReport((old) => !old);
+    }, []);
 
-    return <>
-        <IconButton
-            key={"show-report"}
-            data-test-id={"show-sample-error-btn"}
-            name={"artefact-report"}
-            hasStateWarning={hasStateWarning}
-            onClick={onClick}
-            small={true}
-        />
-        {showSameErrorReport ?
-            <SampleErrorModal
-                sampleError={sampleError}
-                onClose={() => setShowSampleErrorReport(false)}
-            /> :
-            null
-        }
-    </>
-}
+    return (
+        <>
+            <IconButton
+                key={"show-report"}
+                data-test-id={"show-sample-error-btn"}
+                name={"artefact-report"}
+                hasStateWarning={hasStateWarning}
+                onClick={onClick}
+                small={true}
+            />
+            {showSameErrorReport ? (
+                <SampleErrorModal sampleError={sampleError} onClose={() => setShowSampleErrorReport(false)} />
+            ) : null}
+        </>
+    );
+};

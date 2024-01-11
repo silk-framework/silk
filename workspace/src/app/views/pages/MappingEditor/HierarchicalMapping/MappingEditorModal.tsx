@@ -63,9 +63,7 @@ const MappingEditorModal = ({
                 >
                     {t("taskViews.transformRulesEditor.warning.modal.close-btn")}
                 </Button>,
-                <Button
-                    key={"back"}
-                    onClick={() => setShowWarningModal(false)}>
+                <Button key={"back"} onClick={() => setShowWarningModal(false)}>
                     {t("taskViews.transformRulesEditor.warning.modal.back-btn")}
                 </Button>,
             ]}
