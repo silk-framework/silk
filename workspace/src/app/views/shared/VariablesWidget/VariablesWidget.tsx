@@ -278,34 +278,23 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                                                                         </ToolbarSection>
                                                                     ) : null}
                                                                     <ToolbarSection canGrow canShrink>
-                                                                        <PropertyValuePair style={{ width: "100%" }}>
+                                                                        <PropertyValuePair nowrap>
                                                                             <PropertyName
-                                                                                style={{
-                                                                                    whiteSpace: "nowrap",
-                                                                                    overflow: "visible",
-                                                                                }}
                                                                                 title={variable.name}
                                                                                 size="large"
+                                                                                labelProps={{
+                                                                                    tooltip: variable.description,
+                                                                                    style: { lineHeight: "normal" },
+                                                                                }}
                                                                             >
-                                                                                <Label
-                                                                                    isLayoutForElement="span"
-                                                                                    text={
-                                                                                        <OverflowText inline>
-                                                                                            {variable.name}
-                                                                                        </OverflowText>
-                                                                                    }
-                                                                                    tooltip={variable.description}
-                                                                                    style={{ lineHeight: "normal" }}
-                                                                                />
+                                                                                {variable.name}
                                                                             </PropertyName>
                                                                             <PropertyValue
                                                                                 style={{
                                                                                     marginLeft: "calc(31.25% + 14px)",
                                                                                 }}
                                                                             >
-                                                                                <OverflowText>
-                                                                                    <code>{variable.value}</code>
-                                                                                </OverflowText>
+                                                                                <code>{variable.value}</code>
                                                                             </PropertyValue>
                                                                         </PropertyValuePair>
                                                                     </ToolbarSection>
