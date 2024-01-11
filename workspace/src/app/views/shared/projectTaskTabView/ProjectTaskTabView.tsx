@@ -138,11 +138,15 @@ export function ProjectTaskTabView({
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
     React.useEffect(() => {
+        fetchTaskNotifications()
+    }, [viewActions?.taskContext])
+
+    const fetchTaskNotifications = React.useCallback(async () => {
         const warnings = viewActions?.taskContext ?
-            viewActions?.taskContext?.taskContextNotification?.(viewActions.taskContext.context) :
+            await viewActions.taskContext.taskContextNotification?.(viewActions.taskContext.context) :
             undefined
         setWarnings(warnings ? warnings.map(w => w.message) : undefined)
-    }, [viewActions?.taskContext])
+    }, [])
 
     React.useEffect(() => {
         if (tabRouteChangeRequest != null) {

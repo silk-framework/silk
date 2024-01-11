@@ -5,7 +5,7 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.requests.{TaskContextRequest, TaskContextResponse, TaskMetaData}
 import controllers.util.SerializationUtils.serializeCompileTime
 import controllers.util.{SerializationUtils, TextSearchUtils}
-import controllers.workspace.doc.{LegacyDatasetApiDoc => DatasetApiDoc}
+import controllers.workspace.doc.{TaskApiDoc, LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -346,11 +346,21 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject("TODO"))
+            examples = Array(new ExampleObject(TaskApiDoc.taskContextResponse))
           )
         )
       )
     )
+  )
+  @RequestBody(
+    description = "The request body contains the task context for which additional information is requested.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[TaskContextRequest]),
+        examples = Array(new ExampleObject(TaskApiDoc.taskContextRequest))
+      ))
   )
   def taskContext(@Parameter(
                     name = "projectId",
@@ -366,7 +376,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       val inputTasks: Seq[TaskMetaData] = inOutTasks.inputTasks.map(inputTask => {
         val taskSpec = inputTask.task.data
         val hasSchema = taskSpec.outputPort.exists(_.schemaOpt.isDefined)
-        TaskMetaData(inputTask.workflowContextTask.id, inputTask.task.fullLabel, inputTask.task.isInstanceOf[DatasetSpec[_]], hasSchema)
+        TaskMetaData(inputTask.workflowContextTask.id, inputTask.task.fullLabel, inputTask.task.data.isInstanceOf[DatasetSpec[_]], hasSchema)
       })
       val outputTasks: Seq[TaskMetaData] = inOutTasks.outputTasks.map(outputTask => {
         val taskSpec = outputTask.task.data
@@ -377,7 +387,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
             hasSchema = ports(inputPort.get).schemaOpt.isDefined
           case _ =>
         }
-        TaskMetaData(outputTask.workflowContextTask.id, outputTask.task.fullLabel, outputTask.task.isInstanceOf[DatasetSpec[_]], hasSchema)
+        TaskMetaData(outputTask.workflowContextTask.id, outputTask.task.fullLabel, outputTask.task.data.isInstanceOf[DatasetSpec[_]], hasSchema)
       })
       Ok(Json.toJson(TaskContextResponse(inputTasks, outputTasks)))
     }

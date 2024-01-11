@@ -25,7 +25,7 @@ export interface ViewActionsTaskContext {
     /** Additional suffix that is shown in the tab title for views that support a task context. */
     taskViewSuffix?: (taskContext: TaskContext) => JSX.Element | undefined
     /** A notification shown in the tab view regarding the task context, e.g. a warning. */
-    taskContextNotification?: (taskContext: TaskContext) => TaskContextNotification[] | undefined
+    taskContextNotification?: (taskContext: TaskContext) => Promise<TaskContextNotification[] | undefined> | TaskContextNotification[] | undefined
 }
 
 export interface TaskContextNotification {

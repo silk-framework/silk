@@ -1,9 +1,10 @@
 package controllers.workspaceApi
 
+import controllers.projectApi.requests.{TaskContextResponse, TaskMetaData}
+import controllers.util.ProjectTaskApiClient
 import controllers.workspaceApi.projectTask.RelatedItems
 import controllers.workspaceApi.search.ItemType
 import helper.IntegrationTestTrait
-
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -15,10 +16,15 @@ import play.api.libs.json.{JsValue, Json}
 import testWorkspace.Routes
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.MetaData
+import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
+import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask}
 
 class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
-    with Matchers{
+    with ProjectTaskApiClient
+    with Matchers {
   behavior of "Project Task API"
 
   override def workspaceProviderId: String = "inMemory"
@@ -78,5 +84,38 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     val autoConfiguredDataset = JsonSerialization.fromJson[GenericDatasetSpec](response).plugin.asInstanceOf[CsvDataset]
     autoConfiguredDataset.separator mustBe ";"
+  }
+
+  it should "return task context information" in {
+    val datasetId = "inMemoryDataset"
+    val customId = "customSparqlUpdate"
+    val datasetLabel = "In-memory dataset"
+    val customLabel = "Custom SPARQL Update"
+    project.addTask(customId, SparqlUpdateCustomTask("insert data {${<PROP_FROM_ENTITY_SCHEMA1>} <p> <o> }"), MetaData(Some(customLabel)))
+    project.addTask(datasetId, DatasetSpec(InMemoryDataset()), metaData = MetaData(Some(datasetLabel)))
+    val TaskContextResponse(inputTasks, outputTasks) = taskContext(projectId, WorkflowTaskContext(
+      Some(Seq(
+        WorkflowTaskContextInputTask(customId),
+        WorkflowTaskContextInputTask(datasetId)
+      )),
+      Some(Seq(
+        WorkflowTaskContextOutputTask(datasetId, configPort = false, Some(0)),
+        WorkflowTaskContextOutputTask(customId, configPort = false, Some(0)),
+        WorkflowTaskContextOutputTask(datasetId, configPort = true, None),
+        WorkflowTaskContextOutputTask(customId, configPort = true, None)
+      ))
+    ))
+    inputTasks must have size 2
+    outputTasks must have size 4
+    inputTasks mustBe Seq(
+      TaskMetaData(customId, customLabel, isDataset = false, fixedSchema = true),
+      TaskMetaData(datasetId, datasetLabel, isDataset = true, fixedSchema = false),
+    )
+    outputTasks mustBe Seq(
+      TaskMetaData(datasetId, datasetLabel, isDataset = true, fixedSchema = false),
+      TaskMetaData(customId, customLabel, isDataset = false, fixedSchema = true),
+      TaskMetaData(datasetId, datasetLabel, isDataset = true, fixedSchema = true),
+      TaskMetaData(customId, customLabel, isDataset = false, fixedSchema = true),
+    )
   }
 }
