@@ -25,7 +25,7 @@ export const inputPathTab = (
         label: "Source paths",
         fetchOperators: async (langPref: string) => {
             try {
-                return (await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId)).data.map((d) => ({
+                return (await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, "", taskContext)).data.map((d) => ({
                     valueType: "",
                     ...d,
                 })) as PathWithMetaData[];
