@@ -174,6 +174,7 @@ object TaskApiDoc {
   final val taskContextRequest =
     """
     {
+        "taskId": "taskID",
         "taskContext": {
             "inputTasks": [
                 {
@@ -219,7 +220,9 @@ object TaskApiDoc {
                 "isDataset": false,
                 "fixedSchema": true
             }
-        ]
+        ],
+        "originalInputs": true,
+        "originalOutputs": false
     }
     """
 }

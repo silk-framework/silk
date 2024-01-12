@@ -19,6 +19,9 @@ import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.MetaData
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
+import org.silkframework.rule.{DatasetSelection, TransformSpec}
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask}
 
 class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTestTrait
@@ -91,9 +94,11 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
     val customId = "customSparqlUpdate"
     val datasetLabel = "In-memory dataset"
     val customLabel = "Custom SPARQL Update"
+    val transformTask = "transformInContext"
     project.addTask(customId, SparqlUpdateCustomTask("insert data {${<PROP_FROM_ENTITY_SCHEMA1>} <p> <o> }"), MetaData(Some(customLabel)))
     project.addTask(datasetId, DatasetSpec(InMemoryDataset()), metaData = MetaData(Some(datasetLabel)))
-    val TaskContextResponse(inputTasks, outputTasks) = taskContext(projectId, WorkflowTaskContext(
+    project.addTask(transformTask, TransformSpec(DatasetSelection(datasetId), output = IdentifierOptionParameter(Some(Identifier(customId)))))
+    val TaskContextResponse(inputTasks, outputTasks, originalInputs, originalOutputs) = taskContext(projectId, transformTask, WorkflowTaskContext(
       Some(Seq(
         WorkflowTaskContextInputTask(customId),
         WorkflowTaskContextInputTask(datasetId)
@@ -117,5 +122,7 @@ class ProjectTaskApiTest extends AnyFlatSpec with SingleProjectWorkspaceProvider
       TaskMetaData(datasetId, datasetLabel, isDataset = true, fixedSchema = true),
       TaskMetaData(customId, customLabel, isDataset = false, fixedSchema = true),
     )
+    originalInputs mustBe Some(false)
+    originalOutputs mustBe Some(false)
   }
 }

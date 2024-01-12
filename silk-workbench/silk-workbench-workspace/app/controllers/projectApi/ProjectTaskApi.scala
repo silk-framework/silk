@@ -19,6 +19,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginDescription}
 import org.silkframework.runtime.serialization.ReadContext
@@ -372,6 +373,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
                   projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[TaskContextRequest] { request =>
       val project = getProject(projectId)
+      val task = project.anyTask(request.taskId)
       val inOutTasks = ProjectTaskApi.validateTaskContext(project, Some(request.taskContext))
       val inputTasks: Seq[TaskMetaData] = inOutTasks.inputTasks.map(inputTask => {
         val taskSpec = inputTask.task.data
@@ -389,7 +391,31 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         }
         TaskMetaData(outputTask.workflowContextTask.id, outputTask.task.fullLabel, outputTask.task.data.isInstanceOf[DatasetSpec[_]], hasSchema)
       })
-      Ok(Json.toJson(TaskContextResponse(inputTasks, outputTasks)))
+      val originalInputs = inputTaskIds(task).map(configuredInputs => configuredInputs == inputTasks.map(_.taskId))
+      val originalOutputs = outputTaskIds(task).map(configuredOutputs => configuredOutputs == outputTasks.map(_.taskId))
+      Ok(Json.toJson(TaskContextResponse(inputTasks, outputTasks, originalInputs, originalOutputs)))
+    }
+  }
+
+  private def inputTaskIds(task: Task[_ <: TaskSpec]): Option[Seq[String]] = {
+    task.data match {
+      case transform: TransformSpec =>
+        Some(Seq(transform.selection.inputId.toString))
+      case linking: LinkSpec =>
+        Some(linking.dataSelections.map(_.inputId.toString).toSeq)
+      case _ =>
+        None
+    }
+  }
+
+  private def outputTaskIds(task: Task[_ <: TaskSpec]): Option[Seq[String]] = {
+    task.data match {
+      case transform: TransformSpec =>
+        transform.output.map(o => Seq(o.toString))
+      case linking: LinkSpec =>
+        linking.output.map(o => Seq(o.toString))
+      case _ =>
+        None
     }
   }
 

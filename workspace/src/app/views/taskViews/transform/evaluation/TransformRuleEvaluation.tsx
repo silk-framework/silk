@@ -13,6 +13,8 @@ import { transformToValueMap } from "../transformEditor.utils";
 import { LinkRuleNodeEvaluation } from "../../linking/evaluation/LinkRuleNodeEvaluation";
 import { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvaluation";
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
+import {GlobalMappingEditorContext} from "../../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
+import {requestTaskContextInfo} from "@ducks/workspace/requests";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -44,6 +46,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
+    const taskContextWarningShown = React.useRef(false)
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     // The root node of the sub-tree that will be evaluated
     const evaluatedSubTreeNode = React.useRef<string>();
 
@@ -159,6 +163,14 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             }
         } finally {
             setEvaluationRunning(false);
+        }
+        if (mappingEditorContext.taskContext &&
+            (mappingEditorContext.taskContext.inputTasks ?? []).length) {
+            const contextInfo = (await requestTaskContextInfo(projectId, transformTaskId, mappingEditorContext.taskContext)).data
+            taskContextWarningShown.current = true
+            if(contextInfo.originalInputs != null && !contextInfo.originalInputs) {
+                registerError("warning", "The input of the transform context is different from the configured one. Evaluation results are only shown for the configured input.", null)
+            }
         }
     };
 

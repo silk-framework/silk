@@ -1,7 +1,7 @@
-import { IFiltersState } from "./IWorkspaceFilters";
-import { IPreviewState } from "./IWorkspacePreview";
-import { IWidgetsState } from "@ducks/workspace/typings/IWorkspaceWidgets";
-import { IItemLink } from "@ducks/shared/typings";
+import {IFiltersState} from "./IWorkspaceFilters";
+import {IPreviewState} from "./IWorkspacePreview";
+import {IWidgetsState} from "@ducks/workspace/typings/IWorkspaceWidgets";
+import {IItemLink} from "@ducks/shared/typings";
 
 export * from "./IWorkspacePreview";
 export * from "./IWorkspaceFilters";
@@ -66,3 +66,18 @@ export type Keyword = {
     uri: string;
 };
 export type Keywords = Array<Keyword>;
+
+/** Additional information about a task context. */
+export interface TaskContextResponse {
+    inputTasks: TaskMetaData[],
+    outputTasks: TaskMetaData[],
+    originalInputs?: boolean,
+    originalOutputs?: boolean
+}
+
+export interface TaskMetaData {
+    taskId: string,
+    label: string,
+    isDataset: boolean,
+    fixedSchema: boolean
+}
