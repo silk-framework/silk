@@ -23,6 +23,7 @@ import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModal";
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
+import { SampleError } from "../../../shared/SampleError/SampleError";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -39,7 +40,7 @@ export type EvaluatedEntityLink = IEntityLink & { type: "positive" | "negative" 
 
 const REFERENCE_LINK_URL_PARAMETER = "referenceLinksUrl";
 
-export type EvaluationResultType = Array<{ value: string[]; error?: string | null }>;
+export type EvaluationResultType = Array<{ value: string[]; error?: SampleError | null }>;
 
 /** Linking rule evaluation component.
  * Shows (inline) evaluation of the currently shown linking rule.

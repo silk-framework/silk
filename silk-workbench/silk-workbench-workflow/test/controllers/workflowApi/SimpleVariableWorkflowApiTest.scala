@@ -8,9 +8,8 @@ import controllers.workspace.activityApi.StartActivityResponse
 import helper.IntegrationTestTrait
 
 import org.scalatest.concurrent.Eventually.eventually
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
+import org.scalatest.{BeforeAndAfterAll}
 import org.silkframework.runtime.resource.FileResource
-import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset

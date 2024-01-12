@@ -1,5 +1,6 @@
 import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
+import { SampleError, Stacktrace } from "../../shared/SampleError/SampleError";
 
 /** A linking rule. */
 export interface ILinkingRule {
@@ -183,4 +184,6 @@ export interface IEvaluationValue extends IEvaluationNode {
     error?: string;
     /** In case of transform operators, they can have value inputs. */
     children?: IEvaluationValue[];
+    /** Optional stacktrace if error is set. */
+    stacktrace?: Stacktrace;
 }
