@@ -1,5 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import play.api.libs.json.{Format, Json}
 
 /** The workflow context a project task is executed in.
@@ -7,7 +9,9 @@ import play.api.libs.json.{Format, Json}
   * @param inputTasks The input task IDs of the task in that position of the workflow.
   * @param outputTasks The IDs of the tasks that are connected to the task node in the workflow.
   */
-case class WorkflowTaskContext(inputTasks: Option[Seq[WorkflowTaskContextInputTask]],
+case class WorkflowTaskContext(@ArraySchema(schema = new Schema(implementation = classOf[WorkflowTaskContextInputTask], requiredMode = RequiredMode.NOT_REQUIRED, nullable = true))
+                               inputTasks: Option[Seq[WorkflowTaskContextInputTask]],
+                               @ArraySchema(schema = new Schema(implementation = classOf[WorkflowTaskContextOutputTask], requiredMode = RequiredMode.NOT_REQUIRED, nullable = true))
                                outputTasks: Option[Seq[WorkflowTaskContextOutputTask]])
 
 
