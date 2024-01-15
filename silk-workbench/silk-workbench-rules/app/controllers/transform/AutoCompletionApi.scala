@@ -253,7 +253,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         val inputAndOutputTasks = ProjectTaskApi.validateTaskContext(project, autoCompletionRequest.taskContext)
         val inputEqualsConfig = inputAndOutputTasks.inputTasks.size == 1 &&
           inputAndOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
-        val alternativeEntitySchema = if(inputEqualsConfig) None else inputAndOutputTasks.inputEntitySchema()
+        val alternativeEntitySchema = if(inputEqualsConfig) None else inputAndOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
             autoCompletionRequest.isObjectPath.getOrElse(false), alternativeEntitySchema)
@@ -368,7 +368,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
               val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext)
               val inputEqualsConfig = inputOutputTasks.inputTasks.size == 1 &&
                 inputOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
-              val alternativeInputSchema = if(inputEqualsConfig) None else inputOutputTasks.inputEntitySchema()
+              val alternativeInputSchema = if(inputEqualsConfig) None else inputOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
                 basePath, isObjectPath = false, alternativeInputSchema)
               val offset = pathPart.segmentPosition.originalStartIndex
