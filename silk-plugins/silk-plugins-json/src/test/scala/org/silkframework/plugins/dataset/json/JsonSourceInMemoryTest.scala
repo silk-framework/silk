@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.json
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.Uri
 
 import scala.io.Codec
@@ -21,4 +21,7 @@ class JsonSourceInMemoryTest extends JsonSourceTest {
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }
 
+  override protected def createDataset(resource: WritableResource): JsonDataset = {
+    JsonDataset(resource, streaming = false)
+  }
 }

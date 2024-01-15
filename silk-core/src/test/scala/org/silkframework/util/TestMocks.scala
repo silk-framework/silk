@@ -1,11 +1,10 @@
 package org.silkframework.util
 
 import org.mockito.MockSettings
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{when, mock => mockitoMock}
 import org.mockito.stubbing.Answer
-import org.mockito.Mockito.{mock => mockitoMock}
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.runtime.activity.{ActivityContext, ValueHolder}
+import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, ValueHolder}
 
 import scala.reflect.ClassTag
 
@@ -17,6 +16,8 @@ object TestMocks extends MockitoSugar {
   def activityContextMock(): ActivityContext[ExecutionReport] = {
     val context = mock[ActivityContext[ExecutionReport]]
     when(context.value).thenReturn(new ValueHolder[ExecutionReport](None))
+    val statusMock = mock[StatusHolder];
+    when(context.status).thenReturn(statusMock)
     context
   }
 }

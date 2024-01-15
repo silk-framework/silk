@@ -20,7 +20,7 @@ import {
     TableRow,
 } from "@eccenca/gui-elements";
 import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
-import {SampleError} from "../../../shared/SampleError/SampleError";
+import { SampleError } from "../../../shared/SampleError/SampleError";
 
 /**
  * Displays a task execution report.
@@ -228,10 +228,8 @@ export default class ExecutionReport extends React.Component {
     }
 
     renderRuleErrors(ruleResults) {
-        const actionFieldNeeded = !!ruleResults.sampleErrors[0]?.stacktrace
-        const columnWidths = actionFieldNeeded ?
-            ["30%", "30%", "35%", "5%"] :
-            ["30%", "30%", "40%"]
+        const actionFieldNeeded = !!ruleResults.sampleErrors[0]?.stacktrace;
+        const columnWidths = actionFieldNeeded ? ["30%", "30%", "35%", "5%"] : ["30%", "30%", "40%"];
         return (
             <>
                 <Spacing size="small" />
@@ -241,10 +239,7 @@ export default class ExecutionReport extends React.Component {
                             <TableHeader>Entity</TableHeader>
                             <TableHeader>Values</TableHeader>
                             <TableHeader>Issue</TableHeader>
-                            {actionFieldNeeded ?
-                                <TableHeader></TableHeader> :
-                                null
-                            }
+                            {actionFieldNeeded ? <TableHeader></TableHeader> : null}
                         </TableRow>
                     </TableHead>
                     <TableBody>{ruleResults.sampleErrors.map(this.renderRuleError)}</TableBody>
@@ -254,7 +249,7 @@ export default class ExecutionReport extends React.Component {
     }
 
     renderRuleError(ruleError, idx) {
-        const hasStackTrace = !!ruleError.stacktrace
+        const hasStackTrace = !!ruleError.stacktrace;
         return (
             <TableRow key={idx}>
                 <TableCell>
@@ -272,14 +267,11 @@ export default class ExecutionReport extends React.Component {
                         {ruleError.error}
                     </HtmlContentBlock>
                 </TableCell>
-                {hasStackTrace ?
+                {hasStackTrace ? (
                     <TableCell>
-                        <SampleError
-                            sampleError={ruleError}
-                        />
-                    </TableCell> :
-                    null
-                }
+                        <SampleError sampleError={ruleError} />
+                    </TableCell>
+                ) : null}
             </TableRow>
         );
     }

@@ -84,7 +84,7 @@ export const ProjectTaskLoadingErrors = ({ refreshProjectPage }: Props) => {
             handleOpen();
             setCurrentMarkdown(markdown);
         } catch (err) {
-            registerErrorI18N("http.error.not.markdown", err)
+            registerErrorI18N("http.error.not.markdown", err);
         }
     };
     const fixTask: AlternativeTaskUpdateFunction = async (

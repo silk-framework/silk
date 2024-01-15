@@ -2,7 +2,7 @@ import { IInputSource, IStickyNote } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 import { ILinkingRule, IResourceLink, OptionallyLabelledParameter } from "../linking/linking.types";
-import {Stacktrace} from "../../shared/SampleError/SampleError";
+import { Stacktrace } from "../../shared/SampleError/SampleError";
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -66,7 +66,7 @@ export interface EvaluatedTransformEntity {
     operatorId: string;
     values: string[];
     error: string | null;
-    stacktrace?: Stacktrace
+    stacktrace?: Stacktrace;
     children: EvaluatedTransformEntity[];
 }
 

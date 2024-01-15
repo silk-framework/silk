@@ -23,7 +23,7 @@ import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import { ruleEditorNodeParameterValue } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { PathNotInCacheModal } from "../../shared/evaluations/PathNotInCacheModal";
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
-import {SampleError} from "../../../shared/SampleError/SampleError";
+import { SampleError } from "../../../shared/SampleError/SampleError";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 

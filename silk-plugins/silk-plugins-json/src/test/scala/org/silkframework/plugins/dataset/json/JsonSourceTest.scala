@@ -1,17 +1,17 @@
 package org.silkframework.plugins.dataset.json
 
 
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
-import org.silkframework.entity.{EntitySchema, _}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, Resource, ResourceLoader}
+import org.silkframework.runtime.resource._
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
 abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
 
@@ -21,6 +21,7 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
   protected val resources: ResourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
 
   protected def createSource(resource: Resource, basePath: String, uriPattern: String): JsonSource
+  protected def createDataset(resource: WritableResource): JsonDataset
 
   protected def jsonExampleSource: JsonSource = {
     val source = createSource(resources.get("example.json"), "", "#id")
@@ -308,6 +309,16 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     val source = createSource(resources.get("objectPathTest.json"), "", "")
     val entities = source.retrieve(EntitySchema("pathA/pathA", typedPaths = IndexedSeq(UntypedPath("#text").asStringTypedPath))).entities.toList
     entities mustBe empty
+  }
+
+  it should "work with bulk zip files" in {
+    val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
+    val source = jsonDataset.source
+    val paths = source.retrievePaths("persons")
+    // Check for merged schema
+    paths.map(_.normalizedSerialization) mustBe IndexedSeq("id", "name", "phoneNumbers", "additionalProperty")
+    val entities = source.retrieve(EntitySchema("persons", typedPaths = IndexedSeq(UntypedPath("id").asStringTypedPath))).entities.toList
+    entities must have size 3
   }
 
   private def jsonSource(json: String, basePath: String = ""): JsonSource = {
