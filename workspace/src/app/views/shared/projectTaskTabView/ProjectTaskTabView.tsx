@@ -488,7 +488,7 @@ const CardContentWarnings = React.memo(({warnings}: CardContentWarningsProps) =>
     const removeWarning = React.useCallback((warningToRemove: string) => {
         setWarningStack(prevWarnings => prevWarnings.filter(w => w !== warningToRemove))
     }, [])
-    return warningsStack.length ? <CardContent className={`${eccgui}-dialog__notifications`}>
+    return warningsStack.length ? <CardContent data-test-id="tab-view-warnings" className={`${eccgui}-dialog__notifications`}>
             {
                 warningsStack.map(warning => {
                     return <Notification

@@ -251,9 +251,12 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
         val inputAndOutputTasks = ProjectTaskApi.validateTaskContext(project, autoCompletionRequest.taskContext)
+        val inputEqualsConfig = inputAndOutputTasks.inputTasks.size == 1 &&
+          inputAndOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
+        val alternativeEntitySchema = if(inputEqualsConfig) None else inputAndOutputTasks.inputEntitySchema()
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
-            autoCompletionRequest.isObjectPath.getOrElse(false), inputAndOutputTasks.inputEntitySchema())
+            autoCompletionRequest.isObjectPath.getOrElse(false), alternativeEntitySchema)
           Ok(Json.toJson(autoCompletionResponse))
         }
       }
@@ -362,7 +365,10 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                 Some(false),
                 uriPatternAutoCompletionRequest.workflowTaskContext
               )
-              val alternativeInputSchema = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext).inputEntitySchema()
+              val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext)
+              val inputEqualsConfig = inputOutputTasks.inputTasks.size == 1 &&
+                inputOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
+              val alternativeInputSchema = if(inputEqualsConfig) None else inputOutputTasks.inputEntitySchema()
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
                 basePath, isObjectPath = false, alternativeInputSchema)
               val offset = pathPart.segmentPosition.originalStartIndex
