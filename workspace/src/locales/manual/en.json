@@ -727,7 +727,8 @@
         },
         "transformRulesEditor": {
             "evaluation": {
-                "noResults": "No evaluation examples to show"
+                "noResults": "No evaluation examples to show",
+                "evaluationDifferentContext": "The input source of the transform context is different from the configured input of the transformation. Evaluation results are only shown for the configured input."
             },
             "warning": {
                 "modal": {
