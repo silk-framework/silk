@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { useTranslation } from "react-i18next";
@@ -490,12 +490,14 @@ const CardContentWarnings = React.memo(({warnings}: CardContentWarningsProps) =>
     }, [])
     return warningsStack.length ? <CardContent data-test-id="tab-view-warnings" className={`${eccgui}-dialog__notifications`}>
             {
-                warningsStack.map(warning => {
-                    return <Notification
-                        warning
-                        onDismiss={() => removeWarning(warning)}
-                    >{warning}</Notification>
-
+                warningsStack.map((warning, idx) => {
+                    return <Fragment key={warning}>
+                        <Notification
+                            warning
+                            onDismiss={() => removeWarning(warning)}
+                        >{warning}</Notification>
+                        {idx < (warningsStack.length - 1) && <Spacing size={"small"} />}
+                    </Fragment>
                 })
             }
         </CardContent> :
