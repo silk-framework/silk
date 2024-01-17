@@ -205,6 +205,9 @@ export function CreateArtefactModal() {
         if (!isOpen) {
             // Reset modal when it was closed
             resetModal(true);
+        } else {
+            // Clear errors when freshly opened
+            form.clearError()
         }
     }, [isOpen]);
 
