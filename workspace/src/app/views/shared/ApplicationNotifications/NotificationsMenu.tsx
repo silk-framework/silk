@@ -16,15 +16,16 @@ import errorSelector from "@ducks/error/selectors";
 import { ApplicationError, DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { ApplicationNotification } from "./ApplicationNotification";
+import {DepictionProps} from "@eccenca/gui-elements"
 
-interface Props {
+interface Props extends Pick<DepictionProps, "padding" | "size"> {
     /** When true the last notification will be shown for some seconds. */
     autoDisplayNotifications?: boolean;
     /** The unique instance ID of this notification menu. This allows to send specific errors only to this instance. */
     errorNotificationInstanceId?: string;
 }
 
-export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId }: Props) {
+export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId, size = "small", padding = "medium" }: Props) {
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
 
     const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
@@ -42,8 +43,8 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
             }}
         >
             <Depiction
-                padding="medium"
-                size="small"
+                padding={padding}
+                size={size}
                 ratio="1:1"
                 resizing="contain"
                 image={<Icon name="application-warning" description="Notification menu icon" large />}
