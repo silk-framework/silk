@@ -215,7 +215,7 @@ export function CreateArtefactModal() {
     useEffect(() => {
         if (isOpen && !isEmptyWorkspace) {
             batch(() => {
-                dispatch(commonOp.fetchAvailableDTypesAsync());
+                dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
                 dispatch(
                     commonOp.fetchArtefactsListAsync({
                         textQuery: searchValue,
@@ -225,7 +225,7 @@ export function CreateArtefactModal() {
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [isOpen]);
+    }, [isOpen, projectId]);
 
     const handleAdd = () => {
         if (toBeAddedKey.current === DATA_TYPES.PROJECT) {
