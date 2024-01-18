@@ -43,7 +43,7 @@ import scala.xml.{Node, Null}
   description =
       """A transform task defines a mapping from a source structure to a target structure."""
 )
-case class TransformSpec(@Param(label = "Input task", value = "The source from which data will be transformed when executed as a single task outside of a workflow.")
+case class TransformSpec(@Param(label = "Input", value = "The source from which data will be transformed when executed as a stand-alone task outside of a workflow.")
                          selection: DatasetSelection,
                          @Param(label = "", value = "", visibleInDialog = false)
                          mappingRule: RootMappingRule = RootMappingRule.empty,

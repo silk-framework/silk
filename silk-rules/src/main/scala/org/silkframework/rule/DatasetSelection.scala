@@ -34,12 +34,12 @@ import scala.xml.{Elem, Node}
   label = "Dataset Selection",
   description = "Select the set of input instances, defined by the data source, the type of the instances and an optional restriction pattern to" +
       " further restrict the selected instances."
-) // TODO: Better name, since we select a set of entities, not just a dataset
-case class DatasetSelection(@Param(label = "Dataset", value = "The dataset to select.",
+)
+case class DatasetSelection(@Param(label = "Data source", value = "The data source of the input entities",
                             autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
                                    autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                             inputId: Identifier,
-                            @Param(label = "Type", value = "The type of the dataset. If left empty, the default type will be selected. In case the autocompletion is outdated, you need to refresh the types cache manually.",
+                            @Param(label = "Type", value = "The type of the entities that will be transformed (e.g. a specific Table, OWL Class or JSON Path). If left empty, the default type will be selected. In case the autocompletion is outdated, you need to refresh the types cache manually.",
                               autoCompletionProvider = classOf[DatasetTypeAutoCompletionProviderReference], autoCompletionDependsOnParameters = Array("inputId"))
                             typeUri: Uri = Uri(""),
                             @Param(label = "Restriction", value = "Additional restrictions on the enumerated entities. If this is an RDF source, " +
