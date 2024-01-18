@@ -35,7 +35,7 @@ import scala.xml.{Elem, Node}
   description = "Select the set of input instances, defined by the data source, the type of the instances and an optional restriction pattern to" +
       " further restrict the selected instances."
 )
-case class DatasetSelection(@Param(label = "Data source", value = "The data source of the input entities",
+case class DatasetSelection(@Param(label = "Input", value = "The input that is generating the entities. At the moment this can be a dataset, transformation or task.",
                             autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
                                    autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                             inputId: Identifier,
