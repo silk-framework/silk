@@ -35,17 +35,17 @@ final class BitsetIndex private(private val index: Set[Int], private val bitset:
   /**
    * Checks if this index matches another index.
    */
-  def matches(other: BitsetIndex) = {
+  def matches(other: BitsetIndex): Boolean = {
     (mask & other.mask) != 0 && bitsetMatches(other) && indexMatches(other)
   }
 
   @inline
-  private def indexMatches(other: BitsetIndex) = {
+  private def indexMatches(other: BitsetIndex): Boolean = {
     !(index intersect other.index).isEmpty
   }
 
   @inline
-  private def bitsetMatches(other: BitsetIndex) = {
+  private def bitsetMatches(other: BitsetIndex): Boolean = {
     var found = false
     var i = 0
     while (!found && i < BitsetIndex.Size) {
@@ -56,7 +56,7 @@ final class BitsetIndex private(private val index: Set[Int], private val bitset:
     found
   }
 
-  def serialize(stream: DataOutput) {
+  def serialize(stream: DataOutput): Unit = {
     stream.writeInt(index.size)
     index.foreach(stream.writeInt)
     bitset.foreach(stream.writeLong)
@@ -76,7 +76,7 @@ object BitsetIndex {
    */
   private val Size = 64
 
-  def build(index: Set[Int]) = {
+  def build(index: Set[Int]): BitsetIndex = {
     val array = new Array[Long](Size)
 
     for (i <- index) {
@@ -88,7 +88,7 @@ object BitsetIndex {
     new BitsetIndex(index, array)
   }
 
-  def deserialize(stream: DataInput) = {
+  def deserialize(stream: DataInput): BitsetIndex = {
     val indexSize = stream.readInt()
     val index = Array.fill(indexSize)(stream.readInt).toSet
     val bitset = Array.fill(Size)(stream.readLong)

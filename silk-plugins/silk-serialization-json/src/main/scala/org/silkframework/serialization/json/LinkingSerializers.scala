@@ -1,11 +1,13 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.entity.{Link, LinkWithDecision}
+import org.silkframework.execution.report.Stacktrace
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairJsonFormat}
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.ExecutionReportSerializers.stacktraceJsonFormat
 import play.api.libs.json._
 
 object LinkingSerializers {
@@ -110,6 +112,7 @@ object LinkingSerializers {
     final val CHILDREN = "children"
     final val VALUES = "values"
     final val ERROR = "error"
+    final val STACKTRACE = "stacktrace"
 
     override def write(value: Value)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       value match {
@@ -118,16 +121,17 @@ object LinkingSerializers {
             OPERATOR_ID -> input.id.toString,
             VALUES -> values,
             ERROR -> error.map(_.getMessage),
+            STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex))),
             CHILDREN -> children.map(write)
           )
         case InputValue(input, values, error) =>
           Json.obj(
             OPERATOR_ID -> input.id.toString,
             VALUES -> values,
-            ERROR -> error.map(_.getMessage)
+            ERROR -> error.map(_.getMessage),
+            STACKTRACE -> error.map(ex => Json.toJson(Stacktrace.fromException(ex)))
           )
       }
-
     }
   }
 

@@ -194,7 +194,7 @@ export const PathInputOperator = ({
         setActiveProps(newProps);
     }
 
-    return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} />;
+    return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
 };
 
 const languageFilterExpression = (lang: string | undefined) => {

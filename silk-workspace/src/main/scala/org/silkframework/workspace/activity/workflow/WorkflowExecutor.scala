@@ -1,15 +1,15 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.Entity
 import org.silkframework.execution._
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -167,29 +167,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         workflowNode.workflowNode, {
           // Calculate the parameters
           val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task) { entities => entities.flatMap(_.headOption) })
-          // Merge parameters, config parameters of later inputs overwrite those of earlier inputs
-          val configParameters = configInputEntities.
-            map(extractConfigParameterMap).
-              foldLeft(Map.empty[String, String])(_ ++ _)
-          if (configParameters.isEmpty) {
-            task
-          } else {
-            PlainTask(id = task.id, data = task.data.withParameters(ParameterValues.fromStringMap(configParameters)), metaData = task.metaData)
-          }
+          task.reconfigure(configInputEntities)
         }
       ).asInstanceOf[Task[T]]
     } catch {
       case ex: ValidationException =>
         throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage)
     }
-  }
-
-  private def extractConfigParameterMap(entity: Entity): Map[String, String] = {
-    val configPairs = for((propertyName, multiValue) <- entity.schema.propertyNames.zip(entity.values);
-                          value <- multiValue.headOption) yield {
-      propertyName -> value
-    }
-    configPairs.toMap
   }
 
   protected def task(workflowDependencyNode: WorkflowDependencyNode)

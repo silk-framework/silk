@@ -1,11 +1,12 @@
 package controllers.workspaceApi.project
 
-import controllers.errorReporting.ErrorReport.{ErrorReportItem, Stacktrace}
+import controllers.errorReporting.ErrorReport.ErrorReportItem
 import org.silkframework.config.MetaData
+import org.silkframework.execution.report.Stacktrace
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
-import org.silkframework.workbench.utils.JsonRequestException
+import org.silkframework.workbench.utils.{ErrorResult, JsonRequestException}
 import org.silkframework.workspace.{Project, TaskLoadingError}
 import play.api.libs.json.{JsObject, Json}
 
@@ -26,7 +27,7 @@ object ProjectLoadingErrors {
       taskLabel = taskLoadingError.label,
       taskDescription = taskLoadingError.description,
       errorMessage = Option(taskLoadingError.throwable.getMessage),
-      stackTrace = Some(Stacktrace.fromException(taskLoadingError.throwable))
+      stackTrace = Some(ErrorResult.Stacktrace.fromException(taskLoadingError.throwable))
     )
   }
 

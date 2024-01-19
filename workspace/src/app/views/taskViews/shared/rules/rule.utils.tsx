@@ -68,6 +68,15 @@ const extractOperatorNodeFromTransformInput = (
         extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator)
     );
     const op = ruleOperator(transformInput.function, "TransformOperator");
+    const parameters = transformInput.parameters;
+    if (op) {
+        Object.entries(op.parameterSpecification).forEach(([parameterId, paramSpec]) => {
+            if (parameters[parameterId] == null) {
+                // Rule parameters are missing that are available in the plugin spec,
+                parameters[parameterId] = paramSpec.defaultValue;
+            }
+        });
+    }
     result.push({
         nodeId: transformInput.id,
         inputs: inputs,

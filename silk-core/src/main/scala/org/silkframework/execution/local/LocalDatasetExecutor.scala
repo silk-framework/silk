@@ -390,8 +390,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
                               (implicit userContext: UserContext, prefixes: Prefixes, executionReport: ExecutionReportUpdater): Unit = {
-    writeEntities(sink, tables)
-    for(table <- tables.subTables) {
+    for(table <- tables.allTables) {
       writeEntities(sink, table)
     }
   }

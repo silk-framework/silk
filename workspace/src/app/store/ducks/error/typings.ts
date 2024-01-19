@@ -32,5 +32,7 @@ export interface DIErrorFormat {
 
 /** DI error state containing all errors */
 export interface IErrorState {
-    errors: Array<DIErrorFormat & {errorNotificationInstanceId?: string}>;
+    errors: Array<ApplicationError>;
 }
+
+export type ApplicationError = DIErrorFormat & { errorNotificationInstanceId?: string };
