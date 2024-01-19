@@ -66,7 +66,7 @@ class SafeModeIntegrationTest extends AnyFlatSpec
       implicit val context: PluginContext = PluginContext.fromProject(project)
       val task = project.task[GenericDatasetSpec](inputSparqlDataset)
       val oldTask = task.data
-      val oldProperties = oldTask.properties
+      val oldProperties = oldTask.parameters.toStringMap
       val newProperties = oldProperties.filter(prop => prop._1 != sparqlDatasetEndpointParameter && prop._1 != "type") ++
           Seq(sparqlDatasetEndpointParameter -> s"http://localhost:$sparqlServerPort/sparql")
       task.update(oldTask.withParameters(ParameterValues.fromStringMap(newProperties.toMap)))

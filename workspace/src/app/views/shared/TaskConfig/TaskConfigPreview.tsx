@@ -2,9 +2,7 @@ import { IProjectTask } from "@ducks/shared/typings";
 import {
     Icon,
     IconButton,
-    Label,
     Notification,
-    OverflowText,
     OverviewItemList,
     PropertyName,
     PropertyValue,
@@ -56,8 +54,13 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 Object.entries(obj)
                     .filter(([key]) => {
                         const pd = paramDescriptions[key];
-                        const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
-                        return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
+                        // It is possible that a new version of the task plugin has changed or removed parameters. Ignore parameters without parameter spec.
+                        if (!pd) {
+                            return false;
+                        } else {
+                            const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
+                            return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
+                        }
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);
@@ -131,26 +134,20 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                     return (
                         <Toolbar noWrap key={paramId}>
                             <ToolbarSection canGrow canShrink>
-                                <PropertyValuePair hasDivider>
+                                <PropertyValuePair hasDivider nowrap>
                                     <PropertyName
-                                        style={{
-                                            whiteSpace: "nowrap",
-                                        }}
                                         title={paramId}
                                         size="large"
+                                        labelProps={{
+                                            style: fixStyle,
+                                        }}
                                     >
-                                        <Label
-                                            isLayoutForElement="span"
-                                            text={<OverflowText inline>{paramId}</OverflowText>}
-                                            style={fixStyle}
-                                        />
+                                        {paramId}
                                     </PropertyName>
                                     <PropertyValue>
-                                        <OverflowText>
-                                            <code title={value.length > 30 ? value : undefined} style={fixStyle}>
-                                                {value}
-                                            </code>
-                                        </OverflowText>
+                                        <code title={value.length > 30 ? value : undefined} style={fixStyle}>
+                                            {value}
+                                        </code>
                                     </PropertyValue>
                                 </PropertyValuePair>
                             </ToolbarSection>

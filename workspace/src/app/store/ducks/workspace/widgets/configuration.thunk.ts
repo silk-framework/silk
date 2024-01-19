@@ -6,7 +6,7 @@ const { setPrefixes, resetNewPrefix, toggleWidgetLoading, setWidgetError } = wid
 
 const WIDGET_NAME = "configuration";
 
-const updatePrefixList = (data) => {
+export const updatePrefixList = (data) => {
     return (dispatch) => {
         const formattedPrefixes = Object.keys(data)
             .sort((left, right) => (left < right ? -1 : 1))
@@ -18,11 +18,11 @@ const updatePrefixList = (data) => {
     };
 };
 
-const toggleLoading = () => (dispatch) => {
+export const toggleLoading = () => (dispatch) => {
     dispatch(toggleWidgetLoading(WIDGET_NAME));
 };
 
-const setError = (e) => (dispatch) => {
+export const setError = (e) => (dispatch) => {
     dispatch(
         setWidgetError({
             widgetName: WIDGET_NAME,
@@ -36,41 +36,6 @@ export const fetchProjectPrefixesAsync = (projectId: string) => {
         try {
             dispatch(toggleLoading());
             const data = await requestProjectPrefixes(projectId);
-            dispatch(updatePrefixList(data));
-        } catch (e) {
-            dispatch(setError(e));
-        } finally {
-            dispatch(toggleLoading());
-        }
-    };
-};
-
-export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: string, projectId: string) => {
-    return async (dispatch) => {
-        try {
-            dispatch(toggleLoading());
-
-            const data = await requestChangePrefixes(prefixName, JSON.stringify(prefixUri), projectId);
-
-            batch(() => {
-                dispatch(resetNewPrefix());
-                dispatch(updatePrefixList(data));
-            });
-        } catch (e) {
-            dispatch(setError(e));
-        } finally {
-            dispatch(toggleLoading());
-        }
-    };
-};
-
-export const fetchRemoveProjectPrefixAsync = (prefixName: string, projectId: string) => {
-    return async (dispatch) => {
-        try {
-            dispatch(toggleLoading());
-
-            const data = await requestRemoveProjectPrefix(prefixName, projectId);
-
             dispatch(updatePrefixList(data));
         } catch (e) {
             dispatch(setError(e));

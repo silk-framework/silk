@@ -7,6 +7,7 @@ import { EvaluationResultType } from "../linking/evaluation/LinkingRuleEvaluatio
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { autoCompleteTransformSourcePath } from "./transform.requests";
 import { EvaluatedTransformEntity } from "./transform.types";
+import { SampleError } from "../../shared/SampleError/SampleError";
 
 export const inputPathTab = (
     projectId: string,
@@ -58,10 +59,19 @@ export const inputPathTab = (
 };
 
 export const transformToValueMap = (transform: EvaluatedTransformEntity): Map<string, EvaluationResultType[number]> => {
-    const valueMap = new Map<string, { error?: string | null; value: string[] }>();
+    const valueMap = new Map<string, { error?: SampleError | null; value: string[] }>();
 
     const traverseTransformTree = (transform: EvaluatedTransformEntity) => {
-        valueMap.set(transform.operatorId, { value: transform.values, error: transform.error });
+        let error: SampleError | undefined = undefined;
+        if (transform.error) {
+            error = {
+                error: transform.error,
+                entity: "",
+                stacktrace: transform.stacktrace,
+                values: transform.children.map((child) => child.values),
+            };
+        }
+        valueMap.set(transform.operatorId, { value: transform.values, error: error });
         transform.children && transform.children.forEach((t) => traverseTransformTree(t));
     };
 

@@ -266,6 +266,7 @@ interface TemplateInputComponentProps {
     evaluatedValueMessage?: (evaluatedTemplateMessage?: string) => any;
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
+    handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
 }
 
@@ -279,6 +280,7 @@ export const TemplateInputComponent = memo(
         evaluatedValueMessage,
         projectId,
         variableName,
+        handleTemplateErrors,
         multiline,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
@@ -313,7 +315,13 @@ export const TemplateInputComponent = memo(
                 return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
                     .data;
             } catch (error) {
-                registerError("ArtefactFormParameter.autoComplete", "Auto-completing the template has failed.", error);
+                handleTemplateErrors
+                    ? handleTemplateErrors(error)
+                    : registerError(
+                          "ArtefactFormParameter.autoComplete",
+                          "Auto-completing the template has failed.",
+                          error
+                      );
             }
         }, []);
 
@@ -330,7 +338,13 @@ export const TemplateInputComponent = memo(
                     );
                     return processValidationError(validationResponse);
                 } catch (error) {
-                    registerError("ArtefactFormParameter.checkTemplate", "Validating template has failed.", error);
+                    handleTemplateErrors
+                        ? handleTemplateErrors(error)
+                        : registerError(
+                              "ArtefactFormParameter.checkTemplate",
+                              "Validating template has failed.",
+                              error
+                          );
                     evaluatedValueMessage?.(undefined);
                 }
             },

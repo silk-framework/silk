@@ -36,7 +36,7 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
     val dataset = DatasetSpec(MockDataset(name = "initial name"))
 
     // Check if we can retrieve the current plugin parameters
-    dataset.properties should contain ("name" -> "initial name")
+    dataset.parameters.toStringMap should contain ("name" -> "initial name")
 
     // Check if we can update the plugin parameters
     val updatedDataset = dataset.withParameters(ParameterValues.fromStringMap(Map("name" -> "updated name")))

@@ -52,7 +52,7 @@ import { requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
-import {CreateArtefactModalContext} from "./CreateArtefactModalContext";
+import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -79,6 +79,8 @@ export function CreateArtefactModal() {
 
     const [searchValue, setSearchValue] = useState("");
     const [documentationToShow, setDocumentationToShow] = useState<ArtefactDocumentation | undefined>(undefined);
+    const documentationIsShown = React.useRef(false);
+    documentationIsShown.current = !!documentationToShow;
     const [actionLoading, setActionLoading] = useState(false);
     const [t] = useTranslation();
 
@@ -203,6 +205,9 @@ export function CreateArtefactModal() {
         if (!isOpen) {
             // Reset modal when it was closed
             resetModal(true);
+        } else {
+            // Clear errors when freshly opened
+            form.clearError()
         }
     }, [isOpen]);
 
@@ -210,7 +215,7 @@ export function CreateArtefactModal() {
     useEffect(() => {
         if (isOpen && !isEmptyWorkspace) {
             batch(() => {
-                dispatch(commonOp.fetchAvailableDTypesAsync());
+                dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
                 dispatch(
                     commonOp.fetchArtefactsListAsync({
                         textQuery: searchValue,
@@ -220,7 +225,7 @@ export function CreateArtefactModal() {
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [isOpen]);
+    }, [isOpen, projectId]);
 
     const handleAdd = () => {
         if (toBeAddedKey.current === DATA_TYPES.PROJECT) {
@@ -254,11 +259,7 @@ export function CreateArtefactModal() {
             const results = (await requestSearchList(payload)).results;
             return results;
         } catch (err) {
-            registerError(
-                "CreateArtefactModal-getWorkspaceProjects",
-                "Could not fetch project list.",
-                err
-            );
+            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err);
             return [];
         }
     };
@@ -290,7 +291,10 @@ export function CreateArtefactModal() {
     };
 
     const handleBack = (closeModal?: boolean) => {
-        resetModal(closeModal);
+        // Ignore back or close actions when (task) documentation is shown, else the create/update dialog will also close.
+        if (!documentationIsShown.current) {
+            resetModal(closeModal);
+        }
     };
 
     const taskType = React.useCallback(
@@ -361,8 +365,12 @@ export function CreateArtefactModal() {
                         });
                     }
                 }
-            } catch(error) {
-                registerError("CreateArtefactModal.handleCreate", `Could not ${updateExistingTask ? "update" : "create"} task.`, error)
+            } catch (error) {
+                registerError(
+                    "CreateArtefactModal.handleCreate",
+                    `Could not ${updateExistingTask ? "update" : "create"} task.`,
+                    error
+                );
             } finally {
                 setActionLoading(false);
             }
@@ -521,8 +529,8 @@ export function CreateArtefactModal() {
     );
 
     const propagateExternallyChangedParameterValue = React.useCallback((fullParamId: string, value: string) => {
-        externalParameterUpdateMap.current.get(fullParamId)?.({value})
-    }, [])
+        externalParameterUpdateMap.current.get(fullParamId)?.({ value });
+    }, []);
 
     if (updateExistingTask) {
         // Task update
@@ -684,11 +692,7 @@ export function CreateArtefactModal() {
                 removeAfterSeconds: 5,
             });
         } catch (ex) {
-            registerError(
-                "CreateArtefactModal.handleAutConfigure",
-                "Auto-configuration has failed.",
-                ex
-            );
+            registerError("CreateArtefactModal.handleAutConfigure", "Auto-configuration has failed.", ex);
         } finally {
             setAutoConfigPending(false);
         }
@@ -748,22 +752,18 @@ export function CreateArtefactModal() {
             >{`${error.body.detail} ${error.body?.taskLoadingError?.errorMessage}`}</div>
         ) : undefined;
         const actionFailed = () => {
-            const actionValue = updateExistingTask ? t("common.action.update") : t("common.action.create")
-            const errorMessage = (diErrorMessage(error) ?? "Unknown error").replace(/^(assertion failed: )/, "")
+            const actionValue = updateExistingTask ? t("common.action.update") : t("common.action.create");
+            const errorMessage = (diErrorMessage(error) ?? "Unknown error").replace(/^(assertion failed: )/, "");
             return t("common.messages.actionFailed", {
                 action: actionValue,
                 error: errorMessage,
-            })
-        }
+            });
+        };
 
         notifications.push(
             <Notification
                 onDismiss={resetModalError}
-                message={
-                    taskLoadingError ||
-                    error.errorMessage ||
-                    actionFailed()
-                }
+                message={taskLoadingError || error.errorMessage || actionFailed()}
                 danger
             />
         );
@@ -973,7 +973,9 @@ export function CreateArtefactModal() {
                         <SimpleDialog
                             data-test-id={"artefact-documentation-modal"}
                             isOpen
-                            canEscapeKeyClose={true}
+                            showFullScreenToggler={true}
+                            enforceFocus={true}
+                            onClose={() => setDocumentationToShow(undefined)}
                             title={documentationToShow.title ?? "Documentation"}
                             actions={
                                 <Button
@@ -983,7 +985,7 @@ export function CreateArtefactModal() {
                                     }}
                                 />
                             }
-                            size="small"
+                            size="large"
                         >
                             <HtmlContentBlock>
                                 <Markdown allowHtml>
@@ -1002,11 +1004,13 @@ export function CreateArtefactModal() {
             back={() => setIsProjectImport(false)}
             maxFileUploadSizeBytes={maxFileUploadSize}
         />
-    ) : <CreateArtefactModalContext.Provider
-        value={{
-            registerModalError: registerError
-        }}
-    >
-        {createDialog}
-    </CreateArtefactModalContext.Provider>;
+    ) : (
+        <CreateArtefactModalContext.Provider
+            value={{
+                registerModalError: registerError,
+            }}
+        >
+            {createDialog}
+        </CreateArtefactModalContext.Provider>
+    );
 }

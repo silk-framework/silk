@@ -84,19 +84,6 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources
 
-  /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit pluginContext: PluginContext): Seq[(String, String)] = {
-    var properties =
-      plugin match {
-        case Dataset(p, params) =>
-          Seq(("type", p.label)) ++ params.toStringMap
-      }
-    for(uriProperty <- uriAttribute) {
-      properties :+= ("URI Property", uriProperty.uri)
-    }
-    properties
-  }
-
   override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
 
   override def parameters(implicit pluginContext: PluginContext): ParameterValues = {

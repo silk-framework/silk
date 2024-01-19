@@ -82,8 +82,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                    projectResources: ResourceManager): TaskProperties = {
     // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
     implicit val pluginContext: PluginContext = PluginContext(prefixes= Prefixes.empty, resources = projectResources)
-    val inputProperties = inputTask.toSeq.flatMap(_.properties).toMap
-    val outputProperties = outputTask.toSeq.flatMap(_.properties).toMap
+    val inputProperties = inputTask.toSeq.flatMap(_.parameters.toStringMap).toMap
+    val outputProperties = outputTask.toSeq.flatMap(_.parameters.toStringMap).toMap
     TaskProperties(inputProperties, outputProperties)
   }
 

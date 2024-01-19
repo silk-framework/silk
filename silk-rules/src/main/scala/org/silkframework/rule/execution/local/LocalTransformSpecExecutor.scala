@@ -125,7 +125,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
   private def flattenInputs(input: LocalEntities): Seq[LocalEntities] = {
     input match {
       case mt: MultiEntityTable =>
-        mt +: mt.subTables
+        mt.allTables
       case _ =>
         Seq(input)
     }

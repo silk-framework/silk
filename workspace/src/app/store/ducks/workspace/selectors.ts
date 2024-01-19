@@ -27,6 +27,8 @@ const paginationSelector = createSelector([filtersSelector], (filters) => filter
 
 const prefixListSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.prefixes);
 
+const widgetErrorSelector = createSelector([widgetsSelector], (widgets) => widgets.configuration.error);
+
 const warningListSelector = createSelector([widgetsSelector], (widgets) => widgets.warnings.results);
 
 const filesListSelector = createSelector([widgetsSelector, commonSelector], (widgets, common) =>
@@ -61,6 +63,7 @@ const workspaceSelectors = {
     isEmptyPageSelector,
     widgetsSelector,
     commonSelector,
+    widgetErrorSelector,
 };
 
 export default workspaceSelectors;
