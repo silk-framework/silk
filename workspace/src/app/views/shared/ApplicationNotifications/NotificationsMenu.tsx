@@ -16,7 +16,7 @@ import errorSelector from "@ducks/error/selectors";
 import { ApplicationError, DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { ApplicationNotification } from "./ApplicationNotification";
-import {DepictionProps} from "@eccenca/gui-elements"
+import { DepictionProps } from "@eccenca/gui-elements";
 
 interface Props extends Pick<DepictionProps, "padding" | "size"> {
     /** When true the last notification will be shown for some seconds. */
@@ -25,10 +25,25 @@ interface Props extends Pick<DepictionProps, "padding" | "size"> {
     errorNotificationInstanceId?: string;
 }
 
-export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId, size = "small", padding = "medium" }: Props) {
+export function NotificationsMenu({
+    autoDisplayNotifications = true,
+    errorNotificationInstanceId,
+    size = "small",
+    padding = "medium",
+}: Props) {
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
 
     const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
+
+    useEffect(() => {
+        // add css class if there are messages in the queue
+        if (notificationQueue.messages.length > 0) {
+            window.document.body.classList.add("diapp-applicationnotifications--filledqueue");
+        }
+        if (notificationQueue.messages.length === 0) {
+            window.document.body.classList.remove("diapp-applicationnotifications--filledqueue");
+        }
+    }, [notificationQueue.messages.length]);
 
     const toggleNotifications = () => {
         setDisplayNotifications(!displayNotifications);
