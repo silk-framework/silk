@@ -27,7 +27,6 @@ import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
-import { NotificationsMenu } from "../ApplicationNotifications/NotificationsMenu";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -331,8 +330,6 @@ export function ProjectTaskTabView({
 
     let tabNr = 1;
 
-    const showTabsInModal = selectedTask === taskId && !!handlerRemoveModal
-
     const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
         return (
             <Card
@@ -368,7 +365,6 @@ export function ProjectTaskTabView({
                                     </Button>
                                 );
                             })}
-                        {showTabsInModal ? <NotificationsMenu size={"tiny"} padding={"none"} autoDisplayNotifications={false} /> : null}
                         {!!handlerRemoveModal ? (
                             <IconButton
                                 data-test-id={"close-project-tab-view"}
@@ -435,7 +431,7 @@ export function ProjectTaskTabView({
                 isOpen={openTabSwitchPrompt}
                 proceed={() => blockedTab && changeTab(blockedTab, true)}
             />
-            {showTabsInModal ? (
+            {selectedTask === taskId && !!handlerRemoveModal ? (
                 <Modal
                     size="fullscreen"
                     isOpen={true}
@@ -443,9 +439,7 @@ export function ProjectTaskTabView({
                     onClose={handlerRemoveModal}
                     wrapperDivProps={modalPreventEvents}
                 >
-                    <ErrorBoundary>
-                        {tabsWidget(projectId, taskId)}
-                    </ErrorBoundary>
+                    <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
             ) : selectedTask === taskId ? (
                 <section className={"diapp-iframewindow"} {...otherProps}>
@@ -457,9 +451,7 @@ export function ProjectTaskTabView({
                     <div
                         className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}
                     >
-                        <ErrorBoundary>
-                            {tabsWidget(projectId, taskId)}
-                        </ErrorBoundary>
+                        <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                     </div>
                 </section>
             ) : null}
