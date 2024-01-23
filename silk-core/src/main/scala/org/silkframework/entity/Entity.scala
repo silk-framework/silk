@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.{EntityMetadata, GenericExecutionFailure}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.failures.FailureClass
-import org.silkframework.util.StreamUtils.ByteBufferBackedInputStream
+import org.silkframework.util.StreamUtils._
 import org.silkframework.util.Uri
 
 import java.io.{ByteArrayOutputStream, DataInput, DataInputStream, DataOutput, DataOutputStream}
@@ -289,11 +289,11 @@ object Entity {
   object EntitySerializer {
 
     def serialize(entity: Entity, stream: DataOutput) {
-      stream.writeUTF(entity.uri)
+      writeString(stream, entity.uri)
       for (valueSet <- entity.values) {
         stream.writeInt(valueSet.size)
         for (value <- valueSet) {
-          stream.writeUTF(value)
+          writeString(stream, value)
         }
       }
     }
@@ -320,10 +320,10 @@ object Entity {
 
     def deserialize(stream: DataInput, schema: EntitySchema): Entity = {
       //Read URI
-      val uri = stream.readUTF()
+      val uri = readString(stream)
 
       //Read Values
-      def readValue = Seq.fill(stream.readInt)(stream.readUTF)
+      def readValue = Seq.fill(stream.readInt)(readString(stream))
 
       schema match {
         case mes: MultiEntitySchema =>

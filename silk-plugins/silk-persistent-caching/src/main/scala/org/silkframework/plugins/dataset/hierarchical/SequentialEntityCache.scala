@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.hierarchical
 
+import org.silkframework.util.StreamUtils
+
 import java.io._
 
 /**
@@ -18,12 +20,12 @@ private case class SequentialEntityCache() {
     */
   def putEntity(uri: String, values: IndexedSeq[Seq[String]]): Unit = {
     objectStream.writeBoolean(true) // signal that another entity is following
-    objectStream.writeUTF(uri)
+    StreamUtils.writeString(objectStream, uri)
     objectStream.writeInt(values.size)
     for(value <- values) {
       objectStream.writeInt(value.size)
       for(v <- value) {
-        objectStream.writeUTF(v)
+        StreamUtils.writeString(objectStream, v)
       }
     }
   }
@@ -40,8 +42,8 @@ private case class SequentialEntityCache() {
     val inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(rootEntityFile)))
     try {
       while (inputStream.readBoolean()) {
-        val uri = inputStream.readUTF()
-        val values = IndexedSeq.fill(inputStream.readInt())(Seq.fill(inputStream.readInt())(inputStream.readUTF()))
+        val uri = StreamUtils.readString(inputStream)
+        val values = IndexedSeq.fill(inputStream.readInt())(Seq.fill(inputStream.readInt())(StreamUtils.readString(inputStream)))
         f(CachedEntity(uri, values, 0))
       }
     } finally {
