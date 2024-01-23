@@ -10,6 +10,9 @@ import org.silkframework.runtime.plugin.types.JsonCodeParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.Identifier
 
+import java.nio.charset.StandardCharsets
+import scala.io.Codec
+
 @Plugin(
   id = "json",
   label = "JSON",
@@ -32,9 +35,11 @@ case class JsonDataset(
                         @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
                         streaming: Boolean = true,
                         @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                        override val zipFileRegex: String = ".*\\.json") extends Dataset with BulkResourceBasedDataset {
+                        override val zipFileRegex: String = ".*\\.json") extends Dataset with BulkResourceBasedDataset with TextResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
+
+  override def codec: Codec = StandardCharsets.UTF_8
 
   override def mergeSchemata: Boolean = true
 

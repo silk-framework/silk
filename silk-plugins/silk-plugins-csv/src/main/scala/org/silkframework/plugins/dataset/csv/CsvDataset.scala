@@ -45,7 +45,7 @@ case class CsvDataset (
   quoteEscapeCharacter: String = "\"",
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
   override val zipFileRegex: String = ".*\\.csv$") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
-                                       with CsvDatasetTrait with BulkResourceBasedDataset with WritableResourceDataset {
+                                       with CsvDatasetTrait with BulkResourceBasedDataset with TextResourceBasedDataset with WritableResourceDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 

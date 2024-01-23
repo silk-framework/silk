@@ -9,6 +9,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.XmlCodeParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 
+import java.nio.charset.{Charset, StandardCharsets}
+import javax.xml.stream.XMLInputFactory
+import scala.io.Codec
+
 @Plugin(
   id = "xml",
   label = "XML",
@@ -30,12 +34,28 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        @Param(value = "Maximum depth of written XML. This acts as a safe guard if a recursive structure is written.", advanced = true)
                        maxDepth: Int = DEFAULT_MAX_SIZE,
                        @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                       override val zipFileRegex: String = ".*\\.xml$") extends Dataset with BulkResourceBasedDataset {
+                       override val zipFileRegex: String = ".*\\.xml$") extends Dataset with BulkResourceBasedDataset with TextResourceBasedDataset {
 
   // Parse and validate the output template
   private val parsedOutputTemplate = XmlOutputTemplate.parse(outputTemplate.str)
 
   override def mergeSchemata: Boolean = true
+
+  override def codec: Codec = {
+    file.read { inputStream =>
+      val reader = XMLInputFactory.newInstance().createXMLStreamReader(inputStream)
+      try {
+        reader.getEncoding match {
+          case null =>
+            StandardCharsets.UTF_8
+          case encoding =>
+            Charset.forName(encoding)
+        }
+      } finally {
+        reader.close()
+      }
+    }
+  }
 
   override def createSource(resource: Resource): DataSource = {
     if(streaming) {

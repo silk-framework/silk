@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.text
 
-import org.silkframework.dataset.{DataSource, Dataset, DatasetCharacteristics, EntitySink, LinkSink, ResourceBasedDataset}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetCharacteristics, EntitySink, LinkSink, ResourceBasedDataset, TextResourceBasedDataset}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.charset.{CharsetAutocompletionProvider, CharsetUtils}
@@ -24,9 +24,9 @@ case class TextFileDataset(
    typeName: String = "type",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
-) extends Dataset with ResourceBasedDataset {
+) extends Dataset with TextResourceBasedDataset {
 
-  val codec: Codec = CharsetUtils.forName(charset)
+  override val codec: Codec = CharsetUtils.forName(charset)
 
   val uri: Uri = DataSource.generateEntityUri(Identifier.fromAllowed(file.name), "text")
 
