@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.hierarchical
 
 import org.silkframework.runtime.caching.{HandleTooLargeKeyStrategy, PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.StreamUtils
 import org.silkframework.util.StreamUtils.ByteBufferBackedInputStream
 
 import java.io._
@@ -30,7 +31,7 @@ private case class HierarchicalEntityCache() extends Closeable {
     val byteStream = new ByteArrayOutputStream
     val objectStream = new ObjectOutputStream(byteStream)
     try {
-      objectStream.writeUTF(entity.uri)
+      StreamUtils.writeString(objectStream, entity.uri)
       objectStream.writeObject(entity.values)
       objectStream.writeInt(entity.tableIndex)
     } finally {
@@ -70,7 +71,7 @@ private case class HierarchicalEntityCache() extends Closeable {
   private def readEntity(uriOpt: Option[String], buffer: ByteBuffer): CachedEntity = {
     val inputStream = new ObjectInputStream(new ByteBufferBackedInputStream(buffer))
     try {
-      val entityUri = inputStream.readUTF()
+      val entityUri = StreamUtils.readString(inputStream)
       assert(uriOpt.getOrElse(entityUri) == entityUri, s"Cached entity has a different URI: '$entityUri' vs '$uriOpt'.")
       val values = inputStream.readObject().asInstanceOf[IndexedSeq[Seq[String]]]
       val index = inputStream.readInt()
