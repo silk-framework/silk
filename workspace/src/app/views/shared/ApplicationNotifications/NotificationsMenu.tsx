@@ -29,6 +29,16 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
 
     const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
 
+    useEffect(() => {
+        // add css class if there are messages in the queue
+        if (notificationQueue.messages.length > 0) {
+            window.document.body.classList.add("diapp-applicationnotifications--filledqueue");
+        }
+        if (notificationQueue.messages.length === 0) {
+            window.document.body.classList.remove("diapp-applicationnotifications--filledqueue");
+        }
+    }, [notificationQueue.messages.length]);
+
     const toggleNotifications = () => {
         setDisplayNotifications(!displayNotifications);
     };

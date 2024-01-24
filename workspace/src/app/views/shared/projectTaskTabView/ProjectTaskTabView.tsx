@@ -439,7 +439,7 @@ export function ProjectTaskTabView({
                     onClose={handlerRemoveModal}
                     wrapperDivProps={modalPreventEvents}
                 >
-                    {tabsWidget(projectId, taskId)}
+                    <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
             ) : selectedTask === taskId ? (
                 <section className={"diapp-iframewindow"} {...otherProps}>
@@ -451,7 +451,7 @@ export function ProjectTaskTabView({
                     <div
                         className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}
                     >
-                        {tabsWidget(projectId, taskId)}
+                        <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                     </div>
                 </section>
             ) : null}
