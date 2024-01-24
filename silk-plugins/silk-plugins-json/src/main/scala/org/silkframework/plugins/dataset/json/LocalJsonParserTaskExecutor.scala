@@ -3,8 +3,8 @@ package org.silkframework.plugins.dataset.json
 import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
-import org.silkframework.execution.local._
 import org.silkframework.execution._
+import org.silkframework.execution.local._
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
 import org.silkframework.runtime.plugin.PluginContext
