@@ -273,6 +273,7 @@ export const RuleEditorToolbar = () => {
                             (nodeError) => nodeError.message
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
+                        evaluationNotifications={ruleEvaluationContext.notifications}
                     />
                 </ToolbarSection>
             </Toolbar>

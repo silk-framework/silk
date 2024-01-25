@@ -31,14 +31,14 @@ class PartialSourcePathAutoCompletionRequestTest extends AnyFlatSpec with Matche
   }
 
   private def isInBackwardOp(path: String): Boolean = {
-    PartialSourcePathAutoCompletionRequest(path, path.length, None, None).isInBackwardOp
+    PartialSourcePathAutoCompletionRequest(path, path.length, None, None, None).isInBackwardOp
   }
 
   private def isInExplicitForwardOp(path: String): Boolean = {
-    PartialSourcePathAutoCompletionRequest(path, path.length, None, None).isInExplicitForwardOp
+    PartialSourcePathAutoCompletionRequest(path, path.length, None, None, None).isInExplicitForwardOp
   }
 
   private def operatorPositionBeforeCursor(inputString: String, cursorPosition: Int): Option[Int] = {
-    PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None, None).pathOperatorIdxBeforeCursor
+    PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None, None, None).pathOperatorIdxBeforeCursor
   }
 }

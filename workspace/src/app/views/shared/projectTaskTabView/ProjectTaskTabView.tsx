@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Fragment } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router";
 import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import {
     Button,
     Card,
@@ -15,6 +16,7 @@ import {
     GridRow,
     IconButton,
     Modal,
+    Notification,
     modalPreventEvents,
     Spacing,
 } from "@eccenca/gui-elements";
@@ -117,6 +119,7 @@ export function ProjectTaskTabView({
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
+    const [warnings, setWarnings] = React.useState<string[] | undefined>(undefined)
 
     // Either the ID of an IItemLink or the view ID or undefined
     const activeTab: IProjectTaskView | IItemLink | undefined =
@@ -133,6 +136,17 @@ export function ProjectTaskTabView({
             }
         }
     }, [projectId, taskId, taskViewConfig?.pluginId]);
+
+    React.useEffect(() => {
+        fetchTaskNotifications()
+    }, [viewActions?.taskContext])
+
+    const fetchTaskNotifications = React.useCallback(async () => {
+        const warnings = viewActions?.taskContext ?
+            await viewActions.taskContext.taskContextNotification?.(viewActions.taskContext.context) :
+            undefined
+        setWarnings(warnings ? warnings.map(w => w.message) : undefined)
+    }, [])
 
     React.useEffect(() => {
         if (tabRouteChangeRequest != null) {
@@ -331,6 +345,9 @@ export function ProjectTaskTabView({
     let tabNr = 1;
 
     const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
+        const suffix = getTaskView(selectedTab)?.supportsTaskContext && viewActions?.taskContext ?
+            viewActions.taskContext.taskViewSuffix?.(viewActions.taskContext.context) :
+            undefined
         return (
             <Card
                 className="diapp-iframewindow__content"
@@ -340,7 +357,7 @@ export function ProjectTaskTabView({
             >
                 <CardHeader>
                     <CardTitle>
-                        <h2>{tLabel(activeTab?.label ?? "")}</h2>
+                        <h2>{tLabel(activeTab?.label ?? "")} {suffix}</h2>
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
@@ -417,6 +434,9 @@ export function ProjectTaskTabView({
                         </>
                     )}
                 </CardContent>
+                {warnings && (
+                    <CardContentWarnings warnings={warnings} />
+                )}
             </Card>
         );
     };
@@ -435,7 +455,6 @@ export function ProjectTaskTabView({
                 <Modal
                     size="fullscreen"
                     isOpen={true}
-                    canEscapeKeyClose={true}
                     onClose={handlerRemoveModal}
                     wrapperDivProps={modalPreventEvents}
                 >
@@ -458,3 +477,30 @@ export function ProjectTaskTabView({
         </ErrorBoundary>
     );
 }
+
+interface CardContentWarningsProps {
+    /** The warning messages that should be displayed. */
+    warnings: string[]
+}
+
+const CardContentWarnings = React.memo(({warnings}: CardContentWarningsProps) => {
+    const [warningsStack, setWarningStack] = React.useState(warnings)
+    const removeWarning = React.useCallback((warningToRemove: string) => {
+        setWarningStack(prevWarnings => prevWarnings.filter(w => w !== warningToRemove))
+    }, [])
+    return warningsStack.length ? <CardContent data-test-id="tab-view-warnings" className={`${eccgui}-dialog__notifications`}>
+            {
+                warningsStack.map((warning, idx) => {
+                    return <Fragment key={warning}>
+                        <Notification
+                            warning
+                            onDismiss={() => removeWarning(warning)}
+                        >{warning}</Notification>
+                        {idx < (warningsStack.length - 1) && <Spacing size={"small"} />}
+                    </Fragment>
+                })
+            }
+        </CardContent> :
+        null
+
+})

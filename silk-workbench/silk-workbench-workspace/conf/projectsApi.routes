@@ -35,3 +35,5 @@ GET           /:projectId/datasets/:datasetId/characteristics          controlle
 
 # Dataset specific endpoints
 POST          /:projectId/dataset/autoConfigure                        controllers.projectApi.ProjectTaskApi.postDatasetAutoConfigured(projectId: String)
+
+POST          /:projectId/taskContext                                  controllers.projectApi.ProjectTaskApi.taskContext(projectId: String)
