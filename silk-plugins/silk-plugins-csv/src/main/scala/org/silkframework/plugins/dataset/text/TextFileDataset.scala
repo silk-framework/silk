@@ -17,7 +17,7 @@ import scala.io.Codec
   label = "Text",
   description= "Reads and writes plain text files.")
 case class TextFileDataset(
-   @Param("The plain text file.")
+   @Param("The plain text file. May also be a zip archive containing multiple text files.")
    file: WritableResource,
    @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
    charset: String = "UTF-8",
