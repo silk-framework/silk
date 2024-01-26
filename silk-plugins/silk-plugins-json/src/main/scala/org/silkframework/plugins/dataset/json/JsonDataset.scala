@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SpecialPaths, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -35,7 +35,7 @@ case class JsonDataset(
                         @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
                         streaming: Boolean = true,
                         @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                        override val zipFileRegex: String = ".*\\.json") extends Dataset with BulkResourceBasedDataset with TextResourceBasedDataset {
+                        override val zipFileRegex: String = ".*\\.json") extends Dataset with TextBulkResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 

@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SpecialPaths, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -34,7 +34,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        @Param(value = "Maximum depth of written XML. This acts as a safe guard if a recursive structure is written.", advanced = true)
                        maxDepth: Int = DEFAULT_MAX_SIZE,
                        @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                       override val zipFileRegex: String = ".*\\.xml$") extends Dataset with BulkResourceBasedDataset with TextResourceBasedDataset {
+                       override val zipFileRegex: String = ".*\\.xml$") extends Dataset with TextBulkResourceBasedDataset {
 
   // Parse and validate the output template
   private val parsedOutputTemplate = XmlOutputTemplate.parse(outputTemplate.str)

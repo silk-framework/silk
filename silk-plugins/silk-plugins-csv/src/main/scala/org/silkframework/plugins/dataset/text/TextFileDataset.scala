@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.text
 
-import org.silkframework.dataset.{DataSource, Dataset, DatasetCharacteristics, EntitySink, LinkSink, ResourceBasedDataset, TextResourceBasedDataset}
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
+import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.charset.{CharsetAutocompletionProvider, CharsetUtils}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.io.Codec
@@ -24,7 +25,7 @@ case class TextFileDataset(
    typeName: String = "type",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
-) extends Dataset with TextResourceBasedDataset {
+) extends Dataset with TextBulkResourceBasedDataset {
 
   override val codec: Codec = CharsetUtils.forName(charset)
 
@@ -32,10 +33,14 @@ case class TextFileDataset(
 
   val path: TypedPath = TypedPath(UntypedPath(property), ValueType.STRING, isAttribute = false)
 
+  override def mergeSchemata: Boolean = false
+
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source(implicit userContext: UserContext): DataSource = new TextFileSource(this)
+  override def createSource(resource: Resource): DataSource = {
+    new TextFileSource(this, resource)
+  }
 
   /**
     * Returns a link sink for writing entity links to the data set.

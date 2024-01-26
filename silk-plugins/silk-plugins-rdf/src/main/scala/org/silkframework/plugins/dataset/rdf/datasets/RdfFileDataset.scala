@@ -4,7 +4,7 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
@@ -21,6 +21,9 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.MultilineStringParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
+
+import java.nio.charset.StandardCharsets
+import scala.io.Codec
 
 @Plugin(
   id = "file",
@@ -43,9 +46,11 @@ case class RdfFileDataset(
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-  override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
+  override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with TextBulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
+
+  override def codec: Codec = StandardCharsets.UTF_8
 
   /** The RDF format of the given resource. */
   private def lang = {
