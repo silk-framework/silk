@@ -17,6 +17,8 @@ case class AlignmentDataset(
   @Param("The alignment file.")
   file: WritableResource) extends Dataset with WritableResourceDataset with ResourceBasedDataset {
 
+  override def mimeType: Option[String] = None
+
   /**
    * Returns a data source for reading entities from the data set.
    */

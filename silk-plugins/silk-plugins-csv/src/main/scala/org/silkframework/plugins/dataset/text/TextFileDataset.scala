@@ -29,6 +29,8 @@ case class TextFileDataset(
 
   override val codec: Codec = CharsetUtils.forName(charset)
 
+  override def mimeType: Option[String] = Some("text/plain")
+
   val uri: Uri = DataSource.generateEntityUri(Identifier.fromAllowed(file.name), "text")
 
   val path: TypedPath = TypedPath(UntypedPath(property), ValueType.STRING, isAttribute = false)

@@ -57,6 +57,8 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
     }
   }
 
+  override def mimeType: Option[String] = Some("application/xml")
+
   override def createSource(resource: Resource): DataSource = {
     if(streaming) {
       new XmlSourceStreaming(resource, basePath, uriPattern)

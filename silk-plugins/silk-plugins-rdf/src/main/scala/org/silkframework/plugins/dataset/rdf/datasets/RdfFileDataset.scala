@@ -50,7 +50,7 @@ case class RdfFileDataset(
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
-  override def codec: Codec = StandardCharsets.UTF_8
+
 
   /** The RDF format of the given resource. */
   private def lang = {
@@ -74,6 +74,10 @@ case class RdfFileDataset(
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
     }
   }
+
+  override def codec: Codec = StandardCharsets.UTF_8
+
+  override def mimeType: Option[String] = Some(lang.getContentType.getContentTypeStr)
 
   override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
 

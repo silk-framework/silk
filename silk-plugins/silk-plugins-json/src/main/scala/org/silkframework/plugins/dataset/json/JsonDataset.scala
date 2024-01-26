@@ -41,6 +41,8 @@ case class JsonDataset(
 
   override def codec: Codec = StandardCharsets.UTF_8
 
+  override def mimeType: Option[String] = Some("application/json")
+
   override def mergeSchemata: Boolean = true
 
   override def createSource(resource: Resource): DataSource = {
