@@ -33,29 +33,29 @@ object PluginContext {
             resources: ResourceManager,
             user: UserContext = UserContext.Empty,
             projectId: Option[Identifier] = None,
-            templateVariables: TemplateVariablesReader = GlobalTemplateVariables): PluginContext = {
+            templateVariables: TemplateVariablesReader = GlobalTemplateVariables): PlainPluginContext = {
     PlainPluginContext(prefixes, resources, user, projectId, templateVariables)
   }
 
-  def fromProject(project: ProjectTrait)(implicit user: UserContext): PluginContext = {
+  def fromProject(project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
     PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables)
   }
 
   def fromProjectConfig(config: ProjectConfig,
                         projectResource: ResourceManager,
-                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables)(implicit user: UserContext): PluginContext = {
+                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables)(implicit user: UserContext): PlainPluginContext = {
     PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables)
   }
 
-  def fromReadContext(readContext: ReadContext): PluginContext = {
+  def fromReadContext(readContext: ReadContext): PlainPluginContext = {
     PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables)
   }
 
-  private case class PlainPluginContext(prefixes: Prefixes,
-                                        resources: ResourceManager,
-                                        user: UserContext,
-                                        projectId: Option[Identifier],
-                                        templateVariables: TemplateVariablesReader) extends PluginContext
+  case class PlainPluginContext(prefixes: Prefixes,
+                                resources: ResourceManager,
+                                user: UserContext,
+                                projectId: Option[Identifier],
+                                templateVariables: TemplateVariablesReader) extends PluginContext
 
 }
 
