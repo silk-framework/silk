@@ -46,7 +46,6 @@ const MappingsWorkview = ({
                               showNavigation,
                               openMappingEditor,
                               currentRuleId,
-                              askForDiscardData,
                               viewActions,
                               startFullScreen
                           }: MappingsWorkviewProps) => {
@@ -74,7 +73,7 @@ const MappingsWorkview = ({
             EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, handleRuleEditOpen);
             EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, discardAll);
         }
-    }, [])
+    }, [currentRuleId])
 
     React.useEffect(() => {
         loadData()
@@ -151,31 +150,6 @@ const MappingsWorkview = ({
                 setLoading(false)
             }
         );
-    }
-
-    const handleDiscardChanges = (event) => {
-        event.stopPropagation();
-        const type = _.get(askForDiscardData, "type");
-        const suggestions = _.get(askForDiscardData, "suggestions");
-        const expanded = _.get(askForDiscardData, "expanded", false);
-
-        if (type) {
-            onRuleCreate({ type });
-        } else if (suggestions) {
-            setShowSuggestions(true)
-        } else {
-            EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, {
-                expanded,
-                id: true,
-            });
-        }
-        EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
-        onAskDiscardChanges(false);
-    }
-
-    const handleCancelDiscard = (event) => {
-        event.stopPropagation();
-        onAskDiscardChanges(false);
     }
 
     // sends event to expand / collapse all mapping rules
