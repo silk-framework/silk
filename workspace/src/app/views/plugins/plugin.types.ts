@@ -45,6 +45,27 @@ export interface IDatasetPreview {
     typeUri?: string;
 }
 
+export interface DatasetPreviewResourceTextPayload {
+    project: string;
+    datasetId: string;
+    datasetInfo?: {
+        type: string;
+        parameters: {
+            label?: string;
+            file: string;
+        };
+    };
+    offset: number;
+    limit: number;
+}
+
+export interface DatasetPreviewResourceTextResponse {
+    text: string;
+    endReached: boolean;
+    isTextBased: boolean;
+    mimeType: string;
+}
+
 /** Parameters of the data preview component. */
 export interface DataPreviewProps {
     // The title of the widget
