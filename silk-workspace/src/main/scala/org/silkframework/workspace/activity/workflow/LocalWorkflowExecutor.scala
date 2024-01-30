@@ -51,8 +51,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     try {
       runWorkflow(context, updateUserContext(userContext))
     } catch {
-      case cancelledWorkflowException: StopWorkflowExecutionException =>
-        // In case of an cancelled workflow from an operator, the workflow should still be successful, else it would
+      case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
+        // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
     }
   }
