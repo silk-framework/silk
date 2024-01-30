@@ -147,8 +147,8 @@ object Status {
     override def message: String = (success, exception, cancelled) match {
       case (true, None, false) => "Finished in " + formattedTime
       case (_, _, true) => "Cancelled after " + formattedTime
-      case (false, Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
-      case (true, Some(ex), _) => "Errors occurred after " + formattedTime + ": " + ex.getMessage
+      case (false, Some(ex), _) => "Failed after " + formattedTime + " - " + ex.getMessage
+      case (true, Some(ex), _) => "Errors occurred after " + formattedTime + " - " + ex.getMessage
       case _ => "Unknown status"
     }
 

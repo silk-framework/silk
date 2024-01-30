@@ -189,9 +189,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ex: StopWorkflowExecutionException =>
         throw ex
       case NonFatal(ex) =>
-        val msg = s"Exception during execution of workflow operator '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId})."
-        log.log(Level.WARNING, msg, ex)
-        throw WorkflowExecutionException(msg + " Cause: " + ex.getMessage, Some(ex))
+        log.log(Level.WARNING, s"Execution of '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId}) failed.", ex)
+        throw WorkflowExecutionException(s"In '${operatorTask.label()}': " + ex.getMessage, Some(ex))
     }
   }
 
