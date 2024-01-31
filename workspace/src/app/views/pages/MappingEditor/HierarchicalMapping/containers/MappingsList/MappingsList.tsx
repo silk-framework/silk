@@ -18,13 +18,13 @@ interface MappingsListProps {
     currentRuleId: string;
     parentRuleId?: string;
     isCopying?: boolean;
-    handleCopy?: () => any;
+    handleCopy?: (id, type) => any;
     handlePaste?: () => any;
-    handleClone?: () => any;
+    handleClone?: (id, type, parent) => any;
     onClickedRemove?: () => any;
     onShowSuggestions?: () => any;
-    onRuleIdChange?: () => any;
-    onAskDiscardChanges?: () => any;
+    onRuleIdChange?: (param:  any) => any;
+    onAskDiscardChanges?: (param: any) => any;
     openMappingEditor: () => void;
     startFullScreen: boolean;
     // Executes when one of the create mapping options are clicked. The type specifies the type of mapping.

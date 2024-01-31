@@ -8,7 +8,6 @@ import {
     CardTitle,
     Divider,
     IconButton,
-    Label,
     OverflowText,
     PropertyName,
     PropertyValue,
@@ -212,13 +211,15 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                                 .filter((p) => p.showReadOnly == null || p.showReadOnly)
                                 .map((paramConfig) => {
                                     return (
-                                        <PropertyValuePair hasDivider key={paramConfig.id}>
-                                            <PropertyName title={paramConfig.label} size="large">
-                                                <Label
-                                                    isLayoutForElement="span"
-                                                    text={<OverflowText inline>{paramConfig.label}</OverflowText>}
-                                                    style={fixStyle}
-                                                />
+                                        <PropertyValuePair hasDivider key={paramConfig.id} nowrap>
+                                            <PropertyName
+                                                title={paramConfig.label}
+                                                size="large"
+                                                labelProps={{
+                                                    style: fixStyle,
+                                                }}
+                                            >
+                                                {paramConfig.label}
                                             </PropertyName>
                                             <PropertyValue>
                                                 <code style={fixStyle}>

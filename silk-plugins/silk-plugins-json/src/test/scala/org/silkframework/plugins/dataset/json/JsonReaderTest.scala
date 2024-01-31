@@ -43,6 +43,10 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     evaluate(persons, """phoneNumbers[type = "home"]/number""") should equal (Seq("123", "789"))
   }
 
+  it should "return empty values for missing property keys" in {
+    evaluate(persons, """phoneNumbers[missingKey = "home"]/number""") should equal (Seq())
+  }
+
   it should "support backward paths" in {
     val phoneNumbers = exampleJson.select("persons" :: "phoneNumbers" :: Nil)
     evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "0", "1"))

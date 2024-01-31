@@ -1,6 +1,6 @@
 package controllers.errorReporting
 
-import org.silkframework.execution.report.Stacktrace
+import org.silkframework.workbench.utils.ErrorResult.Stacktrace
 import play.api.libs.json.{Format, Json}
 import org.silkframework.serialization.json.ExecutionReportSerializers._
 

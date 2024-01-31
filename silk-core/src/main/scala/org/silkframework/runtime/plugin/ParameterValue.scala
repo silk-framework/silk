@@ -3,7 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
 
-import scala.xml.{Elem, Node}
+import scala.xml.Node
 
 /**
   * The value of a plugin parameter.

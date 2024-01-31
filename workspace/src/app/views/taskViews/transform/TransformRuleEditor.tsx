@@ -22,6 +22,7 @@ import { FetchError } from "../../../services/fetch/responseInterceptor";
 import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/requests";
+import {GlobalMappingEditorContext} from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -55,6 +56,7 @@ export const TransformRuleEditor = ({
 }: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
+    const mappingEditorContext = React.useContext(GlobalMappingEditorContext)
     /** Fetches the parameters of the transform rule. */
     const fetchTransformRule = async (projectId: string, taskId: string): Promise<IComplexMappingRule | undefined> => {
         try {
@@ -169,7 +171,7 @@ export const TransformRuleEditor = ({
 
     const inputPathAutoCompletion = async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
         try {
-            const response = await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, term);
+            const response = await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, term, mappingEditorContext.taskContext);
             const results = response.data.map((data) => ({ ...data, valueType: "" }));
             if (term.trim() === "") {
                 results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });
@@ -241,7 +243,8 @@ export const TransformRuleEditor = ({
                             "linking-rule-editor-fetch-source-paths",
                             t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                             ex
-                        )
+                        ),
+                        mappingEditorContext.taskContext
                     ),
                     ruleUtils.sidebarTabs.transform,
                 ]}

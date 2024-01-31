@@ -107,7 +107,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
     val datasetSelection = if (targetPaths) linkingTask.target else linkingTask.source
     val entitySchemaOpt = linkingTask.activity[LinkingPathsCache].value.get.map(value => if(targetPaths) value.target else value.source)
     val cachedEntitySchemata = entitySchemaOpt.map(es => CachedEntitySchemata(es, None, linkingTask.id, None))
-    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection, cachedEntitySchemata, preferUntypedSchema = false,
+    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection.typeUri, cachedEntitySchemata, preferUntypedSchema = false,
       pathsMetaDataFactory(datasetSelection, langPref))
     // Return filtered result
     val filteredPaths = allPaths.filterAndSort(term, maxResults, multiWordFilter = true)
@@ -207,7 +207,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
     val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
     val entitySchemaOpt = linkingPathsCache.value.get.map(cacheValue => if(isTarget) cacheValue.target else cacheValue.source)
     val cachedEntitySchemata = entitySchemaOpt.map(entitySchema => CachedEntitySchemata(entitySchema, if(isRdfInput) Some(entitySchema) else None, datasetSelection.inputId, None))
-    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection, cachedEntitySchemata, simpleSubPath.nonEmpty && isRdfInput)
+    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection.typeUri, cachedEntitySchemata, simpleSubPath.nonEmpty && isRdfInput)
     val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
       case (true, false) => OpFilter.Backward
       case (false, true) => OpFilter.Forward

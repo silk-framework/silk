@@ -25,13 +25,13 @@ class EntityConfidence(var similarity : Double, var targetUri : String) extends 
   override def write(out : DataOutput)
   {
     out.writeDouble(similarity)
-    out.writeUTF(targetUri)
+    StreamUtils.writeString(out, targetUri)
   }
 
   override def readFields(in : DataInput)
   {
     similarity = in.readDouble()
-    targetUri = in.readUTF()
+    targetUri = StreamUtils.readString(in)
   }
 
   override def toString = targetUri + " (" + similarity + ")"

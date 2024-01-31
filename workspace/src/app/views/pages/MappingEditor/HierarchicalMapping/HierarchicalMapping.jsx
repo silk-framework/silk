@@ -249,6 +249,8 @@ class HierarchicalMapping extends React.Component {
             <GlobalMappingEditorContext.Provider
                 value={{
                     valueTypeLabels: this.state.valueTypeLabels,
+                    taskContext: this.props.viewActions.taskContext?.context,
+                    transformTask: this.props.transformTask
                 }}
             >
                 <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
@@ -294,7 +296,7 @@ class HierarchicalMapping extends React.Component {
                         )}
                         {
                             <MappingsWorkview
-                                currentRuleId={this.state.currentRuleId}
+                                currentRuleId={currentRuleId}
                                 showNavigation={showNavigation}
                                 onToggleTreeNav={this.handleToggleNavigation}
                                 onRuleIdChange={this.handleRuleIdChange}

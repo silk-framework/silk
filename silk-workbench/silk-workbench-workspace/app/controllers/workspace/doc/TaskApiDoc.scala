@@ -170,4 +170,59 @@ object TaskApiDoc {
       ]
     }
   """
+
+  final val taskContextRequest =
+    """
+    {
+        "taskId": "taskID",
+        "taskContext": {
+            "inputTasks": [
+                {
+                    "id": "XML_d0c8c145ce21fa50"
+                }
+            ],
+            "outputTasks": [
+                {
+                    "id": "dataset_457989759278592",
+                    "configPort": false,
+                    "inputPort": 0
+                },
+                {
+                    "id": "customOperator_9d8da649976a4c2b",
+                    "configPort": true
+                }
+            ]
+        }
+    }
+    """
+
+  final val taskContextResponse =
+    """
+    {
+        "inputTasks": [
+            {
+                "taskId": "XML_d0c8c145ce21fa50",
+                "label": "XML dataset",
+                "isDataset": true,
+                "fixedSchema": false
+            }
+        ],
+        "outputTasks": [
+            {
+                "taskId": "dataset_457989759278592",
+                "label": "Some dataset",
+                "isDataset": true,
+                "fixedSchema": false
+            },
+            {
+                "taskId": "customOperator_9d8da649976a4c2b",
+                "label": "Custom operator",
+                "isDataset": false,
+                "fixedSchema": true
+            }
+        ],
+        "originalInputs": true,
+        "originalOutputs": false
+    }
+    """
 }

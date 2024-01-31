@@ -1,6 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.entity.Entity
+import org.silkframework.execution.local.{LocalEntities, MultiEntityTable}
 import org.silkframework.runtime.iterator.CloseableIterator
 
 import scala.util.control.NonFatal
@@ -53,5 +54,22 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
   override def close(): Unit = {
     entities.close()
   }
+}
+
+object ReportingIterator {
+
+  /**
+   * Adds a execution reporter to a local entities table and potential sub tables.
+   */
+  def addReporter(entities: LocalEntities)(implicit executionReport: ExecutionReportUpdater): LocalEntities = {
+    val reportingTraversable = ReportingIterator(CloseableIterator(entities.entities))(executionReport)
+    entities match {
+      case multiTable: MultiEntityTable =>
+        multiTable.copy(entities = reportingTraversable, subTables = multiTable.subTables.map(addReporter))
+      case _ =>
+        entities.updateEntities(reportingTraversable, entities.entitySchema)
+    }
+  }
+
 }
 

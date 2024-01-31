@@ -1,10 +1,10 @@
 package controllers.util
 
 import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse}
-import helper.ApiClient
-import org.silkframework.util.Identifier
 import controllers.projectApi.routes.ProjectApi
+import helper.ApiClient
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain}
+import org.silkframework.util.Identifier
 
 trait ProjectApiClient extends ApiClient {
 
@@ -31,5 +31,4 @@ trait ProjectApiClient extends ApiClient {
   def deleteTag(projectId: Identifier, tagUri: String): Unit = {
     deleteRequest(ProjectApi.deleteTag(projectId, tagUri))
   }
-
 }

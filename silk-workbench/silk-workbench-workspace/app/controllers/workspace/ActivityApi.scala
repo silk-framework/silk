@@ -844,7 +844,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       activityId = Some(activityId),
       errorSummary = s"Execution of activity '$activityId' has failed.",
       errorMessage = Option(cause.getMessage),
-      stackTrace = Some(Stacktrace.fromException(cause))
+      stackTrace = Some(ErrorResult.Stacktrace.fromException(cause))
     )
     val projectPart = projectOpt.map(p => s" ${if(taskOpt.isDefined) "in" else "of"} project '${p.config.metaData.formattedLabel(p.id, Int.MaxValue)}'").getOrElse("")
     val taskPart = taskOpt.map(t => s" of task '${t.metaData.formattedLabel(t.id, Int.MaxValue)}'").getOrElse("")

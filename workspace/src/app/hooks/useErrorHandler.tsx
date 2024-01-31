@@ -18,7 +18,10 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null,
-    errorNotificationInstanceId?: string
+    errorNotificationInstanceId?: string,
+    /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
+     * and the return notification element is used. */
+    onDismiss?: () => any
 ) => JSX.Element | null;
 
 type ErrorHandlerRegisterShortFuncType = (
@@ -53,7 +56,8 @@ const useErrorHandler = (): ErrorHandlerDict => {
         errorId: string,
         errorMessage: string,
         cause: DIErrorTypes | null,
-        errorNotificationInstanceId?: string
+        errorNotificationInstanceId?: string,
+        onDismiss?: () => any
     ) => {
         const error: RegisterErrorType = {
             id: errorId,
@@ -93,7 +97,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
             );
             const detailMessage = diErrorMessage(cause);
             return (
-                <Notification warning>
+                <Notification warning onDismiss={onDismiss}>
                     {errorMessage}
                     <Spacing size="small" />
                     {detailMessage ? (

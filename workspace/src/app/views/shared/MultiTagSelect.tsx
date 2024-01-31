@@ -5,7 +5,7 @@ import utils from "./Metadata/MetadataUtils";
 import useErrorHandler from "../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
-import {CreateArtefactModalContext} from "./modals/CreateArtefactModal/CreateArtefactModalContext";
+import { CreateArtefactModalContext } from "./modals/CreateArtefactModal/CreateArtefactModalContext";
 
 interface IProps {
     projectId?: string;
@@ -15,9 +15,9 @@ interface IProps {
 
 /** Multi selection component for project and task tags. */
 export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTags }: IProps) => {
-    const modalContext = React.useContext(CreateArtefactModalContext)
-    const {registerError: globalErrorHandler} = useErrorHandler()
-    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler
+    const modalContext = React.useContext(CreateArtefactModalContext);
+    const { registerError: globalErrorHandler } = useErrorHandler();
+    const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
     const [t] = useTranslation();
 
     const handleTagQueryChange = React.useCallback(
