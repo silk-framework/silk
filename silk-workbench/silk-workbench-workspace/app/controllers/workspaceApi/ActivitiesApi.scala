@@ -73,7 +73,7 @@ class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) e
           activity <- task.activities;
           status <- activity.status.get
           if statusMatches(status, statusFilter)) yield {
-        val extendedJsonFormat = new ExtendedStatusJsonFormat(project.config.id, task.id, activity.name, activity.label, activity.startTime)
+        val extendedJsonFormat = new ExtendedStatusJsonFormat(project.config.id, task.id, activity.name, activity.label, activity.queueTime, activity.startTime)
         extendedJsonFormat.write(status)
       }
 

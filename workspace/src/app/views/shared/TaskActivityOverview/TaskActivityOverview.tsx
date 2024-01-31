@@ -334,6 +334,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     unregisterFromUpdates={activityFunctions.unregisterFromUpdates}
                     translate={translateActions}
                     elapsedTimeOfLastStart={elapsedTime}
+                    translateUnits={translateUnits}
                     failureReportAction={{
                         title: "", // The title is already repeated in the markdown
                         allowDownload: true,

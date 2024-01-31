@@ -296,7 +296,7 @@ class HierarchicalMapping extends React.Component {
                         )}
                         {
                             <MappingsWorkview
-                                currentRuleId={this.state.currentRuleId}
+                                currentRuleId={currentRuleId}
                                 showNavigation={showNavigation}
                                 onToggleTreeNav={this.handleToggleNavigation}
                                 onRuleIdChange={this.handleRuleIdChange}

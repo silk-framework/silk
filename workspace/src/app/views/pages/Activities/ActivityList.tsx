@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "@eccenca/gui-elements";
+import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl, TimeUnits } from "@eccenca/gui-elements";
 import { Card, Tag, TagList, Highlighter, Spacing, OverflowText, Notification, Icon } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
@@ -182,6 +182,8 @@ const ActivityList = () => {
         <Notification>{t("pages.activities.noActivities", { items: "items" })}</Notification>
     );
 
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+
     return (
         <>
             <AppliedFacets />
@@ -238,6 +240,7 @@ const ActivityList = () => {
                                 unregisterFromUpdates={createUnregisterFromUpdateFn(key)}
                                 showReloadAction={activity.isCacheActivity && startableActivity}
                                 showStartAction={!activity.isCacheActivity && startableActivity}
+                                translateUnits={translateUnits}
                                 showStopAction
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)

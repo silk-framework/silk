@@ -41,6 +41,7 @@ class ActivityExecutionTest extends AnyFlatSpec with Matchers with Eventually  {
     val passedTime = System.currentTimeMillis() - start
     val STILL_SHORT_TIME = 1000L
     passedTime must be < STILL_SHORT_TIME
+    activityExecution.queueTime mustBe defined
     activityExecution.startTime mustBe defined
     activityExecution.lastResult mustBe defined
     val result = activityExecution.lastResult.get
