@@ -67,7 +67,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const [description, setDescription] = React.useState<string>("");
     const [showModalHelperText, setShowModalHelperText] = React.useState<boolean>(false);
     const [validationError, setValidationError] = React.useState<
-        Partial<{ name: string; valueOrTemplate: string }> | undefined
+        Partial<{ name: string; valueOrTemplate: string }>
     >();
     const [error, setError] = React.useState<ErrorResponse | undefined>();
     const checkAndDisplayError = useModalError({ setError });
@@ -243,6 +243,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     ref={valueState}
                     projectId={projectId}
                     existingVariableName={targetVariable?.name}
+                    setModalError={setValidationError}
                     handleCheckTemplateErrors={(err) =>
                         checkAndDisplayError(
                             err,
