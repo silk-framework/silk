@@ -201,15 +201,16 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
 
     return (
         <>
-            <NewVariableModal
-                modalOpen={modalOpen}
-                closeModal={() => setModalOpen(false)}
-                variables={variables}
-                targetVariable={selectedVariable}
-                projectId={projectId}
-                taskId={taskId}
-                refresh={() => setRefetch((r) => ++r)}
-            />
+            {modalOpen && (
+                <NewVariableModal
+                    closeModal={() => setModalOpen(false)}
+                    variables={variables}
+                    targetVariable={selectedVariable}
+                    projectId={projectId}
+                    taskId={taskId}
+                    refresh={() => setRefetch((r) => ++r)}
+                />
+            )}
             <DeleteModal
                 data-test-id="delete-variable-modal"
                 title={t("widget.VariableWidget.modalMessages.deleteModalTitle", "Delete variable")}
