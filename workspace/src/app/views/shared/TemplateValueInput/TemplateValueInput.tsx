@@ -17,7 +17,7 @@ interface TemplateValueInputProps {
     /** take note of any error found */
     handleCheckTemplateErrors?: (error) => void;
     /** modal validation errors */
-    setModalError?: (error) => void
+    setModalError?: (error) => void;
 }
 
 const TemplateValueInput = React.forwardRef(
@@ -31,7 +31,7 @@ const TemplateValueInput = React.forwardRef(
             parameterId = "template-value-input",
             existingVariableName,
             handleCheckTemplateErrors,
-            setModalError
+            setModalError,
         }: TemplateValueInputProps,
         valueStateRef: MutableRefObject<ValueStateRef>
     ) => {
@@ -63,22 +63,28 @@ const TemplateValueInput = React.forwardRef(
             });
         }, []);
 
-        const modalValidationChecker = React.useCallback((val: string) => {
-            setModalError && setModalError((prevError) => ({
-                ...prevError,
-                valueOrTemplate: !val.length ? t("widget.VariableWidget.formErrors.mustProvideValOrTemplate") : undefined,
-            }));
-        },[setModalError])
+        const modalValidationChecker = React.useCallback(
+            (val: string) => {
+                setModalError &&
+                    setModalError((prevError) => ({
+                        ...prevError,
+                        valueOrTemplate: !val.length
+                            ? t("widget.VariableWidget.formErrors.mustProvideValOrTemplate")
+                            : undefined,
+                    }));
+            },
+            [setModalError]
+        );
 
         const onTemplateValueChange = React.useCallback((e) => {
             const val = e.target ? e.target.value : e;
-            modalValidationChecker(val)
+            modalValidationChecker(val);
             valueStateRef.current.currentTemplateValue = val;
         }, []);
 
         const onElementValueChange = React.useCallback((valueOrEvent: any) => {
             const val = valueOrEvent.target ? `${valueOrEvent.target.value}` : `${valueOrEvent}`;
-            modalValidationChecker(val)
+            modalValidationChecker(val);
             valueStateRef.current.currentInputValue = val;
         }, []);
 
@@ -96,7 +102,6 @@ const TemplateValueInput = React.forwardRef(
         }, []);
 
         const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
-        console.log({messageText, validationError, templateInfoMessage})
         return (
             <FieldItem
                 labelProps={{
