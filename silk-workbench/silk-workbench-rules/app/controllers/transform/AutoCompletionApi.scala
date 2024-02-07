@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.autoCompletion.{AutoSuggestAutoCompletionRequest, AutoSuggestAutoCompletionResponse, Completion, Completions}
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.projectApi.ProjectTaskApi
 import controllers.shared.autoCompletion.AutoCompletionApiUtils
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
@@ -16,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
-import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
+import org.silkframework.entity.{EntitySchema, ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
 import org.silkframework.rule.{ContainerTransformRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -60,7 +61,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         description = "If the specified project, task or rule has not been found."
       )
   ))
-  def sourcePaths(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
+  def sourcePathsGET(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
                     required = true,
                     schema = new Schema(implementation = classOf[String])
                   )
@@ -95,21 +96,109 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                     schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                   )
                   maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    sourcePaths(projectName, taskName, ruleName, term, maxResults, None)
+  }
+
+  @Operation(
+    summary = "Mapping rule source paths",
+    description = "Given a search term, returns all possible completions for source property paths.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Source paths that match the given term",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.pathCompletionExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    ))
+  def sourcePathsPOST(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
+                        required = true,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String,
+                      @Parameter(
+                        name = "rule",
+                        description = "The rule identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      ruleName: String,
+                      @Parameter(
+                        name = "term",
+                        description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String], defaultValue = "")
+                      )
+                      term: String,
+                      @Parameter(
+                        name = "maxResults",
+                        description = "The maximum number of results.",
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                      )
+                      maxResults: Int): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    sourcePaths(projectName, taskName, ruleName, term, maxResults, Some(request))
+  }
+
+  private def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int,
+                          requestOpt: Option[Request[AnyContent]])
+                         (implicit userContext: UserContext): Result = {
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
-    var completions = Completions()
     withRule(task, ruleName) { case (_, sourcePath) =>
-      val isRdfInput = TransformUtils.isRdfInput(task)
-      val simpleSourcePath = AutoCompletionApiUtils.simplePath(sourcePath)
-      val forwardOnlySourcePath = AutoCompletionApiUtils.forwardOnlyPath(simpleSourcePath)
-      val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection, task.activity[TransformPathsCache].value.get, simpleSourcePath.nonEmpty && isRdfInput)
-      // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
-      val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
-      // Add known paths
-      completions += relativeForwardPaths
+      val completions = requestOpt.flatMap(request => alternativeSourcePathCompletions(request, project)) match {
+        case Some(alternativeCompletions) =>
+          alternativeCompletions
+        case None =>
+          val isRdfInput = TransformUtils.isRdfInput(task)
+          val simpleSourcePath = AutoCompletionApiUtils.simplePath(sourcePath)
+          val forwardOnlySourcePath = AutoCompletionApiUtils.forwardOnlyPath(simpleSourcePath)
+          val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection.typeUri, task.activity[TransformPathsCache].value.get, simpleSourcePath.nonEmpty && isRdfInput)
+          // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
+          val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+          // Add known paths
+          Completions(relativeForwardPaths)
+      }
       // Return filtered result
       Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false, multiWordFilter = true).toJson)
+    }
+  }
+
+  private def alternativeSourcePathCompletions(request: Request[AnyContent], project: Project)
+                                              (implicit userContext: UserContext): Option[Completions] = {
+    request.body.asJson.flatMap { json =>
+      JsonHelpers.fromJsonValidated[SourcePathAutoCompletionRequest](json).taskContext.flatMap(taskContext => {
+        val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, Some(taskContext))
+        inputOutputTasks.inputEntitySchema().flatMap(es => {
+          val labeledValues = es.typedPaths
+            .flatMap(_.property)
+            .map(prop => LabeledValue(prop.propertyUri, None))
+          if (labeledValues.nonEmpty) {
+            // Only show alternative completions if there is at least one target property
+            Some(labeledValueCompletions(labeledValues))
+          } else {
+            None
+          }
+        })
+      })
     }
   }
 
@@ -158,11 +247,16 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                         )
                         ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
-      val (_, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+      val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
+        val inputAndOutputTasks = ProjectTaskApi.validateTaskContext(project, autoCompletionRequest.taskContext)
+        val inputEqualsConfig = inputAndOutputTasks.inputTasks.size == 1 &&
+          inputAndOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
+        val alternativeEntitySchema = if(inputEqualsConfig) None else inputAndOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
-          val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath, autoCompletionRequest.isObjectPath.getOrElse(false))
+          val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
+            autoCompletionRequest.isObjectPath.getOrElse(false), alternativeEntitySchema)
           Ok(Json.toJson(autoCompletionResponse))
         }
       }
@@ -172,19 +266,26 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   private def autoCompletePartialSourcePath(transformTask: ProjectTask[TransformSpec],
                                             autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
                                             sourcePath: List[PathOperator],
-                                            isObjectPath: Boolean)
+                                            isObjectPath: Boolean,
+                                            alternativeInputSchema: Option[EntitySchema])
                                            (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
     implicit val project: Project = transformTask.project
     implicit val prefixes: Prefixes = project.config.prefixes
     val isRdfInput = TransformUtils.isRdfInput(transformTask)
     val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
-    val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
+    val dataSourceCharacteristicsOpt = if(alternativeInputSchema.isEmpty) {
+      TransformUtils.datasetCharacteristics(transformTask)
+    } else {
+      None
+    }
     // compute relative paths
     val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
     val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
     val simpleSubPath = AutoCompletionApiUtils.simplePath(completeSubPath)
+
     val forwardOnlySubPath = AutoCompletionApiUtils.forwardOnlyPath(simpleSubPath)
-    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(transformTask.selection, transformTask.activity[TransformPathsCache].value.get, simpleSubPath.nonEmpty && isRdfInput)
+    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(transformTask.selection.typeUri, transformTask.activity[TransformPathsCache].value.get, simpleSubPath.nonEmpty && isRdfInput,
+      alternativeInputSchema = alternativeInputSchema)
     val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
       case (true, false) => OpFilter.Backward
       case (false, true) => OpFilter.Forward
@@ -248,7 +349,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                     schema = new Schema(implementation = classOf[String])
                   )
                   ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-      val (_, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+      val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       validateJson[UriPatternAutoCompletionRequest] { uriPatternAutoCompletionRequest =>
         AutoCompletionApi.validateAutoCompletionRequest(uriPatternAutoCompletionRequest)
         uriPatternAutoCompletionRequest.activePathPart match {
@@ -261,10 +362,15 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                 pathPart.serializedPath,
                 uriPatternAutoCompletionRequest.cursorPosition - pathPart.segmentPosition.originalStartIndex,
                 uriPatternAutoCompletionRequest.maxSuggestions,
-                Some(false)
+                Some(false),
+                uriPatternAutoCompletionRequest.workflowTaskContext
               )
+              val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext)
+              val inputEqualsConfig = inputOutputTasks.inputTasks.size == 1 &&
+                inputOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
+              val alternativeInputSchema = if(inputEqualsConfig) None else inputOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
-                basePath, isObjectPath = false)
+                basePath, isObjectPath = false, alternativeInputSchema)
               val offset = pathPart.segmentPosition.originalStartIndex
               Ok(Json.toJson(autoCompletionResponse.copy(
                 inputString = uriPatternAutoCompletionRequest.inputString,
@@ -453,13 +559,26 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                              )
                              fullUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     var vocabularyFilter: Option[Seq[String]] = None
+    var alternativeCompletions: Option[Completions] = None
+    val project = WorkspaceFactory().workspace.project(projectName)
     request.body.asJson.foreach { json =>
       val request = JsonHelpers.fromJsonValidated[TargetPropertyAutoCompleteRequest](json)
       vocabularyFilter = request.vocabularies
+      if(request.taskContext.isDefined) {
+        val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, request.taskContext)
+        inputOutputTasks.labeledOutputPaths().foreach(labeledPaths => {
+          val labeledValues = labeledPaths
+            .filter(_.path.propertyUri.isDefined)
+            .map(lp => LabeledValue(lp.path.propertyUri.get, lp.label))
+          if(labeledValues.nonEmpty) {
+            // Only show alternative completions if there is at least one target property
+            alternativeCompletions = Some(labeledValueCompletions(labeledValues))
+          }
+        })
+      }
     }
-    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    val completions = vocabularyPropertyCompletions(task, fullUris, vocabularyFilter)
+    val completions = alternativeCompletions.getOrElse(vocabularyPropertyCompletions(task, fullUris, vocabularyFilter))
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
@@ -633,6 +752,20 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     typeCompletions.distinct
   }
 
+  private case class LabeledValue(value: String, label: Option[String])
+
+  private def labeledValueCompletions(labeledValues: Seq[LabeledValue]): Completions = {
+    labeledValues.map { labeledValue =>
+      Completion(
+        value = labeledValue.value,
+        label = labeledValue.label,
+        description = None,
+        category = "labeledValue",
+        isCompletion = true
+      )
+    }
+  }
+
   private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec],
                                            // Return full URIs instead of prefixed URIs
                                             fullUris: Boolean,
@@ -696,5 +829,4 @@ object AutoCompletionApi {
       }
     }
   }
-
 }

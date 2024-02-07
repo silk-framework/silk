@@ -6,7 +6,7 @@ import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.ParameterValues
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml.Node
 
@@ -31,10 +31,9 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema,
     * @param preferUntypedSchema If the untyped schema from the path cache should be returned if available and appropriate.
     * @return
     */
-  def fetchCachedPaths(datasetSelection: DatasetSelection,
-                       preferUntypedSchema: Boolean)
-                      (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    if(datasetSelection.typeUri.uri.nonEmpty && preferUntypedSchema && untypedSchema.isDefined) {
+  def fetchCachedPaths(typeUri: Uri,
+                       preferUntypedSchema: Boolean): IndexedSeq[TypedPath] = {
+    if(typeUri.uri.nonEmpty && preferUntypedSchema && untypedSchema.isDefined) {
       untypedSchema.get.typedPaths
     } else {
       configuredSchema.typedPaths

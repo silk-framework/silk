@@ -1,9 +1,10 @@
 package org.silkframework.util
 
-import java.io.{IOException, InputStream, OutputStream}
+import java.io.{DataInput, DataOutput, IOException, InputStream, OutputStream}
 import java.nio.{Buffer, ByteBuffer}
 import java.nio.channels.{ReadableByteChannel, WritableByteChannel}
 import java.nio.channels.Channels
+import java.nio.charset.StandardCharsets
 
 /**
   * Utility methods for I/O stream handling.
@@ -42,6 +43,39 @@ object StreamUtils {
       inputChannel.close()
       outputChannel.close()
     }
+  }
+
+  /**
+   * Writes a string into a DataOutput.
+   * This is preferred over using writeUTF on the DataOutput itself because it supports strings larger than 65k
+   */
+  @inline
+  def writeString(dataOutput: DataOutput, string: String): Unit = {
+    // Convert the string into UTF8 bytes
+    val stringBytes = string.getBytes(StandardCharsets.UTF_8)
+    val length = stringBytes.length
+
+    // Write the length of the string
+    dataOutput.writeInt(length)
+
+    // Write the actual string bytes
+    dataOutput.write(stringBytes)
+  }
+
+  /**
+   * Reads back a string that has been written by the corresponding `writeString` function.
+   */
+  @inline
+  def readString(dataInput: DataInput): String = {
+    // Read the length of the string
+    val length = dataInput.readInt()
+
+    // Read the actual string bytes
+    val stringBytes = new Array[Byte](length)
+    dataInput.readFully(stringBytes)
+
+    // Convert the bytes back to a string using UTF-8 encoding
+    new String(stringBytes, StandardCharsets.UTF_8)
   }
 
   /**

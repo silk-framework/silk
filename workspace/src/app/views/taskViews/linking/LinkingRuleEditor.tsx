@@ -32,6 +32,8 @@ import {
     ruleEditorNodeParameterValue,
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
+import {diErrorMessage} from "@ducks/error/typings";
+import {Notification} from "@eccenca/gui-elements"
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -72,6 +74,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
     const [loading, setLoading] = React.useState(true);
+    const [initError, setInitError] = React.useState<any | undefined>(undefined)
     const pendingRequests = React.useRef(2);
     const hideGreyListedParameters =
         (
@@ -90,6 +93,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             setLoading(false);
         }
     };
+
+    const handleInitError = React.useCallback((error: any) => {
+        setInitError(error)
+    }, [])
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
@@ -124,6 +131,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
                     err
                 );
+                setInitError(err)
             }
         }
     };
@@ -169,6 +177,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
                 err
             );
+            setInitError(err)
         }
     };
 
@@ -334,6 +343,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         }
         return result;
     };
+
+    if(initError) {
+        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>
+    }
 
     if (loading) {
         return <Loading />;

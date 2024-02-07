@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { ContextOverlay, Icon, IconButton, Spacing, Notification } from "@eccenca/gui-elements";
+import { ContextOverlay, Icon, IconButton, Spacing, Notification, NotificationProps } from "@eccenca/gui-elements";
 import { useNotificationsQueue } from "../../ApplicationNotifications/NotificationsMenu";
 import { RuleSaveNodeError } from "../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
+import {RuleEditorEvaluationNotification} from "../contexts/RuleEditorEvaluationContext";
 
 interface RuleEditorNotificationsProps {
     integratedView?: boolean;
     queueEditorNotifications?: string[];
     queueNodeNotifications?: RuleSaveNodeError[];
     nodeJumpToHandler: any; // TODO
+    /** Notifications from the rule evaluation. */
+    evaluationNotifications?: RuleEditorEvaluationNotification[]
 }
 
 export const RuleEditorNotifications = ({
@@ -16,6 +19,7 @@ export const RuleEditorNotifications = ({
     queueEditorNotifications = [] as string[],
     queueNodeNotifications = [] as RuleSaveNodeError[],
     nodeJumpToHandler,
+    evaluationNotifications
 }: RuleEditorNotificationsProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const initTimestamp = React.useRef(Date.now());
@@ -45,7 +49,8 @@ export const RuleEditorNotifications = ({
 
     return queueEditorNotifications.length > 0 ||
         queueNodeNotifications.length > 0 ||
-        (integratedView && diErrorMessages.length > 0) ? (
+        (integratedView && diErrorMessages.length > 0 ||
+        evaluationNotifications && evaluationNotifications.length) ? (
         <>
             <Spacing vertical size="tiny" />
             <ContextOverlay
@@ -63,6 +68,18 @@ export const RuleEditorNotifications = ({
                                 {editorNotification}
                             </Notification>
                         ))}
+                        {evaluationNotifications && evaluationNotifications.length && evaluationNotifications.map(notification => {
+                            const intentObject: Pick<NotificationProps, "danger" | "warning" | "success" | "neutral"> = Object.create(null)
+                            if(notification.intent !== "none") {
+                                intentObject[notification.intent] = true
+                            }
+                            return <Notification
+                                {...intentObject}
+                                onDismiss={notification.onDiscard}
+                            >
+                                {notification.message}
+                            </Notification>
+                        })}
                         {queueNodeNotifications.map((nodeNotification) => (
                             <div key={nodeNotification.nodeId}>
                                 <Spacing size={"tiny"} />

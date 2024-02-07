@@ -239,7 +239,7 @@ class SourcePathsApi @Inject() () extends InjectedController with UserContextAct
     val pathCache = task.activity[TransformPathsCache]
     pathCache.control.waitUntilFinished()
     val isRdfInput = TransformUtils.isRdfInput(task)
-    val cachedPaths = pathCache.value().fetchCachedPaths(task.selection, pathPrefix.nonEmpty && isRdfInput)
+    val cachedPaths = pathCache.value().fetchCachedPaths(task.selection.typeUri, pathPrefix.nonEmpty && isRdfInput)
     cachedPaths filter { p =>
       val pathSize = p.operators.size
       isRdfInput ||

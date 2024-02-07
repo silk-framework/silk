@@ -2,6 +2,7 @@ package controllers.transform.autoCompletion
 
 import controllers.autoCompletion.AutoSuggestAutoCompletionRequest
 import org.silkframework.entity.paths.PathPositionStatus
+import org.silkframework.workspace.activity.workflow.WorkflowTaskContext
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -15,7 +16,8 @@ import play.api.libs.json.{Format, Json}
 case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   cursorPosition: Int,
                                                   maxSuggestions: Option[Int],
-                                                  isObjectPath: Option[Boolean]) extends AutoSuggestAutoCompletionRequest {
+                                                  isObjectPath: Option[Boolean],
+                                                  taskContext: Option[WorkflowTaskContext]) extends AutoSuggestAutoCompletionRequest {
   private val operatorStartChars = Set('/', '\\', '[')
 
   /** The remaining characters from the cursor position to the end of the current path operator. */
