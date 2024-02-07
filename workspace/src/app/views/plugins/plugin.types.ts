@@ -82,3 +82,8 @@ export interface ParameterExtensions {
     /** Extends the given parameter definition (or leaves it as it is). */
     extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
 }
+
+/** Props for mapping suggestion. */
+export interface SuggestionNGProps {
+    ruleId?: string
+}
