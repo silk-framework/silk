@@ -26,7 +26,7 @@
     "dependencies": {
         "@blueprintjs/core": "^4.9.0",
         "@blueprintjs/select": "^4.6.0",
-        "@eccenca/gui-elements": "^23.4.0-rc.1",
+        "@eccenca/gui-elements": "^23.4.0",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.4.0",
@@ -274,6 +274,7 @@
     "resolutions": {
         "sanitize.css": "12.0.1",
         "**/minimist": "^1.2.8",
-        "**/url-parse": "1.5.9"
+        "**/url-parse": "1.5.9",
+        "**/@carbon/icons-react": "11.19.0"
     }
 }
