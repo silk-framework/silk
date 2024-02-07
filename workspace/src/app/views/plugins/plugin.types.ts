@@ -64,6 +64,8 @@ export interface DatasetPreviewResourceTextResponse {
     endReached: boolean;
     isTextBased: boolean;
     mimeType: string;
+    charsRead: number;
+    endOfLineReached: true;
 }
 
 /** Parameters of the data preview component. */
