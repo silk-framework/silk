@@ -48,13 +48,7 @@ export interface IDatasetPreview {
 export interface DatasetPreviewResourceTextPayload {
     project: string;
     datasetId: string;
-    datasetInfo?: {
-        type: string;
-        parameters: {
-            label?: string;
-            file: string;
-        };
-    };
+    datasetInfo?: IDatasetInfo;
     offset: number;
     limit: number;
 }
