@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.ser.Serializers
 import java.io.InputStream
 import java.math.{BigInteger, BigDecimal => JBigDec}
 import scala.collection.immutable.SeqMap
-import scala.collection.mutable
 
 /**
  * A JSON node that stores its source position.
@@ -78,20 +77,11 @@ object JsonNodeSerializer {
    */
   private def buildNode(parser: JsonParser): JsonNode = {
     val reader = new JsonReader(parser)
-    val buffer = mutable.Buffer[JsonNode]()
     try {
       parser.nextToken()
-      while(parser.currentToken() != null) {
-        buffer.append(reader.buildNode())
-      }
+      reader.buildNode()
     } finally {
       reader.close()
-    }
-    // For JSON lines, the buffer will contain multiple nodes
-    if(buffer.size == 1) {
-      buffer.head
-    } else {
-      JsonArray(buffer.toIndexedSeq, buffer.headOption.map(_.position).getOrElse(JsonPosition(0, 0)))
     }
   }
 
