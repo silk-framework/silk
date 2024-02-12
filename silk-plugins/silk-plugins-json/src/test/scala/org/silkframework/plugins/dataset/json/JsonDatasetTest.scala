@@ -1,32 +1,33 @@
 package org.silkframework.plugins.dataset.json
-
-import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.resource.{ResourceTooLargeException, WritableResource}
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
-import java.time.Instant
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.runtime.resource.{ClasspathResourceLoader, Resource, ResourceLoader, ResourceTooLargeException}
+import org.silkframework.util.{ConfigTestTrait, Uri}
 
 class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
 
   behavior of "JSON dataset"
 
+  protected val resources: ResourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
+
   it should "not load large files into memory" in {
-    val resource = new WritableResource {
-      override def name: String = "largeResource"
-      override def path: String = "path"
-      override def size: Option[Long] = Some(1000000000L)
-
-      override def createOutputStream(append: Boolean): OutputStream = new ByteArrayOutputStream()
-      override def delete(): Unit = {}
-      override def exists: Boolean = true
-      override def modificationTime: Option[Instant] = None
-      override def inputStream: InputStream = new ByteArrayInputStream(Array.emptyByteArray)
-    }
-
-    val dataset = JsonDataset(resource, streaming = false)
-    an[ResourceTooLargeException] should be thrownBy dataset.source
+    // Each line should be loaded separately, so this should work even though the overall file is larger than the limit
+    noException should be thrownBy loadEntities(maxInMemorySize = "130B")
+    // If a line is too large, reading should be stopped
+    an[ResourceTooLargeException] should be thrownBy loadEntities(maxInMemorySize = "100B")
   }
 
+  private def loadEntities(maxInMemorySize: String): Unit = {
+    ConfigTestTrait.withConfig(Resource.maxInMemorySizeParameterName -> Some(maxInMemorySize)) {
+      implicit val prefixes: Prefixes = Prefixes.empty
+      val source = JsonSourceInMemory(resources.get("exampleLines.jsonl"), "", "")
+      source.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("name").asStringTypedPath))).entities.toSeq
+    }
+  }
 }
