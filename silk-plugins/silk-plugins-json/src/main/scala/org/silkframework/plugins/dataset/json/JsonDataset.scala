@@ -43,7 +43,7 @@ case class JsonDataset(
       new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern)
     }
     else {
-      resource.checkSizeForInMemory()
+      // The maxInMemorySize limit will be checked by the JsonReader class
       JsonSourceInMemory(resource, basePath, uriPattern)
     }
   }
