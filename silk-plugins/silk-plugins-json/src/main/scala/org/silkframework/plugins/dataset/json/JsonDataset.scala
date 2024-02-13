@@ -14,11 +14,11 @@ import org.silkframework.util.Identifier
   id = "json",
   label = "JSON",
   categories = Array(DatasetCategories.file),
-  description = """Read from or write to a JSON file.""",
+  description = """Read from or write to a JSON or JSON Lines file.""",
   documentationFile = "JsonDatasetDocumentation.md"
 )
 case class JsonDataset(
-                        @Param("Json file. This may also be a zip archive of multiple XML files that share the same schema.")
+                        @Param("JSON file. This may also be a zip archive of multiple JSON files that share the same schema.")
                         file: WritableResource,
                         @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
                         template: JsonCodeParameter = JsonCodeParameter(s"${JsonTemplate.placeholder}"),

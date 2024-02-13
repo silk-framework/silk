@@ -108,6 +108,11 @@ object JsonSourceInMemory {
     }
   }
 
+  /**
+   * Reads all top-level nodes from a JSON input stream.
+   * If this is a plain JSON file, exactly one node will be returned.
+   * If this is a JSON Lines file, a separate node for each line will be returned.
+   */
   private class JsonNodeIterator(inputStream: InputStream) extends CloseableIterator[JsonNode]() {
     private val parser = new JsonFactory().createParser(inputStream)
     private val reader = new JsonReader(parser)
