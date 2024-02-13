@@ -23,6 +23,13 @@ class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrai
     an[ResourceTooLargeException] should be thrownBy loadEntities(maxInMemorySize = "100B")
   }
 
+  it should "cover both JSON and JSON Lines files in a zip" in {
+    "example.json" should fullyMatch regex (JsonDataset.defaultZipFileRegex)
+    "example.jsonl" should fullyMatch regex (JsonDataset.defaultZipFileRegex)
+    "example.xml" should not fullyMatch regex (JsonDataset.defaultZipFileRegex)
+    "example.jsonx" should not fullyMatch regex (JsonDataset.defaultZipFileRegex)
+  }
+
   private def loadEntities(maxInMemorySize: String): Unit = {
     ConfigTestTrait.withConfig(Resource.maxInMemorySizeParameterName -> Some(maxInMemorySize)) {
       implicit val prefixes: Prefixes = Prefixes.empty

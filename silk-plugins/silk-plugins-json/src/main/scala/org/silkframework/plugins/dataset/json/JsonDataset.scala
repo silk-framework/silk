@@ -32,7 +32,7 @@ case class JsonDataset(
                         @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
                         streaming: Boolean = true,
                         @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                        override val zipFileRegex: String = ".*\\.json") extends Dataset with BulkResourceBasedDataset {
+                        override val zipFileRegex: String = JsonDataset.defaultZipFileRegex) extends Dataset with BulkResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
@@ -56,6 +56,8 @@ case class JsonDataset(
 }
 
 object JsonDataset {
+
+  final val defaultZipFileRegex = ".*\\.json(?:l)?"
 
   object specialPaths {
     final val TEXT = "#text"
