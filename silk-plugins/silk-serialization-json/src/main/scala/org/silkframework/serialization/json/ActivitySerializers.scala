@@ -82,7 +82,7 @@ object ActivitySerializers {
     }
   }
 
-  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, activityLabel: String, startTime: => Option[Instant]) extends WriteOnlyJsonFormat[Status] {
+  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, activityLabel: String, queueTime: => Option[Instant], startTime: => Option[Instant]) extends WriteOnlyJsonFormat[Status] {
 
     def this(activity: WorkspaceActivity[_]) = {
       this(
@@ -90,23 +90,28 @@ object ActivitySerializers {
         activity.taskOption.map(_.id.toString).getOrElse(""),
         activity.name,
         activity.label,
+        activity.queueTime,
         activity.startTime
       )
     }
 
     override def write(status: Status)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      StatusJsonFormat.write(status).as[JsObject] +
-      ("project" -> JsString(project)) +
-      ("task" -> JsString(task)) +
-      ("activity" -> JsString(activity)) +
-      ("activityLabel" -> JsString(activityLabel)) +
-      ("startTime" -> startTime.map(t => JsString(t.toString)).getOrElse(JsNull))
+      StatusJsonFormat.write(status).as[JsObject] ++
+        JsObject(Seq(
+          "project" -> JsString(project),
+          "task" -> JsString(task),
+          "activity" -> JsString(activity),
+          "activityLabel" -> JsString(activityLabel),
+          "queueTime" -> queueTime.map(t => JsString(t.toString)).getOrElse(JsNull),
+          "startTime" -> startTime.map(t => JsString(t.toString)).getOrElse(JsNull)
+        ))
     }
   }
 
   implicit object ActivityExecutionMetaDataJsonFormat extends JsonFormat[ActivityExecutionMetaData] {
 
     private val STARTED_BY_USER = "startedByUser"
+    private val QUEUED_AT = "queuedAt"
     private val STARTED_AT = "startedAt"
     private val FINISHED_AT = "finishedAt"
     private val CANCELLED_AT = "cancelledAt"
@@ -116,6 +121,7 @@ object ActivitySerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ActivityExecutionMetaData = {
       ActivityExecutionMetaData(
         startedByUser = stringValueOption(value, STARTED_BY_USER).map(SimpleUser),
+        queuedAt = instantValueOption(value, QUEUED_AT),
         startedAt = instantValueOption(value, STARTED_AT),
         finishedAt = instantValueOption(value, FINISHED_AT),
         cancelledAt = instantValueOption(value, CANCELLED_AT),
@@ -127,6 +133,7 @@ object ActivitySerializers {
     override def write(value: ActivityExecutionMetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         STARTED_BY_USER -> value.startedByUser.map(_.uri),
+        QUEUED_AT -> value.queuedAt,
         STARTED_AT -> value.startedAt,
         FINISHED_AT -> value.finishedAt,
         CANCELLED_AT -> value.cancelledAt,

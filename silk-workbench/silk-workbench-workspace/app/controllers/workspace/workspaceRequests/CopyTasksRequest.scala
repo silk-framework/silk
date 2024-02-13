@@ -1,7 +1,7 @@
 package controllers.workspace.workspaceRequests
 
 import io.swagger.v3.oas.annotations.media.Schema
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.BadUserInputException
@@ -112,7 +112,7 @@ object CopyTasksRequest {
           }
 
           for (task <- tasksToCopy) {
-            val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProj))
+            val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProj).copy(prefixes = Prefixes.empty))
             val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject))
             targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
             // Copy resources

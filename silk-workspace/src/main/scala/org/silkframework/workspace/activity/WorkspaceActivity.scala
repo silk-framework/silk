@@ -134,6 +134,12 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   /**
+   * Holds the timestamp when the activity has been added to the waiting queue.
+   * None, if the activity has not been queued before.
+   */
+  final def queueTime: Option[Instant] = control.queueTime
+
+  /**
     * Holds the timestamp when the activity has been started.
     * None, if the activity has not been started before.
     */

@@ -33,6 +33,9 @@ private class ActivityExecution[T](activity: Activity[T],
   private var forkJoinRunner: Option[ForkJoinRunner] = None
 
   @volatile
+  private var queueTimestamp: Option[Instant] = None
+
+  @volatile
   private var startTimestamp: Option[Instant] = None
 
   @volatile
@@ -46,6 +49,8 @@ private class ActivityExecution[T](activity: Activity[T],
 
   @volatile
   private var runningThread: Option[Thread] = None
+
+  override def queueTime: Option[Instant] = queueTimestamp
 
   override def startTime: Option[Instant] = startTimestamp
 
@@ -78,6 +83,7 @@ private class ActivityExecution[T](activity: Activity[T],
     resetMetaData()
     status.update(Status.Waiting())
     this.startedByUser = user
+    this.queueTimestamp = Some(Instant.now())
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = {
@@ -226,6 +232,7 @@ private class ActivityExecution[T](activity: Activity[T],
     ActivityExecutionResult(
       metaData = ActivityExecutionMetaData(
         startedByUser = startedByUser.user,
+        queuedAt = queueTimestamp,
         startedAt = startTimestamp,
         finishedAt = Some(Instant.now),
         cancelledAt = cancelTimestamp,

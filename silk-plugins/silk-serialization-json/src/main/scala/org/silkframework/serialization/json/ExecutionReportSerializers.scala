@@ -123,6 +123,7 @@ object ExecutionReportSerializers {
         entityErrorCount = numberValue(value, ENTITY_ERROR_COUNTER).intValue,
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
         globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]).toIndexedSeq,
+        isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
         error = stringValueOption(value, ERROR)
       )
     }
@@ -229,7 +230,8 @@ object ExecutionReportSerializers {
 
       WorkflowExecutionReport(
         task = taskFormat.read(requiredValue(value, TASK)),
-        taskReports = taskReports.toIndexedSeq
+        taskReports = taskReports.toIndexedSeq,
+        isDone = booleanValueOption(value, IS_DONE).getOrElse(true)
       )
     }
   }

@@ -152,6 +152,7 @@ export const useTaskActivityWidget = ({
         showStopAction: true,
         showReloadAction: isCacheActivity,
         layoutConfig: layoutConfig,
+        translateUnits,
         elapsedTimeOfLastStart: isCacheActivity
             ? {
                   translate: translateUnits,

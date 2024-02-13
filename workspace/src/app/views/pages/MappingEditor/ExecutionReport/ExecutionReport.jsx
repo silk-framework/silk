@@ -62,9 +62,21 @@ export default class ExecutionReport extends React.Component {
         let executionMetaData = [];
         if (this.props.executionMetaData != null) {
             executionMetaData = executionMetaData.concat([
+                <PropertyValuePair hasDivider key="queuedAt">
+                    <PropertyName className="silk-report-table-bold">Queued at</PropertyName>
+                    <PropertyValue>
+                        {this.props.executionMetaData.queuedAt == null
+                            ? "Not available"
+                            : this.props.executionMetaData.queuedAt}
+                    </PropertyValue>
+                </PropertyValuePair>,
                 <PropertyValuePair hasDivider key="startedAt">
                     <PropertyName className="silk-report-table-bold">Started at</PropertyName>
-                    <PropertyValue>{this.props.executionMetaData.startedAt}</PropertyValue>
+                    <PropertyValue>
+                        {this.props.executionMetaData.startedAt == null
+                            ? "Not available"
+                            : this.props.executionMetaData.startedAt}
+                    </PropertyValue>
                 </PropertyValuePair>,
                 <PropertyValuePair hasDivider key="startedByUser">
                     <PropertyName className="silk-report-table-bold">Started by</PropertyName>

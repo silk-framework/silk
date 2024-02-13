@@ -42,9 +42,12 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
 
   private val customTaskId = "testCustomTask"
 
+  private val customPrefix = ("ex", "http://example.org/")
+
   "setup" in {
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
     createProject(project)
+    addProjectPrefixes(project, Map(customPrefix))
   }
 
   "post dataset task" in {
@@ -169,8 +172,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
       <TransformSpec id={transformId}>
         <SourceDataset dataSource={datasetId} var="a" typeUri="" />
         <TransformRule name="rule" targetProperty="">
-            <TransformInput id="constant" function="constant">
-              <Param name="value" value="http://example.org/"/>
+            <TransformInput id="constant" function="constantUri">
+              <Param name="value" value={customPrefix._2 + "myUri"}/>
             </TransformInput>
         </TransformRule>
       </TransformSpec>
@@ -188,7 +191,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
     (json \ DATA \ PARAMETERS \ "selection" \ "inputId").as[String] mustBe datasetId
     (json \ DATA \ PARAMETERS \ "selection" \ "typeUri").as[String] mustBe typeUri
     (json \ DATA \ PARAMETERS \ "mappingRule" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
-        """{"type":"transformInput","id":"constant","function":"constant","inputs":[],"parameters":{"value":"http://example.org/"}}"""
+        """{"type":"transformInput","id":"constant","function":"constantUri","inputs":[],"parameters":{"value":"ex:myUri"}}"""
   }
 
   "get transform task" in {
