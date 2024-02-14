@@ -60,6 +60,8 @@ export interface DatasetPreviewResourceTextResponse {
     mimeType: string;
     charsRead: number;
     endOfLineReached: true;
+    percentage: number;
+    fileSize: number;
 }
 
 /** Parameters of the data preview component. */
