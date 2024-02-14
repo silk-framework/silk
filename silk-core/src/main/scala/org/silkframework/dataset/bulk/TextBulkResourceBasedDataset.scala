@@ -19,20 +19,4 @@ trait TextBulkResourceBasedDataset extends BulkResourceBasedDataset { this: Data
    */
   def codec: Codec
 
-  /**
-   * Reads the resource as a character string. Will close the reader automatically.
-   */
-  def read[T](readFunc: Reader => T): T = {
-    useFirstResource { resource =>
-      resource.read { inputStream =>
-        val reader = new InputStreamReader(inputStream, codec.charSet)
-        try {
-          readFunc(reader)
-        } finally {
-          reader.close()
-        }
-      }
-    }
-  }
-
 }
