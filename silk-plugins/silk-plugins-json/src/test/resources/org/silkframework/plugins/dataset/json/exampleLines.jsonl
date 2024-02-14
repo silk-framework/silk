@@ -1,0 +1,2 @@
+{ "id": "0", "name": "John", "phoneNumbers": [ { "type": "home", "number": "123" }, {"type": "office", "number": "456"}] }
+{ "id": "1", "name": "Max", "phoneNumbers": [ { "type": "home", "number": "789" } ] }
