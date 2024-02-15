@@ -49,6 +49,7 @@
         "loading": "Loading data."
     },
     "DataPreview": {
+        "loadMore": "Load More",
         "load": "Load preview",
         "loading": "Loading preview data.",
         "noAttributes": "No attributes found. This might be an empty dataset.",
