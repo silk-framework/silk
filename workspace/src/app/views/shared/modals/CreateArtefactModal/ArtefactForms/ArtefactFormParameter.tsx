@@ -83,6 +83,7 @@ export const ArtefactFormParameter = ({
     supportVariableTemplateElement,
 }: Props) => {
     const [t] = useTranslation();
+    const [altHelperText, setAltHelperText] = React.useState<string | JSX.Element | undefined>(helperText);
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
@@ -117,12 +118,15 @@ export const ArtefactFormParameter = ({
         currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
+    const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
         setShowVariableTemplateInput((old) => {
             const becomesTemplate = !old;
             if (becomesTemplate) {
+                isPasswordInput && setAltHelperText(t("ArtefactFormParameter.passwordCleared",  "Password is removed temporarily"))
                 valueState.current.inputValueBeforeSwitch = valueState.current.currentInputValue;
             } else {
+                isPasswordInput && setAltHelperText(helperText) 
                 valueState.current.templateValueBeforeSwitch = valueState.current.currentTemplateValue;
             }
             setValidationError(undefined);
@@ -172,7 +176,6 @@ export const ArtefactFormParameter = ({
         parameterType &&
         (parameterType.startsWith("code-") ||
             [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
-
     return (
         <FieldItem
             key={parameterId}
@@ -185,7 +188,7 @@ export const ArtefactFormParameter = ({
             hasStateDanger={infoMessageDanger || !!validationError}
             messageText={infoMessage || validationError || templateInfoMessage}
             disabled={disabled}
-            helperText={helperText}
+            helperText={altHelperText}
         >
             <Toolbar
                 onMouseOver={supportVariableTemplateElement ? onMouseOver : undefined}
@@ -206,7 +209,7 @@ export const ArtefactFormParameter = ({
                             parameterId={parameterId}
                             initialValue={
                                 valueState.current.templateValueBeforeSwitch ??
-                                valueState.current.inputValueBeforeSwitch ??
+                                (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ??
                                 initialValue ??
                                 ""
                             }
