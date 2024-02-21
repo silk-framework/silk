@@ -796,6 +796,10 @@
                     "description": "The concrete type of a dataset, e.g. its data model and format etc.",
                     "label": "Dataset type"
                 },
+                "readOnly": {
+                    "description": "Filters datasets based on their access permissions.",
+                    "label": "Dataset accessibility"
+                },
                 "lastModifiedBy": {
                     "description": "The user who last modified the item.",
                     "label": "Last modified by",
