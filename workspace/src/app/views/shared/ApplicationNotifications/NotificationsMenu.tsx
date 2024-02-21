@@ -27,7 +27,7 @@ interface Props {
 export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId }: Props) {
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
 
-    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
+    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications, setDisplayNotifications);
 
     useEffect(() => {
         // add css class if there are messages in the queue
@@ -132,7 +132,7 @@ const showMessage = (
     );
 };
 
-export function useNotificationsQueue(errorNotificationInstanceId?: string, autoDisplayNotifications: boolean = false) {
+export function useNotificationsQueue(errorNotificationInstanceId?: string, autoDisplayNotifications: boolean = false, setDisplayNotifications = (disp) => {}) {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
@@ -154,7 +154,7 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
                         return;
                     }
                     setDisplayLastNotification(false);
-                }, 6000);
+                }, 3000);
                 return () => {
                     clearTimeout(timeout);
                 };
@@ -174,6 +174,7 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
         } else {
             clearErrors();
         }
+        setDisplayNotifications(false)
     };
 
     const lastMessage: ApplicationError | undefined = messages[0];
