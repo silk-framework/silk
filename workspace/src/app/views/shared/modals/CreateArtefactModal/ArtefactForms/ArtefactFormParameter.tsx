@@ -83,7 +83,8 @@ export const ArtefactFormParameter = ({
     supportVariableTemplateElement,
 }: Props) => {
     const [t] = useTranslation();
-    const [altHelperText, setAltHelperText] = React.useState<string | JSX.Element | undefined>(helperText);
+    const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
+    const [passwordMsgText, setPasswordMsgText] = React.useState<string | undefined>();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
@@ -120,13 +121,22 @@ export const ArtefactFormParameter = ({
     const showRareElementState = React.useRef<{ timeout?: number }>({});
     const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
+        setToggledTemplateSwitchBefore(true);
         setShowVariableTemplateInput((old) => {
             const becomesTemplate = !old;
             if (becomesTemplate) {
-                isPasswordInput && setAltHelperText(t("ArtefactFormParameter.passwordCleared",  "Password is removed temporarily"))
+                isPasswordInput &&
+                    setPasswordMsgText(
+                        !toggledTemplateSwitchBefore
+                            ? t(
+                                  "ArtefactFormParameter.passwordCleared",
+                                  "Password was removed because it would be visible in clear text"
+                              )
+                            : undefined
+                    );
                 valueState.current.inputValueBeforeSwitch = valueState.current.currentInputValue;
             } else {
-                isPasswordInput && setAltHelperText(helperText) 
+                isPasswordInput && setPasswordMsgText(undefined);
                 valueState.current.templateValueBeforeSwitch = valueState.current.currentTemplateValue;
             }
             setValidationError(undefined);
@@ -139,7 +149,7 @@ export const ArtefactFormParameter = ({
             );
             return becomesTemplate;
         });
-    }, []);
+    }, [toggledTemplateSwitchBefore]);
 
     const onTemplateValueChange = React.useCallback(
         (e) => {
@@ -186,9 +196,9 @@ export const ArtefactFormParameter = ({
                 tooltip: tooltip,
             }}
             hasStateDanger={infoMessageDanger || !!validationError}
-            messageText={infoMessage || validationError || templateInfoMessage}
+            messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
-            helperText={altHelperText}
+            helperText={helperText}
         >
             <Toolbar
                 onMouseOver={supportVariableTemplateElement ? onMouseOver : undefined}
