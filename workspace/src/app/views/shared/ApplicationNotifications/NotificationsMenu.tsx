@@ -27,7 +27,7 @@ interface Props {
 export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId }: Props) {
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
 
-    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications, setDisplayNotifications);
+    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications, setDisplayNotifications, displayNotifications);
 
     useEffect(() => {
         // add css class if there are messages in the queue
@@ -56,7 +56,7 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
                 size="small"
                 ratio="1:1"
                 resizing="contain"
-                image={<Icon name="application-warning" description="Notification menu icon" large />}
+                image={<Icon name="notification" description="Notification menu icon" large />}
                 badge={
                     <Badge
                         position={"top-right"}
@@ -132,7 +132,7 @@ const showMessage = (
     );
 };
 
-export function useNotificationsQueue(errorNotificationInstanceId?: string, autoDisplayNotifications: boolean = false, setDisplayNotifications = (disp) => {}) {
+export function useNotificationsQueue(errorNotificationInstanceId?: string, autoDisplayNotifications: boolean = false, setDisplayNotifications = (display) => {}, displayNotifications = false) {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
@@ -144,6 +144,13 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
     const initTime = React.useRef(new Date().getTime());
     // If set, then the given message will be displayed as "last message" until the user closes it instead of being closed automatically after 6 seconds
     const displayMessageUntilClosed = React.useRef<ApplicationError | undefined>(undefined);
+    
+    //when user open the notification panel, hide the last notification. //ask question tomorrow
+    React.useEffect(() => {
+        if(displayNotifications){
+            setDisplayLastNotification(false)
+        }
+    },[displayNotifications])
 
     useEffect(() => {
         if (messages.length && messages[0].timestamp > initTime.current) {
@@ -183,8 +190,9 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
             <ApplicationNotification
                 errorItem={lastMessage}
                 removeError={() => {
+                    //hide last message without removing from the queue
                     setDisplayLastNotification(false);
-                    removeMessages(lastMessage);
+                    // removeMessages(lastMessage); 
                 }}
                 interactionCallback={() => {
                     displayMessageUntilClosed.current = lastMessage;
