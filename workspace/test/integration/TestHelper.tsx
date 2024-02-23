@@ -453,6 +453,18 @@ export class RenderResultApi {
         return this.renderResult.container.querySelector(cssSelector)
     }
 
+    findExisting = (cssSelector: string): Element => {
+        const element = this.find(cssSelector)
+        this.assert(!!element, `Element with selector '${cssSelector}' does not exist!`)
+        return element!
+    }
+
+    findNth = (cssSelector: string, idx: number): Element => {
+        const element = this.findAll(cssSelector)[idx]
+        this.assert(!!element, `${idx + 1}th element with selector '${cssSelector}' does not exist!`)
+        return element!
+    }
+
     findAll = (cssSelector: string): NodeListOf<Element> => {
         return this.renderResult.container.querySelectorAll(cssSelector)
     }
