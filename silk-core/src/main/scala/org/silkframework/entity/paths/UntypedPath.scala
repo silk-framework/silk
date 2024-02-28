@@ -52,6 +52,10 @@ class UntypedPath private[entity](val operators: List[PathOperator]) extends Pat
 
   /** Returns an untyped ([[org.silkframework.entity.UntypedValueType]]) [[TypedPath]].  */
   def asUntypedValueType: TypedPath = TypedPath(this.operators, ValueType.UNTYPED, isAttribute = false)
+
+  override def withOperators(newOperators: List[PathOperator]): UntypedPath = {
+    new UntypedPath(operators = newOperators)
+  }
 }
 
 object UntypedPath {
