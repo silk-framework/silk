@@ -475,11 +475,16 @@ export class RenderResultApi {
         }
     }
 
-    click = (cssSelector: string) => {
-        const element = this.find(cssSelector) as HTMLButtonElement
-        this.assert(element, `No element with selector '${cssSelector}' has been found!`)
+    click = (cssSelector: string, idx: number = 0) => {
+        const element = (this.findAll(cssSelector)[idx]) as HTMLButtonElement
+        this.assert(element, `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`)
         this.assert(typeof element.click === "function", `Element with selector '${cssSelector}' has no click() method!`)
         element.click()
+    }
+
+    printHtml = (selector?: string) => {
+        const elementToPrint = selector ? this.findExisting(selector) : this.renderResult.container
+        console.log(elementToPrint.outerHTML)
     }
 
     static testId = (testId: string): string => {
