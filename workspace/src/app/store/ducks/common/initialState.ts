@@ -16,6 +16,8 @@ export function initialArtefactModalState(): IArtefactModal {
 
 export function initialCommonState(): ICommonState {
     return {
+        userMenuDisplay: false,
+        notificationMenuDisplay: false,
         locale: fetchStoredLang(),
         currentProjectId: undefined,
         currentTaskId: undefined,

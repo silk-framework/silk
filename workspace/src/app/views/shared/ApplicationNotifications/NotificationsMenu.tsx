@@ -11,11 +11,12 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
 import { ApplicationError, DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { ApplicationNotification } from "./ApplicationNotification";
+import { commonOp, commonSel } from "@ducks/common";
 
 interface Props {
     /** When true the last notification will be shown for some seconds. */
@@ -25,9 +26,10 @@ interface Props {
 }
 
 export function NotificationsMenu({ autoDisplayNotifications = true, errorNotificationInstanceId }: Props) {
-    const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
+    const displayNotifications = useSelector(commonSel.notificationMenuSelector);
+    const dispatch = useDispatch();
 
-    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications, setDisplayNotifications, displayNotifications);
+    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
 
     useEffect(() => {
         // add css class if there are messages in the queue
@@ -40,7 +42,7 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
     }, [notificationQueue.messages.length]);
 
     const toggleNotifications = () => {
-        setDisplayNotifications(!displayNotifications);
+        dispatch(commonOp.toggleNotificationMenuDisplay(!displayNotifications));
     };
 
     const notificationIndicatorButton = (
@@ -132,7 +134,7 @@ const showMessage = (
     );
 };
 
-export function useNotificationsQueue(errorNotificationInstanceId?: string, autoDisplayNotifications: boolean = false, setDisplayNotifications = (display) => {}, displayNotifications = false) {
+export function useNotificationsQueue(errorNotificationInstanceId?: string, autoDisplayNotifications: boolean = false) {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
@@ -142,24 +144,21 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
         .filter((error) => showMessage(error, errorNotificationInstanceId))
         .sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
     const initTime = React.useRef(new Date().getTime());
-    // If set, then the given message will be displayed as "last message" until the user closes it instead of being closed automatically after 6 seconds
-    const displayMessageUntilClosed = React.useRef<ApplicationError | undefined>(undefined);
-    
+    const displayNotifications = useSelector(commonSel.notificationMenuSelector);
+    const dispatch = useDispatch();
+
     //when user open the notification panel, hide the last notification. //ask question tomorrow
     React.useEffect(() => {
-        if(displayNotifications){
-            setDisplayLastNotification(false)
+        if (displayNotifications) {
+            setDisplayLastNotification(false);
         }
-    },[displayNotifications])
+    }, [displayNotifications]);
 
     useEffect(() => {
         if (messages.length && messages[0].timestamp > initTime.current) {
             if (autoDisplayNotifications) {
                 setDisplayLastNotification(true);
                 const timeout: number = window.setTimeout(async () => {
-                    if (displayMessageUntilClosed.current && displayMessageUntilClosed.current === messages[0]) {
-                        return;
-                    }
                     setDisplayLastNotification(false);
                 }, 3000);
                 return () => {
@@ -173,15 +172,8 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
 
     /***** remove one or all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
-        if (error) {
-            if (error === displayMessageUntilClosed.current) {
-                displayMessageUntilClosed.current = undefined;
-            }
-            clearErrors([error.id]);
-        } else {
-            clearErrors();
-        }
-        setDisplayNotifications(false)
+        error ? clearErrors([error.id]) : clearErrors();
+        dispatch(commonOp.toggleNotificationMenuDisplay(false));
     };
 
     const lastMessage: ApplicationError | undefined = messages[0];
@@ -192,10 +184,7 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
                 removeError={() => {
                     //hide last message without removing from the queue
                     setDisplayLastNotification(false);
-                    // removeMessages(lastMessage); 
-                }}
-                interactionCallback={() => {
-                    displayMessageUntilClosed.current = lastMessage;
+                    // removeMessages(lastMessage);
                 }}
                 updateTimeDelay={200}
             />
