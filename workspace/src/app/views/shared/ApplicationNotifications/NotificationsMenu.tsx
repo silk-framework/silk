@@ -172,8 +172,12 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
 
     /***** remove one or all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
-        error ? clearErrors([error.id]) : clearErrors();
-        dispatch(commonOp.toggleNotificationMenuDisplay(false));
+        if (error) {
+            clearErrors([error.id]);
+        } else {
+            clearErrors();
+            dispatch(commonOp.toggleNotificationMenuDisplay(false));
+        }
     };
 
     const lastMessage: ApplicationError | undefined = messages[0];
