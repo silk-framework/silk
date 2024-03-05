@@ -1,5 +1,7 @@
 package org.silkframework.workbench.utils
 
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
 import org.silkframework.util.StringUtils.toStringUtils
 import play.api.libs.json.{Format, JsNull, JsObject, JsString, JsValue, Json}
@@ -22,9 +24,10 @@ object ErrorResult {
     *
     * @param ex The exception that specifies the request error.
     */
-  def apply(ex: RequestException): Result = {
+  def apply(ex: RequestException, includeStacktrace: Option[Boolean] = None): Result = {
     val status = ex.httpErrorCode.getOrElse(500)
-    generateResult(status, fromException(ex, (status / 100) == 5))
+    val addStacktrace = includeStacktrace.getOrElse((status / 100) == 5)
+    generateResult(status, fromException(ex, addStacktrace))
   }
 
   /**
@@ -93,8 +96,91 @@ object ErrorResult {
     Status(status)(value).as("application/problem+json")
   }
 
-  /** Stacktrace object. */
-  case class Stacktrace(exceptionClass: String, errorMessage: Option[String], lines: Seq[String], cause: Option[Stacktrace], suppressed: Seq[Stacktrace])
+  @Schema(description = "HTTP Problem Details format with some extensions. See: https://datatracker.ietf.org/doc/html/rfc7807")
+  case class ErrorResultFormat(@Schema(
+                                 description = "A short description of the error type. Should be the same for all instances of an error type.",
+                                 example = "Task not found"
+                               )
+                               title: String,
+                               @Schema(
+                                 description = "Detailed error description.",
+                                 example = "Project 'my project' does not contain a task 'my task'."
+                               )
+                               detail: String,
+                               @Schema(
+                                 description = "Optional cause of this error. Might include more detailed error descriptions.",
+                                 implementation = classOf[ErrorResultFormat],
+                                 requiredMode = RequiredMode.NOT_REQUIRED,
+                                 nullable = true
+                               )
+                               cause: Option[ErrorResultFormat],
+                               @Schema(
+                                 description = "Internal stacktrace.",
+                                 implementation = classOf[Stacktrace],
+                                 requiredMode = RequiredMode.NOT_REQUIRED,
+                                 nullable = true
+                               )
+                               stacktrace: Stacktrace,
+                               @Schema(
+                                 description = "Detailed list of issues. Provided if rules are accessed/edited.",
+                                 implementation = classOf[ValidationIssueFormat],
+                                 requiredMode = RequiredMode.NOT_REQUIRED,
+                                 nullable = true
+                               )
+                               issues: ValidationIssueFormat)
+
+  @Schema(description = "Issue in a rule")
+  case class ValidationIssueFormat(@Schema(
+                                     description = "One of: Error|Warning|Info",
+                                     example = "Error"
+                                   )
+                                   `type`: String,
+                                   @Schema(
+                                     description = "Description of this issue",
+                                     example = "Parameter 'numLines' cannot be negative."
+                                   )
+                                   message: String,
+                                   @Schema(
+                                     description = "The id of the element that is affected, such as a specific operator",
+                                     example = "SkipLines"
+                                   )
+                                   id: String)
+
+  @Schema(description = "Stacktrace of the exception that has been thrown internally.")
+  case class Stacktrace(@Schema(
+                          description = "The full name of the class including its package.",
+                          example = "org.silkframework.workspace.exceptions.TaskNotFoundException"
+                        )
+                        exceptionClass: String,
+                        @Schema(
+                          description = "The error message",
+                          example = "Project 'my project' does not contain a task 'my task'.",
+                          requiredMode = RequiredMode.NOT_REQUIRED,
+                          nullable = true
+                        )
+                        errorMessage: Option[String],
+                        @ArraySchema(
+                          schema = new Schema(
+                            description = "Array of stack trace elements, each representing one stack frame",
+                            example = "org.silkframework.workspace.Workspace.project(Workspace.scala:140)",
+                            implementation = classOf[String]
+                          )
+                        )
+                        lines: Seq[String],
+                        @Schema(
+                          description = "Cause of this exception",
+                          implementation = classOf[Stacktrace],
+                          requiredMode = RequiredMode.NOT_REQUIRED,
+                          nullable = true
+                        )
+                        cause: Option[Stacktrace],
+                        @ArraySchema(
+                          schema = new Schema(
+                            description = "Suppressed exceptions",
+                            implementation = classOf[Stacktrace]
+                          )
+                        )
+                        suppressed: Seq[Stacktrace])
 
   object Stacktrace {
     implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
