@@ -3,9 +3,9 @@ package controllers.core.util
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.serialization.json.{JsonFormat, JsonHelpers}
+import org.silkframework.serialization.json.{JsonFormat, JsonParseException}
 import org.silkframework.workspace.{Project, ProjectTask, Workspace, WorkspaceFactory}
-import play.api.libs.json.{JsError, JsString, JsValue, Json, Reads}
+import play.api.libs.json.{JsValue, Reads}
 import play.api.mvc.{Accepting, BaseController, Request, Result}
 
 import scala.reflect.ClassTag
@@ -27,7 +27,7 @@ trait ControllerUtilsTrait {
     val parsedObject = request.body.validate[T]
     parsedObject.fold(
       errors => {
-        BadRequest(Json.obj("status" -> "JSON parse error", "message" -> JsError.toJson(errors)))
+        throw JsonParseException(errors)
       },
       obj => {
         body(obj)
@@ -45,7 +45,7 @@ trait ControllerUtilsTrait {
       jsonFormat.read(jsonBody)
     } catch {
       case NonFatal(ex) =>
-        return BadRequest(Json.obj("status" -> "JSON parse error", "message" -> JsString(ex.getMessage)))
+        throw JsonParseException(ex.getMessage, Some(ex))
     }
     body(obj)
   }
