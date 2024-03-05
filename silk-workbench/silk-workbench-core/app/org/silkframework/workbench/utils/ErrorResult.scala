@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
 import org.silkframework.util.StringUtils.toStringUtils
-import play.api.libs.json.{Format, JsNull, JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{Format, JsNull, JsObject, JsString, JsValue, Json, OWrites}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
 
@@ -45,55 +45,41 @@ object ErrorResult {
     * Generates an error response.
     */
   def apply(status: Int, title: String, detail: String): Result = {
-    generateResult(status, format(title, detail))
+    generateResult(status, ErrorResultFormat(title, detail))
   }
 
-  private def fromException(ex: Throwable, addStacktrace: Boolean): JsValue = {
-    val stacktrace = if(addStacktrace) Json.obj("stacktrace" -> ErrorResult.Stacktrace.fromException(ex)) else Json.obj()
-    val cause = Option(ex.getCause).map(cause => fromException(cause, addStacktrace = false)).getOrElse(JsNull)
+  private def fromException(ex: Throwable, addStacktrace: Boolean): ErrorResultFormat = {
+    val stacktrace = if(addStacktrace) Some(ErrorResult.Stacktrace.fromException(ex)) else None
+    val cause = Option(ex.getCause).map(cause => fromException(cause, addStacktrace = false))
     ex match {
       case requestEx: RequestException with JsonRequestException =>
-        format(requestEx.errorTitle, requestEx.getMessage, cause, requestEx.additionalJson ++ stacktrace)
+        val result = ErrorResultFormat(requestEx.errorTitle, requestEx.getMessage, cause, stacktrace)
+        result.additionalJson = Some(requestEx.additionalJson)
+        result
       case requestEx: RequestException =>
-        format(requestEx.errorTitle, requestEx.getMessage, cause, stacktrace)
+        ErrorResultFormat(requestEx.errorTitle, requestEx.getMessage, cause, stacktrace)
       case _ =>
         val errorTitle = ex.getClass.getSimpleName.replace("Exception", "Error")
         val readableTitle = errorTitle.toSentenceCase
-        format(readableTitle, ex.getMessage, cause, stacktrace)
+        ErrorResultFormat(readableTitle, ex.getMessage, cause, stacktrace)
     }
-  }
-
-  private def format(title: String, detail: String, cause: JsValue = JsNull, additionalJson: JsObject = JsObject.empty): JsValue = {
-    Json.obj(
-      "title" -> title,
-      "detail" -> detail,
-      "cause" -> cause
-    ) ++ additionalJson
   }
 
   /**
     * Generates an error response with detailed issues.
     */
   def validation(status: Int, title: String, issues: Seq[ValidationIssue]): Result = {
-    val json =
-      Json.obj(
-        "title" -> title,
-        "detail" -> issues.headOption.map(_.message).getOrElse("Validation Error").toString,
-        "issues" -> issues.map(validationMessage)
-      )
-    generateResult(status, json)
-  }
-
-  private def validationMessage(msg: ValidationIssue) = {
-    Json.obj(
-      "type" -> msg.issueType,
-      "message" -> msg.toString,
-      "id" -> JsString(msg.id.map(_.toString).getOrElse(""))
+    val error = ErrorResultFormat(
+      title = title,
+      detail = issues.headOption.map(_.message).getOrElse("Validation Error"),
+      issues = Some(issues.map(ValidationIssueFormat(_)))
     )
+    generateResult(status, error)
   }
 
-  private def generateResult(status: Int, value: JsValue): Result = {
-    Status(status)(value).as("application/problem+json")
+  private def generateResult(status: Int, value: ErrorResultFormat): Result = {
+    val json = Json.toJsObject(value) ++ value.additionalJson.getOrElse(Json.obj())
+    Status(status)(json).as("application/problem+json")
   }
 
   @Schema(description = "HTTP Problem Details format with some extensions. See: https://datatracker.ietf.org/doc/html/rfc7807")
@@ -113,21 +99,32 @@ object ErrorResult {
                                  requiredMode = RequiredMode.NOT_REQUIRED,
                                  nullable = true
                                )
-                               cause: Option[ErrorResultFormat],
+                               cause: Option[ErrorResultFormat] = None,
                                @Schema(
                                  description = "Internal stacktrace.",
                                  implementation = classOf[Stacktrace],
                                  requiredMode = RequiredMode.NOT_REQUIRED,
                                  nullable = true
                                )
-                               stacktrace: Stacktrace,
-                               @Schema(
-                                 description = "Detailed list of issues. Provided if rules are accessed/edited.",
-                                 implementation = classOf[ValidationIssueFormat],
-                                 requiredMode = RequiredMode.NOT_REQUIRED,
-                                 nullable = true
+                               stacktrace: Option[Stacktrace] = None,
+                               @ArraySchema(
+                                 schema = new Schema(
+                                   description = "Detailed list of issues. Provided if rules are accessed/edited.",
+                                   implementation = classOf[ValidationIssueFormat])
                                )
-                               issues: ValidationIssueFormat)
+                               issues: Option[Seq[ValidationIssueFormat]] = None) {
+
+
+    /**
+     * Additional JSON to be added to the JSON serialization.
+     */
+    var additionalJson: Option[JsObject] = None
+
+  }
+
+  object ErrorResultFormat {
+    implicit val errorResultFormat: OWrites[ErrorResultFormat] = Json.writes[ErrorResultFormat]
+  }
 
   @Schema(description = "Issue in a rule")
   case class ValidationIssueFormat(@Schema(
@@ -145,6 +142,19 @@ object ErrorResult {
                                      example = "SkipLines"
                                    )
                                    id: String)
+
+  object ValidationIssueFormat {
+
+    implicit val jsonFormat: OWrites[ValidationIssueFormat] = Json.writes[ValidationIssueFormat]
+
+    def apply(msg: ValidationIssue): ValidationIssueFormat = {
+      ValidationIssueFormat(
+        `type` = msg.issueType,
+        message = msg.toString,
+        id = msg.id.map(_.toString).getOrElse("")
+      )
+    }
+  }
 
   @Schema(description = "Stacktrace of the exception that has been thrown internally.")
   case class Stacktrace(@Schema(
