@@ -58,7 +58,7 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
                 size="small"
                 ratio="1:1"
                 resizing="contain"
-                image={<Icon name="notification" description="Notification menu icon" large />}
+                image={<Icon name="application-notification" description="Notification menu icon" large />}
                 badge={
                     <Badge
                         position={"top-right"}
