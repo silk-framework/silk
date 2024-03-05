@@ -45,6 +45,6 @@ Minimal example:
       "detail": "Human-readable error message"
     }
 
-For a detailed documentation of the complete error schema and a more complex example, check the `Default error format` endpoint.
+For a detailed documentation of the complete error schema and a more complex example, check the `defaultErrorFormat` endpoint.
 
 </details>
