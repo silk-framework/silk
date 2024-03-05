@@ -49,7 +49,7 @@ In addition, endpoints may include a detailed list of issues:
 
     {
       "title": "The error type",
-      "message": "Human-readable error message",
+      "detail": "Human-readable error message",
       "issues": [
         {
           "type": "One of: Error|Warning|Info",
