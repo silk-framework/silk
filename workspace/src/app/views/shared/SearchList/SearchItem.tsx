@@ -16,7 +16,9 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
+    markdownUtils,
 } from "@eccenca/gui-elements";
+import { PluggableList } from "unified";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
@@ -30,7 +32,6 @@ import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import highlightSearchWordsPluginFactory from "@eccenca/gui-elements/src/cmem/markdown/highlightSearchWords";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
 interface IProps {
@@ -154,7 +155,11 @@ export default function SearchItem({
                                     item.description.length > 80,
                                     <Markdown
                                         reHypePlugins={
-                                            searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined
+                                            searchValue
+                                                ? ([
+                                                      markdownUtils.highlightSearchWordsPluginFactory(searchValue),
+                                                  ] as PluggableList)
+                                                : undefined
                                         }
                                     >
                                         {item.description}
@@ -163,7 +168,11 @@ export default function SearchItem({
                                         inheritBlock
                                         allowedElements={["a", "mark"]}
                                         reHypePlugins={
-                                            searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined
+                                            searchValue
+                                                ? ([
+                                                      markdownUtils.highlightSearchWordsPluginFactory(searchValue),
+                                                  ] as PluggableList)
+                                                : undefined
                                         }
                                     >
                                         {item.description}
