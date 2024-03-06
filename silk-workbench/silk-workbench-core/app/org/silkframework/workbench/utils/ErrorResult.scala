@@ -1,5 +1,6 @@
 package org.silkframework.workbench.utils
 
+import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
@@ -27,7 +28,7 @@ object ErrorResult {
   def apply(ex: RequestException, includeStacktrace: Option[Boolean] = None): Result = {
     val status = ex.httpErrorCode.getOrElse(500)
     val addStacktrace = includeStacktrace.getOrElse((status / 100) == 5)
-    generateResult(status, fromException(ex, addStacktrace))
+    generateResult(status, fromException(ex, addStacktrace), additionalJson(ex))
   }
 
   /**
@@ -38,7 +39,7 @@ object ErrorResult {
     */
   def serverError(status: Int, ex: Throwable): Result = {
     val addStacktrace = (status / 100) == 5
-    generateResult(status, fromException(ex, addStacktrace))
+    generateResult(status, fromException(ex, addStacktrace), additionalJson(ex))
   }
 
   /**
@@ -52,16 +53,21 @@ object ErrorResult {
     val stacktrace = if(addStacktrace) Some(ErrorResult.Stacktrace.fromException(ex)) else None
     val cause = Option(ex.getCause).map(cause => fromException(cause, addStacktrace = false))
     ex match {
-      case requestEx: RequestException with JsonRequestException =>
-        val result = ErrorResultFormat(requestEx.errorTitle, requestEx.getMessage, cause, stacktrace)
-        result.additionalJson = Some(requestEx.additionalJson)
-        result
       case requestEx: RequestException =>
         ErrorResultFormat(requestEx.errorTitle, requestEx.getMessage, cause, stacktrace)
       case _ =>
         val errorTitle = ex.getClass.getSimpleName.replace("Exception", "Error")
         val readableTitle = errorTitle.toSentenceCase
         ErrorResultFormat(readableTitle, ex.getMessage, cause, stacktrace)
+    }
+  }
+
+  private def additionalJson(ex: Throwable): JsObject = {
+    ex match {
+      case requestEx: RequestException with JsonRequestException =>
+        requestEx.additionalJson
+      case _ =>
+        Json.obj()
     }
   }
 
@@ -77,8 +83,8 @@ object ErrorResult {
     generateResult(status, error)
   }
 
-  private def generateResult(status: Int, value: ErrorResultFormat): Result = {
-    val json = Json.toJsObject(value) ++ value.additionalJson.getOrElse(Json.obj())
+  private def generateResult(status: Int, value: ErrorResultFormat, additionalJson: JsObject = Json.obj()): Result = {
+    val json = Json.toJsObject(value) ++ additionalJson
     Status(status)(json).as("application/problem+json")
   }
 
@@ -112,15 +118,7 @@ object ErrorResult {
                                    description = "Detailed list of issues. Provided if rules are accessed/edited.",
                                    implementation = classOf[ValidationIssueFormat])
                                )
-                               issues: Option[Seq[ValidationIssueFormat]] = None) {
-
-
-    /**
-     * Additional JSON to be added to the JSON serialization.
-     */
-    var additionalJson: Option[JsObject] = None
-
-  }
+                               issues: Option[Seq[ValidationIssueFormat]] = None)
 
   object ErrorResultFormat {
     implicit val errorResultFormat: OWrites[ErrorResultFormat] = Json.writes[ErrorResultFormat]
@@ -128,8 +126,9 @@ object ErrorResult {
 
   @Schema(description = "Issue in a rule")
   case class ValidationIssueFormat(@Schema(
-                                     description = "One of: Error|Warning|Info",
-                                     example = "Error"
+                                     description = "Severity of this issue",
+                                     example = "Error",
+                                     allowableValues = Array("Error","Warning","Info")
                                    )
                                    `type`: String,
                                    @Schema(
