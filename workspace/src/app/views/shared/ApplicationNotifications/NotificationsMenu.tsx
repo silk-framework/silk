@@ -9,6 +9,7 @@ import {
     Divider,
     Icon,
     Spacing,
+    useApplicationHeaderOverModals,
 } from "@eccenca/gui-elements";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useDispatch, useSelector } from "react-redux";
@@ -31,15 +32,10 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
 
     const notificationQueue = useNotificationsQueue(errorNotificationInstanceId, autoDisplayNotifications);
 
-    useEffect(() => {
-        // add css class if there are messages in the queue
-        if (notificationQueue.messages.length > 0) {
-            window.document.body.classList.add("diapp-applicationnotifications--filledqueue");
-        }
-        if (notificationQueue.messages.length === 0) {
-            window.document.body.classList.remove("diapp-applicationnotifications--filledqueue");
-        }
-    }, [notificationQueue.messages.length]);
+    useApplicationHeaderOverModals(
+        notificationQueue.messages.length > 0,
+        "diapp-applicationnotifications--filledqueue"
+    );
 
     const toggleNotifications = () => {
         dispatch(commonOp.toggleNotificationMenuDisplay(!displayNotifications));
