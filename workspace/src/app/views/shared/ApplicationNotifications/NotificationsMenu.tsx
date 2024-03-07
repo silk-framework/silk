@@ -168,7 +168,7 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
 
     /***** remove one or all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
-        if (error) {
+        if (error && messages.length > 1) {
             clearErrors([error.id]);
         } else {
             clearErrors();
