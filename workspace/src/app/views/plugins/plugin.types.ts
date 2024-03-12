@@ -86,4 +86,6 @@ export interface ParameterExtensions {
 /** Props for mapping suggestion. */
 export interface SuggestionNGProps {
     ruleId?: string
+    /** Called when the close button of the suggestion is clicked. */
+    onClose: () => any
 }

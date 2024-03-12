@@ -303,6 +303,7 @@ const MappingsWorkview = ({
             _.has(ruleData, "rules.typeRules") && (
                 MappingNG ?
                     <MappingNG.Component
+                        onClose={() => setShowSuggestions(false)}
                     /> : (
                         <SuggestionsListContainer
                             ruleId={_.get(ruleData, "id", "root")}
