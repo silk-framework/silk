@@ -142,10 +142,12 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
     const initTime = React.useRef(new Date().getTime());
     const displayNotifications = useSelector(commonSel.notificationMenuSelector);
     const dispatch = useDispatch();
+      // If set, then the given message will be displayed as "last message" until the user closes it instead of being closed automatically after 6 seconds
+      const displayMessageUntilClosed = React.useRef<ApplicationError | undefined>(undefined);
 
-    //when user open the notification panel, hide the last notification. //ask question tomorrow
+      
     React.useEffect(() => {
-        if (displayNotifications) {
+        if (displayNotifications && !(displayMessageUntilClosed.current && displayMessageUntilClosed.current === messages[0])) {
             setDisplayLastNotification(false);
         }
     }, [displayNotifications]);
@@ -155,6 +157,9 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
             if (autoDisplayNotifications) {
                 setDisplayLastNotification(true);
                 const timeout: number = window.setTimeout(async () => {
+                    if (displayMessageUntilClosed.current && displayMessageUntilClosed.current === messages[0]) {
+                        return;
+                    }
                     setDisplayLastNotification(false);
                 }, 3000);
                 return () => {
@@ -169,6 +174,9 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
     /***** remove one or all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
         if (error && messages.length > 1) {
+            if (error === displayMessageUntilClosed.current) {
+                displayMessageUntilClosed.current = undefined;
+            }
             clearErrors([error.id]);
         } else {
             clearErrors();
@@ -185,6 +193,9 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
                     //hide last message without removing from the queue
                     setDisplayLastNotification(false);
                     // removeMessages(lastMessage);
+                }}
+                interactionCallback={() => {
+                    displayMessageUntilClosed.current = lastMessage;
                 }}
                 updateTimeDelay={200}
             />
