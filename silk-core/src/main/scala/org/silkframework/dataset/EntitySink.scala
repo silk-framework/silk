@@ -53,4 +53,4 @@ trait EntitySink extends DataSink {
   * A single, typed property.
   * May either be a forward or a backward property.
   */
-case class TypedProperty(propertyUri: String, valueType: ValueType, isBackwardProperty: Boolean, isAttribute: Boolean = false)
+case class TypedProperty(propertyUri: String, valueType: ValueType, isBackwardProperty: Boolean = false, isAttribute: Boolean = false)
