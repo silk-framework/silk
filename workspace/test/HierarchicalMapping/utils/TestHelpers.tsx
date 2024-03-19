@@ -1,6 +1,7 @@
 import React from "react";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { render } from "@testing-library/react";
+import { ClassNames } from "@eccenca/gui-elements";
 
 /** Similar to Partial, but applies recursively. */
 export type RecursivePartial<T> = {
@@ -125,4 +126,4 @@ export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | E
     return extractValidElements(element);
 };
 
-export const bluePrintClassPrefix = "bp4";
+export const bluePrintClassPrefix = ClassNames.Blueprint.getClassNamespace();

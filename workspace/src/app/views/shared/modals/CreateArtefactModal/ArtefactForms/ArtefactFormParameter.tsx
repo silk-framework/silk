@@ -83,6 +83,8 @@ export const ArtefactFormParameter = ({
     supportVariableTemplateElement,
 }: Props) => {
     const [t] = useTranslation();
+    const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
+    const [passwordMsgText, setPasswordMsgText] = React.useState<string | undefined>();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
@@ -117,12 +119,24 @@ export const ArtefactFormParameter = ({
         currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
+    const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
+        setToggledTemplateSwitchBefore(true);
         setShowVariableTemplateInput((old) => {
             const becomesTemplate = !old;
             if (becomesTemplate) {
+                isPasswordInput &&
+                    setPasswordMsgText(
+                        !toggledTemplateSwitchBefore
+                            ? t(
+                                  "ArtefactFormParameter.passwordCleared",
+                                  "Password was removed because it would be visible in clear text"
+                              )
+                            : undefined
+                    );
                 valueState.current.inputValueBeforeSwitch = valueState.current.currentInputValue;
             } else {
+                isPasswordInput && setPasswordMsgText(undefined);
                 valueState.current.templateValueBeforeSwitch = valueState.current.currentTemplateValue;
             }
             setValidationError(undefined);
@@ -135,7 +149,7 @@ export const ArtefactFormParameter = ({
             );
             return becomesTemplate;
         });
-    }, []);
+    }, [toggledTemplateSwitchBefore]);
 
     const onTemplateValueChange = React.useCallback(
         (e) => {
@@ -172,7 +186,6 @@ export const ArtefactFormParameter = ({
         parameterType &&
         (parameterType.startsWith("code-") ||
             [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
-
     return (
         <FieldItem
             key={parameterId}
@@ -183,7 +196,7 @@ export const ArtefactFormParameter = ({
                 tooltip: tooltip,
             }}
             hasStateDanger={infoMessageDanger || !!validationError}
-            messageText={infoMessage || validationError || templateInfoMessage}
+            messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}
         >
@@ -206,7 +219,7 @@ export const ArtefactFormParameter = ({
                             parameterId={parameterId}
                             initialValue={
                                 valueState.current.templateValueBeforeSwitch ??
-                                valueState.current.inputValueBeforeSwitch ??
+                                (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ??
                                 initialValue ??
                                 ""
                             }
