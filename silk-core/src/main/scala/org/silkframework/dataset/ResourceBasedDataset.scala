@@ -14,6 +14,12 @@ trait ResourceBasedDataset { this: Dataset =>
     case _ => None
   }
 
+  /**
+   * The MIME type of the configured resource, if any.
+   * If this is a bulk (i.e., zipped) resource, this should be the MIME type of the zip content.
+   */
+  def mimeType: Option[String]
+
   override def referencedResources: Seq[Resource] = Seq(file)
 
   override def isFileResourceBased: Boolean = true

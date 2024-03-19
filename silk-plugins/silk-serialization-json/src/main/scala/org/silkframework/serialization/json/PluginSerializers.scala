@@ -116,5 +116,6 @@ object PluginSerializers {
         TYPE -> JsString(value.pluginSpec.id.toString),
       ) ++ ParameterValuesJsonFormat.write(parameters)
     }
+
   }
 }

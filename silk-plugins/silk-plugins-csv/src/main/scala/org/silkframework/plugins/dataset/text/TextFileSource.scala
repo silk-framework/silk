@@ -8,10 +8,11 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
-class TextFileSource(ds: TextFileDataset) extends DataSource {
+class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource {
 
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
@@ -39,7 +40,7 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
 
   private def retrieveEntity(entitySchema: EntitySchema): EntityHolder = {
     if(entitySchema.typedPaths == IndexedSeq(ds.path)) {
-      val text = ds.file.loadAsString(ds.codec)
+      val text = textFile.loadAsString(ds.codec)
       val entity = new Entity(
         uri = ds.uri,
         values = IndexedSeq(Seq(text)),
