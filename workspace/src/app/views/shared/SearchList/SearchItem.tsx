@@ -203,6 +203,12 @@ export default function SearchItem({
                                 </Tag>
                             </>
                         )}
+                        {item.type === DATA_TYPES.DATASET && item.readOnly && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag icon="state-locked" />
+                            </>
+                        )}
                         {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                             <>
                                 <Spacing vertical size="tiny" />
@@ -211,14 +217,6 @@ export default function SearchItem({
                                         label={item.projectLabel ? item.projectLabel : item.projectId}
                                         searchValue={searchValue}
                                     />
-                                </Tag>
-                            </>
-                        )}
-                        {item.type === DATA_TYPES.DATASET && item.readOnly && (
-                            <>
-                                <Spacing vertical size="tiny" />
-                                <Tag emphasis="weak">
-                                    <Icon name="item-locked" small />
                                 </Tag>
                             </>
                         )}
