@@ -142,12 +142,11 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
     const initTime = React.useRef(new Date().getTime());
     const displayNotifications = useSelector(commonSel.notificationMenuSelector);
     const dispatch = useDispatch();
-      // If set, then the given message will be displayed as "last message" until the user closes it instead of being closed automatically after 6 seconds
-      const displayMessageUntilClosed = React.useRef<ApplicationError | undefined>(undefined);
+    // If set, then the given message will be displayed as "last message" until the user closes it instead of being closed automatically after 6 seconds
+    const displayMessageUntilClosed = React.useRef<ApplicationError | undefined>(undefined);
 
-      
     React.useEffect(() => {
-        if (displayNotifications && !(displayMessageUntilClosed.current && displayMessageUntilClosed.current === messages[0])) {
+        if (displayNotifications) {
             setDisplayLastNotification(false);
         }
     }, [displayNotifications]);
