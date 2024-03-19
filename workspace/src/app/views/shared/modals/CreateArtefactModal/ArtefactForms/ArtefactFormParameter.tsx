@@ -17,7 +17,7 @@ import { IValidationResult } from "@eccenca/gui-elements/src/components/AutoSugg
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
-
+import { INPUT_TYPES } from "../../../../../constants";
 interface Props {
     //For task forms, project id is needed tor validation and autocompletion
     projectId?: string;
@@ -63,6 +63,7 @@ interface Props {
         // The default value of the normal input
         defaultValue?: string | number | boolean | OptionallyLabelledParameter<string | number | boolean>;
     };
+    parameterType?: string;
 }
 
 /** Wrapper around the input element of a parameter. Supports switching to variable templates. */
@@ -70,6 +71,7 @@ export const ArtefactFormParameter = ({
     projectId,
     parameterId,
     label,
+    parameterType,
     required = false,
     infoMessage,
     // Default is that the info message is an error
@@ -81,6 +83,8 @@ export const ArtefactFormParameter = ({
     supportVariableTemplateElement,
 }: Props) => {
     const [t] = useTranslation();
+    const [toggledTemplateSwitchBefore, setToggledTemplateSwitchBefore] = React.useState<boolean>(false);
+    const [passwordMsgText, setPasswordMsgText] = React.useState<string | undefined>();
     const startWithTemplateView = supportVariableTemplateElement?.startWithTemplateView ?? false;
     const [showVariableTemplateInput, setShowVariableTemplateInput] = React.useState<boolean>(startWithTemplateView);
     const [showRareActions, setShowRareActions] = React.useState(false);
@@ -115,12 +119,24 @@ export const ArtefactFormParameter = ({
         currentTemplateValue: startWithTemplateView ? initialValue : undefined,
     });
     const showRareElementState = React.useRef<{ timeout?: number }>({});
+    const isPasswordInput = parameterType === "password";
     const switchShowVariableTemplateInput = React.useCallback(() => {
+        setToggledTemplateSwitchBefore(true);
         setShowVariableTemplateInput((old) => {
             const becomesTemplate = !old;
             if (becomesTemplate) {
+                isPasswordInput &&
+                    setPasswordMsgText(
+                        !toggledTemplateSwitchBefore
+                            ? t(
+                                  "ArtefactFormParameter.passwordCleared",
+                                  "Password was removed because it would be visible in clear text"
+                              )
+                            : undefined
+                    );
                 valueState.current.inputValueBeforeSwitch = valueState.current.currentInputValue;
             } else {
+                isPasswordInput && setPasswordMsgText(undefined);
                 valueState.current.templateValueBeforeSwitch = valueState.current.currentTemplateValue;
             }
             setValidationError(undefined);
@@ -133,7 +149,7 @@ export const ArtefactFormParameter = ({
             );
             return becomesTemplate;
         });
-    }, []);
+    }, [toggledTemplateSwitchBefore]);
 
     const onTemplateValueChange = React.useCallback(
         (e) => {
@@ -166,7 +182,10 @@ export const ArtefactFormParameter = ({
     }, []);
 
     const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
-
+    const multiline =
+        parameterType &&
+        (parameterType.startsWith("code-") ||
+            [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
     return (
         <FieldItem
             key={parameterId}
@@ -177,7 +196,7 @@ export const ArtefactFormParameter = ({
                 tooltip: tooltip,
             }}
             hasStateDanger={infoMessageDanger || !!validationError}
-            messageText={infoMessage || validationError || templateInfoMessage}
+            messageText={infoMessage || validationError || templateInfoMessage || passwordMsgText}
             disabled={disabled}
             helperText={helperText}
         >
@@ -200,10 +219,11 @@ export const ArtefactFormParameter = ({
                             parameterId={parameterId}
                             initialValue={
                                 valueState.current.templateValueBeforeSwitch ??
-                                valueState.current.inputValueBeforeSwitch ??
+                                (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ??
                                 initialValue ??
                                 ""
                             }
+                            multiline={!!multiline}
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
@@ -260,6 +280,7 @@ interface TemplateInputComponentProps {
     /** optional parameter to make correct suggestions for when an existing variable is edited **/
     variableName?: string;
     handleTemplateErrors?: (error?: string) => any;
+    multiline?: boolean;
 }
 
 /** The input component for the template value. */
@@ -273,6 +294,7 @@ export const TemplateInputComponent = memo(
         projectId,
         variableName,
         handleTemplateErrors,
+        multiline,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -350,6 +372,7 @@ export const TemplateInputComponent = memo(
                 fetchSuggestions={autoComplete}
                 checkInput={checkTemplate}
                 autoCompletionRequestDelay={200}
+                multiline={multiline}
             />
         );
     }

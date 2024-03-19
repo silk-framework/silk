@@ -615,7 +615,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           case AcceptsMarkdown() =>
             val markdownHeader = s"""# Project task loading error report
                                     |
-                                    |Task '$taskLabel' in project '${project.config.metaData.label}' has failed loading.
+                                    |Task '$taskLabel' in project '${project.config.fullLabel}' has failed loading.
                                     |
                                     |""".stripMargin
             Ok(markdownHeader + failedTask.asMarkdown(None)).as(MARKDOWN_MIME)

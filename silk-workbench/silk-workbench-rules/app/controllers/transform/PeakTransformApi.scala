@@ -221,7 +221,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   }
 
   private def peakIntoSparqlSelectTask(project: Project,
-                                       inputTaskLabel: Identifier,
+                                       inputTaskLabel: String,
                                        ruleSchemata: RuleSchemata,
                                        limit: Int,
                                        maxTryEntities: Int,

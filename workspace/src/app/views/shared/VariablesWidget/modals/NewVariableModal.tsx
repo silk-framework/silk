@@ -22,10 +22,6 @@ interface VariableModalProps {
      */
     taskId?: string;
     /**
-     * delimiter that determines if the modal is shown or not
-     */
-    modalOpen: boolean;
-    /**
      * control handler that closes the modal
      */
     closeModal: () => void;
@@ -57,7 +53,6 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     variables,
     projectId,
     taskId,
-    modalOpen,
     closeModal,
     targetVariable,
     refresh,
@@ -66,9 +61,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
     const [name, setName] = React.useState<string>("");
     const [description, setDescription] = React.useState<string>("");
     const [showModalHelperText, setShowModalHelperText] = React.useState<boolean>(false);
-    const [validationError, setValidationError] = React.useState<
-        Partial<{ name: string; valueOrTemplate: string }> | undefined
-    >();
+    const [validationError, setValidationError] = React.useState<Partial<{ name: string; valueOrTemplate: string }>>();
     const [error, setError] = React.useState<ErrorResponse | undefined>();
     const checkAndDisplayError = useModalError({ setError });
     const [t] = useTranslation();
@@ -192,8 +185,8 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
             <SimpleDialog
                 data-test-id="variable-modal"
                 size="small"
+                isOpen
                 title={`${isEditMode ? "Edit" : "Add"} Variable`}
-                isOpen={modalOpen}
                 onClose={handleModalClose}
                 headerOptions={
                     <IconButton
@@ -243,6 +236,7 @@ const NewVariableModal: React.FC<VariableModalProps> = ({
                     ref={valueState}
                     projectId={projectId}
                     existingVariableName={targetVariable?.name}
+                    setModalError={setValidationError}
                     handleCheckTemplateErrors={(err) =>
                         checkAndDisplayError(
                             err,

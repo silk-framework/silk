@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";

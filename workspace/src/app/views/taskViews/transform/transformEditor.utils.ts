@@ -8,13 +8,15 @@ import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { autoCompleteTransformSourcePath } from "./transform.requests";
 import { EvaluatedTransformEntity } from "./transform.types";
 import { SampleError } from "../../shared/SampleError/SampleError";
+import {TaskContext} from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 export const inputPathTab = (
     projectId: string,
     transformTaskId: string,
     ruleId: string,
     baseOperator: IRuleOperator,
-    errorHandler: (err) => any
+    errorHandler: (err) => any,
+    taskContext?: TaskContext
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
     const category = "Source path";
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
@@ -23,7 +25,7 @@ export const inputPathTab = (
         label: "Source paths",
         fetchOperators: async (langPref: string) => {
             try {
-                return (await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId)).data.map((d) => ({
+                return (await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, "", taskContext)).data.map((d) => ({
                     valueType: "",
                     ...d,
                 })) as PathWithMetaData[];

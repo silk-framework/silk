@@ -51,8 +51,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     try {
       runWorkflow(context, updateUserContext(userContext))
     } catch {
-      case cancelledWorkflowException: StopWorkflowExecutionException =>
-        // In case of an cancelled workflow from an operator, the workflow should still be successful, else it would
+      case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
+        // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
     }
   }
@@ -189,9 +189,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ex: StopWorkflowExecutionException =>
         throw ex
       case NonFatal(ex) =>
-        val msg = s"Exception during execution of workflow operator '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId})."
-        log.log(Level.WARNING, msg, ex)
-        throw WorkflowExecutionException(msg + " Cause: " + ex.getMessage, Some(ex))
+        log.log(Level.WARNING, s"Execution of '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId}) failed.", ex)
+        throw WorkflowExecutionException(s"In '${operatorTask.label()}': " + ex.getMessage, Some(ex))
     }
   }
 

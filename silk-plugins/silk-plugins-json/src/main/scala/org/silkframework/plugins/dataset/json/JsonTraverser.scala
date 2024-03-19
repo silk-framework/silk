@@ -151,7 +151,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
   private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator], generateUris: Boolean): Seq[String] = {
     this.value match {
-      case obj: JsonObject if filter.evaluate("\"" + nodeToString(obj.values(filter.property.uri)) + "\"") =>
+      case obj: JsonObject if obj.values.get(filter.property.uri).exists(n => filter.evaluate("\"" + nodeToString(n) + "\"")) =>
         evaluate(tail, generateUris)
       case array: JsonArray if array.value.nonEmpty =>
         array.value.flatMap(v => keepParent(v).evaluate(path, generateUris)).toSeq

@@ -1,8 +1,10 @@
 import { registerCorePlugins } from "./RegisteredCoreTaskPlugins";
+import {TaskContext} from "../shared/projectTaskTabView/projectTaskTabView.typing";
+
 /** A view / UI of a project task.
  * Each task can have multiple views.
  **/
-// Generic actions and callbacks on views
+// Generic actions, data and callbacks on views
 export interface IViewActions {
     // A callback that is executed every time the project task is saved from the view.
     onSave?: () => any;
@@ -13,6 +15,21 @@ export interface IViewActions {
     savedChanges?: (status: boolean) => void;
     /** Switches to another view of the same task, e.g. in a tab view. */
     switchToView?: (viewIdx: number) => any;
+    /** Optional task context. Contains additional information on how a task is (actually) used, e.g. in workflows. */
+    taskContext?: ViewActionsTaskContext
+}
+
+export interface ViewActionsTaskContext {
+    // The task context
+    context: TaskContext
+    /** Additional suffix that is shown in the tab title for views that support a task context. */
+    taskViewSuffix?: (taskContext: TaskContext) => JSX.Element | undefined
+    /** A notification shown in the tab view regarding the task context, e.g. a warning. */
+    taskContextNotification?: (taskContext: TaskContext) => Promise<TaskContextNotification[] | undefined> | TaskContextNotification[] | undefined
+}
+
+export interface TaskContextNotification {
+    message: string
 }
 
 /** A project task view that is meant to be displayed for a specific project task.
@@ -26,6 +43,8 @@ export interface IProjectTaskView {
     render: (projectId: string, taskId: string, viewActions?: IViewActions, startInFullScreen?: boolean) => JSX.Element;
     /** The query parameters to get from other tabs or propagate to other tabs. */
     queryParametersToKeep?: string[];
+    /** Specifies the task context support for this view, e.g. that it uses the information given with the task context. */
+    supportsTaskContext?: boolean
 }
 
 /** A plugin component that can receive arbitrary parameters. */

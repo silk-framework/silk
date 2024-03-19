@@ -5,10 +5,12 @@ import controllers.autoCompletion._
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion.{OpFilter, PathToReplace}
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths._
 import org.silkframework.plugins.path.PathMetaData
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.Uri
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 
@@ -16,15 +18,16 @@ import scala.collection.mutable
 
 object AutoCompletionApiUtils {
   /** Gets the paths cache value as auto-autocompletion objects. */
-  def pathsCacheCompletions(datasetSelection: DatasetSelection,
+  def pathsCacheCompletions(typeUri: Uri,
                             cachedEntitySchema: Option[CachedEntitySchemata],
                             preferUntypedSchema: Boolean,
-                            pathMetaData: Option[Iterable[TypedPath] => Iterable[PathMetaData]] = None)
-                           (implicit userContext: UserContext,
-                            project: Project): Completions = {
+                            pathMetaData: Option[Iterable[TypedPath] => Iterable[PathMetaData]] = None,
+                            alternativeInputSchema: Option[EntitySchema] = None)
+                           (implicit project: Project): Completions = {
     implicit val prefixes: Prefixes = project.config.prefixes
-    if (cachedEntitySchema.isDefined) {
-      val paths = fetchCachedPaths(datasetSelection, cachedEntitySchema.get, preferUntypedSchema)
+    if (cachedEntitySchema.isDefined || alternativeInputSchema.isDefined) {
+      val paths = alternativeInputSchema.map(_.typedPaths)
+        .getOrElse(fetchCachedPaths(typeUri, cachedEntitySchema.get, preferUntypedSchema))
       val serializedPathSet = new mutable.HashSet[String]()
       val serializedPaths = paths
         // Sort primarily by path operator length then name
@@ -66,11 +69,10 @@ object AutoCompletionApiUtils {
     }
   }
 
-  private def fetchCachedPaths(datasetSelection: DatasetSelection,
+  private def fetchCachedPaths(typeUri: Uri,
                                cachedEntitySchema: CachedEntitySchemata,
-                               preferUntypedSchema: Boolean)
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    cachedEntitySchema.fetchCachedPaths(datasetSelection, preferUntypedSchema)
+                               preferUntypedSchema: Boolean): IndexedSeq[TypedPath] = {
+    cachedEntitySchema.fetchCachedPaths(typeUri, preferUntypedSchema)
   }
 
   /** Return the simple path of the given path, i.e. without any filters. */

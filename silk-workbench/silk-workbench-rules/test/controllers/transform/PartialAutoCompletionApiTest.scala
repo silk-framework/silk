@@ -302,7 +302,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
                                                    maxSuggestions: Option[Int] = None,
                                                    isObjectPath: Option[Boolean] = None): AutoSuggestAutoCompletionResponse = {
     val partialUrl = controllers.transform.routes.AutoCompletionApi.partialSourcePath(projectId, transformId, ruleId).url
-    val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, isObjectPath)))
+    val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, isObjectPath, None)))
     JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
   }
 
@@ -313,7 +313,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
                                             maxSuggestions: Option[Int] = None,
                                             objectPath: Option[String] = None): AutoSuggestAutoCompletionResponse = {
     val uriPatternUrl = controllers.transform.routes.AutoCompletionApi.uriPattern(projectId, transformId, ruleId).url
-    val response = client.url(s"$baseUrl$uriPatternUrl").post(Json.toJson(UriPatternAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, objectPath)))
+    val response = client.url(s"$baseUrl$uriPatternUrl").post(Json.toJson(UriPatternAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, objectPath, None)))
     JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
   }
 }

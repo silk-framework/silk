@@ -80,7 +80,7 @@ class LinkingAutoCompletionApiTest extends AnyFlatSpec with SingleProjectWorkspa
                                                    cursorPosition: Int = 0,
                                                    maxSuggestions: Option[Int] = None): AutoSuggestAutoCompletionResponse = {
     val partialUrl = controllers.linking.routes.LinkingAutoCompletionApi.partialSourcePath(projectId, linkingTaskId, isTarget).url
-    val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, Some(false))))
+    val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, Some(false), None)))
     JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
   }
 

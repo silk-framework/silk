@@ -57,7 +57,5 @@ object DatasetCharacteristics {
     val LINE: SpecialPathInfo = SpecialPathInfo("#line", Some("Line number of the selected value."), SuggestedForEnum.All)
     val COLUMN: SpecialPathInfo = SpecialPathInfo("#column", Some("Column position of the selected value."), SuggestedForEnum.All)
   }
-
-
 }
 

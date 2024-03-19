@@ -3,12 +3,13 @@ import { AutoCompleteBox } from 'gui-elements-deprecated';
 import { autocompleteAsync } from '../store';
 
 const loadOptionsRaw = ({
-                            input, callback, ruleId, entity,
+                            input, callback, ruleId, entity, taskContext
                         }) => {
     autocompleteAsync({
         entity,
         input,
         ruleId,
+        taskContext
     }).subscribe(({ options }) => {
         callback(null, {
             options,
@@ -18,7 +19,7 @@ const loadOptionsRaw = ({
 };
 
 /** Multi-selection auto-complete component */
-const MultiAutoComplete = ({ entity, ruleId, ...otherProps }) => {
+const MultiAutoComplete = ({ entity, ruleId, taskContext, ...otherProps }) => {
     return (
         <AutoCompleteBox
             {...otherProps}
@@ -30,6 +31,7 @@ const MultiAutoComplete = ({ entity, ruleId, ...otherProps }) => {
                 callback,
                 entity,
                 ruleId,
+                taskContext
             })}
         />
     );

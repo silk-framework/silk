@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, LinkSink}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptySource, LinkSink}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.DPair
@@ -31,7 +31,10 @@ object LinkingTaskUtils {
         case Some(transformTask) =>
           transformTask.asDataSource(selection.typeUri)
         case None =>
-          task.project.task[GenericDatasetSpec](selection.inputId).data.source
+          task.project.taskOption[GenericDatasetSpec](selection.inputId)
+            .map(_.data.source)
+            // Only datasets and transform inputs supported, everything else will be empty.
+            .getOrElse(EmptySource)
       }
     }
 

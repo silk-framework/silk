@@ -1,5 +1,6 @@
 package org.silkframework.rule.task
 
+import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
@@ -7,7 +8,7 @@ import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, Plugi
 import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
-  * Auto-completes task references that are either of type Dataset or TransformSpec.
+  * Auto-completes task references that are either of type Dataset, TransformSpec or of CustomTask with a fixed output schema.
   */
 case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   /**
@@ -21,7 +22,9 @@ case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParamete
     val taskProject = getProject(dependOnParameterValues)
     val allDatasets = workspace.project(taskProject).tasks[GenericDatasetSpec]
     val allTransformTasks = workspace.project(taskProject).tasks[TransformSpec]
-    val all = (allDatasets ++ allTransformTasks).map(spec => AutoCompletionResult(spec.id, spec.metaData.label))
+    val allFixedSchemaCustomTasks = workspace.project(taskProject).tasks[CustomTask]
+      .filter(task => task.data.outputPort.exists(_.schemaOpt.isDefined))
+    val all = (allDatasets ++ allTransformTasks ++ allFixedSchemaCustomTasks).map(spec => AutoCompletionResult(spec.id, spec.metaData.label))
     filterResults(searchQuery, all)
   }
 

@@ -14,15 +14,17 @@ import {
     Spacing,
 } from "@eccenca/gui-elements";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
+import {TaskContext} from "../../../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 // Creates a search function for the auto-complete field
-const onSearchFactory = (ruleId?: string, entity?: string): ((searchText: string) => Promise<any[]>) => {
+const onSearchFactory = (ruleId?: string, entity?: string, taskContext?: TaskContext): ((searchText: string) => Promise<any[]>) => {
     return (searchText: string) => {
         return new Promise((resolve, reject) => {
             autocompleteAsync({
                 entity,
                 input: searchText,
                 ruleId,
+                taskContext
             }).subscribe(
                 ({ options }) => {
                     resolve(options);
@@ -88,6 +90,8 @@ interface IProps {
     noResultsText?: string;
     // When a label exist, also show the value in the 2. row below the label of the suggested item. Default: true
     showValueWhenLabelExists?: boolean;
+    /** Context of the transform task. */
+    taskContext?: TaskContext
 }
 
 // Auto-complete interface as it is returned by the auto-complete backend APIs
@@ -192,6 +196,7 @@ const AutoComplete = ({
     options,
     noResultsText,
     showValueWhenLabelExists = true,
+    taskContext,
     ...otherProps
 }: IProps) => {
     const reset = clearable
@@ -245,7 +250,7 @@ const AutoComplete = ({
                     initialValue={typeof value === "string" ? { value } : value}
                     itemValueSelector={(item) => item.value}
                     itemValueString={(item) => item.value}
-                    onSearch={options ? onSearchOptionFactory(options) : onSearchFactory(ruleId, entity)}
+                    onSearch={options ? onSearchOptionFactory(options) : onSearchFactory(ruleId, entity, taskContext)}
                     itemRenderer={
                         showValueWhenLabelExists ? autoCompleteItemRenderer : autoCompleteItemRendererWithoutValue
                     }

@@ -1,11 +1,11 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.config.{CustomTask, DefaultConfig, Prefixes, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, Identifier}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
@@ -37,20 +37,26 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
 
   /** The purpose of this value is to store the change notify callback function
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
-  private var transformSpecObserverFunctions: Option[TransformSpec => Unit] = None
+  private var inputSpecObserverFunctions: Option[TaskSpec => Unit] = None
+  private var observedInputTasks: Option[DPair[Identifier]] = None
 
-  private def setTransformSpecObserverFunction()(implicit userContext: UserContext) {
-    val fn: TransformSpec => Unit = _ => {
+  private def setInputSpecObserverFunction()(implicit userContext: UserContext): Unit = {
+    val fn: TaskSpec => Unit = _ => {
       this.startDirty(task.activity[LinkingPathsCache].control)
     }
-    for(selection <- task.data.dataSelections) {
-      val sourceInputId = selection.inputId
+    val inputIds = task.data.dataSelections.map(_.inputId)
+    for(sourceInputId <- inputIds) {
       // Only do this automatically if the input is a transformation
       task.project.taskOption[TransformSpec](sourceInputId).foreach { inputTask =>
         inputTask.dataValueHolder.subscribe(fn)
       }
+      // or a CustomTask
+      task.project.taskOption[CustomTask](sourceInputId).foreach { inputTask =>
+        inputTask.dataValueHolder.subscribe(fn)
+      }
     }
-    transformSpecObserverFunctions = Some(fn)
+    inputSpecObserverFunctions = Some(fn)
+    observedInputTasks = Some(inputIds)
   }
 
   /**
@@ -58,8 +64,8 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
    */
   override def loadCache(context: ActivityContext[DPair[EntitySchema]], fullReload: Boolean)
                         (implicit userContext: UserContext): Unit = {
-    if(transformSpecObserverFunctions.isEmpty) {
-      setTransformSpecObserverFunction()
+    if(inputSpecObserverFunctions.isEmpty || !observedInputTasks.contains(linkSpec.dataSelections.map(_.inputId))) {
+      setInputSpecObserverFunction()
     }
     context.status.update("Retrieving frequent property paths", 0.0)
 
@@ -72,7 +78,8 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
         for((dataSelection, entitySchema) <- linkSpec.dataSelections zip currentEntityDescs) yield {
           if(fullReload && !(emptyPaths || typeChanged)) {
             // Only transformation sources changed
-            if(task.project.taskOption[TransformSpec](dataSelection.inputId).isDefined) {
+            if(task.project.taskOption[TransformSpec](dataSelection.inputId).isDefined
+              || task.project.taskOption[CustomTask](dataSelection.inputId).isDefined) {
               updateSchema(dataSelection, entitySchema, context)
             } else {
               entitySchema // Do not update other source schemata automatically
