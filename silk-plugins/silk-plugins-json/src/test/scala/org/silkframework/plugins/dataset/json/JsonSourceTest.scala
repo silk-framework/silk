@@ -28,6 +28,10 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     source
   }
 
+  protected def jsonLinesSource: JsonSource = {
+    createSource(resources.get("exampleLines.jsonl"), "", "#id")
+  }
+
   it should "collect all paths" in {
     val paths = jsonExampleSource.collectPaths(Int.MaxValue)
     paths.map(_.mkString("/")) mustBe
@@ -319,6 +323,25 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     paths.map(_.normalizedSerialization) mustBe IndexedSeq("id", "name", "phoneNumbers", "additionalProperty")
     val entities = source.retrieve(EntitySchema("persons", typedPaths = IndexedSeq(UntypedPath("id").asStringTypedPath))).entities.toList
     entities must have size 3
+  }
+
+  it should "for JSON Lines documents: collect all paths" in {
+    val paths = jsonLinesSource.collectPaths(Int.MaxValue)
+    paths.map(_.mkString("/")) mustBe
+      Seq("", "id", "name", "phoneNumbers", "phoneNumbers/type", "phoneNumbers/number")
+  }
+
+  it should "for JSON Lines documents: retrieve values" in {
+    val schema = new EntitySchema(
+      typeUri = Uri(""),
+      typedPaths = IndexedSeq(
+        UntypedPath.parse("/name").asStringTypedPath,
+        UntypedPath.parse("/phoneNumbers/number").asStringTypedPath)
+    )
+    val result = jsonLinesSource.retrieve(schema).entities.toSeq
+    result.size mustBe 2
+    result(0).values mustBe IndexedSeq(Seq("John"), Seq("123", "456"))
+    result(1).values mustBe IndexedSeq(Seq("Max"), Seq("789"))
   }
 
   private def jsonSource(json: String, basePath: String = ""): JsonSource = {

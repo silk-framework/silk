@@ -4,8 +4,8 @@
 
 import React from "react";
 import _ from "lodash";
-import {copyRuleAsync, errorChannel, getApiDetails, getRuleAsync} from "../store";
-import {Spinner, Spacing} from "@eccenca/gui-elements";
+import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
+import { Spinner, Spacing, Notification, ClassNames } from "@eccenca/gui-elements";
 import MappingHeader from "./MappingHeader";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
@@ -21,45 +21,43 @@ import {
     MESSAGES,
 } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
-import {diErrorMessage} from "@ducks/error/typings";
-import {Notification} from "@eccenca/gui-elements"
-import {IViewActions, pluginRegistry, SUPPORTED_PLUGINS} from "../../../../plugins/PluginRegistry";
-import {SuggestionNGProps} from "../../../../plugins/plugin.types";
+import { diErrorMessage } from "@ducks/error/typings";
+import { IViewActions, pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { SuggestionNGProps } from "../../../../plugins/plugin.types";
 
 interface MappingsWorkviewProps {
-    onToggleTreeNav: () => any
-    onRuleIdChange: (param: any) => any
-    onAskDiscardChanges: (param: any) => any
-    onClickedRemove: () => any
-    showNavigation: boolean
-    openMappingEditor: () => any
-    currentRuleId?: string // selected rule id
-    askForDiscardData: object | boolean, // selected rule id
-    viewActions: IViewActions
-    startFullScreen: boolean
+    onToggleTreeNav: () => any;
+    onRuleIdChange: (param: any) => any;
+    onAskDiscardChanges: (param: any) => any;
+    onClickedRemove: () => any;
+    showNavigation: boolean;
+    openMappingEditor: () => any;
+    currentRuleId?: string; // selected rule id
+    askForDiscardData: object | boolean; // selected rule id
+    viewActions: IViewActions;
+    startFullScreen: boolean;
 }
 
 const MappingsWorkview = ({
-                              onToggleTreeNav,
-                              onRuleIdChange,
-                              onAskDiscardChanges,
-                              onClickedRemove,
-                              showNavigation,
-                              openMappingEditor,
-                              currentRuleId,
-                              viewActions,
-                              startFullScreen
-                          }: MappingsWorkviewProps) => {
-
-    const [loading, setLoading] = React.useState(true)
-    const [ruleData, setRuleData] = React.useState<any>({})
-    const [ruleEditView, setRuleEditorView] = React.useState<any>(false)
-    const [editing, setEditing] = React.useState<any[]>([])
-    const [isCopying, setIsCopying] = React.useState(!!sessionStorage.getItem("copyingData"))
-    const [showSuggestions, setShowSuggestions] = React.useState(false)
-    const [selectedVocabs, setSelectedVocabs] = React.useState([])
-    const [error, setError] = React.useState<string | null | undefined>(undefined)
-    const MappingNG = pluginRegistry.pluginReactComponent<SuggestionNGProps>(SUPPORTED_PLUGINS.DI_MATCHING)
+    onToggleTreeNav,
+    onRuleIdChange,
+    onAskDiscardChanges,
+    onClickedRemove,
+    showNavigation,
+    openMappingEditor,
+    currentRuleId,
+    viewActions,
+    startFullScreen,
+}: MappingsWorkviewProps) => {
+    const [loading, setLoading] = React.useState(true);
+    const [ruleData, setRuleData] = React.useState<any>({});
+    const [ruleEditView, setRuleEditorView] = React.useState<any>(false);
+    const [editing, setEditing] = React.useState<any[]>([]);
+    const [isCopying, setIsCopying] = React.useState(!!sessionStorage.getItem("copyingData"));
+    const [showSuggestions, setShowSuggestions] = React.useState(false);
+    const [selectedVocabs, setSelectedVocabs] = React.useState([]);
+    const [error, setError] = React.useState<string | null | undefined>(undefined);
+    const MappingNG = pluginRegistry.pluginReactComponent<SuggestionNGProps>(SUPPORTED_PLUGINS.DI_MATCHING);
 
     React.useEffect(() => {
         loadData({ initialLoad: true });
@@ -74,54 +72,54 @@ const MappingsWorkview = ({
             EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, handleRuleEditClose);
             EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, handleRuleEditOpen);
             EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, discardAll);
-        }
-    }, [currentRuleId])
+        };
+    }, [currentRuleId]);
 
     React.useEffect(() => {
-        loadData()
-    }, [currentRuleId])
+        loadData();
+    }, [currentRuleId]);
 
     const onRuleCreate = ({ type }) => {
         setRuleEditorView({
             type,
-        })
-    }
+        });
+    };
 
     const handleRuleEditOpen = ({ id }) => {
         if (!editing.includes(id)) {
-            setEditing(e => [...e, id])
+            setEditing((e) => [...e, id]);
         }
-    }
+    };
 
     const handleRuleEditClose = ({ id }) => {
         if (id === 0) {
-            setRuleEditorView(false)
-            setEditing(old => old.filter(e => e !== id))
+            setRuleEditorView(false);
+            setEditing((old) => old.filter((e) => e !== id));
         } else {
-            setEditing(old => old.filter(e => e !== id))
+            setEditing((old) => old.filter((e) => e !== id));
         }
-    }
+    };
 
     const discardAll = () => {
-        setEditing([])
-        setShowSuggestions(false)
-    }
+        setEditing([]);
+        setShowSuggestions(false);
+    };
 
     const handleShowSuggestions = () => {
         if (editing.length === 0) {
-            setShowSuggestions(true)
+            setShowSuggestions(true);
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         } else {
             onAskDiscardChanges({
                 suggestions: true,
             });
         }
-    }
+    };
 
     const loadData = (params: any = {}) => {
         const { initialLoad = false, onFinish } = params;
-        setLoading(true)
-        setError(undefined)
+        setLoading(true);
+        setError(undefined);
         getRuleAsync(currentRuleId, true).subscribe(
             ({ rule }) => {
                 if (initialLoad && currentRuleId && rule.id !== currentRuleId) {
@@ -139,20 +137,20 @@ const MappingsWorkview = ({
                         id: toBeOpened,
                     });
                 }
-                setRuleData(rule)
+                setRuleData(rule);
             },
             (err) => {
-                setError(diErrorMessage(err))
-                setLoading(false)
+                setError(diErrorMessage(err));
+                setLoading(false);
             },
             () => {
                 if (onFinish) {
                     onFinish();
                 }
-                setLoading(false)
+                setLoading(false);
             }
         );
-    }
+    };
 
     // sends event to expand / collapse all mapping rules
     const handleToggleRuleDetails = ({ expanded }) => {
@@ -163,7 +161,7 @@ const MappingsWorkview = ({
                 expanded,
             });
         }
-    }
+    };
 
     // jumps to selected rule as new center of view
     const handleCreate = ({ type }) => {
@@ -174,12 +172,12 @@ const MappingsWorkview = ({
                 type,
             });
         }
-    }
+    };
 
     const handleCloseSuggestions = () => {
-        setShowSuggestions(false)
+        setShowSuggestions(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
-    }
+    };
 
     const handleCopy = (id, type) => {
         errorChannel.subject("message.info").onNext({
@@ -194,13 +192,13 @@ const MappingsWorkview = ({
             cloning: false,
         };
         sessionStorage.setItem("copyingData", JSON.stringify(copyingData));
-        setIsCopying(old => !old)
-    }
+        setIsCopying((old) => !old);
+    };
 
     const handlePaste = (cloning = false) => {
-        const copiedData = sessionStorage.getItem("copyingData")
-        if(!copiedData) {
-            return
+        const copiedData = sessionStorage.getItem("copyingData");
+        if (!copiedData) {
+            return;
         }
         const copyingData = JSON.parse(copiedData),
             { breadcrumbs, id } = ruleData;
@@ -232,7 +230,7 @@ const MappingsWorkview = ({
                 EventEmitter.emit(MESSAGES.RELOAD, true);
             });
         }
-    }
+    };
 
     const handleClone = (id, type, parent = false) => {
         const apiDetails = getApiDetails();
@@ -245,9 +243,9 @@ const MappingsWorkview = ({
             parentId: parent || currentRuleId,
         };
         sessionStorage.setItem("copyingData", JSON.stringify(copyingData));
-        setIsCopying(old => !old)
+        setIsCopying((old) => !old);
         handlePaste(true);
-    }
+    };
 
     const handleAddNewRule = (callback) => {
         EventEmitter.emit(MESSAGES.RELOAD, {
@@ -256,115 +254,121 @@ const MappingsWorkview = ({
     };
 
     const handleVocabSelection = (vocabs) => {
-        setSelectedVocabs(vocabs)
-    }
+        setSelectedVocabs(vocabs);
+    };
 
-        const { rules = {}, id } = ruleData;
-        const loadingWidget = loading ? <Spinner position={"global"} /> : null;
-        const createType = _.get(ruleEditView, "type", false);
+    const { rules = {}, id } = ruleData;
+    const loadingWidget = loading ? <Spinner position={"global"} /> : null;
+    const createType = _.get(ruleEditView, "type", false);
 
-        const createRuleForm = createType ? (
-            <div className="ecc-silk-mapping__createrule">
-                {createType === MAPPING_RULE_TYPE_OBJECT ? (
-                    <ObjectMappingRuleForm
-                        parentId={ruleData.id}
-                        parent={{
-                            id: ruleData.id,
-                            property: _.get(ruleData, "mappingTarget.uri"),
-                            type: _.get(ruleData, "rules.typeRules[0].typeUri"),
-                        }}
-                        ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
-                        onAddNewRule={handleAddNewRule}
-                        viewActions={viewActions}
-                    />
-                ) : (
-                    <ValueMappingRuleForm
-                        type={createType}
-                        parentId={ruleData.id}
-                        edit
-                        onAddNewRule={handleAddNewRule}
-                        openMappingEditor={openMappingEditor}
-                        viewActions={viewActions}
-                    />
-                )}
-            </div>
+    const createRuleForm = createType ? (
+        <div className="ecc-silk-mapping__createrule">
+            {createType === MAPPING_RULE_TYPE_OBJECT ? (
+                <ObjectMappingRuleForm
+                    parentId={ruleData.id}
+                    parent={{
+                        id: ruleData.id,
+                        property: _.get(ruleData, "mappingTarget.uri"),
+                        type: _.get(ruleData, "rules.typeRules[0].typeUri"),
+                    }}
+                    ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
+                    onAddNewRule={handleAddNewRule}
+                    viewActions={viewActions}
+                />
+            ) : (
+                <ValueMappingRuleForm
+                    type={createType}
+                    parentId={ruleData.id}
+                    edit
+                    onAddNewRule={handleAddNewRule}
+                    openMappingEditor={openMappingEditor}
+                    viewActions={viewActions}
+                />
+            )}
+        </div>
+    ) : (
+        false
+    );
+
+    const types =
+        !createRuleForm && showSuggestions && _.has(ruleData, "rules.typeRules")
+            ? _.map(ruleData.rules.typeRules, (v) => v.typeUri.replace("<", "").replace(">", ""))
+            : [];
+
+    // !createRuleForm && showSuggestions &&_.has(ruleData, 'rules.typeRules') &&
+    const listSuggestions =
+        !createRuleForm &&
+        showSuggestions &&
+        _.has(ruleData, "rules.typeRules") &&
+        (MappingNG ? (
+            <MappingNG.Component onClose={() => setShowSuggestions(false)} />
         ) : (
-            false
-        );
+            <SuggestionsListContainer
+                ruleId={_.get(ruleData, "id", "root")}
+                onClose={handleCloseSuggestions}
+                targetClassUris={types}
+                onAskDiscardChanges={onAskDiscardChanges}
+                selectedVocabs={selectedVocabs}
+                setSelectedVocabs={handleVocabSelection}
+            />
+        ));
+    const listMappings =
+        !createRuleForm && !listSuggestions ? (
+            <MappingsList
+                currentRuleId={currentRuleId ?? "root"}
+                rules={_.get(rules, "propertyRules", [])}
+                parentRuleId={id}
+                handleCopy={handleCopy}
+                handlePaste={handlePaste}
+                handleClone={handleClone}
+                isCopying={isCopying}
+                onRuleIdChange={onRuleIdChange}
+                onAskDiscardChanges={onAskDiscardChanges}
+                onClickedRemove={onClickedRemove}
+                onShowSuggestions={handleShowSuggestions}
+                onMappingCreate={handleCreate}
+                openMappingEditor={openMappingEditor}
+                loading={loading}
+                startFullScreen={startFullScreen}
+                viewActions={viewActions}
+            />
+        ) : null;
 
-        const types =
-            !createRuleForm && showSuggestions && _.has(ruleData, "rules.typeRules")
-                ? _.map(ruleData.rules.typeRules, (v) => v.typeUri.replace("<", "").replace(">", ""))
-                : [];
-
-        // !createRuleForm && showSuggestions &&_.has(ruleData, 'rules.typeRules') &&
-        const listSuggestions = !createRuleForm &&
-            showSuggestions &&
-            _.has(ruleData, "rules.typeRules") && (
-                MappingNG ?
-                    <MappingNG.Component
-                        onClose={() => setShowSuggestions(false)}
-                    /> : (
-                        <SuggestionsListContainer
-                            ruleId={_.get(ruleData, "id", "root")}
-                            onClose={handleCloseSuggestions}
-                            targetClassUris={types}
-                            onAskDiscardChanges={onAskDiscardChanges}
-                            selectedVocabs={selectedVocabs}
-                            setSelectedVocabs={handleVocabSelection}
-                        />
-                    )
-            );
-        const listMappings =
-            !createRuleForm && !listSuggestions ? (
-                <MappingsList
-                    currentRuleId={currentRuleId ?? "root"}
-                    rules={_.get(rules, "propertyRules", [])}
-                    parentRuleId={id}
+    return (
+        <div className="ecc-silk-mapping__rules">
+            {loadingWidget}
+            <MappingHeader
+                rule={ruleData}
+                key={`navhead_${id}`}
+                showNavigation={showNavigation}
+                onToggleTreeNav={onToggleTreeNav}
+                onToggleDetails={handleToggleRuleDetails}
+                onRuleIdChange={onRuleIdChange}
+            />
+            <div className={ClassNames.Blueprint.elevationClass(1)}>
+                <RootMappingRule
+                    rule={ruleData}
+                    key={`objhead_${id}`}
                     handleCopy={handleCopy}
-                    handlePaste={handlePaste}
                     handleClone={handleClone}
-                    isCopying={isCopying}
-                    onRuleIdChange={onRuleIdChange}
                     onAskDiscardChanges={onAskDiscardChanges}
                     onClickedRemove={onClickedRemove}
-                    onShowSuggestions={handleShowSuggestions}
-                    onMappingCreate={handleCreate}
                     openMappingEditor={openMappingEditor}
-                    loading={loading}
                     startFullScreen={startFullScreen}
                     viewActions={viewActions}
                 />
-            ) : null;
-
-        return <div className="ecc-silk-mapping__rules">
-                {loadingWidget}
-                <MappingHeader
-                    rule={ruleData}
-                    key={`navhead_${id}`}
-                    showNavigation={showNavigation}
-                    onToggleTreeNav={onToggleTreeNav}
-                    onToggleDetails={handleToggleRuleDetails}
-                    onRuleIdChange={onRuleIdChange}
-                />
-                <div className="bp4-elevation-1">
-                    <RootMappingRule
-                        rule={ruleData}
-                        key={`objhead_${id}`}
-                        handleCopy={handleCopy}
-                        handleClone={handleClone}
-                        onAskDiscardChanges={onAskDiscardChanges}
-                        onClickedRemove={onClickedRemove}
-                        openMappingEditor={openMappingEditor}
-                        startFullScreen={startFullScreen}
-                        viewActions={viewActions}
-                    />
-                    {listSuggestions ? false : listMappings}
-                </div>
-                {listSuggestions}
-                {createRuleForm}
-                {error ? <><Spacing /><Notification warning={true} message={error} /></> : null}
+                {listSuggestions ? false : listMappings}
             </div>
-}
+            {listSuggestions}
+            {createRuleForm}
+            {error ? (
+                <>
+                    <Spacing />
+                    <Notification warning={true} message={error} />
+                </>
+            ) : null}
+        </div>
+    );
+};
 
 export default MappingsWorkview;

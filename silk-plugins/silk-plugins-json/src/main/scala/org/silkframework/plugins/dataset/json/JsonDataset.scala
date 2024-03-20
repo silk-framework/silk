@@ -14,11 +14,11 @@ import org.silkframework.util.Identifier
   id = "json",
   label = "JSON",
   categories = Array(DatasetCategories.file),
-  description = """Read from or write to a JSON file.""",
+  description = """Read from or write to a JSON or JSON Lines file.""",
   documentationFile = "JsonDatasetDocumentation.md"
 )
 case class JsonDataset(
-                        @Param("Json file. This may also be a zip archive of multiple XML files that share the same schema.")
+                        @Param("JSON file. This may also be a zip archive of multiple JSON files that share the same schema.")
                         file: WritableResource,
                         @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
                         template: JsonCodeParameter = JsonCodeParameter(s"${JsonTemplate.placeholder}"),
@@ -32,7 +32,7 @@ case class JsonDataset(
                         @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
                         streaming: Boolean = true,
                         @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                        override val zipFileRegex: String = ".*\\.json") extends Dataset with BulkResourceBasedDataset {
+                        override val zipFileRegex: String = JsonDataset.defaultZipFileRegex) extends Dataset with BulkResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
@@ -43,7 +43,7 @@ case class JsonDataset(
       new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern)
     }
     else {
-      resource.checkSizeForInMemory()
+      // The maxInMemorySize limit will be checked by the JsonReader class
       JsonSourceInMemory(resource, basePath, uriPattern)
     }
   }
@@ -56,6 +56,8 @@ case class JsonDataset(
 }
 
 object JsonDataset {
+
+  final val defaultZipFileRegex = ".*\\.json(?:l)?"
 
   object specialPaths {
     final val TEXT = "#text"
