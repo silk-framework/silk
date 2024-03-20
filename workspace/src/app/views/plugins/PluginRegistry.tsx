@@ -133,6 +133,7 @@ export const SUPPORTED_PLUGINS = {
     DI_LANGUAGE_SWITCHER: "di:languageSwitcher",
     DI_BRANDING: "di:branding",
     DI_PARAMETER_EXTENSIONS: "di:parameterExtensions",
+    DI_MATCHING: "di:matchingNG"
 };
 
 registerCorePlugins();

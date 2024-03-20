@@ -339,7 +339,8 @@
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
             "filterOff": "Remove filter",
-            "showMoreDetails": "Show more details"
+            "showMoreDetails": "Show more details",
+            "restore": "Restore"
         },
         "app": {
             "build": "Workbench",

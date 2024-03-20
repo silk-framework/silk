@@ -250,7 +250,8 @@ class HierarchicalMapping extends React.Component {
                 value={{
                     valueTypeLabels: this.state.valueTypeLabels,
                     taskContext: this.props.viewActions.taskContext?.context,
-                    transformTask: this.props.transformTask
+                    projectId: this.props.project,
+                    transformTaskId: this.props.transformTask
                 }}
             >
                 <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>

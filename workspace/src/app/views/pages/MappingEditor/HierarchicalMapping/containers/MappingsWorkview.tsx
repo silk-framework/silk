@@ -22,7 +22,8 @@ import {
 } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
 import { diErrorMessage } from "@ducks/error/typings";
-import { IViewActions } from "../../../../plugins/PluginRegistry";
+import { IViewActions, pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { SuggestionNGProps } from "../../../../plugins/plugin.types";
 
 interface MappingsWorkviewProps {
     onToggleTreeNav: () => any;
@@ -56,6 +57,7 @@ const MappingsWorkview = ({
     const [showSuggestions, setShowSuggestions] = React.useState(false);
     const [selectedVocabs, setSelectedVocabs] = React.useState([]);
     const [error, setError] = React.useState<string | null | undefined>(undefined);
+    const MappingNG = pluginRegistry.pluginReactComponent<SuggestionNGProps>(SUPPORTED_PLUGINS.DI_MATCHING);
 
     React.useEffect(() => {
         loadData({ initialLoad: true });
@@ -294,16 +296,22 @@ const MappingsWorkview = ({
             : [];
 
     // !createRuleForm && showSuggestions &&_.has(ruleData, 'rules.typeRules') &&
-    const listSuggestions = !createRuleForm && showSuggestions && _.has(ruleData, "rules.typeRules") && (
-        <SuggestionsListContainer
-            ruleId={_.get(ruleData, "id", "root")}
-            onClose={handleCloseSuggestions}
-            targetClassUris={types}
-            onAskDiscardChanges={onAskDiscardChanges}
-            selectedVocabs={selectedVocabs}
-            setSelectedVocabs={handleVocabSelection}
-        />
-    );
+    const listSuggestions =
+        !createRuleForm &&
+        showSuggestions &&
+        _.has(ruleData, "rules.typeRules") &&
+        (MappingNG ? (
+            <MappingNG.Component onClose={() => setShowSuggestions(false)} />
+        ) : (
+            <SuggestionsListContainer
+                ruleId={_.get(ruleData, "id", "root")}
+                onClose={handleCloseSuggestions}
+                targetClassUris={types}
+                onAskDiscardChanges={onAskDiscardChanges}
+                selectedVocabs={selectedVocabs}
+                setSelectedVocabs={handleVocabSelection}
+            />
+        ));
     const listMappings =
         !createRuleForm && !listSuggestions ? (
             <MappingsList
