@@ -4,6 +4,7 @@ import {
     Card,
     ContextMenu,
     Highlighter,
+    Icon,
     IconButton,
     Markdown,
     MenuDivider,
@@ -200,6 +201,12 @@ export default function SearchItem({
                                         searchValue={searchValue}
                                     />
                                 </Tag>
+                            </>
+                        )}
+                        {item.type === DATA_TYPES.DATASET && item.readOnly && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag icon="state-locked" />
                             </>
                         )}
                         {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (

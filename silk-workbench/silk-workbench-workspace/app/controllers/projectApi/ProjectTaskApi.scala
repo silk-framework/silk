@@ -8,6 +8,7 @@ import controllers.util.{SerializationUtils, TextSearchUtils}
 import controllers.workspace.doc.{TaskApiDoc, LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
+import controllers.workspaceApi.search.SearchApiModel.{READ_ONLY, URI_PROPERTY}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -30,7 +31,7 @@ import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.workflow.{WorkflowTaskContext, WorkflowTaskContextInputTask, WorkflowTaskContextOutputTask, WorkflowTaskContextTask}
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsBoolean, JsString, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
@@ -135,9 +136,18 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       val pd = PluginDescription.forTask(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
+      val readOnly = {
+        task.data match {
+          case ds: GenericDatasetSpec =>
+            Some(ds.readOnly)
+          case _ =>
+            None
+        }
+      }
       RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label, task.tags().map(FullTag.fromTag),
         Some(pd.id),
-        Some(project.id)
+        Some(project.id),
+        readOnly
       )
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)

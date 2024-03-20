@@ -12,7 +12,8 @@ import scala.collection.mutable
 case class DatasetFacetCollector() extends ItemTypeFacetCollector[ProjectTask[GenericDatasetSpec]] {
   override val facetCollectors: Seq[FacetCollector[ProjectTask[GenericDatasetSpec]]] = Seq(
     DatasetTypeFacetCollector(),
-    DatasetFileFacetCollector()
+    DatasetFileFacetCollector(),
+    DatasetReadOnlyFacetCollector()
   )
 }
 
@@ -56,6 +57,20 @@ case class DatasetFileFacetCollector() extends NoLabelKeywordFacetCollector[Proj
         Set(dataset.file.name)
       case _ =>
         Set()
+    }
+  }
+}
+
+/** "Filters datasets based on their access permissions. */
+case class DatasetReadOnlyFacetCollector() extends NoLabelKeywordFacetCollector[ProjectTask[GenericDatasetSpec]] {
+  override def appliesForFacet: Facet = Facets.readOnly
+
+  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec])
+                                (implicit user: UserContext): Set[String] = {
+    if(datasetTask.data.readOnly) {
+      Set("Read-only")
+    } else {
+      Set("Read-write")
     }
   }
 }

@@ -76,7 +76,13 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
-  override def inputPorts: InputPorts = FlexibleNumberOfInputs()
+  override def inputPorts: InputPorts = {
+    if(readOnly) {
+      FixedNumberOfInputs(Seq.empty)
+    } else {
+      FlexibleNumberOfInputs()
+    }
+  }
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
