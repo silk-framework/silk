@@ -478,8 +478,11 @@ export class RenderResultApi {
     click = (cssSelector: string, idx: number = 0) => {
         const element = (this.findAll(cssSelector)[idx]) as HTMLButtonElement
         this.assert(element, `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`)
-        this.assert(typeof element.click === "function", `Element with selector '${cssSelector}' has no click() method!`)
-        element.click()
+        if(element.click) {
+            element.click()
+        } else {
+            element.dispatchEvent(new Event('click'))
+        }
     }
 
     printHtml = (selector?: string) => {
