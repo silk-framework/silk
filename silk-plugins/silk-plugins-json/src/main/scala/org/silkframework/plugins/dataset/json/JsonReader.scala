@@ -153,7 +153,7 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
       val currentSize = parser.getCurrentLocation.getByteOffset - startByteOffset
       if(currentSize > maxSize) {
         throw new ResourceTooLargeException("Tried to load an entity into memory that is larger than the configured maximum " +
-              s"(size: $currentSize, maximum size: $maxSize}). " +
+              s"(bytes read so far: $currentSize, maximum size: $maxSize}). " +
               s"Configure '${Resource.maxInMemorySizeParameterName}' in order to increase this limit.")
       }
     }
