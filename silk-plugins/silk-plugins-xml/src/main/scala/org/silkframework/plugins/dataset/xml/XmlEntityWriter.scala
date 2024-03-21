@@ -52,7 +52,13 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
     // The property URI might be empty (i.e., object mapping with empty target path) in which case the values should be attached to the parent
     val property = properties.head
     if(property.nonEmpty) {
-      writer.writeStartElement(property)
+      if(properties.size == 1) {
+        // This is the rootElement name, which might be a prefixed name that should be written directly
+        writer.writeStartElement(property)
+      } else {
+        // This is a nested property
+        writeStartElement(property)
+      }
     }
   }
 
