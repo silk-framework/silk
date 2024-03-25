@@ -15,7 +15,7 @@ import scala.collection.mutable
 /**
   * Sink that writes entities into a hierarchical output, such as JSON or XML.
   */
-abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSink {
+abstract class HierarchicalSink extends EntitySink {
 
   // Holds root entities
   private val rootEntities: SequentialEntityCache = SequentialEntityCache()
@@ -39,16 +39,10 @@ abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSin
   protected def maxDepth: Int = DEFAULT_MAX_SIZE
 
   /**
-    * The resource this sink is writing to.
+    * Writes the output by calling the supplied write function.
     * Must be implemented in sub classes.
     */
-  protected def resource: WritableResource
-
-  /**
-    * Creates a new HierarchicalEntityWriter instance that will be used to write the output.
-    * Must be implemented in sub classes.
-    */
-  protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter
+  protected def outputEntities(writeOutput: HierarchicalEntityWriter => Unit): Unit
 
   /**
    * Initializes this writer.
@@ -89,33 +83,23 @@ abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSin
   override def close()(implicit userContext: UserContext): Unit = {
     try {
       if(!tableOpen) { // only write if the current table has been closed regularly
-        resource.write() { outputStream =>
-          val writer = createWriter(outputStream)
-          try {
-            outputEntities(writer)
-          } finally {
-            writer.close()
-          }
-        }
+        outputEntities(writeEntities)
       }
     } finally {
       cache.close()
       rootEntities.close()
-      super.close()
     }
   }
 
   /**
    * Makes sure that the next write will start from an empty dataset.
    */
-  override def clear()(implicit userContext: UserContext): Unit = {
-    resource.delete()
-  }
+  override def clear()(implicit userContext: UserContext): Unit = { }
 
   /**
     * Outputs all entities in the cache to a HierarchicalEntityWriter.
     */
-  private def outputEntities(writer: HierarchicalEntityWriter): Unit = {
+  private def writeEntities(writer: HierarchicalEntityWriter): Unit = {
     writer.open(singleRootEntity)
     rootEntities.readAndClose { entity =>
       outputEntity(entity, writer, 1)
