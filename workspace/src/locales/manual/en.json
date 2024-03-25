@@ -423,6 +423,11 @@
             "added": "Added",
             "removed": "Removed",
             "paths": "Paths"
+        }, 
+        "tooltips": {
+            "dataset": {
+                "readOnly": "read-only mode, change this in dataset configuration"
+            }
         }
     },
     "form": {

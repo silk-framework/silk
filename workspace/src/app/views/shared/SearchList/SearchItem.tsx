@@ -17,6 +17,7 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
+    Tooltip,
     markdownUtils,
 } from "@eccenca/gui-elements";
 import { PluggableList } from "unified";
@@ -206,7 +207,9 @@ export default function SearchItem({
                         {item.type === DATA_TYPES.DATASET && item.readOnly && (
                             <>
                                 <Spacing vertical size="tiny" />
-                                <Tag icon="state-locked" />
+                                <Tooltip content={t("common.tooltips.dataset.readOnly")}>
+                                    <Tag icon="state-locked" />
+                                </Tooltip>
                             </>
                         )}
                         {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (

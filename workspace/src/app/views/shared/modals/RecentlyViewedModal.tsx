@@ -13,6 +13,7 @@ import {
     OverviewItemLine,
     SimpleDialog,
     Spacing,
+    Tooltip,
 } from "@eccenca/gui-elements";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
@@ -162,6 +163,14 @@ export function RecentlyViewedModal() {
                                         searchValue={query}
                                     />
                                 </Tag>
+                            </>
+                        )}
+                        {item.itemType === "dataset" && item.readOnly && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tooltip content={t("common.tooltips.dataset.readOnly")}>
+                                    <Tag icon="state-locked" />
+                                </Tooltip>
                             </>
                         )}
                         {item.tags?.length ? <Spacing vertical size="tiny" /> : null}

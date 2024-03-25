@@ -8,6 +8,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
+    TagList,
+    Tooltip,
     //Spacing,
 } from "@eccenca/gui-elements";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
@@ -95,6 +97,14 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                             <Tag>
                                 <Highlighter label={relatedItem.type} searchValue={textQuery} />
                             </Tag>
+                            {relatedItem.readOnly && (
+                                <>
+                                    <Spacing vertical size="tiny" />
+                                    <Tooltip size="small" content={t("common.tooltips.dataset.readOnly")}>
+                                        <Tag icon="state-locked" />
+                                    </Tooltip>
+                                </>
+                            )}
                         </>
                     )}
                     <Spacing vertical size="tiny" />
