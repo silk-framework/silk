@@ -6,7 +6,6 @@ import React from "react";
 import _ from "lodash";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
 import { Spinner, Spacing, Notification, ClassNames } from "@eccenca/gui-elements";
-import MappingHeader from "./MappingHeader";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -28,11 +27,9 @@ import { ParentStructure } from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
 
 interface MappingsWorkviewProps {
-    onToggleTreeNav: () => any;
     onRuleIdChange: (param: any) => any;
     onAskDiscardChanges: (param: any) => any;
     onClickedRemove: () => any;
-    showNavigation: boolean;
     openMappingEditor: () => any;
     currentRuleId?: string; // selected rule id
     askForDiscardData: object | boolean; // selected rule id
@@ -41,11 +38,9 @@ interface MappingsWorkviewProps {
 }
 
 const MappingsWorkview = ({
-    onToggleTreeNav,
     onRuleIdChange,
     onAskDiscardChanges,
     onClickedRemove,
-    showNavigation,
     openMappingEditor,
     currentRuleId,
     viewActions,
@@ -362,14 +357,6 @@ const MappingsWorkview = ({
     return (
         <div className="ecc-silk-mapping__rules">
             {loadingWidget}
-            <MappingHeader
-                rule={ruleData}
-                key={`navhead_${id}`}
-                showNavigation={showNavigation}
-                onToggleTreeNav={onToggleTreeNav}
-                onToggleDetails={handleToggleRuleDetails}
-                onRuleIdChange={onRuleIdChange}
-            />
             <div className={ClassNames.Blueprint.elevationClass(1)}>
                 <RootMappingRule
                     rule={ruleData}
