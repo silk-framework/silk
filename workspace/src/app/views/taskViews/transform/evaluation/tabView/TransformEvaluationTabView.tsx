@@ -22,17 +22,20 @@ import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 import MappingsTree from "../../../../pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
+import { IViewActions } from "../../../../../views/plugins/PluginRegistry";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;
     transformTaskId: string;
     startFullScreen: boolean;
+    viewActions?: IViewActions;
 }
 
 const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     projectId,
     transformTaskId,
     startFullScreen,
+    viewActions,
 }) => {
     const evaluatedEntityResults = React.useRef<EvaluatedRuleEntityResult | undefined>();
     const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
@@ -63,6 +66,9 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                 setLoading(false);
             }
         })();
+        if (viewActions?.addLocalBreadcrumbs) {
+            viewActions.addLocalBreadcrumbs([]);
+        }
     }, [currentRuleId]);
 
     const handleRuleNavigation = React.useCallback(({ newRuleId }) => {

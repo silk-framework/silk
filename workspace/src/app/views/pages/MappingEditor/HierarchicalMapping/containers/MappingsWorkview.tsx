@@ -24,6 +24,8 @@ import EventEmitter from "../utils/EventEmitter";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IViewActions, pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { SuggestionNGProps } from "../../../../plugins/plugin.types";
+import { ParentStructure } from "../components/ParentStructure";
+import RuleTitle from "../elements/RuleTitle";
 
 interface MappingsWorkviewProps {
     onToggleTreeNav: () => any;
@@ -289,6 +291,29 @@ const MappingsWorkview = ({
     ) : (
         false
     );
+
+    React.useEffect(() => {
+        if (viewActions.addLocalBreadcrumbs && ruleData && loading === false) {
+            const localBreadcrumbs = (ruleData.breadcrumbs ?? []).map((breadcrumb, idx) => {
+                console.log("breadcrumb", breadcrumb);
+                return {
+                    text: <ParentStructure parent={breadcrumb} />,
+                    href: "?ruleId=" + breadcrumb.id,
+                    onClick: (event) => {
+                        event.preventDefault();
+                        onRuleIdChange({ newRuleId: breadcrumb.id, parentId: ruleData.id });
+                        event.stopPropagation();
+                    },
+                };
+            });
+            if ((ruleData.breadcrumbs ?? []).length > 0) {
+                localBreadcrumbs.push({
+                    text: <RuleTitle rule={ruleData} />,
+                });
+            }
+            viewActions.addLocalBreadcrumbs(localBreadcrumbs);
+        }
+    }, [ruleData]);
 
     const types =
         !createRuleForm && showSuggestions && _.has(ruleData, "rules.typeRules")
