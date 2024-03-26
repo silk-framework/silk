@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import TransformExecutionReport from "../../../../views/pages/MappingEditor/ExecutionReport/TransformExecutionReport";
 import { TaskActivityWidget } from "../../../shared/TaskActivityWidget/TaskActivityWidget";
 import { checkIfTaskSupportsDownload } from "@ducks/common/requests";
+import { IViewActions } from "../../../../views/plugins/PluginRegistry";
 
 //styles
 import { ProjectTaskDownloadInfo } from "@ducks/common/typings";
@@ -12,8 +13,9 @@ import { ProjectTaskDownloadInfo } from "@ducks/common/typings";
 interface IProps {
     projectId: string;
     taskId: string;
+    viewActions?: IViewActions;
 }
-const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
+const TransformExecutionTab = ({ projectId, taskId, viewActions }: IProps) => {
     const [t] = useTranslation();
     const [executionUpdateCounter, setExecutionUpdateCounter] = React.useState<number>(0);
     const [taskDownloadInfo, setTaskDownloadInfo] = React.useState<ProjectTaskDownloadInfo | undefined>();
@@ -31,6 +33,9 @@ const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
                 setTaskDownloadInfo(response.data);
             } catch (err) {}
         })();
+        if (viewActions?.addLocalBreadcrumbs) {
+            viewActions.addLocalBreadcrumbs([]);
+        }
     }, [projectId, taskId]);
 
     return (
