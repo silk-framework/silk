@@ -235,8 +235,6 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     &:not(.ecc-silk-mapping__suggestionlist) {
-        margin-top: -1 * $ecc-size-block-whitespace;
-
         & .mdl-card__actions {
             background-color: transparent;
         }

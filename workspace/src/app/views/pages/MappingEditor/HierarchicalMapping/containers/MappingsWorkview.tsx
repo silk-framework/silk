@@ -357,21 +357,18 @@ const MappingsWorkview = ({
     return (
         <div className="ecc-silk-mapping__rules">
             {loadingWidget}
-            <div className={ClassNames.Blueprint.elevationClass(1)}>
-                <RootMappingRule
-                    rule={ruleData}
-                    key={`objhead_${id}`}
-                    handleCopy={handleCopy}
-                    handleClone={handleClone}
-                    onAskDiscardChanges={onAskDiscardChanges}
-                    onClickedRemove={onClickedRemove}
-                    openMappingEditor={openMappingEditor}
-                    startFullScreen={startFullScreen}
-                    viewActions={viewActions}
-                />
-                {listSuggestions ? false : listMappings}
-            </div>
-            {listSuggestions}
+            <RootMappingRule
+                rule={ruleData}
+                key={`objhead_${id}`}
+                handleCopy={handleCopy}
+                handleClone={handleClone}
+                onAskDiscardChanges={onAskDiscardChanges}
+                onClickedRemove={onClickedRemove}
+                openMappingEditor={openMappingEditor}
+                startFullScreen={startFullScreen}
+                viewActions={viewActions}
+            />
+            {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
             {createRuleForm}
             {error ? (
                 <>

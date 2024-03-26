@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, CardActions, CardContent } from "gui-elements-deprecated";
+import { Card, CardActions, CardContent, Divider } from "@eccenca/gui-elements";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import { getEditorHref } from "../../../store";
@@ -114,7 +114,7 @@ class ValueRule extends React.Component {
         }
         return (
             <div className="ecc-silk-mapping__rulesviewer">
-                <Card shadow={0}>
+                <Card elevation={-1}>
                     <CardContent>
                         {mappingTarget.uri ? (
                             <TargetProperty
@@ -152,6 +152,7 @@ class ValueRule extends React.Component {
                             <MetadataDesc description={_.get(metadata, "description")} />
                         ) : null}
                     </CardContent>
+                    <Divider />
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <EditButton onEdit={this.handleEdit} />
                         <CopyButton onCopy={this.handleCopy} />
