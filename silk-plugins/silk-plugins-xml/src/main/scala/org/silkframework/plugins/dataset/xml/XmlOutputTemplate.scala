@@ -4,8 +4,9 @@ import net.sf.saxon.jaxp.SaxonTransformerFactory
 import org.silkframework.plugins.dataset.xml.util.PrefixSuffixXMLStreamWriter
 import org.silkframework.runtime.validation.ValidationException
 import org.w3c.dom.{Document, Node, ProcessingInstruction}
+import org.xml.sax.InputSource
 
-import java.io.StringReader
+import java.io.{ByteArrayInputStream, StringReader}
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.stream.XMLStreamWriter
 import javax.xml.transform.TransformerFactory
@@ -88,7 +89,11 @@ object XmlOutputTemplate {
     * Parses full XML templates, e.g., <Root><?MyEntity?></Root>
     */
   private def parseFullXmlTemplate(templateStr: String) = {
-    val builder = DocumentBuilderFactory.newInstance.newDocumentBuilder
+    val factory = DocumentBuilderFactory.newInstance
+    factory.setValidating(false)
+    val builder = factory.newDocumentBuilder
+    // Don't load external DTDs etc.
+    builder.setEntityResolver((publicId: String, systemId: String) => new InputSource(new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes())))
     val doc = try {
       builder.parse(new InputSource(new StringReader(templateStr)))
     } catch {
