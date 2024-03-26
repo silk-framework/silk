@@ -1,7 +1,8 @@
 import React from "react";
 import _ from "lodash";
 import className from "classnames";
-import { Card, CardTitle, NotAvailable } from "gui-elements-deprecated";
+import { NotAvailable } from "gui-elements-deprecated";
+import { Card, CardHeader, CardTitle, CardOptions, Divider } from "@eccenca/gui-elements";
 import { ThingIcon } from "../components/ThingIcon";
 import RuleTitle from "../elements/RuleTitle";
 import RuleTypes from "../elements/RuleTypes";
@@ -132,55 +133,62 @@ class RootMappingRule extends React.Component {
 
         return (
             <div data-test-id="root-mapping-rule" className="ecc-silk-mapping__rulesobject" ref={this.expandedRuleRef}>
-                <Card shadow={0}>
-                    <CardTitle>
-                        <div className="ecc-silk-mapping__ruleitem">
-                            <div
-                                className={className("ecc-silk-mapping__ruleitem-summary", {
-                                    "ecc-silk-mapping__ruleitem-summary--expanded": this.state.expanded,
-                                })}
-                            >
-                                <div className="mdl-list__item clickable" onClick={this.handleToggleExpand}>
-                                    <div className="mdl-list__item-primary-content">
-                                        <div className="ecc-silk-mapping__ruleitem-headline">
-                                            <ThingIcon type="object" />
-                                            <RuleTitle
+                <Card elevated={!this.state.expanded} interactive={!this.state.expanded}>
+                    <CardHeader onClick={this.handleToggleExpand}>
+                        <CardTitle>
+                            <div className="ecc-silk-mapping__ruleitem" style={{ width: "100%" }}>
+                                <div
+                                    className={className("ecc-silk-mapping__ruleitem-summary", {
+                                        "ecc-silk-mapping__ruleitem-summary--expanded": this.state.expanded,
+                                    })}
+                                    style={{ backgroundColor: "transparent" }}
+                                >
+                                    <div className="mdl-list__item" style={{ padding: "0", cursor: "inherit" }}>
+                                        <div className="mdl-list__item-primary-content">
+                                            <div className="ecc-silk-mapping__ruleitem-headline">
+                                                <ThingIcon type="object" />
+                                                <RuleTitle
+                                                    rule={this.props.rule}
+                                                    className="ecc-silk-mapping__rulesobject__title-property"
+                                                />
+                                            </div>
+                                            <RuleTypes
                                                 rule={this.props.rule}
-                                                className="ecc-silk-mapping__rulesobject__title-property"
+                                                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type"
                                             />
+                                            <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
+                                                {uriPattern}
+                                            </div>
                                         </div>
-                                        <RuleTypes
-                                            rule={this.props.rule}
-                                            className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type"
-                                        />
-                                        <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
-                                            {uriPattern}
-                                        </div>
-                                    </div>
-                                    <div className="mdl-list__item-secondary-content" key="action">
-                                        <ExpandButton
-                                            id={this.props.rule.id}
-                                            expanded={this.state.expanded}
-                                            onExpand={this.handleToggleExpand}
-                                        />
+                                        <div className="mdl-list__item-secondary-content" key="action"></div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardTitle>
+                        </CardTitle>
+                        <CardOptions>
+                            <ExpandButton
+                                id={this.props.rule.id}
+                                expanded={this.state.expanded}
+                                onToggle={this.handleToggleExpand}
+                            />
+                        </CardOptions>
+                    </CardHeader>
                     {this.state.expanded && (
-                        <ObjectRule
-                            ruleData={this.props.rule}
-                            parentId={_.get(parent, "id", "")}
-                            parent={parent}
-                            edit={false}
-                            handleCopy={this.props.handleCopy}
-                            handleClone={this.props.handleClone}
-                            onClickedRemove={this.props.onClickedRemove}
-                            openMappingEditor={this.props.openMappingEditor}
-                            type={this.props.rule.type}
-                            viewActions={this.props.viewActions}
-                        />
+                        <>
+                            <Divider />
+                            <ObjectRule
+                                ruleData={this.props.rule}
+                                parentId={_.get(parent, "id", "")}
+                                parent={parent}
+                                edit={false}
+                                handleCopy={this.props.handleCopy}
+                                handleClone={this.props.handleClone}
+                                onClickedRemove={this.props.onClickedRemove}
+                                openMappingEditor={this.props.openMappingEditor}
+                                type={this.props.rule.type}
+                                viewActions={this.props.viewActions}
+                            />
+                        </>
                     )}
                 </Card>
             </div>

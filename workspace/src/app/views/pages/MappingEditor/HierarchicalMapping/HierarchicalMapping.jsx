@@ -282,18 +282,16 @@ class HierarchicalMapping extends React.Component {
                             handleRuleNavigation={this.onRuleNavigation}
                             startFullScreen={this.props.startFullScreen}
                         />
-                        {
-                            <MappingsWorkview
-                                currentRuleId={currentRuleId}
-                                onRuleIdChange={this.handleRuleIdChange}
-                                askForDiscardData={this.state.askForDiscard}
-                                onAskDiscardChanges={this.toggleAskForDiscard}
-                                onClickedRemove={this.handleClickRemove}
-                                openMappingEditor={this.handleOpenMappingEditorModal}
-                                startFullScreen={this.props.startFullScreen}
-                                viewActions={this.props.viewActions}
-                            />
-                        }
+                        <MappingsWorkview
+                            currentRuleId={currentRuleId}
+                            onRuleIdChange={this.handleRuleIdChange}
+                            askForDiscardData={this.state.askForDiscard}
+                            onAskDiscardChanges={this.toggleAskForDiscard}
+                            onClickedRemove={this.handleClickRemove}
+                            openMappingEditor={this.handleOpenMappingEditorModal}
+                            startFullScreen={this.props.startFullScreen}
+                            viewActions={this.props.viewActions}
+                        />
                     </div>
                 </section>
             </GlobalMappingEditorContext.Provider>
