@@ -52,6 +52,12 @@ export interface IProjectTaskView {
     queryParametersToKeep?: string[];
     /** Specifies the task context support for this view, e.g. that it uses the information given with the task context. */
     supportsTaskContext?: boolean;
+    /**
+     * Used to sort a stack of defined views when ordering is important, e.g. if their tabs are displayed.
+     * If not given then internally `9999`is used.
+     * Views are sorted in ascending order.
+     */
+    sortOrder?: number;
 }
 
 /** A plugin component that can receive arbitrary parameters. */
