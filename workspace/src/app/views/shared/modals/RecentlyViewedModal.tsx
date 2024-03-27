@@ -14,6 +14,7 @@ import {
     SimpleDialog,
     Spacing,
     Tooltip,
+    Icon,
 } from "@eccenca/gui-elements";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
@@ -168,9 +169,11 @@ export function RecentlyViewedModal() {
                         {item.itemType === "dataset" && item.readOnly && (
                             <>
                                 <Spacing vertical size="tiny" />
-                                <Tooltip content={t("common.tooltips.dataset.readOnly")}>
-                                    <Tag icon="state-locked" />
-                                </Tooltip>
+                                <Tag>
+                                    <Tooltip content={t("common.tooltips.dataset.readOnly")}>
+                                        <Icon name="state-locked" />
+                                    </Tooltip>
+                                </Tag>
                             </>
                         )}
                         {item.tags?.length ? <Spacing vertical size="tiny" /> : null}

@@ -1,6 +1,7 @@
 import {
     ContextMenu,
     Highlighter,
+    Icon,
     IconButton,
     MenuItem,
     OverviewItem,
@@ -100,9 +101,11 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                             {relatedItem.readOnly && (
                                 <>
                                     <Spacing vertical size="tiny" />
-                                    <Tooltip size="small" content={t("common.tooltips.dataset.readOnly")}>
-                                        <Tag icon="state-locked" />
-                                    </Tooltip>
+                                    <Tag>
+                                        <Tooltip content={t("common.tooltips.dataset.readOnly")}>
+                                            <Icon name="state-locked" />
+                                        </Tooltip>
+                                    </Tag>
                                 </>
                             )}
                         </>

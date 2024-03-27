@@ -207,9 +207,11 @@ export default function SearchItem({
                         {item.type === DATA_TYPES.DATASET && item.readOnly && (
                             <>
                                 <Spacing vertical size="tiny" />
-                                <Tooltip content={t("common.tooltips.dataset.readOnly")}>
-                                    <Tag icon="state-locked" />
-                                </Tooltip>
+                                <Tag>
+                                    <Tooltip content={t("common.tooltips.dataset.readOnly")}>
+                                        <Icon name="state-locked" />
+                                    </Tooltip>
+                                </Tag>
                             </>
                         )}
                         {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
