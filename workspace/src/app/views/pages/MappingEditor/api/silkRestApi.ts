@@ -1,6 +1,6 @@
 import superagent from '@eccenca/superagent';
 import Promise from 'bluebird';
-import {IUriPatternsResult} from "./types";
+import {IUriPatternsResult, TargetPropertyAutoCompletion} from "./types";
 import {CONTEXT_PATH} from "../../../../constants/path";
 import {TaskContext} from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
 
@@ -156,8 +156,8 @@ const silkApi = {
 
     /** Retrieves target properties that are valid for the specific transform rule as target property. */
     retrieveTransformTargetProperties: function(projectId: string, taskId: string, ruleId: string,
-                                                searchTerm?: string, maxResults: number = 30, vocabularies?: string[],
-                                                fullUris: boolean = true, taskContext?: TaskContext): HttpResponsePromise<any> {
+                                                searchTerm?: string, maxResults: number = 30, vocabularies?: string[] | undefined,
+                                                fullUris: boolean = true, taskContext?: TaskContext): HttpResponsePromise<TargetPropertyAutoCompletion[]> {
         const requestUrl = this.transformTargetPropertyEndpoint(projectId, taskId, ruleId, searchTerm, maxResults, fullUris);
 
         const promise = superagent
