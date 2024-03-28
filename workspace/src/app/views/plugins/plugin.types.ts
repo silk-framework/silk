@@ -1,4 +1,5 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
+import { IViewActions } from "../../views/plugins/PluginRegistry";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview;
 
@@ -85,7 +86,10 @@ export interface ParameterExtensions {
 
 /** Props for mapping suggestion. */
 export interface SuggestionNGProps {
-    ruleId?: string
-    /** Called when the close button of the suggestion is clicked. */
-    onClose: () => any
+    // Project the transform task is in.
+    projectId: string;
+    // The transform task to create matches for.
+    transformTaskId: string;
+    // Generic actions and callbacks that could be necessary.
+    viewActions?: IViewActions;
 }
