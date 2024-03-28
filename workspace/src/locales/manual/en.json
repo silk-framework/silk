@@ -426,7 +426,7 @@
         }, 
         "tooltips": {
             "dataset": {
-                "readOnly": "read-only mode, change this in dataset configuration"
+                "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
             }
         }
     },
