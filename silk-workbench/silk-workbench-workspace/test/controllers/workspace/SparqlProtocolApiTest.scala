@@ -35,21 +35,21 @@ class SparqlProtocolApiTest extends PlaySpec with IntegrationTestTrait with Sing
         |SELECT * WHERE {
         |  ?f a mov:film.
         |  ?f mov:country <http://data.linkedmdb.org/resource/country/AU>.
-        |}
+        |} ORDER By ?f
       """.stripMargin,
       Json.obj(
         ("head", Json.obj(("vars", Json.arr("f")), ("link", Json.arr()))),
         ("results", Json.obj(("bindings", Json.arr(
-          Json.obj(("f", Json.obj(("type", "uri"), ("value", "http://data.linkedmdb.org/resource/film/350")))),
-          Json.obj(("f", Json.obj(("type", "uri"), ("value", "http://data.linkedmdb.org/resource/film/1570"))))
+          Json.obj(("f", Json.obj(("type", "uri"), ("value", "http://data.linkedmdb.org/resource/film/1570")))),
+          Json.obj(("f", Json.obj(("type", "uri"), ("value", "http://data.linkedmdb.org/resource/film/350"))))
         ))
         ))
       ),
       <sparql xmlns="http://www.w3.org/2005/sparql-results#">
         <head><variable name="f"/></head>
         <results>
-          <result><binding name="f"><uri>http://data.linkedmdb.org/resource/film/350</uri></binding></result>
           <result><binding name="f"><uri>http://data.linkedmdb.org/resource/film/1570</uri></binding></result>
+          <result><binding name="f"><uri>http://data.linkedmdb.org/resource/film/350</uri></binding></result>
         </results>
       </sparql>
     ),
