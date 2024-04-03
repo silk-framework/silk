@@ -102,9 +102,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                                 <>
                                     <Spacing vertical size="tiny" />
                                     <Tag>
-                                        <Tooltip content={t("common.tooltips.dataset.readOnly")}>
-                                            <Icon name="state-locked" />
-                                        </Tooltip>
+                                        <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
                                     </Tag>
                                 </>
                             )}
