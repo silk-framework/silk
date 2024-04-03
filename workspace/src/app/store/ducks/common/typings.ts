@@ -243,6 +243,10 @@ export interface ICommonState {
     availableDataTypes: IAvailableDataTypes;
     exportTypes: IExportTypes[];
     artefactModal: IArtefactModal;
+    //controls whether the user menu panel is displayed or not
+    userMenuDisplay: boolean;
+    //controls whether the notification menu panel is displayed or not
+    notificationMenuDisplay: boolean;
 }
 
 /** Config information from the backend to initialize the frontend. */

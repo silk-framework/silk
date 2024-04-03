@@ -38,26 +38,13 @@ Media Type                         | Specification Document
 
 Unless otherwise specified, errors will be returned in the [Problem Details for HTTP APIs](https://tools.ietf.org/html/rfc7807) format.
 
-Example:
+Minimal example:
 
     {
       "title": "The error type"
       "detail": "Human-readable error message"
     }
 
-In addition, endpoints may include a detailed list of issues:
-
-    {
-      "title": "The error type",
-      "detail": "Human-readable error message",
-      "issues": [
-        {
-          "type": "One of: Error|Warning|Info",
-          "message": "Description of this error",
-          "id": "The id of the element that is affected, such as a specific operator."
-        },
-        ...
-      ]
-    }
+For a detailed documentation of the complete error schema and a more complex example, check the `defaultErrorFormat` endpoint.
 
 </details>
