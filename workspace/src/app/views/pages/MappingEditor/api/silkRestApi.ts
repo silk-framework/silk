@@ -172,6 +172,20 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
+    /** Retrieves target property auto-completions. */
+    targetClassAutoCompletions: function (projectId: string,
+                                          taskId: string,
+                                          searchTerm: string | undefined,
+                                          maxResults: number): HttpResponsePromise<TargetPropertyAutoCompletion[]> {
+        const requestUrl = this.transformTargetTypesEndpoint(projectId, taskId, "notUsedInBackend", searchTerm, maxResults);
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON)
+
+        return this.handleErrorCode(promise);
+    },
+
     /**
      * Requests auto-completion suggestions for the script task code.
      */
@@ -293,6 +307,15 @@ const silkApi = {
                                               searchTerm: string | undefined, maxResults: number, fullUris: boolean): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
         return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
+    },
+
+    transformTargetTypesEndpoint: function(projectId: string,
+                                           transformTaskId: string,
+                                           ruleId: string,
+                                           searchTerm: string | undefined,
+                                           maxResults: number): string {
+        const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
+        return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetTypes?term=${encodedSearchTerm}&maxResults=${maxResults}`
     },
 
     getSuggestionsForAutoCompletion: function(projectId:string, transformTaskId:string, ruleId:string,

@@ -29,3 +29,12 @@ export interface TargetPropertyAutoCompletion {
         graph?: string
     }
 }
+
+export interface TargetClassAutoCompletion {
+    /** The URI */
+    value: string,
+    /** label of the property */
+    label?: string,
+    /** description of the property */
+    description?: string
+}
