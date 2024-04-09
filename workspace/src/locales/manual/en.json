@@ -162,7 +162,7 @@
         "prefixAgo": "",
         "suffixAgo": " ago",
         "dateFormat": "{{year}}/{{month}}/{{day}}",
-        "markdownHelperText": "You can use Markdown to format the description. Learn more about Markdown formatting", 
+        "markdownHelperText": "You can use Markdown to format the description. Learn more about Markdown formatting ",
         "markdownHelperLinkText": "here"
     },
     "OverwriteModal": {
