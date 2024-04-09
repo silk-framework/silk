@@ -186,6 +186,21 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
+    propertiesByClass: function (projectId: string,
+                                 transformTaskId: string,
+                                 classUri: string): HttpResponsePromise<any[]> {
+        const requestUrl = this.propertiesByTypeEndpoint(projectId, transformTaskId)
+
+        return this.handleErrorCode(
+            superagent
+                .get(requestUrl)
+                .accept(CONTENT_TYPE_JSON)
+                .query({
+                    classUri
+                })
+        )
+    },
+
     /**
      * Requests auto-completion suggestions for the script task code.
      */
@@ -316,6 +331,11 @@ const silkApi = {
                                            maxResults: number): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
         return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetTypes?term=${encodedSearchTerm}&maxResults=${maxResults}`
+    },
+
+    propertiesByTypeEndpoint: function(projectId: string,
+                                       transformTaskId: string): string {
+        return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/propertiesByClass`
     },
 
     getSuggestionsForAutoCompletion: function(projectId:string, transformTaskId:string, ruleId:string,
