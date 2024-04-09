@@ -298,7 +298,7 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem
-                              helperText={<p>You can use Markdown to format the description. Learn more about Markdown formatting  <a href="https://jira.eccenca.com/browse/CMEM-3875">here</a></p>}
+                              helperText={<p>{t("Metadata.markdownHelperText")}<a href="https://www.markdownguide.org/cheat-sheet">{t("Metadata.markdownHelperLinkText")}</a></p>}
                             >
                                 <CodeEditor name="description" mode="markdown" defaultValue={formEditData?.description} onChange={onDescriptionChange}/>
                             </FieldItem>

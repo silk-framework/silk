@@ -161,7 +161,9 @@
         "unknownuser": "unknown user",
         "prefixAgo": "",
         "suffixAgo": " ago",
-        "dateFormat": "{{year}}/{{month}}/{{day}}"
+        "dateFormat": "{{year}}/{{month}}/{{day}}",
+        "markdownHelperText": "You can use Markdown to format the description. Learn more about Markdown formatting", 
+        "markdownHelperLinkText": "here"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
