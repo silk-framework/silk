@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardOptions,
     CardTitle,
+    CodeEditor,
     Divider,
     ElapsedDateTimeDisplay,
     FieldItem,
@@ -220,9 +221,9 @@ export function Metadata(props: IProps) {
         }
     };
 
-    const onDescriptionChange = (e) => {
-        if (formEditData && e.target !== undefined) {
-            formEditData.description = e.target.value;
+    const onDescriptionChange = (value: string) => {
+        if (formEditData && value !== undefined) {
+            formEditData.description = value;
             checkEditState();
         }
     };
@@ -296,13 +297,10 @@ export function Metadata(props: IProps) {
                             <Label text={t("form.field.description", "Description")} htmlFor="description" />
                         </PropertyName>
                         <PropertyValue>
-                            <FieldItem>
-                                <TextArea
-                                    name="description"
-                                    id="description"
-                                    onChange={onDescriptionChange}
-                                    defaultValue={formEditData?.description}
-                                />
+                            <FieldItem
+                              helperText={<p>You can use Markdown to format the description. Learn more about Markdown formatting  <a href="https://jira.eccenca.com/browse/CMEM-3875">here</a></p>}
+                            >
+                                <CodeEditor name="description" mode="markdown" defaultValue={formEditData?.description} onChange={onDescriptionChange}/>
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
