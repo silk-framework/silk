@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
@@ -24,6 +25,7 @@ import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
+import scala.util.{Success, Try}
 
 @Tag(name = "Transform target vocabulary", description = "Provides access to the target vocabulary.")
 class TargetVocabularyApi  @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -241,8 +243,17 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                        )
                        classUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
-    val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = false)
+    val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, fullClassUri(classUri, project.config.prefixes), addBackwardRelations = false)
     serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
+  }
+
+  private def fullClassUri(classUri: String, prefixes: Prefixes): String = {
+    Try(prefixes.resolve(classUri)) match {
+      case Success(resolvedUri) =>
+        resolvedUri
+      case _ =>
+        classUri
+    }
   }
 
   /**
@@ -346,7 +357,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                       classUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val project: Project = getProject(projectName)
     // Filter only object properties
-    val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = true)
+    val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, fullClassUri(classUri, project.config.prefixes), addBackwardRelations = true)
     val forwardObjectProperties = forwardProperties.filter(vp => vp.range.isDefined && vp.domain.isDefined)
     val f = forwardObjectProperties map (fp => vocabularyPropertyToRelation(fp, forward = true))
     val b = backwardProperties map (bp => vocabularyPropertyToRelation(bp, forward = false))

@@ -1,6 +1,6 @@
 import superagent from '@eccenca/superagent';
 import Promise from 'bluebird';
-import {IUriPatternsResult, TargetPropertyAutoCompletion} from "./types";
+import {IUriPatternsResult, PropertyByDomainAutoCompletion, TargetPropertyAutoCompletion} from "./types";
 import {CONTEXT_PATH} from "../../../../constants/path";
 import {TaskContext} from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
 
@@ -188,7 +188,7 @@ const silkApi = {
 
     propertiesByClass: function (projectId: string,
                                  transformTaskId: string,
-                                 classUri: string): HttpResponsePromise<any[]> {
+                                 classUri: string): HttpResponsePromise<PropertyByDomainAutoCompletion[]> {
         const requestUrl = this.propertiesByTypeEndpoint(projectId, transformTaskId)
 
         return this.handleErrorCode(

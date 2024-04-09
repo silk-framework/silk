@@ -30,6 +30,13 @@ export interface TargetPropertyAutoCompletion {
     }
 }
 
+export interface GenericInfo {
+    uri: string
+    label?: string
+    description?: string
+    altLabels?: string[]
+}
+
 export interface TargetClassAutoCompletion {
     /** The URI */
     value: string,
@@ -37,4 +44,11 @@ export interface TargetClassAutoCompletion {
     label?: string,
     /** description of the property */
     description?: string
+}
+
+export interface PropertyByDomainAutoCompletion {
+    domain: string
+    genericInfo: GenericInfo
+    propertyType: "ObjectProperty" | "DatatypeProperty"
+    range: string
 }
