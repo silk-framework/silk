@@ -20,6 +20,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
@@ -554,7 +556,8 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                           )
                           workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, _) = projectAndTask[Workflow](projectId, workflowId)
-    val tasksWithProprietaryPortsConfig = project.tasks[CustomTask] ++ project.tasks[TransformSpec] ++ project.tasks[LinkSpec]
+    val tasksWithProprietaryPortsConfig = project.tasks[CustomTask] ++ project.tasks[TransformSpec] ++ project.tasks[LinkSpec]++
+                                          project.tasks[GenericDatasetSpec].filter(_.readOnly) // It's sufficient to send tasks with non-standard ports
     val byTaskId: Seq[(String, WorkflowNodePortConfig)] = for(task <- tasksWithProprietaryPortsConfig) yield {
       val taskId = task.id.toString
       val portConfig = WorkflowNodePortConfig(task.data.inputPorts, task.data.outputPort)
