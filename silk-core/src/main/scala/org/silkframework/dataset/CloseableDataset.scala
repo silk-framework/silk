@@ -7,7 +7,7 @@ import scala.util.control.NonFatal
   * Similar to Java's Closeable, but with user context.
   */
 trait CloseableDataset {
-  def close()(implicit userContext: UserContext): Unit
+  def close()(implicit userContext: UserContext): Unit = { }
 }
 
 object CloseableDataset {

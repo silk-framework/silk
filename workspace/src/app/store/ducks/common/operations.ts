@@ -42,6 +42,8 @@ const {
     setModalError,
     setExportTypes,
     changeLanguage,
+    toggleNotificationMenuDisplay,
+    toggleUserMenuDisplay,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
@@ -463,6 +465,8 @@ const commonOps = {
     fetchExportTypesAsync,
     extractDataAttributes,
     splitParameterAndVariableTemplateParameters,
+    toggleNotificationMenuDisplay,
+    toggleUserMenuDisplay,
 };
 
 export default commonOps;

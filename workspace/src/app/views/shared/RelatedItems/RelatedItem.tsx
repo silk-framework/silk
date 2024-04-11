@@ -1,6 +1,7 @@
 import {
     ContextMenu,
     Highlighter,
+    Icon,
     IconButton,
     MenuItem,
     OverviewItem,
@@ -8,6 +9,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
+    TagList,
+    Tooltip,
     //Spacing,
 } from "@eccenca/gui-elements";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
@@ -95,6 +98,14 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                             <Tag>
                                 <Highlighter label={relatedItem.type} searchValue={textQuery} />
                             </Tag>
+                            {relatedItem.readOnly && (
+                                <>
+                                    <Spacing vertical size="tiny" />
+                                    <Tag>
+                                        <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
+                                    </Tag>
+                                </>
+                            )}
                         </>
                     )}
                     <Spacing vertical size="tiny" />

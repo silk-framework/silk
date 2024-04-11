@@ -117,7 +117,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [readOnly, _setIsReadOnly] = React.useState(false);
     /** True while the editor is initializing. */
     const [initializing, setInitializing] = React.useState(true);
-    const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
+    const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
 

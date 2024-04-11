@@ -11,8 +11,9 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 trait DirtyTrackingFileDataSink extends DataSink {
   protected def resource: WritableResource
 
-  override def close()(implicit userContext: UserContext): Unit = {
+  abstract override def close()(implicit userContext: UserContext): Unit = {
     DirtyTrackingFileDataSink.addUpdatedFile(resource.name)
+    super.close()
   }
 }
 

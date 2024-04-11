@@ -154,6 +154,7 @@ export interface IRelatedItem {
     tags: Keywords;
     projectId?: string;
     pluginId?: string;
+    readOnly?: boolean;
 }
 
 export interface IItemLink {

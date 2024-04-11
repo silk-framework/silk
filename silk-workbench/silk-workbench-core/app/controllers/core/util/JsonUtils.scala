@@ -1,6 +1,7 @@
 package controllers.core.util
 
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.serialization.json.JsonParseException
 import play.api.libs.json.{JsPath, JsValue, Json, JsonValidationError, Reads}
 import play.api.mvc.{AnyContent, Request}
 
@@ -27,7 +28,7 @@ object JsonUtils {
       jsValue
     } catch {
       case NonFatal(ex) =>
-        throw new ValidationException("Could not parse Json", ex)
+        throw new JsonParseException("Could not parse Json", Some(ex))
     }
   }
 
@@ -36,7 +37,7 @@ object JsonUtils {
     val result = Json.fromJson[T](jsValue)
     result.fold(
       errors => {
-        throw new ValidationException("Invalid JSON structure. Error details: " + errorsToString(errors))
+        throw JsonParseException(errors)
       },
       obj => {
         obj
@@ -52,12 +53,5 @@ object JsonUtils {
       case None =>
         throw BadUserInputException("Expected JSON body.")
     }
-  }
-
-  def errorsToString(errors: scala.collection.Seq[(JsPath, scala.collection.Seq[JsonValidationError])]): String = {
-    val errorStrings = errors map { case (path, validationErrors) =>
-        "JSON Path \"" + path.toJsonString + "\" with error(s): " + validationErrors.map("\"" + _.message + "\"").mkString(", ")
-    }
-    errorStrings.mkString(", ")
   }
 }

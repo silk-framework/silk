@@ -49,7 +49,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
-    const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
+    const displayUserMenu = useSelector(commonSel.userMenuDisplaySelector);
+
     //general keyboard shortcuts
     useKeyboardHeaderShortcuts();
     const diUserMenuItems = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
@@ -204,7 +205,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                 tooltipAlignment="end"
                                 isActive={true}
                                 onClick={() => {
-                                    toggleUserMenuDisplay(false);
+                                    dispatch(commonOp.toggleUserMenuDisplay(false));
                                 }}
                             >
                                 <Icon name="navigation-close" description="Close icon" large />
@@ -213,7 +214,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                 aria-label="User menu"
                                 expanded={true}
                                 onLeave={() => {
-                                    toggleUserMenuDisplay(false);
+                                    dispatch(commonOp.toggleUserMenuDisplay(false));
                                 }}
                             >
                                 <Toolbar verticalStack={true} style={{ height: "100%" }}>
@@ -291,7 +292,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             tooltipAlignment="end"
                             isActive={false}
                             onClick={() => {
-                                toggleUserMenuDisplay(true);
+                                dispatch(commonOp.toggleUserMenuDisplay(true));
                             }}
                         >
                             <Icon name="application-useraccount" description="User menu icon" large />

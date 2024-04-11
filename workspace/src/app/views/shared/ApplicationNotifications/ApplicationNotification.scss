@@ -1,29 +1,7 @@
 .diapp-applicationnotifications--filledqueue {
-    // put application header over all overlays
-
-    .#{$eccgui}-application__header {
-        z-index: $eccgui-zindex-overlays - 2;
-    }
-
     // adjust position of tabview
-
     .diapp-iframewindow--fullscreen {
         top: calc(#{mini-units(8)} + #{$eccgui-size-block-whitespace});
         left: calc(#{mini-units(8)} + #{$eccgui-size-block-whitespace});
-    }
-
-    // adjust position of all other modal dialogs
-
-    .#{$ns}-dialog-container {
-        top: mini-units(8);
-        left: mini-units(8);
-        min-height: calc(100% - #{mini-units(8)});
-        width: calc(100% - #{mini-units(8)});
-    }
-
-    .#{$eccgui}-dialog__wrapper {
-        max-width: calc(100vw - #{mini-units(8)} - #{2 * $eccgui-size-block-whitespace});
-        max-height: calc(100vh - #{mini-units(8)} - #{2 * $eccgui-size-block-whitespace});
-        margin: 0;
     }
 }
