@@ -89,7 +89,7 @@ export const ParameterAutoCompletion = ({
     const [show, setShow] = React.useState(true);
     const [limit, setLimit] = React.useState<number>(100);
     const [searchQuery, setSearchQuery] = React.useState<string>("");
-    const [showLoadMore, setShowMoreButton] = React.useState<boolean>(true);
+    const [fetchMore, setFetchMore] = React.useState<boolean>(true);
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
     let onChangeUsed = onChange;
@@ -139,7 +139,6 @@ export const ParameterAutoCompletion = ({
     ): Promise<IAutocompleteDefaultResponse[]> => {
         // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
         try {
-            console.log({ limit });
             if (autoCompletion.customAutoCompletionRequest) {
                 return autoCompletion.customAutoCompletionRequest(input, limit);
             } else {
@@ -192,17 +191,17 @@ export const ParameterAutoCompletion = ({
         //make one more requests if the response is less than the limit
         if (results.length < newLimit) {
             //hide loadMore
-            setShowMoreButton(false);
+            setFetchMore(false);
         } else {
             //fetch one more ahead to see if there is still more.
             const nextLimit = newLimit + 1;
             const nextResults = (await handleAutoCompleteInput(searchQuery, autoCompletion, nextLimit)) ?? [];
             if (nextResults.length < nextLimit) {
-                setShowMoreButton(false);
+                setFetchMore(false);
             }
         }
 
-        return results.slice(limit);
+        return results.slice(limit + 1);
     };
 
     return (
@@ -220,7 +219,7 @@ export const ParameterAutoCompletion = ({
                 readOnly: !!readOnly,
                 ...inputProps,
             }}
-            loadMoreResults={showLoadMore ? loadMoreResults : undefined}
+            loadMoreResults={fetchMore ? loadMoreResults : undefined}
             reset={
                 !required
                     ? {
