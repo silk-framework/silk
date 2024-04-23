@@ -87,9 +87,6 @@ export const ParameterAutoCompletion = ({
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
     const [show, setShow] = React.useState(true);
-    const [limit, setLimit] = React.useState<number>(100);
-    const [searchQuery, setSearchQuery] = React.useState<string>("");
-    const [showLoadMore, setShowMoreButton] = React.useState<boolean>(true);
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
     let onChangeUsed = onChange;
@@ -134,12 +131,11 @@ export const ParameterAutoCompletion = ({
 
     const handleAutoCompleteInput = async (
         input: string,
-        autoCompletion: IPropertyAutocomplete,
-        limit: number
+        autoCompletion: IPropertyAutocomplete
     ): Promise<IAutocompleteDefaultResponse[]> => {
         // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
+        const limit = 100;
         try {
-            console.log({ limit });
             if (autoCompletion.customAutoCompletionRequest) {
                 return autoCompletion.customAutoCompletionRequest(input, limit);
             } else {
@@ -176,38 +172,9 @@ export const ParameterAutoCompletion = ({
         return <Spinner position={"inline"} />;
     }
 
-    const handleSearch = React.useCallback(
-        (input: string) => {
-            setSearchQuery(input);
-            return handleAutoCompleteInput(input, autoCompletion, 100);
-        },
-        [limit]
-    );
-
-    const loadMoreResults = async () => {
-        const newLimit = limit + 100;
-        const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
-        setLimit(newLimit);
-
-        //make one more requests if the response is less than the limit
-        if (results.length < newLimit) {
-            //hide loadMore
-            setShowMoreButton(false);
-        } else {
-            //fetch one more ahead to see if there is still more.
-            const nextLimit = newLimit + 1;
-            const nextResults = (await handleAutoCompleteInput(searchQuery, autoCompletion, nextLimit)) ?? [];
-            if (nextResults.length < nextLimit) {
-                setShowMoreButton(false);
-            }
-        }
-
-        return results.slice(limit);
-    };
-
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
-            onSearch={handleSearch}
+            onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
             disabled={
@@ -220,7 +187,6 @@ export const ParameterAutoCompletion = ({
                 readOnly: !!readOnly,
                 ...inputProps,
             }}
-            loadMoreResults={showLoadMore ? loadMoreResults : undefined}
             reset={
                 !required
                     ? {
