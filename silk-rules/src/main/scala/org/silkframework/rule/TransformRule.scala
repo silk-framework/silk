@@ -267,13 +267,16 @@ object RootMappingRule {
   * @param id             The name of this mapping. For direct mappings usually just the property that is mapped.
   * @param sourcePath     The source path
   * @param mappingTarget  The target property
+  * @param metaData       Meta data
+  * @param inputId        Identifier of the generated input path operator. If not defined, the mapping `id` will be used.
   */
 case class DirectMapping(id: Identifier = "sourcePath",
                          sourcePath: UntypedPath = UntypedPath(Nil),
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
-                         metaData: MetaData = MetaData.empty) extends ValueTransformRule {
+                         metaData: MetaData = MetaData.empty,
+                         inputId: Option[Identifier] = None) extends ValueTransformRule {
 
-  override val operator = PathInput(id, sourcePath.asUntypedPath)
+  override val operator = PathInput(inputId.getOrElse(id), sourcePath.asUntypedPath)
 
   override val target = Some(mappingTarget)
 
@@ -536,8 +539,8 @@ object TransformRule {
     */
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
-    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
-      DirectMapping(id, path.asUntypedPath, target, metaData)
+    case ComplexMapping(id, PathInput(pathId, path), Some(target), metaData, _, uiAnnotations) if uiAnnotations.stickyNotes.isEmpty =>
+      DirectMapping(id, path.asUntypedPath, target, metaData, Some(pathId))
     // Rule with annotations or layout info is always treated as complex (URI) mapping rule
     case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
       if(targetOpt.isEmpty) {
