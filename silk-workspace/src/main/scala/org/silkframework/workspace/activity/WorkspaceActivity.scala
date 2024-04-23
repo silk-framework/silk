@@ -4,7 +4,7 @@ import org.silkframework.config.{DefaultConfig, TaskSpec}
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterValues, PluginContext}
 import org.silkframework.runtime.validation.ServiceUnavailableException
-import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.util.{Identifier, IdentifierGenerator, PrefixedIdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import java.time.Instant
@@ -21,7 +21,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * Generates new identifiers for created activity instances.
     */
-  private val identifierGenerator = new IdentifierGenerator(name)
+  private val identifierGenerator = new PrefixedIdentifierGenerator(name)
   private val log: Logger = Logger.getLogger(this.getClass.getName)
   lazy private val maxConcurrentExecutionsPerActivity = WorkspaceActivity.maxConcurrentExecutionsPerActivity()
 
