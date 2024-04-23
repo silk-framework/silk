@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -90,13 +90,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     htmlFor: "desc-input",
                 }}
             >
-                <TextArea
-                    id={DESCRIPTION}
-                    name={DESCRIPTION}
-                    growVertically={true}
-                    placeholder={t("form.projectForm.projectDesc", "Project description")}
-                    onChange={onValueChange(DESCRIPTION)}
-                />
+                <CodeEditor id={DESCRIPTION} name={DESCRIPTION} mode="markdown" onChange={onValueChange(DESCRIPTION)} />
             </FieldItem>
             <FieldItem
                 key={TAGS}

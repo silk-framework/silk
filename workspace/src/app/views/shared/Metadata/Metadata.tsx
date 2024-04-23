@@ -298,9 +298,21 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem
-                              helperText={<p>{t("Metadata.markdownHelperText")}<a href="https://www.markdownguide.org/cheat-sheet">{t("Metadata.markdownHelperLinkText")}</a></p>}
+                                helperText={
+                                    <p>
+                                        {t("Metadata.markdownHelperText")}{" "}
+                                        <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                                            {t("Metadata.markdownHelperLinkText")}
+                                        </a>
+                                    </p>
+                                }
                             >
-                                <CodeEditor name="description" mode="markdown" defaultValue={formEditData?.description} onChange={onDescriptionChange}/>
+                                <CodeEditor
+                                    name="description"
+                                    mode="markdown"
+                                    defaultValue={formEditData?.description}
+                                    onChange={onDescriptionChange}
+                                />
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
