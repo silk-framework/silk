@@ -89,6 +89,14 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     text: t("form.field.description"),
                     htmlFor: "desc-input",
                 }}
+                helperText={
+                    <p>
+                        {t("Metadata.markdownHelperText")}{" "}
+                        <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                            {t("Metadata.markdownHelperLinkText")}
+                        </a>
+                    </p>
+                }
             >
                 <CodeEditor id={DESCRIPTION} name={DESCRIPTION} mode="markdown" onChange={onValueChange(DESCRIPTION)} />
             </FieldItem>

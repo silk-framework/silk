@@ -422,6 +422,14 @@ export function TaskForm({
                             key={DESCRIPTION}
                             parameterId={DESCRIPTION}
                             label={t("form.field.description")}
+                            helperText={
+                                <p>
+                                    {t("Metadata.markdownHelperText")}{" "}
+                                    <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                                        {t("Metadata.markdownHelperLinkText")}
+                                    </a>
+                                </p>
+                            }
                             inputElementFactory={() => CodeEditorMemoed}
                         />
                         <ArtefactFormParameter
