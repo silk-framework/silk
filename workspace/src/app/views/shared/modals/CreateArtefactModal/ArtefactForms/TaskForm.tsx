@@ -428,6 +428,7 @@ export function TaskForm({
                                     <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
                                         {t("Metadata.markdownHelperLinkText")}
                                     </a>
+                                    .
                                 </p>
                             }
                             inputElementFactory={() => CodeEditorMemoed}

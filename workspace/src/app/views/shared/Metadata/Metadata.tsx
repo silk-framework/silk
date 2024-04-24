@@ -304,6 +304,7 @@ export function Metadata(props: IProps) {
                                         <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
                                             {t("Metadata.markdownHelperLinkText")}
                                         </a>
+                                        .
                                     </p>
                                 }
                             >
