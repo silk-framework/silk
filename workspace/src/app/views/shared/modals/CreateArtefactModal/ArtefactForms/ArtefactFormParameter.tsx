@@ -164,7 +164,7 @@ export const ArtefactFormParameter = ({
         (valueOrEvent: any) => {
             const value = valueOrEvent.target ? `${valueOrEvent.target.value}` : `${valueOrEvent}`;
             valueState.current.currentInputValue = value;
-            supportVariableTemplateElement?.onChange(value);
+            supportVariableTemplateElement?.onChange && supportVariableTemplateElement.onChange(value);
         },
         [supportVariableTemplateElement?.onChange]
     );

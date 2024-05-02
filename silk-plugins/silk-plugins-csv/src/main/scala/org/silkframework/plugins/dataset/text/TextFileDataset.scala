@@ -1,12 +1,13 @@
 package org.silkframework.plugins.dataset.text
 
-import org.silkframework.dataset.{DataSource, Dataset, DatasetCharacteristics, EntitySink, LinkSink, ResourceBasedDataset}
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
+import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.charset.{CharsetAutocompletionProvider, CharsetUtils}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.io.Codec
@@ -16,7 +17,7 @@ import scala.io.Codec
   label = "Text",
   description= "Reads and writes plain text files.")
 case class TextFileDataset(
-   @Param("The plain text file.")
+   @Param("The plain text file. May also be a zip archive containing multiple text files.")
    file: WritableResource,
    @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
    charset: String = "UTF-8",
@@ -24,18 +25,24 @@ case class TextFileDataset(
    typeName: String = "type",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
-) extends Dataset with ResourceBasedDataset {
+) extends Dataset with TextBulkResourceBasedDataset {
 
-  val codec: Codec = CharsetUtils.forName(charset)
+  override val codec: Codec = CharsetUtils.forName(charset)
+
+  override def mimeType: Option[String] = Some("text/plain")
 
   val uri: Uri = DataSource.generateEntityUri(Identifier.fromAllowed(file.name), "text")
 
   val path: TypedPath = TypedPath(UntypedPath(property), ValueType.STRING, isAttribute = false)
 
+  override def mergeSchemata: Boolean = false
+
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source(implicit userContext: UserContext): DataSource = new TextFileSource(this)
+  override def createSource(resource: Resource): DataSource = {
+    new TextFileSource(this, resource)
+  }
 
   /**
     * Returns a link sink for writing entity links to the data set.

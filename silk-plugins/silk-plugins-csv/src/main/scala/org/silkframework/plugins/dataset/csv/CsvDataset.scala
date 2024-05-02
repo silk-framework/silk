@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset.DatasetCharacteristics.{SpecialPaths, SupportedPathExpressions}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
 import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -45,7 +45,7 @@ case class CsvDataset (
   quoteEscapeCharacter: String = "\"",
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
   override val zipFileRegex: String = ".*\\.csv$") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
-                                       with CsvDatasetTrait with BulkResourceBasedDataset with WritableResourceDataset {
+                                       with CsvDatasetTrait with TextBulkResourceBasedDataset with WritableResourceDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 

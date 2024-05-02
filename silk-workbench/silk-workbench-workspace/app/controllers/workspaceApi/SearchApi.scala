@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.runtime.activity.UserContext
@@ -120,13 +121,20 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         val additionalData = taskOpt match {
           case Some(task) =>
             val pd = PluginDescription.forTask(task)
-            Json.obj(
-              "taskId" -> JsString(task.id),
-              "taskLabel" -> JsString(taskOpt.get.label()),
-              PLUGIN_ID -> JsString(pd.id),
-              PLUGIN_LABEL -> JsString(pd.label),
-              TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
-            )
+            val taskJson =
+              Json.obj(
+                "taskId" -> JsString(task.id),
+                "taskLabel" -> JsString(taskOpt.get.label()),
+                PLUGIN_ID -> JsString(pd.id),
+                PLUGIN_LABEL -> JsString(pd.label),
+                TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
+              )
+            task.data match {
+              case ds: GenericDatasetSpec =>
+                taskJson + ("readOnly" -> JsBoolean(ds.readOnly))
+              case _ =>
+                taskJson
+            }
           case None =>
             Json.obj(
               TAGS -> Json.toJson(project.tags().map(FullTag.fromTag))

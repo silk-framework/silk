@@ -149,6 +149,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,3), ("xml",2), ("inMemory",1), ("json",1)),
       Seq(("a.xml",2), ("a.csv",1), ("b.csv",1), ("c.csv",1), ("xyz.json",1)),
+      Seq(("Read-write", 7)),
       Seq(("", 7)), // Unknown user
       Seq(("", 7))  // Unknown user
     )
@@ -168,6 +169,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,3), ("xml",2), ("inMemory",1), ("json",1)),
       Seq(("a.csv",1), ("b.csv",1), ("c.csv",1)),
+      Seq(("Read-write", 3)),
       Seq(("", 3)),
       Seq(("", 3))
     )
@@ -183,6 +185,7 @@ class SearchApiIntegrationTest extends AnyFlatSpec
     checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,2)),
       Seq(("a.csv",1), ("b.csv",1), ("c.csv",1)),
+      Seq(("Read-write", 2)),
       Seq(("", 2)),
       Seq(("", 2))
     )
@@ -356,8 +359,8 @@ class SearchApiIntegrationTest extends AnyFlatSpec
   }
 
   private def checkAndGetDatasetFacetValues(response: FacetedSearchResult): Seq[Seq[(String, Int)]] = {
-    response.facets.size mustBe 4
-    response.facets.map(_.id) mustBe Seq(Facets.datasetType.id, Facets.fileResource.id, Facets.createdBy.id, Facets.lastModifiedBy.id)
+    response.facets.size mustBe 5
+    response.facets.map(_.id) mustBe Seq(Facets.datasetType.id, Facets.fileResource.id, Facets.readOnly.id, Facets.createdBy.id, Facets.lastModifiedBy.id)
     response.facets.map(extractKeyWordsWithCounts)
   }
 

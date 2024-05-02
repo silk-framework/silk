@@ -125,7 +125,7 @@ lazy val rules = (project in file("silk-rules"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Rules",
-    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.1",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.7.3",
     libraryDependencies += "org.apache.jena" % "jena-core" % "5.0.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % "5.0.0" exclude("org.slf4j", "slf4j-log4j12")
   )

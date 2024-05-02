@@ -4,6 +4,7 @@ import {
     Card,
     ContextMenu,
     Highlighter,
+    Icon,
     IconButton,
     Markdown,
     MenuDivider,
@@ -16,6 +17,7 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
+    Tooltip,
     markdownUtils,
 } from "@eccenca/gui-elements";
 import { PluggableList } from "unified";
@@ -199,6 +201,14 @@ export default function SearchItem({
                                         )}
                                         searchValue={searchValue}
                                     />
+                                </Tag>
+                            </>
+                        )}
+                        {item.type === DATA_TYPES.DATASET && item.readOnly && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag>
+                                    <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
                                 </Tag>
                             </>
                         )}

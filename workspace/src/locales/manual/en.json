@@ -49,6 +49,9 @@
         "loading": "Loading data."
     },
     "DataPreview": {
+        "loadMore": "Load more",
+        "loadMoreTooltip": "Load and append more text of this file",
+        "formatText": "Format text",
         "load": "Load preview",
         "loading": "Loading preview data.",
         "noAttributes": "No attributes found. This might be an empty dataset.",
@@ -425,6 +428,11 @@
             "added": "Added",
             "removed": "Removed",
             "paths": "Paths"
+        }, 
+        "tooltips": {
+            "dataset": {
+                "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
+            }
         }
     },
     "form": {
@@ -797,6 +805,10 @@
                 "datasetType": {
                     "description": "The concrete type of a dataset, e.g. its data model and format etc.",
                     "label": "Dataset type"
+                },
+                "readOnly": {
+                    "description": "Filters datasets based on their access permissions.",
+                    "label": "Dataset accessibility"
                 },
                 "lastModifiedBy": {
                     "description": "The user who last modified the item.",
