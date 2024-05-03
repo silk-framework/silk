@@ -62,6 +62,21 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
         []
     );
 
+    const CodeEditorMemoed = React.useMemo(
+        () => (
+            <CodeEditor 
+            outerDivAttributes={{
+                id:DESCRIPTION
+           }} 
+           preventLineNumbers
+           name={DESCRIPTION} 
+           mode="markdown" 
+           onChange={onValueChange(DESCRIPTION)} 
+           />
+        ),
+        []
+    );
+
     return (
         <>
             <FieldItem
@@ -99,7 +114,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     </p>
                 }
             >
-                <CodeEditor id={DESCRIPTION} name={DESCRIPTION} mode="markdown" onChange={onValueChange(DESCRIPTION)} />
+           {CodeEditorMemoed}
             </FieldItem>
             <FieldItem
                 key={TAGS}
