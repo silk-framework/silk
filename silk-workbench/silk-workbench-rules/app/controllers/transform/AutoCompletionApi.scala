@@ -646,7 +646,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     val completions = vocabularyTypeCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
-    Ok(completions.filterAndSort(term, maxResults).toJson)
+    Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
   }
 
   @Operation(
