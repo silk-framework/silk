@@ -51,7 +51,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                               inputs: Seq[ExecType#DataType],
                                               output: ExecutorOutput)
                                              (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
-    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)(workflowRunContext.userContext)
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project, Some(workflowTask.id))(workflowRunContext.userContext)
     val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
     val result =

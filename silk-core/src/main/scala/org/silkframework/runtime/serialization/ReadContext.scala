@@ -23,7 +23,8 @@ case class ReadContext(resources: ResourceManager,
                        validationEnabled: Boolean = false,
                        user: UserContext = UserContext.Empty,
                        projectId: Option[Identifier] = None,
-                       templateVariables: TemplateVariablesReader = GlobalTemplateVariables) extends PluginContext
+                       templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
+                       workflowId: Option[Identifier] = None) extends PluginContext
 
 object ReadContext {
 
@@ -47,7 +48,8 @@ object ReadContext {
       validationEnabled = validationEnabled,
       user = pluginContext.user,
       projectId = pluginContext.projectId,
-      templateVariables = pluginContext.templateVariables
+      templateVariables = pluginContext.templateVariables,
+      workflowId = pluginContext.workflowId
     )
   }
 
