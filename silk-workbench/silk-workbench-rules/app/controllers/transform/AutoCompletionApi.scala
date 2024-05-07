@@ -26,7 +26,7 @@ import org.silkframework.runtime.validation.{BadUserInputException, NotFoundExce
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCacheValue}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsString, JsValue, Json}
 import play.api.mvc._
 
 import java.util.logging.Logger
@@ -777,16 +777,28 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
 
     val propertyCompletions =
       for(vocab <- vocabularyCache.vocabularies; prop <- vocab.properties) yield {
+        val propertyType = if (prop.propertyType == ObjectPropertyType) "object" else "value"
+        var extra = Json.obj(
+          "type" -> propertyType,
+          "graph" -> vocab.info.uri // FIXME: Currently the vocab URI and graph URI are the same. This might change in the future.
+        )
+        if(prop.propertyType == ObjectPropertyType && prop.range.isDefined) {
+          val rangeInfo = prop.range.get.info
+          var rangeObj = Json.obj(
+            "uri" -> rangeInfo.uri
+          )
+          rangeInfo.label.foreach { label =>
+            rangeObj = rangeObj + ("label" -> JsString(label))
+          }
+          extra = extra + ("range" -> rangeObj)
+        }
         Completion(
           value = if(fullUris) prop.info.uri else prefixes.shorten(prop.info.uri),
           label = prop.info.label,
           description = prop.info.description,
           category = Categories.vocabularyProperties,
           isCompletion = true,
-          extra = Some(Json.obj(
-            "type" -> (if (prop.propertyType == ObjectPropertyType) "object" else "value"),
-            "graph" -> vocab.info.uri // FIXME: Currently the vocab URI and graph URI are the same. This might change in the future.
-          ))
+          extra = Some(extra)
         )
       }
 

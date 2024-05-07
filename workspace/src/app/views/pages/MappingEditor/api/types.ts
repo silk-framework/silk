@@ -27,6 +27,11 @@ export interface TargetPropertyAutoCompletion {
         /** Object or data type property */
         type: "object" | "value",
         graph?: string
+        /** In case of an object property optionally the class info of the range. */
+        range?: {
+            uri: string,
+            label?: string
+        }
     }
 }
 
