@@ -260,6 +260,22 @@ export function Metadata(props: IProps) {
         return (now - then) / 1000 / 60 / 60 / 24;
     };
 
+    const CodeEditorMemoed = React.useMemo(
+        () => (
+            <CodeEditor
+                name="description"
+                mode="markdown"
+                outerDivAttributes={{
+                    id: "description",
+                }}
+                preventLineNumbers
+                defaultValue={formEditData?.description}
+                onChange={onDescriptionChange}
+            />
+        ),
+        [formEditData]
+    );
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -308,16 +324,7 @@ export function Metadata(props: IProps) {
                                     </p>
                                 }
                             >
-                                <CodeEditor
-                                    name="description"
-                                    mode="markdown"
-                                    outerDivAttributes={{
-                                        id: "description"
-                                    }}
-                                    preventLineNumbers
-                                    defaultValue={formEditData?.description}
-                                    onChange={onDescriptionChange}
-                                />
+                                {CodeEditorMemoed}
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
