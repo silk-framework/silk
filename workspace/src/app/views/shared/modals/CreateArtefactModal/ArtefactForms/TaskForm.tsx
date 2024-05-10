@@ -6,7 +6,7 @@ import {
     TaskPreConfiguration,
 } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -372,6 +372,22 @@ export function TaskForm({
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
     const formHooks = { errors };
 
+    const CodeEditorMemoed = React.useMemo(
+        () => (
+            <CodeEditor
+                outerDivAttributes={{
+                    id:DESCRIPTION
+                }}
+                preventLineNumbers
+                name={DESCRIPTION}
+                mode="markdown"
+                defaultValue={description}
+                onChange={handleChange(DESCRIPTION)}
+            />
+        ),
+        []
+    );
+
     return doChange ? (
         <Loading />
     ) : (
@@ -409,14 +425,16 @@ export function TaskForm({
                             key={DESCRIPTION}
                             parameterId={DESCRIPTION}
                             label={t("form.field.description")}
-                            inputElementFactory={() => (
-                                <TextArea
-                                    id={DESCRIPTION}
-                                    name={DESCRIPTION}
-                                    value={description ?? ""}
-                                    onChange={handleChange(DESCRIPTION)}
-                                />
-                            )}
+                            helperText={
+                                <p>
+                                    {t("Metadata.markdownHelperText")}{" "}
+                                    <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                                        {t("Metadata.markdownHelperLinkText")}
+                                    </a>
+                                    .
+                                </p>
+                            }
+                            inputElementFactory={() => CodeEditorMemoed}
                         />
                         <ArtefactFormParameter
                             projectId={projectId}

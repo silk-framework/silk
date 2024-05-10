@@ -322,6 +322,7 @@ export function CreateArtefactModal() {
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
+                    console.log({formValues})
                     const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
                     let dataParameters: any;
                     if (type === "Dataset") {

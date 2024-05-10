@@ -172,7 +172,7 @@
         "@babel/plugin-transform-react-jsx-source": "^7.2.0",
         "@babel/preset-flow": "^7.16.5",
         "@babel/preset-typescript": "^7.16.7",
-	    "@cyclonedx/webpack-plugin": "^2.0.2",
+        "@cyclonedx/webpack-plugin": "^2.0.2",
         "@svgr/webpack": "4.3.3",
         "@testing-library/jest-dom": "^5.11.0",
         "@testing-library/react": "^10.4.3",
