@@ -178,6 +178,8 @@ export const ParameterAutoCompletion = ({
     const handleSearch = React.useCallback(
         (input: string) => {
             setSearchQuery(input);
+            setFetchMore(true)
+            setLimit(100)
             return handleAutoCompleteInput(input, autoCompletion, 100);
         },
         [limit]
