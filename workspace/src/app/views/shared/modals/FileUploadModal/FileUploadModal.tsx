@@ -17,15 +17,17 @@ export interface IFileUploadModalProps {
 export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
-    const [allSuccessful, setAllSuccessful] = React.useState(true);
+    const [finishedOrFailed, setFinishedOrFailed] = React.useState<boolean | undefined>(undefined);
+    const [isUploading, setIsUploading] = React.useState<boolean>(false);
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     useDebugValue(!projectId ? "Project ID not provided and upload url is not valid" : "");
 
-    const allFilesSuccessfullyUploadedHandler = React.useCallback((allSuccessful: boolean) => {
-        setAllSuccessful(allSuccessful);
+    //successful === false === finished/failed
+    const allFilesSuccessfullyUploadedHandler = React.useCallback((status: boolean) => {
+        setFinishedOrFailed(status);
     }, []);
 
     if (!projectId) {
@@ -41,6 +43,8 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
         onDiscard();
     };
 
+    const uploadStatePristine = finishedOrFailed === undefined // no upload has been initiated or has failed
+
     return (
         <>
             <SimpleDialog
@@ -49,10 +53,10 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 size="small"
                 isOpen={isOpen}
                 onClose={handleDiscard}
-                preventSimpleClosing={!allSuccessful}
+                preventSimpleClosing={isUploading}
                 actions={
-                    <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard}>
-                        {t("common.action.close", "Close")}
+                     <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard} disabled={isUploading}>
+                         {uploadStatePristine ? t("common.action.cancel", "Cancel") :t("common.action.close", "Close") }
                     </Button>
                 }
             >
@@ -63,6 +67,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                     onChange={() => {
                         /** We are not interested on file changes, only upload. */
                     }}
+                    onProgress={(amount) => setIsUploading(amount < 1)}
                     maxFileUploadSizeBytes={maxFileUploadSize}
                     allFilesSuccessfullyUploadedHandler={allFilesSuccessfullyUploadedHandler}
                 />
