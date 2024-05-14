@@ -170,6 +170,7 @@ export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
     wrapper.simulate("change", { target: { value: value } });
 };
 
+
 /** Finds a single element corresponding to the selector or fails. */
 export const findSingleElement = (
     wrapper: ReactWrapper<any, any>,

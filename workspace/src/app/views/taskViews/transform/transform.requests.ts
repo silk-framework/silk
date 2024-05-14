@@ -3,7 +3,7 @@ import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { IComplexMappingRule, ITransformRule } from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
+import {TaskContext} from "../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 /** Fetches a transform rule. */
 export const requestTransformRule = async (
@@ -25,17 +25,16 @@ export const autoCompleteTransformSourcePath = (
     taskId: string,
     ruleId: string,
     term = "",
-    taskContext?: TaskContext,
-    limit = 100
+    taskContext?: TaskContext
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: legacyTransformEndpoint(
-            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=${limit}&term=${term}`
+            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=1000&term=${term}`
         ),
         method: "POST",
         body: {
-            taskContext,
-        },
+            taskContext
+        }
     });
 };
 
