@@ -19,7 +19,7 @@ export function RetryFileItem({ file, onCancelRetry, onRetry }: IProps) {
             <Notification
                 onDismiss={() => onCancelRetry(file.id)}
                 danger={true}
-                timeout={60000}
+                timeout={1000 * 60 * 60}
                 actions={
                     onRetry && (
                         <Button outlined onClick={() => onRetry(file.id)}>
