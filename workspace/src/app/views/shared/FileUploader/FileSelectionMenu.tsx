@@ -1,5 +1,5 @@
 import React from "react";
-import Uppy from "@uppy/core";
+import Uppy, { UppyFile } from "@uppy/core";
 import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
@@ -101,6 +101,8 @@ export interface IUploaderOptions {
     /** Callback that is called when the state of all uploads being successfully done has changed.
      * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
     allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
+
+    listenToUploadedFiles: (files: UppyFile[]) => void 
 }
 
 interface IState {
@@ -322,6 +324,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                         validateBeforeAdd={this.validateBeforeFileAdded}
                                         uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/files`)}`}
                                         attachFileNameToEndpoint={true}
+                                        listenToUploadedFiles={this.props.listenToUploadedFiles}
                                         allFilesSuccessfullyUploadedHandler={
                                             this.props.allFilesSuccessfullyUploadedHandler
                                         }

@@ -37,6 +37,7 @@ interface IProps {
     /** Callback that is called when the state of all uploads being successfully done has changed.
      * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
     allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
+    listenToUploadedFiles?: (files: UppyFile[]) => void
 }
 
 /**
@@ -52,6 +53,7 @@ export function UploadNewFile({
     attachFileNameToEndpoint,
     allFilesSuccessfullyUploadedHandler,
     onProgress,
+    listenToUploadedFiles
 }: IProps) {
     // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);
@@ -98,6 +100,8 @@ export function UploadNewFile({
         }
     };
     checkFilesSuccessfullyUploaded();
+
+    React.useEffect(() => {listenToUploadedFiles?.(uploadedFiles)},[uploadedFiles])
 
     // register/unregister uppy events
     useEffect(() => {
@@ -292,6 +296,7 @@ export function UploadNewFile({
             delete newState[fileId];
             return newState;
         });
+        onProgress?.(0)
         addInRetryQueue(uppy.getFile(fileId));
     };
 
