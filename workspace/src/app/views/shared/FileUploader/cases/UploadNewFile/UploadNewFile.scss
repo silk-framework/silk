@@ -2,10 +2,10 @@
     visibility: hidden;
 }
 
-.eccgui-upload {
+.diapp-project__uploadwidget {
     position: relative;
 
-    & > .eccgui-upload__dnd-icon {
+    & > .diapp-project__uploadwidget__dnd-icon {
        position: absolute; 
        top: $ecc-size-block-whitespace; 
        left: 50%;

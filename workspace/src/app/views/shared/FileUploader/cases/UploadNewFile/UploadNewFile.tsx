@@ -367,7 +367,7 @@ export function UploadNewFile({
  
 
     return (
-        <div className={`${eccgui}-upload`}>
+        <div className="diapp-project__uploadwidget">
             {projectId && showDeleteDialog && (
                 <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             )}
@@ -375,7 +375,7 @@ export function UploadNewFile({
                 uppy={uppy}
                 locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
             />
-            <Icon name="item-upload" className={`${eccgui}-upload__dnd-icon`}/>
+            <Icon name="item-upload" className="diapp-project__uploadwidget__dnd-icon" />
             <Spacing />
             {!error ? (
                 <>
