@@ -3,6 +3,7 @@ import Promise from 'bluebird';
 import {IUriPatternsResult, PropertyByDomainAutoCompletion, TargetPropertyAutoCompletion} from "./types";
 import {CONTEXT_PATH} from "../../../../constants/path";
 import {TaskContext} from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
+import {IPartialAutoCompleteResult} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion"
 
 const CONTENT_TYPE_JSON = 'application/json';
 
@@ -340,12 +341,20 @@ const silkApi = {
 
     getSuggestionsForAutoCompletion: function(projectId:string, transformTaskId:string, ruleId:string,
                                               inputString:string, cursorPosition: number, isObjectPath: boolean,
-                                              taskContext?: TaskContext): HttpResponsePromise<any> {
+                                              taskContext?: TaskContext, baseSourcePath?: string, oneHopOnly?: boolean,
+                                              ignorePathOperatorCompletions?: boolean): HttpResponsePromise<IPartialAutoCompleteResult> {
         const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
+        const requestBody: any = { inputString, cursorPosition, maxSuggestions: 50, isObjectPath, taskContext, baseSourcePath }
+        if(oneHopOnly) {
+            requestBody.oneHopOnly = true
+        }
+        if(ignorePathOperatorCompletions) {
+            requestBody.ignorePathOperatorCompletions = true
+        }
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
-            .send({ inputString, cursorPosition, maxSuggestions: 50, isObjectPath, taskContext });
+            .send(requestBody);
         return this.handleErrorCode(promise)
     },
 

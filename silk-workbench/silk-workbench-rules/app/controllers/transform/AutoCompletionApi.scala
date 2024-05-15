@@ -254,11 +254,18 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         val inputEqualsConfig = inputAndOutputTasks.inputTasks.size == 1 &&
           inputAndOutputTasks.inputTasks.head.workflowContextTask.id == transformTask.data.selection.inputId.toString
         val alternativeEntitySchema = if(inputEqualsConfig) None else inputAndOutputTasks.inputEntitySchema().filter(_.typedPaths.nonEmpty)
-        withRule(transformTask, ruleId) { case (_, sourcePath) =>
-          val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
-            autoCompletionRequest.isObjectPath.getOrElse(false), alternativeEntitySchema)
-          Ok(Json.toJson(autoCompletionResponse))
+        val sourcePath: List[PathOperator] = autoCompletionRequest.baseSourcePath match {
+          case Some(sourcePathString) =>
+            implicit val prefixes: Prefixes = project.config.prefixes
+            UntypedPath.parse(sourcePathString).operators
+          case None =>
+            withRule(transformTask, ruleId) { case (_, sourcePath) =>
+              sourcePath
+            }
         }
+        val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath,
+          autoCompletionRequest.isObjectPath.getOrElse(false), alternativeEntitySchema)
+        Ok(Json.toJson(autoCompletionResponse))
       }
   }
 
@@ -291,7 +298,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       case (false, true) => OpFilter.Forward
       case _ => OpFilter.None
     }
-    val relativePaths = AutoCompletionApiUtils.extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
+    val relativePaths = AutoCompletionApiUtils.extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput,
+      oneHopOnly = pathToReplace.insideFilter || autoCompletionRequest.oneHopOnly.getOrElse(false),
       serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
     )
     val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath)
@@ -363,7 +371,10 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                 uriPatternAutoCompletionRequest.cursorPosition - pathPart.segmentPosition.originalStartIndex,
                 uriPatternAutoCompletionRequest.maxSuggestions,
                 Some(false),
-                uriPatternAutoCompletionRequest.workflowTaskContext
+                uriPatternAutoCompletionRequest.workflowTaskContext,
+                None,
+                None,
+                None
               )
               val inputOutputTasks = ProjectTaskApi.validateTaskContext(project, uriPatternAutoCompletionRequest.workflowTaskContext)
               val inputEqualsConfig = inputOutputTasks.inputTasks.size == 1 &&
