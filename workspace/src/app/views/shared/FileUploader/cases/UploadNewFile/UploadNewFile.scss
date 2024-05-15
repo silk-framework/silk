@@ -1,0 +1,14 @@
+.uppy-c-icon.uppy-DragDrop-arrow {
+    visibility: hidden;
+}
+
+.eccgui-upload {
+    position: relative;
+
+    & > .eccgui-upload__dnd-icon {
+       position: absolute; 
+       top: $ecc-size-block-whitespace; 
+       left: 50%;
+       transform: translate(-50%);
+    }
+}

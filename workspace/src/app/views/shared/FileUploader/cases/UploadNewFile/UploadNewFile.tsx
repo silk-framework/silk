@@ -1,7 +1,7 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
-import { Button, Notification, Spacing } from "@eccenca/gui-elements";
+import { Button, Icon, Notification, Spacing } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
@@ -9,6 +9,8 @@ import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
 import { RetryFileItem } from "./RetryFileItem";
 import { UploadedFileItem } from "./UploadedFileItem";
 import { FileRemoveModal } from "../../../modals/FileRemoveModal";
+
+import {CLASSPREFIX as  eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 
 interface IProps {
     // Uppy instance
@@ -39,6 +41,7 @@ interface IProps {
     allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
     listenToUploadedFiles?: (files: UppyFile[]) => void
 }
+
 
 /**
  * The Widget for "Upload new file" option
@@ -361,8 +364,10 @@ export function UploadNewFile({
         forceUpdate();
     };
 
+ 
+
     return (
-        <>
+        <div className={`${eccgui}-upload`}>
             {projectId && showDeleteDialog && (
                 <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             )}
@@ -370,6 +375,7 @@ export function UploadNewFile({
                 uppy={uppy}
                 locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
             />
+            <Icon name="item-upload" className={`${eccgui}-upload__dnd-icon`}/>
             <Spacing />
             {!error ? (
                 <>
@@ -414,6 +420,6 @@ export function UploadNewFile({
                     danger
                 />
             )}
-        </>
+        </div>
     );
 }

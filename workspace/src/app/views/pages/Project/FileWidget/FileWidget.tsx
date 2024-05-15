@@ -93,9 +93,9 @@ export const FileWidget = () => {
                     </CardTitle>
                     <CardOptions>
                         <IconButton
-                            name="item-add-artefact"
+                            name="item-upload"
                             data-test-id="project-files-widget-add-file-btn"
-                            text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
+                            text={t("common.action.uploadFiles")}
                             onClick={toggleFileUploader}
                         />
                     </CardOptions>
