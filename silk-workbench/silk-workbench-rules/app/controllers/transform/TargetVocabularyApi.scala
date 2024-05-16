@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.transform.doc.TargetVocabularyApiDoc
+import controllers.transform.vocabulary.SourcePropertiesOfClassRequest
 import controllers.util.SerializationUtils._
 import controllers.workspace.workspaceRequests.{VocabularyInfo, VocabularyInfos}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -12,14 +13,14 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.TransformSpec
-import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
+import org.silkframework.rule.vocab.{Vocabularies, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
-import org.silkframework.workspace.activity.transform.{VocabularyCache, VocabularyCacheValue}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -247,6 +248,62 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
     serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
   }
 
+  @Operation(
+    summary = "Source vocabulary properties by class",
+    description = "Get all properties that the given class or any of its parent classes are the domain of in the vocabulary.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.propertiesByClassExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or class has not been found."
+      )
+    ))
+  def sourcePropertiesByType(@Parameter(
+                               name = "project",
+                               description = "The project identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             projectName: String,
+                             @Parameter(
+                               name = "task",
+                               description = "The task identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      validateJson[SourcePropertiesOfClassRequest] { sourcePropertiesOfClassRequest =>
+        implicit val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
+        var (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, fullClassUri(sourcePropertiesOfClassRequest.classUri, project.config.prefixes),
+          addBackwardRelations = false, fromGlobalVocabularyCache = true)
+        if(sourcePropertiesOfClassRequest.fromPathCacheOnly) {
+          val pathsCache = transformTask.activity[TransformPathsCache]
+          pathsCache.value.get match {
+            case Some(cacheValue) =>
+              val rootProperties = cacheValue.configuredSchema.typedPaths.flatMap(_.property.map(_.propertyUri)).toSet
+              val otherProperties = cacheValue.untypedSchema.toSeq.flatMap(_.typedPaths.flatMap(_.property.map(_.propertyUri))).toSet
+              val allProperties = rootProperties ++ otherProperties
+              vocabularyProps = vocabularyProps.filter(p => allProperties.contains(p.info.uri))
+            case None =>
+              // Do not filter
+          }
+        }
+        serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
+      }
+  }
+
   private def fullClassUri(classUri: String, prefixes: Prefixes): String = {
     Try(prefixes.resolve(classUri)) match {
       case Success(resolvedUri) =>
@@ -265,10 +322,15 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
   private def vocabularyPropertiesByType(taskName: String,
                                          project: Project,
                                          classUri: String,
-                                         addBackwardRelations: Boolean)
+                                         addBackwardRelations: Boolean,
+                                         fromGlobalVocabularyCache: Boolean = false)
                                         (implicit userContext: UserContext): (Seq[VocabularyProperty], Seq[VocabularyProperty]) = {
     val task = project.task[TransformSpec](taskName)
-    val vocabularies = VocabularyCacheValue.targetVocabularies(task)
+    val vocabularies: Vocabularies = if(fromGlobalVocabularyCache) {
+      Vocabularies(VocabularyCacheValue.globalVocabularies)
+    } else {
+      VocabularyCacheValue.targetVocabularies(task)
+    }
     val vocabularyClasses = vocabularies.flatMap(v => v.getClass(classUri).map(c => (v, c)))
 
     def filterProperties(propFilter: (VocabularyProperty, List[String]) => Boolean): Seq[VocabularyProperty] = {

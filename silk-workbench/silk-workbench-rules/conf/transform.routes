@@ -54,6 +54,9 @@ GET           /tasks/:project/:task/targetVocabulary/typeOrProperty             
 GET           /tasks/:project/:task/targetVocabulary/propertiesByClass             controllers.transform.TargetVocabularyApi.propertiesByType(project: String, task: String, classUri: String)
 GET           /tasks/:project/:task/targetVocabulary/relationsOfClass              controllers.transform.TargetVocabularyApi.relationsOfType(project: String, task: String, classUri: String)
 
+# Endpoints for RDF source datasets
+POST          /tasks/:project/:task/sourceVocabulary/propertiesByClass             controllers.transform.TargetVocabularyApi.sourcePropertiesByType(project: String, task: String)
+
 POST          /tasks/:project/:task/transformInput                                 controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)
 GET           /tasks/:project/:task/rule/:rule/valueSourcePaths                    controllers.transform.SourcePathsApi.valueSourcePaths(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, unusedOnly: Boolean ?= false, usedOnly: Boolean ?= false)
 GET           /tasks/:project/:task/rule/:rule/valueSourcePathsInfo                controllers.transform.SourcePathsApi.valueSourcePathsFullInfo(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, objectInfo: Boolean ?= false)
