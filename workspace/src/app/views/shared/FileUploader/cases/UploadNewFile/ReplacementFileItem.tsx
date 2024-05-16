@@ -17,6 +17,7 @@ export function ReplacementFileItem({ file, onCancelReplacement, onReplace }: IP
     return (
         <div key={file.id}>
             <Notification
+                timeout={1000 * 60 * 60}
                 onDismiss={() => onCancelReplacement(file.id)}
                 warning={true}
                 actions={
