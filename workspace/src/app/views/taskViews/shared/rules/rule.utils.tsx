@@ -183,6 +183,7 @@ const inputPathOperator = (
                           customItemRenderer: customInputPathRenderer,
                       }
                     : undefined,
+                orderIdx: 1
             }),
         },
         categories: [...additionalCategories, "Recommended"],
@@ -206,6 +207,7 @@ const parameterSpecification = ({
     autoCompletion,
     distanceMeasureRange,
     requiredLabel,
+    orderIdx
 }: Omit<IParameterSpecification, OptionalParameterAttributes> &
     Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
@@ -219,6 +221,7 @@ const parameterSpecification = ({
         autoCompletion,
         distanceMeasureRange,
         requiredLabel,
+        orderIdx
     };
 };
 
@@ -250,7 +253,7 @@ const convertRuleOperator = (
         parameterSpecification: Object.fromEntries([
             ...Object.entries(pluginDetails.properties)
                 .filter(([paramId, paramSpec]) => !inputsCanBeSwitched || paramId !== REVERSE_PARAMETER_ID)
-                .map(([parameterId, parameterSpec]) => {
+                .map(([parameterId, parameterSpec], idx) => {
                     const spec: IParameterSpecification = {
                         label: parameterSpec.title,
                         description: parameterSpec.description,
@@ -259,6 +262,7 @@ const convertRuleOperator = (
                         type: convertPluginParameterType(parameterSpec.parameterType),
                         autoCompletion: parameterSpec.autoCompletion,
                         defaultValue: optionallyLabelledParameterToValue(parameterSpec.value) ?? "",
+                        orderIdx: idx
                     };
                     return [parameterId, spec];
                 }),

@@ -90,6 +90,8 @@ export interface IParameterSpecification {
     distanceMeasureRange?: DistanceMeasureRange;
     /** some required fields have additional labels to specify what values are acceptable */
     requiredLabel?: string;
+    /** The order index of this parameter. The index in the order of the parameter. First parameter starts with 0. */
+    orderIdx: number
 }
 
 export interface IParameterValidationResult {
