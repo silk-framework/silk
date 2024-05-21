@@ -134,8 +134,8 @@ export const ParameterAutoCompletion = ({
 
     const handleAutoCompleteInput = async (
         input: string,
-        autoCompletion: IPropertyAutocomplete,
-        limit: number
+        autoCompletion: IPropertyAutocomplete, 
+        limit = 100
     ): Promise<IAutocompleteDefaultResponse[]> => {
         // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
         try {
@@ -171,16 +171,12 @@ export const ParameterAutoCompletion = ({
 
     const itemValue = (value: StringOrReifiedValue) => (typeof value === "string" ? value : value.value);
 
-    if (!show) {
-        return <Spinner position={"inline"} />;
-    }
-
     const handleSearch = React.useCallback(
         (input: string) => {
             setSearchQuery(input);
             setFetchMore(true)
             setLimit(100)
-            return handleAutoCompleteInput(input, autoCompletion, 100);
+            return handleAutoCompleteInput(input, autoCompletion);
         },
         [limit]
     );
@@ -205,6 +201,10 @@ export const ParameterAutoCompletion = ({
 
         return results.slice(limit + 1);
     };
+
+    if (!show) {
+        return <Spinner position={"inline"} />;
+    }
 
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
