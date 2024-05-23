@@ -14,7 +14,7 @@ import org.silkframework.workspace.activity.workflow.TaskIdentifierParameter.Tas
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
 import org.silkframework.workspace.activity.workflow.WorkflowDatasetsParameter.WorkflowDatasetsFormat
 import org.silkframework.workspace.activity.workflow.WorkflowOperatorsParameter.WorkflowOperatorsFormat
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowAsTaskExecutor, LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{DefaultWorkflowExecutorFactory, LocalWorkflowAsTaskExecutor, LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 
 import scala.language.existentials
@@ -60,7 +60,8 @@ class WorkspacePlugins extends PluginModule {
     classOf[ReferenceEntitiesCacheFactory] :: Nil
 
   def workflowActivities: List[Class[_ <: AnyPlugin]] =
-    classOf[LocalWorkflowExecutorFactory] :: Nil
+    classOf[LocalWorkflowExecutorFactory] ::
+    classOf[DefaultWorkflowExecutorFactory] :: Nil
 
   def formats: List[Class[_ <: AnyPlugin]] = {
     TypesFormat.getClass ::
