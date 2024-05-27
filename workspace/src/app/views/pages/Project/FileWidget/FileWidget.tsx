@@ -95,7 +95,7 @@ export const FileWidget = () => {
                         <IconButton
                             name="item-upload"
                             data-test-id="project-files-widget-add-file-btn"
-                            title={t("FileUploader.modalTitle", "Upload file")}
+                            text={t("FileUploader.modalTitle", "Upload file")}
                             onClick={toggleFileUploader}
                         />
                     </CardOptions>
