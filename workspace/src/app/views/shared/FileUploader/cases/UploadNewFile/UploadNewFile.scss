@@ -1,0 +1,14 @@
+.uppy-c-icon.uppy-DragDrop-arrow {
+    visibility: hidden;
+}
+
+.diapp-project__uploadwidget {
+    position: relative;
+
+    & > .diapp-project__uploadwidget__dnd-icon {
+       position: absolute; 
+       top: $ecc-size-block-whitespace; 
+       left: 50%;
+       transform: translate(-50%);
+    }
+}

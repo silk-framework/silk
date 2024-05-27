@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
 import { useTranslation } from "react-i18next";
+import { UppyFile } from "@uppy/core";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
@@ -17,17 +18,14 @@ export interface IFileUploadModalProps {
 export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
-    const [allSuccessful, setAllSuccessful] = React.useState(true);
+    const [uploadedFiles, setUploadedFiles] = useState<UppyFile[]>([]);
+    const [isUploading, setIsUploading] = React.useState<boolean>(false);
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     useDebugValue(!projectId ? "Project ID not provided and upload url is not valid" : "");
-
-    const allFilesSuccessfullyUploadedHandler = React.useCallback((allSuccessful: boolean) => {
-        setAllSuccessful(allSuccessful);
-    }, []);
-
+    
     if (!projectId) {
         return null;
     }
@@ -49,10 +47,10 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 size="small"
                 isOpen={isOpen}
                 onClose={handleDiscard}
-                preventSimpleClosing={!allSuccessful}
+                preventSimpleClosing={isUploading}
                 actions={
-                    <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard}>
-                        {t("common.action.close", "Close")}
+                     <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard} disabled={isUploading}>
+                         {!uploadedFiles.length ? t("common.action.cancel", "Cancel") :t("common.action.close", "Close") }
                     </Button>
                 }
             >
@@ -60,11 +58,12 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                     projectId={projectId}
                     getInstance={getUploaderInstance}
                     {...uploaderOptions}
-                    onChange={() => {
+                    listenToUploadedFiles={setUploadedFiles}
+                    onChange={(params) => {
                         /** We are not interested on file changes, only upload. */
                     }}
+                    onProgress={(amount) => setIsUploading(amount > 0 && amount < 1)} // between 0 and 1
                     maxFileUploadSizeBytes={maxFileUploadSize}
-                    allFilesSuccessfullyUploadedHandler={allFilesSuccessfullyUploadedHandler}
                 />
             </SimpleDialog>
         </>
