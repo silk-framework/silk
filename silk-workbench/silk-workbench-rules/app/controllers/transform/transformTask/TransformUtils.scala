@@ -10,7 +10,7 @@ import org.silkframework.workspace.{Project, ProjectTask}
 
 /** Utility functions for transform tasks. */
 object TransformUtils {
-  /** Returns the dataset characteristics if the input task of the transformation is a dataset. */
+  /** Returns the dataset characteristics of the input task of the transformation is a dataset. */
   def datasetCharacteristics(task: ProjectTask[TransformSpec])
                             (implicit userContext: UserContext): Option[DatasetCharacteristics] = {
     datasetCharacteristics(task.project, task.selection)
@@ -35,6 +35,12 @@ object TransformUtils {
                                datasetId: Identifier)
                               (implicit userContext: UserContext): Boolean = {
     project.taskOption[GenericDatasetSpec](datasetId).exists(_.data.plugin.isInstanceOf[RdfDataset])
+  }
+
+  /** Returns the dataset characteristics of the dataset selection. */
+  def outputDatasetCharacteristics(transformTask: ProjectTask[TransformSpec])
+                            (implicit userContext: UserContext): Option[DatasetCharacteristics] = {
+    transformTask.output.value.flatMap(output => datasetCharacteristics(transformTask.project, DatasetSelection(output)))
   }
 
   /** Returns true if the configured input task is a RDF dataset. */
