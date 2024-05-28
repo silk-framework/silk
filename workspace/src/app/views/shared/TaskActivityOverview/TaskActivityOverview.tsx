@@ -376,13 +376,23 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Widget that wraps and summarizes the cache activities
     const CacheGroupWidget = () => {
+        const executeRestart = (cursor = 0) => {
+            const activity = cacheActivities[cursor]
+            if(activity){
+                const activityFunctions = activityFunctionsCreator(activity);
+                activityFunctions.executeActivityAction("restart")
+                activityFunctions.registerForUpdates((status) => {
+                    if(!status.isRunning){
+                        activityFunctions.unregisterFromUpdates();
+                        setTimeout(() => {
+                            return executeRestart(cursor + 1)
+                        },50)
+                    }
+                })
+            }
+        }
         return (
-            <OverviewItem
-                hasSpacing
-                onClick={() => {
-                    setDisplayCacheList(!displayCacheList);
-                }}
-            >
+            <OverviewItem hasSpacing>
                 <OverviewItemDepiction keepColors>
                     {cachesOverallStatus.currentlyExecuting ? (
                         <Spinner position={"inline"} size={"small"} stroke={"medium"} />
@@ -407,7 +417,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     )}
                 </OverviewItemDescription>
                 <OverviewItemActions>
+                    <IconButton name="item-reload" text="Reload all" onClick={() => executeRestart()} />
                     <IconButton
+                        onClick={() =>  setDisplayCacheList(!displayCacheList)}
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
                         name={displayCacheList ? "toggler-showless" : "toggler-showmore"}
                         text={displayCacheList ? "Hide single caches" : "Show all single caches"}
