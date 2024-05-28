@@ -189,7 +189,8 @@ const silkApi = {
 
     propertiesByClass: function (projectId: string,
                                  transformTaskId: string,
-                                 classUri: string): HttpResponsePromise<PropertyByDomainAutoCompletion[]> {
+                                 classUri: string,
+                                 includeGeneralProperties?: boolean): HttpResponsePromise<PropertyByDomainAutoCompletion[]> {
         const requestUrl = this.propertiesByTypeEndpoint(projectId, transformTaskId)
 
         return this.handleErrorCode(
@@ -197,7 +198,8 @@ const silkApi = {
                 .get(requestUrl)
                 .accept(CONTENT_TYPE_JSON)
                 .query({
-                    classUri
+                    classUri,
+                    includeGeneralProperties
                 })
         )
     },

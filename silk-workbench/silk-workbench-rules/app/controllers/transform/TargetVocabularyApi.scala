@@ -242,9 +242,18 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                          in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String])
                        )
-                       classUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                       classUri: String,
+                       @Parameter(
+                         name = "includeGeneralProperties",
+                         description = "If true then also properties defined on owl:Thing and properties without any domain statement are returned.",
+                         required = false,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[Boolean])
+                       )
+                       includeGeneralProperties: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
-    val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, fullClassUri(classUri, project.config.prefixes), addBackwardRelations = false)
+    val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, fullClassUri(classUri, project.config.prefixes),
+      addBackwardRelations = false, includeGeneralProperties = includeGeneralProperties)
     serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
   }
 
@@ -287,7 +296,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
       validateJson[SourcePropertiesOfClassRequest] { sourcePropertiesOfClassRequest =>
         implicit val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
         var (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, fullClassUri(sourcePropertiesOfClassRequest.classUri, project.config.prefixes),
-          addBackwardRelations = false, fromGlobalVocabularyCache = true)
+          addBackwardRelations = false, fromGlobalVocabularyCache = true, includeGeneralProperties = sourcePropertiesOfClassRequest.includeGeneralProperties)
         if(sourcePropertiesOfClassRequest.fromPathCacheOnly) {
           val pathsCache = transformTask.activity[TransformPathsCache]
           pathsCache.value.get match {
@@ -323,7 +332,8 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
                                          project: Project,
                                          classUri: String,
                                          addBackwardRelations: Boolean,
-                                         fromGlobalVocabularyCache: Boolean = false)
+                                         fromGlobalVocabularyCache: Boolean = false,
+                                         includeGeneralProperties: Boolean = false)
                                         (implicit userContext: UserContext): (Seq[VocabularyProperty], Seq[VocabularyProperty]) = {
     val task = project.task[TransformSpec](taskName)
     val vocabularies: Vocabularies = if(fromGlobalVocabularyCache) {
@@ -342,8 +352,14 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
       props.flatten
     }
 
-    val forwardProperties = filterProperties((prop, classes) => prop.domain.exists(vc => classes.contains(vc.info.uri)))
-    val backwardProperties = filterProperties((prop, classes) => addBackwardRelations && prop.range.exists(vc => classes.contains(vc.info.uri)))
+    val forwardProperties = filterProperties((prop, classes) => {
+      prop.domain.exists(vc => {
+        classes.contains(vc.info.uri)
+      }) || (
+        includeGeneralProperties && (prop.domain.isEmpty || prop.domain.get.info.uri == "http://www.w3.org/2002/07/owl#Thing")
+        )
+    })
+    val backwardProperties = if(addBackwardRelations) filterProperties((prop, classes) => prop.range.exists(vc => classes.contains(vc.info.uri))) else Seq.empty
     (forwardProperties, backwardProperties)
   }
 
