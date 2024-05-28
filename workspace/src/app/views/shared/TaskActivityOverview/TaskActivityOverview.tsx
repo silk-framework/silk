@@ -417,7 +417,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     )}
                 </OverviewItemDescription>
                 <OverviewItemActions>
-                    <IconButton name="item-reload" text="Reload all" onClick={() => executeRestart()} />
+                    <IconButton name="item-reload" text={t("widget.TaskActivityOverview.reloadAllCaches")} onClick={() => executeRestart()} />
                     <IconButton
                         onClick={() =>  setDisplayCacheList(!displayCacheList)}
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
