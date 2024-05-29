@@ -376,21 +376,25 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Widget that wraps and summarizes the cache activities
     const CacheGroupWidget = () => {
+        const [reloadCachesBtnDisabled, setReloadCachesBtnDisabled] = React.useState<boolean>(false)
+        
         const executeRestart = (cursor = 0) => {
             const activity = cacheActivities[cursor]
             if(activity){
-                const activityFunctions = activityFunctionsCreator(activity);
-                activityFunctions.executeActivityAction("restart")
-                activityFunctions.registerForUpdates((status) => {
-                    if(!status.isRunning){
-                        activityFunctions.unregisterFromUpdates();
-                        setTimeout(() => {
-                            return executeRestart(cursor + 1)
-                        },50)
-                    }
-                })
+                const currentlyRunningActivity = Array.from(activityStatusMap.values()).find(a => a.isRunning === true)
+                //nothing must be running before I execute you
+                if(!currentlyRunningActivity){
+                    const activityFunctions = activityFunctionsCreator(activity);
+                    activityFunctions.executeActivityAction("restart")
+                    setTimeout(() => executeRestart(cursor + 1), 50)
+                }
+            }else {
+                //all executions have finished
+                setReloadCachesBtnDisabled(false)
             }
         }
+
+     
         return (
             <OverviewItem hasSpacing>
                 <OverviewItemDepiction keepColors>
@@ -417,7 +421,15 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     )}
                 </OverviewItemDescription>
                 <OverviewItemActions>
-                    <IconButton name="item-reload" text={t("widget.TaskActivityOverview.reloadAllCaches")} onClick={() => executeRestart()} />
+                    <IconButton 
+                        name="item-reload" 
+                        text={t("widget.TaskActivityOverview.reloadAllCaches")} 
+                        onClick={() => {   
+                            setReloadCachesBtnDisabled(true)
+                            executeRestart()}
+                        } 
+                        disabled={reloadCachesBtnDisabled}
+                    />
                     <IconButton
                         onClick={() =>  setDisplayCacheList(!displayCacheList)}
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
