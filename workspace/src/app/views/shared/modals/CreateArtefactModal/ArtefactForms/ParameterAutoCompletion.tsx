@@ -91,6 +91,8 @@ export const ParameterAutoCompletion = ({
     const [show, setShow] = React.useState(true);
     const [limit, setLimit] = React.useState<number>(AUTOCOMPLETION_LIMIT);
     const [searchQuery, setSearchQuery] = React.useState<string>("");
+    //determines if when the user scrolls to the bottom it is necessary to request more content or not
+    const [shouldLoadMoreResults, setShouldLoadMoreResults] = React.useState<boolean>(true);
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
     let onChangeUsed = onChange;
@@ -175,16 +177,20 @@ export const ParameterAutoCompletion = ({
         (input: string) => {
             setSearchQuery(input);
             setLimit(AUTOCOMPLETION_LIMIT)
+            setShouldLoadMoreResults(true)
             return handleAutoCompleteInput(input, autoCompletion);
         },
         [limit]
     );
 
     const loadMoreResults = async () => {
-        const newLimit = limit + AUTOCOMPLETION_LIMIT;
-        const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
-        setLimit(newLimit);
-        return {results: results.slice(limit + 1), shouldFetchAgain: results.length >= newLimit }
+        if(shouldLoadMoreResults){
+            const newLimit = limit + AUTOCOMPLETION_LIMIT;
+            const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
+            setLimit(newLimit);
+            setShouldLoadMoreResults(results.length >= newLimit)
+            return results.slice(limit + 1)
+        }
     };
 
     if (!show) {
