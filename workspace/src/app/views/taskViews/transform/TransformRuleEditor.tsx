@@ -171,7 +171,7 @@ export const TransformRuleEditor = ({
 
     const inputPathAutoCompletion = async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
         try {
-            const response = await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, term, mappingEditorContext.taskContext);
+            const response = await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, term, mappingEditorContext.taskContext, limit);
             const results = response.data.map((data) => ({ ...data, valueType: "" }));
             if (term.trim() === "") {
                 results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });

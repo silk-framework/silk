@@ -62,6 +62,8 @@ export interface ParameterAutoCompletionProps {
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
 
+const AUTOCOMPLETION_LIMIT = 100
+
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({
     paramId,
@@ -87,9 +89,8 @@ export const ParameterAutoCompletion = ({
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
     const [show, setShow] = React.useState(true);
-    const [limit, setLimit] = React.useState<number>(100);
+    const [limit, setLimit] = React.useState<number>(AUTOCOMPLETION_LIMIT);
     const [searchQuery, setSearchQuery] = React.useState<string>("");
-    const [fetchMore, setFetchMore] = React.useState<boolean>(true);
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
     let onChangeUsed = onChange;
@@ -135,9 +136,8 @@ export const ParameterAutoCompletion = ({
     const handleAutoCompleteInput = async (
         input: string,
         autoCompletion: IPropertyAutocomplete, 
-        limit = 100
+        limit = AUTOCOMPLETION_LIMIT
     ): Promise<IAutocompleteDefaultResponse[]> => {
-        // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
         try {
             if (autoCompletion.customAutoCompletionRequest) {
                 return autoCompletion.customAutoCompletionRequest(input, limit);
@@ -174,32 +174,17 @@ export const ParameterAutoCompletion = ({
     const handleSearch = React.useCallback(
         (input: string) => {
             setSearchQuery(input);
-            setFetchMore(true)
-            setLimit(100)
+            setLimit(AUTOCOMPLETION_LIMIT)
             return handleAutoCompleteInput(input, autoCompletion);
         },
         [limit]
     );
 
     const loadMoreResults = async () => {
-        const newLimit = limit + 100;
+        const newLimit = limit + AUTOCOMPLETION_LIMIT;
         const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
         setLimit(newLimit);
-
-        //make one more requests if the response is less than the limit
-        if (results.length < newLimit) {
-            //hide loadMore
-            setFetchMore(false);
-        } else {
-            //fetch one more ahead to see if there is still more.
-            const nextLimit = newLimit + 1;
-            const nextResults = (await handleAutoCompleteInput(searchQuery, autoCompletion, nextLimit)) ?? [];
-            if (nextResults.length < nextLimit) {
-                setFetchMore(false);
-            }
-        }
-
-        return results.slice(limit + 1);
+        return {results: results.slice(limit + 1), shouldFetchAgain: results.length >= newLimit }
     };
 
     if (!show) {
@@ -221,7 +206,7 @@ export const ParameterAutoCompletion = ({
                 readOnly: !!readOnly,
                 ...inputProps,
             }}
-            loadMoreResults={fetchMore ? loadMoreResults : undefined}
+            loadMoreResults={loadMoreResults}
             reset={
                 !required
                     ? {
