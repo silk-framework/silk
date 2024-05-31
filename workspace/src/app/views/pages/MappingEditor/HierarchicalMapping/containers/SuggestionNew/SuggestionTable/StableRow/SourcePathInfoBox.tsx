@@ -13,25 +13,28 @@ interface IProps {
         objectSubPaths: string[]
     }
     embed?: boolean
+    exampleValues?: string[]
 }
 
 /** Shows additional information for a dataset source path, e.g. examples values. */
-export function SourcePathInfoBox({source, pathType, objectInfo, embed}: IProps) {
+export function SourcePathInfoBox({source, pathType, objectInfo, embed, exampleValues}: IProps) {
     const context = useContext(SuggestionListContext);
-    const {exampleValues} = context;
+    const {exampleValues: contextExampleValues} = context;
     const [t] = useTranslation()
 
     let examples: string[] | undefined = [];
     let sourcePath: string = ""
-    if (typeof source === 'string') {
+    if(exampleValues) {
+        examples = exampleValues
+    } else if (typeof source === 'string') {
         sourcePath = source
-        examples = exampleValues[source as string];
+        examples = contextExampleValues[source as string];
     } else if (Array.isArray(source)) {
         // There is always one item selected from the target list
         const selected = source.find(t => t._selected) as ITargetWithSelected;
         sourcePath = selected.uri
-        if (selected && exampleValues[selected.uri]) {
-            examples = exampleValues[selected.uri]
+        if (selected && contextExampleValues[selected.uri]) {
+            examples = contextExampleValues[selected.uri]
         }
     }
 
