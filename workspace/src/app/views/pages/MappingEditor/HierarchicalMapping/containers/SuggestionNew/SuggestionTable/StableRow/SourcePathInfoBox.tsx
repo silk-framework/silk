@@ -3,6 +3,7 @@ import { HtmlContentBlock } from "@eccenca/gui-elements";
 import {ITargetWithSelected, SuggestionTypeValues} from "../../suggestion.typings";
 import { SuggestionListContext } from "../../SuggestionContainer";
 import { InfoBoxOverlay } from "./InfoBoxOverlay";
+import {useTranslation} from "react-i18next";
 
 interface IProps {
     source?: string | ITargetWithSelected[];
@@ -11,12 +12,14 @@ interface IProps {
         dataTypeSubPaths: string[]
         objectSubPaths: string[]
     }
+    embed?: boolean
 }
 
 /** Shows additional information for a dataset source path, e.g. examples values. */
-export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
+export function SourcePathInfoBox({source, pathType, objectInfo, embed}: IProps) {
     const context = useContext(SuggestionListContext);
     const {exampleValues} = context;
+    const [t] = useTranslation()
 
     let examples: string[] | undefined = [];
     let sourcePath: string = ""
@@ -36,14 +39,14 @@ export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
 
     const infoBoxProperties = [
         {
-            key: "Source path",
+            key: t("MappingSuggestion.SourceElement.infobox.sourcePath"),
             value: simpleStringValue(sourcePath)
         }
     ]
 
     if(examples && examples.length > 0) {
         infoBoxProperties.push({
-            key: "Example data",
+            key: t("MappingSuggestion.SourceElement.infobox.exampleData"),
             value: <code>
                 <InfoList items={Array.from(new Set(examples)).sort().slice(0, 9)} />
             </code>,
@@ -53,19 +56,21 @@ export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
     if(pathType) {
         infoBoxProperties.push({
             key: "Path type",
-            value: simpleStringValue(pathType === "object" ? "Object path" : "Value path")
+            value: simpleStringValue(pathType === "object" ?
+                t("MappingSuggestion.SourceElement.infobox.objectPath") :
+                t("MappingSuggestion.SourceElement.infobox.valuePath"))
         })
     }
 
     if(objectInfo) {
         infoBoxProperties.push({
-            key: `Data type sub-paths (${objectInfo.dataTypeSubPaths.length})`,
+            key: `${t("MappingSuggestion.SourceElement.infobox.dataTypeSubPaths")} (${objectInfo.dataTypeSubPaths.length})`,
             value: <div>
                 <InfoList items={objectInfo.dataTypeSubPaths} />
             </div>
         })
         infoBoxProperties.push({
-            key: `Object type sub-paths (${objectInfo.objectSubPaths.length})`,
+            key: `${t("MappingSuggestion.SourceElement.infobox.objectTypeSubPaths")} (${objectInfo.objectSubPaths.length})`,
             value: <div>
                 <InfoList items={objectInfo.objectSubPaths} />
             </div>
@@ -75,6 +80,7 @@ export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
     return <InfoBoxOverlay
         data={infoBoxProperties}
         data-test-id={"source-path-infobox"}
+        embed={embed}
     />;
 }
 
