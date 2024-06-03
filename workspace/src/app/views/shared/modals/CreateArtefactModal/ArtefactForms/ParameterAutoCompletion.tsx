@@ -62,7 +62,7 @@ export interface ParameterAutoCompletionProps {
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
 
-const AUTOCOMPLETION_LIMIT = 100
+const AUTOCOMPLETION_LIMIT = 100;
 
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({
@@ -137,7 +137,7 @@ export const ParameterAutoCompletion = ({
 
     const handleAutoCompleteInput = async (
         input: string,
-        autoCompletion: IPropertyAutocomplete, 
+        autoCompletion: IPropertyAutocomplete,
         limit = AUTOCOMPLETION_LIMIT
     ): Promise<IAutocompleteDefaultResponse[]> => {
         try {
@@ -173,23 +173,20 @@ export const ParameterAutoCompletion = ({
 
     const itemValue = (value: StringOrReifiedValue) => (typeof value === "string" ? value : value.value);
 
-    const handleSearch = React.useCallback(
-        (input: string) => {
-            setSearchQuery(input);
-            setLimit(AUTOCOMPLETION_LIMIT)
-            setShouldLoadMoreResults(true)
-            return handleAutoCompleteInput(input, autoCompletion);
-        },
-        [limit]
-    );
+    const handleSearch = React.useCallback((input: string) => {
+        setSearchQuery(input);
+        setLimit(AUTOCOMPLETION_LIMIT);
+        setShouldLoadMoreResults(true);
+        return handleAutoCompleteInput(input, autoCompletion);
+    }, []);
 
     const loadMoreResults = async () => {
-        if(shouldLoadMoreResults){
+        if (shouldLoadMoreResults) {
             const newLimit = limit + AUTOCOMPLETION_LIMIT;
             const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
             setLimit(newLimit);
-            setShouldLoadMoreResults(results.length >= newLimit)
-            return results.slice(limit + 1)
+            setShouldLoadMoreResults(results.length >= newLimit);
+            return results.slice(limit);
         }
     };
 
