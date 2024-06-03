@@ -340,7 +340,8 @@
             "filterOn": "Use as filter",
             "filterOff": "Remove filter",
             "showMoreDetails": "Show more details",
-            "restore": "Restore"
+            "restore": "Restore",
+            "revert": "Revert"
         },
         "app": {
             "build": "Workbench",
