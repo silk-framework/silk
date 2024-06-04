@@ -187,7 +187,7 @@ export const ParameterAutoCompletion = ({
             const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
             setLimit(newLimit);
             setShouldLoadMoreResults(results.length >= newLimit);
-            return results.slice(limit + Number(!searchQuery)); //forward whether padding with <Empty path> or not.
+            return results.slice(limit);
         }
     };
 

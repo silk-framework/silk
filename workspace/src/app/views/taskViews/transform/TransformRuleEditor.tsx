@@ -179,9 +179,11 @@ export const TransformRuleEditor = ({
                 mappingEditorContext.taskContext,
                 limit
             );
-            const results = response.data.map((data) => ({ ...data, valueType: "" }));
+            let results = response.data.map((data) => ({ ...data, valueType: "" }));
             if (term.trim() === "") {
                 results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });
+                //remove keep at limit size
+                results = results.splice(0, limit);
             }
             return results;
         } catch (err) {
