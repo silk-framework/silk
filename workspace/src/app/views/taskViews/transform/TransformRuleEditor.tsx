@@ -179,7 +179,11 @@ export const TransformRuleEditor = ({
                 mappingEditorContext.taskContext,
                 limit
             );
-            return response.data.map((data) => ({ ...data, valueType: "" })) ?? [];
+            const results = response.data.map((data) => ({ ...data, valueType: "" }));
+            if (term.trim() === "") {
+                results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });
+            }
+            return results;
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_inputPathAutoCompletion",
