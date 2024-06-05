@@ -287,8 +287,8 @@ const MappingsWorkview = ({
 
     React.useEffect(() => {
         if (viewActions.addLocalBreadcrumbs && ruleData && loading === false) {
-            const localBreadcrumbs = (ruleData.breadcrumbs ?? []).map((breadcrumb, idx) => {
-                console.log("breadcrumb", breadcrumb);
+            const breadcrumbs = (ruleData.breadcrumbs ?? []).filter((b) => b.id !== "root");
+            const localBreadcrumbs = breadcrumbs.map((breadcrumb, idx) => {
                 return {
                     text: <ParentStructure parent={breadcrumb} />,
                     href: "?ruleId=" + breadcrumb.id,
