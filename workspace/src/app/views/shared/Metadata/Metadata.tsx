@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardOptions,
     CardTitle,
+    CodeEditor,
     Divider,
     ElapsedDateTimeDisplay,
     FieldItem,
@@ -220,9 +221,9 @@ export function Metadata(props: IProps) {
         }
     };
 
-    const onDescriptionChange = (e) => {
-        if (formEditData && e.target !== undefined) {
-            formEditData.description = e.target.value;
+    const onDescriptionChange = (value: string) => {
+        if (formEditData && value !== undefined) {
+            formEditData.description = value;
             checkEditState();
         }
     };
@@ -258,6 +259,22 @@ export function Metadata(props: IProps) {
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
     };
+
+    const CodeEditorMemoed = React.useMemo(
+        () => (
+            <CodeEditor
+                name="description"
+                mode="markdown"
+                outerDivAttributes={{
+                    id: "description",
+                }}
+                preventLineNumbers
+                defaultValue={formEditData?.description}
+                onChange={onDescriptionChange}
+            />
+        ),
+        [formEditData]
+    );
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -296,13 +313,18 @@ export function Metadata(props: IProps) {
                             <Label text={t("form.field.description", "Description")} htmlFor="description" />
                         </PropertyName>
                         <PropertyValue>
-                            <FieldItem>
-                                <TextArea
-                                    name="description"
-                                    id="description"
-                                    onChange={onDescriptionChange}
-                                    defaultValue={formEditData?.description}
-                                />
+                            <FieldItem
+                                helperText={
+                                    <p>
+                                        {t("Metadata.markdownHelperText")}{" "}
+                                        <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                                            {t("Metadata.markdownHelperLinkText")}
+                                        </a>
+                                        .
+                                    </p>
+                                }
+                            >
+                                {CodeEditorMemoed}
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>

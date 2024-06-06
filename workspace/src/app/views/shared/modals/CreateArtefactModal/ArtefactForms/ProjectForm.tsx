@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -62,6 +62,21 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
         []
     );
 
+    const CodeEditorMemoed = React.useMemo(
+        () => (
+            <CodeEditor 
+            outerDivAttributes={{
+                id:DESCRIPTION
+           }} 
+           preventLineNumbers
+           name={DESCRIPTION} 
+           mode="markdown" 
+           onChange={onValueChange(DESCRIPTION)} 
+           />
+        ),
+        []
+    );
+
     return (
         <>
             <FieldItem
@@ -89,14 +104,17 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     text: t("form.field.description"),
                     htmlFor: "desc-input",
                 }}
+                helperText={
+                    <p>
+                        {t("Metadata.markdownHelperText")}{" "}
+                        <a href="https://www.markdownguide.org/cheat-sheet" target="_blank">
+                            {t("Metadata.markdownHelperLinkText")}
+                        </a>
+                        .
+                    </p>
+                }
             >
-                <TextArea
-                    id={DESCRIPTION}
-                    name={DESCRIPTION}
-                    growVertically={true}
-                    placeholder={t("form.projectForm.projectDesc", "Project description")}
-                    onChange={onValueChange(DESCRIPTION)}
-                />
+           {CodeEditorMemoed}
             </FieldItem>
             <FieldItem
                 key={TAGS}
