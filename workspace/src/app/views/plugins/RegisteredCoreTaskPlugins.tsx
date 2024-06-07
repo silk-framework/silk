@@ -78,7 +78,7 @@ export const registerCorePlugins = () => {
             label: "Transform execution",
             queryParametersToKeep: ["ruleId"],
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
-                return <TransformExecutionTab taskId={taskId} projectId={projectId} />;
+                return <TransformExecutionTab taskId={taskId} projectId={projectId} viewActions={viewActions} />;
             },
         });
 
@@ -98,6 +98,7 @@ export const registerCorePlugins = () => {
                         transformTaskId={taskId}
                         projectId={projectId}
                         startFullScreen={startFullScreen}
+                        viewActions={viewActions}
                     />
                 );
             },

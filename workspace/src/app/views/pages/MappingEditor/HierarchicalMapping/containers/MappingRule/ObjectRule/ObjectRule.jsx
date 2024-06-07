@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { CardActions, CardContent } from "gui-elements-deprecated";
+import { CardActions, CardContent, Divider } from "@eccenca/gui-elements";
 import _ from "lodash";
 import { getEditorHref, updateObjectMappingAsync } from "../../../store";
 import ObjectMappingRuleForm from "./ObjectRuleForm";
@@ -225,6 +225,7 @@ class ObjectRule extends React.Component {
                             <MetadataDesc description={_.get(ruleData, "metadata.description", "")} />
                         ) : null}
                     </CardContent>
+                    <Divider />
                     <CardActions className="ecc-silk-mapping__rulesviewer__actionrow">
                         <EditButton onEdit={this.handleEdit} />
                         {isCopiableRule(ruleType) && <CopyButton onCopy={this.handleCopy} />}
