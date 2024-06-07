@@ -136,10 +136,27 @@ object VariableWorkflowRequestUtils {
                                 datasetParameters: Map[String, String],
                                 fileName: String)
                                (implicit project: Project, userContext: UserContext): JsValue = {
+    val originalParameters: Map[String, String] = originalDatasetParameters(project, datasetId, datasetType)
+    Json.obj(
+      "id" -> datasetId,
+      "data" -> Json.obj(
+        "taskType" -> "Dataset",
+        "type" -> datasetType,
+        "parameters" -> (originalParameters ++ datasetParameters ++ Map(
+          "file" -> fileName
+        ))
+      )
+    )
+  }
+
+  def originalDatasetParameters(project: Project,
+                                datasetId: String,
+                                pluginId: String)
+                               (implicit userContext: UserContext): Map[String, String] = {
     implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
-    val originalParameters: Map[String, String] = project.taskOption[GenericDatasetSpec](datasetId) match {
+    project.taskOption[GenericDatasetSpec](datasetId) match {
       case Some(dataset) =>
-        if(dataset.plugin.pluginSpec.id.toString == datasetType) {
+        if (dataset.plugin.pluginSpec.id.toString == pluginId) {
           // Copy original parameters of replaceable dataset if the dataset type matches
           dataset.data.parameters.values.collect {
             case (key, value: ParameterStringValue) =>
@@ -152,16 +169,6 @@ object VariableWorkflowRequestUtils {
         }
       case None => Map.empty
     }
-    Json.obj(
-      "id" -> datasetId,
-      "data" -> Json.obj(
-        "taskType" -> "Dataset",
-        "type" -> datasetType,
-        "parameters" -> (originalParameters ++ datasetParameters ++ Map(
-          "file" -> fileName
-        ))
-      )
-    )
   }
 
   private def customMimeTypeRegex = "application/x-plugin-(.*)".r

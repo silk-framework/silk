@@ -169,9 +169,7 @@ object WorkflowClient {
     lazy val resourceXml = {
       payLoadOpt match {
         case Some(payload) =>
-          <resource name={fileResourceId}>
-            {payload}
-          </resource>
+          <resource name={fileResourceId}>{payload}</resource>
         case None =>
           Null
       }
