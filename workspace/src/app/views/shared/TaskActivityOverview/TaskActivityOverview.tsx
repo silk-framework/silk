@@ -74,14 +74,13 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [loading, setLoading] = useState<boolean>(true);
     const [displayCacheList, setDisplayCacheList] = useState<boolean>(false);
     // index to iterate through the current activities, when reloading all caches
-    const cursor = React.useRef<number>(-1)
-    // this is used as a workaround, ideally only the cursor state should be fine, 
-    // but it updates faster than the activity status, this ensures that the cursor 
+    const cursor = React.useRef<number>(-1);
+    // this is used as a workaround, ideally only the cursor state should be fine,
+    // but it updates faster than the activity status, this ensures that the cursor
     // changes only as the activity changes.
-    const [triggerReloadCounter, setTriggerReloadCounter] = React.useState<number>(0)
+    const [triggerReloadCounter, setTriggerReloadCounter] = React.useState<number>(0);
     //boolean to disable and re-enable reload all button
     const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
-
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -114,23 +113,23 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
+    const statusMapDependency = Array.from(activityStatusMap.values())
+        .map((v) => `${v.lastUpdateTime}-${v.concreteStatus}-${v.progress}`)
+        .join("|");
 
-    const statusMapDependency = Array.from(activityStatusMap.values()).map(v => v.lastUpdateTime).join("|")
-    
     React.useEffect(() => {
-        const currentlyRunningActivity = Array.from(activityStatusMap.values()).find(a => a.isRunning === true)
+        const currentlyRunningActivity = Array.from(activityStatusMap.values()).find((a) => a.isRunning);
         const activity = cacheActivities[cursor.current];
         //if no currently running activity then call the next cursor
-        if(!currentlyRunningActivity && activity){
+        if (!currentlyRunningActivity && activity) {
             const activityFunctions = activityFunctionsCreator(activity);
-            activityFunctions.executeActivityAction("restart")
-            cursor.current = cursor.current + 1
-        }else if(!activity) {
-            //finished 
-            setReloadingAllCaches(false)
+            activityFunctions.executeActivityAction("restart");
+            cursor.current = cursor.current + 1;
+        } else if (!activity) {
+            //finished
+            setReloadingAllCaches(false);
         }
-    },[statusMapDependency, triggerReloadCounter])
-
+    }, [statusMapDependency, triggerReloadCounter]);
 
     // Updates the overall cache state corresponding to the current activity states
     const updateOverallCacheState = (): boolean => {
@@ -403,13 +402,12 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Widget that wraps and summarizes the cache activities
     const CacheGroupWidget = () => {
-
         const reloadAllCaches = React.useCallback(() => {
-            setReloadingAllCaches(true)
-            cursor.current = 0
-            setTriggerReloadCounter((r) => ++r)
-        },[])
-     
+            setReloadingAllCaches(true);
+            cursor.current = 0;
+            setTriggerReloadCounter((r) => ++r);
+        }, []);
+
         return (
             <OverviewItem hasSpacing>
                 <OverviewItemDepiction keepColors>
@@ -436,14 +434,14 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     )}
                 </OverviewItemDescription>
                 <OverviewItemActions>
-                    <IconButton 
-                        name="item-reload" 
-                        text={t("widget.TaskActivityOverview.reloadAllCaches")} 
-                        onClick={reloadAllCaches} 
+                    <IconButton
+                        name="item-reload"
+                        text={t("widget.TaskActivityOverview.reloadAllCaches")}
+                        onClick={reloadAllCaches}
                         disabled={reloadingAllCaches}
                     />
                     <IconButton
-                        onClick={() =>  setDisplayCacheList(!displayCacheList)}
+                        onClick={() => setDisplayCacheList(!displayCacheList)}
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
                         name={displayCacheList ? "toggler-showless" : "toggler-showmore"}
                         text={displayCacheList ? "Hide single caches" : "Show all single caches"}
