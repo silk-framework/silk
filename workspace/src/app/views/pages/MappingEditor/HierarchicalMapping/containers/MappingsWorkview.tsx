@@ -6,7 +6,6 @@ import React from "react";
 import _ from "lodash";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
 import { Spinner, Spacing, Notification, ClassNames } from "@eccenca/gui-elements";
-import MappingHeader from "./MappingHeader";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
 import ValueMappingRuleForm from "./MappingRule/ValueRule/ValueRuleForm";
@@ -23,13 +22,13 @@ import {
 import EventEmitter from "../utils/EventEmitter";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IViewActions } from "../../../../plugins/PluginRegistry";
+import { ParentStructure } from "../components/ParentStructure";
+import RuleTitle from "../elements/RuleTitle";
 
 interface MappingsWorkviewProps {
-    onToggleTreeNav: () => any;
     onRuleIdChange: (param: any) => any;
     onAskDiscardChanges: (param: any) => any;
     onClickedRemove: () => any;
-    showNavigation: boolean;
     openMappingEditor: () => any;
     currentRuleId?: string; // selected rule id
     askForDiscardData: object | boolean; // selected rule id
@@ -38,11 +37,9 @@ interface MappingsWorkviewProps {
 }
 
 const MappingsWorkview = ({
-    onToggleTreeNav,
     onRuleIdChange,
     onAskDiscardChanges,
     onClickedRemove,
-    showNavigation,
     openMappingEditor,
     currentRuleId,
     viewActions,
@@ -288,6 +285,29 @@ const MappingsWorkview = ({
         false
     );
 
+    React.useEffect(() => {
+        if (viewActions.addLocalBreadcrumbs && ruleData && loading === false) {
+            const breadcrumbs = (ruleData.breadcrumbs ?? []).filter((b) => b.id !== "root");
+            const localBreadcrumbs = breadcrumbs.map((breadcrumb, idx) => {
+                return {
+                    text: <ParentStructure parent={breadcrumb} />,
+                    href: "?ruleId=" + breadcrumb.id,
+                    onClick: (event) => {
+                        event.preventDefault();
+                        onRuleIdChange({ newRuleId: breadcrumb.id, parentId: ruleData.id });
+                        event.stopPropagation();
+                    },
+                };
+            });
+            if ((ruleData.breadcrumbs ?? []).length > 0) {
+                localBreadcrumbs.push({
+                    text: <RuleTitle rule={ruleData} />,
+                });
+            }
+            viewActions.addLocalBreadcrumbs(localBreadcrumbs);
+        }
+    }, [ruleData]);
+
     const types =
         !createRuleForm && showSuggestions && _.has(ruleData, "rules.typeRules")
             ? _.map(ruleData.rules.typeRules, (v) => v.typeUri.replace("<", "").replace(">", ""))
@@ -329,29 +349,18 @@ const MappingsWorkview = ({
     return (
         <div className="ecc-silk-mapping__rules">
             {loadingWidget}
-            <MappingHeader
+            <RootMappingRule
                 rule={ruleData}
-                key={`navhead_${id}`}
-                showNavigation={showNavigation}
-                onToggleTreeNav={onToggleTreeNav}
-                onToggleDetails={handleToggleRuleDetails}
-                onRuleIdChange={onRuleIdChange}
+                key={`objhead_${id}`}
+                handleCopy={handleCopy}
+                handleClone={handleClone}
+                onAskDiscardChanges={onAskDiscardChanges}
+                onClickedRemove={onClickedRemove}
+                openMappingEditor={openMappingEditor}
+                startFullScreen={startFullScreen}
+                viewActions={viewActions}
             />
-            <div className={ClassNames.Blueprint.elevationClass(1)}>
-                <RootMappingRule
-                    rule={ruleData}
-                    key={`objhead_${id}`}
-                    handleCopy={handleCopy}
-                    handleClone={handleClone}
-                    onAskDiscardChanges={onAskDiscardChanges}
-                    onClickedRemove={onClickedRemove}
-                    openMappingEditor={openMappingEditor}
-                    startFullScreen={startFullScreen}
-                    viewActions={viewActions}
-                />
-                {listSuggestions ? false : listMappings}
-            </div>
-            {listSuggestions}
+            {listSuggestions || <div className={ClassNames.Blueprint.elevationClass(1)}>{listMappings}</div>}
             {createRuleForm}
             {error ? (
                 <>

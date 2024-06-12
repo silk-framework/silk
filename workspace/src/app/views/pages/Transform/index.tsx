@@ -16,8 +16,9 @@ export default function TransformPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
-    const { pageHeader, updateActionsMenu } = usePageHeader({
+    const { pageHeader, updateActionsMenu, updateBreadcrumbsExtensions } = usePageHeader({
         type: DATA_TYPES.TRANSFORM,
+        breadcrumbsExtensions: [],
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
     });
@@ -41,6 +42,7 @@ export default function TransformPage() {
                     <ProjectTaskTabView
                         taskViewConfig={{ pluginId: "transform", projectId: projectId, taskId: taskId }}
                         iFrameName={"detail-page-iframe"}
+                        viewActions={{ addLocalBreadcrumbs: updateBreadcrumbsExtensions }}
                     />
                 </Section>
             </WorkspaceMain>
