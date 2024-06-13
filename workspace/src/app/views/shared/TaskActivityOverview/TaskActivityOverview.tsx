@@ -73,12 +73,6 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const [loading, setLoading] = useState<boolean>(true);
     const [displayCacheList, setDisplayCacheList] = useState<boolean>(false);
-    // index to iterate through the current activities, when reloading all caches
-    const cursor = React.useRef<number>(-1);
-    // this is used as a workaround, ideally only the cursor state should be fine,
-    // but it updates faster than the activity status, this ensures that the cursor
-    // changes only as the activity changes.
-    const [triggerReloadCounter, setTriggerReloadCounter] = React.useState<number>(0);
     //boolean to disable and re-enable reload all button
     const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
 
@@ -118,18 +112,17 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         .join("|");
 
     React.useEffect(() => {
-        const currentlyRunningActivity = Array.from(activityStatusMap.values()).find((a) => a.isRunning);
-        const activity = cacheActivities[cursor.current];
-        //if no currently running activity then call the next cursor
-        if (!currentlyRunningActivity && activity) {
-            const activityFunctions = activityFunctionsCreator(activity);
-            activityFunctions.executeActivityAction("restart");
-            cursor.current = cursor.current + 1;
-        } else if (!activity) {
-            //finished
-            setReloadingAllCaches(false);
-        }
-    }, [statusMapDependency, triggerReloadCounter]);
+        const cacheActivityKeys = cacheActivities.reduce((dict, activity) => {
+            const key = activityKeyOfEntry(activity);
+            dict[key] = true;
+            return dict;
+        }, {} as Record<string, boolean>);
+        //check if any caches activity is running
+        const currentlyRunningActivity = Array.from(activityStatusMap.entries()).find(
+            ([key, a]) => a.isRunning && cacheActivityKeys[key]
+        );
+        setReloadingAllCaches(!!currentlyRunningActivity);
+    }, [statusMapDependency]);
 
     // Updates the overall cache state corresponding to the current activity states
     const updateOverallCacheState = (): boolean => {
@@ -402,11 +395,16 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Widget that wraps and summarizes the cache activities
     const CacheGroupWidget = () => {
-        const reloadAllCaches = React.useCallback(() => {
+        const reloadAllCaches = React.useCallback(async () => {
+            //start all at once
             setReloadingAllCaches(true);
-            cursor.current = 0;
-            setTriggerReloadCounter((r) => ++r);
-        }, []);
+            Promise.all(
+                cacheActivities.map(async (activity) => {
+                    const activityFunctions = activityFunctionsCreator(activity);
+                    return await activityFunctions.executeActivityAction("restart");
+                })
+            ).finally(() => setReloadingAllCaches(false));
+        }, [cacheActivities]);
 
         return (
             <OverviewItem hasSpacing>
