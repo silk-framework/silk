@@ -140,6 +140,12 @@ object ExecutorRegistry extends ExecutorRegistry {
     exec.execute(task, inputs, output, execution, context)
   }
 
+
+  /** Fetch the execution specific access to a dataset for the configured execution.*/
+  def access[DatasetType <: Dataset](task: Task[DatasetSpec[DatasetType]]): DatasetAccess = {
+    access(task, execution())
+  }
+
   /** Fetch the execution specific access to a dataset.*/
   def access[DatasetType <: Dataset, ExecType <: ExecutionType](task: Task[DatasetSpec[DatasetType]],
                                                                 execution: ExecType): DatasetAccess = {
