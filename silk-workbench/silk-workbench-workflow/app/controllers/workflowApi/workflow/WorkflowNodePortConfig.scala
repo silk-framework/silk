@@ -1,8 +1,7 @@
 package controllers.workflowApi.workflow
 
-import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, Port, UnknownSchemaPort}
-import org.silkframework.entity.EntitySchema
-import play.api.libs.json.{Format, JsArray, JsObject, JsResult, JsSuccess, JsValue, Json, OFormat}
+import org.silkframework.config._
+import play.api.libs.json._
 
 /** The port configuration of all nodes in a workflow.
   * This specifies how many input ports each node offers.
