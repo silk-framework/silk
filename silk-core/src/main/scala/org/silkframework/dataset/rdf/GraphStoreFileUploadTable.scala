@@ -9,9 +9,12 @@ import org.silkframework.runtime.resource.FileResource
 /** A number of files that should be uploaded via the GraphStore protocol. */
 trait GraphStoreFileUploadTable {
   def files: CloseableIterator[FileResource]
+  def contentType: String
 }
 
-case class LocalGraphStoreFileUploadTable(files: CloseableIterator[FileResource], task: Task[TaskSpec]) extends LocalEntities with GraphStoreFileUploadTable {
+case class LocalGraphStoreFileUploadTable(files: CloseableIterator[FileResource],
+                                          task: Task[TaskSpec],
+                                          contentType: String) extends LocalEntities with GraphStoreFileUploadTable {
   override def entitySchema: EntitySchema = EntitySchema.empty
 
   override def entities: CloseableIterator[Entity] = CloseableIterator.empty

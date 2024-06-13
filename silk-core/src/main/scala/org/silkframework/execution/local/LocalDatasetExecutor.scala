@@ -268,7 +268,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             }
             val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
             for(fileResource <- table.files) {
-              graphStore.uploadFileToGraph(targetGraph, fileResource.file, "application/n-triples", None) // Only N-Triples supported
+              graphStore.uploadFileToGraph(targetGraph, fileResource.file, table.contentType, None)
               reportUpdater.increaseEntityCounter()
             }
           case _: Dataset =>
