@@ -76,6 +76,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [displayCacheList, setDisplayCacheList] = useState<boolean>(false);
     //boolean to disable and re-enable reload all button
     const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
+    const [ignoreStillRunningError, setIgnoreStillRunningErrors] = React.useState<boolean>(true);
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -230,19 +231,16 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     const translateActions = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
-    const handleActivityActionError = (
-        activityName: string,
-        action: ActivityAction,
-        error: DIErrorTypes,
-        escapeError?: (error: DIErrorTypes) => boolean // if true should still flag error as normal.
-    ) => {
-        if (!escapeError || (escapeError && !escapeError(error))) {
-            registerError(
-                `taskActivityOverview-${activityName}-${action}`,
-                t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
-                error
-            );
-        }
+    const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
+        const errorIsStillRunningError = !!/running/.test(
+            (error as FetchError)?.errorDetails?.response?.data?.detail ?? ""
+        );
+        if (ignoreStillRunningError && errorIsStillRunningError) return;
+        registerError(
+            `taskActivityOverview-${activityName}-${action}`,
+            t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
+            error
+        );
     };
 
     // Register an observer from the activity widget
@@ -259,10 +257,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     };
 
     // Creates and/or returns the memoized activity action function
-    const activityFunctionsCreator = (
-        activity: IActivityListEntry,
-        customErrorHandler?: (error: DIErrorTypes) => boolean
-    ): IActivityControlFunctions => {
+    const activityFunctionsCreator = (activity: IActivityListEntry): IActivityControlFunctions => {
         const key = activityKeyOfEntry(activity);
         const metaData = activity.metaData || { projectId, taskId };
         if (activityFunctionsMap.has(key)) {
@@ -273,8 +268,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     activity.name,
                     metaData.projectId,
                     metaData.taskId,
-                    (activityName: string, action: ActivityAction, error: DIErrorTypes) =>
-                        handleActivityActionError(activityName, action, error, customErrorHandler)
+                    handleActivityActionError
                 ),
                 registerForUpdates: createRegisterForUpdatesFn(key),
                 unregisterFromUpdates: createUnregisterFromUpdateFn(key),
@@ -419,13 +413,13 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             if (!currentlyRunningActivity) {
                 Promise.all(
                     cacheActivities.map(async (activity) => {
-                        const activityFunctions = activityFunctionsCreator(activity, (error: FetchError) =>
-                            //ignore still running errors, but allow other plausible errors
-                            /running/.test(error?.errorDetails?.response?.data?.detail ?? "")
-                        );
+                        const activityFunctions = activityFunctionsCreator(activity);
                         return await activityFunctions.executeActivityAction("restart");
                     })
-                ).finally(() => setReloadingAllCaches(false));
+                ).finally(() => {
+                    setReloadingAllCaches(false);
+                    setIgnoreStillRunningErrors(false);
+                });
             }
         }, [cacheActivities]);
 
