@@ -41,6 +41,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
+import { FetchError } from "services/fetch/responseInterceptor";
 
 interface IProps {
     projectId: string;
@@ -229,12 +230,19 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     const translateActions = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
-    const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
-        registerError(
-            `taskActivityOverview-${activityName}-${action}`,
-            t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
-            error
-        );
+    const handleActivityActionError = (
+        activityName: string,
+        action: ActivityAction,
+        error: DIErrorTypes,
+        escapeError?: (error: DIErrorTypes) => boolean // if true should still flag error as normal.
+    ) => {
+        if (!escapeError || (escapeError && !escapeError(error))) {
+            registerError(
+                `taskActivityOverview-${activityName}-${action}`,
+                t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
+                error
+            );
+        }
     };
 
     // Register an observer from the activity widget
@@ -251,7 +259,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     };
 
     // Creates and/or returns the memoized activity action function
-    const activityFunctionsCreator = (activity: IActivityListEntry): IActivityControlFunctions => {
+    const activityFunctionsCreator = (
+        activity: IActivityListEntry,
+        customErrorHandler?: (error: DIErrorTypes) => boolean
+    ): IActivityControlFunctions => {
         const key = activityKeyOfEntry(activity);
         const metaData = activity.metaData || { projectId, taskId };
         if (activityFunctionsMap.has(key)) {
@@ -262,7 +273,8 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     activity.name,
                     metaData.projectId,
                     metaData.taskId,
-                    handleActivityActionError
+                    (activityName: string, action: ActivityAction, error: DIErrorTypes) =>
+                        handleActivityActionError(activityName, action, error, customErrorHandler)
                 ),
                 registerForUpdates: createRegisterForUpdatesFn(key),
                 unregisterFromUpdates: createUnregisterFromUpdateFn(key),
@@ -398,12 +410,23 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         const reloadAllCaches = React.useCallback(async () => {
             //start all at once
             setReloadingAllCaches(true);
-            Promise.all(
-                cacheActivities.map(async (activity) => {
-                    const activityFunctions = activityFunctionsCreator(activity);
-                    return await activityFunctions.executeActivityAction("restart");
-                })
-            ).finally(() => setReloadingAllCaches(false));
+
+            //check that activities are in waiting or idle state
+            const currentlyRunningActivity = !!Array.from(activityStatusMap.entries()).find(
+                ([key, a]) => !["Waiting", "Finished", "Idle"].includes(a.statusName)
+            );
+
+            if (!currentlyRunningActivity) {
+                Promise.all(
+                    cacheActivities.map(async (activity) => {
+                        const activityFunctions = activityFunctionsCreator(activity, (error: FetchError) =>
+                            //ignore still running errors, but allow other plausible errors
+                            /running/.test(error?.errorDetails?.response?.data?.detail ?? "")
+                        );
+                        return await activityFunctions.executeActivityAction("restart");
+                    })
+                ).finally(() => setReloadingAllCaches(false));
+            }
         }, [cacheActivities]);
 
         return (
