@@ -77,6 +77,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     //boolean to disable and re-enable reload all button
     const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
     const ignoreStillRunningError = React.useRef<boolean>(false);
+    const nonExecutedCacheActivities = React.useRef<IActivityListEntry[]>([])
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -113,18 +114,25 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         .map((v) => `${v.lastUpdateTime}-${v.concreteStatus}-${v.progress}`)
         .join("|");
 
+    const executeAllNonExecutedCacheActivities = React.useCallback(async () => {
+        const activitiesToExecute = nonExecutedCacheActivities.current
+        nonExecutedCacheActivities.current = []
+        for(let i = 0; i < activitiesToExecute.length; i++) {
+            const activityFunctions = activityFunctionsCreator(activitiesToExecute[i]);
+            await activityFunctions.executeActivityAction("restart");
+        }
+    }, [])
+
     React.useEffect(() => {
-        const cacheActivityKeys = cacheActivities.reduce((dict, activity) => {
-            const key = activityKeyOfEntry(activity);
-            dict[key] = true;
-            return dict;
-        }, {} as Record<string, boolean>);
         //check if any caches activity is running
-        const currentlyRunningActivity = Array.from(activityStatusMap.entries()).find(
-            ([key, a]) => a.isRunning && cacheActivityKeys[key]
+        const currentlyRunningCacheActivity = !!Array.from(activityStatusMap.entries()).find(
+            ([activityKey, a]) => cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
         );
-        setReloadingAllCaches(!!currentlyRunningActivity);
-    }, [statusMapDependency]);
+        if(!currentlyRunningCacheActivity && nonExecutedCacheActivities.current.length) {
+            executeAllNonExecutedCacheActivities()
+        }
+        setReloadingAllCaches(currentlyRunningCacheActivity);
+    }, [statusMapDependency, nonExecutedCacheActivities.current]);
 
     // Updates the overall cache state corresponding to the current activity states
     const updateOverallCacheState = (): boolean => {
@@ -303,6 +311,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
     const nonMainActivities = activitiesWithStatus.filter((a) => !a.activityCharacteristics.isMainActivity);
     const cacheActivities = nonMainActivities.filter((a) => a.activityCharacteristics.isCacheActivity);
+    const cacheActivityIds = new Set(cacheActivities.map(c => activityKeyOfEntry(c)))
     const runningNonMainActivities = nonMainActivities.filter(
         (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity
     );
@@ -404,10 +413,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         const reloadAllCaches = React.useCallback(async () => {
             //start all at once
             setReloadingAllCaches(true);
-            const cacheActivityIds = new Set(cacheActivities.map(c => c.name))
             // check that all cache activities are in waiting or idle state
             const currentlyRunningActivity = !!Array.from(activityStatusMap.entries()).find(
-                ([activityName, a]) => cacheActivityIds.has(activityName) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+                ([activityKey, a]) => cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
             );
 
             if (!currentlyRunningActivity) {
@@ -424,13 +432,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         })
                     )
                     if(notExecutedActivities.length) {
-                        // Show errors now
-                        ignoreStillRunningError.current = false
-                        // Execute failed activities in sequence
-                        for(let i = 0; i < notExecutedActivities.length; i++) {
-                            const activityFunctions = activityFunctionsCreator(notExecutedActivities[i]);
-                            await activityFunctions.executeActivityAction("restart");
-                        }
+                        nonExecutedCacheActivities.current = notExecutedActivities
                     }
                 } finally {
                     setReloadingAllCaches(false);
