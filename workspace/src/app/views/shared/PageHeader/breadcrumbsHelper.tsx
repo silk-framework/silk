@@ -1,8 +1,7 @@
 import React, { useDebugValue, useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { BreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
-import BreadcrumbList from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbList";
+import { BreadcrumbList, BreadcrumbItemProps } from "@eccenca/gui-elements";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";

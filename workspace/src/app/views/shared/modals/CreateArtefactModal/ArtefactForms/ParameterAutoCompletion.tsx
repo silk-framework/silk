@@ -62,6 +62,8 @@ export interface ParameterAutoCompletionProps {
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
 
+const AUTOCOMPLETION_LIMIT = 100;
+
 /** Component for parameter auto-completion. */
 export const ParameterAutoCompletion = ({
     paramId,
@@ -87,6 +89,10 @@ export const ParameterAutoCompletion = ({
     const initialOrExternalValue = externalValue ? externalValue : initialValue;
     const [highlightInput, setHighlightInput] = React.useState(false);
     const [show, setShow] = React.useState(true);
+    const [limit, setLimit] = React.useState<number>(AUTOCOMPLETION_LIMIT);
+    const [searchQuery, setSearchQuery] = React.useState<string>("");
+    //determines if when the user scrolls to the bottom it is necessary to request more content or not
+    const [shouldLoadMoreResults, setShouldLoadMoreResults] = React.useState<boolean>(true);
     const registerError = modalContext.registerModalError ? modalContext.registerModalError : globalErrorHandler;
 
     let onChangeUsed = onChange;
@@ -131,10 +137,9 @@ export const ParameterAutoCompletion = ({
 
     const handleAutoCompleteInput = async (
         input: string,
-        autoCompletion: IPropertyAutocomplete
+        autoCompletion: IPropertyAutocomplete,
+        limit = AUTOCOMPLETION_LIMIT
     ): Promise<IAutocompleteDefaultResponse[]> => {
-        // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
-        const limit = 100;
         try {
             if (autoCompletion.customAutoCompletionRequest) {
                 return autoCompletion.customAutoCompletionRequest(input, limit);
@@ -168,13 +173,31 @@ export const ParameterAutoCompletion = ({
 
     const itemValue = (value: StringOrReifiedValue) => (typeof value === "string" ? value : value.value);
 
+    const handleSearch = React.useCallback(async (input: string) => {
+        setSearchQuery(input);
+        setLimit(AUTOCOMPLETION_LIMIT);
+        const results = await handleAutoCompleteInput(input, autoCompletion);
+        setShouldLoadMoreResults(results.length >= AUTOCOMPLETION_LIMIT); //don't make request again on scroll down based on condition
+        return results;
+    }, []);
+
+    const loadMoreResults = async () => {
+        if (shouldLoadMoreResults) {
+            const newLimit = limit + AUTOCOMPLETION_LIMIT;
+            const results = (await handleAutoCompleteInput(searchQuery, autoCompletion, newLimit)) ?? [];
+            setLimit(newLimit);
+            setShouldLoadMoreResults(results.length >= newLimit);
+            return results.slice(limit);
+        }
+    };
+
     if (!show) {
         return <Spinner position={"inline"} />;
     }
 
     return (
         <SuggestField<StringOrReifiedValue, IAutocompleteDefaultResponse>
-            onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
+            onSearch={handleSearch}
             onChange={onChangeUsed}
             initialValue={initialOrExternalValue}
             disabled={
@@ -187,6 +210,7 @@ export const ParameterAutoCompletion = ({
                 readOnly: !!readOnly,
                 ...inputProps,
             }}
+            loadMoreResults={loadMoreResults}
             reset={
                 !required
                     ? {

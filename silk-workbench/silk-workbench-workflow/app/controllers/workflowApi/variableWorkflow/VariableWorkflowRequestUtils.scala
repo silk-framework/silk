@@ -1,8 +1,9 @@
 package controllers.workflowApi.variableWorkflow
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterObjectValue, ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.FileMapResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.FileUtils
@@ -61,10 +62,10 @@ object VariableWorkflowRequestUtils {
     * The second return value is the MIME type that should be returned in the response.
     *
     * @param datasetId The ID of the replaceable dataset in the workflow.
-    **/
+    * */
   private def replaceableDataSinkConfig(datasetId: String,
-                                     fileBasedPluginIds: Seq[String])
-                                    (implicit request: Request[_]): VariableDataSinkConfig = {
+                                        fileBasedPluginIds: Seq[String])
+                                       (implicit request: Request[_], project: Project, userContext: UserContext): VariableDataSinkConfig = {
     request.getQueryString(QUERY_PARAM_OUTPUT_TYPE) match {
       case Some(datasetType) =>
         fromQueryOutputTypeParameter(datasetId, datasetType)
@@ -102,7 +103,8 @@ object VariableWorkflowRequestUtils {
     }
   }
 
-  private def fromQueryOutputTypeParameter(datasetId: String, datasetType: String) = {
+  private def fromQueryOutputTypeParameter(datasetId: String, datasetType: String)
+                                          (implicit project: Project, userContext: UserContext): VariableDataSinkConfig = {
     val datasetParams: Map[String, String] =
       if (datasetType == "file") {
         Map("format" -> "N-Triples")
@@ -132,25 +134,49 @@ object VariableWorkflowRequestUtils {
   private def datasetConfigJson(datasetId: String,
                                 datasetType: String,
                                 datasetParameters: Map[String, String],
-                                fileName: String): JsValue = {
+                                fileName: String)
+                               (implicit project: Project, userContext: UserContext): JsValue = {
+    val originalParameters: Map[String, String] = originalDatasetParameters(project, datasetId, datasetType)
     Json.obj(
       "id" -> datasetId,
       "data" -> Json.obj(
         "taskType" -> "Dataset",
         "type" -> datasetType,
-        "parameters" -> (datasetParameters ++ Map(
+        "parameters" -> (originalParameters ++ datasetParameters ++ Map(
           "file" -> fileName
         ))
       )
     )
   }
 
+  def originalDatasetParameters(project: Project,
+                                datasetId: String,
+                                pluginId: String)
+                               (implicit userContext: UserContext): Map[String, String] = {
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
+    project.taskOption[GenericDatasetSpec](datasetId) match {
+      case Some(dataset) =>
+        if (dataset.plugin.pluginSpec.id.toString == pluginId) {
+          // Copy original parameters of replaceable dataset if the dataset type matches
+          dataset.data.parameters.values.collect {
+            case (key, value: ParameterStringValue) =>
+              (key, value.value)
+            case (key, value: ParameterTemplateValue) =>
+              (key, value.evaluate(pluginContext.templateVariables.all))
+          }
+        } else {
+          Map.empty
+        }
+      case None => Map.empty
+    }
+  }
+
   private def customMimeTypeRegex = "application/x-plugin-(.*)".r
 
   private def replaceableDataSourceConfig(datasetId: String,
-                                       mediaType: Option[String],
-                                       fileBasedPluginIds: Seq[String])
-                                      (implicit request: Request[AnyContent]): JsValue = {
+                                          mediaType: Option[String],
+                                          fileBasedPluginIds: Seq[String])
+                                         (implicit request: Request[AnyContent], userContext: UserContext, project: Project): JsValue = {
     val multiPartFileContentType = request.body.asMultipartFormData.toSeq.flatMap(_.files.flatMap(_.contentType)).headOption
     val CustomMimeType = customMimeTypeRegex
     val datasetType = multiPartFileContentType.orElse(mediaType) match {
@@ -229,10 +255,9 @@ object VariableWorkflowRequestUtils {
     * The data source is always a JSON data source.
     * The data sink is chosen with regards to the ACCEPT header.
     **/
-  def requestToWorkflowConfig(project: Project,
-                              workflowTask: Task[Workflow],
+  def requestToWorkflowConfig(workflowTask: Task[Workflow],
                               fileBasedPluginIds: Seq[String])
-                             (implicit request: Request[AnyContent], userContext: UserContext): VariableWorkflowRequestConfig  = {
+                             (implicit request: Request[AnyContent], userContext: UserContext, project: Project): VariableWorkflowRequestConfig  = {
     val replaceableDatasets = workflowTask.data.allReplaceableDatasets(project)
     if (replaceableDatasets.sinks.size > 1 || replaceableDatasets.dataSources.size > 1) {
       throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one replaceable input " +

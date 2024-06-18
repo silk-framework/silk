@@ -10,11 +10,13 @@ import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterValues}
 import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.{JsonHelpers, JsonSerializers}
 import org.silkframework.serialization.json.JsonSerializers.{TaskJsonFormat, _}
+import org.silkframework.serialization.json.PluginSerializers.ParameterValuesJsonFormat
 import org.silkframework.workspace.{LoadedTask, Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.Result
@@ -63,9 +65,10 @@ object ProjectUtils {
 
   def createDatasets(xmlRoot: NodeSeq,
                      datasetIds: Option[Set[String]],
-                     xmlElementTag: String)
+                     xmlElementTag: String,
+                     originalDatasetParameters: (String, String) => Map[String, String])
                     (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
-    val datasets = createAllDatasets(xmlRoot, xmlElementTag, datasetIds)
+    val datasets = createAllDatasets(xmlRoot, xmlElementTag, datasetIds, originalDatasetParameters)
     datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
   }
 
@@ -77,50 +80,10 @@ object ProjectUtils {
     */
   def createDatasets(workflowJson: JsObject,
                      datasetIds: Option[Set[String]],
-                     property: String)
+                     property: String,
+                     originalDatasetParameters: (String, String) => Map[String, String])
                     (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
-    val datasets = createAllDatasets(workflowJson, property, datasetIds)
-    datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
-  }
-
-  /**
-    * Creates in-memory sink version of the selected datasets.
-    * This does only work with [[Dataset]] that implement the [[WritableResourceDataset]] trait.
-    *
-    * @param sinkIds The dataset ids (keys) for which sinks should be created, the values of the map
-    *                are the resource ids of the resource manager that should be used for each dataset.
-    */
-  def createInMemorySink(xmlRoot: NodeSeq,
-                         sinkIds: Map[String, String])
-                        (implicit resourceLoader: ResourceManager): Map[String, DatasetWriteAccess] = {
-    val datasets = createDatasets(xmlRoot, Some(sinkIds.keySet), "Sinks")
-    //    val datasetPlugins = datasets.map { ds =>
-    //      val ds.plugin match {
-    //        case plugin: DatasetPlugin with WritableResourceDatasetPlugin =>
-    //          val writableResource = resourceLoader.get(sinkIds(ds.id.toString))
-    //          plugin.replaceWritableResource(writableResource)
-    //        case p =>
-    //          val datasetId = ds.id.toString
-    //          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
-    //      }
-    //    }
-    datasets
-  }
-
-  def createInMemoryDataset(xmlRoot: NodeSeq,
-                            datasetIds: Map[String, String])
-                        (implicit resourceLoader: ResourceManager): Map[String, Dataset] = {
-    val datasets = createAllDatasets(xmlRoot, "Sinks", Some(datasetIds.keySet))
-    //    val datasetPlugins = datasets.map { ds =>
-    //      val ds.plugin match {
-    //        case plugin: DatasetPlugin with WritableResourceDatasetPlugin =>
-    //          val writableResource = resourceLoader.get(sinkIds(ds.id.toString))
-    //          plugin.replaceWritableResource(writableResource)
-    //        case p =>
-    //          val datasetId = ds.id.toString
-    //          throw new RuntimeException(s"Type of dataset $datasetId does not support a writable resource. Pick a type that does, e.g. csv, file.")
-    //      }
-    //    }
+    val datasets = createAllDatasets(workflowJson, property, datasetIds, originalDatasetParameters)
     datasets.map { ds => (ds.id.toString, ds.data.plugin) }.toMap
   }
 
@@ -153,17 +116,30 @@ object ProjectUtils {
   /** Creates all datasets found in the XML document */
   private def createAllDatasets(xmlRoot: NodeSeq,
                                 xmlElementName: String,
-                                datasetIds: Option[Set[String]])
+                                datasetIds: Option[Set[String]],
+                                originalDatasetParameters: (String, String) => Map[String, String])
                                (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
-    val dataSources = xmlRoot \ xmlElementName \ "_"
+    val dataSourcesXml = xmlRoot \ xmlElementName \ "_"
     implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
-    val datasets = for (dataSource <- dataSources) yield {
-      XmlSerialization.fromXml[Task[GenericDatasetSpec]](dataSource)
+    val datasets = for (dataSourceXml <- dataSourcesXml) yield {
+      val dataset = XmlSerialization.fromXml[Task[GenericDatasetSpec]](dataSourceXml)
+      val pluginId = (dataSourceXml \ "DatasetPlugin" \ "@type").text.trim
+      val datasetId = (dataSourceXml \ "@id").text.trim
+      val overwrittenParameters = XmlSerialization.deserializeParameters((dataSourceXml \ "DatasetPlugin").head)
+        .values.keySet
+      val originalParameters = originalDatasetParameters(datasetId, pluginId)
+        .filterNot(p => overwrittenParameters.contains(p._1))
+        .map(p => (p._1, ParameterStringValue(p._2)))
+      if(originalParameters.nonEmpty) {
+        dataset.copy(data = dataset.data.withParameters(ParameterValues(originalParameters)))
+      } else {
+        dataset
+      }
     }
     datasets.filter(ds => datasetIds.forall(_.contains(ds.id.toString)))
   }
 
-  implicit val datasetTaskJsonFormat = new TaskJsonFormat[GenericDatasetSpec]()
+  implicit val datasetTaskJsonFormat: TaskJsonFormat[GenericDatasetSpec] = new TaskJsonFormat[GenericDatasetSpec]()
 
   /** Creates all datasets found in the JSON document
     *
@@ -172,12 +148,26 @@ object ProjectUtils {
     */
   private def createAllDatasets(workflowJson: JsValue,
                                 propertyName: String,
-                                allowedDatasetIds: Option[Set[String]])
+                                allowedDatasetIds: Option[Set[String]],
+                                originalDatasetParameters: (String, String) => Map[String, String])
                                (implicit resourceLoader: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
-    val dataSources = (workflowJson \ propertyName).as[JsArray]
+    val datasetsJson = (workflowJson \ propertyName).as[JsArray]
     implicit val readContext: ReadContext = ReadContext(resourceLoader, Prefixes.empty)
-    val datasets = for (dataSource <- dataSources.value.toIndexedSeq) yield {
-      JsonSerializers.fromJson[LoadedTask[GenericDatasetSpec]](dataSource).task
+    val datasets = for (datasetJson <- datasetsJson.value.toIndexedSeq) yield {
+      val dataset = JsonSerializers.fromJson[LoadedTask[GenericDatasetSpec]](datasetJson).task
+      val datasetPluginJson = JsonHelpers.objectValue(datasetJson, "data")
+      val pluginId = JsonHelpers.stringValue(datasetPluginJson, "type").trim
+      val datasetId = JsonHelpers.stringValue(datasetJson, "id").trim
+      val overwrittenParameters = ParameterValuesJsonFormat.read(datasetPluginJson)
+        .values.keySet
+      val originalParameters = originalDatasetParameters(datasetId, pluginId)
+        .filterNot(p => overwrittenParameters.contains(p._1))
+        .map(p => (p._1, ParameterStringValue(p._2)))
+      if (originalParameters.nonEmpty) {
+        dataset.copy(data = dataset.data.withParameters(ParameterValues(originalParameters)))
+      } else {
+        dataset
+      }
     }
     allowedDatasetIds match {
       case Some(ids) =>

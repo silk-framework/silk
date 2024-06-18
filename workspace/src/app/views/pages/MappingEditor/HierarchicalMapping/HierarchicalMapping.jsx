@@ -41,8 +41,6 @@ class HierarchicalMapping extends React.Component {
         this.state = {
             // currently selected rule id
             currentRuleId: _.isEmpty(initialRule) ? undefined : initialRule,
-            // show / hide navigation
-            showNavigation: true,
             // which edit view are we viewing
             elementToDelete: {},
             editingElements: [],
@@ -205,13 +203,6 @@ class HierarchicalMapping extends React.Component {
         }
     };
 
-    // show / hide navigation
-    handleToggleNavigation = (stateVisibility = !this.state.showNavigation) => {
-        this.setState({
-            showNavigation: stateVisibility,
-        });
-    };
-
     handleDiscardChanges = () => {
         if (_.includes(this.state.editingElements, 0)) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: 0 });
@@ -240,8 +231,7 @@ class HierarchicalMapping extends React.Component {
 
     // template rendering
     render() {
-        const { currentRuleId, showMappingEditor, showNavigation, askForRemove, elementToDelete, askForDiscard } =
-            this.state;
+        const { currentRuleId, showMappingEditor, askForRemove, elementToDelete, askForDiscard } = this.state;
         const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
         // render mapping edit / create view of value and object
@@ -250,7 +240,7 @@ class HierarchicalMapping extends React.Component {
                 value={{
                     valueTypeLabels: this.state.valueTypeLabels,
                     taskContext: this.props.viewActions.taskContext?.context,
-                    transformTask: this.props.transformTask
+                    transformTask: this.props.transformTask,
                 }}
             >
                 <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
@@ -287,27 +277,21 @@ class HierarchicalMapping extends React.Component {
                         <MessageHandler />
                     </div>
                     <div className="ecc-silk-mapping__content">
-                        {showNavigation && (
-                            <MappingsTree
-                                currentRuleId={currentRuleId}
-                                handleRuleNavigation={this.onRuleNavigation}
-                                startFullScreen={this.props.startFullScreen}
-                            />
-                        )}
-                        {
-                            <MappingsWorkview
-                                currentRuleId={currentRuleId}
-                                showNavigation={showNavigation}
-                                onToggleTreeNav={this.handleToggleNavigation}
-                                onRuleIdChange={this.handleRuleIdChange}
-                                askForDiscardData={this.state.askForDiscard}
-                                onAskDiscardChanges={this.toggleAskForDiscard}
-                                onClickedRemove={this.handleClickRemove}
-                                openMappingEditor={this.handleOpenMappingEditorModal}
-                                startFullScreen={this.props.startFullScreen}
-                                viewActions={this.props.viewActions}
-                            />
-                        }
+                        <MappingsTree
+                            currentRuleId={currentRuleId}
+                            handleRuleNavigation={this.onRuleNavigation}
+                            startFullScreen={this.props.startFullScreen}
+                        />
+                        <MappingsWorkview
+                            currentRuleId={currentRuleId}
+                            onRuleIdChange={this.handleRuleIdChange}
+                            askForDiscardData={this.state.askForDiscard}
+                            onAskDiscardChanges={this.toggleAskForDiscard}
+                            onClickedRemove={this.handleClickRemove}
+                            openMappingEditor={this.handleOpenMappingEditorModal}
+                            startFullScreen={this.props.startFullScreen}
+                            viewActions={this.props.viewActions}
+                        />
                     </div>
                 </section>
             </GlobalMappingEditorContext.Provider>

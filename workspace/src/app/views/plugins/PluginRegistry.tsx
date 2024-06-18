@@ -1,5 +1,6 @@
+import { BreadcrumbItemProps } from "@eccenca/gui-elements";
 import { registerCorePlugins } from "./RegisteredCoreTaskPlugins";
-import {TaskContext} from "../shared/projectTaskTabView/projectTaskTabView.typing";
+import { TaskContext } from "../shared/projectTaskTabView/projectTaskTabView.typing";
 
 /** A view / UI of a project task.
  * Each task can have multiple views.
@@ -16,20 +17,26 @@ export interface IViewActions {
     /** Switches to another view of the same task, e.g. in a tab view. */
     switchToView?: (viewIdx: number) => any;
     /** Optional task context. Contains additional information on how a task is (actually) used, e.g. in workflows. */
-    taskContext?: ViewActionsTaskContext
+    taskContext?: ViewActionsTaskContext;
+    /**
+     * Triggers the updateBreadcrumbsExtension method to add breadcrumbs used for the local view
+     */
+    addLocalBreadcrumbs?: (breadcrumbs: BreadcrumbItemProps[]) => void;
 }
 
 export interface ViewActionsTaskContext {
     // The task context
-    context: TaskContext
+    context: TaskContext;
     /** Additional suffix that is shown in the tab title for views that support a task context. */
-    taskViewSuffix?: (taskContext: TaskContext) => JSX.Element | undefined
+    taskViewSuffix?: (taskContext: TaskContext) => JSX.Element | undefined;
     /** A notification shown in the tab view regarding the task context, e.g. a warning. */
-    taskContextNotification?: (taskContext: TaskContext) => Promise<TaskContextNotification[] | undefined> | TaskContextNotification[] | undefined
+    taskContextNotification?: (
+        taskContext: TaskContext
+    ) => Promise<TaskContextNotification[] | undefined> | TaskContextNotification[] | undefined;
 }
 
 export interface TaskContextNotification {
-    message: string
+    message: string;
 }
 
 /** A project task view that is meant to be displayed for a specific project task.
@@ -44,7 +51,7 @@ export interface IProjectTaskView {
     /** The query parameters to get from other tabs or propagate to other tabs. */
     queryParametersToKeep?: string[];
     /** Specifies the task context support for this view, e.g. that it uses the information given with the task context. */
-    supportsTaskContext?: boolean
+    supportsTaskContext?: boolean;
 }
 
 /** A plugin component that can receive arbitrary parameters. */

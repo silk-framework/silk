@@ -80,8 +80,9 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
                                     acceptMimeType: String = "application/xml",
                                     contentOpt: Option[(String, String)] = None,
                                     additionalQueryParameters: Map[String, String] = Map.empty): Future[WSResponse] = {
+    val post = contentOpt.isDefined || usePost
     val path = {
-      if (usePost) {
+      if (post) {
         controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
       } else {
         controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultGet(projectId, workflowId).url
@@ -92,7 +93,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
     additionalQueryParameters.foreach { queryParam =>
       request = request.addQueryStringParameters(queryParam)
     }
-    if (usePost || contentOpt.isDefined) {
+    if (post) {
       contentOpt match {
         case Some(content) =>
           request.withHttpHeaders(Helpers.CONTENT_TYPE -> content._2).post(content._1)
@@ -168,9 +169,7 @@ object WorkflowClient {
     lazy val resourceXml = {
       payLoadOpt match {
         case Some(payload) =>
-          <resource name={fileResourceId}>
-            {payload}
-          </resource>
+          <resource name={fileResourceId}>{payload}</resource>
         case None =>
           Null
       }
