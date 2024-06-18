@@ -32,8 +32,8 @@ export interface IActivityControlFunctions {
     registerForUpdates: (callback: (status: IActivityStatus) => any) => any;
     // Un-register from updates in case the activity control gets removed
     unregisterFromUpdates: () => any;
-    // Executes different activity actions, e.g. start, cancel, restart
-    executeActivityAction: (action: ActivityAction) => void;
+    // Executes different activity actions, e.g. start, cancel, restart. Returns false if the execution has failed.
+    executeActivityAction: (action: ActivityAction) => boolean | Promise<boolean>;
 }
 
 /** Stores the overall status of all caches. */
