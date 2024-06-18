@@ -9,7 +9,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
 /**
-  * Combines context objects that are available during plugin creation or update.
+  * Combines context objects that are available during plugin creation, update and execution.
   */
 trait PluginContext {
 
@@ -39,7 +39,7 @@ trait PluginContext {
   def templateVariables: TemplateVariablesReader
 
   /**
-   * Set if this task or plugin is opened or executed in the context of a workflow.
+   * Set if this plugin is opened or executed in the context of a workflow.
    */
   def workflowId: Option[Identifier]
 
