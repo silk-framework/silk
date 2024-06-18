@@ -76,7 +76,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [displayCacheList, setDisplayCacheList] = useState<boolean>(false);
     //boolean to disable and re-enable reload all button
     const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
-    const [ignoreStillRunningError, setIgnoreStillRunningErrors] = React.useState<boolean>(true);
+    const ignoreStillRunningError = React.useRef<boolean>(false);
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -235,7 +235,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         const errorIsStillRunningError = !!/running/.test(
             (error as FetchError)?.errorDetails?.response?.data?.detail ?? ""
         );
-        if (ignoreStillRunningError && errorIsStillRunningError) return;
+        if (ignoreStillRunningError.current && errorIsStillRunningError) return;
         registerError(
             `taskActivityOverview-${activityName}-${action}`,
             t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
@@ -411,6 +411,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             );
 
             if (!currentlyRunningActivity) {
+                ignoreStillRunningError.current = true
                 Promise.all(
                     cacheActivities.map(async (activity) => {
                         const activityFunctions = activityFunctionsCreator(activity);
@@ -418,7 +419,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     })
                 ).finally(() => {
                     setReloadingAllCaches(false);
-                    setIgnoreStillRunningErrors(false);
+                    ignoreStillRunningError.current = false
                 });
             }
         }, [cacheActivities]);
