@@ -17,7 +17,7 @@ export function ReplacementFileItem({ file, onCancelReplacement, onReplace }: IP
     return (
         <div key={file.id}>
             <Notification
-                onDismiss={() => onCancelReplacement(file.id)}
+                onDismiss={(didTimeoutExpire) => !didTimeoutExpire && onCancelReplacement(file.id)}
                 warning={true}
                 actions={
                     <Button outlined onClick={() => onReplace(file)}>

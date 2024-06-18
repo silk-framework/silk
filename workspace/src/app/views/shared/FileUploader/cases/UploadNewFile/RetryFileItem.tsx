@@ -17,7 +17,7 @@ export function RetryFileItem({ file, onCancelRetry, onRetry }: IProps) {
     return (
         <div key={file.id}>
             <Notification
-                onDismiss={() => onCancelRetry(file.id)}
+                onDismiss={(didTimeoutExpire) => !didTimeoutExpire && onCancelRetry(file.id)}
                 danger={true}
                 actions={
                     onRetry && (
