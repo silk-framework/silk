@@ -38,47 +38,39 @@ trait PluginContext {
    */
   def templateVariables: TemplateVariablesReader
 
-  /**
-   * Set if this plugin is opened or executed in the context of a workflow.
-   */
-  def workflowId: Option[Identifier]
-
 }
 
 object PluginContext {
 
-  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables, None)
+  def empty: PluginContext = PlainPluginContext(Prefixes.empty, EmptyResourceManager(), UserContext.Empty, None, GlobalTemplateVariables)
 
   def apply(prefixes: Prefixes,
             resources: ResourceManager,
             user: UserContext = UserContext.Empty,
             projectId: Option[Identifier] = None,
-            templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
-            workflowId: Option[Identifier] = None): PlainPluginContext = {
-    PlainPluginContext(prefixes, resources, user, projectId, templateVariables, workflowId)
+            templateVariables: TemplateVariablesReader = GlobalTemplateVariables): PlainPluginContext = {
+    PlainPluginContext(prefixes, resources, user, projectId, templateVariables)
   }
 
-  def fromProject(project: ProjectTrait, workflowId: Option[Identifier] = None)(implicit user: UserContext): PlainPluginContext = {
-    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables, workflowId)
+  def fromProject(project: ProjectTrait)(implicit user: UserContext): PlainPluginContext = {
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id), project.combinedTemplateVariables)
   }
 
   def fromProjectConfig(config: ProjectConfig,
                         projectResource: ResourceManager,
-                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
-                        workflowId: Option[Identifier] = None)(implicit user: UserContext): PlainPluginContext = {
-    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables, workflowId)
+                        templateVariables: TemplateVariablesReader = GlobalTemplateVariables)(implicit user: UserContext): PlainPluginContext = {
+    PlainPluginContext(config.prefixes, projectResource, user, Some(config.id), templateVariables)
   }
 
   def fromReadContext(readContext: ReadContext): PlainPluginContext = {
-    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables, readContext.workflowId)
+    PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables)
   }
 
   case class PlainPluginContext(prefixes: Prefixes,
                                 resources: ResourceManager,
                                 user: UserContext,
                                 projectId: Option[Identifier],
-                                templateVariables: TemplateVariablesReader,
-                                workflowId: Option[Identifier]) extends PluginContext
+                                templateVariables: TemplateVariablesReader) extends PluginContext
 
 }
 

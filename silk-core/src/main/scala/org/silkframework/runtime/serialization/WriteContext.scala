@@ -17,8 +17,7 @@ case class WriteContext[U](parent: Option[U] = None,
                            projectUri: Option[String] = None,
                            resources: ResourceManager = EmptyResourceManager(),
                            user: UserContext = UserContext.Empty,
-                           templateVariables: TemplateVariablesReader = GlobalTemplateVariables,
-                           workflowId: Option[Identifier] = None) extends PluginContext
+                           templateVariables: TemplateVariablesReader = GlobalTemplateVariables) extends PluginContext
 
 object WriteContext {
 
@@ -45,8 +44,7 @@ object WriteContext {
       projectUri = projectUri,
       resources = pluginContext.resources,
       user = pluginContext.user,
-      templateVariables = pluginContext.templateVariables,
-      workflowId = pluginContext.workflowId
+      templateVariables = pluginContext.templateVariables
     )
   }
 }
