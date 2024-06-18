@@ -404,23 +404,38 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         const reloadAllCaches = React.useCallback(async () => {
             //start all at once
             setReloadingAllCaches(true);
-
-            //check that activities are in waiting or idle state
+            const cacheActivityIds = new Set(cacheActivities.map(c => c.name))
+            // check that all cache activities are in waiting or idle state
             const currentlyRunningActivity = !!Array.from(activityStatusMap.entries()).find(
-                ([key, a]) => !["Waiting", "Finished", "Idle"].includes(a.statusName)
+                ([activityName, a]) => cacheActivityIds.has(activityName) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
             );
 
             if (!currentlyRunningActivity) {
                 ignoreStillRunningError.current = true
-                Promise.all(
-                    cacheActivities.map(async (activity) => {
-                        const activityFunctions = activityFunctionsCreator(activity);
-                        return await activityFunctions.executeActivityAction("restart");
-                    })
-                ).finally(() => {
+                const notExecutedActivities: IActivityListEntry[] = []
+                try {
+                    await Promise.all(
+                        cacheActivities.map(async (activity) => {
+                            const activityFunctions = activityFunctionsCreator(activity);
+                            const wasExecuted = await activityFunctions.executeActivityAction("restart");
+                            if (!wasExecuted) {
+                                notExecutedActivities.push(activity)
+                            }
+                        })
+                    )
+                    if(notExecutedActivities.length) {
+                        // Show errors now
+                        ignoreStillRunningError.current = false
+                        // Execute failed activities in sequence
+                        for(let i = 0; i < notExecutedActivities.length; i++) {
+                            const activityFunctions = activityFunctionsCreator(notExecutedActivities[i]);
+                            await activityFunctions.executeActivityAction("restart");
+                        }
+                    }
+                } finally {
                     setReloadingAllCaches(false);
                     ignoreStillRunningError.current = false
-                });
+                }
             }
         }, [cacheActivities]);
 
