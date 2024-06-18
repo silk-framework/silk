@@ -13,16 +13,34 @@ import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
   */
 trait PluginContext {
 
+  /**
+   * The URI namespace prefixes that are defined in the current project.
+   */
   def prefixes: Prefixes
 
+  /**
+   * The file resources in the current project.
+   */
   def resources: ResourceManager
 
+  /**
+   * The user that initiated the current operation.
+   */
   def user: UserContext
 
+  /**
+   * The identifier of the current project.
+   */
   def projectId: Option[Identifier]
 
+  /**
+   * The template variables that are available in the current scope.
+   */
   def templateVariables: TemplateVariablesReader
 
+  /**
+   * Set if this task or plugin is opened or executed in the context of a workflow.
+   */
   def workflowId: Option[Identifier]
 
 }
