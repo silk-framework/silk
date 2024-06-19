@@ -29,6 +29,7 @@ export interface ParameterAutoCompletionProps {
     /** Unique ID/name of the parameter in the form. */
     formParamId: string;
     projectId: string;
+    taskId: string;
     /** ID of this plugin. */
     pluginId: string;
     /** The auto-completion config. */

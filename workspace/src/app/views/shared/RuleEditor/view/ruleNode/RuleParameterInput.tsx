@@ -91,6 +91,7 @@ export const RuleParameterInput = ({
         autoComplete
     ) => ({
         projectId: ruleEditorContext.projectId,
+        taskId: ruleEditorContext.editedItemId!,
         paramId: ruleParameter.parameterId,
         pluginId: pluginId,
         onChange: inputAttributes.onChange,
