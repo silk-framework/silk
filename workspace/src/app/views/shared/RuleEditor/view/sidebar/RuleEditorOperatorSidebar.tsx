@@ -174,10 +174,14 @@ export const RuleEditorOperatorSidebar = () => {
             const originalOperatorsPerConfig = await Promise.all(
                 configs.map((config) => config.fetchOperators(prefLang))
             );
-            const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((originalOperators, idx) => {
+            const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((_originalOperators, idx) => {
                 const config = configs[idx];
+                const originalOperators = _originalOperators ?? [];
+                if (config.defaultOperators.length) {
+                    originalOperators.unshift(...config.defaultOperators);
+                }
                 const preConfiguredOperatorConfig: PreConfiguredOperatorConfig = {
-                    originalOperators: originalOperators ?? [],
+                    originalOperators,
                     isOriginalOperator: config.isOriginalOperator,
                     toPreConfiguredRuleOperator: config.convertToOperator,
                     // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
