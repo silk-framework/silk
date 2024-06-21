@@ -19,8 +19,9 @@ import utils from "./RuleEditor.utils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
-import {Notification} from "@eccenca/gui-elements"
-import {diErrorMessage} from "@ducks/error/typings";
+import { Notification } from "@eccenca/gui-elements";
+import { diErrorMessage } from "@ducks/error/typings";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
@@ -89,6 +90,13 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
     /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
     inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion: (
+        inputType: "source" | "target"
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -118,6 +126,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     instanceId,
     fetchDatasetCharacteristics,
     inputPathPluginPathType,
+    partialAutoCompletion,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -278,6 +287,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 instanceId,
                 datasetCharacteristics,
                 inputPathPluginPathType,
+                partialAutoCompletion,
             }}
         >
             <ReactFlowHotkeyContext.Provider

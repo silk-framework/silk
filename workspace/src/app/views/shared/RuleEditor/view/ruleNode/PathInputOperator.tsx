@@ -7,8 +7,6 @@ import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { Button, CodeAutocompleteField, IconButton, MenuItem, Select } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { partialAutoCompleteLinkingInputPaths } from "../../../../../views/taskViews/linking/LinkingRuleEditor.requests";
 
 /** Language filter related properties. */
 export interface LanguageFilterProps {
@@ -66,26 +64,6 @@ export const PathInputOperator = ({
         internalState.current.currentLanguageFilter = string;
         _setLanguageFilter(string);
     };
-
-    const isTarget = activeProps.pluginId.startsWith("target");
-    const fetchAutoCompletionResult = React.useCallback(
-        async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
-            try {
-                const result = await partialAutoCompleteLinkingInputPaths(
-                    activeProps.projectId,
-                    activeProps.taskId,
-                    isTarget ? "target" : "source",
-                    inputString,
-                    cursorPosition,
-                    200
-                );
-                return result.data;
-            } catch (err) {
-                // do nothing for now
-            }
-        },
-        []
-    );
 
     internalState.current.activeOnChangeHandler = (value) => {
         internalState.current.currentValue = value;
@@ -217,11 +195,15 @@ export const PathInputOperator = ({
         setActiveProps(newProps);
     }
 
+    const inputType = activeProps.pluginId.replace("PathInput", "") as "source" | "target";
+    const fetchSuggestion =
+        (activeProps.partialAutoCompletion && activeProps.partialAutoCompletion(inputType)) || (async () => undefined);
     return (
         <CodeAutocompleteField
+            {...overwrittenProps.inputProps}
             initialValue={activeProps.initialValue?.value ?? ""}
             onChange={(value) => activeProps.onChange({ value })}
-            fetchSuggestions={fetchAutoCompletionResult}
+            fetchSuggestions={fetchSuggestion}
             placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
             checkInput={(value) => checkValuePathValidity(value, activeProps.projectId)}
             validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
@@ -230,7 +212,7 @@ export const PathInputOperator = ({
         />
     );
 
-    //  <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
+    // return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
 };
 
 const languageFilterExpression = (lang: string | undefined) => {

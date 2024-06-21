@@ -16,7 +16,11 @@ import {
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, {
+    fetchLinkSpec,
+    partialAutoCompleteLinkingInputPaths,
+    updateLinkageRule,
+} from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
@@ -32,8 +36,9 @@ import {
     ruleEditorNodeParameterValue,
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
-import {diErrorMessage} from "@ducks/error/typings";
-import {Notification} from "@eccenca/gui-elements"
+import { diErrorMessage } from "@ducks/error/typings";
+import { Notification } from "@eccenca/gui-elements";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -74,7 +79,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
     const [loading, setLoading] = React.useState(true);
-    const [initError, setInitError] = React.useState<any | undefined>(undefined)
+    const [initError, setInitError] = React.useState<any | undefined>(undefined);
     const pendingRequests = React.useRef(2);
     const hideGreyListedParameters =
         (
@@ -95,8 +100,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     };
 
     const handleInitError = React.useCallback((error: any) => {
-        setInitError(error)
-    }, [])
+        setInitError(error);
+    }, []);
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
@@ -131,7 +136,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
                     err
                 );
-                setInitError(err)
+                setInitError(err);
             }
         }
     };
@@ -177,7 +182,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
                 err
             );
-            setInitError(err)
+            setInitError(err);
         }
     };
 
@@ -290,6 +295,26 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         });
     };
 
+    const fetchPartialAutoCompletionResult = React.useCallback(
+        (inputType: "source" | "target") =>
+            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+                try {
+                    const result = await partialAutoCompleteLinkingInputPaths(
+                        projectId,
+                        linkingTaskId,
+                        inputType,
+                        inputString,
+                        cursorPosition,
+                        200
+                    );
+                    return result.data;
+                } catch (err) {
+                    // do nothing for now
+                }
+            },
+        []
+    );
+
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
             "sourcePathInput",
@@ -344,8 +369,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return result;
     };
 
-    if(initError) {
-        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>
+    if (initError) {
+        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>;
     }
 
     if (loading) {
@@ -363,6 +388,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 taskId={linkingTaskId}
                 fetchRuleData={fetchTaskData}
                 fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+                partialAutoCompletion={fetchPartialAutoCompletionResult}
                 saveRule={saveLinkageRule}
                 getStickyNotes={utils.getStickyNotes}
                 convertRuleOperator={ruleUtils.convertRuleOperator}

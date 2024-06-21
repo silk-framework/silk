@@ -22,6 +22,7 @@ import { RegisterForExternalChangesFn } from "./InputMapper";
 import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
 import { HTMLInputProps as BlueprintHTMLInputProps } from "@blueprintjs/core/lib/esm/common/props";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -29,7 +30,6 @@ export interface ParameterAutoCompletionProps {
     /** Unique ID/name of the parameter in the form. */
     formParamId: string;
     projectId: string;
-    taskId: string;
     /** ID of this plugin. */
     pluginId: string;
     /** The auto-completion config. */
@@ -59,6 +59,13 @@ export interface ParameterAutoCompletionProps {
      * are maintained by this component.
      */
     inputProps?: BlueprintInputGroupProps & BlueprintHTMLInputProps;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion?: (
+        inputType: "source" | "target"
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;

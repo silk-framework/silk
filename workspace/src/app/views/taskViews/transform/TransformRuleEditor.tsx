@@ -6,7 +6,12 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
+import {
+    autoCompleteTransformSourcePath,
+    partialAutoCompleteTransformInputPaths,
+    putTransformRule,
+    requestTransformRule,
+} from "./transform.requests";
 import {
     IRuleOperatorNode,
     RuleSaveNodeError,
@@ -23,6 +28,7 @@ import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/requests";
 import { GlobalMappingEditorContext } from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -196,6 +202,26 @@ export const TransformRuleEditor = ({
         }
     };
 
+    const fetchPartialAutoCompletionResult = React.useCallback(
+        (inputType: "source" | "target") =>
+            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+                try {
+                    const result = await partialAutoCompleteTransformInputPaths(
+                        projectId,
+                        transformTaskId,
+                        containerRuleId,
+                        inputString,
+                        cursorPosition,
+                        200
+                    );
+                    return result.data;
+                } catch (err) {
+                    // do nothing for now
+                }
+            },
+        []
+    );
+
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
             "sourcePathInput",
@@ -240,6 +266,7 @@ export const TransformRuleEditor = ({
                 saveRule={saveTransformRule}
                 convertRuleOperator={ruleUtils.convertRuleOperator}
                 convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+                partialAutoCompletion={fetchPartialAutoCompletionResult}
                 viewActions={viewActions}
                 additionalToolBarComponents={additionalToolBarComponents}
                 getStickyNotes={getStickyNotes}

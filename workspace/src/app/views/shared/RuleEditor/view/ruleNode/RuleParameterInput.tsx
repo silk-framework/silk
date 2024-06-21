@@ -108,6 +108,7 @@ export const RuleParameterInput = ({
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
+        partialAutoCompletion: ruleEditorContext.partialAutoCompletion,
     });
 
     if (

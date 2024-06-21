@@ -11,6 +11,7 @@ import {
 import { IViewActions } from "../../../plugins/PluginRegistry";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../../typings";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -77,6 +78,13 @@ export interface RuleEditorContextProps {
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
     /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
     inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion: (
+        inputType: "source" | "target"
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -99,4 +107,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     instanceId: "uniqueId",
     datasetCharacteristics: new Map(),
     inputPathPluginPathType: () => undefined,
+    partialAutoCompletion: () => async () => undefined,
 });
