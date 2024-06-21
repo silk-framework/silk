@@ -167,8 +167,8 @@ export function CreateArtefactModal() {
         dispatch(commonOp.setModalError(newError));
     }, []);
 
-    const resetModalError = () => {
-        dispatch(commonOp.setModalError({}));
+    const resetModalError = (didTimeoutExpire: boolean = false) => {
+        !didTimeoutExpire && dispatch(commonOp.setModalError({}));
     };
 
     // Function to set template parameter flag for a parameter

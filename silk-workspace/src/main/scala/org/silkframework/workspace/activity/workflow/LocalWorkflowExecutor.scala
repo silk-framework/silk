@@ -157,17 +157,17 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                         (process: Option[LocalEntities] => T)
                                         (implicit workflowRunContext: WorkflowRunContext): T = {
     val operatorTask = task(operatorNode)
-    try {
-      val inputPorts = operatorTask.data.inputPorts
-      val inputs = operatorNode.inputNodes
-      executeWorkflowOperatorInputs(operatorNode, inputPorts, inputs) { inputResults =>
-        if (executorOutput.requestedSchema.isDefined && inputResults.exists(_.isEmpty)) {
-          throw WorkflowExecutionException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
-        }
-        // Check if this is a nested workflow that has been executed already.
-        val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
+    val inputPorts = operatorTask.data.inputPorts
+    val inputs = operatorNode.inputNodes
+    executeWorkflowOperatorInputs(operatorNode, inputPorts, inputs) { inputResults =>
+      if (executorOutput.requestedSchema.isDefined && inputResults.exists(_.isEmpty)) {
+        throw WorkflowExecutionException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
+      }
+      // Check if this is a nested workflow that has been executed already.
+      val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
 
-        if (!cancelled && !isExecutedWorkflow) {
+      if (!cancelled && !isExecutedWorkflow) {
+        try {
           executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
             // Throw exception if result was promised, but not returned
             if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
@@ -179,18 +179,18 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             writeErrorOutput(operatorNode, executorOutput)
             process(result)
           }
-        } else {
-          process(None)
+        } catch {
+          case ex: WorkflowExecutionException =>
+            throw ex
+          case ex: StopWorkflowExecutionException =>
+            throw ex
+          case NonFatal(ex) =>
+            log.log(Level.WARNING, s"Execution of '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId}) failed.", ex)
+            throw WorkflowExecutionException(s"In '${operatorTask.label()}': " + ex.getMessage, Some(ex))
         }
+      } else {
+        process(None)
       }
-    } catch {
-      case ex: WorkflowExecutionException =>
-        throw ex
-      case ex: StopWorkflowExecutionException =>
-        throw ex
-      case NonFatal(ex) =>
-        log.log(Level.WARNING, s"Execution of '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId}) failed.", ex)
-        throw WorkflowExecutionException(s"In '${operatorTask.label()}': " + ex.getMessage, Some(ex))
     }
   }
 
@@ -397,7 +397,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   override protected val executionContext: LocalExecution = LocalExecution(
     useLocalInternalDatasets,
     replaceDataSources,
-    replaceSinks
+    replaceSinks,
+    Some(workflowTask.id)
   )
 
   override protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,

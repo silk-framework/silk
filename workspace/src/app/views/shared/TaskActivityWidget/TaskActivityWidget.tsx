@@ -28,7 +28,7 @@ interface TaskActivityWidgetProps {
     // It may abort the execution of the action by not calling 'mainAction'.
     activityActionPreAction?: {
         // key is typed as string but should be an ActivityAction (start, cancel, restart), which is not allowed for index signature parameter types
-        [key: string]: (mainAction: () => Promise<void>) => Promise<void>;
+        [key: string]: (mainAction: () => Promise<boolean>) => Promise<boolean>;
     };
     /** If the activity is a cache activity the presentation will be different, e.g. reload button shown etc. */
     isCacheActivity?: boolean;
@@ -107,6 +107,7 @@ export const useTaskActivityWidget = ({
             ex
         );
     });
+
     const executeAction = (action: ActivityAction) => {
         const preAction = activityActionPreAction[action];
         const originalAction = activityActionCreator(activityName, projectId, taskId, handleError);

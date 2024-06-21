@@ -163,14 +163,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @param user The user context
     * @return The identifier of the started activity instance
     */
-  final def start(config: ParameterValues)(implicit user: UserContext): Identifier = {
+  final def start(config: ParameterValues = ParameterValues.empty)(implicit user: UserContext): Identifier = {
     val (id, control) = addInstance(config)
     control.start()
     id
   }
 
   @deprecated("Use the variant with ParameterValues instead.")
-  final def start(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+  final def start(config: Map[String, String])(implicit user: UserContext): Identifier = {
     start(ParameterValues.fromStringMap(config))
   }
 
@@ -182,14 +182,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @param user The user context
     * @return The identifier of the started activity
     */
-  final def startBlocking(config: ParameterValues)(implicit user: UserContext): Identifier = {
+  final def startBlocking(config: ParameterValues = ParameterValues.empty)(implicit user: UserContext): Identifier = {
     val (id, control) = addInstance(config)
     control.startBlocking()
     id
   }
 
   @deprecated("Use the variant with ParameterValues instead.")
-  final def startBlocking(config: Map[String, String] = Map.empty)(implicit user: UserContext): Identifier = {
+  final def startBlocking(config: Map[String, String])(implicit user: UserContext): Identifier = {
     startBlocking(ParameterValues.fromStringMap(config))
   }
 
@@ -202,7 +202,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * @param user The user context
     * @return The identifier of the started activity
     */
-  final def startBlockingAndGetValue(config: ParameterValues)(implicit user: UserContext): ActivityType#ValueType = {
+  final def startBlockingAndGetValue(config: ParameterValues = ParameterValues.empty)(implicit user: UserContext): ActivityType#ValueType = {
     val (id, control) = addInstance(config)
     control.startBlocking()
     val value = control.value()
@@ -211,7 +211,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   @deprecated("Use the variant with ParameterValues instead.")
-  final def startBlockingAndGetValue(config: Map[String, String] = Map.empty)(implicit user: UserContext): ActivityType#ValueType = {
+  final def startBlockingAndGetValue(config: Map[String, String])(implicit user: UserContext): ActivityType#ValueType = {
     startBlockingAndGetValue(ParameterValues.fromStringMap(config))
   }
 
