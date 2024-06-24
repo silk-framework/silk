@@ -243,12 +243,12 @@ object DatasetSpec {
 
       // Make sure that the type is actually written as a property
       val typeProperty =
-        if(typeUri.uri.nonEmpty && !properties.exists(p => p.isTypeProperty && p.propertyUri == typeUri)) {
+        if(typeUri.uri.nonEmpty && !properties.exists(p => p.isTypeProperty)) {
           extraTypeUri = Some(typeUri.uri)
           if(typeUri.isValidUri) {
-            Seq(TypedProperty(typeUri.uri, ValueType.URI))
+            Seq(TypedProperty.rdfTypeProperty)
           } else {
-            Seq(TypedProperty(typeUri.uri, ValueType.STRING))
+            Seq(TypedProperty.rdfTypeProperty.copy(valueType = ValueType.STRING))
           }
         } else {
           Seq.empty
@@ -270,6 +270,7 @@ object DatasetSpec {
     override def closeTable()(implicit userContext: UserContext): Unit = {
       if (entitySink != null) entitySink.closeTable()
       isOpen = false
+      extraTypeUri = None
     }
 
     /**
@@ -278,6 +279,7 @@ object DatasetSpec {
     override def close()(implicit userContext: UserContext): Unit = {
       if (entitySink != null) entitySink.close()
       isOpen = false
+      extraTypeUri = None
     }
 
     /**
@@ -286,7 +288,7 @@ object DatasetSpec {
     override def clear()(implicit userContext: UserContext): Unit = entitySink.clear()
 
     @inline
-    def prependUri(uri: String, values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
+    private def prependUri(uri: String, values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
       datasetSpec.uriAttribute match {
         case Some(_) =>
           Seq(uri) +: values
@@ -296,7 +298,7 @@ object DatasetSpec {
     }
 
     @inline
-    def prependType(values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
+    private def prependType(values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
       extraTypeUri match {
         case Some(typeUri) =>
           Seq(typeUri) +: values
