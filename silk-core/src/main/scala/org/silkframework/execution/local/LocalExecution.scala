@@ -19,7 +19,8 @@ import scala.jdk.CollectionConverters.ConcurrentMapHasAsScala
   */
 case class LocalExecution(useLocalInternalDatasets: Boolean,
                           replaceDataSources: Map[String, Dataset] = Map.empty,
-                          replaceSinks: Map[String, Dataset] = Map.empty) extends ExecutionType {
+                          replaceSinks: Map[String, Dataset] = Map.empty,
+                          workflowId: Option[Identifier] = None) extends ExecutionType {
 
   type DataType = LocalEntities
 

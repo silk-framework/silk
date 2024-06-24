@@ -494,7 +494,7 @@ const CardContentWarnings = React.memo(({warnings}: CardContentWarningsProps) =>
                     return <Fragment key={warning}>
                         <Notification
                             warning
-                            onDismiss={() => removeWarning(warning)}
+                            onDismiss={(didTimeoutExpire) => !didTimeoutExpire && removeWarning(warning)}
                         >{warning}</Notification>
                         {idx < (warningsStack.length - 1) && <Spacing size={"small"} />}
                     </Fragment>
