@@ -309,7 +309,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     );
                     return result.data;
                 } catch (err) {
-                    // do nothing for now
+                    registerError(
+                        "LinkingRuleEditor_partialAutoCompletion",
+                        t("taskViews.linkRulesEditor.errors.partialPathAutoCompletion.msg"),
+                        err
+                    );
                 }
             },
         []

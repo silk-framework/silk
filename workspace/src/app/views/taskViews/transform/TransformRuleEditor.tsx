@@ -203,7 +203,7 @@ export const TransformRuleEditor = ({
     };
 
     const fetchPartialAutoCompletionResult = React.useCallback(
-        (inputType: "source" | "target") =>
+        () =>
             async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
                 try {
                     const result = await partialAutoCompleteTransformInputPaths(
@@ -216,7 +216,11 @@ export const TransformRuleEditor = ({
                     );
                     return result.data;
                 } catch (err) {
-                    // do nothing for now
+                    registerError(
+                        "TransformRuleEditor_partialAutoCompletion",
+                        t("taskViews.transformRulesEditor.errors.partialPathAutoCompletion.msg"),
+                        err
+                    );
                 }
             },
         []
