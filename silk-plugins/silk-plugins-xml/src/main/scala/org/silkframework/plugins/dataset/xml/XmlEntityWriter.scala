@@ -98,9 +98,9 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
       for(v <- value) {
         writeAttribute(property.propertyUri, v)
       }
-    } else if(property.propertyUri != HierarchicalSink.RDF_TYPE) {
+    } else if(!property.isTypeProperty) {
       for(v <- value) {
-        if(property.propertyUri == "#text") {
+        if(property.propertyUri.uri == "#text") {
           writer.writeCharacters(v)
         } else {
           writeStartElement(property.propertyUri)
