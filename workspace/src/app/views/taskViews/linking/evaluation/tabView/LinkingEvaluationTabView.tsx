@@ -490,10 +490,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         setShowReferenceLinks(!!tabId);
     }, []);
 
-    const resetManualLinkStateFlag = async (originalAction: () => Promise<void>) => {
+    const resetManualLinkStateFlag = async (originalAction: () => Promise<boolean>) => {
         // Reset when manually running the activities
         manualLinkChange.current = false;
-        await originalAction();
+        return originalAction();
     };
     const activityPreAction = React.useMemo(
         () => ({
