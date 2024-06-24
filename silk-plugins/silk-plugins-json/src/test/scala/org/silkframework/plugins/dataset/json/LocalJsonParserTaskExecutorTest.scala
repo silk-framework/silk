@@ -40,7 +40,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
   private val jsonParserTask = JsonParserTask("jsonContent", "persons")
   private val task = PlainTask("JsonParser", jsonParserTask)
   private def inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
-  private implicit val prefixes = Prefixes.empty
+  private implicit val prefixes: Prefixes = Prefixes.empty
   private implicit val pluginContext: PluginContext = PluginContext.empty
 
   PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])

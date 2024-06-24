@@ -1,5 +1,6 @@
 package controllers.linking.evaluation
 
+import controllers.linking.evaluation.EvaluateCurrentLinkageRuleRequest.EvaluationLinkSortEnum
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.Schema
@@ -39,13 +40,13 @@ object EvaluateCurrentLinkageRuleRequest {
 
     val positiveLinks, negativeLinks, undecidedLinks = Value
 
-    implicit val evaluationLinkFilterEnumFormat = Json.formatEnum(this)
+    implicit val evaluationLinkFilterEnumFormat: Format[EvaluateCurrentLinkageRuleRequest.EvaluationLinkFilterEnum.Value] = Json.formatEnum(this)
   }
 
   object EvaluationLinkSortEnum extends Enumeration {
     val scoreAsc, scoreDesc, sourceEntityAsc, sourceEntityDesc, targetEntityAsc, targetEntityDesc = Value
 
-    implicit val sortOrderFormat = Json.formatEnum(this)
+    implicit val sortOrderFormat: Format[EvaluationLinkSortEnum.Value] = Json.formatEnum(this)
   }
 
   implicit val evaluateCurrentLinkageRuleRequestFormat: Format[EvaluateCurrentLinkageRuleRequest] = Json.format[EvaluateCurrentLinkageRuleRequest]
