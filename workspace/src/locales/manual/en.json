@@ -428,7 +428,7 @@
             "added": "Added",
             "removed": "Removed",
             "paths": "Paths"
-        }, 
+        },
         "tooltips": {
             "dataset": {
                 "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
@@ -687,6 +687,7 @@
             "autoLayout": "Layout automatically the rule tree",
             "readOnly": "Read-only mode is enabled. No saving possible.",
             "save": "Save",
+            "saveAndRunWorkflow": "Save and run workflow",
             "saveError": {
                 "nodeError": {
                     "tooltip": "Center rule node"
@@ -732,7 +733,8 @@
                 "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
             },
             "warnings": {
-                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?"
+                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?",
+                "saveWarningPrompt": "Do you want to save before evaluation?"
             }
         },
         "transformRulesEditor": {
