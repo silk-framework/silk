@@ -733,8 +733,15 @@
                 "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
             },
             "warnings": {
-                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?",
-                "saveWarningPrompt": "Do you want to save before evaluation?"
+                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?"
+            }
+        },
+        "workflowEditor": {
+            "modal": {
+                "saveWarningPromptModal": {
+                    "title": "Warning workflow will be saved",
+                    "description": "Workflow will be saved before it's execution"
+                }
             }
         },
         "transformRulesEditor": {
