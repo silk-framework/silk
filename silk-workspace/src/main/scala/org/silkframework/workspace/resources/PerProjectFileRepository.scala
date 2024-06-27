@@ -1,10 +1,9 @@
 package org.silkframework.workspace.resources
 
-import java.io.File
-
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager, UrlResourceManager}
-import org.silkframework.util.Identifier
+import org.silkframework.runtime.resource.FileResourceManager
+
+import java.io.File
 
 @Plugin(
   id = "projectFile",
@@ -13,5 +12,5 @@ import org.silkframework.util.Identifier
 )
 case class PerProjectFileRepository(dir: String) extends ResourceRepository with PerProjectResourceRepository {
 
-  val resourceManager = UrlResourceManager(FileResourceManager(new File(dir)))
+  val resourceManager = FileResourceManager(new File(dir))
 }
