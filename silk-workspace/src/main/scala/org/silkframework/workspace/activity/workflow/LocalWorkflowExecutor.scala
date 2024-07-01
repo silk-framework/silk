@@ -103,7 +103,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  // Treat this execution as a dependency execution, not as a data input exececution.
+  // Treat this execution as a dependency execution, not as a data input execcution.
   private def executeAsDependency(node: WorkflowDependencyNode)
                                  (implicit workflowRunContext: WorkflowRunContext): Unit = {
     if (!workflowRunContext.alreadyExecuted.contains(node.workflowNode)) {
@@ -397,7 +397,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   override protected val executionContext: LocalExecution = LocalExecution(
     useLocalInternalDatasets,
     replaceDataSources,
-    replaceSinks
+    replaceSinks,
+    Some(workflowTask.id)
   )
 
   override protected def workflowNodeEntities[T](workflowDependencyNode: WorkflowDependencyNode,

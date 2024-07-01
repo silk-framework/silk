@@ -169,6 +169,8 @@ export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
 
 /** Allow to fetch and list pre-configured operators in a tab. This is used to have e.g. pre-configured path operators. */
 export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
+    /** Operators that are added by default and do not need to be fetched first. */
+    defaultOperators: ListItem[];
     /** Fetches an array of items that can be transformed into rule operators. */
     fetchOperators: (langPref: string) => ListItem[] | undefined | Promise<ListItem[] | undefined>;
     /** Converts an operator into a rule operator. Only list items are converted that will currently be shown. */

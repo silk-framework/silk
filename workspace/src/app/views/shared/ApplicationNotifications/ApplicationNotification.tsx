@@ -36,12 +36,18 @@ export const ApplicationNotification = ({ errorItem, removeError, interactionCal
         }
     };
 
+    const onDismiss = React.useCallback((didTimeoutExpire: boolean) => {
+        if(!didTimeoutExpire) {
+            removeError(errorItem)
+        }
+    }, [removeError])
+
     return (
         <Notification
             danger={!errorItem.alternativeIntent}
             warning={errorItem.alternativeIntent === "warning"}
             flexWidth={true}
-            onDismiss={() => removeError(errorItem)}
+            onDismiss={onDismiss}
         >
             <div onMouseDownCapture={() => interactionCallback?.()}>
                 {`${errorItem.message} (${formatDuration(now.getTime() - errorItem.timestamp)} ago)`}

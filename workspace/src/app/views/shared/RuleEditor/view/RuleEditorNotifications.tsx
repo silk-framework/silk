@@ -75,7 +75,7 @@ export const RuleEditorNotifications = ({
                             }
                             return <Notification
                                 {...intentObject}
-                                onDismiss={notification.onDiscard}
+                                onDismiss={(didTimeoutExpire) => !didTimeoutExpire && notification.onDiscard?.()}
                             >
                                 {notification.message}
                             </Notification>
