@@ -15,6 +15,7 @@ import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with TestWorkspaceProviderTestTrait with TestUserContextTrait { this: TestSuite =>
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
+    * If the project zip is located on the same classpath as the test class, the name of the file suffices.
     */
   def projectPathInClasspath: String
 
