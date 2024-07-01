@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -32,7 +33,7 @@ class XmlSinkElementWithTextAndAttributesTest extends AnyFlatSpec with Matchers 
     Utility.trim(XML.loadString(result)) mustBe Utility.trim(expectedOutput)
   }
 
-  override def projectPathInClasspath: String = "org/silkframework/plugins/dataset/xml/xmlElementTextPlusAttr.zip"
+  override def projectPathInClasspath: String = "xmlElementTextPlusAttr.zip"
 
   override def projectId: String = "testProject"
 }
