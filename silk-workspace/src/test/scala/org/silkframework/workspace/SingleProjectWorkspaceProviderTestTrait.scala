@@ -29,7 +29,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     val is = try {
-      new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
+      new File(getClass.getResource(projectPathInClasspath).getFile)
     } catch {
       case _: NullPointerException =>
         throw new RuntimeException(s"Project file '$projectPathInClasspath' does not exist!")
