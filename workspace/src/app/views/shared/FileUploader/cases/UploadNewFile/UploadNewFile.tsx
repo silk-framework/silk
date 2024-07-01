@@ -10,7 +10,7 @@ import { RetryFileItem } from "./RetryFileItem";
 import { UploadedFileItem } from "./UploadedFileItem";
 import { FileRemoveModal } from "../../../modals/FileRemoveModal";
 
-import {CLASSPREFIX as  eccgui } from "@eccenca/gui-elements/src/configuration/constants";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 
 interface IProps {
     // Uppy instance
@@ -39,9 +39,17 @@ interface IProps {
     /** Callback that is called when the state of all uploads being successfully done has changed.
      * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
     allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
-    listenToUploadedFiles?: (files: UppyFile[]) => void
-}
+    listenToUploadedFiles?: (files: UppyFile[]) => void;
 
+    /** Upload files that were added to the Uppy instance before creating this component. */
+    uploadInitialFiles?: {
+        upload: boolean;
+        alsoAllowOther: boolean;
+    };
+
+    /** If uploaded files can be deleted in the same dialog. */
+    allowFileDeletion?: boolean;
+}
 
 /**
  * The Widget for "Upload new file" option
@@ -56,7 +64,9 @@ export function UploadNewFile({
     attachFileNameToEndpoint,
     allFilesSuccessfullyUploadedHandler,
     onProgress,
-    listenToUploadedFiles
+    listenToUploadedFiles,
+    uploadInitialFiles,
+    allowFileDeletion,
 }: IProps) {
     // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);
@@ -104,7 +114,22 @@ export function UploadNewFile({
     };
     checkFilesSuccessfullyUploaded();
 
-    React.useEffect(() => {listenToUploadedFiles?.(uploadedFiles)},[uploadedFiles])
+    const uploadInitialFilesAsNewFiles = React.useCallback(async () => {
+        const files = uppy.getFiles();
+        for (let i = 0; i < files.length; i++) {
+            await uploadAsNewFile(files[i]);
+        }
+    }, [uppy]);
+
+    React.useEffect(() => {
+        if (uploadInitialFiles?.upload) {
+            uploadInitialFilesAsNewFiles();
+        }
+    }, [uploadInitialFiles]);
+
+    React.useEffect(() => {
+        listenToUploadedFiles?.(uploadedFiles);
+    }, [uploadedFiles]);
 
     // register/unregister uppy events
     useEffect(() => {
@@ -299,7 +324,7 @@ export function UploadNewFile({
             delete newState[fileId];
             return newState;
         });
-        onProgress?.(0)
+        onProgress?.(0);
         addInRetryQueue(uppy.getFile(fileId));
     };
 
@@ -364,17 +389,17 @@ export function UploadNewFile({
         forceUpdate();
     };
 
- 
-
     return (
         <div className="diapp-project__uploadwidget">
             {projectId && showDeleteDialog && (
                 <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             )}
-            <DragDrop
-                uppy={uppy}
-                locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
-            />
+            {(uploadInitialFiles?.alsoAllowOther ?? true) && (
+                <DragDrop
+                    uppy={uppy}
+                    locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
+                />
+            )}
             <Icon name="item-upload" className="diapp-project__uploadwidget__dnd-icon" />
             <Spacing />
             {!error ? (
@@ -408,7 +433,11 @@ export function UploadNewFile({
                         />
                     ))}
                     {uploadedFiles.map((file) => (
-                        <UploadedFileItem key={file.id} file={file} onRemoveFile={setShowDeleteDialog} />
+                        <UploadedFileItem
+                            key={file.id}
+                            file={file}
+                            onRemoveFile={allowFileDeletion ? setShowDeleteDialog : undefined}
+                        />
                     ))}
                 </>
             ) : (
