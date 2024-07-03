@@ -241,9 +241,9 @@ object DatasetSpec {
           TypedProperty(property.uri, ValueType.URI, isBackwardProperty = false)
         }
 
-      // Make sure that the type is actually written as a property
+      // Make sure that the type is actually written as a property, if needed
       val typeProperty =
-        if(typeUri.uri.nonEmpty && !properties.exists(p => p.isTypeProperty)) {
+        if(datasetSpec.plugin.characteristics.typedEntities && typeUri.uri.nonEmpty && !properties.exists(p => p.isTypeProperty)) {
           extraTypeUri = Some(typeUri.uri)
           if(typeUri.isValidUri) {
             Seq(TypedProperty.rdfTypeProperty)
