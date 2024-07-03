@@ -50,7 +50,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   def entitySink(implicit userContext: UserContext): EntitySink = {
-    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this, readOnly), SafeModeSink)
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
   }
 
   def linkSink(implicit userContext: UserContext): LinkSink = {
@@ -215,7 +215,7 @@ object DatasetSpec {
     override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
   }
 
-  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset], readOnly: Boolean) extends EntitySink {
+  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
@@ -228,7 +228,7 @@ object DatasetSpec {
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-      checkDatasetAllowsWriteAccess(None, readOnly)
+      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
       if (isOpen) {
         entitySink.close()
         isOpen = false

@@ -252,6 +252,14 @@ const inputPathTab = (
         id: `${sourceOrTarget}Paths`,
         icon: sourceOrTarget === "source" ? "data-sourcepath" : "data-targetpath",
         label: sourceOrTarget === "source" ? "Source paths" : "Target paths",
+        defaultOperators: [
+            {
+                value: "",
+                valueType: "",
+                label: category,
+                _idPrefix: sourceOrTarget,
+            },
+        ],
         fetchOperators: async (langPref: string) => {
             try {
                 return (
@@ -285,7 +293,7 @@ const inputPathTab = (
                 parameterOverwrites: {
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
-                tags: [path.valueType],
+                tags: path.valueType ? [path.valueType] : [],
                 inputsCanBeSwitched: false,
             };
         },

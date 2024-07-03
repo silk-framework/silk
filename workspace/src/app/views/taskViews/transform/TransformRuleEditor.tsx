@@ -225,6 +225,26 @@ export const TransformRuleEditor = ({
         return result;
     };
 
+    const tabs = React.useMemo(() => {
+        return [
+            ruleUtils.sidebarTabs.all,
+            inputPathTab(
+                projectId,
+                transformTaskId,
+                ruleId,
+                sourcePathInput(),
+                (ex) =>
+                    registerError(
+                        "linking-rule-editor-fetch-source-paths",
+                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                        ex
+                    ),
+                mappingEditorContext.taskContext
+            ),
+            ruleUtils.sidebarTabs.transform,
+        ];
+    }, []);
+
     return (
         <TransformRuleEvaluation
             projectId={projectId}
@@ -245,23 +265,7 @@ export const TransformRuleEditor = ({
                 getStickyNotes={getStickyNotes}
                 additionalRuleOperators={[sourcePathInput()]}
                 validateConnection={ruleUtils.validateConnection}
-                tabs={[
-                    ruleUtils.sidebarTabs.all,
-                    inputPathTab(
-                        projectId,
-                        transformTaskId,
-                        ruleId,
-                        sourcePathInput(),
-                        (ex) =>
-                            registerError(
-                                "linking-rule-editor-fetch-source-paths",
-                                t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                                ex
-                            ),
-                        mappingEditorContext.taskContext
-                    ),
-                    ruleUtils.sidebarTabs.transform,
-                ]}
+                tabs={tabs}
                 showRuleOnly={false}
                 initialFitToViewZoomLevel={initialFitToViewZoomLevel}
                 instanceId={instanceId}
