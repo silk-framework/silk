@@ -20,6 +20,7 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
   var writeEntityFn: (String, Seq[Seq[String]]) => Unit = (_, _) => {}
   var clearFn: () => Unit = () => {}
   var retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath] = (_, _, _) => { IndexedSeq.empty }
+  var characteristicsVal: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 
   override def source(implicit userContext: UserContext): DataSource = DummyDataSource(retrieveFn, retrieveByUriFn, retrievePathsFn)
 
@@ -27,7 +28,7 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
 
   override def entitySink(implicit userContext: UserContext): EntitySink = DummyEntitySink(writeEntityFn, clearFn)
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
+  override def characteristics: DatasetCharacteristics = characteristicsVal
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => CloseableIterator[Entity],
