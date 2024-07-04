@@ -195,22 +195,27 @@ export const PathInputOperator = ({
         setActiveProps(newProps);
     }
 
-    const inputType = activeProps.pluginId.replace("PathInput", "") as "source" | "target";
-    const fetchSuggestion =
-        (activeProps.partialAutoCompletion && activeProps.partialAutoCompletion(inputType)) || (async () => undefined);
-    return (
-        <CodeAutocompleteField
-            {...overwrittenProps.inputProps}
-            initialValue={activeProps.initialValue?.value ?? ""}
-            onChange={(value) => activeProps.onChange({ value })}
-            fetchSuggestions={fetchSuggestion}
-            placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
-            checkInput={(value) => checkValuePathValidity(value, activeProps.projectId)}
-            validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
-            autoCompletionRequestDelay={500}
-            validationRequestDelay={250}
-        />
-    );
+    const autoCompletionInput = React.useMemo(() => {
+        const inputType = activeProps.pluginId.replace("PathInput", "") as "source" | "target";
+        const fetchSuggestion =
+            (activeProps.partialAutoCompletion && activeProps.partialAutoCompletion(inputType)) ||
+            (async () => undefined);
+        return (
+            <CodeAutocompleteField
+                {...overwrittenProps.inputProps}
+                initialValue={activeProps.initialValue?.value ?? ""}
+                onChange={(value) => activeProps.onChange({ value })}
+                fetchSuggestions={fetchSuggestion}
+                placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
+                checkInput={(value) => checkValuePathValidity(value, activeProps.projectId)}
+                validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
+                autoCompletionRequestDelay={500}
+                validationRequestDelay={250}
+            />
+        );
+    }, [activeProps, languageFilter, showLanguageFilterButton]);
+
+    return autoCompletionInput;
 
     // return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
 };
