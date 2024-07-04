@@ -39,6 +39,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
             return subitems && subitems.length > 0 ? (
                 <MenuItem
                     {...otherProps}
+                    icon={icon}
                     key={"menuitem_" + index}
                     text={
                         <OverflowText>{text}</OverflowText>
@@ -50,6 +51,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
             ) : (
                 <MenuItem
                     {...otherProps}
+                    icon={icon}
                     key={"menuitem_" + index}
                     text={<OverflowText>{text}</OverflowText>}
                     onClick={actionHandler}
