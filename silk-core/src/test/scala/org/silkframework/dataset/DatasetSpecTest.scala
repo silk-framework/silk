@@ -24,12 +24,29 @@ class DatasetSpecTest extends AnyFlatSpec with Matchers {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
     val sink = datasetSpec.entitySink
-    sink.openTable("someType", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
+    sink.openTable("", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
     sink.closeTable()
     sink.close()
 
     entities("entityUri") shouldBe Seq(Seq("entityUri"), Seq("someValue"))
+  }
+
+  it should "add a type property for RDF datasets, if it is not already there" in {
+    val dataset = MockDataset()
+    dataset.characteristicsVal = DatasetCharacteristics(typedEntities = true)
+    var entities = Map[String, Seq[Seq[String]]]()
+    dataset.writeEntityFn = (uri: String, values: Seq[Seq[String]]) => entities += ((uri, values))
+    val datasetSpec = DatasetSpec(dataset, uriAttribute = Some("urn:schema:URI"))
+    implicit val userContext: UserContext = UserContext.Empty
+    implicit val prefixes: Prefixes = Prefixes.empty
+    val sink = datasetSpec.entitySink
+    sink.openTable("someType", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
+    sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
+    sink.closeTable()
+    sink.close()
+
+    entities("entityUri") shouldBe Seq(Seq("entityUri"), Seq("someType"), Seq("someValue"))
   }
 
   it should "support retrieving and updating properties" in {
