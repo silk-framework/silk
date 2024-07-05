@@ -24,7 +24,7 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
 
   private val defaultLimit = 10000
 
-  private implicit val logger = Logger.getLogger(getClass.getName)
+  private implicit val logger: Logger = Logger.getLogger(getClass.getName)
 
   def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int])
            (implicit userContext: UserContext): Iterable[(String, Double)] = {

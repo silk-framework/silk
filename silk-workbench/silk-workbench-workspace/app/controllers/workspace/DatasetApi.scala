@@ -42,9 +42,9 @@ import javax.inject.Inject
 @Tag(name = "Datasets", description = "Manage datasets.")
 class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
-  private implicit val partialPath = Json.format[PathCoverage]
-  private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
-  private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
+  private implicit val partialPath: OFormat[PathCoverage] = Json.format[PathCoverage]
+  private implicit val valueCoverageMissFormat: OFormat[ValueCoverageMiss] = Json.format[ValueCoverageMiss]
+  private implicit val valueCoverageResultFormat: OFormat[ValueCoverageResult] = Json.format[ValueCoverageResult]
 
   @Operation(
     summary = "Retrieve dataset",
