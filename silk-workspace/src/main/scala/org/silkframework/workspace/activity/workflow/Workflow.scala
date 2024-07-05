@@ -250,7 +250,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
     val operatorsWithDataOutput: Set[Identifier] = operators
       .map(op => op.task).distinct
-      .filter(taskId => project.anyTask(taskId).outputSchemaOpt.isDefined)
+      .filter(taskId => project.anyTask(taskId).outputPort.isDefined)
       .toSet
     // Filter out datasets that have no real data input
     val datasetNodesWithRealInputs = operators.flatMap(op => {

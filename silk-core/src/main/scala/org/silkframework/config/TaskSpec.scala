@@ -28,32 +28,6 @@ trait TaskSpec {
   def outputPort: Option[Port]
 
   /**
-    * The schemata of the input data for this task.
-    * A separate entity schema is returned for each input.
-    * Or None is returned, which means that this task can handle any number of inputs and any kind
-    * of entity schema.
-    * A result of Some(Seq()) on the other hand means that this task has no inputs at all.
-    */
-  @deprecated("Use `inputPorts` instead")
-  def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    inputPorts match {
-      case FixedNumberOfInputs(inputs) =>
-        Some(inputs.flatMap(_.schemaOpt))
-      case FlexibleNumberOfInputs() =>
-        None
-    }
-  }
-
-  /**
-    * The schema of the output data.
-    * Returns None, if the schema is unknown or if no output is written by this task.
-    */
-  @deprecated("Use `outputPort` instead")
-  def outputSchemaOpt: Option[EntitySchema] = {
-    outputPort.flatMap(_.schemaOpt)
-  }
-
-  /**
     * The tasks that this task reads from.
     */
   def inputTasks: Set[Identifier] = Set.empty

@@ -43,8 +43,6 @@ object PluginSerializers {
         case obj: JsObject => ParameterValues(obj.value.view.mapValues(readParameters).toMap)
         case array: JsArray => ParameterValues.empty
         case JsNull => ParameterValues.empty
-        case other: JsValue =>
-          throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as parameter values!")
       }
     }
 

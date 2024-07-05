@@ -14,12 +14,6 @@ import javax.inject.Inject
 /** View endpoints for the workflow editor */
 class WorkflowEditorController @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
-  def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[Workflow](project, task, request.path)
-    accessMonitor.saveProjectTaskAccess(project, task)
-    Ok(views.html.workflow.editor.editor(context))
-  }
-
   def activityControl(projectId: String, taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
     val task = project.anyTask(taskId)
