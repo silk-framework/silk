@@ -224,6 +224,9 @@ export interface IArtefactModal {
     newTaskPreConfiguration?: TaskPreConfiguration;
 
     error: any;
+
+    /** An info notification that will be shown in the modal at the bottom. */
+    info?: string
 }
 
 export interface ICommonState {

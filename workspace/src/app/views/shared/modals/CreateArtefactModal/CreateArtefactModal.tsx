@@ -96,6 +96,7 @@ export function CreateArtefactModal() {
         loading,
         updateExistingTask,
         error,
+        info,
         newTaskPreConfiguration,
     }: IArtefactModal = modalStore;
 
@@ -170,6 +171,10 @@ export function CreateArtefactModal() {
     const resetModalError = (didTimeoutExpire: boolean = false) => {
         !didTimeoutExpire && dispatch(commonOp.setModalError({}));
     };
+
+    const resetModalInfo = () => {
+        dispatch(commonOp.setModalInfo(undefined))
+    }
 
     // Function to set template parameter flag for a parameter
     const setTemplateFlag = React.useCallback((parameterId: string, isTemplate: boolean) => {
@@ -762,12 +767,18 @@ export function CreateArtefactModal() {
         };
 
         notifications.push(
-            <Notification
-                onDismiss={resetModalError}
-                message={taskLoadingError || error.errorMessage || actionFailed()}
-                danger
-            />
+
         );
+    }
+
+    if(info) {
+        notifications.push(
+            <Notification
+                onDismiss={resetModalInfo}
+                message={info}
+                timeout={30000}
+            />
+        )
     }
 
     if (infoMessage) {
