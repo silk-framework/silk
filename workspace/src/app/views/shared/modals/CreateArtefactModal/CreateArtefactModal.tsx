@@ -768,7 +768,11 @@ export function CreateArtefactModal() {
         };
 
         notifications.push(
-
+            <Notification
+                onDismiss={resetModalError}
+                message={taskLoadingError || error.errorMessage || actionFailed()}
+                danger
+            />
         );
     }
 
