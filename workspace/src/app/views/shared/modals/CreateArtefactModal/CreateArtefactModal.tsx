@@ -387,6 +387,7 @@ export function CreateArtefactModal() {
     const closeModal = () => {
         setSearchValue("");
         resetModal(true);
+        newTaskPreConfiguration?.onCloseCallback?.()
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
