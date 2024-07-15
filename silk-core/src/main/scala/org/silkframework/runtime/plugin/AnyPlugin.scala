@@ -40,7 +40,7 @@ trait AnyPlugin {
    * The description for this plugin.
    */
   def pluginSpec: PluginDescription[AnyPlugin] = {
-    if(pluginSpecOption.isEmpty) {
+    if(pluginSpecOption == null || pluginSpecOption.isEmpty) {
       pluginSpecOption = Some(ClassPluginDescription(getClass))
     }
     pluginSpecOption.get
