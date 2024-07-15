@@ -22,7 +22,7 @@ const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent")
 const paths = require("./paths");
 const getClientEnvironment = require("./env");
 const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
-const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpackPlugin");
+const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin"); //https://github.com/TypeStrong/fork-ts-checker-webpack-plugin/issues/797
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 const { CycloneDxWebpackPlugin } = require("@cyclonedx/webpack-plugin");
 
