@@ -1,5 +1,8 @@
 package org.silkframework.runtime.activity
 
+import io.micrometer.core.instrument.{MeterRegistry, Tag}
+import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics
+import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.Status.{Canceling, Finished, Waiting}
 import org.silkframework.runtime.execution.Execution
@@ -295,6 +298,9 @@ object ActivityExecution {
     keepAliveInMs = KEEP_ALIVE_MS
   ))
 
+  // Registry of Micrometer-based metrics, with Prometheus as a specific implementation.
+  private val meterRegistry: MeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
   /**
     * The size of the fork join thread pool
     */
@@ -311,14 +317,34 @@ object ActivityExecution {
   /**
     * The fork join pool used to run activities.
     */
-  val forkJoinPool: ForkJoinPool = {
-    Execution.createForkJoinPool("Activity", size = poolSize)
-  }
+  val forkJoinPool: ForkJoinPool = registerMetrics(
+    executor = Execution.createForkJoinPool("Activity", size = poolSize),
+    name = "Activity",
+    tags = List(Tag.of("activity", "normal"))
+  )
 
   /**
     * Thread pool to execute prioritized threads.
     */
-  val priorityThreadPool: ForkJoinPool = {
-    Execution.createForkJoinPool("Activity-Prio", size = poolSize)
+  val priorityThreadPool: ForkJoinPool = registerMetrics(
+    executor = Execution.createForkJoinPool("Activity-Prio", size = poolSize),
+    name = "Activity-Prio",
+    tags = List(Tag.of("activity", "priority"))
+  )
+
+  /**
+   * Registers Micrometer-based JVM metrics for a given ExecutorService.
+   *
+   * @param executor Executor to monitor.
+   * @param name Name of the Executor within the metrics system.
+   * @param tags Tags for the metrics system.
+   * @tparam E Type parameter for the specific ExecutorService subtype.
+   * @return
+   */
+  private def registerMetrics[E <: ExecutorService](executor: E, name: String, tags: List[Tag]): E = {
+    import scala.jdk.CollectionConverters._
+    val metrics = new ExecutorServiceMetrics(executor, name, tags.asJava)
+    metrics.bindTo(meterRegistry)
+    executor
   }
 }
