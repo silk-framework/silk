@@ -1,5 +1,6 @@
 package org.silkframework.runtime.metrics
 
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 
 /**
@@ -7,9 +8,15 @@ import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
  *
  * The `MeterRegistry` of Micrometer is used for creating and holding meters.
  *
- * For each monitoring system, there should be a single registry. Here, we only provide a single Prometheus registry.
+ * For each monitoring system, there should be a single registry.
  */
-object MeterRegistryProvider {
-  // Registry of Micrometer-based metrics, with Prometheus as a specific implementation.
-  val meterRegistry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+sealed trait MeterRegistryProvider {
+  def meterRegistry: MeterRegistry
+}
+
+/**
+ * Provider of a Micrometer-based meter registry for Prometheus as a monitoring system.
+ */
+object PrometheusRegistryProvider extends MeterRegistryProvider {
+  override val meterRegistry: MeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 }
