@@ -1,6 +1,5 @@
 package org.silkframework.runtime.metrics
 
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 
 /**
@@ -12,5 +11,5 @@ import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
  */
 object MeterRegistryProvider {
   // Registry of Micrometer-based metrics, with Prometheus as a specific implementation.
-  val meterRegistry: MeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+  val meterRegistry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 }
