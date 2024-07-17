@@ -1,8 +1,7 @@
 package org.silkframework.runtime.activity
 
-import io.micrometer.core.instrument.{MeterRegistry, Tag}
+import io.micrometer.core.instrument.Tag
 import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics
-import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.Status.{Canceling, Finished, Waiting}
 import org.silkframework.runtime.execution.Execution
@@ -298,9 +297,6 @@ object ActivityExecution {
     keepAliveInMs = KEEP_ALIVE_MS
   ))
 
-  // Registry of Micrometer-based metrics, with Prometheus as a specific implementation.
-  private val meterRegistry: MeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-
   /**
     * The size of the fork join thread pool
     */
@@ -342,6 +338,8 @@ object ActivityExecution {
    * @return
    */
   private def registerMetrics[E <: ExecutorService](executor: E, name: String, tags: List[Tag]): E = {
+    import org.silkframework.runtime.metrics.MeterRegistryProvider.meterRegistry
+
     import scala.jdk.CollectionConverters._
     val metrics = new ExecutorServiceMetrics(executor, name, tags.asJava)
     metrics.bindTo(meterRegistry)
