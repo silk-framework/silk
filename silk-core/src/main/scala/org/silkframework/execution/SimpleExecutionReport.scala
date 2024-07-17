@@ -1,6 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.execution.report.EntitySample
 
 /**
   * An execution report that only contains generic task-independent execution information.
@@ -12,7 +13,8 @@ case class SimpleExecutionReport(task: Task[TaskSpec],
                                  isDone: Boolean,
                                  entityCount: Int,
                                  override val operation: Option[String] = None,
-                                 override val operationDesc: String = ExecutionReport.DEFAULT_OPERATION_DESC) extends ExecutionReport {
+                                 override val operationDesc: String = ExecutionReport.DEFAULT_OPERATION_DESC,
+                                 override val sampleOutputEntities: Seq[EntitySample] = Seq.empty) extends ExecutionReport {
 
   /**
     * Returns a done version of this report.
@@ -25,6 +27,9 @@ case class SimpleExecutionReport(task: Task[TaskSpec],
   def isEmpty: Boolean = {
     summary.isEmpty && warnings.isEmpty && error.isEmpty && !isDone && entityCount == 0 && operation.isEmpty
   }
+
+  /** Updates the execution report with some sample entities. */
+  override def withSampleOutputEntities(entities: Seq[EntitySample]): Unit = this.copy(sampleOutputEntities = entities)
 }
 
 object SimpleExecutionReport {

@@ -1,6 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.execution.report.EntitySample
 
 /**
   * Contains statistics about the execution of a task.
@@ -61,10 +62,17 @@ trait ExecutionReport {
     */
   def entityCount: Int
 
+  /** Sample of entities that were output by this task. */
+  def sampleOutputEntities: Seq[EntitySample]
+
+  /** Updates the execution report with some sample entities. */
+  def withSampleOutputEntities(entities: Seq[EntitySample]): Unit
 }
 
 object ExecutionReport {
 
   final val DEFAULT_OPERATION_DESC = "entities processed"
+
+  final val SAMPLE_ENTITY_LIMIT = 5
 
 }

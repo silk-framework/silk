@@ -1,6 +1,6 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
 
-export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview;
+export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
 interface IValidation {
     validate: () => boolean;
@@ -100,4 +100,19 @@ export interface BrandingProps {
 export interface ParameterExtensions {
     /** Extends the given parameter definition (or leaves it as it is). */
     extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
+}
+
+export interface FixedPreview {
+    /** The list of possible types. */
+    types: string[]
+
+    /** The preview for each type. */
+    typeValues: Map<string, PreviewContent>
+}
+
+interface PreviewContent {
+    /** property/attribute names. */
+    attributes: string[]
+    /** The values for each attribute. This must have the same length as the attributes array. */
+    values: string[][]
 }

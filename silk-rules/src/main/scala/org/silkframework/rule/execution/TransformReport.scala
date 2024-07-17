@@ -2,6 +2,7 @@ package org.silkframework.rule.execution
 
 import org.silkframework.config.Task
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.report.EntitySample
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport._
 import org.silkframework.util.Identifier
@@ -19,7 +20,8 @@ case class TransformReport(task: Task[TransformSpec],
                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
                            globalErrors: Seq[String] = Seq.empty,
                            isDone: Boolean = false,
-                           override val error: Option[String] = None) extends ExecutionReport {
+                           override val error: Option[String] = None,
+                           override val sampleOutputEntities: Seq[EntitySample] = Seq.empty) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
@@ -45,6 +47,9 @@ case class TransformReport(task: Task[TransformSpec],
     * Returns a done version of this report.
     */
   def asDone(): ExecutionReport = copy(isDone = true)
+
+  /** Updates the execution report with some sample entities. */
+  override def withSampleOutputEntities(entities: Seq[EntitySample]): Unit = this.copy(sampleOutputEntities = entities)
 }
 
 object TransformReport {

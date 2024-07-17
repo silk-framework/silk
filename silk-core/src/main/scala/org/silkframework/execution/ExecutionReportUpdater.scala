@@ -2,6 +2,7 @@ package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.ExecutionReportUpdater.{DEFAULT_DELAY_BETWEEN_UPDATES, DEFAULT_ENTITIES_BETWEEN_UPDATES}
+import org.silkframework.execution.report.EntitySample
 import org.silkframework.runtime.activity.ActivityContext
 
 import java.time.Instant
@@ -36,6 +37,7 @@ trait ExecutionReportUpdater {
   private var entitiesEmitted = 0
   private var numberOfExecutions = 0
   private var error: Option[String] = None
+  private var sampleOutputEntities: Vector[EntitySample] = Vector.empty
 
   if(entityLabelPlural != "Entities" && entityProcessVerb != "processed") {
     // Change the status message if any of those are not the defaults
@@ -52,6 +54,13 @@ trait ExecutionReportUpdater {
     entitiesEmitted += 1
     if(entitiesEmitted % minEntitiesBetweenUpdates == 0) {
       update(force = false, addEndTime = false)
+    }
+  }
+
+  def addSampleEntity(entity: EntitySample): Unit = {
+    if(sampleOutputEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
+      sampleOutputEntities = sampleOutputEntities :+ entity
+      update(force = sampleOutputEntities.size == 1, addEndTime = false)
     }
   }
 
@@ -102,7 +111,7 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, sampleOutputEntities))
       lastUpdate = System.currentTimeMillis()
     }
   }

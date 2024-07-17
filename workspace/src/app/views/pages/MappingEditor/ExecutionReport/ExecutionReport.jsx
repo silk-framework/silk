@@ -21,6 +21,8 @@ import {
 } from "@eccenca/gui-elements";
 import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
+import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../plugins/PluginRegistry";
+import {DataPreviewProps} from "../../../plugins/plugin.types";
 
 /**
  * Displays a task execution report.
@@ -200,6 +202,28 @@ export default class ExecutionReport extends React.Component {
         );
     }
 
+    renderEntityPreview() {
+        const entitiesSample = this.props.executionReport.outputEntitiesSample
+        const dataPreviewPlugin = pluginRegistry.pluginReactComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
+        if(dataPreviewPlugin && entitiesSample && entitiesSample.length) {
+            const typeValues = new Map()
+            typeValues.set("fixedForNow", {
+                attributes: entitiesSample[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
+                values: entitiesSample.map(e => e.values)
+            })
+            return <dataPreviewPlugin.Component
+                title={"TODO"}
+                preview={{
+                    types: ["fixedForNow"],
+                    typeValues
+                }}
+                autoLoad={true}
+            />
+        } else {
+            return null
+        }
+    }
+
     generateIcons() {
         let ruleIcons = Object.create(null);
         for (let [ruleId, ruleResults] of Object.entries(this.props.executionReport.ruleResults)) {
@@ -297,6 +321,7 @@ export default class ExecutionReport extends React.Component {
             <div data-test-id={"execution-report"}>
                 {this.renderSummary()}
                 {this.isTransformReport() && this.renderTransformReport()}
+                {this.renderEntityPreview()}
             </div>
         );
     }

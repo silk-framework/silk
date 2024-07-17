@@ -7,6 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
+import org.silkframework.execution.report.EntitySample
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.validation.ValidationException
@@ -319,6 +320,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     var lastLog = startTime
     sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths, entityTable.entitySchema.singleEntity)
     for (entity <- entityTable.entities) {
+      if(entityCount < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
+        executionReport.addSampleEntity(EntitySample.entityToEntitySample(entity))
+      }
       executionReport.increaseEntityCounter()
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
