@@ -2,8 +2,9 @@ package org.silkframework.workspace.metrics
 
 import io.micrometer.core.instrument.binder.MeterBinder
 import io.micrometer.core.instrument.{Gauge, MeterRegistry}
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.Workspace
+import org.silkframework.workspace.{ProjectTask, Workspace}
 
 import scala.util.Try
 
@@ -17,6 +18,7 @@ class WorkspaceMetrics(workspace: Workspace)(implicit userContext: UserContext) 
   override def bindTo(registry: MeterRegistry): Unit = {
     workspaceProjectSize(registry)
     workspaceTaskSize(registry)
+    workspaceTaskSizesPerCategory(registry)
   }
 
   private def workspaceProjectSize(registry: MeterRegistry): Unit = {
@@ -37,5 +39,24 @@ class WorkspaceMetrics(workspace: Workspace)(implicit userContext: UserContext) 
       )
       .description("Workspace task size")
       .register(registry)
+  }
+
+  private def workspaceTaskSizesPerCategory(registry: MeterRegistry): Unit = {
+    Try {
+      val allTasks: Seq[ProjectTask[_ <: TaskSpec]] = workspace.projects.flatMap(_.allTasks)
+
+      val allTasksBySpec: Map[Class[ProjectTask[_ <: TaskSpec]], Seq[ProjectTask[_ <: TaskSpec]]] =
+        allTasks.groupBy(_.data.getClass)
+
+      allTasksBySpec.foreach { specAndTasks =>
+        val clazz: Class[ProjectTask[_ <: TaskSpec]] = specAndTasks._1
+        val tasks: Seq[ProjectTask[_ <: TaskSpec]] = specAndTasks._2
+
+        Gauge.builder("task.size", () => tasks.size)
+          .description("Workspace task size, per task specification")
+          .tags("spec", clazz.getSimpleName)
+          .register(registry)
+      }
+    }
   }
 }
