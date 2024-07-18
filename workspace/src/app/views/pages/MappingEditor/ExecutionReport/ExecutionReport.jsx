@@ -205,16 +205,20 @@ export default class ExecutionReport extends React.Component {
     renderEntityPreview() {
         const entitiesSample = this.props.executionReport.outputEntitiesSample
         const dataPreviewPlugin = pluginRegistry.pluginReactComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
-        if(dataPreviewPlugin && entitiesSample && entitiesSample.length) {
+        if(dataPreviewPlugin && entitiesSample && entitiesSample.entities.length) {
+            const {entities, schema} = entitiesSample
             const typeValues = new Map()
-            typeValues.set("fixedForNow", {
-                attributes: entitiesSample[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
-                values: entitiesSample.map(e => e.values)
+            const type = schema?.typeUri ?? "fixedForNow"
+            typeValues.set(type, {
+                attributes: schema ?
+                    schema.properties :
+                    entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
+                values: entities.map(e => e.values)
             })
             return <dataPreviewPlugin.Component
-                title={"TODO"}
+                title={"Sample output entities"}
                 preview={{
-                    types: ["fixedForNow"],
+                    types: [type],
                     typeValues
                 }}
                 autoLoad={true}

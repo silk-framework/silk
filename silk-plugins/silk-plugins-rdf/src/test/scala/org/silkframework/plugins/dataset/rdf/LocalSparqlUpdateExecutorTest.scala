@@ -4,18 +4,19 @@ package org.silkframework.plugins.dataset.rdf
 import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, PlainTask, Port, Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.ExecutorOutput
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, SparqlUpdateEntitySchema}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, TestPluginContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, TestMocks}
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.execution.report.EntitySample
 
 class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"
@@ -50,7 +51,8 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   private val project = retrieveOrCreateProject(projectName)
 
   it should "generate the correct batches" in {
-    val result = executeTask(sparqlUpdateTemplate, Seq(mockInputTable()))
+    val activityContext = TestMocks.activityContextMock()
+    val result = executeTask(sparqlUpdateTemplate, Seq(mockInputTable()), activityContext = activityContext)
     result.entitySchema mustBe SparqlUpdateEntitySchema.schema
     val entities = result.entities.toSeq
     entities.size mustBe 2
@@ -65,6 +67,15 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
         |INSERT DATA { <http://s2b> <urn:prop> "s2b" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2c" } ;""".stripMargin)
     list mustBe comp.map(_.replace("\r\n", "\n"))
+    // Check report for sample queries
+    val report = activityContext.value.get
+    report mustBe defined
+    report.get.sampleOutputEntities mustBe defined
+    val samplesEntities = report.get.sampleOutputEntities.get
+    samplesEntities.schema mustBe defined
+    samplesEntities.entities must have size ExecutionReport.SAMPLE_ENTITY_LIMIT
+    // Each entity currently represents one query, NOT one batch
+    samplesEntities.entities.head.values mustBe IndexedSeq(Seq("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;"""))
   }
 
   it should "throw validation exception if an invalid input schema is found" in {
@@ -103,9 +114,10 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
   }
 
   private def executeTask(template: String,
-                      input: Seq[GenericEntityTable],
-                      mode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple): LocalEntities = {
-    val result = executor.execute(sparqlUpdateTask(template, mode), input, ExecutorOutput.empty, LocalExecution(true), context)
+                          input: Seq[GenericEntityTable],
+                          mode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple,
+                          activityContext: ActivityContext[ExecutionReport] = context): LocalEntities = {
+    val result = executor.execute(sparqlUpdateTask(template, mode), input, ExecutorOutput.empty, LocalExecution(true), activityContext)
     result mustBe defined
     result.get
   }

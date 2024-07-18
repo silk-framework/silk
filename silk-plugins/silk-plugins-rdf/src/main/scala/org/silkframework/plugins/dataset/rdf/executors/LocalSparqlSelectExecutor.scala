@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
 import org.silkframework.entity.Entity
@@ -66,8 +66,10 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                              results: SparqlResults,
                              vars: IndexedSeq[String],
                              executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): CloseableIterator[Entity] = {
-    val increase: () => Unit = executionReportUpdater match {
+    implicit val prefixes: Prefixes = Prefixes.empty
+    val increase: Entity => Unit = (entity: Entity) => executionReportUpdater match {
       case Some(updater) => () =>
+        updater.addSampleEntity(entity)
         updater.increaseEntityCounter()
       case None => () => {} // no-op
     }
@@ -79,7 +81,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         binding.get(v).toSeq.map(_.value)
       }
       val entity = Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
-      increase()
+      increase(entity)
       entity
     }
     entityIterator.thenClose(() => executionReportUpdater.foreach(updater => updater.executionDone()))

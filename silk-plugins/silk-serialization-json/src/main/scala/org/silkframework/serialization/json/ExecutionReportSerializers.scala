@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.execution.report.{EntitySample, Stacktrace}
+import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema, Stacktrace}
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
@@ -174,11 +174,12 @@ object ExecutionReportSerializers {
         operatorId = None, exception = None
       )
     }
-
   }
 
   implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
+  implicit val sampleEntitiesSchemaJsonFormat: Format[SampleEntitiesSchema] = Json.format[SampleEntitiesSchema]
   implicit val entitySampleJsonFormat: Format[EntitySample] = Json.format[EntitySample]
+  implicit val sampleEntitiesJsonFormat: Format[SampleEntities] = Json.format[SampleEntities]
 
   implicit object WorkflowTaskReportJsonFormat extends JsonFormat[WorkflowTaskReport] {
 

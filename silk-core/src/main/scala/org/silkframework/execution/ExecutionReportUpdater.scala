@@ -1,12 +1,14 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.entity.Entity
 import org.silkframework.execution.ExecutionReportUpdater.{DEFAULT_DELAY_BETWEEN_UPDATES, DEFAULT_ENTITIES_BETWEEN_UPDATES}
-import org.silkframework.execution.report.EntitySample
+import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
 import org.silkframework.runtime.activity.ActivityContext
 
 import java.time.Instant
 import java.time.format.DateTimeFormatter
+import scala.language.implicitConversions
 
 /**
   * Base trait for simple execution report updates.
@@ -38,6 +40,7 @@ trait ExecutionReportUpdater {
   private var numberOfExecutions = 0
   private var error: Option[String] = None
   private var sampleOutputEntities: Vector[EntitySample] = Vector.empty
+  private var sampleOutputEntitiesSchema: Option[SampleEntitiesSchema] = None
 
   if(entityLabelPlural != "Entities" && entityProcessVerb != "processed") {
     // Change the status message if any of those are not the defaults
@@ -57,11 +60,25 @@ trait ExecutionReportUpdater {
     }
   }
 
-  def addSampleEntity(entity: EntitySample): Unit = {
+  def addSampleEntity(entity: Entity)
+                     (implicit prefixes: Prefixes): Unit = {
+    if(sampleOutputEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
+      if(sampleOutputEntitiesSchema.isEmpty) {
+        updateSampleEntitiesSchema(SampleEntitiesSchema.entitySchemaToSampleEntitiesSchema(entity.schema))
+      }
+      addSampleEntity(EntitySample.entityToEntitySample(entity))
+    }
+  }
+
+  def addSampleEntity(entity: => EntitySample): Unit = {
     if(sampleOutputEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
       sampleOutputEntities = sampleOutputEntities :+ entity
       update(force = sampleOutputEntities.size == 1, addEndTime = false)
     }
+  }
+
+  def updateSampleEntitiesSchema(sampleEntitiesSchema: SampleEntitiesSchema): Unit = {
+    sampleOutputEntitiesSchema = Some(sampleEntitiesSchema)
   }
 
   def setExecutionError(error: Option[String] = None): Unit = {
@@ -111,7 +128,8 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, sampleOutputEntities))
+      val sampleEntities = SampleEntities(sampleOutputEntities, sampleOutputEntitiesSchema)
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, Some(sampleEntities)))
       lastUpdate = System.currentTimeMillis()
     }
   }
