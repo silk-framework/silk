@@ -15,8 +15,11 @@ import scala.util.Try
  */
 class WorkspaceMetrics(workspace: Workspace)(implicit userContext: UserContext) extends MeterBinder {
   override def bindTo(registry: MeterRegistry): Unit = {
-    Gauge.builder("workspace.metrics", workspace, (w: Workspace) => Try(w.projects.size.toDouble).getOrElse(0.0))
-      .tags("project", "size")
+    Gauge.builder(
+        "workspace.metrics.project.size",
+        workspace,
+        (w: Workspace) => Try(w.projects.size.toDouble).getOrElse(0.0)
+      )
       .description("Workspace metrics: project size")
       .register(registry)
   }

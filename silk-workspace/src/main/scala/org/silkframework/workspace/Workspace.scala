@@ -16,12 +16,14 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
+import org.silkframework.runtime.metrics.{MeterRegistryProvider, PrometheusRegistryProvider}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
+import org.silkframework.workspace.metrics.WorkspaceMetrics
 import org.silkframework.workspace.resources.ResourceRepository
 
 import java.io._
@@ -38,7 +40,13 @@ import scala.util.control.NonFatal
   * @param provider    the workspace provider
   * @param repository  the resource repository
   */
-class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) extends WorkspaceReadTrait {
+class Workspace(val provider: WorkspaceProvider,
+                val repository: ResourceRepository,
+                val meterRegistryProvider: MeterRegistryProvider = PrometheusRegistryProvider)
+               (implicit userContext: UserContext)
+  extends WorkspaceReadTrait {
+  // Register workspace metrics.
+  new WorkspaceMetrics(this).bindTo(meterRegistryProvider.meterRegistry)
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
