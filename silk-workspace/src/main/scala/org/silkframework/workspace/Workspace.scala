@@ -283,7 +283,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
-  private def addProjectToCache(project: Project) = {
+  private def addProjectToCache(project: Project): Unit = {
     cachedProjects :+= project
   }
 
