@@ -1,6 +1,5 @@
 package org.silkframework.config
 
-import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
