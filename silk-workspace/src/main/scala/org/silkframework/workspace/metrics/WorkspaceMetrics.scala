@@ -2,9 +2,8 @@ package org.silkframework.workspace.metrics
 
 import io.micrometer.core.instrument.binder.MeterBinder
 import io.micrometer.core.instrument.{Gauge, MeterRegistry}
-import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.{ProjectTask, Workspace}
+import org.silkframework.workspace.Workspace
 
 import scala.util.Try
 
