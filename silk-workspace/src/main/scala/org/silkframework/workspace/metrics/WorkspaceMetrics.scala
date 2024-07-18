@@ -43,15 +43,12 @@ class WorkspaceMetrics(workspace: Workspace)(implicit userContext: UserContext) 
 
   private def workspaceTaskSizesPerCategory(registry: MeterRegistry): Unit = {
     Try {
-      val allTasks: Seq[ProjectTask[_ <: TaskSpec]] = workspace.projects.flatMap(_.allTasks)
-
-      val allTasksBySpec: Map[Class[ProjectTask[_ <: TaskSpec]], Seq[ProjectTask[_ <: TaskSpec]]] =
-        allTasks.groupBy(_.data.getClass)
+      val allTasks = workspace.projects.flatMap(_.allTasks)
+      val allTasksBySpec = allTasks.groupBy(_.data.getClass)
 
       allTasksBySpec.foreach { specAndTasks =>
-        val clazz: Class[ProjectTask[_ <: TaskSpec]] = specAndTasks._1
-        val tasks: Seq[ProjectTask[_ <: TaskSpec]] = specAndTasks._2
-
+        val clazz = specAndTasks._1
+        val tasks = specAndTasks._2
         Gauge.builder("task.size", () => tasks.size)
           .description("Workspace task size, per task specification")
           .tags("spec", clazz.getSimpleName)
