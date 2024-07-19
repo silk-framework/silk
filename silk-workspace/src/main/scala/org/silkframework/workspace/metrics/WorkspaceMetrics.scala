@@ -37,13 +37,13 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
   }
 
   private def workspaceTaskSizesPerCategory(registry: MeterRegistry): Unit = Try {
-    val projects: Seq[Project] = projectProvider()
+    def projects: Seq[Project] = projectProvider()
 
-    val transformTasks: Seq[ProjectTask[TransformSpec]] = projects.flatMap(_.tasks[TransformSpec])
-    val datasetTasks: Seq[ProjectTask[DatasetSpec[_]]] = projects.flatMap(_.tasks[DatasetSpec[_]])
-    val linkTasks: Seq[ProjectTask[LinkSpec]] = projects.flatMap(_.tasks[LinkSpec])
-    val customTasks: Seq[ProjectTask[CustomTask]] = projects.flatMap(_.tasks[CustomTask])
-    val workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
+    def transformTasks: Seq[ProjectTask[TransformSpec]] = projects.flatMap(_.tasks[TransformSpec])
+    def datasetTasks: Seq[ProjectTask[DatasetSpec[_]]] = projects.flatMap(_.tasks[DatasetSpec[_]])
+    def linkTasks: Seq[ProjectTask[LinkSpec]] = projects.flatMap(_.tasks[LinkSpec])
+    def customTasks: Seq[ProjectTask[CustomTask]] = projects.flatMap(_.tasks[CustomTask])
+    def workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
 
     def gauge[TaskType <: TaskSpec](tasks: Seq[ProjectTask[TaskType]], specification: String): Unit = {
       Gauge.builder("task.size", () => tasks.size)
