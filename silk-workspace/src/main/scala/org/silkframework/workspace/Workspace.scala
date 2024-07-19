@@ -46,7 +46,7 @@ class Workspace(val provider: WorkspaceProvider,
                (implicit userContext: UserContext)
   extends WorkspaceReadTrait {
   // Register workspace metrics.
-  new WorkspaceMetrics(this).bindTo(meterRegistryProvider.meterRegistry)
+  new WorkspaceMetrics(() => projects, () => projects.flatMap(_.allTasks)).bindTo(meterRegistryProvider.meterRegistry)
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
