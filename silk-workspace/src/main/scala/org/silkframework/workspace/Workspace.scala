@@ -43,11 +43,7 @@ import scala.util.control.NonFatal
 class Workspace(val provider: WorkspaceProvider,
                 val repository: ResourceRepository,
                 val meterRegistryProvider: MeterRegistryProvider = PrometheusRegistryProvider)
-               (implicit userContext: UserContext)
   extends WorkspaceReadTrait {
-  // Register workspace metrics.
-  new WorkspaceMetrics(() => projects, () => projects.flatMap(_.allTasks)).bindTo(meterRegistryProvider.meterRegistry)
-
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
   private val cfg = DefaultConfig.instance()
@@ -120,6 +116,8 @@ class Workspace(val provider: WorkspaceProvider,
           if (!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
             loadProjects()
             initialized = true
+            log.info("Register workspace metrics")
+            registerWorkspaceMetrics(userContext)
           }
         } finally {
           loadProjectsLock.unlock()
@@ -322,6 +320,9 @@ class Workspace(val provider: WorkspaceProvider,
     }
     log.info(s"${cachedProjects.size} projects loaded.")
   }
+
+  private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
+    new WorkspaceMetrics(() => projects, () => projects.flatMap(_.allTasks)).bindTo(meterRegistryProvider.meterRegistry)
 }
 
 object Workspace {

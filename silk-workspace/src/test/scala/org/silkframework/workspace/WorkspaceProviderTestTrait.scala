@@ -61,7 +61,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
   private val repository = InMemoryResourceRepository()
 
-  private def workspace(implicit userContext: UserContext) = new Workspace(workspaceProvider, repository)
+  private val workspace = new Workspace(workspaceProvider, repository)
 
   private val projectResources = repository.get(PROJECT_NAME)
 

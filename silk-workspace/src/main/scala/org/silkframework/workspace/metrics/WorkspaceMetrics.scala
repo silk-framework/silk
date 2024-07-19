@@ -19,19 +19,13 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
   }
 
   private def workspaceProjectSize(registry: MeterRegistry): Unit = {
-    Gauge.builder(
-        "workspace.project.size",
-        () => Try(projectProvider().size.toDouble).getOrElse(0.0)
-      )
+    Gauge.builder("workspace.project.size", () => Try(projectProvider().size).getOrElse(0).toDouble)
       .description("Workspace project size")
       .register(registry)
   }
 
   private def workspaceTaskSize(registry: MeterRegistry): Unit = {
-    Gauge.builder(
-        "workspace.task.size",
-        () => Try(tasksProvider().size.toDouble).getOrElse(0.0)
-      )
+    Gauge.builder("workspace.task.size", () => Try(tasksProvider().size).getOrElse(0).toDouble)
       .description("Workspace task size")
       .register(registry)
   }
@@ -44,6 +38,7 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
       allTasksBySpec.foreach { specAndTasks =>
         val clazz: Class[_] = specAndTasks._1
         val tasks: Seq[ProjectTask[_ <: TaskSpec]] = specAndTasks._2
+
         Gauge.builder("task.size", () => tasks.size)
           .description("Workspace task size, per task specification")
           .tags("spec", clazz.getSimpleName)

@@ -51,7 +51,6 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val testUserContext: UserContext.Empty.type = UserContext.Empty
     val replacementWorkspace = new Workspace(workspaceProvider, createResourceRepository(tmpDir))
     val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
@@ -62,6 +61,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     }
     oldWorkspaceFactory = WorkspaceFactory.factory
     WorkspaceFactory.factory = rdfWorkspaceFactory
+    implicit val testUserContext: UserContext.Empty.type = UserContext.Empty
     if(initWorkspaceBeforeAll) {
       WorkspaceFactory().workspace.projects // Initialize workspace before starting tests
     }
