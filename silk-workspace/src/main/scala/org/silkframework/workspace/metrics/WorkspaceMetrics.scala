@@ -46,7 +46,7 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
     def workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
 
     def gauge[TaskType <: TaskSpec](taskProvider: () => Seq[ProjectTask[TaskType]], specification: String): Unit = {
-      Gauge.builder("task.size", () => taskProvider().size)
+      Gauge.builder("workspace.task.size", () => taskProvider().size)
         .description("Workspace task size, per task specification")
         .tags("spec", specification)
         .register(registry)
