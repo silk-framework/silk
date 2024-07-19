@@ -2,7 +2,11 @@ package org.silkframework.workspace.metrics
 
 import io.micrometer.core.instrument.binder.MeterBinder
 import io.micrometer.core.instrument.{Gauge, MeterRegistry}
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.util.Try
@@ -11,7 +15,9 @@ import scala.util.Try
  * Metrics for a Workspace instance.
  */
 class WorkspaceMetrics(projectProvider: () => Seq[Project],
-                       tasksProvider: () => Seq[ProjectTask[_ <: TaskSpec]]) extends MeterBinder {
+                       tasksProvider: () => Seq[ProjectTask[_ <: TaskSpec]])
+                      (implicit userContext: UserContext)
+  extends MeterBinder {
   override def bindTo(registry: MeterRegistry): Unit = {
     workspaceProjectSize(registry)
     workspaceTaskSize(registry)
@@ -30,20 +36,26 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
       .register(registry)
   }
 
-  private def workspaceTaskSizesPerCategory(registry: MeterRegistry): Unit = {
-    Try {
-      val allTasks: Seq[ProjectTask[_ <: TaskSpec]] = tasksProvider()
-      val allTasksBySpec: Map[Class[_], Seq[ProjectTask[_ <: TaskSpec]]] = allTasks.groupBy(_.taskType)
+  private def workspaceTaskSizesPerCategory(registry: MeterRegistry): Unit = Try {
+    val projects: Seq[Project] = projectProvider()
 
-      allTasksBySpec.foreach { specAndTasks =>
-        val clazz: Class[_] = specAndTasks._1
-        val tasks: Seq[ProjectTask[_ <: TaskSpec]] = specAndTasks._2
+    val transformTasks: Seq[ProjectTask[TransformSpec]] = projects.flatMap(_.tasks[TransformSpec])
+    val datasetTasks: Seq[ProjectTask[DatasetSpec[_]]] = projects.flatMap(_.tasks[DatasetSpec[_]])
+    val linkTasks: Seq[ProjectTask[LinkSpec]] = projects.flatMap(_.tasks[LinkSpec])
+    val customTasks: Seq[ProjectTask[CustomTask]] = projects.flatMap(_.tasks[CustomTask])
+    val workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
 
-        Gauge.builder("task.size", () => tasks.size)
-          .description("Workspace task size, per task specification")
-          .tags("spec", clazz.getSimpleName)
-          .register(registry)
-      }
+    def gauge[TaskType <: TaskSpec](tasks: Seq[ProjectTask[TaskType]], specification: String): Unit = {
+      Gauge.builder("task.size", () => tasks.size)
+        .description("Workspace task size, per task specification")
+        .tags("spec", specification)
+        .register(registry)
     }
+
+    gauge(transformTasks, "Transform")
+    gauge(datasetTasks, "Dataset")
+    gauge(linkTasks, "Linking")
+    gauge(customTasks, "Task")
+    gauge(workflowTasks, "Workflow")
   }
 }
