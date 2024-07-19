@@ -33,7 +33,7 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
   private def workspaceTaskSizesPerCategory(registry: MeterRegistry): Unit = {
     Try {
       val allTasks: Seq[ProjectTask[_ <: TaskSpec]] = tasksProvider()
-      val allTasksBySpec: Map[Class[_], Seq[ProjectTask[_ <: TaskSpec]]] = allTasks.groupBy(_.data.getClass)
+      val allTasksBySpec: Map[Class[_], Seq[ProjectTask[_ <: TaskSpec]]] = allTasks.groupBy(_.taskType)
 
       allTasksBySpec.foreach { specAndTasks =>
         val clazz: Class[_] = specAndTasks._1
