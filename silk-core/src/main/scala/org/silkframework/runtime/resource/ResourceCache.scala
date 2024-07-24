@@ -43,6 +43,15 @@ abstract class ResourceCache[T](protected val resource: Resource, updateTimeout:
   }
 
   /**
+   * Forces the cache to reload its value.
+   */
+  def updateNow(): Unit = synchronized {
+    updateCache()
+    lastModificationTime = Instant.now()
+    timestamp = System.currentTimeMillis
+  }
+
+  /**
     * Loads the value from the resource.
     */
   protected def load(): T
