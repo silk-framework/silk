@@ -13,12 +13,13 @@ import java.time.{Duration, Instant}
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 import javax.inject.Inject
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import scala.util.Try
 
 /** Checks for caches that need to be updated. */
 class CacheUpdaterTask @Inject() (actorSystem: ActorSystem, executionContext: CacheUpdaterTaskExecutionContext) {
-  CacheUpdaterTask.start(actorSystem, executionContext)
+  CacheUpdaterTask.start()(actorSystem, executionContext)
 }
 
 object CacheUpdaterTask {
@@ -33,7 +34,7 @@ object CacheUpdaterTask {
   /**
    * Start running the cache updates regularly.
    */
-  def start(actorSystem: ActorSystem, executionContext: CacheUpdaterTaskExecutionContext): Unit = {
+  def start()(implicit actorSystem: ActorSystem, executionContext: ExecutionContext): Unit = {
     interval() match {
       case Some(interval) =>
         log.fine(s"Starting cache updater with interval '${interval.toString()}'. Interval can be configured via config parameter '${CacheUpdaterTask.INTERVAL_CONFIG_KEY}'." +

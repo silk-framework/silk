@@ -1,5 +1,6 @@
 package cacheUpdater
 
+import akka.actor.ActorSystem
 import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
@@ -13,6 +14,7 @@ import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait with Eventually {
@@ -25,6 +27,7 @@ class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrai
   override implicit def patienceConfig: PatienceConfig = super.patienceConfig.copy(timeout = Span.convertDurationToSpan(5.seconds))
 
   it should "update the depending caches when a project resource is updated via a data sink" in {
+    CacheUpdaterTask.start()(ActorSystem(), ExecutionContext.global)
     val projectId = "triggerProject"
     val p = retrieveOrCreateProject(projectId)
     val resourceName = "resource.json"
