@@ -54,7 +54,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       val registry = PrometheusRegistryProvider.meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
       runWorkflow(context, updateUserContext(userContext))
-      stopwatch.stop(registry.timer("timer.workflow.execution", "workflow", workflowTask.id.toString))
+      stopwatch.stop(registry.timer("workflow.execution", "workflow", workflowTask.id.toString))
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
@@ -186,7 +186,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             writeErrorOutput(operatorNode, executorOutput)
             process(result)
           }
-          stopwatch.stop(registry.timer("timer.workflow.operator.execution", "operator", operator.nodeId))
+          stopwatch.stop(registry.timer("workflow.operator.execution", "operator", operator.nodeId))
           result
         } catch {
           case ex: WorkflowExecutionException =>
@@ -304,11 +304,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     try {
       val registry = PrometheusRegistryProvider.meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
-      val entitiesCounter: Counter = registry.counter("timer.workflow.dataset", "entities", "count")
+      val entitiesCounter: Counter = registry.counter("workflow.dataset", "entities", "count")
       executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
         // ignore result
       }
-      stopwatch.stop(registry.timer("timer.workflow.dataset.execution", "dataset", workflowTask.id.toString))
+      stopwatch.stop(registry.timer("workflow.dataset.execution", "dataset", workflowTask.id.toString))
       Try(entityTable.use(_.size)).foreach(entitiesCounter.increment(_))
       ()
     } catch {
