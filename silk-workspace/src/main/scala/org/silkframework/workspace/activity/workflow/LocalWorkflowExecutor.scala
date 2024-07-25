@@ -53,7 +53,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       val registry = PrometheusRegistryProvider.meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
       runWorkflow(context, updateUserContext(userContext))
-      stopwatch.stop(registry.timer("timer.workflow.execution", "workflow", workflowTask.toString))
+      stopwatch.stop(registry.timer("timer.workflow.execution", "workflow", workflowTask.id.toString))
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
