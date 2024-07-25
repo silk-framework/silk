@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, PlainTask, Port, Prefixes, Task, TaskSpec}
+import io.micrometer.core.instrument.Timer
+import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
@@ -9,12 +10,12 @@ import org.silkframework.execution.{EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.metrics.PrometheusRegistryProvider
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import java.util.logging.{Level, Logger}
-import scala.collection.immutable.Seq
 import scala.util.control.NonFatal
 
 /**
@@ -49,7 +50,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
     try {
+      val registry = PrometheusRegistryProvider.meterRegistry
+      val stopwatch: Timer.Sample = Timer.start()
       runWorkflow(context, updateUserContext(userContext))
+      stopwatch.stop(registry.timer("timer.workflow.execution", "workflow", workflowTask.toString))
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
