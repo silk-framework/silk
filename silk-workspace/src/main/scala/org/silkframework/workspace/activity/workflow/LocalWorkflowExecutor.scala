@@ -301,9 +301,13 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
+      val registry = PrometheusRegistryProvider.meterRegistry
+      val stopwatch: Timer.Sample = Timer.start()
       executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
         // ignore result
       }
+      stopwatch.stop(registry.timer("timer.workflow.dataset.execution", "dataset", workflowTask.id.toString))
+      ()
     } catch {
       case NonFatal(ex) =>
         throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.label()}'. Cause: " + ex.getMessage, Some(ex))
