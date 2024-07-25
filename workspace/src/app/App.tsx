@@ -6,6 +6,7 @@ import { commonOp } from "@ducks/common";
 import RouterOutlet from "./RouterOutlet";
 import { getHistory } from "./store/configureStore";
 import { IRouteProps } from "./appRoutes";
+import { useGlobalAppDragMonitor } from "./hooks/useGlobalAppDragMonitor";
 
 interface IProps {
     routes: IRouteProps[];
@@ -14,6 +15,8 @@ interface IProps {
 
 export default function App({ externalRoutes, routes }: IProps) {
     const dispatch = useDispatch();
+    useGlobalAppDragMonitor();
+
     useEffect(() => {
         dispatch(commonOp.fetchCommonSettingsAsync());
         dispatch(commonOp.fetchExportTypesAsync());
