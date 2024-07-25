@@ -172,7 +172,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
       if (!cancelled && !isExecutedWorkflow) {
         try {
-          executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
+          val registry = PrometheusRegistryProvider.meterRegistry
+          val stopwatch: Timer.Sample = Timer.start()
+          val result = executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
             // Throw exception if result was promised, but not returned
             if (operatorTask.data.outputPort.exists(_.isInstanceOf[FixedSchemaPort]) && result.isEmpty) {
               throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
@@ -183,6 +185,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             writeErrorOutput(operatorNode, executorOutput)
             process(result)
           }
+          stopwatch.stop(registry.timer("timer.workflow.operator.execution", "operator", operator.nodeId))
+          result
         } catch {
           case ex: WorkflowExecutionException =>
             throw ex
