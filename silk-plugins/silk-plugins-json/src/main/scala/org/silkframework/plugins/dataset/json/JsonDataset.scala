@@ -20,22 +20,21 @@ import scala.io.Codec
   description = """Read from or write to a JSON or JSON Lines file.""",
   documentationFile = "JsonDatasetDocumentation.md"
 )
-case class JsonDataset(
-                        @Param("JSON file. This may also be a zip archive of multiple JSON files that share the same schema.")
-                        file: WritableResource,
-                        @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
-                        template: JsonCodeParameter = JsonCodeParameter(s"${JsonTemplate.placeholder}"),
-                        @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
-                        basePath: String = "",
-                        @deprecated("This will be removed in the next release.", "")
-                        @Param(label = "URI pattern (deprecated)", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-                        uriPattern: String = "",
-                        @Param(value = "Maximum depth of written JSON. This acts as a safe guard if a recursive structure is written.", advanced = true)
-                        maxDepth: Int = DEFAULT_MAX_SIZE,
-                        @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
-                        streaming: Boolean = true,
-                        @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-                        override val zipFileRegex: String = JsonDataset.defaultZipFileRegex) extends Dataset with TextBulkResourceBasedDataset {
+case class JsonDataset(@Param("JSON file. This may also be a zip archive of multiple JSON files that share the same schema.")
+                       file: WritableResource,
+                       @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
+                       template: JsonCodeParameter = JsonCodeParameter(s"${JsonTemplate.placeholder}"),
+                       @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
+                       basePath: String = "",
+                       @deprecated("This will be removed in the next release.", "")
+                       @Param(label = "URI pattern (deprecated)", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
+                       uriPattern: String = "",
+                       @Param(value = "Maximum depth of written JSON. This acts as a safe guard if a recursive structure is written.", advanced = true)
+                       maxDepth: Int = DEFAULT_MAX_SIZE,
+                       @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
+                       streaming: Boolean = true,
+                       @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+                       override val zipFileRegex: String = JsonDataset.defaultZipFileRegex) extends Dataset with TextBulkResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
@@ -64,7 +63,7 @@ case class JsonDataset(
 
 object JsonDataset {
 
-  final val defaultZipFileRegex = ".*\\.json(?:l)?"
+  final val defaultZipFileRegex = """^(?!.*[\/\\]\..*$|^\..*$).*\.jsonl?$"""
 
   object specialPaths {
     final val TEXT = "#text"

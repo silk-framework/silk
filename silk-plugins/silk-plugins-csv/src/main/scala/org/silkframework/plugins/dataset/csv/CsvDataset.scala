@@ -44,7 +44,7 @@ case class CsvDataset (
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
   quoteEscapeCharacter: String = "\"",
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
-  override val zipFileRegex: String = ".*\\.csv$") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
+  override val zipFileRegex: String = CsvDataset.defaultZipFileRegex) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
                                        with CsvDatasetTrait with TextBulkResourceBasedDataset with WritableResourceDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
@@ -105,6 +105,8 @@ case class CsvDataset (
 }
 
 object CsvDataset {
+
+  final val defaultZipFileRegex = """^(?!.*[\/\\]\..*$|^\..*$).*\.csv"""
 
   /** Warning: Do NOT increase the default value here, it will request heap memory of this amount for every read operation of a column. */
   val DEFAULT_MAX_CHARS_PER_COLUMN = 128000

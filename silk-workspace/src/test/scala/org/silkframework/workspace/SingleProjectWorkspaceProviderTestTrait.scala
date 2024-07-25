@@ -44,7 +44,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())
     val loadingErrors = WorkspaceFactory().workspace.project(projectId).loadingErrors
     if(failOnTaskLoadingErrors && loadingErrors.nonEmpty) {
-      fail("Test project could not load all tasks. Details: " + loadingErrors)
+      fail("Test project could not load all tasks. Details: " + loadingErrors, loadingErrors.head.throwable)
     }
   }
 
