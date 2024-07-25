@@ -5,7 +5,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.Span
-import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.{DatasetSpec, DirtyTrackingFileDataSink}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonSink}
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
@@ -41,9 +41,11 @@ class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrai
       cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name")
     }
     val jsonSink = new JsonSink(resource)
-    jsonSink.close()
-    // JSON sink overwrites the resource on close, so we need to update the value afterwards
-    resource.writeString(afterJsonContent)
+    DirtyTrackingFileDataSink.synchronized {
+      jsonSink.close()
+      // JSON sink overwrites the resource on close, so we need to update the value afterwards
+      resource.writeString(afterJsonContent)
+    }
     eventually {
       cachedTypes() mustBe Seq("", "sub", "newSub")
       cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name", "newSub", "newSub/subName")
