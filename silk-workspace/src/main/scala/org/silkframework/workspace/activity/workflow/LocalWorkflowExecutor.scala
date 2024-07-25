@@ -304,7 +304,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     try {
       val registry = PrometheusRegistryProvider.meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
-      val entitiesCounter: Counter = registry.counter("timer.workflow.dataset.execution", "entities", "count")
+      val entitiesCounter: Counter = registry.counter("timer.workflow.dataset", "entities", "count")
       executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
         // ignore result
       }
