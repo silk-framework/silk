@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import io.micrometer.core.instrument.Timer
+import io.micrometer.core.instrument.{Counter, Timer}
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
@@ -16,6 +16,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import java.util.logging.{Level, Logger}
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -303,10 +304,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     try {
       val registry = PrometheusRegistryProvider.meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
+      val entitiesCounter: Counter = registry.counter("timer.workflow.dataset.execution", "entities", "count")
       executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
         // ignore result
       }
       stopwatch.stop(registry.timer("timer.workflow.dataset.execution", "dataset", workflowTask.id.toString))
+      Try(entityTable.use(_.size)).foreach(entitiesCounter.increment(_))
       ()
     } catch {
       case NonFatal(ex) =>
