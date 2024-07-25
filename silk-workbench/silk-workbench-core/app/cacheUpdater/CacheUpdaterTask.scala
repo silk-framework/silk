@@ -18,23 +18,44 @@ import scala.util.Try
 
 /** Checks for caches that need to be updated. */
 class CacheUpdaterTask @Inject() (actorSystem: ActorSystem, executionContext: CacheUpdaterTaskExecutionContext) {
+  CacheUpdaterTask.start(actorSystem, executionContext)
+}
+
+object CacheUpdaterTask {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+
+  final val INTERVAL_CONFIG_KEY = "cacheUpdater.updateInterval"
+
   @volatile
   private var lastUpdate: Long = 0L
 
-  CacheUpdaterTask.interval() match {
-    case Some(interval) =>
-      log.fine(s"Starting cache updater with interval '${interval.toString()}'. Interval can be configured via config parameter '${CacheUpdaterTask.INTERVAL_CONFIG_KEY}'." +
-        s" An invalid duration value will disable the cache updater.")
-      actorSystem.scheduler.scheduleAtFixedRate(initialDelay = interval, interval = interval) { () =>
-        updateTypeAndPathCaches(interval)
-      }(executionContext)
-    case None =>
-      log.info(s"Cache updater module is disabled. It can be enabled by setting a valid duration value for config parameter '${CacheUpdaterTask.INTERVAL_CONFIG_KEY}'.")
+  /**
+   * Start running the cache updates regularly.
+   */
+  def start(actorSystem: ActorSystem, executionContext: CacheUpdaterTaskExecutionContext): Unit = {
+    interval() match {
+      case Some(interval) =>
+        log.fine(s"Starting cache updater with interval '${interval.toString()}'. Interval can be configured via config parameter '${CacheUpdaterTask.INTERVAL_CONFIG_KEY}'." +
+          s" An invalid duration value will disable the cache updater.")
+        actorSystem.scheduler.scheduleAtFixedRate(initialDelay = interval, interval = interval) { () =>
+          CacheUpdaterTask.updateTypeAndPathCaches(interval)
+        }(executionContext)
+      case None =>
+        log.info(s"Cache updater module is disabled. It can be enabled by setting a valid duration value for config parameter '${CacheUpdaterTask.INTERVAL_CONFIG_KEY}'.")
+    }
+  }
+
+  /** Returns the interval after which the cache updater should be re-run. */
+  private def interval(): Option[FiniteDuration] = {
+    val cfg: ExtendedTypesafeConfig = DefaultConfig.instance.extendedTypesafeConfig()
+    val DEFAULT_INTERVAL = 60
+    Try(cfg.getDurationOrElse(INTERVAL_CONFIG_KEY, Duration.ofSeconds(DEFAULT_INTERVAL))).toOption
+      .map(d => FiniteDuration(d.toNanos, TimeUnit.NANOSECONDS))
   }
 
   // Update type and paths caches based on updated project files
-  private def updateTypeAndPathCaches(interval: FiniteDuration): Unit = {
+  private def updateTypeAndPathCaches(interval: FiniteDuration): Unit = synchronized {
     val updateStart = System.currentTimeMillis()
     val updatedFiles = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles()
     val minExtraToleranceInMs = 1000L
@@ -55,18 +76,6 @@ class CacheUpdaterTask @Inject() (actorSystem: ActorSystem, executionContext: Ca
       }
     }
     lastUpdate = updateStart
-  }
-}
-
-object CacheUpdaterTask {
-  final val INTERVAL_CONFIG_KEY = "cacheUpdater.updateInterval"
-
-  /** Returns the interval after which the cache updater should be re-run. */
-  def interval(): Option[FiniteDuration] = {
-    val cfg: ExtendedTypesafeConfig = DefaultConfig.instance.extendedTypesafeConfig()
-    val DEFAULT_INTERVAL = 60
-    Try(cfg.getDurationOrElse(INTERVAL_CONFIG_KEY, Duration.ofSeconds(DEFAULT_INTERVAL))).toOption
-      .map(d => FiniteDuration(d.toNanos, TimeUnit.NANOSECONDS))
   }
 }
 

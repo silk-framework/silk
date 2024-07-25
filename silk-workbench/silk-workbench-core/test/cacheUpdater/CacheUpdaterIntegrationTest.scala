@@ -40,8 +40,8 @@ class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrai
       cachedTypes() mustBe Seq("", "sub")
       cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name")
     }
-    val jsonSink = new JsonSink(resource)
-    DirtyTrackingFileDataSink.synchronized {
+    CacheUpdaterTask.synchronized { // Make sure that there are no updates between calling close and writing the resource
+      val jsonSink = new JsonSink(resource)
       jsonSink.close()
       // JSON sink overwrites the resource on close, so we need to update the value afterwards
       resource.writeString(afterJsonContent)
