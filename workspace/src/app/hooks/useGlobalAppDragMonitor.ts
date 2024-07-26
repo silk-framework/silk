@@ -12,6 +12,7 @@ export const useGlobalAppDragMonitor = () => {
 
         const removeDragClass = () => {
             currentClass && rootDiv?.classList.remove(currentClass);
+            currentClass = undefined;
         };
 
         const onDragOver = (event) => {
@@ -27,8 +28,16 @@ export const useGlobalAppDragMonitor = () => {
             }
         };
 
+        const onDrop = () => {
+            if (currentTimer) {
+                clearTimeout(currentTimer);
+            }
+            removeDragClass();
+        };
+
         if (rootDiv) {
             rootDiv.addEventListener("dragover", onDragOver);
+            rootDiv.addEventListener("drop", onDrop);
         }
     }, []);
 };
