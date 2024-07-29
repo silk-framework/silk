@@ -5,7 +5,7 @@ import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.Status.{Canceling, Finished, Waiting}
 import org.silkframework.runtime.execution.Execution
-import org.silkframework.runtime.metrics.PrometheusRegistryProvider
+import org.silkframework.runtime.metrics.MeterRegistryProvider
 
 import java.time.Instant
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
@@ -341,7 +341,7 @@ object ActivityExecution {
    */
   private def registerMetrics[E <: ExecutorService](executor: E, name: String, tags: List[Tag]): E = {
     val metrics = new ExecutorServiceMetrics(executor, name, tags.asJava)
-    metrics.bindTo(PrometheusRegistryProvider.meterRegistry)
+    metrics.bindTo(MeterRegistryProvider().meterRegistry)
     executor
   }
 }

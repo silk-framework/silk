@@ -10,7 +10,7 @@ import org.silkframework.execution.{EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.metrics.PrometheusRegistryProvider
+import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
@@ -51,7 +51,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
     try {
-      val registry = PrometheusRegistryProvider.meterRegistry
+      val registry = MeterRegistryProvider().meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
       runWorkflow(context, updateUserContext(userContext))
       stopwatch.stop(registry.timer("workflow.execution", "workflow", workflowTask.id.toString))
@@ -173,7 +173,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
       if (!cancelled && !isExecutedWorkflow) {
         try {
-          val registry = PrometheusRegistryProvider.meterRegistry
+          val registry = MeterRegistryProvider().meterRegistry
           val stopwatch: Timer.Sample = Timer.start()
           val result = executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
             // Throw exception if result was promised, but not returned
@@ -302,7 +302,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
-      val registry = PrometheusRegistryProvider.meterRegistry
+      val registry = MeterRegistryProvider().meterRegistry
       val stopwatch: Timer.Sample = Timer.start()
       executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
         // ignore result

@@ -16,7 +16,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.metrics.{MeterRegistryProvider, PrometheusRegistryProvider}
+import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
@@ -42,7 +42,7 @@ import scala.util.control.NonFatal
   */
 class Workspace(val provider: WorkspaceProvider,
                 val repository: ResourceRepository,
-                val meterRegistryProvider: MeterRegistryProvider = PrometheusRegistryProvider)
+                val meterRegistryProvider: MeterRegistryProvider = MeterRegistryProvider())
   extends WorkspaceReadTrait {
   private val log = Logger.getLogger(classOf[Workspace].getName)
 

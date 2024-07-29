@@ -3,6 +3,9 @@ package org.silkframework.runtime.metrics
 import io.micrometer.core.instrument.{Meter, MeterRegistry}
 import io.micrometer.core.instrument.config.NamingConvention
 import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
+import org.silkframework.config.DefaultConfig
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * Provider of a Registry of Micrometer-based metrics.
@@ -11,14 +14,24 @@ import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
  *
  * For each monitoring system, there should be a single registry.
  */
-sealed trait MeterRegistryProvider {
-  def meterRegistry: MeterRegistry
+class MeterRegistryProvider {
+  def meterRegistry: MeterRegistry = Try {
+    DefaultConfig.instance.apply().getBoolean("metrics.enabled")
+  } match {
+    case Success(true) => new PrometheusRegistryProvider().meterRegistry
+    case Success(false) => new NoopRegistryProvider().meterRegistry
+    case Failure(_) => new NoopRegistryProvider().meterRegistry
+  }
+}
+
+object MeterRegistryProvider {
+  def apply(): MeterRegistryProvider = new MeterRegistryProvider()
 }
 
 /**
  * Provider of a Micrometer-based meter registry for Prometheus as a monitoring system.
  */
-object PrometheusRegistryProvider extends MeterRegistryProvider {
+private class PrometheusRegistryProvider extends MeterRegistryProvider() {
   private val prefix: String = "cmem.di"
 
   override val meterRegistry: MeterRegistry = {
@@ -29,4 +42,8 @@ object PrometheusRegistryProvider extends MeterRegistryProvider {
     registry.config().namingConvention(prefixed(namingConvention))
     registry
   }
+}
+
+private class NoopRegistryProvider extends MeterRegistryProvider() {
+  override def meterRegistry: MeterRegistry = new NoopMeterRegistry()
 }
