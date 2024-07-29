@@ -22,10 +22,11 @@ object PrometheusRegistryProvider extends MeterRegistryProvider {
   private val prefix: String = "cmem.di"
 
   override val meterRegistry: MeterRegistry = {
+    def prefixed(namingConvention: NamingConvention): NamingConvention =
+      (name: String, `type`: Meter.Type, baseUnit: String) => namingConvention.name(s"$prefix.$name", `type`, baseUnit)
     val registry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    val prefixedNamingConvention: NamingConvention = (name: String, `type`: Meter.Type, baseUnit: String) =>
-      registry.config().namingConvention.name(s"$prefix.$name", `type`, baseUnit)
-    registry.config().namingConvention(prefixedNamingConvention)
+    val namingConvention = registry.config().namingConvention()
+    registry.config().namingConvention(prefixed(namingConvention))
     registry
   }
 }
