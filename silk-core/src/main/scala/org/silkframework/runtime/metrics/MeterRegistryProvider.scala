@@ -1,6 +1,7 @@
 package org.silkframework.runtime.metrics
 
-import io.micrometer.core.instrument.MeterRegistry
+import io.micrometer.core.instrument.{Meter, MeterRegistry}
+import io.micrometer.core.instrument.config.NamingConvention
 import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 
 /**
@@ -18,5 +19,13 @@ sealed trait MeterRegistryProvider {
  * Provider of a Micrometer-based meter registry for Prometheus as a monitoring system.
  */
 object PrometheusRegistryProvider extends MeterRegistryProvider {
-  override val meterRegistry: MeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+  private val prefix: String = "cmem.di"
+
+  override val meterRegistry: MeterRegistry = {
+    val registry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val prefixedNamingConvention: NamingConvention = (name: String, `type`: Meter.Type, baseUnit: String) =>
+      registry.config().namingConvention.name(s"$prefix.$name", `type`, baseUnit)
+    registry.config().namingConvention(prefixedNamingConvention)
+    registry
+  }
 }
