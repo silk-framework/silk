@@ -23,112 +23,116 @@ import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
 import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../plugins/PluginRegistry";
 import {DataPreviewProps} from "../../../plugins/plugin.types";
+import {ExecutionReportResponse} from "./report-typings";
+
+interface ExecutionReportProps {
+    project: string
+    /** The workflow node ID */
+    nodeId: string
+    /** The execution report to render. */
+    executionReport?: ExecutionReportResponse
+    /** Optional execution meta data that includes start time, user, etc. */
+    executionMetaData?: any
+    trackRuleInUrl?: boolean
+}
 
 /**
  * Displays a task execution report.
  */
-export default class ExecutionReport extends React.Component {
-    constructor(props) {
-        super(props);
-        this.displayName = "ExecutionReport";
-        this.state = {
-            currentRuleId: null,
-        };
-        this.onRuleNavigation = this.onRuleNavigation.bind(this);
-    }
+export const ExecutionReport = ({project, nodeId, executionReport, executionMetaData, trackRuleInUrl}: ExecutionReportProps) => {
+    const [currentRuleId, setCurrentRuleId] = React.useState<string | null>(null)
 
-    componentDidUpdate(prevProps) {
-        const ruleResults = this.props.executionReport?.ruleResults;
-        const ruleResultsChanged = prevProps.executionReport?.ruleResults !== ruleResults;
-        if (ruleResults && ruleResultsChanged) {
+    React.useEffect(() => {
+        const ruleResults = executionReport?.ruleResults;
+        if (ruleResults) {
             const initialRuleId = new URLSearchParams(window.location.search).get("ruleId");
             if (initialRuleId && ruleResults[initialRuleId]) {
-                this.onRuleNavigation({ newRuleId: initialRuleId });
+                onRuleNavigation({ newRuleId: initialRuleId });
             }
         }
+    }, [executionReport?.ruleResults])
+
+    const onRuleNavigation = ({ newRuleId }: {newRuleId: string}) => {
+        setCurrentRuleId(newRuleId)
     }
 
-    onRuleNavigation({ newRuleId }) {
-        this.setState({ currentRuleId: newRuleId });
-    }
-
-    renderSummary() {
+    const renderSummary = () => {
         let title;
-        if (this.props.executionReport.entityCount != null && this.props.executionReport.operationDesc != null) {
+        if (executionReport?.entityCount != null && executionReport?.operationDesc != null) {
             title =
-                "Execution: " + this.props.executionReport.entityCount + " " + this.props.executionReport.operationDesc;
+                "Execution: " + executionReport.entityCount + " " + executionReport.operationDesc;
         } else {
             title = "Execution Report";
         }
 
-        let executionMetaData = [];
-        if (this.props.executionMetaData != null) {
-            executionMetaData = executionMetaData.concat([
+        let executionMetaDataPairs: JSX.Element[] = [];
+        if (executionMetaData != null) {
+            executionMetaDataPairs = executionMetaDataPairs.concat([
                 <PropertyValuePair hasDivider key="queuedAt">
                     <PropertyName className="silk-report-table-bold">Queued at</PropertyName>
                     <PropertyValue>
-                        {this.props.executionMetaData.queuedAt == null
+                        {executionMetaData.queuedAt == null
                             ? "Not available"
-                            : this.props.executionMetaData.queuedAt}
+                            : executionMetaData.queuedAt}
                     </PropertyValue>
                 </PropertyValuePair>,
                 <PropertyValuePair hasDivider key="startedAt">
                     <PropertyName className="silk-report-table-bold">Started at</PropertyName>
                     <PropertyValue>
-                        {this.props.executionMetaData.startedAt == null
+                        {executionMetaData.startedAt == null
                             ? "Not available"
-                            : this.props.executionMetaData.startedAt}
+                            : executionMetaData.startedAt}
                     </PropertyValue>
                 </PropertyValuePair>,
                 <PropertyValuePair hasDivider key="startedByUser">
                     <PropertyName className="silk-report-table-bold">Started by</PropertyName>
                     <PropertyValue>
-                        {this.props.executionMetaData.startedByUser == null
+                        {executionMetaData.startedByUser == null
                             ? "Unknown"
-                            : this.props.executionMetaData.startedByUser}
+                            : executionMetaData.startedByUser}
                     </PropertyValue>
                 </PropertyValuePair>,
                 <PropertyValuePair hasDivider key="finishedAt">
                     <PropertyName className="silk-report-table-bold">Finished at</PropertyName>
-                    <PropertyValue>{this.props.executionMetaData.finishedAt}</PropertyValue>
+                    <PropertyValue>{executionMetaData.finishedAt}</PropertyValue>
                 </PropertyValuePair>,
                 <PropertyValuePair hasDivider key="finishStatus">
                     <PropertyName className="silk-report-table-bold">Finish status</PropertyName>
-                    <PropertyValue>{this.props.executionMetaData.finishStatus.message}</PropertyValue>
+                    <PropertyValue>{executionMetaData.finishStatus.message}</PropertyValue>
                 </PropertyValuePair>,
             ]);
-            if (this.props.executionMetaData.cancelledAt != null) {
-                executionMetaData.push(
+            if (executionMetaData.cancelledAt != null) {
+                executionMetaDataPairs.push(
                     <PropertyValuePair hasDivider key="cancelledAt">
                         <PropertyName className="silk-report-table-bold">Cancelled at</PropertyName>
-                        <PropertyValue>{this.props.executionMetaData.cancelledAt}</PropertyValue>
+                        <PropertyValue>{executionMetaData.cancelledAt}</PropertyValue>
                     </PropertyValuePair>
                 );
             }
-            if (this.props.executionMetaData.cancelledBy != null) {
-                executionMetaData.push(
+            if (executionMetaData.cancelledBy != null) {
+                executionMetaDataPairs.push(
                     <PropertyValuePair hasDivider key="cancelledBy">
                         <PropertyName className="silk-report-table-bold">Cancelled by</PropertyName>
-                        <PropertyValue>{this.props.executionMetaData.cancelledBy}</PropertyValue>
+                        <PropertyValue>{executionMetaData.cancelledBy}</PropertyValue>
                     </PropertyValuePair>
                 );
             }
         }
 
-        const summaryRows = this.props.executionReport.summary.map((v) => (
+        const summaryRows = executionReport ? executionReport.summary.map((v) => (
             <PropertyValuePair hasDivider key={v.key}>
                 <PropertyName className="silk-report-table-bold">{v.key}</PropertyName>
                 <PropertyValue>{v.value}</PropertyValue>
             </PropertyValuePair>
-        ));
+        )) : null;
 
         return (
             <Section className="silk-report-card">
-                {this.renderWarning()}
-                <Notification info>
+                {renderWarning()}
+                <Notification>
                     <p>{title}</p>
                     <PropertyValueList className="silk-report-table">
-                        {executionMetaData}
+                        {executionMetaDataPairs}
                         {summaryRows}
                     </PropertyValueList>
                 </Notification>
@@ -137,29 +141,31 @@ export default class ExecutionReport extends React.Component {
         );
     }
 
-    renderWarning() {
-        let messages = [];
-        let notificationState = "info";
-        if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.cancelled) {
-            messages = [`Task '${this.props.executionReport.label}' has been cancelled.`];
-            notificationState = "warning";
-        } else if (this.props.executionReport.error != null) {
-            messages = [
-                `Task '${this.props.executionReport.label}' failed to execute. Details: ${this.props.executionReport.error}`,
-            ];
-            notificationState = "danger";
-        } else if (this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
-            messages = [`Task '${this.props.executionReport.label}' failed to execute.`];
-            notificationState = "danger";
-        } else if (this.props.executionReport.warnings.length > 0) {
-            messages = this.props.executionReport.warnings;
-            notificationState = "neutral";
-        } else if (this.props.executionReport.isDone !== true) {
-            messages = [`Task '${this.props.executionReport.label}' has not finished execution yet.`];
-            notificationState = "neutral";
-        } else {
-            messages = [`Task '${this.props.executionReport.label}' has been executed without any issues.`];
-            notificationState = "success";
+    const renderWarning = () => {
+        let messages: string[] = [];
+        let notificationState = "success";
+        if(executionReport) {
+            if (executionMetaData != null && executionMetaData.finishStatus.cancelled) {
+                messages = [`Task '${executionReport.label}' has been cancelled.`];
+                notificationState = "warning";
+            } else if (executionReport.error != null) {
+                messages = [
+                    `Task '${executionReport.label}' failed to execute. Details: ${executionReport.error}`,
+                ];
+                notificationState = "danger";
+            } else if (executionMetaData != null && executionMetaData.finishStatus.failed) {
+                messages = [`Task '${executionReport.label}' failed to execute.`];
+                notificationState = "danger";
+            } else if (executionReport.warnings.length > 0) {
+                messages = executionReport.warnings;
+                notificationState = "neutral";
+            } else if (executionReport.isDone !== true) {
+                messages = [`Task '${executionReport.label}' has not finished execution yet.`];
+                notificationState = "neutral";
+            } else {
+                messages = [`Task '${executionReport.label}' has been executed without any issues.`];
+                notificationState = "success";
+            }
         }
 
         return (
@@ -168,7 +174,6 @@ export default class ExecutionReport extends React.Component {
                     <div key={idx}>
                         <Notification
                             neutral={notificationState === "neutral"}
-                            info={notificationState === "info"}
                             success={notificationState === "success"}
                             warning={notificationState === "warning"}
                             danger={notificationState === "danger"}
@@ -182,29 +187,29 @@ export default class ExecutionReport extends React.Component {
         );
     }
 
-    renderTransformReport() {
+    const renderTransformReport = () => {
         return (
             <Grid condensed>
                 <GridRow>
                     <GridColumn medium>
                         <MappingsTree
-                            currentRuleId={this.state.currentRuleId ?? "root"}
-                            ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
+                            currentRuleId={currentRuleId ?? "root"}
+                            ruleTree={executionReport?.task.data.parameters.mappingRule}
                             showValueMappings={true}
-                            handleRuleNavigation={this.onRuleNavigation}
-                            ruleValidation={this.generateIcons()}
-                            trackRuleInUrl={this.props.trackRuleInUrl}
+                            handleRuleNavigation={onRuleNavigation}
+                            ruleValidation={generateIcons()}
+                            trackRuleInUrl={trackRuleInUrl}
                         />
                     </GridColumn>
-                    <GridColumn>{this.renderRuleReport()}</GridColumn>
+                    <GridColumn>{renderRuleReport()}</GridColumn>
                 </GridRow>
             </Grid>
         );
     }
 
-    renderEntityPreview() {
-        const entitiesSample = this.props.executionReport.outputEntitiesSample
-        const dataPreviewPlugin = pluginRegistry.pluginReactComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const renderEntityPreview = () => {
+        const entitiesSample = executionReport?.outputEntitiesSample
+        const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
         if(dataPreviewPlugin && entitiesSample && entitiesSample.entities.length) {
             const {entities, schema} = entitiesSample
             const typeValues = new Map()
@@ -228,9 +233,9 @@ export default class ExecutionReport extends React.Component {
         }
     }
 
-    generateIcons() {
+    const generateIcons = () => {
         let ruleIcons = Object.create(null);
-        for (let [ruleId, ruleResults] of Object.entries(this.props.executionReport.ruleResults)) {
+        for (let [ruleId, ruleResults] of Object.entries(executionReport?.ruleResults ?? {})) {
             if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";
             } else {
@@ -240,8 +245,8 @@ export default class ExecutionReport extends React.Component {
         return ruleIcons;
     }
 
-    renderRuleReport() {
-        const ruleResults = this.props.executionReport.ruleResults[this.state.currentRuleId];
+    const renderRuleReport = () => {
+        const ruleResults = currentRuleId ? executionReport?.ruleResults?.[currentRuleId] : undefined;
         let title;
         if (ruleResults === undefined) {
             title = "Select a mapping for detailed results.";
@@ -258,16 +263,16 @@ export default class ExecutionReport extends React.Component {
                 <Notification
                     neutral={ruleResults === undefined}
                     success={ruleResults?.errorCount === 0}
-                    warning={ruleResults?.errorCount > 0}
+                    warning={(ruleResults?.errorCount ?? 0) > 0}
                 >
                     {title}
                 </Notification>
-                {ruleResults !== undefined && ruleResults.errorCount > 0 && this.renderRuleErrors(ruleResults)}
+                {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
             </Section>
         );
     }
 
-    renderRuleErrors(ruleResults) {
+    const renderRuleErrors = (ruleResults) => {
         const actionFieldNeeded = !!ruleResults.sampleErrors[0]?.stacktrace;
         const columnWidths = actionFieldNeeded ? ["30%", "30%", "35%", "5%"] : ["30%", "30%", "40%"];
         return (
@@ -282,13 +287,13 @@ export default class ExecutionReport extends React.Component {
                             {actionFieldNeeded ? <TableHeader></TableHeader> : null}
                         </TableRow>
                     </TableHead>
-                    <TableBody>{ruleResults.sampleErrors.map(this.renderRuleError)}</TableBody>
+                    <TableBody>{ruleResults.sampleErrors.map(renderRuleError)}</TableBody>
                 </Table>
             </>
         );
     }
 
-    renderRuleError(ruleError, idx) {
+    const renderRuleError = (ruleError, idx) => {
         const hasStackTrace = !!ruleError.stacktrace;
         return (
             <TableRow key={idx}>
@@ -316,29 +321,17 @@ export default class ExecutionReport extends React.Component {
         );
     }
 
-    isTransformReport() {
-        return "ruleResults" in this.props.executionReport;
+    const isTransformReport = () => {
+        return executionReport && "ruleResults" in executionReport;
     }
 
-    render() {
-        return (
-            <div data-test-id={"execution-report"}>
-                {this.renderSummary()}
-                {this.isTransformReport() && this.renderTransformReport()}
-                {this.renderEntityPreview()}
-            </div>
-        );
-    }
+    return (
+        <div data-test-id={"execution-report"}>
+            {renderSummary()}
+            {isTransformReport() && renderTransformReport()}
+            {renderEntityPreview()}
+        </div>
+    );
 }
 
-ExecutionReport.propTypes = {
-    project: PropTypes.string.isRequired, // project ID
-    nodeId: PropTypes.string.isRequired, // workflow node ID
-    executionReport: PropTypes.object, // The execution report to render
-    executionMetaData: PropTypes.object, // Optional execution meta data that includes start time, user, etc.
-    trackRuleInUrl: PropTypes.bool,
-};
-
-ExecutionReport.defaultProps = {
-    trackRuleInUrl: true,
-};
+export default ExecutionReport

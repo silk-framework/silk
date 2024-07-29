@@ -1,7 +1,7 @@
 import React from "react";
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
-import { ExecutionReportProps, ExecutionReportType } from "./report-typings";
+import {ExecutionReportProps, ExecutionReportResponse} from "./report-typings";
 
 /**
  * Displays a transform task execution report.
@@ -12,13 +12,7 @@ const TransformExecutionReport: React.FC<ExecutionReportProps> = ({
     updateCounter,
     diStore = silkStore,
 }) => {
-    const [executionReport, setExecutionReport] = React.useState<ExecutionReportType | undefined>({
-        task: {
-            id: task,
-        },
-        summary: [],
-        warnings: [],
-    });
+    const [executionReport, setExecutionReport] = React.useState<ExecutionReportResponse | undefined>();
 
     const updateExecutionReport = () => {
         diStore
