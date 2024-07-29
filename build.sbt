@@ -357,7 +357,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test",
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
