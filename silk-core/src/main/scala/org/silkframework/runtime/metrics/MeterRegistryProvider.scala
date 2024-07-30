@@ -25,7 +25,8 @@ class MeterRegistryProvider {
 }
 
 object MeterRegistryProvider {
-  def apply(): MeterRegistryProvider = new MeterRegistryProvider()
+  private val INSTANCE: MeterRegistryProvider = new MeterRegistryProvider()
+  def apply(): MeterRegistryProvider = INSTANCE
 }
 
 /**
