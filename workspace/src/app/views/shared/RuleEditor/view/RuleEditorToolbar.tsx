@@ -24,6 +24,7 @@ import { RuleValidationError } from "../RuleEditor.typings";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
+import { useEditorPromptHack } from "../../../../hooks/useEditorPromptHack";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -55,6 +56,9 @@ export const RuleEditorToolbar = () => {
         },
         enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
+
+    /** make sure workflow editor on overlay doesn't close when there are unsaved changes */
+    useEditorPromptHack(modelContext.unsavedChanges);
 
     // Warn of unsaved changes
     React.useEffect(() => {
