@@ -41,8 +41,7 @@ import scala.util.control.NonFatal
   * @param repository  the resource repository
   */
 class Workspace(val provider: WorkspaceProvider,
-                val repository: ResourceRepository,
-                val meterRegistryProvider: MeterRegistryProvider = MeterRegistryProvider())
+                val repository: ResourceRepository)
   extends WorkspaceReadTrait {
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
@@ -322,7 +321,7 @@ class Workspace(val provider: WorkspaceProvider,
   }
 
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
-    new WorkspaceMetrics(() => projects, () => projects.flatMap(_.allTasks)).bindTo(meterRegistryProvider.meterRegistry)
+    new WorkspaceMetrics(() => projects, () => projects.flatMap(_.allTasks)).bindTo(MeterRegistryProvider.meterRegistry)
 }
 
 object Workspace {

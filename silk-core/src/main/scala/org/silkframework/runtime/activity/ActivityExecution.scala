@@ -341,7 +341,7 @@ object ActivityExecution {
    */
   private def registerMetrics[E <: ExecutorService](executor: E, name: String, tags: List[Tag]): E = {
     val metrics = new ExecutorServiceMetrics(executor, name, tags.asJava)
-    metrics.bindTo(MeterRegistryProvider().meterRegistry)
+    metrics.bindTo(MeterRegistryProvider.meterRegistry)
     executor
   }
 }

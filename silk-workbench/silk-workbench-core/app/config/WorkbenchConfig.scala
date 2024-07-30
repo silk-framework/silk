@@ -181,7 +181,7 @@ object WorkbenchConfig {
         // Register the version string in a Micrometer counter.
         // The counter is not increased further. What's important, is the version string set in the value of the tag.
         // This is arguably a somewhat improper or quirky usage of Micrometer and metrics in general.
-        MeterRegistryProvider().meterRegistry.counter("workbench.config", "version", versionString).increment()
+        MeterRegistryProvider.meterRegistry.counter("workbench.config", "version", versionString).increment()
         versionString
       case Failure(_) =>
         throw new RuntimeException("No version string ist set!")

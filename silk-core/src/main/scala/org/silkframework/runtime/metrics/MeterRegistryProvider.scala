@@ -14,28 +14,23 @@ import scala.util.{Failure, Success, Try}
  *
  * For each monitoring system, there should be a single registry.
  */
-class MeterRegistryProvider {
-  def meterRegistry: MeterRegistry = Try {
+object MeterRegistryProvider {
+  lazy val meterRegistry: MeterRegistry = Try {
     DefaultConfig.instance.apply().getBoolean("metrics.enabled")
   } match {
-    case Success(true) => new PrometheusRegistryProvider().meterRegistry
-    case Success(false) => new NoopRegistryProvider().meterRegistry
-    case Failure(_) => new NoopRegistryProvider().meterRegistry
+    case Success(true) => PrometheusRegistryProvider.meterRegistry
+    case Success(false) => NoopRegistryProvider.meterRegistry
+    case Failure(_) => NoopRegistryProvider.meterRegistry
   }
-}
-
-object MeterRegistryProvider {
-  private val INSTANCE: MeterRegistryProvider = new MeterRegistryProvider()
-  def apply(): MeterRegistryProvider = INSTANCE
 }
 
 /**
  * Provider of a Micrometer-based meter registry for Prometheus as a monitoring system.
  */
-private class PrometheusRegistryProvider extends MeterRegistryProvider() {
+private object PrometheusRegistryProvider {
   private val prefix: String = "cmem.di"
 
-  override val meterRegistry: MeterRegistry = {
+  lazy val meterRegistry: MeterRegistry = {
     def prefixed(namingConvention: NamingConvention): NamingConvention =
       (name: String, `type`: Meter.Type, baseUnit: String) => namingConvention.name(s"$prefix.$name", `type`, baseUnit)
     val registry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
@@ -45,6 +40,6 @@ private class PrometheusRegistryProvider extends MeterRegistryProvider() {
   }
 }
 
-private class NoopRegistryProvider extends MeterRegistryProvider() {
-  override def meterRegistry: MeterRegistry = new NoopMeterRegistry()
+private object NoopRegistryProvider {
+  lazy val meterRegistry: MeterRegistry = new NoopMeterRegistry()
 }
