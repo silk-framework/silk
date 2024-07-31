@@ -27,6 +27,7 @@ trait RdfDataset extends Dataset {
         )
       ),
       supportsMultipleTables = true,
+      supportsMultipleWrites = true,
       typedEntities = true
     )
   }

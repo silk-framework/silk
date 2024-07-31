@@ -79,8 +79,10 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   override def inputPorts: InputPorts = {
     if(readOnly) {
       FixedNumberOfInputs(Seq.empty)
-    } else {
+    } else if(characteristics.supportsMultipleWrites) {
       FlexibleNumberOfInputs()
+    } else {
+      FixedNumberOfInputs(Seq(FlexibleSchemaPort))
     }
   }
 
