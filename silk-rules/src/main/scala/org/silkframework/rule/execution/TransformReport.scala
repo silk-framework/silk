@@ -21,7 +21,7 @@ case class TransformReport(task: Task[TransformSpec],
                            globalErrors: Seq[String] = Seq.empty,
                            isDone: Boolean = false,
                            override val error: Option[String] = None,
-                           override val sampleOutputEntities: Option[SampleEntities] = None) extends ExecutionReport {
+                           override val sampleOutputEntities: Vector[SampleEntities] = Vector.empty) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
@@ -48,8 +48,10 @@ case class TransformReport(task: Task[TransformSpec],
     */
   def asDone(): ExecutionReport = copy(isDone = true)
 
-  /** Updates the execution report with some sample entities. */
-  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(sampleOutputEntities = Some(sampleEntities))
+  /** Add more sample entities to the report. */
+  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(
+    sampleOutputEntities = TransformReport.updateOutputSampleEntities(sampleEntities, this.sampleOutputEntities)
+  )
 }
 
 object TransformReport {
@@ -99,4 +101,14 @@ object TransformReport {
     }
   }
 
+  def updateOutputSampleEntities(newSampleEntities: SampleEntities, currentSampleEntities: Vector[SampleEntities]): Vector[SampleEntities] = {
+    if (currentSampleEntities.isEmpty ||
+      (newSampleEntities.schema != currentSampleEntities.last.schema || newSampleEntities.id != currentSampleEntities.last.id)) {
+      // Create new entry if either the schema or ID is different than the last entry
+      currentSampleEntities :+ newSampleEntities
+    } else {
+      // Else replace last entry
+      currentSampleEntities.dropRight(1) :+ newSampleEntities
+    }
+  }
 }

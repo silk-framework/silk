@@ -29,7 +29,7 @@ export interface ExecutionReportResponse {
     /** Execution error message. */
     error?: string
     task: IProjectTask
-    outputEntitiesSample: OutputEntitiesSample
+    outputEntitiesSample: OutputEntitiesSample[]
     /** Transform report specific property. */
     ruleResults?: RuleResults
 }
@@ -40,9 +40,12 @@ interface RuleResult {
     sampleErrors: any[]
 }
 
-interface OutputEntitiesSample {
+export interface OutputEntitiesSample {
     entities: SampleEntity[]
+    /** The entity schema corresponding to the sample entities. */
     schema: SampleEntitySchema
+    /** Optional ID to better identify what these sample entities belong to, e.g. for tasks that output more than one entity table. */
+    id?: string
 }
 
 interface SampleEntity {

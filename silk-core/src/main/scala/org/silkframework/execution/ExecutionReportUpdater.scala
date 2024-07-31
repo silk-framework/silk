@@ -14,8 +14,6 @@ import scala.language.implicitConversions
   * Base trait for simple execution report updates.
   */
 trait ExecutionReportUpdater {
-
-
   /** The task that has been executed. */
   def task: Task[TaskSpec]
   /** The activity context of the task that is executed */
@@ -128,8 +126,8 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      val sampleEntities = SampleEntities(sampleOutputEntities, sampleOutputEntitiesSchema)
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, Some(sampleEntities)))
+      val sampleEntities = if(sampleOutputEntitiesSchema.nonEmpty) Seq(SampleEntities(sampleOutputEntities, sampleOutputEntitiesSchema.get)) else Seq.empty
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, sampleEntities))
       lastUpdate = System.currentTimeMillis()
     }
   }

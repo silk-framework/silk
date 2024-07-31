@@ -125,7 +125,7 @@ class GenerateLinks(task: Task[LinkSpec],
       filteredLinks = filteredLinks.take(linkLimit)
     }
     context.value.update(Linking(task, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true,
-      sampleOutputEntities = Some(sampleEntities(filteredLinks))))
+      sampleOutputEntities = Seq(sampleEntities(filteredLinks))))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
@@ -138,7 +138,7 @@ class GenerateLinks(task: Task[LinkSpec],
     SampleEntities(
       entities = links.take(ExecutionReport.SAMPLE_ENTITY_LIMIT).map(link => EntitySample("",
         IndexedSeq(Seq(link.source), Seq(link.target), Seq(link.confidence.map(_.toString).getOrElse("N/A"))))),
-      schema = Some(SampleEntitiesSchema("", "", IndexedSeq("Source", "Target", "Confidence")))
+      schema = SampleEntitiesSchema("", "", IndexedSeq("Source", "Target", "Confidence"))
     )
   }
 

@@ -17,7 +17,7 @@ case class Linking(task: Task[LinkSpec],
                    statistics: LinkingStatistics = LinkingStatistics(),
                    matcherWarnings: Seq[String] = Seq.empty,
                    isDone: Boolean = false,
-                   override val sampleOutputEntities: Option[SampleEntities] = None) extends ExecutionReport {
+                   override val sampleOutputEntities: Seq[SampleEntities] = Seq.empty) extends ExecutionReport {
 
   def rule: LinkageRule = task.data.rule
 
@@ -57,7 +57,7 @@ case class Linking(task: Task[LinkSpec],
   def asDone(): ExecutionReport = copy(isDone = true)
 
   /** Updates the execution report with some sample entities. */
-  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(sampleOutputEntities = Some(sampleEntities))
+  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(sampleOutputEntities = Seq(sampleEntities))
 }
 
 case class LinkingStatistics(entityCount: DPair[Int] = DPair.fill(0))

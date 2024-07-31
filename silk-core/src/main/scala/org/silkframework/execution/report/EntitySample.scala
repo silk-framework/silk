@@ -3,8 +3,16 @@ package org.silkframework.execution.report
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, EntitySchema}
 
-/** Sample entities for the execution report. */
-case class SampleEntities(entities: Seq[EntitySample], schema: Option[SampleEntitiesSchema])
+/** Sample entities for the execution report.
+  *
+  * @param entities The collected sample entities.
+  * @param schema   The schema associated with the entities.
+  * @param id       An optional task specific ID. E.g. that better matches in case of multiple entity tables.
+  */
+case class SampleEntities(entities: Seq[EntitySample],
+                          schema: SampleEntitiesSchema,
+                          id: Option[String] = None)
+
 /** Simplified entity schema for the execution report. */
 case class SampleEntitiesSchema(typeUri: String, typePath: String, properties: IndexedSeq[String])
 
@@ -32,4 +40,6 @@ object SampleEntitiesSchema {
       properties = entitySchema.typedPaths.map(_.serialize())
     )
   }
+
+  final val empty = SampleEntitiesSchema("", "", IndexedSeq.empty)
 }

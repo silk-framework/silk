@@ -23,7 +23,7 @@ import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
 import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../plugins/PluginRegistry";
 import {DataPreviewProps} from "../../../plugins/plugin.types";
-import {ExecutionReportResponse} from "./report-typings";
+import {ExecutionReportResponse, OutputEntitiesSample} from "./report-typings";
 
 interface ExecutionReportProps {
     project: string
@@ -207,11 +207,15 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
         );
     }
 
-    const renderEntityPreview = () => {
-        const entitiesSample = executionReport?.outputEntitiesSample
+    const renderEntityPreview = (id: string | undefined) => {
+        const outputEntitiesSample = executionReport?.outputEntitiesSample
+        if(!outputEntitiesSample) {
+            return null
+        }
         const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
-        if(dataPreviewPlugin && entitiesSample && entitiesSample.entities.length) {
-            const {entities, schema} = entitiesSample
+        const entitySamples: OutputEntitiesSample | undefined = id ? outputEntitiesSample.find(s => s.id === id) : outputEntitiesSample[0]
+        if(dataPreviewPlugin && entitySamples && entitySamples.entities.length) {
+            const {entities, schema} = entitySamples
             const typeValues = new Map()
             const type = schema?.typeUri ?? "fixedForNow"
             typeValues.set(type, {
@@ -226,7 +230,6 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                     types: [type],
                     typeValues
                 }}
-                autoLoad={true}
             />
         } else {
             return null
@@ -268,6 +271,8 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                     {title}
                 </Notification>
                 {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
+                <Spacing size={"small"} />
+                {renderEntityPreview(currentRuleId ?? "root")}
             </Section>
         );
     }
@@ -329,7 +334,7 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
         <div data-test-id={"execution-report"}>
             {renderSummary()}
             {isTransformReport() && renderTransformReport()}
-            {renderEntityPreview()}
+            {!isTransformReport() && renderEntityPreview(undefined)}
         </div>
     );
 }

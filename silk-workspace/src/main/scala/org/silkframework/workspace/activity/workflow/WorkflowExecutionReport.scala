@@ -107,8 +107,8 @@ case class WorkflowExecutionReport(task: Task[TaskSpec],
   override def operationDesc: String = "nodes executed"
 
   // Workflow has no output entities, yet, might be introduced with input/output of nested workflows.
-  override def sampleOutputEntities: Option[SampleEntities] = None
-  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = {this}
+  override def sampleOutputEntities: Seq[SampleEntities] = Seq.empty
+  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this
 }
 
 /**
