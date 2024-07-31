@@ -262,7 +262,8 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     )
                     filePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(filePath, project)
+    val resource = project.resources.getInPath(filePath)
+    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(resource, project)
       .map { task =>
         TaskLinkInfo(task.id, task.fullLabel, PluginApiCache.taskTypeByClass(task.taskType))
       }

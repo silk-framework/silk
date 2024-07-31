@@ -2,7 +2,7 @@ package resources
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{Resource, UrlResource, WritableResource}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -20,12 +20,14 @@ object ResourceHelper {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /** Refresh all caches that depend changes of a specific resource. */
-  def refreshCachesOfDependingTasks(resourceName: String,
+  def refreshCachesOfDependingTasks(resourcePath: String,
                                     project: Project)
                                    (implicit userContext: UserContext): Unit = {
     // The tasks depending on the resource that were actually updated.
+    val resource = project.resources.getInPath(resourcePath)
     val updatedResourceTasks = mutable.Set[Identifier]()
-    tasksDependingOnResource(resourceName, project).foreach { task =>
+    tasksDependingOnResource(resource, project).foreach { task =>
+      // Updated caches
       var cacheUpdated = false
       task.activities.foreach { activity =>
         if (activity.isDatasetRelatedCache) {
@@ -38,17 +40,18 @@ object ResourceHelper {
       if(cacheUpdated) {
         task.dataValueHolder.republish()
       }
+      // Publish resource update to TaskSpec
+      task.data.resourceUpdated(resource)
     }
   }
 
   /** Find all tasks that depend on a resource. */
-  def tasksDependingOnResource(resourcePath: String, project: Project)
+  def tasksDependingOnResource(resource: Resource, project: Project)
                               (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    val p = project.resources.getInPath(resourcePath)
     project.allTasks
       .filter(
         _.referencedResources.exists(ref =>
-          ref.path == p.path))
+          ref.path == resource.path))
   }
 
   /**
