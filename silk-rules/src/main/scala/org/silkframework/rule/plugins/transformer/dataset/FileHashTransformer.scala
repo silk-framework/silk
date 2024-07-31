@@ -16,7 +16,7 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
   label = "File hash",
   description =
     """Calculates the hash sum of a file. The hash sum is cached so that subsequent calls to this operator are fast.
-      Note that initially and everytime the specified resource has been updated, this operator might take a long time (depending on the file size).""".stripMargin
+      Note that initially and everytime the specified resource has been updated, this operator might take a long time (depending on the file size)."""
 )
 case class FileHashTransformer(@Param(value = "File for which the hash sum will be calculated.",
                                       autoCompletionProvider = classOf[ResourceAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
