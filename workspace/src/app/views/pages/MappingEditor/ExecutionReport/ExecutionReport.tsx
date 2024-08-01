@@ -217,7 +217,14 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
         if(dataPreviewPlugin && entitySamples && entitySamples.entities.length) {
             const {entities, schema} = entitySamples
             const typeValues = new Map()
-            const type = schema?.typeUri ?? "fixedForNow"
+            let type = schema?.typeUri
+            if(!type) {
+                if(schema?.typePath) {
+                    type = schema?.typePath
+                } else if(entitySamples.id) {
+                    type = entitySamples.id
+                }
+            }
             typeValues.set(type, {
                 attributes: schema ?
                     schema.properties :
@@ -225,7 +232,7 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                 values: entities.map(e => e.values)
             })
             return <dataPreviewPlugin.Component
-                title={"Sample output entities"}
+                title={"TODO: Sample output entities"}
                 preview={{
                     types: [type],
                     typeValues
