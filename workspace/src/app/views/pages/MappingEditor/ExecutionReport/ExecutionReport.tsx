@@ -24,14 +24,12 @@ import { SampleError } from "../../../shared/SampleError/SampleError";
 import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../plugins/PluginRegistry";
 import {DataPreviewProps} from "../../../plugins/plugin.types";
 import {ExecutionReportResponse, OutputEntitiesSample} from "./report-typings";
+import {useTranslation} from "react-i18next";
 
 interface ExecutionReportProps {
-    project: string
-    /** The workflow node ID */
-    nodeId: string
     /** The execution report to render. */
     executionReport?: ExecutionReportResponse
-    /** Optional execution meta data that includes start time, user, etc. */
+    /** Optional execution meta-data that includes start time, user, etc. */
     executionMetaData?: any
     trackRuleInUrl?: boolean
 }
@@ -39,8 +37,9 @@ interface ExecutionReportProps {
 /**
  * Displays a task execution report.
  */
-export const ExecutionReport = ({project, nodeId, executionReport, executionMetaData, trackRuleInUrl}: ExecutionReportProps) => {
+export const ExecutionReport = ({executionReport, executionMetaData, trackRuleInUrl}: ExecutionReportProps) => {
     const [currentRuleId, setCurrentRuleId] = React.useState<string | null>(null)
+    const [t] = useTranslation()
 
     React.useEffect(() => {
         const ruleResults = executionReport?.ruleResults;
@@ -60,9 +59,9 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
         let title;
         if (executionReport?.entityCount != null && executionReport?.operationDesc != null) {
             title =
-                "Execution: " + executionReport.entityCount + " " + executionReport.operationDesc;
+                `${t("ExecutionReport.execution")}: ` + executionReport.entityCount + " " + executionReport.operationDesc;
         } else {
-            title = "Execution Report";
+            title = t("ExecutionReport.defaultTitle");
         }
 
         let executionMetaDataPairs: JSX.Element[] = [];
@@ -72,7 +71,7 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                     <PropertyName className="silk-report-table-bold">Queued at</PropertyName>
                     <PropertyValue>
                         {executionMetaData.queuedAt == null
-                            ? "Not available"
+                            ? t("common.messages.notAvailable")
                             : executionMetaData.queuedAt}
                     </PropertyValue>
                 </PropertyValuePair>,
@@ -80,7 +79,7 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                     <PropertyName className="silk-report-table-bold">Started at</PropertyName>
                     <PropertyValue>
                         {executionMetaData.startedAt == null
-                            ? "Not available"
+                            ? t("common.messages.notAvailable")
                             : executionMetaData.startedAt}
                     </PropertyValue>
                 </PropertyValuePair>,
@@ -88,7 +87,7 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                     <PropertyName className="silk-report-table-bold">Started by</PropertyName>
                     <PropertyValue>
                         {executionMetaData.startedByUser == null
-                            ? "Unknown"
+                            ? t("common.words.unknown")
                             : executionMetaData.startedByUser}
                     </PropertyValue>
                 </PropertyValuePair>,
@@ -145,25 +144,26 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
         let messages: string[] = [];
         let notificationState = "success";
         if(executionReport) {
+            const label = executionReport.label
             if (executionMetaData != null && executionMetaData.finishStatus.cancelled) {
-                messages = [`Task '${executionReport.label}' has been cancelled.`];
+                messages = [t("ExecutionReport.statusMessages.taskCancelled", {label})];
                 notificationState = "warning";
             } else if (executionReport.error != null) {
                 messages = [
-                    `Task '${executionReport.label}' failed to execute. Details: ${executionReport.error}`,
+                    t("ExecutionReport.statusMessages.taskError", {label, error: executionReport.error}),
                 ];
                 notificationState = "danger";
             } else if (executionMetaData != null && executionMetaData.finishStatus.failed) {
-                messages = [`Task '${executionReport.label}' failed to execute.`];
+                messages = [t("ExecutionReport.statusMessages.taskFailed", {label})];
                 notificationState = "danger";
             } else if (executionReport.warnings.length > 0) {
                 messages = executionReport.warnings;
                 notificationState = "neutral";
             } else if (executionReport.isDone !== true) {
-                messages = [`Task '${executionReport.label}' has not finished execution yet.`];
+                messages = [t("ExecutionReport.statusMessages.running", {label})];
                 notificationState = "neutral";
             } else {
-                messages = [`Task '${executionReport.label}' has been executed without any issues.`];
+                messages = [t("ExecutionReport.statusMessages.done", {label})];
                 notificationState = "success";
             }
         }
@@ -232,7 +232,7 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                 values: entities.map(e => e.values)
             })
             return <dataPreviewPlugin.Component
-                title={"TODO: Sample output entities"}
+                title={t("ExecutionReport.samplePreview.title")}
                 preview={{
                     types: [type],
                     typeValues
@@ -259,14 +259,11 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
         const ruleResults = currentRuleId ? executionReport?.ruleResults?.[currentRuleId] : undefined;
         let title;
         if (ruleResults === undefined) {
-            title = "Select a mapping for detailed results.";
+            title = t("ExecutionReport.transform.messages.selectMapping");
         } else if (ruleResults.errorCount === 0) {
-            title = "This mapping rule executed successfully without any issues.";
+            title = t("ExecutionReport.transform.messages.noIssues");
         } else {
-            title =
-                "This mapping rule generated  " +
-                ruleResults.errorCount +
-                " validation issues during execution. Examples are shown below.";
+            title = t("ExecutionReport.transform.messages.validationIssues", {errors: ruleResults.errorCount});
         }
         return (
             <Section className="ecc-silk-mapping__treenav">
@@ -293,9 +290,9 @@ export const ExecutionReport = ({project, nodeId, executionReport, executionMeta
                 <Table className="di-execution-report-table" useZebraStyles columnWidths={columnWidths}>
                     <TableHead>
                         <TableRow>
-                            <TableHeader>Entity</TableHeader>
-                            <TableHeader>Values</TableHeader>
-                            <TableHeader>Issue</TableHeader>
+                            <TableHeader>{t("ExecutionReport.errorTable.entity")}</TableHeader>
+                            <TableHeader>{t("ExecutionReport.errorTable.values")}</TableHeader>
+                            <TableHeader>{t("ExecutionReport.errorTable.issue")}</TableHeader>
                             {actionFieldNeeded ? <TableHeader></TableHeader> : null}
                         </TableRow>
                     </TableHead>

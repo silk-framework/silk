@@ -27,7 +27,7 @@ const TransformExecutionReport: React.FC<ExecutionReportProps> = ({
         updateExecutionReport();
     }, [updateCounter]);
 
-    return <ExecutionReport project={project} nodeId={task} executionReport={executionReport} />;
+    return <ExecutionReport executionReport={executionReport} />;
 };
 
 export default TransformExecutionReport;
