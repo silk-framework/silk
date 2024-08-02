@@ -1,7 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.entity.Entity
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.ExecutionReportUpdater.{DEFAULT_DELAY_BETWEEN_UPDATES, DEFAULT_ENTITIES_BETWEEN_UPDATES}
 import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
 import org.silkframework.runtime.activity.ActivityContext
@@ -37,8 +37,24 @@ trait ExecutionReportUpdater {
   private var entitiesEmitted = 0
   private var numberOfExecutions = 0
   private var error: Option[String] = None
-  private var sampleOutputEntities: Vector[EntitySample] = Vector.empty
-  private var sampleOutputEntitiesSchema: Option[SampleEntitiesSchema] = None
+
+  // Sample entities
+  private var currentOutputSampleEntitySchema: SampleEntitiesSchema = SampleEntitiesSchema.empty
+  private var sampleEntities: Vector[EntitySample] = Vector.empty
+  private var currentSampleEntities: SampleEntities = SampleEntities(Seq.empty, currentOutputSampleEntitySchema)
+  private var sampleOutputEntities: Vector[SampleEntities] = Vector.empty
+
+  private def updateCurrentSampleEntities(): Unit = {
+    currentSampleEntities = SampleEntities(sampleEntities, currentOutputSampleEntitySchema)
+  }
+
+  private def allSampleOutputEntities(): Vector[SampleEntities] = {
+    if(sampleOutputEntities.isEmpty || sampleOutputEntities.last.schema != currentOutputSampleEntitySchema) {
+      sampleOutputEntities :+ currentSampleEntities
+    } else {
+      sampleOutputEntities.dropRight(1) :+ currentSampleEntities
+    }
+  }
 
   if(entityLabelPlural != "Entities" && entityProcessVerb != "processed") {
     // Change the status message if any of those are not the defaults
@@ -58,25 +74,32 @@ trait ExecutionReportUpdater {
     }
   }
 
-  def addSampleEntity(entity: Entity)
-                     (implicit prefixes: Prefixes): Unit = {
-    if(sampleOutputEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
-      if(sampleOutputEntitiesSchema.isEmpty) {
-        updateSampleEntitiesSchema(SampleEntitiesSchema.entitySchemaToSampleEntitiesSchema(entity.schema))
-      }
+  def startNewOutputSamples(outputEntitySchema: EntitySchema)
+                           (implicit prefixes: Prefixes): Unit = {
+    startNewOutputSamples(SampleEntitiesSchema.entitySchemaToSampleEntitiesSchema(outputEntitySchema))
+  }
+
+  def startNewOutputSamples(sampleOutputEntitySchema: SampleEntitiesSchema): Unit = {
+    if (sampleEntities.nonEmpty) {
+      sampleOutputEntities = sampleOutputEntities :+ SampleEntities(sampleEntities, currentOutputSampleEntitySchema)
+      sampleEntities = Vector.empty
+    }
+    currentOutputSampleEntitySchema = sampleOutputEntitySchema
+    updateCurrentSampleEntities()
+  }
+
+  def addSampleEntity(entity: Entity): Unit = {
+    if(sampleEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
       addSampleEntity(EntitySample.entityToEntitySample(entity))
     }
   }
 
   def addSampleEntity(entity: => EntitySample): Unit = {
-    if(sampleOutputEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
-      sampleOutputEntities = sampleOutputEntities :+ entity
-      update(force = sampleOutputEntities.size == 1, addEndTime = false)
+    if(sampleEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
+      sampleEntities = sampleEntities :+ entity
+      updateCurrentSampleEntities()
+      update(force = sampleEntities.size == 1, addEndTime = false)
     }
-  }
-
-  def updateSampleEntitiesSchema(sampleEntitiesSchema: SampleEntitiesSchema): Unit = {
-    sampleOutputEntitiesSchema = Some(sampleEntitiesSchema)
   }
 
   def setExecutionError(error: Option[String] = None): Unit = {
@@ -126,8 +149,7 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      val sampleEntities = if(sampleOutputEntitiesSchema.nonEmpty) Seq(SampleEntities(sampleOutputEntities, sampleOutputEntitiesSchema.get)) else Seq.empty
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, sampleEntities))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities()))
       lastUpdate = System.currentTimeMillis()
     }
   }

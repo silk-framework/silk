@@ -213,28 +213,41 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
             return null
         }
         const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
-        const entitySamples: OutputEntitiesSample | undefined = id ? outputEntitiesSample.find(s => s.id === id) : outputEntitiesSample[0]
-        if(dataPreviewPlugin && entitySamples && entitySamples.entities.length) {
-            const {entities, schema} = entitySamples
-            const typeValues = new Map()
-            let type = schema?.typeUri
-            if(!type) {
-                if(schema?.typePath) {
-                    type = schema?.typePath
-                } else if(entitySamples.id) {
-                    type = entitySamples.id
-                }
+        let shownSamples: OutputEntitiesSample[] = outputEntitiesSample
+        if(id) {
+            const specificSample = outputEntitiesSample.find(s => s.id === id)
+            if(specificSample) {
+                shownSamples = [specificSample]
+            } else {
+                shownSamples = []
             }
-            typeValues.set(type, {
-                attributes: schema ?
-                    schema.properties :
-                    entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
-                values: entities.map(e => e.values)
+        }
+        const containsEntities = !!shownSamples.find(es => es.entities.length > 0)
+        if(dataPreviewPlugin && containsEntities) {
+            const types: string[] = []
+            const typeValues = new Map()
+            shownSamples.forEach(entitiesSample => {
+                const {entities, schema} = entitiesSample
+                let type = schema?.typePath
+                if(!type) {
+                    if(schema?.typeUri) {
+                        type = schema?.typeUri
+                    } else if(entitiesSample.id) {
+                        type = entitiesSample.id
+                    }
+                }
+                types.push(type)
+                typeValues.set(type, {
+                    attributes: schema ?
+                        schema.properties :
+                        entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
+                    values: entities.map(e => e.values)
+                })
             })
             return <dataPreviewPlugin.Component
                 title={t("ExecutionReport.samplePreview.title")}
                 preview={{
-                    types: [type],
+                    types,
                     typeValues
                 }}
             />

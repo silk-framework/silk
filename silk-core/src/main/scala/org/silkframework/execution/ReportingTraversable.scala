@@ -21,6 +21,7 @@ case class ReportingIterable(entities: Iterable[Entity])(implicit executionRepor
   * An entity iterator that forwards all entity traversals to an execution report.
   */
 case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater, prefixes: Prefixes) extends CloseableIterator[Entity] {
+  private var schemaReported = false
 
   override def hasNext: Boolean = {
     try {
@@ -48,6 +49,10 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
           executionReport.executionDone()
           throw ex
       }
+    if(!schemaReported) {
+      schemaReported = true
+      executionReport.startNewOutputSamples(entity.schema)
+    }
     executionReport.addSampleEntity(entity)
     executionReport.increaseEntityCounter()
     entity

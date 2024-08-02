@@ -70,9 +70,9 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     // Check report for sample queries
     val report = activityContext.value.get
     report mustBe defined
-    report.get.sampleOutputEntities mustBe defined
-    val samplesEntities = report.get.sampleOutputEntities.get
-    samplesEntities.schema mustBe defined
+    report.get.sampleOutputEntities must not be empty
+    val samplesEntities = report.get.sampleOutputEntities.head
+    samplesEntities.schema.properties must not be empty
     samplesEntities.entities must have size ExecutionReport.SAMPLE_ENTITY_LIMIT
     // Each entity currently represents one query, NOT one batch
     samplesEntities.entities.head.values mustBe IndexedSeq(Seq("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;"""))

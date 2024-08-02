@@ -67,8 +67,13 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
                              vars: IndexedSeq[String],
                              executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): CloseableIterator[Entity] = {
     implicit val prefixes: Prefixes = Prefixes.empty
+    var schemaReported = false
     val increase: Entity => Unit = (entity: Entity) => executionReportUpdater match {
       case Some(updater) => () =>
+        if (!schemaReported) {
+          schemaReported = true
+          updater.startNewOutputSamples(entity.schema)
+        }
         updater.addSampleEntity(entity)
         updater.increaseEntityCounter()
       case None => () => {} // no-op

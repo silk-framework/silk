@@ -49,7 +49,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       override def foreach[U](f: Entity => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)
-        reportUpdater.updateSampleEntitiesSchema(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
+        reportUpdater.startNewOutputSamples(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
         if (updateTask.isStaticTemplate) {
           // Static template needs to be executed exactly once
           executeTemplate(batchEmitter, reportUpdater, updateTask, pluginContext.resources, outputTask = output.task)
