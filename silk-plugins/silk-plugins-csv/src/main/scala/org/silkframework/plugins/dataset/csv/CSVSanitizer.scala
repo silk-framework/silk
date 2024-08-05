@@ -3,9 +3,6 @@ package org.silkframework.plugins.dataset.csv
 /**
  * Sanitizer for CSV rows. It deals with the causes for CSV Injection, as documented in
  * https://owasp.org/www-community/attacks/CSV_Injection.
- *
- * The solution is backported from DataPlatform. See https://gitlab.eccenca.com/elds/backend/-/merge_requests/591/diffs
- * as well as the task https://jira.eccenca.com/browse/CMEM-4219 for further details.
  */
 object CSVSanitizer {
   def sanitize(str: String): String = {
