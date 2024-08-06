@@ -77,7 +77,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override def inputPorts: InputPorts = {
-    if(readOnly) {
+    if(readOnly || characteristics.readOnly) {
       FixedNumberOfInputs(Seq.empty)
     } else if(characteristics.supportsMultipleWrites) {
       FlexibleNumberOfInputs()
