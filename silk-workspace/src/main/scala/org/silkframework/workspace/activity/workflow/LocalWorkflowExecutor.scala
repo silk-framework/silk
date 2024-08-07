@@ -194,24 +194,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  private def executeOnInputs[T](operatorTask: Task[_ <: TaskSpec], inputs: Seq[(WorkflowDependencyNode, Port)])(processAll: Seq[Option[LocalEntities]] => T)
-                                (implicit workflowRunContext: WorkflowRunContext): T = {
-    inputs match {
-      case Seq() =>
-        processAll(Seq.empty)
-      case Seq(input) =>
-        executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
-          processAll(Seq(result))
-        }
-      case input +: tail =>
-        executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
-          executeOnInputs(operatorTask, tail) { tailInputs =>
-            processAll(result +: tailInputs)
-          }
-        }
-    }
-  }
-
   // Execute all inputs of a workflow operator to generate input values for this operator
   private def executeWorkflowOperatorInputs[T](operatorNode: WorkflowDependencyNode,
                                                inputPorts: InputPorts,
@@ -219,6 +201,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                               (process: Seq[Option[LocalEntities]] => T)
                                               (implicit workflowRunContext: WorkflowRunContext): T = {
     val operatorTask = task(operatorNode)
+
+    def executeOnInputs(inputs: Seq[(WorkflowDependencyNode, Port)])(processAll: Seq[Option[LocalEntities]] => T): T = {
+      inputs match {
+        case Seq() =>
+          processAll(Seq.empty)
+        case Seq(input) =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+            processAll(Seq(result))
+          }
+        case input +: tail =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+            executeOnInputs(tail) { tailInputs =>
+              processAll(result +: tailInputs)
+            }
+          }
+      }
+    }
 
     inputPorts match {
       case FixedNumberOfInputs(ports) =>
@@ -228,9 +227,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         // Execute "ignorable" inputs as dependencies
         useInputs.drop(ports.size).foreach(executeAsDependency)
         // Only use defined inputs as actual data inputs
-        executeOnInputs(operatorTask, useInputs.zip(ports))(process)
+        executeOnInputs(useInputs.zip(ports))(process)
       case FlexibleNumberOfInputs() =>
-        executeOnInputs(operatorTask, inputs.map(input => (input, FlexibleSchemaPort)))(process)
+        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)
     }
   }
 
@@ -263,15 +262,35 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                         output: ExecutorOutput)
                                        (process: Option[LocalEntities] => T)
                                        (implicit workflowRunContext: WorkflowRunContext): T = {
+    val task = datasetTask(datasetNode)
+
+    def executeOnInputs(inputs: Seq[WorkflowDependencyNode])(processAll: Seq[Option[LocalEntities]] => Unit): Unit = {
+      inputs match {
+        case Seq() =>
+          processAll(Seq.empty)
+        case Seq(input) =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+            processAll(Seq(result))
+          }
+        case input +: tail =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+            executeOnInputs(tail) { tailInputs =>
+              processAll(result +: tailInputs)
+            }
+          }
+      }
+    }
+
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
-      val task = datasetTask(datasetNode)
       // Execute all input nodes and write to this dataset
-      executeOnInputs(task, datasetNode.inputNodes.map(input => (input, FlexibleSchemaPort))) { inputEntities =>
-        writeEntityTableToDataset(datasetNode, inputEntities.flatten)
+      if(datasetNode.inputNodes.nonEmpty) {
+        executeOnInputs(datasetNode.inputNodes) { inputEntities =>
+          writeEntityTableToDataset(datasetNode, inputEntities.flatten)
+        }
+        log.info("Finished writing of node " + datasetNode.nodeId)
       }
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
-      log.info("Finished writing of node " + datasetNode.nodeId)
     }
     // Read from the dataset
     (output.task, output.requestedSchema) match {
