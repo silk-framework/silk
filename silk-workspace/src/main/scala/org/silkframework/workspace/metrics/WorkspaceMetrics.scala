@@ -14,7 +14,8 @@ import scala.util.Try
 /**
  * Metrics for a Workspace instance.
  */
-class WorkspaceMetrics(projectProvider: () => Seq[Project],
+class WorkspaceMetrics(prefix: String,
+                       projectProvider: () => Seq[Project],
                        tasksProvider: () => Seq[ProjectTask[_ <: TaskSpec]])
                       (implicit userContext: UserContext)
   extends MeterBinder {
@@ -25,13 +26,13 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
   }
 
   private def workspaceProjectSize(registry: MeterRegistry): Unit = {
-    Gauge.builder("workspace.project.size", () => Try(projectProvider().size).getOrElse(0).toDouble)
+    Gauge.builder(s"$prefix.workspace.project.size", () => Try(projectProvider().size).getOrElse(0).toDouble)
       .description("Workspace project size")
       .register(registry)
   }
 
   private def workspaceTaskSize(registry: MeterRegistry): Unit = {
-    Gauge.builder("workspace.task.size", () => Try(tasksProvider().size).getOrElse(0).toDouble)
+    Gauge.builder(s"$prefix.workspace.task.size", () => Try(tasksProvider().size).getOrElse(0).toDouble)
       .description("Workspace task size")
       .register(registry)
   }
@@ -46,7 +47,7 @@ class WorkspaceMetrics(projectProvider: () => Seq[Project],
     def workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
 
     def gauge[TaskType <: TaskSpec](taskProvider: () => Seq[ProjectTask[TaskType]], specification: String): Unit = {
-      Gauge.builder("workspace.task.spec.size", () => taskProvider().size)
+      Gauge.builder(s"$prefix.workspace.task.spec.size", () => taskProvider().size)
         .description("Workspace task size, per task specification")
         .tags("spec", specification)
         .register(registry)

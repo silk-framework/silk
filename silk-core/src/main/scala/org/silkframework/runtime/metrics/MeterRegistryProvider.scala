@@ -1,7 +1,6 @@
 package org.silkframework.runtime.metrics
 
-import io.micrometer.core.instrument.{Meter, MeterRegistry}
-import io.micrometer.core.instrument.config.NamingConvention
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 import org.silkframework.config.DefaultConfig
 
@@ -36,26 +35,8 @@ private object PrometheusRegistryProvider {
       case _ => "silk"
     }
 
-    def prefix: String = Try {
-      DefaultConfig.instance.apply().getString("metrics.prefix")
-    } match {
-      case Success(prefix) if prefix.nonEmpty => prefix
-      case _ => "cmem"
-    }
-
-    def prefixed(namingConvention: NamingConvention, prefix: String): NamingConvention =
-      (name: String, `type`: Meter.Type, baseUnit: String) => namingConvention.name(s"$prefix.$name", `type`, baseUnit)
-
     val registry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-
-    // Tag with app name
     registry.config().commonTags("app", app)
-
-    // Prefix with platform name
-    registry.config().namingConvention(
-      prefixed(registry.config().namingConvention(), prefix)
-    )
-
     registry
   }
 }

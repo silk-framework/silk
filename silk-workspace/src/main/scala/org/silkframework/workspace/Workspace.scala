@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -321,7 +321,8 @@ class Workspace(val provider: WorkspaceProvider,
   }
 
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
-    new WorkspaceMetrics(() => projects, () => projects.flatMap(_.allTasks)).bindTo(MeterRegistryProvider.meterRegistry)
+    new WorkspaceMetrics(Workspace.prefix, () => projects, () => projects.flatMap(_.allTasks))
+      .bindTo(MeterRegistryProvider.meterRegistry)
 }
 
 object Workspace {
@@ -329,5 +330,13 @@ object Workspace {
   def autoRunCachedActivities: Boolean = {
     val cfg = DefaultConfig.instance()
     cfg.getBoolean("caches.config.enableAutoRun")
+  }
+
+  // Metrics prefix
+  def prefix: String = Try {
+    DefaultConfig.instance.apply().getString("metrics.prefix")
+  } match {
+    case Success(prefix) if prefix.nonEmpty => prefix
+    case _ => "cmem"
   }
 }
