@@ -194,6 +194,24 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
+  private def executeOnInputs[T](operatorTask: Task[_ <: TaskSpec], inputs: Seq[(WorkflowDependencyNode, Port)])(processAll: Seq[Option[LocalEntities]] => T)
+                                (implicit workflowRunContext: WorkflowRunContext): T = {
+    inputs match {
+      case Seq() =>
+        processAll(Seq.empty)
+      case Seq(input) =>
+        executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+          processAll(Seq(result))
+        }
+      case input +: tail =>
+        executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+          executeOnInputs(operatorTask, tail) { tailInputs =>
+            processAll(result +: tailInputs)
+          }
+        }
+    }
+  }
+
   // Execute all inputs of a workflow operator to generate input values for this operator
   private def executeWorkflowOperatorInputs[T](operatorNode: WorkflowDependencyNode,
                                                inputPorts: InputPorts,
@@ -201,23 +219,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                               (process: Seq[Option[LocalEntities]] => T)
                                               (implicit workflowRunContext: WorkflowRunContext): T = {
     val operatorTask = task(operatorNode)
-
-    def executeOnInputs(inputs: Seq[(WorkflowDependencyNode, Port)])(processAll: Seq[Option[LocalEntities]] => T): T = {
-      inputs match {
-        case Seq() =>
-          processAll(Seq.empty)
-        case Seq(input) =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
-            processAll(Seq(result))
-          }
-        case input +: tail =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
-            executeOnInputs(tail) { tailInputs =>
-              processAll(result +: tailInputs)
-            }
-          }
-      }
-    }
 
     inputPorts match {
       case FixedNumberOfInputs(ports) =>
@@ -227,9 +228,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         // Execute "ignorable" inputs as dependencies
         useInputs.drop(ports.size).foreach(executeAsDependency)
         // Only use defined inputs as actual data inputs
-        executeOnInputs(useInputs.zip(ports))(process)
+        executeOnInputs(operatorTask, useInputs.zip(ports))(process)
       case FlexibleNumberOfInputs() =>
-        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)
+        executeOnInputs(operatorTask, inputs.map(input => (input, FlexibleSchemaPort)))(process)
     }
   }
 
@@ -266,13 +267,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
       val task = datasetTask(datasetNode)
       // Execute all input nodes and write to this dataset
-      datasetNode.inputNodes foreach { pNode =>
-        executeWorkflowNode(pNode, ExecutorOutput(Some(task), None)) {
-          case Some(entityTable) =>
-            writeEntityTableToDataset(datasetNode, entityTable)
-          case None =>
-          // Write nothing
-        }
+      executeOnInputs(task, datasetNode.inputNodes.map(input => (input, FlexibleSchemaPort))) { inputEntities =>
+        writeEntityTableToDataset(datasetNode, inputEntities.flatten)
       }
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
       log.info("Finished writing of node " + datasetNode.nodeId)
@@ -289,11 +285,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def writeEntityTableToDataset(workflowDataset: WorkflowDependencyNode,
-                                        entityTable: LocalEntities)
+                                        entityTables: Seq[LocalEntities])
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
-      executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
+      executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, entityTables, ExecutorOutput.empty) { _ =>
         // ignore result
       }
     } catch {
