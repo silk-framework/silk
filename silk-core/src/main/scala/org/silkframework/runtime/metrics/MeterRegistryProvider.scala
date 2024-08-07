@@ -1,7 +1,6 @@
 package org.silkframework.runtime.metrics
 
-import io.micrometer.core.instrument.{Meter, MeterRegistry}
-import io.micrometer.core.instrument.config.NamingConvention
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
 import org.silkframework.config.DefaultConfig
 
@@ -28,14 +27,17 @@ object MeterRegistryProvider {
  * Provider of a Micrometer-based meter registry for Prometheus as a monitoring system.
  */
 private object PrometheusRegistryProvider {
-  private val prefix: String = "cmem.di"
+  import scala.jdk.CollectionConverters._
 
   lazy val meterRegistry: MeterRegistry = {
-    def prefixed(namingConvention: NamingConvention): NamingConvention =
-      (name: String, `type`: Meter.Type, baseUnit: String) => namingConvention.name(s"$prefix.$name", `type`, baseUnit)
     val registry: PrometheusMeterRegistry = new PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    val namingConvention = registry.config().namingConvention()
-    registry.config().namingConvention(prefixed(namingConvention))
+    val tags: List[String] = Try {
+      DefaultConfig.instance.apply().getStringList("metrics.tags")
+    } match {
+      case Success(pairsOfTags) if !pairsOfTags.isEmpty && pairsOfTags.size() % 2 == 0 => pairsOfTags.asScala.toList
+      case _ => List("name", "cmem")
+    }
+    registry.config().commonTags(tags:_*)
     registry
   }
 }
