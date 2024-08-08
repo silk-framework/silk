@@ -17,7 +17,7 @@ import {
     elementHtmlToContain,
     findAll,
     findSingleElement,
-    legacyApiUrl,
+    legacyApiUrl, logRequests, logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
@@ -81,8 +81,9 @@ describe("Task creation widget", () => {
     // Loads the selection list modal with mocked artefact list
     const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
         const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
+        const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true")
         mockAxios.mockResponseFor(
-            { url: apiUrl("core/taskPlugins?addMarkdownDocumentation=true") },
+            { url },
             mockedAxiosResponse({ data: mockArtefactListResponse })
         );
         if (!existingTask) {

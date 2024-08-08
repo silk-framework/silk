@@ -40,6 +40,7 @@ const {
     setArtefactLoading,
     setTaskId,
     setModalError,
+    setModalInfo,
     setExportTypes,
     changeLanguage,
     toggleNotificationMenuDisplay,
@@ -428,6 +429,7 @@ const resetArtefactModal =
         batch(() => {
             dispatch(selectArtefact(undefined));
             dispatch(setModalError({}));
+            dispatch(setModalInfo(undefined))
             if (shouldClose) {
                 dispatch(closeArtefactModal());
             }
@@ -457,6 +459,7 @@ const commonOps = {
     setTaskId,
     setSelectedArtefactDType,
     setModalError,
+    setModalInfo,
     buildTaskObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
