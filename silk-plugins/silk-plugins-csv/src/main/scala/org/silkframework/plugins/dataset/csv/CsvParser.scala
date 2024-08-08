@@ -2,10 +2,9 @@ package org.silkframework.plugins.dataset.csv
 
 import java.io.Reader
 import java.util.logging.Logger
-
 import com.univocity.parsers.csv.{CsvParserSettings, CsvParser => UniCsvParser}
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   private final val MAX_CHARS_PER_COLUMNS_DEFAULT = 100000
@@ -46,8 +45,12 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
     * If it reached the end of the [[java.io.Reader]] it will return None.
     */
   def parseNext(): Option[Array[String]] = Try {
-    parser.parseNext().filterNot(_ == null).map(cell => CSVSanitizer.sanitize(cell))
-  }.toOption
+    val parsed = parser.parseNext()
+    if (parsed != null) parsed.map(CSVSanitizer.sanitize) else parsed
+  } match {
+    case Failure(exception) => throw exception
+    case Success(value) => Some(value)
+  }
 
   /** Stops parsing and closes all open resources. */
   def stopParsing(): Unit = {
