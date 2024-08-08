@@ -15,7 +15,8 @@ import scala.io.Codec
 @Plugin(
   id = "text",
   label = "Text",
-  description= "Reads and writes plain text files.")
+  description= "Reads and writes plain text files.",
+  documentationFile = "TextFileDataset.md")
 case class TextFileDataset(
    @Param("The plain text file. May also be a zip archive containing multiple text files.")
    file: WritableResource,
