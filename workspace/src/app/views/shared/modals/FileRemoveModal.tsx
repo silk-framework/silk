@@ -13,14 +13,26 @@ import { useModalError } from "../../../hooks/useModalError";
 type UppyFileOrResource = UppyFile | { name: string; fullPath?: string; id: string };
 
 interface IProps {
+    /** The file to delete. */
     file: UppyFileOrResource;
 
+    /** The project the file is in. */
     projectId: string;
 
+    /** Callback when the file has been deleted or the dialog has been closed without deleting. */
     onConfirm(fileId?: string | number);
+
+    /** Alternative title to the default title. */
+    alternativeTitle?: string
+
+    /** Alternative message to the default one. */
+    alternativeMessage?: string
+
+    alternativeCancelButtonLabel?: string
 }
 
-export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
+/** Dialog to delete a project resource. */
+export function FileRemoveModal({ projectId, onConfirm, file, alternativeTitle, alternativeMessage, alternativeCancelButtonLabel }: IProps) {
     const [t] = useTranslation();
     const [error, setError] = React.useState<ErrorResponse | undefined>();
     const checkAndDisplayError = useModalError({ setError });
@@ -70,7 +82,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
                         ))}
                     </ul>
                     <p>
-                        {t("widget.FileWidget.removeText", "Do you really want to delete file")} {fileValue(file)}?
+                        {alternativeMessage ?? t("widget.FileWidget.removeText", {file: fileValue(file)})}
                     </p>
                 </div>
             );
@@ -86,8 +98,9 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
             onDiscard={closeDeleteModal}
             onConfirm={deleteFile}
             render={renderDeleteModal}
-            title={t("widget.FileWidget.deleteFile", "Delete File")}
+            title={alternativeTitle ?? t("widget.FileWidget.deleteFile", "Delete File")}
             errorMessage={error && error.detail}
+            alternativeCancelButtonLabel={alternativeCancelButtonLabel}
         />
     );
 }
