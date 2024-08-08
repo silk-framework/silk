@@ -44,8 +44,8 @@ export interface IWarningWidget {
 }
 
 export interface IFileWidgetItem extends FileBaseInfo {
-    size: number;
-    modified: string;
+    size?: number;
+    modified?: string;
 }
 
 export interface IFilesWidget {

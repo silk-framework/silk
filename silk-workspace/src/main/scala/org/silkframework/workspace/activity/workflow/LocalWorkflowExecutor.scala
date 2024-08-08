@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{FixedNumberOfInputs, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, PlainTask, Port, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, PlainTask, Port, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
@@ -103,7 +103,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
-  // Treat this execution as a dependency execution, not as a data input exececution.
+  // Treat this execution as a dependency execution, not as a data input execcution.
   private def executeAsDependency(node: WorkflowDependencyNode)
                                  (implicit workflowRunContext: WorkflowRunContext): Unit = {
     if (!workflowRunContext.alreadyExecuted.contains(node.workflowNode)) {
@@ -170,7 +170,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         try {
           executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
             // Throw exception if result was promised, but not returned
-            if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
+            if (operatorTask.data.outputPort.exists(_.isInstanceOf[FixedSchemaPort]) && result.isEmpty) {
               throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
                 s"schema, but did not return any result!")
             }

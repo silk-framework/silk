@@ -55,6 +55,11 @@ class XmlDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait
     retrieveIDs(zipDataset(fileRegex = Some("\\.xml.bak$"))).flatMap(_.values.flatten) mustBe Seq("3") // all files ending with .xml.bak
   }
 
+  it should "accept all XML files that do not start with a dot by default" in {
+    "example.xml" must fullyMatch regex (XmlDataset.defaultZipFileRegex)
+    "__MACOSX/.example.json" must not fullyMatch regex (XmlDataset.defaultZipFileRegex)
+  }
+
   it should "generate an understandable error message if a file could not be read inside the ZIP file" in {
     val failedExecution = Try(retrieveIDs(zipDataset(fileRegex = Some(".*"))))
     failedExecution.isFailure mustBe true

@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, PlainTask, Prefixes}
+import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity._
@@ -1140,8 +1140,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def schemaPathFunctions(linkSpec: LinkSpec): (String => Boolean, String => Boolean) = {
-    linkSpec.inputSchemataOpt match {
-      case Some(Seq(sourceSchema, targetSchema)) =>
+    linkSpec.inputPorts match {
+      case FixedNumberOfInputs(Seq(FixedSchemaPort(sourceSchema), FixedSchemaPort(targetSchema))) =>
         val sourcePaths = sourceSchema.typedPaths.map(_.normalizedSerialization).toSet
         val targetPaths = targetSchema.typedPaths.map(_.normalizedSerialization).toSet
         (sourcePaths.contains, targetPaths.contains)

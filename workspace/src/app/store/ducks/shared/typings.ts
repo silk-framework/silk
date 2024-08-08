@@ -219,11 +219,11 @@ export interface IProjectResource extends FileBaseInfo {
     /**
      * Last modification Datetime
      */
-    modified: string;
+    modified?: string;
     /**
      * Resource/file size on bytes
      */
-    size: number;
+    size?: number;
 }
 
 export interface IAutocompleteDefaultResponse {

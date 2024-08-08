@@ -354,7 +354,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     sink match {
       case tripleSink: TripleSink =>
         writeTriples(entities, tripleSink)
-      case EntitySinkWrapper(tripleSink: TripleSink, _, _) =>
+      case EntitySinkWrapper(tripleSink: TripleSink, _) =>
         writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")

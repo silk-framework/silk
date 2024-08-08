@@ -36,8 +36,14 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
   private val customTaskWithoutSchemaFromInitialProject = "23586f0a-037d-4acd-91ad-669afe05a074_JSONparser"
   private val customTaskWithSchemaFromInitialProject = "a5b07467-ace6-4af3-a09c-de4e61f12e30_CopyofJSONparser"
 
-  it should "return a correct workflow nodes port config" in {
+  override def beforeAll(): Unit = {
+    super.beforeAll()
+    PluginRegistry.registerPlugin(classOf[BlockingTask])
+    PluginRegistry.registerPlugin(classOf[BlockingTaskExecutor])
     PluginRegistry.registerPlugin(classOf[TestCustomTask])
+  }
+
+  it should "return a correct workflow nodes port config" in {
     project.addTask("noSchema", TestCustomTask(None))
     project.addTask("onePort", TestCustomTask(Some(1)))
     project.addTask("fourPort", TestCustomTask(Some(4)))
@@ -60,8 +66,6 @@ class WorkflowApiTest extends AnyFlatSpec with SingleProjectWorkspaceProviderTes
   }
 
   it should "return a 503 when too many concurrent variable workflows are started" in {
-    PluginRegistry.registerPlugin(classOf[BlockingTask])
-    PluginRegistry.registerPlugin(classOf[BlockingTaskExecutor])
     val blockingTaskId = "blockingTask"
     project.addTask(blockingTaskId, BlockingTask())
     val workflowId = "concurrentWorkflow"

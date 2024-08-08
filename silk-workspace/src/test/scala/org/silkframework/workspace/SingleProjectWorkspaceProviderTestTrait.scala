@@ -15,6 +15,7 @@ import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with TestWorkspaceProviderTestTrait with TestUserContextTrait { this: TestSuite =>
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
+    * If the project zip is located on the same classpath as the test class, the name of the file suffices.
     */
   def projectPathInClasspath: String
 
@@ -29,7 +30,12 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     val is = try {
-      new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
+      val classFile = getClass.getResource(projectPathInClasspath)
+      if(classFile != null) {
+        new File(classFile.getFile)
+      } else {
+        new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
+      }
     } catch {
       case _: NullPointerException =>
         throw new RuntimeException(s"Project file '$projectPathInClasspath' does not exist!")
@@ -38,7 +44,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())
     val loadingErrors = WorkspaceFactory().workspace.project(projectId).loadingErrors
     if(failOnTaskLoadingErrors && loadingErrors.nonEmpty) {
-      fail("Test project could not load all tasks. Details: " + loadingErrors)
+      fail("Test project could not load all tasks. Details: " + loadingErrors, loadingErrors.head.throwable)
     }
   }
 

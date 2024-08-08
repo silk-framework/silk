@@ -1,11 +1,12 @@
 package cacheUpdater
 
+import akka.actor.ActorSystem
 import helper.IntegrationTestTrait
 import org.scalatest.concurrent.Eventually
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.time.Span
-import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.{DatasetSpec, DirtyTrackingFileDataSink}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.plugins.dataset.json.{JsonDataset, JsonSink}
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
@@ -13,6 +14,7 @@ import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.dataset.TypesCache
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrait with Matchers with ConfigTestTrait with Eventually {
@@ -25,6 +27,7 @@ class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrai
   override implicit def patienceConfig: PatienceConfig = super.patienceConfig.copy(timeout = Span.convertDurationToSpan(5.seconds))
 
   it should "update the depending caches when a project resource is updated via a data sink" in {
+    CacheUpdaterTask.start()(ActorSystem(), ExecutionContext.global)
     val projectId = "triggerProject"
     val p = retrieveOrCreateProject(projectId)
     val resourceName = "resource.json"
@@ -40,10 +43,12 @@ class CacheUpdaterIntegrationTest() extends AnyFlatSpec with IntegrationTestTrai
       cachedTypes() mustBe Seq("", "sub")
       cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name")
     }
-    val jsonSink = new JsonSink(resource)
-    jsonSink.close()
-    // JSON sink overwrites the resource on close, so we need to update the value afterwards
-    resource.writeString(afterJsonContent)
+    CacheUpdaterTask.synchronized { // Make sure that there are no updates between calling close and writing the resource
+      val jsonSink = new JsonSink(resource)
+      jsonSink.close()
+      // JSON sink overwrites the resource on close, so we need to update the value afterwards
+      resource.writeString(afterJsonContent)
+    }
     eventually {
       cachedTypes() mustBe Seq("", "sub", "newSub")
       cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name", "newSub", "newSub/subName")

@@ -8,8 +8,12 @@ import org.silkframework.entity.paths.UntypedPath
   * @param supportedPathExpressions The characteristics of the supported path expressions.
   * @param supportsMultipleTables If true, the dataset supports reading and writing multiple tables, which includes hierarchical datasets (XML, JSON, etc.).
   *                               If false, the dataset only supports a single table (e.g., CSV).
+  * @param typedEntities          If true, each entity needs a type property value (e.g. RDF).
+  *                               If false, the type is already given and not needed on a per-entity basis (e.g. relational databases where each table only contains entities of one type).
   */
-case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions(), supportsMultipleTables: Boolean = true)
+case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions(),
+                                  supportsMultipleTables: Boolean = true,
+                                  typedEntities: Boolean = false)
 
 object DatasetCharacteristics {
 
