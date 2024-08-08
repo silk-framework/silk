@@ -45,9 +45,9 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
     * Returns the next entry from the CSV file. beginParsing must be called before calling this method.
     * If it reached the end of the [[java.io.Reader]] it will return None.
     */
-  def parseNext(): Option[Array[String]] = {
-    Option(parser.parseNext().map(cell => CSVSanitizer.sanitize(cell)))
-  }
+  def parseNext(): Option[Array[String]] = Try {
+    parser.parseNext().filterNot(_ == null).map(cell => CSVSanitizer.sanitize(cell))
+  }.toOption
 
   /** Stops parsing and closes all open resources. */
   def stopParsing(): Unit = {
