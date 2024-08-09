@@ -23,7 +23,7 @@ case class TextFileDataset(
    @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
    charset: String = "UTF-8",
    @Param(value = "A type name that represents this file.", advanced = true)
-   typeName: String = "type",
+   typeName: String = "document",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
 ) extends Dataset with TextBulkResourceBasedDataset {
