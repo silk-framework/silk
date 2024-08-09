@@ -262,20 +262,35 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                         output: ExecutorOutput)
                                        (process: Option[LocalEntities] => T)
                                        (implicit workflowRunContext: WorkflowRunContext): T = {
+    val task = datasetTask(datasetNode)
+
+    def executeOnInputs(inputs: Seq[WorkflowDependencyNode])(processAll: Seq[Option[LocalEntities]] => Unit): Unit = {
+      inputs match {
+        case Seq() =>
+          processAll(Seq.empty)
+        case Seq(input) =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+            processAll(Seq(result))
+          }
+        case input +: tail =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+            executeOnInputs(tail) { tailInputs =>
+              processAll(result +: tailInputs)
+            }
+          }
+      }
+    }
+
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
-      val task = datasetTask(datasetNode)
       // Execute all input nodes and write to this dataset
-      datasetNode.inputNodes foreach { pNode =>
-        executeWorkflowNode(pNode, ExecutorOutput(Some(task), None)) {
-          case Some(entityTable) =>
-            writeEntityTableToDataset(datasetNode, entityTable)
-          case None =>
-          // Write nothing
+      if(datasetNode.inputNodes.nonEmpty) {
+        executeOnInputs(datasetNode.inputNodes) { inputEntities =>
+          writeEntityTableToDataset(datasetNode, inputEntities.flatten)
         }
+        log.info("Finished writing of node " + datasetNode.nodeId)
       }
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
-      log.info("Finished writing of node " + datasetNode.nodeId)
     }
     // Read from the dataset
     (output.task, output.requestedSchema) match {
@@ -289,11 +304,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def writeEntityTableToDataset(workflowDataset: WorkflowDependencyNode,
-                                        entityTable: LocalEntities)
+                                        entityTables: Seq[LocalEntities])
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
-      executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
+      executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, entityTables, ExecutorOutput.empty) { _ =>
         // ignore result
       }
     } catch {
