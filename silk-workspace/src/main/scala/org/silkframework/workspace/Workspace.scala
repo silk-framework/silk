@@ -17,6 +17,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
+import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
@@ -321,7 +322,7 @@ class Workspace(val provider: WorkspaceProvider,
   }
 
   private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
-    new WorkspaceMetrics(Workspace.prefix, () => projects, () => projects.flatMap(_.allTasks))
+    new WorkspaceMetrics(prefix, () => projects, () => projects.flatMap(_.allTasks))
       .bindTo(MeterRegistryProvider.meterRegistry)
 }
 
@@ -330,13 +331,5 @@ object Workspace {
   def autoRunCachedActivities: Boolean = {
     val cfg = DefaultConfig.instance()
     cfg.getBoolean("caches.config.enableAutoRun")
-  }
-
-  // Metrics prefix
-  def prefix: String = Try {
-    DefaultConfig.instance.apply().getString("metrics.prefix")
-  } match {
-    case Success(prefix) if prefix.nonEmpty => prefix
-    case _ => "cmem"
   }
 }
