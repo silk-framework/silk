@@ -113,7 +113,7 @@ export function RelatedItems(props: IProps) {
                 </CardTitle>
             </CardHeader>
             <Divider />
-            <CardContent style={{ maxHeight: "25vh" }}>
+            <CardContent>
                 {(data.total > 0 || textQuery !== "") && <SearchBar textQuery={textQuery} onSearch={searchFired} />}
                 <Spacing size="small" />
                 <DataList
