@@ -338,12 +338,19 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, entityTables, ExecutorOutput.empty) { _ =>
         // ignore result
       }
-      stopwatch.stop(registry.timer(s"$prefix.workflow.dataset.execution", "dataset", workflowTask.id.toString))
+      stopwatch.stop(
+        registry.timer(
+          s"$prefix.workflow.dataset.execution",
+          "workflow", workflowTask.id.toString,
+          "dataset", workflowDataset.nodeId
+        )
+      )
       entityTables.foreach { entityTable =>
         Try {entityTable.use(_.size)}.foreach(
-          registry.counter(s"$prefix.workflow.dataset.count",
-          "entities", workflowTask.id.toString,
-          "node", workflowDataset.nodeId
+          registry.counter(
+            s"$prefix.workflow.dataset.count",
+            "workflow", workflowTask.id.toString,
+            "dataset", workflowDataset.nodeId
           ).increment(_)
         )
       }
