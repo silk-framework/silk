@@ -61,6 +61,12 @@ export function RuleOperatorList<T>({
         (e: React.DragEvent<HTMLDivElement>) => {
             const pluginData = JSON.stringify({ pluginType, pluginId, parameterValues });
             e.dataTransfer.setData("application/reactflow", pluginData);
+            const draggedElement = e.currentTarget;
+            e.dataTransfer.setDragImage(
+                draggedElement,
+                draggedElement.clientWidth / 2,
+                draggedElement.clientHeight / 2
+            );
         };
 
     const itemRenderer = (ruleOperator: IRuleOperator | IPreConfiguredRuleOperator) => {
