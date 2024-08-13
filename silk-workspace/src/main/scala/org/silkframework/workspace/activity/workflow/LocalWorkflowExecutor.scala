@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import java.util.logging.{Level, Logger}
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -53,21 +53,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     val registry = MeterRegistryProvider.meterRegistry
     val stopwatch: Timer.Sample = Timer.start()
     cancelled = false
-    try {
+    val metricsStatus = Try {
       runWorkflow(context, updateUserContext(userContext))
-    } catch {
-      case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
+    } match {
+      case Success(_) => "Successful"
+      case Failure(cancelledWorkflowException: StopWorkflowExecutionException) if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
-    } finally {
-      stopwatch.stop(
-        registry.timer(
-          s"$prefix.workflow.execution",
-          "workflow", workflowTask.id.toString,
-          "status", context.status().concreteStatus
-        )
-      )
+        "Successful"
+      case Failure(_) => "Failed"
     }
+    stopwatch.stop(
+      registry.timer(
+        s"$prefix.workflow.execution",
+        "workflow", workflowTask.id.toString,
+        "status", metricsStatus
+      )
+    )
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
