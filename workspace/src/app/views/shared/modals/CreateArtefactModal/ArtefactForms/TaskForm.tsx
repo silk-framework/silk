@@ -356,6 +356,11 @@ export function TaskForm({
         (params: SelectedParamsType<Keyword>) => setValue(TAGS, params),
         []
     );
+    const preConfiguredFileAndLabel =
+        newTaskPreConfiguration?.preConfiguredParameterValues?.file && newTaskPreConfiguration?.metaData?.label;
+    const showPreviewAutomatically =
+        !!preConfiguredFileAndLabel && ["csv", "text", "json", "xml"].includes(artefact.pluginId);
+    const showRawView = ["text", "json", "xml"].includes(artefact.pluginId);
 
     /**
      * All change handlers that will be passed to the ParameterWidget components.
@@ -376,7 +381,7 @@ export function TaskForm({
         () => (
             <CodeEditor
                 outerDivAttributes={{
-                    id:DESCRIPTION
+                    id: DESCRIPTION,
                 }}
                 preventLineNumbers
                 name={DESCRIPTION}
@@ -534,6 +539,8 @@ export function TaskForm({
                                     ),
                                 }}
                                 datasetConfigValues={getValues}
+                                autoLoad={showPreviewAutomatically}
+                                startWithRawView={showRawView}
                             />
                         )}
                     </>
