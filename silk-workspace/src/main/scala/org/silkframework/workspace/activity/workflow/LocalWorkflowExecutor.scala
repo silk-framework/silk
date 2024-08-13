@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import io.micrometer.core.instrument.{Counter, Timer}
+import io.micrometer.core.instrument.Timer
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import java.util.logging.{Level, Logger}
-import scala.util.{Success, Try}
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -50,16 +50,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
+    val registry = MeterRegistryProvider.meterRegistry
+    val stopwatch: Timer.Sample = Timer.start()
     cancelled = false
     try {
-      val registry = MeterRegistryProvider.meterRegistry
-      val stopwatch: Timer.Sample = Timer.start()
       runWorkflow(context, updateUserContext(userContext))
-      stopwatch.stop(registry.timer(s"$prefix.workflow.execution", "workflow", workflowTask.id.toString))
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
+    } finally {
+      stopwatch.stop(
+        registry.timer(
+          s"$prefix.workflow.execution",
+          "workflow", workflowTask.id.toString,
+          "status", context.status().concreteStatus
+        )
+      )
     }
   }
 
@@ -187,7 +194,13 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             writeErrorOutput(operatorNode, executorOutput)
             process(result)
           }
-          stopwatch.stop(registry.timer(s"$prefix.workflow.operator.execution", "operator", operator.nodeId))
+          stopwatch.stop(
+            registry.timer(
+              s"$prefix.workflow.operator.execution",
+              "operator", operator.nodeId,
+              "workflow", workflowTask.id.toString
+            )
+          )
           result
         } catch {
           case ex: WorkflowExecutionException =>
@@ -310,7 +323,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
       stopwatch.stop(registry.timer(s"$prefix.workflow.dataset.execution", "dataset", workflowTask.id.toString))
       Try(entityTable.use(_.size)).foreach(
-        registry.counter(s"$prefix.workflow.dataset.count", "entities", workflowTask.id.toString).increment(_)
+        registry.counter(s"$prefix.workflow.dataset.count",
+          "entities", workflowTask.id.toString,
+          "node", workflowDataset.nodeId
+        ).increment(_)
       )
       ()
     } catch {
