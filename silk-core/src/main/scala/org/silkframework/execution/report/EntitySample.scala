@@ -21,10 +21,25 @@ case class SampleEntitiesSchema(typeUri: String, typePath: String, properties: I
   * @param uri The URI of the entity.
   * @param values The input/output values of the entity.
   */
-case class EntitySample(uri: String, values: IndexedSeq[Seq[String]])
+case class EntitySample private(uri: String, values: IndexedSeq[Seq[String]])
 
 object EntitySample {
-  def apply(value: String): EntitySample = EntitySample("", IndexedSeq(Seq(value)))
+  // Max value char size to prevent from storing too large strings
+  final val maxValueCharSize: Int = 1000
+
+  def apply(value: String): EntitySample = new EntitySample("", IndexedSeq(Seq(value)))
+
+  /** Does post-processing to the values, e.g. truncating them if they are too long. */
+  def apply(uri: String, values: IndexedSeq[Seq[String]]): EntitySample = {
+    val truncatedValues = values.map(_.map(value =>
+      if(value.length <= maxValueCharSize) {
+        value
+      } else {
+        value.substring(0, maxValueCharSize) + "…"
+      }
+    ))
+    new EntitySample(uri, truncatedValues)
+  }
 
   def entityToEntitySample(entity: Entity): EntitySample = {
     EntitySample(entity.uri, entity.values)
