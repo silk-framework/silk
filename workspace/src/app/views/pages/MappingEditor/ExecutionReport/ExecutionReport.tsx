@@ -21,25 +21,25 @@ import {
 } from "@eccenca/gui-elements";
 import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../plugins/PluginRegistry";
-import {DataPreviewProps} from "../../../plugins/plugin.types";
-import {ExecutionReportResponse, OutputEntitiesSample} from "./report-typings";
-import {useTranslation} from "react-i18next";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../plugins/PluginRegistry";
+import { DataPreviewProps } from "../../../plugins/plugin.types";
+import { ExecutionReportResponse, OutputEntitiesSample } from "./report-typings";
+import { useTranslation } from "react-i18next";
 
 interface ExecutionReportProps {
     /** The execution report to render. */
-    executionReport?: ExecutionReportResponse
+    executionReport?: ExecutionReportResponse;
     /** Optional execution meta-data that includes start time, user, etc. */
-    executionMetaData?: any
-    trackRuleInUrl?: boolean
+    executionMetaData?: any;
+    trackRuleInUrl?: boolean;
 }
 
 /**
  * Displays a task execution report.
  */
-export const ExecutionReport = ({executionReport, executionMetaData, trackRuleInUrl}: ExecutionReportProps) => {
-    const [currentRuleId, setCurrentRuleId] = React.useState<string | null>(null)
-    const [t] = useTranslation()
+export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleInUrl }: ExecutionReportProps) => {
+    const [currentRuleId, setCurrentRuleId] = React.useState<string | null>(null);
+    const [t] = useTranslation();
 
     React.useEffect(() => {
         const ruleResults = executionReport?.ruleResults;
@@ -49,17 +49,20 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 onRuleNavigation({ newRuleId: initialRuleId });
             }
         }
-    }, [executionReport?.ruleResults])
+    }, [executionReport?.ruleResults]);
 
-    const onRuleNavigation = ({ newRuleId }: {newRuleId: string}) => {
-        setCurrentRuleId(newRuleId)
-    }
+    const onRuleNavigation = ({ newRuleId }: { newRuleId: string }) => {
+        setCurrentRuleId(newRuleId);
+    };
 
     const renderSummary = () => {
         let title;
         if (executionReport?.entityCount != null && executionReport?.operationDesc != null) {
             title =
-                `${t("ExecutionReport.execution")}: ` + executionReport.entityCount + " " + executionReport.operationDesc;
+                `${t("ExecutionReport.execution")}: ` +
+                executionReport.entityCount +
+                " " +
+                executionReport.operationDesc;
         } else {
             title = t("ExecutionReport.defaultTitle");
         }
@@ -118,12 +121,14 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
             }
         }
 
-        const summaryRows = executionReport ? executionReport.summary.map((v) => (
-            <PropertyValuePair hasDivider key={v.key}>
-                <PropertyName className="silk-report-table-bold">{v.key}</PropertyName>
-                <PropertyValue>{v.value}</PropertyValue>
-            </PropertyValuePair>
-        )) : null;
+        const summaryRows = executionReport
+            ? executionReport.summary.map((v) => (
+                  <PropertyValuePair hasDivider key={v.key}>
+                      <PropertyName className="silk-report-table-bold">{v.key}</PropertyName>
+                      <PropertyValue>{v.value}</PropertyValue>
+                  </PropertyValuePair>
+              ))
+            : null;
 
         return (
             <Section className="silk-report-card">
@@ -138,32 +143,30 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 <Spacing size="tiny" />
             </Section>
         );
-    }
+    };
 
     const renderWarning = () => {
         let messages: string[] = [];
         let notificationState = "success";
-        if(executionReport) {
-            const label = executionReport.label
+        if (executionReport) {
+            const label = executionReport.label;
             if (executionMetaData != null && executionMetaData.finishStatus.cancelled) {
-                messages = [t("ExecutionReport.statusMessages.taskCancelled", {label})];
+                messages = [t("ExecutionReport.statusMessages.taskCancelled", { label })];
                 notificationState = "warning";
             } else if (executionReport.error != null) {
-                messages = [
-                    t("ExecutionReport.statusMessages.taskError", {label, error: executionReport.error}),
-                ];
+                messages = [t("ExecutionReport.statusMessages.taskError", { label, error: executionReport.error })];
                 notificationState = "danger";
             } else if (executionMetaData != null && executionMetaData.finishStatus.failed) {
-                messages = [t("ExecutionReport.statusMessages.taskFailed", {label})];
+                messages = [t("ExecutionReport.statusMessages.taskFailed", { label })];
                 notificationState = "danger";
             } else if (executionReport.warnings.length > 0) {
                 messages = executionReport.warnings;
                 notificationState = "neutral";
             } else if (executionReport.isDone !== true) {
-                messages = [t("ExecutionReport.statusMessages.running", {label})];
+                messages = [t("ExecutionReport.statusMessages.running", { label })];
                 notificationState = "neutral";
             } else {
-                messages = [t("ExecutionReport.statusMessages.done", {label})];
+                messages = [t("ExecutionReport.statusMessages.done", { label })];
                 notificationState = "success";
             }
         }
@@ -185,7 +188,7 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 ))}
             </div>
         );
-    }
+    };
 
     const renderTransformReport = () => {
         return (
@@ -205,56 +208,59 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 </GridRow>
             </Grid>
         );
-    }
+    };
 
     const renderEntityPreview = (id: string | undefined) => {
-        const outputEntitiesSample = executionReport?.outputEntitiesSample
-        if(!outputEntitiesSample) {
-            return null
+        const outputEntitiesSample = executionReport?.outputEntitiesSample;
+        if (!outputEntitiesSample) {
+            return null;
         }
         const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
-        let shownSamples: OutputEntitiesSample[] = outputEntitiesSample
-        if(id) {
-            const specificSample = outputEntitiesSample.find(s => s.id === id)
-            if(specificSample) {
-                shownSamples = [specificSample]
+        let shownSamples: OutputEntitiesSample[] = outputEntitiesSample;
+        if (id) {
+            const specificSample = outputEntitiesSample.find((s) => s.id === id);
+            if (specificSample) {
+                shownSamples = [specificSample];
             } else {
-                shownSamples = []
+                shownSamples = [];
             }
         }
-        const containsEntities = !!shownSamples.find(es => es.entities.length > 0)
-        if(dataPreviewPlugin && containsEntities) {
-            const types: string[] = []
-            const typeValues = new Map()
-            shownSamples.forEach(entitiesSample => {
-                const {entities, schema} = entitiesSample
-                let type = schema?.typePath
-                if(!type) {
-                    if(schema?.typeUri) {
-                        type = schema?.typeUri
-                    } else if(entitiesSample.id) {
-                        type = entitiesSample.id
+        const containsEntities = !!shownSamples.find((es) => es.entities.length > 0);
+        if (dataPreviewPlugin && containsEntities) {
+            const types: string[] = [];
+            const typeValues = new Map();
+            shownSamples.forEach((entitiesSample) => {
+                const { entities, schema } = entitiesSample;
+                let type = schema?.typePath;
+                if (!type) {
+                    if (schema?.typeUri) {
+                        type = schema?.typeUri;
+                    } else if (entitiesSample.id) {
+                        type = entitiesSample.id;
                     }
                 }
-                types.push(type)
+                types.push(type);
                 typeValues.set(type, {
-                    attributes: schema ?
-                        schema.properties :
-                        entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
-                    values: entities.map(e => e.values)
-                })
-            })
-            return <dataPreviewPlugin.Component
-                title={t("ExecutionReport.samplePreview.title")}
-                preview={{
-                    types,
-                    typeValues
-                }}
-            />
+                    attributes: schema
+                        ? schema.properties
+                        : entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
+                    values: entities.map((e) => e.values),
+                });
+            });
+            return (
+                <dataPreviewPlugin.Component
+                    data-test-id={"execution-report-sample-entities"}
+                    title={t("ExecutionReport.samplePreview.title")}
+                    preview={{
+                        types,
+                        typeValues,
+                    }}
+                />
+            );
         } else {
-            return null
+            return null;
         }
-    }
+    };
 
     const generateIcons = () => {
         let ruleIcons = Object.create(null);
@@ -266,7 +272,7 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
             }
         }
         return ruleIcons;
-    }
+    };
 
     const renderRuleReport = () => {
         const ruleResults = currentRuleId ? executionReport?.ruleResults?.[currentRuleId] : undefined;
@@ -276,7 +282,7 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
         } else if (ruleResults.errorCount === 0) {
             title = t("ExecutionReport.transform.messages.noIssues");
         } else {
-            title = t("ExecutionReport.transform.messages.validationIssues", {errors: ruleResults.errorCount});
+            title = t("ExecutionReport.transform.messages.validationIssues", { errors: ruleResults.errorCount });
         }
         return (
             <Section className="ecc-silk-mapping__treenav">
@@ -292,7 +298,7 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 {renderEntityPreview(currentRuleId ?? "root")}
             </Section>
         );
-    }
+    };
 
     const renderRuleErrors = (ruleResults) => {
         const actionFieldNeeded = !!ruleResults.sampleErrors[0]?.stacktrace;
@@ -313,7 +319,7 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 </Table>
             </>
         );
-    }
+    };
 
     const renderRuleError = (ruleError, idx) => {
         const hasStackTrace = !!ruleError.stacktrace;
@@ -341,11 +347,11 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
                 ) : null}
             </TableRow>
         );
-    }
+    };
 
     const isTransformReport = () => {
         return executionReport && "ruleResults" in executionReport;
-    }
+    };
 
     return (
         <div data-test-id={"execution-report"}>
@@ -354,6 +360,6 @@ export const ExecutionReport = ({executionReport, executionMetaData, trackRuleIn
             {!isTransformReport() && renderEntityPreview(undefined)}
         </div>
     );
-}
+};
 
-export default ExecutionReport
+export default ExecutionReport;

@@ -1,4 +1,5 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
+import { TestableComponent } from "@eccenca/gui-elements";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
@@ -65,7 +66,7 @@ export interface DatasetPreviewResourceTextResponse {
 }
 
 /** Parameters of the data preview component. */
-export interface DataPreviewProps {
+export interface DataPreviewProps extends TestableComponent {
     // The title of the widget
     title: string;
     // The preview configuration
@@ -104,15 +105,15 @@ export interface ParameterExtensions {
 
 export interface FixedPreview {
     /** The list of possible types. */
-    types: string[]
+    types: string[];
 
     /** The preview for each type. */
-    typeValues: Map<string, PreviewContent>
+    typeValues: Map<string, PreviewContent>;
 }
 
 interface PreviewContent {
     /** property/attribute names. */
-    attributes: string[]
+    attributes: string[];
     /** The values for each attribute. This must have the same length as the attributes array. */
-    values: string[][]
+    values: string[][];
 }
