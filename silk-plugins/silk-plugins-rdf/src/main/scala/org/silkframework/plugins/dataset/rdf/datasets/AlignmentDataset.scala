@@ -32,7 +32,9 @@ case class AlignmentDataset(
   /**
    * Returns a entity sink for writing data to the data set.
    */
-  override def entitySink(implicit userContext: UserContext): EntitySink = ???
+  override def entitySink(implicit userContext: UserContext): EntitySink = {
+    throw new UnsupportedOperationException("The Alignment dataset only supports writing links. Writing entities is not supported.")
+  }
 
   override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
     this.copy(file = writableResource)

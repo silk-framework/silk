@@ -8,17 +8,24 @@ import org.silkframework.entity.paths.UntypedPath
   * @param supportedPathExpressions The characteristics of the supported path expressions.
   * @param supportsMultipleTables If true, the dataset supports reading and writing multiple tables, which includes hierarchical datasets (XML, JSON, etc.).
   *                               If false, the dataset only supports a single table (e.g., CSV).
+  * @param readOnly               If false, this dataset can be written. If true, this is a read-only dataset (possibly because writing has not been implemented).
+  * @param supportsMultipleWrites If true, this dataset can be written to multiple times without clearing it in-between (e.g., RDF)
+ *                                If false, this dataset will be overwritten on each write (e.g., JSON).
   * @param typedEntities          If true, each entity needs a type property value (e.g. RDF).
   *                               If false, the type is already given and not needed on a per-entity basis (e.g. relational databases where each table only contains entities of one type).
   */
 case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions(),
                                   supportsMultipleTables: Boolean = true,
+                                  readOnly: Boolean = false,
+                                  supportsMultipleWrites: Boolean = false,
                                   typedEntities: Boolean = false)
 
 object DatasetCharacteristics {
 
   /** Sources that only support plain attributes (i.e., forward paths of length 1 without any filters) */
-  def attributesOnly(supportsMultipleTables: Boolean = false): DatasetCharacteristics = DatasetCharacteristics(supportsMultipleTables = supportsMultipleTables)
+  def attributesOnly(supportsMultipleTables: Boolean = false, readOnly: Boolean = false, supportsMultipleWrites: Boolean = false): DatasetCharacteristics = {
+    DatasetCharacteristics(supportsMultipleTables = supportsMultipleTables, readOnly = readOnly, supportsMultipleWrites = supportsMultipleWrites)
+  }
 
   /** The kind of path expressions supported by a data source.
     *
