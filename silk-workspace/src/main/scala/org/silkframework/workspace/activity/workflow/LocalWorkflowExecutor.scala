@@ -53,21 +53,28 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     val registry = MeterRegistryProvider.meterRegistry
     val stopwatch: Timer.Sample = Timer.start()
     cancelled = false
-    val metricsStatus = Try {
+    try {
       runWorkflow(context, updateUserContext(userContext))
-    } match {
-      case Success(_) => "Successful"
-      case Failure(cancelledWorkflowException: StopWorkflowExecutionException) if !cancelledWorkflowException.failWorkflow =>
+    } catch {
+      case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
-        "Successful"
-      case Failure(_) => "Failed"
+      case NonFatal(ex) =>
+        stopwatch.stop(
+          registry.timer(
+            s"$prefix.workflow.execution",
+            "workflow", workflowTask.id.toString,
+            "status", "Failed"
+          )
+        )
+        throw ex
     }
+
     stopwatch.stop(
       registry.timer(
         s"$prefix.workflow.execution",
         "workflow", workflowTask.id.toString,
-        "status", metricsStatus
+        "status", "Successful"
       )
     )
   }
