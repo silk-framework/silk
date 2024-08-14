@@ -21,7 +21,7 @@ export default function RouterOutlet({ routes }: RouterOutletProps) {
                     return (
                         <Route key={route.path} path={getFullRoutePath(route.path)} exact={route.exact}>
                             {route.componentOnly && Component ? (
-                                <ApplicationContainer>
+                                <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
                                     <ApplicationContent>
                                         <Component />
                                     </ApplicationContent>

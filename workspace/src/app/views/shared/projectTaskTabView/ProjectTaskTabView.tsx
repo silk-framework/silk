@@ -116,10 +116,21 @@ export function ProjectTaskTabView({
     const [openTabSwitchPrompt, setOpenTabSwitchPrompt] = React.useState<boolean>(false);
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [blockedTab, setBlockedTab] = React.useState<IItemLink | string | undefined>(undefined);
+    const [blockedClosingModal, setBlockedClosingModal] = React.useState<boolean>(false); 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
     const [warnings, setWarnings] = React.useState<string[] | undefined>(undefined)
+
+    const handlerRemoveModalWrapper = React.useCallback((overwrite = false) => {
+        if(unsavedChanges && !overwrite){
+          setBlockedClosingModal(true);
+          setOpenTabSwitchPrompt(true); //trigger modal
+        }else {
+            setBlockedClosingModal(false);
+            handlerRemoveModal && handlerRemoveModal()
+        }
+    },[unsavedChanges, handlerRemoveModal])
 
     // Either the ID of an IItemLink or the view ID or undefined
     const activeTab: IProjectTaskView | IItemLink | undefined =
@@ -222,6 +233,7 @@ export function ProjectTaskTabView({
             //trigger modal
             setOpenTabSwitchPrompt(true);
             setBlockedTab(tabItem);
+            setBlockedClosingModal(false)
         } else {
             const tabRoute = getTabRoute(tabItem);
             setUnsavedChanges(false);
@@ -386,7 +398,7 @@ export function ProjectTaskTabView({
                             <IconButton
                                 data-test-id={"close-project-tab-view"}
                                 name="navigation-close"
-                                onClick={handlerRemoveModal}
+                                onClick={() => handlerRemoveModalWrapper()}
                             />
                         ) : (
                             <IconButton
@@ -449,13 +461,13 @@ export function ProjectTaskTabView({
                     setBlockedTab(undefined);
                 }}
                 isOpen={openTabSwitchPrompt}
-                proceed={() => blockedTab && changeTab(blockedTab, true)}
+                proceed={() => blockedClosingModal ? handlerRemoveModalWrapper(true) : blockedTab && changeTab(blockedTab, true)}
             />
             {selectedTask === taskId && !!handlerRemoveModal ? (
                 <Modal
                     size="fullscreen"
                     isOpen={true}
-                    onClose={handlerRemoveModal}
+                    onClose={() => handlerRemoveModalWrapper()}
                     wrapperDivProps={modalPreventEvents}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>

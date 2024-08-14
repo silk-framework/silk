@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, FlexibleNumberOfInputs, FlexibleSchemaPort, InputPorts, PlainTask, Port, Prefixes, Task, TaskSpec}
+import io.micrometer.core.instrument.Timer
+import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
@@ -9,12 +10,14 @@ import org.silkframework.execution.{EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.metrics.MeterRegistryProvider
+import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
 
 import java.util.logging.{Level, Logger}
-import scala.collection.immutable.Seq
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -47,6 +50,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
+    val registry = MeterRegistryProvider.meterRegistry
+    val stopwatch: Timer.Sample = Timer.start()
     cancelled = false
     try {
       runWorkflow(context, updateUserContext(userContext))
@@ -54,7 +59,24 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case cancelledWorkflowException: StopWorkflowExecutionException if !cancelledWorkflowException.failWorkflow =>
         // In case of an cancelled workflow from an operator, the workflow should still be successful
         context.status.update(cancelledWorkflowException.getMessage, 1)
+      case NonFatal(ex) =>
+        stopwatch.stop(
+          registry.timer(
+            s"$prefix.workflow.execution",
+            "workflow", workflowTask.id.toString,
+            "status", "Failed"
+          )
+        )
+        throw ex
     }
+
+    stopwatch.stop(
+      registry.timer(
+        s"$prefix.workflow.execution",
+        "workflow", workflowTask.id.toString,
+        "status", "Successful"
+      )
+    )
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
@@ -168,7 +190,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
       if (!cancelled && !isExecutedWorkflow) {
         try {
-          executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
+          val registry = MeterRegistryProvider.meterRegistry
+          val stopwatch: Timer.Sample = Timer.start()
+          val result = executeAndClose("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput) { result =>
             // Throw exception if result was promised, but not returned
             if (operatorTask.data.outputPort.exists(_.isInstanceOf[FixedSchemaPort]) && result.isEmpty) {
               throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
@@ -179,6 +203,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             writeErrorOutput(operatorNode, executorOutput)
             process(result)
           }
+          stopwatch.stop(
+            registry.timer(
+              s"$prefix.workflow.operator.execution",
+              "operator", operator.nodeId,
+              "workflow", workflowTask.id.toString
+            )
+          )
+          result
         } catch {
           case ex: WorkflowExecutionException =>
             throw ex
@@ -262,20 +294,35 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                         output: ExecutorOutput)
                                        (process: Option[LocalEntities] => T)
                                        (implicit workflowRunContext: WorkflowRunContext): T = {
+    val task = datasetTask(datasetNode)
+
+    def executeOnInputs(inputs: Seq[WorkflowDependencyNode])(processAll: Seq[Option[LocalEntities]] => Unit): Unit = {
+      inputs match {
+        case Seq() =>
+          processAll(Seq.empty)
+        case Seq(input) =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+            processAll(Seq(result))
+          }
+        case input +: tail =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+            executeOnInputs(tail) { tailInputs =>
+              processAll(result +: tailInputs)
+            }
+          }
+      }
+    }
+
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
-      val task = datasetTask(datasetNode)
       // Execute all input nodes and write to this dataset
-      datasetNode.inputNodes foreach { pNode =>
-        executeWorkflowNode(pNode, ExecutorOutput(Some(task), None)) {
-          case Some(entityTable) =>
-            writeEntityTableToDataset(datasetNode, entityTable)
-          case None =>
-          // Write nothing
+      if(datasetNode.inputNodes.nonEmpty) {
+        executeOnInputs(datasetNode.inputNodes) { inputEntities =>
+          writeEntityTableToDataset(datasetNode, inputEntities.flatten)
         }
+        log.info("Finished writing of node " + datasetNode.nodeId)
       }
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
-      log.info("Finished writing of node " + datasetNode.nodeId)
     }
     // Read from the dataset
     (output.task, output.requestedSchema) match {
@@ -289,13 +336,32 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def writeEntityTableToDataset(workflowDataset: WorkflowDependencyNode,
-                                        entityTable: LocalEntities)
+                                        entityTables: Seq[LocalEntities])
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
-      executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty) { _ =>
+      val registry = MeterRegistryProvider.meterRegistry
+      val stopwatch: Timer.Sample = Timer.start()
+      executeAndClose("Writing", workflowDataset.nodeId, resolvedDataset, entityTables, ExecutorOutput.empty) { _ =>
         // ignore result
       }
+      stopwatch.stop(
+        registry.timer(
+          s"$prefix.workflow.dataset.execution",
+          "workflow", workflowTask.id.toString,
+          "dataset", workflowDataset.nodeId
+        )
+      )
+      entityTables.foreach { entityTable =>
+        Try {entityTable.use(_.size)}.foreach(
+          registry.counter(
+            s"$prefix.workflow.dataset.count",
+            "workflow", workflowTask.id.toString,
+            "dataset", workflowDataset.nodeId
+          ).increment(_)
+        )
+      }
+      ()
     } catch {
       case NonFatal(ex) =>
         throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.label()}'. Cause: " + ex.getMessage, Some(ex))
