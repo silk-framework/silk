@@ -15,6 +15,7 @@ import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
+import org.silkframework.workspace.resources.CacheUpdaterHelper
 
 import java.util.logging.{Level, Logger}
 import scala.util.{Failure, Success, Try}
@@ -360,6 +361,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             "dataset", workflowDataset.nodeId
           ).increment(_)
         )
+      }
+      // Refresh all caches that depend on the written resources
+      for(referencedResource <- DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(resolvedDataset.referencedResources)) {
+        CacheUpdaterHelper.refreshCachesOfDependingTasks(referencedResource, project)(workflowRunContext.userContext)
       }
       ()
     } catch {
