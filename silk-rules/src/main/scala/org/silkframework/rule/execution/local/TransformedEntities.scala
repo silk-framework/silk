@@ -73,7 +73,7 @@ class TransformedEntities(task: Task[TransformSpec],
           if(count == 1) {
             report.setContainerRule(rule.id.toString, outputSchema)
           }
-          report.sampleOutputEntity(EntitySample.entityToEntitySample(entity))
+          report.sampleOutputEntity(EntitySample.entityToEntitySample(mappedEntity))
         }
         if (count > lastCount && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
           report.build(logMessage = true)
