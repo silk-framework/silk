@@ -5,8 +5,8 @@ import org.silkframework.config.{DefaultConfig, ExtendedTypesafeConfig}
 import org.silkframework.dataset.DirtyTrackingFileDataSink
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.resources.CacheUpdaterHelper
 import play.api.libs.concurrent.CustomExecutionContext
-import resources.ResourceHelper
 
 import java.time.temporal.ChronoUnit
 import java.time.{Duration, Instant}
@@ -73,7 +73,7 @@ object CacheUpdaterTask {
         // Check that the file was actually changed since last run
         val reallyChangedFiles = updatedProjectFiles
           .filter(f => f.modificationTime.exists(_.isAfter(lastUpdateInstant)))
-        reallyChangedFiles.foreach(f => ResourceHelper.refreshCachesOfDependingTasks(f.name, project))
+        reallyChangedFiles.foreach(f => CacheUpdaterHelper.refreshCachesOfDependingTasks(f.name, project))
       }
     }
     lastUpdate = updateStart
