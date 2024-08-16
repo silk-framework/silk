@@ -6,6 +6,7 @@
 *.iml
 *.ipr
 *.iws
+.bsp
 #eclipse
 bin/
 target/

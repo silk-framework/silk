@@ -76,7 +76,6 @@ object PluginRegistry {
    *
    * @param id The id of the plugin.
    * @param params The instantiation parameters.
-   * @param resources The resource loader for retrieving referenced resources.
    * @tparam T The base type of the plugin.
    * @return A new instance of the plugin type with the given parameters.
    */

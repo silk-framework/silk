@@ -55,7 +55,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
 
   def createWorkspaceProvider(): WorkspaceProvider
 
-  private def refreshTest(ex: => Unit)(implicit userContext: UserContext) = withRefresh(PROJECT_NAME)(ex)
+  private def refreshTest(ex: => Unit)(implicit userContext: UserContext): Unit = withRefresh(PROJECT_NAME)(ex)
 
   val workspaceProvider: WorkspaceProvider = createWorkspaceProvider()
 

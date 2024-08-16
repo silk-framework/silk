@@ -34,7 +34,7 @@ trait ExecutionReportUpdater {
   private val start = System.currentTimeMillis()
   private var startFirstEntity: Option[Long] = None
   private var lastUpdate = 0L
-  private var entitiesEmitted = 0
+  private var entitiesEmitted = context.value.get.map(_.entityCount).getOrElse(0)
   private var numberOfExecutions = 0
   private var error: Option[String] = None
 

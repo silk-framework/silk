@@ -30,7 +30,7 @@ import scala.util.Random
 trait DataSource {
 
   /**
-    * The dataset task underlying the Datset this source belongs to
+    * The dataset task underlying the Dataset this source belongs to
     * @return
     */
   def underlyingTask: Task[DatasetSpec[Dataset]]

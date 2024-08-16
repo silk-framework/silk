@@ -117,7 +117,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
-    libraryDependencies += "xalan" % "serializer" % "2.7.3"
+    libraryDependencies += "xalan" % "serializer" % "2.7.3",
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -356,7 +357,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test",
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))

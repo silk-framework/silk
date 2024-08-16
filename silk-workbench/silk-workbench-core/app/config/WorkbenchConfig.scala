@@ -1,16 +1,17 @@
 package config
 
-import java.io.{File, InputStream}
 import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
-
-import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
+import org.silkframework.runtime.metrics.MeterRegistryProvider
+import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.resource._
 import play.api.mvc.RequestHeader
 import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
 
+import java.io.{File, InputStream}
+import javax.inject.Inject
 import scala.io.{Codec, Source}
 import scala.util.{Failure, Success, Try}
 
@@ -178,11 +179,16 @@ object WorkbenchConfig {
       DefaultConfig.instance.apply().getString("workbench.version")
     ) match {
       case Success(versionString) =>
+        // Register the version string in a Micrometer counter.
+        // The counter is not increased further. What's important, is the version string set in the value of the tag.
+        // This is arguably a somewhat improper or quirky usage of Micrometer and metrics in general.
+        MeterRegistryProvider.meterRegistry.counter(s"$prefix.workbench.config", "version", versionString).increment()
         versionString
       case Failure(_) =>
         throw new RuntimeException("No version string ist set!")
     }
   }
+
   /**
    * Retrieves the Workbench configuration.
    */

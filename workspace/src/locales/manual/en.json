@@ -842,7 +842,7 @@
             "files": "Files",
             "loading": "Loading file list.",
             "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
-            "removeText": "Do you really want to delete file",
+            "removeText": "Do you really want to delete file {{file}}?",
             "sort": {
                 "modified": "Last modified",
                 "name": "Name",

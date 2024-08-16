@@ -7,7 +7,7 @@ import { Intent } from "@eccenca/gui-elements/blueprint/constants";
 interface IProps {
     file: UppyFile;
 
-    onRemoveFile(file: UppyFile);
+    onRemoveFile?(file: UppyFile);
 }
 
 export function UploadedFileItem({ file, onRemoveFile }: IProps) {
@@ -18,9 +18,11 @@ export function UploadedFileItem({ file, onRemoveFile }: IProps) {
             <Notification
                 success={true}
                 actions={
-                    <Button outlined onClick={() => onRemoveFile(file)}>
-                        {t("common.action.DeleteSmth", { smth: " " })}
-                    </Button>
+                    onRemoveFile ? (
+                        <Button outlined onClick={() => onRemoveFile(file)}>
+                            {t("common.action.DeleteSmth", { smth: " " })}
+                        </Button>
+                    ) : undefined
                 }
             >
                 <p>{t("FileUploader.successfullyUploaded", { uploadedName: file.name })}</p>

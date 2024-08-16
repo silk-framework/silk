@@ -174,6 +174,8 @@ export interface TaskPreConfiguration {
     pluginBlackList?: string[];
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
     alternativeCallback?: (newTask: IProjectTask) => any;
+    /** Called when the create dialog has been closed without creating a new task. */
+    onCloseCallback?: () => any
     /** A factory function that should be called to generate meta data based on the selected plugin. */
     metaDataFactoryFunction?: MetaDataFactoryFunction;
 }
@@ -224,6 +226,9 @@ export interface IArtefactModal {
     newTaskPreConfiguration?: TaskPreConfiguration;
 
     error: any;
+
+    /** An info notification that will be shown in the modal at the bottom. */
+    info?: string
 }
 
 export interface ICommonState {

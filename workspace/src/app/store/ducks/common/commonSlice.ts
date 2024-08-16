@@ -180,6 +180,10 @@ export const commonSlice = createSlice({
         setModalError: (state, action: PayloadAction<any>) => {
             state.artefactModal.error = action.payload;
         },
+
+        setModalInfo: (state, action: PayloadAction<string | undefined>) => {
+            state.artefactModal.info = action.payload;
+        },
     },
     extraReducers: getExtraReducers(),
 });

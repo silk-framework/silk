@@ -80,6 +80,8 @@ export interface DataPreviewProps extends TestableComponent {
     autoLoad?: boolean;
     // An optional ID for the preview widget
     id?: string;
+    /** If initially the raw view should be shown. */
+    startWithRawView?: boolean;
 }
 
 /** User menu footer component. */

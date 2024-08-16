@@ -557,7 +557,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                           workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, _) = projectAndTask[Workflow](projectId, workflowId)
     val tasksWithProprietaryPortsConfig = project.tasks[CustomTask] ++ project.tasks[TransformSpec] ++ project.tasks[LinkSpec]++
-                                          project.tasks[GenericDatasetSpec].filter(_.readOnly) // It's sufficient to send tasks with non-standard ports
+                                          project.tasks[GenericDatasetSpec]
     val byTaskId: Seq[(String, WorkflowNodePortConfig)] = for(task <- tasksWithProprietaryPortsConfig) yield {
       val taskId = task.id.toString
       val portConfig = WorkflowNodePortConfig(task.data.inputPorts, task.data.outputPort)
