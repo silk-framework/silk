@@ -106,6 +106,10 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     resources.toSeq
   }
 
+  override def resourceUpdated(resource: Resource): Unit = {
+    updatedResourceOfRule(mappingRule, resource)
+  }
+
   private def extractResourcesFromRule(rule: TransformRule,
                                        resources: mutable.HashSet[Resource]): Unit = {
     extractResourcesFromOperator(rule.operator, resources)
@@ -118,6 +122,22 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
       case TransformInput(_, transformer, inputs) =>
         inputs.foreach(input => extractResourcesFromOperator(input, resources))
         transformer.referencedResources.foreach(resources.add)
+      case _ =>
+    }
+  }
+
+  private def updatedResourceOfRule(rule: TransformRule, resource: Resource): Unit = {
+    updateResourceOfOperator(rule.operator, resource)
+    rule.rules.foreach(rule => updatedResourceOfRule(rule, resource))
+  }
+
+  private def updateResourceOfOperator(operator: Operator, resource: Resource): Unit = {
+    operator match {
+      case TransformInput(_, transformer, inputs) =>
+        inputs.foreach(input => updateResourceOfOperator(input, resource))
+        if(transformer.referencedResources.exists(_.path == resource.path)) {
+          transformer.resourceUpdated(resource)
+        }
       case _ =>
     }
   }

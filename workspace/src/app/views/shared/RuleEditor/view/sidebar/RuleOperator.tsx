@@ -37,7 +37,6 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 itemLabel.length > 30,
                 itemLabel,
                 <OverviewItemLine>
-                    <Spacing vertical={true} size={"tiny"} />
                     <OverflowText ellipsis={"reverse"}>
                         <Highlighter label={itemLabel} searchValue={textQuery} />
                     </OverflowText>

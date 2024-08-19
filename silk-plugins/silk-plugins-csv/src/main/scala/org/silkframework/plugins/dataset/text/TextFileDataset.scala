@@ -15,14 +15,15 @@ import scala.io.Codec
 @Plugin(
   id = "text",
   label = "Text",
-  description= "Reads and writes plain text files.")
+  description= "Reads and writes plain text files.",
+  documentationFile = "TextFileDataset.md")
 case class TextFileDataset(
    @Param("The plain text file. May also be a zip archive containing multiple text files.")
    file: WritableResource,
    @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
    charset: String = "UTF-8",
    @Param(value = "A type name that represents this file.", advanced = true)
-   typeName: String = "type",
+   typeName: String = "document",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
 ) extends Dataset with TextBulkResourceBasedDataset {

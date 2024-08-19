@@ -1,59 +1,25 @@
 package resources
 
-import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{UrlResource, WritableResource}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.Project
+import org.silkframework.workspace.resources.CacheUpdaterHelper
 import play.api.libs.Files
+import play.api.mvc.{AnyContent, AnyContentAsEmpty, AnyContentAsMultipartFormData, AnyContentAsRaw, AnyContentAsText, MultipartFormData, Request, Result}
 import play.api.mvc.Results.NoContent
-import play.api.mvc._
 
 import java.net.URL
 import java.util.logging.Logger
-import scala.collection.mutable
 
 object ResourceHelper {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  /** Refresh all caches that depend changes of a specific resource. */
-  def refreshCachesOfDependingTasks(resourceName: String,
-                                    project: Project)
-                                   (implicit userContext: UserContext): Unit = {
-    // The tasks depending on the resource that were actually updated.
-    val updatedResourceTasks = mutable.Set[Identifier]()
-    tasksDependingOnResource(resourceName, project).foreach { task =>
-      var cacheUpdated = false
-      task.activities.foreach { activity =>
-        if (activity.isDatasetRelatedCache) {
-          updatedResourceTasks.add(task.id)
-          activity.startDirty()
-          cacheUpdated = true
-        }
-      }
-      // Also update path caches of tasks that directly depend on any of the updated tasks
-      if(cacheUpdated) {
-        task.dataValueHolder.republish()
-      }
-    }
-  }
-
-  /** Find all tasks that depend on a resource. */
-  def tasksDependingOnResource(resourcePath: String, project: Project)
-                              (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    val p = project.resources.getInPath(resourcePath)
-    project.allTasks
-      .filter(
-        _.referencedResources.exists(ref =>
-          ref.path == p.path))
-  }
-
   /**
-    * Uploads a resource from the request body.
-    */
+   * Uploads a resource from the request body.
+   */
   def uploadResource(project: Project, resource: WritableResource)
                     (implicit request: Request[AnyContent], user: UserContext): Result = {
     val response = request.body match {
@@ -80,7 +46,7 @@ object ResourceHelper {
     }
     if (response == NoContent) { // Successfully updated
       log.info(s"Created/updated resource '$resource' in project '${project.id}'. " + user.logInfo)
-      ResourceHelper.refreshCachesOfDependingTasks(resource.name, project)
+      CacheUpdaterHelper.refreshCachesOfDependingTasks(resource.name, project)
     }
     response
   }
@@ -108,4 +74,5 @@ object ResourceHelper {
         ErrorResult(BadUserInputException(ex))
     }
   }
+
 }
