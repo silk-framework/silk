@@ -226,6 +226,16 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     entities.map(_.values).toSeq mustBe Seq(Seq(Seq("Peter")), Seq(Seq("John")))
   }
 
+  it should "support * and #propertyName special paths" in {
+    val source: DataSource = createSource(resources.get("exampleObjectKeys.json"), "", "#id")
+    val entities = source.retrieve(EntitySchema("SN/*", typedPaths = IndexedSeq(UntypedPath.parse("datum").asStringTypedPath, UntypedPath.parse("#propertyName").asStringTypedPath))).entities
+    entities.take(3).map(_.values).toSeq mustBe Seq(
+      Seq(Seq("2022-01-01"), Seq("Neujahrstag")),
+      Seq(Seq("2022-04-15"), Seq("Karfreitag")),
+      Seq(Seq("2022-04-18"), Seq("Ostermontag"))
+    )
+  }
+
   class TestAnalyzer extends ValueAnalyzer[String] {
     private var maxString: Option[String] = None
 

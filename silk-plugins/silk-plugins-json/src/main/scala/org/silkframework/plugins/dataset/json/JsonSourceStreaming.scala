@@ -7,6 +7,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
+import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.ALL_CHILDREN
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.BufferingIterator
 import org.silkframework.runtime.resource.Resource
@@ -67,7 +68,8 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
 
       nextEntity = None
       while (nextEntity.isEmpty && hasMoreEntities && limit.forall(count < _)) {
-        val node = JsonTraverser(taskId, reader.buildNode())
+        val parentName = reader.currentName
+        val node = JsonTraverser.fromNode(taskId, reader.buildNode(), parentName)
 
         // Generate URI
         val uri =
@@ -133,7 +135,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
              JsonToken.VALUE_NUMBER_FLOAT |
              JsonToken.VALUE_FALSE |
              JsonToken.VALUE_TRUE =>
-          if(currentPathSegment().forall(_.property.uri == reader.currentNameEncoded)) {
+          if(currentPathSegment().forall(segment => segment.property.uri == ALL_CHILDREN || segment.property.uri == reader.currentNameEncoded)) {
             if(pathSegmentIdx == entityPathSegments.size - 1) {
               // All path segments were matching, found element.
               return true
