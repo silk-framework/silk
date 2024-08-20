@@ -228,11 +228,12 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
 
   it should "support * and #propertyName special paths" in {
     val source: DataSource = createSource(resources.get("exampleObjectKeys.json"), "", "#id")
-    val entities = source.retrieve(EntitySchema("SN/*", typedPaths = IndexedSeq(UntypedPath.parse("datum").asStringTypedPath, UntypedPath.parse("#propertyName").asStringTypedPath))).entities
+    val paths = IndexedSeq("datum", "#propertyName", "*/#propertyName")
+    val entities = source.retrieve(EntitySchema("SN/*", typedPaths = paths.map(UntypedPath.parse(_).asStringTypedPath))).entities
     entities.take(3).map(_.values).toSeq mustBe Seq(
-      Seq(Seq("2022-01-01"), Seq("Neujahrstag")),
-      Seq(Seq("2022-04-15"), Seq("Karfreitag")),
-      Seq(Seq("2022-04-18"), Seq("Ostermontag"))
+      Seq(Seq("2022-01-01"), Seq("Neujahrstag"), Seq("datum", "hinweis")),
+      Seq(Seq("2022-04-15"), Seq("Karfreitag"), Seq("datum", "hinweis")),
+      Seq(Seq("2022-04-18"), Seq("Ostermontag"), Seq("datum", "hinweis"))
     )
   }
 
