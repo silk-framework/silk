@@ -69,8 +69,8 @@ object JsonDataset {
     final val TEXT = "#text"
     final val ID = "#id"
     final val PROPERTY_NAME = "#propertyName"
-    final val BACKWARD_PATH = "\\.."
     final val ALL_CHILDREN = "*"
+    final val BACKWARD_PATH = "\\.."
   }
 
   final val characteristics: DatasetCharacteristics = DatasetCharacteristics(
@@ -85,8 +85,8 @@ object JsonDataset {
         SpecialPathInfo(specialPaths.PROPERTY_NAME, Some("The name of the current object key"), SuggestedForEnum.ValuePathOnly),
         SpecialPaths.LINE,
         SpecialPaths.COLUMN,
-        SpecialPathInfo(specialPaths.BACKWARD_PATH, Some("Navigates back to parent object.")),
         SpecialPathInfo(specialPaths.ALL_CHILDREN, Some("Selects all direct children of the entity.")),
+        SpecialPathInfo(specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
       )
     )
   )
