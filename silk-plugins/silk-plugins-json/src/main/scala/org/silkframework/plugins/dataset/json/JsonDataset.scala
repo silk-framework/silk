@@ -68,7 +68,7 @@ object JsonDataset {
   object specialPaths {
     final val TEXT = "#text"
     final val ID = "#id"
-    final val PROPERTY_NAME = "#propertyName"
+    final val KEY = "#key"
     final val ALL_CHILDREN = "*"
     final val BACKWARD_PATH = "\\.."
   }
@@ -82,7 +82,7 @@ object JsonDataset {
         SpecialPathInfo(specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
-        SpecialPathInfo(specialPaths.PROPERTY_NAME, Some("The name of the current object key"), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(specialPaths.KEY, Some("The name of the current object key"), SuggestedForEnum.ValuePathOnly),
         SpecialPaths.LINE,
         SpecialPaths.COLUMN,
         SpecialPathInfo(specialPaths.ALL_CHILDREN, Some("Selects all direct children of the entity.")),

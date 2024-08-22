@@ -218,7 +218,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {
     jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
-      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, JsonDataset.specialPaths.PROPERTY_NAME).contains(p)) ++ Seq("\\")
+      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, JsonDataset.specialPaths.KEY).contains(p)) ++ Seq("\\")
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
   }
 

@@ -131,7 +131,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
             Seq(nodeId(value))
           case JsonDataset.specialPaths.TEXT =>
             Seq(value.toString())
-          case JsonDataset.specialPaths.PROPERTY_NAME =>
+          case JsonDataset.specialPaths.KEY =>
            parentName.toSeq
           case SpecialPaths.LINE.value =>
             Seq(value.position.line.toString)
