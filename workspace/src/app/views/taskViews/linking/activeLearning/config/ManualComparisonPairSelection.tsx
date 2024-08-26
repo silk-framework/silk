@@ -313,6 +313,7 @@ const PathAutoCompletion = ({
         <ComparisonDataCell className="diapp-linking-learningdata__pathselection">
             {resetting ? null : (
                 <AutoSuggestion
+                    id={!isTarget ? "source-learning-path-input" : "target-learning-path-input"}
                     label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
                     initialValue={""}
                     onChange={onChange}
