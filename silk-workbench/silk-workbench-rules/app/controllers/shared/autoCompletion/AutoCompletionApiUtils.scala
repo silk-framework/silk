@@ -14,6 +14,7 @@ import org.silkframework.util.Uri
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 object AutoCompletionApiUtils {
@@ -88,14 +89,15 @@ object AutoCompletionApiUtils {
                            isRdfInput: Boolean,
                            oneHopOnly: Boolean = false,
                            serializeFull: Boolean = false,
-                           pathOpFilter: OpFilter.Value = OpFilter.None)
+                           pathOpFilter: OpFilter.Value = OpFilter.None,
+                           supportsAsteriskOperator: Boolean = false)
                           (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
       val path = UntypedPath.parse(p.value)
       val matchesPrefix = isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
-        path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
-        path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
-      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
+        UntypedPath.startsWithPrefix(path.operators, forwardOnlySourcePath, supportsAsteriskOperator) && path.operators.size > forwardOnlySourcePath.size ||
+        UntypedPath.startsWithPrefix(path.operators, simpleSourcePath, supportsAsteriskOperator) && path.operators.size > simpleSourcePath.size
+      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput, supportsAsteriskOperator)
       val pathOpMatches = pathOpFilter match {
         case OpFilter.Forward => truncatedOps.headOption.exists(op => op.isInstanceOf[ForwardOperator])
         case OpFilter.Backward => truncatedOps.headOption.exists(op => op.isInstanceOf[BackwardOperator])
@@ -104,7 +106,7 @@ object AutoCompletionApiUtils {
       matchesPrefix && pathOpMatches && (!oneHopOnly && truncatedOps.nonEmpty || truncatedOps.size == 1)
     } map { completion =>
       val path = UntypedPath.parse(completion.value)
-      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
+      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput, supportsAsteriskOperator)
       completion.copy(value = UntypedPath(truncatedOps).serialize(stripForwardSlash = !serializeFull))
     }
   }
@@ -112,10 +114,11 @@ object AutoCompletionApiUtils {
   private def truncatePath(path: UntypedPath,
                            simpleSourcePath: List[PathOperator],
                            forwardOnlySourcePath: List[PathOperator],
-                           isRdfInput: Boolean): List[PathOperator] = {
+                           isRdfInput: Boolean,
+                           supportsAsteriskOperator: Boolean): List[PathOperator] = {
     if (isRdfInput) {
       path.operators
-    } else if (path.operators.startsWith(forwardOnlySourcePath)) {
+    } else if (UntypedPath.startsWithPrefix(path.operators, forwardOnlySourcePath, supportsAsteriskOperator)) {
       path.operators.drop(forwardOnlySourcePath.size)
     } else {
       path.operators.drop(simpleSourcePath.size)

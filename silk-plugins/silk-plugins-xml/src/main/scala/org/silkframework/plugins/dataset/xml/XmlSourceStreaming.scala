@@ -24,9 +24,11 @@ import scala.util.Try
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
   with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
-  // We can only get the character offset not the byte offset, so this is an approximiation
+  // We can only get the character offset not the byte offset, so this is an approximation
   private val maxEntitySizeInBytes = Resource.maxInMemorySize
   private val xmlFactory = XMLInputFactory.newInstance()
+
+  override val supportsAsteriskOperator: Boolean = true
 
   private case class XMLReadException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 

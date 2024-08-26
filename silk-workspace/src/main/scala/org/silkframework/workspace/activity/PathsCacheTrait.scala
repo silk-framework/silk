@@ -9,6 +9,7 @@ import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
+import org.silkframework.workspace.activity.dataset.DatasetUtils
 
 /**
   * Defines methods useful to all paths caches.

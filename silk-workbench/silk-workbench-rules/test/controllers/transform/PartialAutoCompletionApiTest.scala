@@ -234,6 +234,20 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     suggest("nam") mustBe Seq("name", "#key") ++ jsonOps
   }
 
+  it should "consider * for datasets that support this path operator" in {
+    suggest("*/") mustBe allJsonPaths
+      .filter(_.contains("/"))
+      .map(p => p.drop(p.indexOf("/"))) ++ jsonSpecialPaths.filter(!_.startsWith("\\")).map(v => "/" + v)
+    suggest("*/id") mustBe allJsonPaths
+      .filter(_.contains("/"))
+      .map(p => p.drop(p.indexOf("/")))
+      .filter(_.toLowerCase.contains("id")) ++ Seq("/#id") ++ jsonOps
+    // Ignore special paths containing "value" in the description
+    suggest("*/tags/*/val").filter(!_.startsWith("/#")) mustBe Seq("/value") ++ jsonOps
+  }
+
+  /** The following test changes the suggestions. Add tests before this test. */
+
   it should "suggest the correct path for object mappings starting with backward paths when there is a backward path in the paths cache" in {
     // Add path with backward operator containing the forward path "name" in it to the paths cache
     val pathCacheResource = project.cacheResources.child("transform").child(backwardPathTransform).get(s"pathsCache.xml")

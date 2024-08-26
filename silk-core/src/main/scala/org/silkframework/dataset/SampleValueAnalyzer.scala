@@ -2,7 +2,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
-import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{ForwardOperator, PathOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -66,6 +66,9 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
   this: DataSource =>
 
   protected val schemaElementLimit: Int = 100 * 1000
+
+  /** If the data source supports the '*' operator that matches any property. */
+  def supportsAsteriskOperator: Boolean
 
   /**
     * Collects all paths from the hierarchical data source.
@@ -142,8 +145,21 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
     val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
     val pathBuffer = mutable.ArrayBuffer[TypedPath]()
     val normalizedTypeUri = typeUri.toString.dropWhile(_ == '/')
-    for(schemaClass <- schema.classes if schemaClass.sourceType.startsWith(normalizedTypeUri)) {
-      val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
+    lazy val typeUriOperators = UntypedPath.parse(typeUri.uri).operators
+    lazy val typeContainsAsteriskOperator = typeUriOperators.exists(_.serialize == "/*")
+    def startsWithType(schemaClass: ExtractedSchemaClass[_]): Boolean = {
+      if(supportsAsteriskOperator && typeContainsAsteriskOperator) {
+        UntypedPath.startsWithPrefix(schemaClass.sourceTypeOperators, typeUriOperators, true)
+      } else {
+        schemaClass.sourceType.startsWith(normalizedTypeUri)
+      }
+    }
+    for(schemaClass <- schema.classes if startsWithType(schemaClass)) {
+      val relativeClass = if(supportsAsteriskOperator && typeContainsAsteriskOperator) {
+        UntypedPath(schemaClass.sourceTypeOperators.drop(typeUriOperators.size)).serialize()
+      } else {
+        schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
+      }
       val classPath = UntypedPath.parse(relativeClass)
       if(classPath.size > 0 && classPath.size <= depth) {
         pathBuffer.append(TypedPath(classPath, ValueType.URI, isAttribute = false))

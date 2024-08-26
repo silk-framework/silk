@@ -355,6 +355,13 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     result(1).values mustBe IndexedSeq(Seq("Max"), Seq("789"))
   }
 
+  it should "retrieve paths when the asterisk operator is used in the type string" in {
+    val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
+    val source = jsonDataset.source
+    source.retrievePaths("persons/*").map(_.serialize()) mustBe IndexedSeq("type", "number")
+    source.retrievePaths("*/phoneNumbers").map(_.serialize()) mustBe IndexedSeq("type", "number")
+  }
+
   private def jsonSource(json: String, basePath: String = ""): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)
