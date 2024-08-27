@@ -15,8 +15,8 @@ case class RelatedItem(id: String,
                        pluginLabel: String,
                        tags: Set[FullTag],
                        pluginId: Option[String],
-                       projectId: Option[String]
-                      )
+                       projectId: Option[String],
+                       readOnly: Option[Boolean])
 
 object RelatedItem {
   implicit val relatedItemFormat: Format[RelatedItem] = Json.format[RelatedItem]

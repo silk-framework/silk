@@ -40,8 +40,11 @@ const {
     setArtefactLoading,
     setTaskId,
     setModalError,
+    setModalInfo,
     setExportTypes,
     changeLanguage,
+    toggleNotificationMenuDisplay,
+    toggleUserMenuDisplay,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
@@ -426,6 +429,7 @@ const resetArtefactModal =
         batch(() => {
             dispatch(selectArtefact(undefined));
             dispatch(setModalError({}));
+            dispatch(setModalInfo(undefined));
             if (shouldClose) {
                 dispatch(closeArtefactModal());
             }
@@ -455,6 +459,7 @@ const commonOps = {
     setTaskId,
     setSelectedArtefactDType,
     setModalError,
+    setModalInfo,
     buildTaskObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
@@ -463,6 +468,8 @@ const commonOps = {
     fetchExportTypesAsync,
     extractDataAttributes,
     splitParameterAndVariableTemplateParameters,
+    toggleNotificationMenuDisplay,
+    toggleUserMenuDisplay,
 };
 
 export default commonOps;

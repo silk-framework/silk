@@ -9,7 +9,7 @@ import controllers.util.TextSearchUtils
 import controllers.workspace.DatasetApi.TypeCacheFailedException
 import controllers.workspace.doc.{LegacyDatasetApiDoc => DatasetApiDoc}
 import controllers.workspace.doc.ResourceApiDoc.ResourceMultiPartRequest
-import controllers.workspace.doc.{ResourceApiDoc}
+import controllers.workspace.doc.ResourceApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -31,6 +31,7 @@ import org.silkframework.util.Uri
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.dataset.TypesCache
+import org.silkframework.workspace.resources.CacheUpdaterHelper
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
@@ -42,9 +43,9 @@ import javax.inject.Inject
 @Tag(name = "Datasets", description = "Manage datasets.")
 class LegacyDatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
-  private implicit val partialPath = Json.format[PathCoverage]
-  private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
-  private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
+  private implicit val partialPath: OFormat[PathCoverage] = Json.format[PathCoverage]
+  private implicit val valueCoverageMissFormat: OFormat[ValueCoverageMiss] = Json.format[ValueCoverageMiss]
+  private implicit val valueCoverageResultFormat: OFormat[ValueCoverageResult] = Json.format[ValueCoverageResult]
 
   @Operation(
     summary = "Retrieve dataset",

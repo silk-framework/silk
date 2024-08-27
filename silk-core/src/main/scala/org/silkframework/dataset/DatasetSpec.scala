@@ -50,7 +50,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   def entitySink(implicit userContext: UserContext): EntitySink = {
-    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this, readOnly), SafeModeSink)
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
   }
 
   def linkSink(implicit userContext: UserContext): LinkSink = {
@@ -76,7 +76,15 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
   }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
-  override def inputPorts: InputPorts = FlexibleNumberOfInputs()
+  override def inputPorts: InputPorts = {
+    if(readOnly || characteristics.readOnly) {
+      FixedNumberOfInputs(Seq.empty)
+    } else if(characteristics.supportsMultipleWrites) {
+      FlexibleNumberOfInputs()
+    } else {
+      FixedNumberOfInputs(Seq(FlexibleSchemaPort))
+    }
+  }
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
   override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
@@ -209,18 +217,20 @@ object DatasetSpec {
     override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
   }
 
-  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset], readOnly: Boolean) extends EntitySink {
+  case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
 
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
     private var isOpen = false
 
+    private var extraTypeUri: Option[String] = None
+
     /**
       * Initializes this writer.
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
-                          (implicit userContext: UserContext, prefixes: Prefixes){
-      checkDatasetAllowsWriteAccess(None, readOnly)
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+      checkDatasetAllowsWriteAccess(None, datasetSpec.readOnly)
       if (isOpen) {
         entitySink.close()
         isOpen = false
@@ -228,46 +238,76 @@ object DatasetSpec {
 
       datasetSpec.assertUriAttributeUniqueness(properties.map(_.propertyUri))
 
-      val uriTypedProperty =
+      val uriProperty =
         for(property <- datasetSpec.uriAttribute.toIndexedSeq) yield {
           TypedProperty(property.uri, ValueType.URI, isBackwardProperty = false)
         }
 
-      entitySink.openTable(typeUri, uriTypedProperty ++ properties, singleEntity)
+      // Make sure that the type is actually written as a property, if needed
+      val typeProperty =
+        if(datasetSpec.plugin.characteristics.typedEntities && typeUri.uri.nonEmpty && !properties.exists(p => p.isTypeProperty)) {
+          extraTypeUri = Some(typeUri.uri)
+          if(typeUri.isValidUri) {
+            Seq(TypedProperty.rdfTypeProperty)
+          } else {
+            Seq(TypedProperty.rdfTypeProperty.copy(valueType = ValueType.STRING))
+          }
+        } else {
+          Seq.empty
+        }
+
+      entitySink.openTable(typeUri, uriProperty ++ typeProperty ++ properties, singleEntity)
       isOpen = true
     }
 
     override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                             (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
-      datasetSpec.uriAttribute match {
-        case Some(_) =>
-          entitySink.writeEntity(subject, Seq(subject) +: values)
-        case None =>
-          entitySink.writeEntity(subject, values)
-      }
+      entitySink.writeEntity(subject, prependUri(subject, prependType(values)))
     }
 
     /**
       * Closes the current table.
       */
-    override def closeTable()(implicit userContext: UserContext) {
+    override def closeTable()(implicit userContext: UserContext): Unit = {
       if (entitySink != null) entitySink.closeTable()
       isOpen = false
+      extraTypeUri = None
     }
 
     /**
       * Closes this writer.
       */
-    override def close()(implicit userContext: UserContext) {
+    override def close()(implicit userContext: UserContext): Unit = {
       if (entitySink != null) entitySink.close()
       isOpen = false
+      extraTypeUri = None
     }
 
     /**
       * Makes sure that the next write will start from an empty dataset.
       */
     override def clear()(implicit userContext: UserContext): Unit = entitySink.clear()
+
+    @inline
+    private def prependUri(uri: String, values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
+      datasetSpec.uriAttribute match {
+        case Some(_) =>
+          Seq(uri) +: values
+        case None =>
+          values
+      }
+    }
+
+    @inline
+    private def prependType(values: IndexedSeq[Seq[String]]): IndexedSeq[Seq[String]] = {
+      extraTypeUri match {
+        case Some(typeUri) =>
+          Seq(typeUri) +: values
+        case None =>
+          values
+      }
+    }
   }
 
   case class LinkSinkWrapper(linkSink: LinkSink, datasetSpec: DatasetSpec[Dataset]) extends LinkSink {

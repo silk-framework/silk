@@ -25,11 +25,12 @@ export const autoCompleteTransformSourcePath = (
     taskId: string,
     ruleId: string,
     term = "",
-    taskContext?: TaskContext
+    taskContext?: TaskContext, 
+    limit = 100
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: legacyTransformEndpoint(
-            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=1000&term=${term}`
+            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=${limit}&term=${term}`
         ),
         method: "POST",
         body: {

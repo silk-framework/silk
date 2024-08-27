@@ -14,6 +14,19 @@ class IterableTemplateValues(val values: Seq[String]) extends java.lang.Iterable
   override def iterator(): util.Iterator[String] = {
     values.iterator.asJava
   }
+
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case iterableValues: IterableTemplateValues =>
+        iterableValues.values == this.values
+      case _ =>
+        false
+    }
+  }
+
+  override def hashCode(): Int = {
+    values.hashCode()
+  }
 }
 
 object IterableTemplateValues {

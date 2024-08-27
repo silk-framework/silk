@@ -17,7 +17,7 @@ export function AppLayout({ children }: IProps) {
 
     return (
         <>
-            <ApplicationContainer>
+            <ApplicationContainer monitorDropzonesFor={["application/reactflow", "Files"]}>
                 <Header
                     isApplicationSidebarExpanded={sideNavExpanded}
                     onClickApplicationSidebarExpand={() => {

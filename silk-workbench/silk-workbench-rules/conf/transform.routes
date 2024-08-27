@@ -1,8 +1,3 @@
-# Dialogs
-GET           /dialogs/newTransformTask/:project                                   controllers.transform.TransformDialogs.transformationTaskDialog(project: String, task = "", createDialog: Boolean = true)
-GET           /dialogs/editTransformTask/:project/:task                            controllers.transform.TransformDialogs.transformationTaskDialog(project: String, task: String, createDialog: Boolean = false)
-GET           /dialogs/deleteRule/:name                                            controllers.transform.TransformDialogs.deleteRuleDialog(name: String)
-
 # Transformation Editor
 GET           /:project/:task/editor                                               controllers.transform.TransformEditor.start(project: String, task: String, rule = "")
 GET           /:project/:task/editor/rule/:rule                                    controllers.transform.TransformEditor.start(project: String, task: String, rule: String)

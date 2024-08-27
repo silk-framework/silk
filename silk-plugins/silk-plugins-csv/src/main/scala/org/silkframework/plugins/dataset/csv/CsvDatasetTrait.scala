@@ -51,6 +51,8 @@ trait CsvDatasetTrait {
 
   val codec: Codec = CharsetUtils.forName(charset)
 
+  def mimeType: Option[String] = Some("text/csv")
+
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
     maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec)
 }

@@ -26,7 +26,9 @@ trait RdfDataset extends Dataset {
           SpecialPathInfo(specialPaths.TEXT, Some("Returns the lexical value of the resource or literal this is requested from."), SuggestedForEnum.ValuePathOnly)
         )
       ),
-      supportsMultipleTables = true
+      supportsMultipleTables = true,
+      supportsMultipleWrites = true,
+      typedEntities = true
     )
   }
 

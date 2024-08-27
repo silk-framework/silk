@@ -250,7 +250,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
     val operatorsWithDataOutput: Set[Identifier] = operators
       .map(op => op.task).distinct
-      .filter(taskId => project.anyTask(taskId).outputSchemaOpt.isDefined)
+      .filter(taskId => project.anyTask(taskId).outputPort.isDefined)
       .toSet
     // Filter out datasets that have no real data input
     val datasetNodesWithRealInputs = operators.flatMap(op => {
@@ -286,9 +286,15 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     (outputs ++ nodesWithInputs).distinct
   }
 
-  /** Returns node ids of workflow nodes that have neither inputs nor outputs nor dependencies */
+  /** Returns node IDs of workflow nodes that have a dependency output. */
+  def dependencyOutputNodes(): Seq[String] = {
+    (datasets.value.flatMap(_.dependencyInputs) ++ operators.value.flatMap(_.dependencyInputs)).distinct
+  }
+
+  /** Returns node ids of workflow nodes that have data neither inputs nor outputs nor input/output dependencies */
   def singleWorkflowNodes(): Seq[String] = {
-    nodes.filter(n => n.allIncomingNodes.isEmpty && n.outputs.isEmpty).map(_.nodeId)
+    val depOutNodes = dependencyOutputNodes().toSet
+    nodes.filter(n => n.allIncomingNodes.isEmpty && n.outputs.isEmpty).map(_.nodeId).filter(!depOutNodes.contains(_))
   }
 
   /** Returns node ids of workflow nodes that have output connections (data or dependency) to other nodes */

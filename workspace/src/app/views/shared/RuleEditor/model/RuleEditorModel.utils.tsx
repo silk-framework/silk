@@ -188,7 +188,7 @@ const nodeType = (pluginType: RuleOperatorPluginType | string, pluginId: string)
 /**
  * Returns the createNewOperatorNode, initNodeBaseIds and freshNodeId functions.
  */
-const initNodeBaseIdsFactory = () => {
+function initNodeBaseIdsFactory() {
     const nodeBaseIdCounter: Map<string, number | undefined> = new Map();
 
     /** Init the node base IDs based on the provided elements. */
@@ -234,10 +234,10 @@ const initNodeBaseIdsFactory = () => {
         );
     };
     return { createNewOperatorNode, initNodeBaseIds, freshNodeId };
-};
+}
 
 /** Factory for the createEdge function, since it depends on the edgeCounter state. */
-const createEdgeFactory = () => {
+function createEdgeFactory() {
     // At the moment edge IDs are not important for us and can always be re-computed
     let edgeCounter = 0;
 
@@ -258,7 +258,7 @@ const createEdgeFactory = () => {
             arrowHeadType: ArrowHeadType.ArrowClosed,
         };
     };
-};
+}
 
 // Helper methods for nodes and edges
 const isNode = (element: FlowElement & { source?: string }): boolean => !element.source;
@@ -461,9 +461,7 @@ const adaptInputArray = (inputArray: (string | undefined)[]) => {
     }
 };
 
-export const ruleEditorModelUtilsFactory = (
-    edgeType: (sourceNodeId: string, targetNode: string) => string = () => "step"
-) => {
+export function ruleEditorModelUtilsFactory() {
     const { createNewOperatorNode, initNodeBaseIds, freshNodeId } = initNodeBaseIdsFactory();
     return {
         adaptInputArray,
@@ -490,7 +488,7 @@ export const ruleEditorModelUtilsFactory = (
         nodeById,
         nodesById,
     };
-};
+}
 
 const defaultUtils = ruleEditorModelUtilsFactory();
 

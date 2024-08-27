@@ -41,6 +41,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
+import { FetchError } from "services/fetch/responseInterceptor";
 
 interface IProps {
     projectId: string;
@@ -73,6 +74,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const [loading, setLoading] = useState<boolean>(true);
     const [displayCacheList, setDisplayCacheList] = useState<boolean>(false);
+    //boolean to disable and re-enable reload all button
+    const [reloadingAllCaches, setReloadingAllCaches] = React.useState<boolean>(false);
+    const ignoreStillRunningError = React.useRef<boolean>(false);
+    const nonExecutedCacheActivities = React.useRef<IActivityListEntry[]>([])
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -104,6 +109,30 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             updateActivityStatus
         );
     };
+
+    const statusMapDependency = Array.from(activityStatusMap.values())
+        .map((v) => `${v.lastUpdateTime}-${v.concreteStatus}-${v.progress}`)
+        .join("|");
+
+    const executeAllNonExecutedCacheActivities = React.useCallback(async () => {
+        const activitiesToExecute = nonExecutedCacheActivities.current
+        nonExecutedCacheActivities.current = []
+        for(let i = 0; i < activitiesToExecute.length; i++) {
+            const activityFunctions = activityFunctionsCreator(activitiesToExecute[i]);
+            await activityFunctions.executeActivityAction("restart");
+        }
+    }, [])
+
+    React.useEffect(() => {
+        //check if any caches activity is running
+        const currentlyRunningCacheActivity = !!Array.from(activityStatusMap.entries()).find(
+            ([activityKey, a]) => cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+        );
+        if(!currentlyRunningCacheActivity && nonExecutedCacheActivities.current.length) {
+            executeAllNonExecutedCacheActivities()
+        }
+        setReloadingAllCaches(currentlyRunningCacheActivity);
+    }, [statusMapDependency, nonExecutedCacheActivities.current]);
 
     // Updates the overall cache state corresponding to the current activity states
     const updateOverallCacheState = (): boolean => {
@@ -211,6 +240,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const translateActions = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
     const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
+        const errorIsStillRunningError = !!/running/.test(
+            (error as FetchError)?.errorDetails?.response?.data?.detail ?? ""
+        );
+        if (ignoreStillRunningError.current && errorIsStillRunningError) return;
         registerError(
             `taskActivityOverview-${activityName}-${action}`,
             t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
@@ -278,6 +311,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
     const nonMainActivities = activitiesWithStatus.filter((a) => !a.activityCharacteristics.isMainActivity);
     const cacheActivities = nonMainActivities.filter((a) => a.activityCharacteristics.isCacheActivity);
+    const cacheActivityIds = new Set(cacheActivities.map(c => activityKeyOfEntry(c)))
     const runningNonMainActivities = nonMainActivities.filter(
         (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity
     );
@@ -376,13 +410,39 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Widget that wraps and summarizes the cache activities
     const CacheGroupWidget = () => {
+        const reloadAllCaches = React.useCallback(async () => {
+            //start all at once
+            setReloadingAllCaches(true);
+            // check that all cache activities are in waiting or idle state
+            const currentlyRunningActivity = !!Array.from(activityStatusMap.entries()).find(
+                ([activityKey, a]) => cacheActivityIds.has(activityKey) && !["Waiting", "Finished", "Idle"].includes(a.statusName)
+            );
+
+            if (!currentlyRunningActivity) {
+                ignoreStillRunningError.current = true
+                const notExecutedActivities: IActivityListEntry[] = []
+                try {
+                    await Promise.all(
+                        cacheActivities.map(async (activity) => {
+                            const activityFunctions = activityFunctionsCreator(activity);
+                            const wasExecuted = await activityFunctions.executeActivityAction("restart");
+                            if (!wasExecuted) {
+                                notExecutedActivities.push(activity)
+                            }
+                        })
+                    )
+                    if(notExecutedActivities.length) {
+                        nonExecutedCacheActivities.current = notExecutedActivities
+                    }
+                } finally {
+                    setReloadingAllCaches(false);
+                    ignoreStillRunningError.current = false
+                }
+            }
+        }, [cacheActivities]);
+
         return (
-            <OverviewItem
-                hasSpacing
-                onClick={() => {
-                    setDisplayCacheList(!displayCacheList);
-                }}
-            >
+            <OverviewItem hasSpacing>
                 <OverviewItemDepiction keepColors>
                     {cachesOverallStatus.currentlyExecuting ? (
                         <Spinner position={"inline"} size={"small"} stroke={"medium"} />
@@ -408,6 +468,13 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
+                        name="item-reload"
+                        text={t("widget.TaskActivityOverview.reloadAllCaches")}
+                        onClick={reloadAllCaches}
+                        disabled={reloadingAllCaches}
+                    />
+                    <IconButton
+                        onClick={() => setDisplayCacheList(!displayCacheList)}
                         data-test-id={displayCacheList ? "cache-group-show-less-btn" : "cache-group-show-more-btn"}
                         name={displayCacheList ? "toggler-showless" : "toggler-showmore"}
                         text={displayCacheList ? "Hide single caches" : "Show all single caches"}

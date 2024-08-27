@@ -20,6 +20,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
@@ -244,7 +246,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                      workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
-    val VariableWorkflowRequestConfig(workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
+    val VariableWorkflowRequestConfig(workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.requestToWorkflowConfig(workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val resultValue = activity.startBlockingAndGetValue(workflowConfig)
     mimeTypeOpt match {
@@ -369,8 +371,8 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                                      schema = new Schema(implementation = classOf[String])
                                    )
                                    workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
-    val VariableWorkflowRequestConfig(workflowConfig, _) = VariableWorkflowRequestUtils.requestToWorkflowConfig(project, workflowTask, resourceBasedDatasetPluginIds)
+    implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val VariableWorkflowRequestConfig(workflowConfig, _) = VariableWorkflowRequestUtils.requestToWorkflowConfig(workflowTask, resourceBasedDatasetPluginIds)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfig)
     val result = StartActivityResponse(activity.name, id)
@@ -554,7 +556,8 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                           )
                           workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, _) = projectAndTask[Workflow](projectId, workflowId)
-    val tasksWithProprietaryPortsConfig = project.tasks[CustomTask] ++ project.tasks[TransformSpec] ++ project.tasks[LinkSpec]
+    val tasksWithProprietaryPortsConfig = project.tasks[CustomTask] ++ project.tasks[TransformSpec] ++ project.tasks[LinkSpec]++
+                                          project.tasks[GenericDatasetSpec]
     val byTaskId: Seq[(String, WorkflowNodePortConfig)] = for(task <- tasksWithProprietaryPortsConfig) yield {
       val taskId = task.id.toString
       val portConfig = WorkflowNodePortConfig(task.data.inputPorts, task.data.outputPort)

@@ -154,6 +154,7 @@ export interface IRelatedItem {
     tags: Keywords;
     projectId?: string;
     pluginId?: string;
+    readOnly?: boolean;
 }
 
 export interface IItemLink {
@@ -218,11 +219,11 @@ export interface IProjectResource extends FileBaseInfo {
     /**
      * Last modification Datetime
      */
-    modified: string;
+    modified?: string;
     /**
      * Resource/file size on bytes
      */
-    size: number;
+    size?: number;
 }
 
 export interface IAutocompleteDefaultResponse {

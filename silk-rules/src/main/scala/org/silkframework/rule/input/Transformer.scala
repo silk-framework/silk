@@ -40,6 +40,15 @@ trait Transformer extends AnyPlugin {
     * The resources that are directly referenced by this transformer.
     */
   def referencedResources: Seq[Resource] = Seq.empty
+
+  /**
+   * Called if a referenced resource has been updated.
+   * The calls are done on a best-effort basis and there is not guarantee that this method is called for all updates.
+   * In particular, it is only called if the resource is updated via Silk/DataIntegration and not for external updates.
+   */
+  def resourceUpdated(resource: Resource): Unit = {
+    // Overwrite to handle updates
+  }
 }
 
 object Transformer extends PluginFactory[Transformer]

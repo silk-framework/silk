@@ -80,7 +80,7 @@ class FileSparqlEndpoint(resource: Resource, graph: Option[String] = None, forma
 
   override def createUpdateExecution(query: String): UpdateProcessor = {
     this.synchronized {
-      val graphStore = DatasetGraphFactory.wrap(model.getGraph)
+      val graphStore = DatasetFactory.wrap(model)
       UpdateExecutionFactory.create(UpdateFactory.create(query), graphStore)
     }
   }

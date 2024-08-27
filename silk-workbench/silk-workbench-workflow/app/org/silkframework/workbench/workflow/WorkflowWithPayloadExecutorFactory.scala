@@ -1,6 +1,7 @@
 package org.silkframework.workbench.workflow
 
 import controllers.util.ProjectUtils.{createDatasets, createInMemoryResourceManagerForResources, getProject}
+import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -97,16 +98,20 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
 
     val projectName = task.project.id
     val allReplaceableDatasets = task.data.allReplaceableDatasets(task.project)
+    val project = task.project
+    def originalDatasetParameters(datasetId: String, pluginId: String): Map[String, String] = {
+      VariableWorkflowRequestUtils.originalDatasetParameters(project, datasetId, pluginId: String)
+    }
 
     // Create sinks and resources for variable datasets, all resources are returned in the response
     val replaceableSinks = allReplaceableDatasets.sinks
     val (dataSources, sinks, resultResourceManager) = config.format match {
       case "application/xml" | "text/xml" =>
         val xml = XML.loadString(config.configurationString)
-        createSourcesSinksFromXml(projectName, allReplaceableDatasets, replaceableSinks.toSet, xml, config.optionalPrimaryResourceManager)
+        createSourcesSinksFromXml(projectName, allReplaceableDatasets, replaceableSinks.toSet, xml, config.optionalPrimaryResourceManager, originalDatasetParameters)
       case "application/json" =>
         val json = Json.parse(config.configurationString)
-        createSourceSinksFromJson(projectName, allReplaceableDatasets, replaceableSinks.toSet, json, config.optionalPrimaryResourceManager)
+        createSourceSinksFromJson(projectName, allReplaceableDatasets, replaceableSinks.toSet, json, config.optionalPrimaryResourceManager, originalDatasetParameters)
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml", "application/json")
     }
@@ -135,17 +140,18 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
                                         variableDatasets: AllReplaceableDatasets,
                                         sinkIds: Set[String],
                                         json: JsValue,
-                                        primaryResourceManager: Option[ResourceManager])
+                                        primaryResourceManager: Option[ResourceManager],
+                                        originalDatasetParameters: (String, String) => Map[String, String])
                                        (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
     val workflowJson = json.as[JsObject]
     val (sourceResourceManager, _) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true, primaryResourceManager)
     var dataSources = {
-      createDatasets(workflowJson, Some(variableDatasets.dataSources.toSet), property = "DataSources")(sourceResourceManager)
+      createDatasets(workflowJson, Some(variableDatasets.dataSources.toSet), property = "DataSources", originalDatasetParameters)(sourceResourceManager)
     }
     // Sink
     val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(workflowJson, projectName,
       withProjectResources = true, primaryResourceManager)
-    val sinks = createDatasets(workflowJson, Some(sinkIds), property = "Sinks")(sinkResourceManager)
+    val sinks = createDatasets(workflowJson, Some(sinkIds), property = "Sinks", originalDatasetParameters)(sinkResourceManager)
     val autoConfig = (workflowJson \ "config" \ "autoConfig").asOpt[Boolean].getOrElse(false)
     if(autoConfig) {
       val project = getProject(projectName)
@@ -162,18 +168,19 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], config: WorkflowW
   private def createSourcesSinksFromXml(projectName: String,
                                         variableDatasets: AllReplaceableDatasets,
                                         sinkIds: Set[String], xmlRoot: NodeSeq,
-                                        primaryResourceManager: Option[ResourceManager])
+                                        primaryResourceManager: Option[ResourceManager],
+                                        originalDatasetParameters: (String, String) => Map[String, String])
                                        (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
     // Create data sources from request payload
     val dataSources = {
       // Allow to read from project resources
       implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, primaryResourceManager)
-      createDatasets(xmlRoot, Some(variableDatasets.dataSources.toSet), xmlElementTag = "DataSources")
+      createDatasets(xmlRoot, Some(variableDatasets.dataSources.toSet), xmlElementTag = "DataSources", originalDatasetParameters)
     }
     // Sink
     val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true, primaryResourceManager)
     implicit val resourceManager: ResourceManager = sinkResourceManager
-    val sinks = createDatasets(xmlRoot, Some(sinkIds), xmlElementTag = "Sinks")
+    val sinks = createDatasets(xmlRoot, Some(sinkIds), xmlElementTag = "Sinks", originalDatasetParameters)
     (dataSources, sinks, resultResourceManager)
   }
 }

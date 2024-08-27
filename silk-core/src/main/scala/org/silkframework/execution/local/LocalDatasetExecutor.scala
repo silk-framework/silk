@@ -268,7 +268,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             }
             val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
             for(fileResource <- table.files) {
-              graphStore.uploadFileToGraph(targetGraph, fileResource.file, "application/n-triples", None) // Only N-Triples supported
+              graphStore.uploadFileToGraph(targetGraph, fileResource.file, table.contentType, None)
               reportUpdater.increaseEntityCounter()
             }
           case _: Dataset =>
@@ -354,7 +354,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     sink match {
       case tripleSink: TripleSink =>
         writeTriples(entities, tripleSink)
-      case EntitySinkWrapper(tripleSink: TripleSink, _, _) =>
+      case EntitySinkWrapper(tripleSink: TripleSink, _) =>
         writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")

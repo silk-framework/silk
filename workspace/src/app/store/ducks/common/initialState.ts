@@ -11,11 +11,14 @@ export function initialArtefactModalState(): IArtefactModal {
         selectedDType: "all",
         loading: false,
         categories: [],
+        info: undefined,
     };
 }
 
 export function initialCommonState(): ICommonState {
     return {
+        userMenuDisplay: false,
+        notificationMenuDisplay: false,
         locale: fetchStoredLang(),
         currentProjectId: undefined,
         currentTaskId: undefined,

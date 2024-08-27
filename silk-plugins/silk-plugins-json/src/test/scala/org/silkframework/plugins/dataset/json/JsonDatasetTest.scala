@@ -30,6 +30,11 @@ class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrai
     "example.jsonx" should not fullyMatch regex (JsonDataset.defaultZipFileRegex)
   }
 
+  it should "not read any files starting with a dot by default" in {
+    ".example.json" should not fullyMatch regex (JsonDataset.defaultZipFileRegex)
+    "__MACOSX/._test_1.json" should not fullyMatch regex (JsonDataset.defaultZipFileRegex)
+  }
+
   private def loadEntities(maxInMemorySize: String): Unit = {
     ConfigTestTrait.withConfig(Resource.maxInMemorySizeParameterName -> Some(maxInMemorySize)) {
       implicit val prefixes: Prefixes = Prefixes.empty

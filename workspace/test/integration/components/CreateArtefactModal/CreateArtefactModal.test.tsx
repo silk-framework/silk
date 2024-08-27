@@ -18,6 +18,8 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
+    logRequests,
+    logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
@@ -81,10 +83,8 @@ describe("Task creation widget", () => {
     // Loads the selection list modal with mocked artefact list
     const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
         const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
-        mockAxios.mockResponseFor(
-            { url: apiUrl("core/taskPlugins?addMarkdownDocumentation=true") },
-            mockedAxiosResponse({ data: mockArtefactListResponse })
-        );
+        const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
+        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
         if (!existingTask) {
             await waitFor(() => {
                 expect(selectionItems(wrapper.wrapper)).toHaveLength(3);
@@ -243,7 +243,7 @@ describe("Task creation widget", () => {
         // resource and object parameter
         expect(findAll(wrapper, "legend")).toHaveLength(2);
         // restriction and multi-line use code mirror widget
-        expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
+        expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(3);
         // Default values should be set
         await elementHtmlToContain(wrapper, "#stringParam", "default string");
     });
@@ -273,7 +273,7 @@ describe("Task creation widget", () => {
         const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
-        changeValue(findSingleElement(wrapper, "#description"), "Some description");
+        (window.document.querySelector(".CodeMirror") as any)?.CodeMirror?.setValue("Some description");
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
@@ -329,7 +329,7 @@ describe("Task creation widget", () => {
         clickWrapperElement(project);
         expect(findAll(wrapper, "#label")).toHaveLength(1);
         changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
-        changeValue(findSingleElement(wrapper, "#description"), PROJECT_DESCRIPTION);
+        (window.document.querySelector(".CodeMirror") as any)?.CodeMirror?.setValue(PROJECT_DESCRIPTION);
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
         await waitFor(() => {

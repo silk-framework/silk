@@ -1,6 +1,6 @@
 package org.silkframework.util
 
-import java.io.{DataInput, DataOutput, IOException, InputStream, OutputStream}
+import java.io.{DataInput, DataOutput, IOException, InputStream, FilterInputStream, OutputStream}
 import java.nio.{Buffer, ByteBuffer}
 import java.nio.channels.{ReadableByteChannel, WritableByteChannel}
 import java.nio.channels.Channels
@@ -102,5 +102,40 @@ object StreamUtils {
         remainingLen
       }
     }
+  }
+
+  /**
+   * Wraps an InputStream and keeps track of the current position while reading from it.
+   */
+  class PositionTrackingInputStream(in: InputStream) extends FilterInputStream(in) {
+    private var currentPosition: Long = 0
+
+    override def read(): Int = {
+      val byte = super.read()
+      if (byte != -1) {
+        currentPosition += 1
+      }
+      byte
+    }
+
+    override def read(b: Array[Byte], off: Int, len: Int): Int = {
+      val bytesRead = super.read(b, off, len)
+      if (bytesRead != -1) {
+        currentPosition += bytesRead
+      }
+      bytesRead
+    }
+
+    override def skip(n: Long): Long = {
+      val skipped = super.skip(n)
+      currentPosition += skipped
+      skipped
+    }
+
+    override def close(): Unit = {
+      in.close()
+    }
+
+    def getCurrentPosition: Long = currentPosition
   }
 }

@@ -1167,11 +1167,11 @@ object JsonSerializers {
     }
 
     private def writeTaskSchemata(task: Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val inputSchemata = task.data.inputSchemataOpt match {
-        case Some(schemata) => JsArray(schemata.map(entitySchema))
-        case None => JsNull
+      val inputSchemata = task.data.inputPorts match {
+        case FixedNumberOfInputs(ports) => JsArray(ports.flatMap(_.schemaOpt).map(entitySchema))
+        case _ => JsNull
       }
-      val outputSchema = task.data.outputSchemaOpt.map(entitySchema).getOrElse(JsNull)
+      val outputSchema = task.data.outputPort.flatMap(_.schemaOpt).map(entitySchema).getOrElse(JsNull)
       Json.obj(
         "input" -> inputSchemata,
         "output" -> outputSchema

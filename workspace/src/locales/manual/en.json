@@ -49,6 +49,9 @@
         "loading": "Loading data."
     },
     "DataPreview": {
+        "loadMore": "Load more",
+        "loadMoreTooltip": "Load and append more text of this file",
+        "formatText": "Format text",
         "load": "Load preview",
         "loading": "Loading preview data.",
         "noAttributes": "No attributes found. This might be an empty dataset.",
@@ -161,7 +164,9 @@
         "unknownuser": "unknown user",
         "prefixAgo": "",
         "suffixAgo": " ago",
-        "dateFormat": "{{year}}/{{month}}/{{day}}"
+        "dateFormat": "{{year}}/{{month}}/{{day}}",
+        "markdownHelperText": "Learn more about Markdown formatting",
+        "markdownHelperLinkText": "here"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
@@ -425,6 +430,11 @@
             "added": "Added",
             "removed": "Removed",
             "paths": "Paths"
+        },
+        "tooltips": {
+            "dataset": {
+                "readOnly": "This dataset is configured as read-only. You can disable this in the dataset configuration."
+            }
         }
     },
     "form": {
@@ -798,6 +808,10 @@
                     "description": "The concrete type of a dataset, e.g. its data model and format etc.",
                     "label": "Dataset type"
                 },
+                "readOnly": {
+                    "description": "Filters datasets based on their access permissions.",
+                    "label": "Dataset accessibility"
+                },
                 "lastModifiedBy": {
                     "description": "The user who last modified the item.",
                     "label": "Last modified by",
@@ -828,7 +842,7 @@
             "files": "Files",
             "loading": "Loading file list.",
             "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
-            "removeText": "Do you really want to delete file",
+            "removeText": "Do you really want to delete file {{file}}?",
             "sort": {
                 "modified": "Last modified",
                 "name": "Name",

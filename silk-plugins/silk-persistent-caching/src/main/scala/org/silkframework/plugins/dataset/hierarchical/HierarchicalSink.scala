@@ -1,21 +1,19 @@
 package org.silkframework.plugins.dataset.hierarchical
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DirtyTrackingFileDataSink, EntitySink, TypedProperty}
+import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
-import HierarchicalSink.{DEFAULT_MAX_SIZE, RDF_TYPE}
+import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
-import java.io.OutputStream
 import scala.collection.mutable
 
 /**
   * Sink that writes entities into a hierarchical output, such as JSON or XML.
   */
-abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSink {
+abstract class HierarchicalSink extends EntitySink {
 
   // Holds root entities
   private val rootEntities: SequentialEntityCache = SequentialEntityCache()
@@ -39,16 +37,10 @@ abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSin
   protected def maxDepth: Int = DEFAULT_MAX_SIZE
 
   /**
-    * The resource this sink is writing to.
+    * Writes the output by calling the supplied write function.
     * Must be implemented in sub classes.
     */
-  protected def resource: WritableResource
-
-  /**
-    * Creates a new HierarchicalEntityWriter instance that will be used to write the output.
-    * Must be implemented in sub classes.
-    */
-  protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter
+  protected def outputEntities(writeOutput: HierarchicalEntityWriter => Unit): Unit
 
   /**
    * Initializes this writer.
@@ -89,33 +81,23 @@ abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSin
   override def close()(implicit userContext: UserContext): Unit = {
     try {
       if(!tableOpen) { // only write if the current table has been closed regularly
-        resource.write() { outputStream =>
-          val writer = createWriter(outputStream)
-          try {
-            outputEntities(writer)
-          } finally {
-            writer.close()
-          }
-        }
+        outputEntities(writeEntities)
       }
     } finally {
       cache.close()
       rootEntities.close()
-      super.close()
     }
   }
 
   /**
    * Makes sure that the next write will start from an empty dataset.
    */
-  override def clear()(implicit userContext: UserContext): Unit = {
-    resource.delete()
-  }
+  override def clear()(implicit userContext: UserContext): Unit = { }
 
   /**
     * Outputs all entities in the cache to a HierarchicalEntityWriter.
     */
-  private def outputEntities(writer: HierarchicalEntityWriter): Unit = {
+  private def writeEntities(writer: HierarchicalEntityWriter): Unit = {
     writer.open(singleRootEntity)
     rootEntities.readAndClose { entity =>
       outputEntity(entity, writer, 1)
@@ -151,7 +133,7 @@ abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSin
       val property = table.properties(index)
       val values = entity.values(index)
       writer.startProperty(property, values.size)
-      if(property.valueType == ValueType.URI && property.propertyUri != RDF_TYPE) {
+      if(property.valueType == ValueType.URI && !property.isTypeProperty) {
         for(v <- values) {
           outputEntityByUri(v, writer, depth + 1)
         }
@@ -167,8 +149,6 @@ abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSin
 object HierarchicalSink {
 
   final val DEFAULT_MAX_SIZE = 15
-
-  final val RDF_TYPE = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
 }
 

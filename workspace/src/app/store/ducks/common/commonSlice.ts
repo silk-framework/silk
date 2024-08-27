@@ -57,6 +57,16 @@ export const commonSlice = createSlice({
     name: "common",
     initialState: initialCommonState(),
     reducers: {
+        toggleUserMenuDisplay: (state, action) => {
+            state.userMenuDisplay = action.payload;
+            //both panels cannot be open simultaneously
+            state.notificationMenuDisplay = action.payload ? false : state.notificationMenuDisplay;
+        },
+        toggleNotificationMenuDisplay: (state, action) => {
+            state.notificationMenuDisplay = action.payload;
+            //both panels cannot be open simultaneously
+            state.userMenuDisplay = action.payload ? false : state.userMenuDisplay;
+        },
         setInitialSettings: (state, action: PayloadAction<IInitFrontend>) => {
             state.initialSettings = action.payload;
         },
@@ -169,6 +179,10 @@ export const commonSlice = createSlice({
 
         setModalError: (state, action: PayloadAction<any>) => {
             state.artefactModal.error = action.payload;
+        },
+
+        setModalInfo: (state, action: PayloadAction<string | undefined>) => {
+            state.artefactModal.info = action.payload;
         },
     },
     extraReducers: getExtraReducers(),

@@ -1,13 +1,17 @@
 package org.silkframework.runtime.activity
 
+import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.Status.{Canceling, Finished, Waiting}
 import org.silkframework.runtime.execution.Execution
+import org.silkframework.runtime.metrics.MeterRegistryProvider
 
 import java.time.Instant
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent._
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -311,14 +315,33 @@ object ActivityExecution {
   /**
     * The fork join pool used to run activities.
     */
-  val forkJoinPool: ForkJoinPool = {
-    Execution.createForkJoinPool("Activity", size = poolSize)
-  }
+  val forkJoinPool: ForkJoinPool = registerMetrics(
+    executor = Execution.createForkJoinPool("Activity", size = poolSize),
+    name = "Activity",
+    tags = List(Tag.of("activity", "normal"))
+  )
 
   /**
     * Thread pool to execute prioritized threads.
     */
-  val priorityThreadPool: ForkJoinPool = {
-    Execution.createForkJoinPool("Activity-Prio", size = poolSize)
+  val priorityThreadPool: ForkJoinPool = registerMetrics(
+    executor = Execution.createForkJoinPool("Activity-Prio", size = poolSize),
+    name = "Activity-Prio",
+    tags = List(Tag.of("activity", "priority"))
+  )
+
+  /**
+   * Registers Micrometer-based JVM metrics for a given ExecutorService.
+   *
+   * @param executor Executor to monitor.
+   * @param name Name of the Executor within the metrics system.
+   * @param tags Tags for the metrics system.
+   * @tparam E Type parameter for the specific ExecutorService subtype.
+   * @return
+   */
+  private def registerMetrics[E <: ExecutorService](executor: E, name: String, tags: List[Tag]): E = {
+    val metrics = new ExecutorServiceMetrics(executor, name, tags.asJava)
+    metrics.bindTo(MeterRegistryProvider.meterRegistry)
+    executor
   }
 }

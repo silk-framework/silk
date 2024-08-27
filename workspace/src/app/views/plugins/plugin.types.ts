@@ -46,6 +46,25 @@ export interface IDatasetPreview {
     typeUri?: string;
 }
 
+export interface DatasetPreviewResourceTextPayload {
+    project: string;
+    datasetId: string;
+    datasetInfo?: IDatasetInfo;
+    offset: number;
+    limit: number;
+}
+
+export interface DatasetPreviewResourceTextResponse {
+    text: string;
+    endReached: boolean;
+    isTextBased: boolean;
+    mimeType: string;
+    charsRead: number;
+    endOfLineReached: true;
+    percentage: number;
+    fileSize: number;
+}
+
 /** Parameters of the data preview component. */
 export interface DataPreviewProps {
     // The title of the widget
@@ -61,6 +80,8 @@ export interface DataPreviewProps {
     autoLoad?: boolean;
     // An optional ID for the preview widget
     id?: string;
+    /** If initially the raw view should be shown. */
+    startWithRawView?: boolean;
 }
 
 /** User menu footer component. */

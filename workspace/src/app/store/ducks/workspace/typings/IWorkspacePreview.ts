@@ -48,6 +48,10 @@ export interface ISearchResultsServer {
      * set tags for a project or task
      */
     tags?: Keywords;
+    /**
+     * delimits if dataset is readonly
+     */
+    readOnly?: true;
 }
 
 export const convertTaskTypeToSearchResultServerType = (taskType: TaskType): string => {

@@ -406,7 +406,7 @@ const prependSlash = function (path: string) {
 
 /** Returns the absolute URL under the api path with the given path value appended. */
 export const apiUrl = (path: string): string => {
-    return host + CONTEXT_PATH + "/api" + prependSlash(path);
+    return `${host}${CONTEXT_PATH}/api${prependSlash(path)}`;
 };
 
 /** Checks if a request to a specific URL was made.

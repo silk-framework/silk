@@ -32,8 +32,8 @@ import {
     ruleEditorNodeParameterValue,
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
-import {diErrorMessage} from "@ducks/error/typings";
-import {Notification} from "@eccenca/gui-elements"
+import { diErrorMessage } from "@ducks/error/typings";
+import { Notification } from "@eccenca/gui-elements";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -74,7 +74,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const sourcePathLabels = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<PathWithMetaData[]>([]);
     const [loading, setLoading] = React.useState(true);
-    const [initError, setInitError] = React.useState<any | undefined>(undefined)
+    const [initError, setInitError] = React.useState<any | undefined>(undefined);
     const pendingRequests = React.useRef(2);
     const hideGreyListedParameters =
         (
@@ -95,8 +95,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     };
 
     const handleInitError = React.useCallback((error: any) => {
-        setInitError(error)
-    }, [])
+        setInitError(error);
+    }, []);
 
     /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
     const fetchPaths = async (sourceOrTarget: "source" | "target") => {
@@ -131,7 +131,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
                     err
                 );
-                setInitError(err)
+                setInitError(err);
             }
         }
     };
@@ -177,7 +177,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
                 err
             );
-            setInitError(err)
+            setInitError(err);
         }
     };
 
@@ -310,6 +310,29 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             inputPathAutoCompletion("target")
         );
 
+    const tabs = React.useMemo(() => {
+        return [
+            ruleUtils.sidebarTabs.all,
+            utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
+                registerError(
+                    "linking-rule-editor-fetch-source-paths",
+                    t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                    ex
+                )
+            ),
+            utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
+                registerError(
+                    "linking-rule-editor-fetch-source-paths",
+                    t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                    ex
+                )
+            ),
+            ruleUtils.sidebarTabs.transform,
+            ruleUtils.sidebarTabs.comparison,
+            ruleUtils.sidebarTabs.aggregation,
+        ];
+    }, []);
+
     const fetchDatasetCharacteristics = async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
         const result = new Map<string, DatasetCharacteristics>();
         if (taskData) {
@@ -346,8 +369,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return result;
     };
 
-    if(initError) {
-        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>
+    if (initError) {
+        return <Notification danger={true}>{diErrorMessage(initError)}</Notification>;
     }
 
     if (loading) {
@@ -387,26 +410,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     }
                 }}
                 validateConnection={ruleUtils.validateConnection}
-                tabs={[
-                    ruleUtils.sidebarTabs.all,
-                    utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
-                        registerError(
-                            "linking-rule-editor-fetch-source-paths",
-                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                            ex
-                        )
-                    ),
-                    utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
-                        registerError(
-                            "linking-rule-editor-fetch-source-paths",
-                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                            ex
-                        )
-                    ),
-                    ruleUtils.sidebarTabs.transform,
-                    ruleUtils.sidebarTabs.comparison,
-                    ruleUtils.sidebarTabs.aggregation,
-                ]}
+                tabs={tabs}
                 additionalToolBarComponents={() => [
                     <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />,
                 ]}
