@@ -14,9 +14,9 @@ import { fileValue } from "@ducks/shared/typings";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
-import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
+import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/hooks/useCodemirrorModeExtension.hooks";
 
 interface IProps {
     projectId: string;

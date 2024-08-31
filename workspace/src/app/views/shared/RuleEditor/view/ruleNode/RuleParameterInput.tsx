@@ -20,7 +20,7 @@ import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/Text
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
 import { supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
-import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
+import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/hooks/useCodemirrorModeExtension.hooks";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
