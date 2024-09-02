@@ -15,12 +15,11 @@
 package org.silkframework.rule
 
 import org.silkframework.runtime.plugin.ParameterValues
-
-import java.util.concurrent.atomic.AtomicInteger
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.xml.Node
 
 /**
@@ -41,6 +40,8 @@ trait Operator {
     * Generates the same operator with new children.
     */
   def withChildren(newChildren: Seq[Operator]): Operator
+
+  def withContext(taskContext: TaskContext): Operator = this
 
   /**
     * Asserts that all identifiers in this rule tree are unique.

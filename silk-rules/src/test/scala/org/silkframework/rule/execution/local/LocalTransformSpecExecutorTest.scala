@@ -4,15 +4,17 @@ package org.silkframework.rule.execution.local
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.PlainTask
+import org.silkframework.dataset.{DatasetSpec, EmptyDataset}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.rule._
+import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, TestUserContextTrait}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.util.MockitoSugar
+import org.silkframework.util.{Identifier, MockitoSugar}
 
 class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
 
@@ -95,4 +97,58 @@ class LocalTransformSpecExecutorTest extends AnyFlatSpec with Matchers with Exec
     // Check report
     context.value().entityCount mustBe 2
   }
+
+  it should "inject the task context into the transform rules" in {
+    val path = UntypedPath("inputPath")
+    val target = MappingTarget("outputPath")
+    def transformInput: TransformInput = TransformInput(id = Identifier.random, transformer = TestTransformer(), inputs = IndexedSeq(PathInput(path = path)))
+
+    val transformTask = PlainTask("transform", TransformSpec(
+      DatasetSelection.empty,
+      RootMappingRule(MappingRules(
+        propertyRules = Seq(
+          ComplexMapping(id = "m1", operator = transformInput, target = Some(target)),
+          ObjectMapping("object", rules = MappingRules(
+            propertyRules = Seq(
+              ComplexMapping(id = "m2", operator = transformInput, target = Some(target))
+            )
+          ))
+        )
+      ))
+    ))
+
+    val entitySchema = EntitySchema("es", IndexedSeq(path).map(_.asStringTypedPath))
+    def entity: CloseableIterator[Entity] = CloseableIterator.single(new Entity("entity", IndexedSeq(Seq("input value")), entitySchema))
+    val executor = new LocalTransformSpecExecutor()
+    val inputDatasetId = "inputDataset"
+    val inputTask = PlainTask(inputDatasetId, DatasetSpec(EmptyDataset))
+    val inputTable = MultiEntityTable(entity, entitySchema, inputTask, Seq(GenericEntityTable(entity, entitySchema, inputTask)))
+    val context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
+    val result = executor.execute(transformTask, Seq(inputTable), ExecutorOutput.empty, LocalExecution(useLocalInternalDatasets = true), context).get.asInstanceOf[MultiEntityTable]
+
+    // Check the result of the root rule
+    result.headOption.map(_.values.head) mustBe Some(Seq(inputDatasetId))
+    // Check the result of the object rule
+    result.subTables.head.headOption.map(_.values.head) mustBe Some(Seq(inputDatasetId))
+  }
+}
+
+case class TestTransformer() extends Transformer {
+
+  override def withContext(taskContext: TaskContext): Transformer = {
+    TransformerWithContext(taskContext)
+  }
+
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
+    Seq.empty
+  }
+
+}
+
+case class TransformerWithContext(taskContext: TaskContext) extends Transformer {
+
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
+    Seq(taskContext.inputTasks.head.id.toString)
+  }
+
 }

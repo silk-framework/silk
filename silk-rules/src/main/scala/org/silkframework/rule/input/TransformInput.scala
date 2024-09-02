@@ -16,7 +16,7 @@ package org.silkframework.rule.input
 
 import org.silkframework.entity.Entity
 import org.silkframework.execution.ExecutionException
-import org.silkframework.rule.Operator
+import org.silkframework.rule.{Operator, TaskContext}
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
@@ -63,6 +63,10 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
 
   override def withChildren(newChildren: Seq[Operator]): TransformInput = {
     copy(inputs = newChildren.map(_.asInstanceOf[Input]).toIndexedSeq)
+  }
+
+  override def withContext(taskContext: TaskContext): Input = {
+    copy(transformer = transformer.withContext(taskContext))
   }
 }
 

@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.input
 
+import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
@@ -25,6 +26,8 @@ import org.silkframework.runtime.resource.Resource
   customDescription = classOf[TransformerDescriptionGenerator]
 )
 trait Transformer extends AnyPlugin {
+
+  def withContext(taskContext: TaskContext): Transformer = this
 
   /**
     * Transforms a sequence of values
