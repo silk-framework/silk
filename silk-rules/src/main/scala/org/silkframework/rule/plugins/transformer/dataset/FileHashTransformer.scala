@@ -33,7 +33,7 @@ case class FileHashTransformer(@Param(value = "File for which the hash sum will 
 
   override def withContext(taskContext: TaskContext): Transformer = {
     taskContext.inputTasks.headOption.map(_.data) match {
-      case Some(DatasetSpec(ds: ResourceBasedDataset, _, _)) if file.nonEmpty =>
+      case Some(DatasetSpec(ds: ResourceBasedDataset, _, _)) if file.isEmpty =>
         FileHashTransformer(Some(ds.file), algorithm)
       case _ =>
         this

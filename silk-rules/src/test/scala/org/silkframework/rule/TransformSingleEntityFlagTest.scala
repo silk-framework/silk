@@ -1,5 +1,6 @@
 package org.silkframework.rule
-
+
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.UntypedPath
@@ -12,6 +13,7 @@ import org.silkframework.util.Uri
 import play.api.libs.json.{JsArray, JsNumber, JsValue, Json}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.dataset.DatasetSpec
 
 /**
   * Tests if transformations check the isAttribute/singleEntity flag.
@@ -87,6 +89,7 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
     val inputResource = resources.get("input.json")
     inputResource.writeString(Json.stringify(inputJson))
     val inputDataset = JsonDataset(file = inputResource)
+    val inputTask = PlainTask("input", DatasetSpec(inputDataset))
 
     // Output dataset
     val outputResource = resources.get("output.json")
@@ -94,7 +97,7 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
 
     // Execute transform
     val transformTask = PlainTask("transformTask", TransformSpec(selection = DatasetSelection(inputId = "test"), mappingRule = rule))
-    val execute = new ExecuteTransform(transformTask, user => inputDataset.source(user), user => outputDataset.entitySink(user))
+    val execute = new ExecuteTransform(transformTask, user => inputTask, user => inputDataset.source(user), user => outputDataset.entitySink(user))
 
     try {
       Activity(execute).startBlocking()(UserContext.Empty)
