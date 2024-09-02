@@ -374,6 +374,10 @@ object TransformSpec {
         }
       }
     }
+
+    def withContext(taskContext: TaskContext): RuleSchemata = {
+      copy(transformRule = transformRule.withContext(taskContext))
+    }
   }
 
   object RuleSchemata {

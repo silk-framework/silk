@@ -20,7 +20,7 @@ import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule.{TaskContext, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
@@ -198,7 +198,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule, exampleEntities, limit)
+                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask))), exampleEntities, limit)
               }
             } catch {
               case pe: PeakException =>
