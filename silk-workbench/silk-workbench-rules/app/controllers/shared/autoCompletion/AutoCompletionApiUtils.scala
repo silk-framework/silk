@@ -108,7 +108,7 @@ object AutoCompletionApiUtils {
       val path = UntypedPath.parse(completion.value)
       val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput, supportsAsteriskOperator)
       completion.copy(value = UntypedPath(truncatedOps).serialize(stripForwardSlash = !serializeFull))
-    }
+    } distinctBy (c => (c.value, c.label))
   }
 
   private def truncatePath(path: UntypedPath,
