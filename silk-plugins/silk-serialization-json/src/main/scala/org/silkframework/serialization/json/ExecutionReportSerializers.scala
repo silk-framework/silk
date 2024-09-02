@@ -20,6 +20,12 @@ import java.time.Instant
 
 object ExecutionReportSerializers {
 
+  private def parseSampleEntities(value: JsValue): Seq[SampleEntities] = {
+    arrayValueOption(value, OUTPUT_ENTITIES_SAMPLE)
+      .map(_.value.toSeq.map(_.as[SampleEntities]))
+      .getOrElse(Seq.empty)
+  }
+
   implicit object ExecutionReportJsonFormat extends JsonFormat[ExecutionReport] {
 
     override def write(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
@@ -49,7 +55,8 @@ object ExecutionReportSerializers {
           operation = stringValueOption(value, OPERATION),
           operationDesc = stringValueOption(value, OPERATION_DESC).getOrElse(ExecutionReport.DEFAULT_OPERATION_DESC),
           isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
-          entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0)
+          entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0),
+          sampleOutputEntities = parseSampleEntities(value)
         )
       }
     }
@@ -125,7 +132,8 @@ object ExecutionReportSerializers {
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
         globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]).toIndexedSeq,
         isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
-        error = stringValueOption(value, ERROR)
+        error = stringValueOption(value, ERROR),
+        sampleOutputEntities = parseSampleEntities(value).toVector
       )
     }
 

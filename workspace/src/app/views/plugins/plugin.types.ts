@@ -105,6 +105,7 @@ export interface ParameterExtensions {
     extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
 }
 
+/** The preview gets a fixed list of types and their values. */
 export interface FixedPreview {
     /** The list of possible types. */
     types: string[];
