@@ -41,6 +41,10 @@ trait Operator {
     */
   def withChildren(newChildren: Seq[Operator]): Operator
 
+  /**
+   * Generates a copy of this operator tree that has been configured with a given task context.
+   * This is relevant for operators whose results are based on the input task(s), i.e., the file hash transformer.
+   */
   def withContext(taskContext: TaskContext): Operator = this
 
   /**
