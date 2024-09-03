@@ -30,6 +30,7 @@ export interface IDeleteModalOptions extends TestableComponent {
     submitOnEnter?: boolean;
     //optional prop to disable the delete button
     deleteDisabled?: boolean;
+    alternativeCancelButtonLabel?: string;
 }
 
 export default function DeleteModal({
@@ -44,7 +45,7 @@ export default function DeleteModal({
     errorMessage,
     submitOnEnter = true,
     deleteDisabled,
-
+    alternativeCancelButtonLabel,
     ...otherProps
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -90,7 +91,7 @@ export default function DeleteModal({
                             {t("common.action.delete", "Delete")}
                         </Button>,
                         <Button key="cancel" onClick={onDiscard}>
-                            {t("common.action.cancel", "Cancel")}
+                            {alternativeCancelButtonLabel ?? t("common.action.cancel", "Cancel")}
                         </Button>,
                     ]
                 )

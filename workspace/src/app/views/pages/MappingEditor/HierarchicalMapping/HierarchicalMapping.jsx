@@ -250,6 +250,7 @@ class HierarchicalMapping extends React.Component {
                             transformTaskId={this.props.transformTask}
                             containerRuleId={this.state.containerRuleId ?? "root"}
                             ruleId={this.state.mappingEditorRuleId}
+                            viewActions={this.props.viewActions}
                             isOpen={showMappingEditor}
                             onClose={() => {
                                 this.setState({

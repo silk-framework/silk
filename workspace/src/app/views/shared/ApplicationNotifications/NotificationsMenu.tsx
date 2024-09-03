@@ -160,7 +160,7 @@ export function useNotificationsQueue(errorNotificationInstanceId?: string, auto
                         return;
                     }
                     setDisplayLastNotification(false);
-                }, 3000);
+                }, 5000);
                 return () => {
                     clearTimeout(timeout);
                 };

@@ -2,7 +2,6 @@ import React from "react";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
 import { Provider } from "react-redux";
-import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
@@ -169,7 +168,6 @@ export const keyDown = (wrapper: ReactWrapper<any, any>, key: string = "Enter") 
 export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
     wrapper.simulate("change", { target: { value: value } });
 };
-
 
 /** Finds a single element corresponding to the selector or fails. */
 export const findSingleElement = (
@@ -408,7 +406,7 @@ const prependSlash = function (path: string) {
 
 /** Returns the absolute URL under the api path with the given path value appended. */
 export const apiUrl = (path: string): string => {
-    return host + CONTEXT_PATH + "/api" + prependSlash(path);
+    return `${host}${CONTEXT_PATH}/api${prependSlash(path)}`;
 };
 
 /** Checks if a request to a specific URL was made.

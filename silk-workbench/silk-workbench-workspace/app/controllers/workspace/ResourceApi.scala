@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.resources.CacheUpdaterHelper
 import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
@@ -263,7 +264,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     filePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
     val resource = project.resources.getInPath(filePath)
-    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(resource, project)
+    val dependentTasks: Seq[TaskLinkInfo] = CacheUpdaterHelper.tasksDependingOnResource(resource, project)
       .map { task =>
         TaskLinkInfo(task.id, task.fullLabel, PluginApiCache.taskTypeByClass(task.taskType))
       }

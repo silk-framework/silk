@@ -2,6 +2,7 @@ import React from "react";
 import { Button, HtmlContentBlock, IconButton, SimpleDialog } from "@eccenca/gui-elements";
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
+import { IViewActions } from "../../../../views/plugins/PluginRegistry";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -18,6 +19,8 @@ export interface MappingEditorProps {
      * utility to close the sticky note modal when cancelled as well as closed also
      */
     onClose: () => void;
+    /** Generic actions and callbacks on views. */
+    viewActions?: IViewActions;
 }
 
 const MappingEditorModal = ({
@@ -27,6 +30,7 @@ const MappingEditorModal = ({
     transformTaskId,
     isOpen,
     containerRuleId,
+    viewActions,
 }: MappingEditorProps) => {
     /** keeps track of whether there are unsaved changes or not */
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
@@ -43,6 +47,11 @@ const MappingEditorModal = ({
             onClose();
         }
     }, [unsavedChanges]);
+    ``;
+
+    const updateViewActionUnsavedChanges = (status: boolean) => {
+        viewActions?.savedChanges && viewActions.savedChanges(status);
+    };
 
     /** Warning prompt that shows up when the user decides to close the modal with unsaved changes */
     const WarningModal = React.memo(() => (
@@ -59,6 +68,7 @@ const MappingEditorModal = ({
                     onClick={() => {
                         setShowWarningModal(false);
                         onClose();
+                        updateViewActionUnsavedChanges(false);
                     }}
                 >
                     {t("taskViews.transformRulesEditor.warning.modal.close-btn")}
@@ -101,7 +111,10 @@ const MappingEditorModal = ({
                         instanceId={"transform-rule-editor-modal-instance"}
                         transformTaskId={transformTaskId}
                         viewActions={{
-                            savedChanges: (status) => setUnsavedChanges(status),
+                            savedChanges: (status) => {
+                                setUnsavedChanges(status); // trigger the internal prompt
+                                updateViewActionUnsavedChanges(status); //notify the views controller
+                            },
                             integratedView: true,
                         }}
                     />
