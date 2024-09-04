@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.text
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset, PeakDataSource}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
@@ -12,7 +12,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
-class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource {
+class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
