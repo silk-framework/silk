@@ -16,7 +16,7 @@ import scala.jdk.CollectionConverters.IterableHasAsScala
   label = "Input hash",
   description =
 """Calculates the hash sum of the input values.
-This task supports using different hash algorithms from the [Secure Hash Algorithms family|https://en.wikipedia.org/wiki/Secure_Hash_Algorithms] (SHA, e.g. SHA256) and two algorithms from the [Message-Digest Algorithm family|https://en.wikipedia.org/wiki/MD5] (MD2 / MD5). Please be aware that some of these algorithms are not secure regarding collision- and other attacks."""
+This task supports using different hash algorithms from the [Secure Hash Algorithms family](https://en.wikipedia.org/wiki/Secure_Hash_Algorithms) (SHA, e.g. SHA256) and two algorithms from the [Message-Digest Algorithm family](https://en.wikipedia.org/wiki/MD5) (MD2 / MD5). Please be aware that some of these algorithms are not secure regarding collision- and other attacks."""
 )
 @TransformExamples(Array(
   new TransformExample(
