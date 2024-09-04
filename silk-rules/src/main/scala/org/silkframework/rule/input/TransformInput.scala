@@ -66,7 +66,7 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
   }
 
   override def withContext(taskContext: TaskContext): Input = {
-    copy(transformer = transformer.withContext(taskContext))
+    copy(transformer = transformer.withContext(taskContext), inputs = inputs.map(_.withContext(taskContext)))
   }
 }
 
