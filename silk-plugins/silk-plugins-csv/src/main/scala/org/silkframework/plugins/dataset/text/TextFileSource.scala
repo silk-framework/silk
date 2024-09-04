@@ -47,7 +47,18 @@ class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource
         entitySchema
       )
       GenericEntityTable(
-        entities = CloseableIterator(Iterator(entity)),
+        entities = CloseableIterator.single(entity),
+        entitySchema = entitySchema,
+        task = underlyingTask,
+      )
+    } else if(entitySchema.typedPaths.isEmpty) {
+      val entity = new Entity(
+        uri = ds.uri,
+        values = IndexedSeq.empty,
+        entitySchema
+      )
+      GenericEntityTable(
+        entities = CloseableIterator.single(entity),
         entitySchema = entitySchema,
         task = underlyingTask,
       )
