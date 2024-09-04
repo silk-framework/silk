@@ -16,7 +16,7 @@ class FileHashTransformerTest extends AnyFlatSpec with Matchers {
     val resource = InMemoryResourceManager().get("test")
     resource.writeString("ABC")
     val transformer = FileHashTransformer(Some(resource))
-    transformer(Seq.empty) shouldBe Seq("3c01bdbb26f358bab27f267924aa2c9a03fcfdb8")
+    transformer(Seq.empty) shouldBe Seq("b5d4045c3f466fa91fe2cc6abe79232a1a57cdf104f7a26e716e0a1e2789df78")
   }
 
   it should "generate the hash sum of the input dataset" in {
@@ -26,7 +26,7 @@ class FileHashTransformerTest extends AnyFlatSpec with Matchers {
     val taskContext = TaskContext(Seq(dataset))
 
     val transformer = FileHashTransformer(None).withContext(taskContext)
-    transformer(Seq.empty) shouldBe Seq("3c01bdbb26f358bab27f267924aa2c9a03fcfdb8")
+    transformer(Seq.empty) shouldBe Seq("b5d4045c3f466fa91fe2cc6abe79232a1a57cdf104f7a26e716e0a1e2789df78")
   }
 
 }
