@@ -26,7 +26,8 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     * Writes a row.
     */
   def writeLine(values: Seq[String]): Unit = {
-    csvWriter.writeRow(values: _*)
+    val sanitizedRow = values.map(CSVSanitizer.sanitize)
+    csvWriter.writeRow(sanitizedRow: _*)
   }
 
   /**

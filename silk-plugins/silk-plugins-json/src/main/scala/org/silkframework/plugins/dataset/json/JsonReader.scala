@@ -53,12 +53,12 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
     parser.currentToken()
   }
 
-  def currentName: String = {
-    names.headOption.getOrElse("")
+  def currentName: Option[String] = {
+    names.headOption
   }
 
   def currentNameEncoded: String = {
-    URLEncoder.encode(currentName, StandardCharsets.UTF_8.name)
+    URLEncoder.encode(currentName.getOrElse(""), StandardCharsets.UTF_8.name)
   }
 
   def hasCurrentToken: Boolean = {

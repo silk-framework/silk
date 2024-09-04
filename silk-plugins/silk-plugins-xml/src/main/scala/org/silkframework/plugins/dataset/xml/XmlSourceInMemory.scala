@@ -19,6 +19,8 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   private val logger = Logger.getLogger(getClass.getName)
 
+  override val supportsAsteriskOperator: Boolean = true
+
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     new XmlSourceStreaming(file, basePath, uriPattern).retrieveTypes(limit)

@@ -162,7 +162,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
     jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text", "/#line", "/#column") ++ jsonOps
     // Here, the backward operator would show up, so also show the path
-    jsonSuggestions("name", 0, None) mustBe Seq("name", "\\")
+    jsonSuggestions("name", 0, None) mustBe Seq("name", "#key", "\\")
   }
 
   it should "not propose path ops inside a filter" in {
@@ -218,7 +218,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "not suggest special paths that should not be used in object mapping value paths" in {
     jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
-      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT).contains(p)) ++ Seq("\\")
+      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT, JsonDataset.specialPaths.KEY).contains(p)) ++ Seq("\\")
     rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
   }
 
@@ -231,8 +231,22 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
 
   it should "suggest the correct paths for object mappings starting with backward paths" in {
     suggest("") mustBe allJsonPaths ++ jsonSpecialPaths ++ Seq("\\")
-    suggest("nam") mustBe Seq("name") ++ jsonOps
+    suggest("nam") mustBe Seq("name", "#key") ++ jsonOps
   }
+
+  it should "consider * for datasets that support this path operator" in {
+    suggest("*/") mustBe allJsonPaths
+      .filter(_.contains("/"))
+      .map(p => p.drop(p.indexOf("/"))) ++ jsonSpecialPaths.filter(!_.startsWith("\\")).map(v => "/" + v)
+    suggest("*/id") mustBe allJsonPaths
+      .filter(_.contains("/"))
+      .map(p => p.drop(p.indexOf("/")))
+      .filter(_.toLowerCase.contains("id")) ++ Seq("/#id") ++ jsonOps
+    // Ignore special paths containing "value" in the description
+    suggest("*/tags/*/val").filter(!_.startsWith("/#")) mustBe Seq("/value") ++ jsonOps
+  }
+
+  /** The following test changes the suggestions. Add tests before this test. */
 
   it should "suggest the correct path for object mappings starting with backward paths when there is a backward path in the paths cache" in {
     // Add path with backward operator containing the forward path "name" in it to the paths cache
@@ -254,7 +268,7 @@ class PartialAutoCompletionApiTest extends AnyFlatSpec with Matchers with Single
     pathsCache.control.waitUntilFinished()
     val cacheValue = pathsCache.control.value.get.get
     cacheValue.configuredSchema.typedPaths.find(_.toString.contains("someBackwardPathToParent")) mustBe defined
-    suggest("nam", ruleId = "toParent") mustBe Seq("nameAfterBack") ++ jsonOps
+    suggest("nam", ruleId = "toParent") mustBe Seq("nameAfterBack", "#key") ++ jsonOps
   }
 
   private def partialAutoCompleteResult(inputString: String = "",
