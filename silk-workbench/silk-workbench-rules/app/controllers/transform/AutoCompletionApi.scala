@@ -24,6 +24,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonHelpers
+import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCacheValue}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
@@ -171,9 +172,12 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
           val isRdfInput = TransformUtils.isRdfInput(task)
           val simpleSourcePath = AutoCompletionApiUtils.simplePath(sourcePath)
           val forwardOnlySourcePath = AutoCompletionApiUtils.forwardOnlyPath(simpleSourcePath)
-          val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection.typeUri, task.activity[TransformPathsCache].value.get, simpleSourcePath.nonEmpty && isRdfInput)
+          val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection.typeUri, task.activity[TransformPathsCache].value.get,
+            simpleSourcePath.nonEmpty && isRdfInput)
+          val supportsAsteriskOperator = DatasetUtils.supportsAsteriskOperator(project, task.data.selection)
           // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
-          val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+          val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput,
+            supportsAsteriskOperator = supportsAsteriskOperator)
           // Add known paths
           Completions(relativeForwardPaths)
       }
@@ -278,6 +282,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     } else {
       None
     }
+    val supportsAsteriskOperator = dataSourceCharacteristicsOpt.exists(_.supportsAsteriskPathOperator)
     // compute relative paths
     val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
     val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
@@ -292,7 +297,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       case _ => OpFilter.None
     }
     val relativePaths = AutoCompletionApiUtils.extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
-      serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
+      serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter,
+      supportsAsteriskOperator = supportsAsteriskOperator
     )
     val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath)
     // Add known paths
