@@ -208,6 +208,8 @@ object SearchApiModel {
     // Workflow facets
     final val workflowExecutionStatus: Facet = Facet("workflowExecutionStatus", "Last Execution Status", "Allows to filter by the" +
         " status of the last execution of the workflow.", FacetType.keyword)
+    final val workflowInputOutput: Facet = Facet("workflowInputOutput", "Replaceable Input/Output", "Allows to filter by " +
+      "replaceable input/output datasets being included in the workflow.", FacetType.keyword)
     // Task facets
     final val taskType: Facet = Facet("taskType", "Task type", "The concrete type of a task.", FacetType.keyword)
     // Generic facets
@@ -220,7 +222,7 @@ object SearchApiModel {
     final val activityStartedBy: Facet = Facet("startedBy", "Started by", "The user that started the activity", FacetType.keyword)
 
     val facetIds: Seq[String] = Seq(datasetType, fileResource, readOnly, taskType, transformInputResource, workflowExecutionStatus,
-      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy).map(_.id)
+      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy, workflowInputOutput).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
