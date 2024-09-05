@@ -1,10 +1,10 @@
 import React from "react";
-import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
-import {EnzymePropSelector, mount, ReactWrapper, shallow} from "enzyme";
-import {Provider} from "react-redux";
-import {configureStore, getDefaultMiddleware} from "@reduxjs/toolkit";
+import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
+import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
+import { Provider } from "react-redux";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
-import {ConnectedRouter, routerMiddleware} from "connected-react-router";
+import { ConnectedRouter, routerMiddleware } from "connected-react-router";
 import {
     AxiosMockQueueItem,
     AxiosMockRequestCriteria,
@@ -12,15 +12,15 @@ import {
     HttpResponse,
 } from "jest-mock-axios/dist/lib/mock-axios-types";
 import mockAxios from "../__mocks__/axios";
-import {CONTEXT_PATH, SERVE_PATH} from "../../src/app/constants/path";
-import {mergeDeepRight} from "ramda";
-import {IStore} from "../../src/app/store/typings/IStore";
-import {render, waitFor} from "@testing-library/react";
+import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
+import { mergeDeepRight } from "ramda";
+import { IStore } from "../../src/app/store/typings/IStore";
+import { render, waitFor } from "@testing-library/react";
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
 } from "../../src/app/services/fetch/responseInterceptor";
-import {AxiosError} from "axios";
+import { AxiosError } from "axios";
 
 interface IMockValues {
     history: History;
@@ -168,7 +168,6 @@ export const keyDown = (wrapper: ReactWrapper<any, any>, key: string = "Enter") 
 export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
     wrapper.simulate("change", { target: { value: value } });
 };
-
 
 /** Finds a single element corresponding to the selector or fails. */
 export const findSingleElement = (

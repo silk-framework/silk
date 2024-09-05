@@ -181,6 +181,11 @@ abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers {
           "Properties/Property")
     }
 
+    it should s"retrieve paths when the asterisk operator is used in the base path ($fileName)" in {
+      (XmlDoc("persons.xml") atPath "*/Properties/*").subPaths shouldBe Seq("Key", "Value", "Key", "Key/@id")
+      (XmlDoc("persons.xml") atPath "Person/*/Property").subPaths shouldBe Seq("Key", "Value", "Key", "Key/@id")
+    }
+
     it should s"respect the limit when reading entities ($fileName)" in {
       (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
       (persons atPath "Person" limit 2 valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))

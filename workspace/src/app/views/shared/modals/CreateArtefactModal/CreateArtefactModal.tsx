@@ -173,8 +173,8 @@ export function CreateArtefactModal() {
     };
 
     const resetModalInfo = () => {
-        dispatch(commonOp.setModalInfo(undefined))
-    }
+        dispatch(commonOp.setModalInfo(undefined));
+    };
 
     // Function to set template parameter flag for a parameter
     const setTemplateFlag = React.useCallback((parameterId: string, isTemplate: boolean) => {
@@ -212,7 +212,7 @@ export function CreateArtefactModal() {
             resetModal(true);
         } else {
             // Clear errors when freshly opened
-            form.clearError()
+            form.clearError();
         }
     }, [isOpen]);
 
@@ -327,7 +327,7 @@ export function CreateArtefactModal() {
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
-                    console.log({formValues})
+                    console.log({ formValues });
                     const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
                     let dataParameters: any;
                     if (type === "Dataset") {
@@ -387,7 +387,7 @@ export function CreateArtefactModal() {
     const closeModal = () => {
         setSearchValue("");
         resetModal(true);
-        newTaskPreConfiguration?.onCloseCallback?.()
+        newTaskPreConfiguration?.onCloseCallback?.();
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
@@ -776,14 +776,8 @@ export function CreateArtefactModal() {
         );
     }
 
-    if(info) {
-        notifications.push(
-            <Notification
-                onDismiss={resetModalInfo}
-                message={info}
-                timeout={30000}
-            />
-        )
+    if (info) {
+        notifications.push(<Notification onDismiss={resetModalInfo} message={info} timeout={30000} />);
     }
 
     if (infoMessage) {

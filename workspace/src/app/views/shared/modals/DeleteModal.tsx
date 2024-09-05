@@ -30,7 +30,7 @@ export interface IDeleteModalOptions extends TestableComponent {
     submitOnEnter?: boolean;
     //optional prop to disable the delete button
     deleteDisabled?: boolean;
-    alternativeCancelButtonLabel?: string
+    alternativeCancelButtonLabel?: string;
 }
 
 export default function DeleteModal({

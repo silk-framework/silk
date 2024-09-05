@@ -429,7 +429,7 @@ const resetArtefactModal =
         batch(() => {
             dispatch(selectArtefact(undefined));
             dispatch(setModalError({}));
-            dispatch(setModalInfo(undefined))
+            dispatch(setModalInfo(undefined));
             if (shouldClose) {
                 dispatch(closeArtefactModal());
             }

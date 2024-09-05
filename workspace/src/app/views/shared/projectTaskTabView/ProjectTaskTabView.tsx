@@ -116,21 +116,24 @@ export function ProjectTaskTabView({
     const [openTabSwitchPrompt, setOpenTabSwitchPrompt] = React.useState<boolean>(false);
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [blockedTab, setBlockedTab] = React.useState<IItemLink | string | undefined>(undefined);
-    const [blockedClosingModal, setBlockedClosingModal] = React.useState<boolean>(false); 
+    const [blockedClosingModal, setBlockedClosingModal] = React.useState<boolean>(false);
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
-    const [warnings, setWarnings] = React.useState<string[] | undefined>(undefined)
+    const [warnings, setWarnings] = React.useState<string[] | undefined>(undefined);
 
-    const handlerRemoveModalWrapper = React.useCallback((overwrite = false) => {
-        if(unsavedChanges && !overwrite){
-          setBlockedClosingModal(true);
-          setOpenTabSwitchPrompt(true); //trigger modal
-        }else {
-            setBlockedClosingModal(false);
-            handlerRemoveModal && handlerRemoveModal()
-        }
-    },[unsavedChanges, handlerRemoveModal])
+    const handlerRemoveModalWrapper = React.useCallback(
+        (overwrite = false) => {
+            if (unsavedChanges && !overwrite) {
+                setBlockedClosingModal(true);
+                setOpenTabSwitchPrompt(true); //trigger modal
+            } else {
+                setBlockedClosingModal(false);
+                handlerRemoveModal && handlerRemoveModal();
+            }
+        },
+        [unsavedChanges, handlerRemoveModal]
+    );
 
     // Either the ID of an IItemLink or the view ID or undefined
     const activeTab: IProjectTaskView | IItemLink | undefined =
@@ -149,15 +152,15 @@ export function ProjectTaskTabView({
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
     React.useEffect(() => {
-        fetchTaskNotifications()
-    }, [viewActions?.taskContext])
+        fetchTaskNotifications();
+    }, [viewActions?.taskContext]);
 
     const fetchTaskNotifications = React.useCallback(async () => {
-        const warnings = viewActions?.taskContext ?
-            await viewActions.taskContext.taskContextNotification?.(viewActions.taskContext.context) :
-            undefined
-        setWarnings(warnings ? warnings.map(w => w.message) : undefined)
-    }, [])
+        const warnings = viewActions?.taskContext
+            ? await viewActions.taskContext.taskContextNotification?.(viewActions.taskContext.context)
+            : undefined;
+        setWarnings(warnings ? warnings.map((w) => w.message) : undefined);
+    }, []);
 
     React.useEffect(() => {
         if (tabRouteChangeRequest != null) {
@@ -233,7 +236,7 @@ export function ProjectTaskTabView({
             //trigger modal
             setOpenTabSwitchPrompt(true);
             setBlockedTab(tabItem);
-            setBlockedClosingModal(false)
+            setBlockedClosingModal(false);
         } else {
             const tabRoute = getTabRoute(tabItem);
             setUnsavedChanges(false);
@@ -357,9 +360,10 @@ export function ProjectTaskTabView({
     let tabNr = 1;
 
     const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
-        const suffix = getTaskView(selectedTab)?.supportsTaskContext && viewActions?.taskContext ?
-            viewActions.taskContext.taskViewSuffix?.(viewActions.taskContext.context) :
-            undefined
+        const suffix =
+            getTaskView(selectedTab)?.supportsTaskContext && viewActions?.taskContext
+                ? viewActions.taskContext.taskViewSuffix?.(viewActions.taskContext.context)
+                : undefined;
         return (
             <Card
                 className="diapp-iframewindow__content"
@@ -369,7 +373,9 @@ export function ProjectTaskTabView({
             >
                 <CardHeader>
                     <CardTitle>
-                        <h2>{tLabel(activeTab?.label ?? "")} {suffix}</h2>
+                        <h2>
+                            {tLabel(activeTab?.label ?? "")} {suffix}
+                        </h2>
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
@@ -446,9 +452,7 @@ export function ProjectTaskTabView({
                         </>
                     )}
                 </CardContent>
-                {warnings && (
-                    <CardContentWarnings warnings={warnings} />
-                )}
+                {warnings && <CardContentWarnings warnings={warnings} />}
             </Card>
         );
     };
@@ -461,7 +465,9 @@ export function ProjectTaskTabView({
                     setBlockedTab(undefined);
                 }}
                 isOpen={openTabSwitchPrompt}
-                proceed={() => blockedClosingModal ? handlerRemoveModalWrapper(true) : blockedTab && changeTab(blockedTab, true)}
+                proceed={() =>
+                    blockedClosingModal ? handlerRemoveModalWrapper(true) : blockedTab && changeTab(blockedTab, true)
+                }
             />
             {selectedTask === taskId && !!handlerRemoveModal ? (
                 <Modal
@@ -492,27 +498,29 @@ export function ProjectTaskTabView({
 
 interface CardContentWarningsProps {
     /** The warning messages that should be displayed. */
-    warnings: string[]
+    warnings: string[];
 }
 
-const CardContentWarnings = React.memo(({warnings}: CardContentWarningsProps) => {
-    const [warningsStack, setWarningStack] = React.useState(warnings)
+const CardContentWarnings = React.memo(({ warnings }: CardContentWarningsProps) => {
+    const [warningsStack, setWarningStack] = React.useState(warnings);
     const removeWarning = React.useCallback((warningToRemove: string) => {
-        setWarningStack(prevWarnings => prevWarnings.filter(w => w !== warningToRemove))
-    }, [])
-    return warningsStack.length ? <CardContent data-test-id="tab-view-warnings" className={`${eccgui}-dialog__notifications`}>
-            {
-                warningsStack.map((warning, idx) => {
-                    return <Fragment key={warning}>
+        setWarningStack((prevWarnings) => prevWarnings.filter((w) => w !== warningToRemove));
+    }, []);
+    return warningsStack.length ? (
+        <CardContent data-test-id="tab-view-warnings" className={`${eccgui}-dialog__notifications`}>
+            {warningsStack.map((warning, idx) => {
+                return (
+                    <Fragment key={warning}>
                         <Notification
                             warning
                             onDismiss={(didTimeoutExpire) => !didTimeoutExpire && removeWarning(warning)}
-                        >{warning}</Notification>
-                        {idx < (warningsStack.length - 1) && <Spacing size={"small"} />}
+                        >
+                            {warning}
+                        </Notification>
+                        {idx < warningsStack.length - 1 && <Spacing size={"small"} />}
                     </Fragment>
-                })
-            }
-        </CardContent> :
-        null
-
-})
+                );
+            })}
+        </CardContent>
+    ) : null;
+});

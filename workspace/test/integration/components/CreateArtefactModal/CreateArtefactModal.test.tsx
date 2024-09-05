@@ -17,7 +17,9 @@ import {
     elementHtmlToContain,
     findAll,
     findSingleElement,
-    legacyApiUrl, logRequests, logWrapperHtml,
+    legacyApiUrl,
+    logRequests,
+    logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
@@ -81,11 +83,8 @@ describe("Task creation widget", () => {
     // Loads the selection list modal with mocked artefact list
     const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
         const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
-        const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true")
-        mockAxios.mockResponseFor(
-            { url },
-            mockedAxiosResponse({ data: mockArtefactListResponse })
-        );
+        const url = apiUrl("core/taskPlugins?addMarkdownDocumentation=true");
+        mockAxios.mockResponseFor({ url }, mockedAxiosResponse({ data: mockArtefactListResponse }));
         if (!existingTask) {
             await waitFor(() => {
                 expect(selectionItems(wrapper.wrapper)).toHaveLength(3);
@@ -274,7 +273,7 @@ describe("Task creation widget", () => {
         const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
-        (window.document.querySelector('.CodeMirror') as any)?.CodeMirror?.setValue('Some description')
+        (window.document.querySelector(".CodeMirror") as any)?.CodeMirror?.setValue("Some description");
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
@@ -330,7 +329,7 @@ describe("Task creation widget", () => {
         clickWrapperElement(project);
         expect(findAll(wrapper, "#label")).toHaveLength(1);
         changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
-        (window.document.querySelector('.CodeMirror') as any)?.CodeMirror?.setValue(PROJECT_DESCRIPTION )
+        (window.document.querySelector(".CodeMirror") as any)?.CodeMirror?.setValue(PROJECT_DESCRIPTION);
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
         await waitFor(() => {

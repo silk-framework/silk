@@ -30,7 +30,7 @@ const MappingEditorModal = ({
     transformTaskId,
     isOpen,
     containerRuleId,
-    viewActions
+    viewActions,
 }: MappingEditorProps) => {
     /** keeps track of whether there are unsaved changes or not */
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
@@ -46,11 +46,12 @@ const MappingEditorModal = ({
         } else {
             onClose();
         }
-    }, [unsavedChanges]);``
+    }, [unsavedChanges]);
+    ``;
 
-    const updateViewActionUnsavedChanges = (status:boolean) => {
-        viewActions?.savedChanges && viewActions.savedChanges(status) 
-    }
+    const updateViewActionUnsavedChanges = (status: boolean) => {
+        viewActions?.savedChanges && viewActions.savedChanges(status);
+    };
 
     /** Warning prompt that shows up when the user decides to close the modal with unsaved changes */
     const WarningModal = React.memo(() => (
@@ -67,7 +68,7 @@ const MappingEditorModal = ({
                     onClick={() => {
                         setShowWarningModal(false);
                         onClose();
-                        updateViewActionUnsavedChanges(false)
+                        updateViewActionUnsavedChanges(false);
                     }}
                 >
                     {t("taskViews.transformRulesEditor.warning.modal.close-btn")}
@@ -111,8 +112,8 @@ const MappingEditorModal = ({
                         transformTaskId={transformTaskId}
                         viewActions={{
                             savedChanges: (status) => {
-                                setUnsavedChanges(status) // trigger the internal prompt
-                                updateViewActionUnsavedChanges(status) //notify the views controller
+                                setUnsavedChanges(status); // trigger the internal prompt
+                                updateViewActionUnsavedChanges(status); //notify the views controller
                             },
                             integratedView: true,
                         }}

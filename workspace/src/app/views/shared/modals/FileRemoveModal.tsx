@@ -23,16 +23,23 @@ interface IProps {
     onConfirm(fileId?: string | number);
 
     /** Alternative title to the default title. */
-    alternativeTitle?: string
+    alternativeTitle?: string;
 
     /** Alternative message to the default one. */
-    alternativeMessage?: string
+    alternativeMessage?: string;
 
-    alternativeCancelButtonLabel?: string
+    alternativeCancelButtonLabel?: string;
 }
 
 /** Dialog to delete a project resource. */
-export function FileRemoveModal({ projectId, onConfirm, file, alternativeTitle, alternativeMessage, alternativeCancelButtonLabel }: IProps) {
+export function FileRemoveModal({
+    projectId,
+    onConfirm,
+    file,
+    alternativeTitle,
+    alternativeMessage,
+    alternativeCancelButtonLabel,
+}: IProps) {
     const [t] = useTranslation();
     const [error, setError] = React.useState<ErrorResponse | undefined>();
     const checkAndDisplayError = useModalError({ setError });
@@ -81,9 +88,7 @@ export function FileRemoveModal({ projectId, onConfirm, file, alternativeTitle, 
                             </li>
                         ))}
                     </ul>
-                    <p>
-                        {alternativeMessage ?? t("widget.FileWidget.removeText", {file: fileValue(file)})}
-                    </p>
+                    <p>{alternativeMessage ?? t("widget.FileWidget.removeText", { file: fileValue(file) })}</p>
                 </div>
             );
         } else {
