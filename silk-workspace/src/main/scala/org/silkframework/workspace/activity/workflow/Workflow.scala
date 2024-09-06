@@ -362,6 +362,17 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   }
 
   override def mainActivities: Seq[String] = Seq("ExecuteDefaultWorkflow")
+
+  override def searchTags: Seq[String] = {
+    var l = Vector.empty[String]
+    if(replaceableInputs.nonEmpty) {
+      l = l :+ "Replaceable input"
+    }
+    if(replaceableOutputs.nonEmpty) {
+      l = l :+ "Replaceable output"
+    }
+    l
+  }
 }
 
 /** Plugin parameter for the workflow operators. */

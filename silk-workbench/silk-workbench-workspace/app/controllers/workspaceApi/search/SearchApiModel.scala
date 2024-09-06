@@ -35,6 +35,7 @@ object SearchApiModel {
   final val PLUGIN_ID = "pluginId"
   final val PLUGIN_LABEL = "pluginLabel"
   final val TAGS = "tags"
+  final val SEARCH_TAGS = "searchTags"
   final val PARAMETERS = "parameters"
   final val READ_ONLY = "readOnly"
   final val URI_PROPERTY = "uriProperty"
@@ -167,7 +168,8 @@ object SearchApiModel {
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
-      val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels
+      val searchTags = task.searchTags
+      val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
       matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
     }
 
@@ -522,7 +524,8 @@ object SearchApiModel {
           DESCRIPTION -> JsString(""),
           PLUGIN_ID -> JsString(pd.id),
           PLUGIN_LABEL -> JsString(pd.label),
-          TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
+          TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
+          SEARCH_TAGS -> Json.toJson(task.searchTags)
         )
           ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
           ++ parameters
