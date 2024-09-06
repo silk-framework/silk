@@ -36,10 +36,6 @@ const mockValues: IMockValues = {
 };
 const host = process.env.HOST;
 
-jest.mock("@uiw/codemirror-theme-quietlight", () => ({
-    quietlight: {}, // Provide an empty mock object or define necessary properties
-}));
-
 // Mock global history object
 jest.mock("../../src/app/store/configureStore", () => {
     return {
