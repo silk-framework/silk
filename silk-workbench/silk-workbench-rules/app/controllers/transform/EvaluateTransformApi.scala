@@ -213,12 +213,14 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
       })
   }
 
-  private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String): TransformSpec.RuleSchemata = {
+  private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
+                            (implicit userContext: UserContext): TransformSpec.RuleSchemata = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
     task.data.ruleSchemataWithoutEmptyObjectRules
       .find(_.transformRule.id.toString == objectMappingId)
       .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is either an empty object rule, i.e. it has at most a URI rule,  or is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
         s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
+      .withContext(task.taskContext)
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
@@ -226,12 +228,12 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     implicit val prefixes: Prefixes = task.project.config.prefixes
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)
-
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
+    val ruleWithContext = transformRule.withContext(task.taskContext)
 
     val entities = task.dataSource.retrieve(inputSchema, Some(limit)).entities.take(limit)
     for(entity <- entities) yield {
-      DetailedEvaluator(transformRule, entity)
+      DetailedEvaluator(ruleWithContext, entity)
     }
   }
 

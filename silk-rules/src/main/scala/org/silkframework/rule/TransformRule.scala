@@ -133,6 +133,8 @@ sealed trait TransformRule extends Operator with HasMetaData {
     }
   }
 
+  override def withContext(taskContext: TaskContext): TransformRule = this
+
   def representsDefaultUriRule: Boolean = {
     false
   }
@@ -142,6 +144,7 @@ sealed trait TransformRule extends Operator with HasMetaData {
   * Base trait for all rules that can have child rules.
   */
 sealed trait ContainerTransformRule extends TransformRule {
+
   override def label(maxLength: Int)(implicit prefixes: Prefixes): String = {
     val typeLabel = rules.typeRules.map(typeUri => prefixes.shorten(typeUri.typeUri.uri)).mkString(", ")
     if(typeLabel.nonEmpty) {
@@ -149,6 +152,10 @@ sealed trait ContainerTransformRule extends TransformRule {
     } else {
       super.label(maxLength)
     }
+  }
+
+  override def withContext(taskContext: TaskContext): TransformRule = {
+    withChildren(rules.map(_.withContext(taskContext)))
   }
 }
 
@@ -171,6 +178,10 @@ sealed trait ValueTransformRule extends TransformRule {
   def layout: RuleLayout = RuleLayout()
 
   def uiAnnotations: UiAnnotations = UiAnnotations()
+
+  override def withContext(taskContext: TaskContext): ValueTransformRule = {
+    this
+  }
 }
 
 /**
@@ -208,7 +219,7 @@ case class RootMappingRule(override val rules: MappingRules,
     */
   override def withChildren(newChildren: Seq[Operator]): TransformRule = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
-    this.copy(rules = MappingRules.fromSeq(newRules))
+    copy(rules = MappingRules.fromSeq(newRules))
   }
 
   /** The input operator tree. */
@@ -326,6 +337,10 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
   override val typeString = "ComplexURI"
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
+
+  override def withContext(taskContext: TaskContext): ComplexUriMapping = {
+    copy(operator = operator.withContext(taskContext))
+  }
 }
 
 /**
@@ -366,6 +381,10 @@ case class ComplexMapping(id: Identifier = "mapping",
   override val typeString = "Complex"
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
+
+  override def withContext(taskContext: TaskContext): ComplexMapping = {
+    copy(operator = operator.withContext(taskContext))
+  }
 }
 
 /**
@@ -421,7 +440,7 @@ case class ObjectMapping(id: Identifier = "mapping",
     */
   override def withChildren(newChildren: Seq[Operator]): TransformRule = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
-    this.copy(rules = MappingRules.fromSeq(newRules))
+    copy(rules = MappingRules.fromSeq(newRules))
   }
 
   def fillEmptyUriRule: ObjectMapping = {
@@ -555,10 +574,10 @@ object TransformRule {
     case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData, _, _) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
       ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
-    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
+    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), IndexedSeq()), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)
     // Type Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), IndexedSeq()), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)
     // Complex Mapping
     case _ => complexMapping
@@ -615,7 +634,7 @@ private object UriPattern {
       case PathInput(id, path) => true
       case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
-      case TransformInput(id, ConstantTransformer(constant), Nil) => true
+      case TransformInput(id, ConstantTransformer(constant), IndexedSeq()) => true
       case _ => false
     }
   }
@@ -625,7 +644,7 @@ private object UriPattern {
       case PathInput(id, path) => "{" + path.serialize() + "}"
       case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
-      case TransformInput(id, ConstantTransformer(constant), Nil) => constant
+      case TransformInput(id, ConstantTransformer(constant), IndexedSeq()) => constant
     }.mkString("")
   }
 }

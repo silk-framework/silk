@@ -2,9 +2,8 @@ package org.silkframework.rule.execution
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.{DataSource, EntitySink}
+import org.silkframework.dataset.{DataSource, DatasetSpec, EmptyDataset, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
@@ -32,6 +31,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
       PlainTask("transformTask", transform),
+      inputTask = _ => PlainTask("dummy", DatasetSpec(EmptyDataset)),
       input = _ => dataSourceMock,
       output = _ => outputMock
     )

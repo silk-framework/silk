@@ -15,6 +15,7 @@ import scala.util.control.NonFatal
   * Executes a set of transformation rules.
   */
 class ExecuteTransform(task: Task[TransformSpec],
+                       inputTask: UserContext => Task[_],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
@@ -48,6 +49,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val entitySink = output(userContext)
     val errorEntitySink = errorOutput(userContext)
     val report = new TransformReportBuilder(task, context)
+    val taskContext = TaskContext(Seq(inputTask(userContext)))
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")
@@ -57,7 +59,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     context.status.updateMessage("Retrieving entities")
     try {
       for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
-        transformEntities(dataSource, ruleSchemata, entitySink, errorEntitySink, report, context)
+        transformEntities(dataSource, ruleSchemata.withContext(taskContext), entitySink, errorEntitySink, report, context)
         context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
       }
     } finally {
