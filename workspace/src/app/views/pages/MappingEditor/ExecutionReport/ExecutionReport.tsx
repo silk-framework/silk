@@ -210,7 +210,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         );
     };
 
-    const renderEntityPreview = (id: string | undefined) => {
+    const renderEntityPreview = (id: string | undefined, showURI: boolean) => {
         const outputEntitiesSample = executionReport?.outputEntitiesSample;
         if (!outputEntitiesSample) {
             return null;
@@ -240,11 +240,22 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                     }
                 }
                 types.push(type);
+                const attributes = schema
+                    ? schema.properties
+                    : entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`)
+                const values = entities.map((e) => {
+                    if(showURI) {
+                        return [...e.values, [e.uri]]
+                    } else {
+                        return e.values
+                    }
+                })
+                if(showURI) {
+                    attributes.push("URI")
+                }
                 typeValues.set(type, {
-                    attributes: schema
-                        ? schema.properties
-                        : entities[0].values.map((_v, idx) => `Attribute ${idx + 1}`),
-                    values: entities.map((e) => e.values),
+                    attributes,
+                    values,
                 });
             });
             return (
@@ -277,6 +288,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
     const renderRuleReport = () => {
         const ruleResults = currentRuleId ? executionReport?.ruleResults?.[currentRuleId] : undefined;
         let title;
+        const showURI = !!executionReport?.executionReportContext?.entityUriOutput
         if (ruleResults === undefined) {
             title = t("ExecutionReport.transform.messages.selectMapping");
         } else if (ruleResults.errorCount === 0) {
@@ -295,7 +307,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 </Notification>
                 {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
                 <Spacing size={"small"} />
-                {renderEntityPreview(currentRuleId ?? "root")}
+                {renderEntityPreview(currentRuleId ?? "root", showURI)}
             </Section>
         );
     };
@@ -357,7 +369,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         <div data-test-id={"execution-report"}>
             {renderSummary()}
             {isTransformReport() && renderTransformReport()}
-            {!isTransformReport() && renderEntityPreview(undefined)}
+            {!isTransformReport() && renderEntityPreview(undefined, false)}
         </div>
     );
 };

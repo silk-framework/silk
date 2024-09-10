@@ -32,6 +32,11 @@ export interface ExecutionReportResponse {
     outputEntitiesSample: OutputEntitiesSample[]
     /** Transform report specific property. */
     ruleResults?: RuleResults
+    executionReportContext?: ExecutionReportContext
+}
+
+interface ExecutionReportContext {
+    entityUriOutput?: boolean
 }
 
 type RuleResults  = Record<string, RuleResult>

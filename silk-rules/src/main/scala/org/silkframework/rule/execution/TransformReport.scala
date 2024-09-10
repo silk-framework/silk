@@ -1,8 +1,11 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
+import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.dataset.{CombinedEntitySink, DataSink, TripleSink}
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.execution.report.{EntitySample, SampleEntities}
+import org.silkframework.execution.report.SampleEntities
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport._
 import org.silkframework.util.Identifier
@@ -21,7 +24,8 @@ case class TransformReport(task: Task[TransformSpec],
                            globalErrors: Seq[String] = Seq.empty,
                            isDone: Boolean = false,
                            override val error: Option[String] = None,
-                           override val sampleOutputEntities: Vector[SampleEntities] = Vector.empty) extends ExecutionReport {
+                           override val sampleOutputEntities: Vector[SampleEntities] = Vector.empty,
+                           context: Option[TransformReportExecutionContext] = None) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
@@ -110,5 +114,43 @@ object TransformReport {
       // Else replace last entry
       currentSampleEntities.dropRight(1) :+ newSampleEntities
     }
+  }
+}
+
+/** Additional information about the context the transformation was executed in
+  *
+  * @param entityUriOutput If the entity URI is output in any way. This might be relevant when displaying the report.
+  */
+case class TransformReportExecutionContext(entityUriOutput: Boolean)
+
+object TransformReportExecutionContext {
+  final val default: TransformReportExecutionContext = TransformReportExecutionContext(false)
+
+  def apply(outputTask: Task[TaskSpec]): TransformReportExecutionContext = {
+    outputTask.data match {
+      case datasetSpec: GenericDatasetSpec => apply(datasetSpec)
+      case _ => TransformReportExecutionContext.default
+    }
+  }
+
+  def apply(sink: DataSink): TransformReportExecutionContext = {
+    sink match {
+      case combined: CombinedEntitySink =>
+        val reports = combined.sinks.map(sink => apply(sink))
+        TransformReportExecutionContext(reports.exists(r => r.entityUriOutput))
+      case wrapper: EntitySinkWrapper =>
+        apply(wrapper.datasetSpec)
+      case _: TripleSink =>
+        TransformReportExecutionContext(true)
+      case _ =>
+        TransformReportExecutionContext(false)
+    }
+
+  }
+
+  def apply(outputDataset: GenericDatasetSpec): TransformReportExecutionContext = {
+    val isRdfOutput = outputDataset.plugin.isInstanceOf[RdfDataset]
+    val outputsUri = outputDataset.uriAttribute.isDefined
+    TransformReportExecutionContext(isRdfOutput || outputsUri)
   }
 }

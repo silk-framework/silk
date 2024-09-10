@@ -30,7 +30,7 @@ class ExecuteTransform(task: Task[TransformSpec],
          (implicit userContext: UserContext): Unit = {
     cancelled = false
     // Reset transform report
-    context.value() = TransformReport(task)
+    context.value() = TransformReport(task, context = Some(TransformReportExecutionContext(input(userContext).underlyingTask)))
 
     try {
       execute(context)
@@ -48,6 +48,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val entitySink = output(userContext)
     val errorEntitySink = errorOutput(userContext)
     val report = new TransformReportBuilder(task, context)
+    report.setExecutionContext(TransformReportExecutionContext(entitySink))
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")

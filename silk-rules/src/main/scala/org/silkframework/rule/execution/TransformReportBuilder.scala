@@ -38,6 +38,8 @@ class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext
 
   private var sampleOutputEntities: Vector[SampleEntities] = Vector.empty
 
+  private var transformReportContext: Option[TransformReportExecutionContext] = None
+
   def addRules(rules: Seq[TransformRule]): Unit = {
     ruleResults ++= rules.map(rule => (rule.id, RuleResult())).toMap
   }
@@ -91,9 +93,13 @@ class TransformReportBuilder(task: Task[TransformSpec], context: ActivityContext
     executionError = Some(error)
   }
 
+  def setExecutionContext(context: TransformReportExecutionContext): Unit = {
+    transformReportContext = Some(context)
+  }
+
   def build(isDone: Boolean = false, logMessage: Boolean = false): Unit = {
     context.value() = TransformReport(task, entityCounter, entityErrorCounter, ruleResults, globalErrors, isDone, executionError,
-      sampleOutputEntities = sampleOutputEntities)
+      sampleOutputEntities = sampleOutputEntities, context = transformReportContext)
     if(logMessage) {
       context.status.updateMessage(s"Executing ($entityCounter Entities)")
     }

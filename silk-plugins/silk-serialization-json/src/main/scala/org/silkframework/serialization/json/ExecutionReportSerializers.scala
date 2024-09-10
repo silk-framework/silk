@@ -4,12 +4,12 @@ import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleE
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
-import org.silkframework.rule.execution.{Linking, TransformReport}
+import org.silkframework.rule.execution.{Linking, TransformReport, TransformReportExecutionContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.PairEntitySchemaJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.Keys._
 import org.silkframework.serialization.json.JsonHelpers._
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskJsonFormat, TransformSpecJsonFormat, toJsonOpt}
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskJsonFormat, TransformSpecJsonFormat}
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
 import org.silkframework.util.Identifier
@@ -112,6 +112,7 @@ object ExecutionReportSerializers {
   }
 
   implicit object TransformReportJsonFormat extends JsonFormat[TransformReport] {
+    implicit val contextFormat: Format[TransformReportExecutionContext] = Json.format[TransformReportExecutionContext]
 
     override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
@@ -119,12 +120,13 @@ object ExecutionReportSerializers {
           ENTITY_COUNTER -> value.entityCount,
           ENTITY_ERROR_COUNTER -> value.entityErrorCount,
           RULE_RESULTS -> writeRuleResults(value.ruleResults),
-          GLOBAL_ERRORS -> value.globalErrors
+          GLOBAL_ERRORS -> value.globalErrors,
+          EXECUTION_REPORT_CONTEXT -> value.context
         )
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformReport = {
-      implicit val taskFormat = new TaskJsonFormat[TransformSpec]()
+      implicit val taskFormat: TaskJsonFormat[TransformSpec] = new TaskJsonFormat[TransformSpec]()
       TransformReport(
         task = taskFormat.read(requiredValue(value, TASK)),
         entityCount = numberValue(value, ENTITY_COUNTER).intValue,
@@ -133,7 +135,8 @@ object ExecutionReportSerializers {
         globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]).toIndexedSeq,
         isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
         error = stringValueOption(value, ERROR),
-        sampleOutputEntities = parseSampleEntities(value).toVector
+        sampleOutputEntities = parseSampleEntities(value).toVector,
+        context = optionalValue(value, EXECUTION_REPORT_CONTEXT).map(_.as[TransformReportExecutionContext])
       )
     }
 
@@ -287,6 +290,8 @@ object ExecutionReportSerializers {
     final val STACKTRACE = "stacktrace"
 
     final val OUTPUT_ENTITIES_SAMPLE = "outputEntitiesSample"
+
+    final val EXECUTION_REPORT_CONTEXT = "executionReportContext"
   }
 
 }
