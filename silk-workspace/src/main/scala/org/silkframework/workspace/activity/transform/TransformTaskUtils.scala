@@ -75,7 +75,7 @@ object TransformTaskUtils {
      */
     def taskContext(implicit userContext: UserContext): TaskContext = {
       val inputTask = task.project.anyTask(task.selection.inputId)
-      TaskContext(Seq(inputTask))
+      TaskContext(Seq(inputTask), userContext)
     }
   }
 

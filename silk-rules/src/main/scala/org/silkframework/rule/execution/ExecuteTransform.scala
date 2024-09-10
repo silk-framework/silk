@@ -7,6 +7,7 @@ import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.workspace.ProjectTrait
 
 import scala.util.control.Breaks._
 import scala.util.control.NonFatal
@@ -49,7 +50,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val entitySink = output(userContext)
     val errorEntitySink = errorOutput(userContext)
     val report = new TransformReportBuilder(task, context)
-    val taskContext = TaskContext(Seq(inputTask(userContext)))
+    val taskContext = TaskContext(Seq(inputTask(userContext)), userContext)
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")

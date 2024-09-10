@@ -198,7 +198,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask))), exampleEntities, limit)
+                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask), userContext)), exampleEntities, limit)
               }
             } catch {
               case pe: PeakException =>

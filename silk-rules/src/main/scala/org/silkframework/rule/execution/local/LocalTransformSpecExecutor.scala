@@ -33,7 +33,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
     val report = new TransformReportBuilder(task, transformContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
-    implicit val taskContext: TaskContext = TaskContext(Seq(input.task))
+    implicit val taskContext: TaskContext = TaskContext(Seq(input.task), pluginContext.user)
 
     for ((ruleSchema, index) <- ruleSchemata.zipWithIndex) {
       val input = flatInputs(index)

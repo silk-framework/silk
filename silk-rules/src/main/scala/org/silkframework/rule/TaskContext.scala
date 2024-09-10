@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.Task
+import org.silkframework.runtime.activity.UserContext
 
 /**
  * The context in which a task is executed.
@@ -9,4 +10,4 @@ import org.silkframework.config.Task
  *                   If the task is executed within a workflow, those are the connected input task(s).
  *                   If the task is executed standalone, those are the configured default input(s).
  */
-case class TaskContext(inputTasks: Seq[Task[_]])
+case class TaskContext(inputTasks: Seq[Task[_]], userContext: UserContext)
