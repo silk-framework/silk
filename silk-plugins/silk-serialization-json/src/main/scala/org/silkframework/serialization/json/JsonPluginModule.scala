@@ -54,6 +54,6 @@ class JsonPluginModule extends PluginModule {
       ComplexMappingJsonFormat.getClass ::
       UiAnnotationsJsonFormat.getClass ::
       TaskIdentifierParameterFormat.getClass ::
-      classOf[TaskJsonTransformer] ::
+      classOf[InputTaskJsonTransformer] ::
       Nil
 }
