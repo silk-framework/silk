@@ -66,22 +66,19 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec],
     */
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    generateLinks = Some(createGenerateLinksActivity(task.data))
+    generateLinks = Some(createGenerateLinksActivity)
     generateLinks.get.run(context)
     generateLinks = None
   }
 
   /** Create the corresponding [[GenerateLinks]] activity. */
-  private def createGenerateLinksActivity(linkSpec: LinkSpec)
-                                         (implicit userContext: UserContext): GenerateLinks = {
-    val inputs = task.dataSources
-    val output = task.linkSink.filter(_ => writeOutputs)
-
+  private def createGenerateLinksActivity(implicit userContext: UserContext): GenerateLinks = {
     new GenerateLinks(
       task,
-      inputs = inputs,
-      output = output,
-      runtimeConfig = runtimeConfig
+      inputs = task.dataSources,
+      output = task.linkSink.filter(_ => writeOutputs),
+      runtimeConfig = runtimeConfig,
+      overrideLinkageRule = Some(task.ruleWithContext)
     )
   }
 

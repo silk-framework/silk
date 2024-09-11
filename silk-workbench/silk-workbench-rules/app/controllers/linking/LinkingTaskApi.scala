@@ -736,7 +736,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                               withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val rule = task.data.rule
+    val rule = task.ruleWithContext
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
     val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
@@ -789,12 +789,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
+      val ruleWithContext = linkageRule.withContext(task.taskContext)
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       def serialize(links: Iterable[DPair[Entity]]): JsValue = {
-        serializeLinks(links.take(linkLimit), linkageRule)
+        serializeLinks(links.take(linkLimit), ruleWithContext)
       }
-      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
+      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(ruleWithContext, referenceEntityCacheValue)
 
       try {
         val result =
@@ -964,11 +965,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
-      val updatedLinkSpec = task.data.copy(rule = linkageRule)
-      val updatedTask = PlainTask(linkingTaskName, updatedLinkSpec, task.metaData)
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(updatedTask, sources, None, runtimeConfig)
+      val linksActivity = new GenerateLinksActivity(task, sources, None, runtimeConfig, Some(linkageRule.withContext(task.taskContext)))
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {
@@ -1111,14 +1110,14 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     var links: Seq[EvaluatedLinkWithDecision] = Seq.empty
     var evaluationStats: Option[LinkRuleEvaluationStats] = None
+    val linkingRule = linkTask.ruleWithContext
     if(includeEvaluationLinks) {
-      links = retrieveEvaluationLinks(linkTask)
+      links = retrieveEvaluationLinks(linkTask, linkingRule)
       evaluationStats = Some(linkEvaluationStats(evaluationActivity.value()))
     }
     if (includeReferenceLinks) {
-      links = (retrieveReferenceLinksSafe(linkTask) ++ links).distinct
+      links = (retrieveReferenceLinksSafe(linkTask, linkingRule) ++ links).distinct
     }
-    val linkingRule = linkTask.data.rule
     val overallLinkCount = links.size
     val searchTerms = StringUtils.extractSearchTerms(query)
     if (searchTerms.nonEmpty) {
@@ -1153,7 +1152,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveEvaluationLinks(linkTask: ProjectTask[LinkSpec])
+  private def retrieveEvaluationLinks(linkTask: ProjectTask[LinkSpec], rule: LinkageRule)
                                      (implicit userContext: UserContext): Seq[EvaluatedLinkWithDecision] = {
     val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
@@ -1168,7 +1167,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           case link: Link =>
             link.entities match {
               case Some(entities) =>
-                DetailedEvaluator(linkTask.data.rule, entities)
+                DetailedEvaluator(rule, entities)
               case None =>
                 throw new IllegalArgumentException("Evaluation links are missing entities.")
             }
@@ -1177,11 +1176,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
+  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec], rule: LinkageRule): Seq[EvaluatedLinkWithDecision] = {
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     val DPair(sourceEntitySchema, targetEntitySchema) = linkTask.data.entityDescriptions
     for(link <- referenceEntityCache.toReferenceLinksSafe(sourceEntitySchema, targetEntitySchema)) yield {
-      val evaluatedLink = DetailedEvaluator(linkTask.data.rule, link.linkEntities)
+      val evaluatedLink = DetailedEvaluator(rule, link.linkEntities)
       evaluatedLink.withDecision(link.decision)
     }
   }
