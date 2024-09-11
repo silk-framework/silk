@@ -1,4 +1,5 @@
 import React from "react";
+import "codemirror";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
 import { Provider } from "react-redux";

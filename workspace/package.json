@@ -36,7 +36,6 @@
         "axios": "^0.25.0",
         "bfj": "6.1.1",
         "codemirror": "^5.52.2",
-        "codemirror-formatting": "1.0.0",
         "connected-react-router": "^6.5.2",
         "dagre": "^0.8.5",
         "dexie": "^3.2.3",

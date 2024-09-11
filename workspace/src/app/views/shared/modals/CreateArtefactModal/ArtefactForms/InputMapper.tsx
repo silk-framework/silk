@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { CodeAutocompleteField, CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -14,9 +14,9 @@ import { fileValue } from "@ducks/shared/typings";
 import { ExtendedParameterCallbacks } from "./ParameterWidget";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
-import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
+import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/hooks/useCodemirrorModeExtension.hooks";
 
 interface IProps {
     projectId: string;
@@ -148,7 +148,7 @@ export function InputMapper({
         case INPUT_TYPES.RESTRICTION:
             return <CodeEditor mode="sparql" {...inputAttributes} />;
         case INPUT_TYPES.MULTILINE_STRING:
-            return <CodeEditor mode="undefined" {...inputAttributes} />;
+            return <CodeEditor {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} escapeToBlur={true} />;
         case INPUT_TYPES.TARGET_VOCABULARY:
