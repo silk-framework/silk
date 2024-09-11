@@ -11,4 +11,5 @@ case class CsvSettings(separator: Char = ',',
                        quoteEscapeChar: Char = '"',
                        linesToSkip: Int = 0,
                        nullValue: Option[String] = None,
-                       codec: Codec = Codec.UTF8)
+                       codec: Codec = Codec.UTF8,
+                       clearBeforeExecution: Boolean = false)
