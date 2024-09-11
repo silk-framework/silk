@@ -3,7 +3,7 @@ package org.silkframework.serialization.json.transformer
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.{DatasetSpec, ResourceBasedDataset}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.serialization.json.ResourceSerializers
 import org.silkframework.workspace.ProjectTrait
@@ -14,9 +14,10 @@ import play.api.libs.json.JsValue
   id = "inputFileAttributes",
   categories = Array("Dataset"),
   label = "Input file attributes",
-  description = "Retrieves an attribute of the input file."
+  description = "Retrieves a metadata attribute from the input file (such as the file name) or the entire metadata as JSON."
 )
-case class InputFileAttributesTransformer(path: String) extends JsonTransformer {
+case class InputFileAttributesTransformer(@Param("Path to retrieve from the JSON, such as 'name'. If left empty, the entire JSON will be returned.")
+                                          path: String = "") extends JsonTransformer {
 
   def getJson(inputTask: Task[_ <: TaskSpec], project: ProjectTrait)
              (implicit pluginContext: PluginContext): JsValue = {

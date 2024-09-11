@@ -41,7 +41,7 @@ class InputTaskJsonTransformerTest extends AnyFlatSpec with Matchers with TestWo
 
     def retrieve(path: String): String = {
       val taskContext = TaskContext(Seq(dataset), PluginContext.fromProject(project))
-      val transformer = InputTaskJsonTransformer(path).withContext(taskContext)
+      val transformer = InputTaskAttributesTransformer(path).withContext(taskContext)
       transformer(Seq.empty).head
     }
 

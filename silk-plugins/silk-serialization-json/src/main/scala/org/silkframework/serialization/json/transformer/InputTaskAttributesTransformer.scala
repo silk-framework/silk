@@ -16,13 +16,13 @@ import play.api.libs.json._
 import scala.annotation.tailrec
 
 @Plugin(
-  id = "inputTaskJson",
+  id = "inputTaskAttributes",
   categories = Array("Dataset"),
-  label = "Input Task JSON",
-  description = "Retrieves the input task or properties of it as JSON."
+  label = "Input Task attributes",
+  description = "Retrieves individual attributes from the input task (such as the modified date) or the entire task as JSONN."
 )
-case class InputTaskJsonTransformer(@Param("Path to retrieve from the JSON, such as 'metadata/modified'. If left empty, the entire JSON will be returned.")
-                                    path: String = "") extends JsonTransformer {
+case class InputTaskAttributesTransformer(@Param("Path to retrieve from the JSON, such as 'metadata/modified'. If left empty, the entire JSON will be returned.")
+                                          path: String = "") extends JsonTransformer {
 
   override def getJson(inputTask: Task[_ <: TaskSpec], project: ProjectTrait)
                       (implicit pluginContext: PluginContext): JsValue = {
