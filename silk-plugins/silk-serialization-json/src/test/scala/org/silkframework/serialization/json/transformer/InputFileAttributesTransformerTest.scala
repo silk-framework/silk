@@ -1,31 +1,27 @@
-package org.silkframework.serialization.json
+package org.silkframework.serialization.json.transformer
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.workspace.{Project, ProjectTask, TestWorkspaceProviderTestTrait}
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsDefined, JsString, Json}
 
-class InputTaskJsonTransformerTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+class InputFileAttributesTransformerTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
-  behavior of "TaskProperty"
+  behavior of "InputFileAttributesTransformer"
 
-  it should "retrieve the full JSON of the input dataset" in {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject(TestData.project)
-    val expectedJson = JsonSerialization.toJson[Task[TaskSpec]](TestData.dataset)
-    TestData.retrieve("") shouldBe expectedJson.toString()
+  it should "retrieve the full JSON of the input file" in {
+    val json = Json.parse(TestData.retrieve(""))
+    json \ "name" shouldBe JsDefined(JsString(TestData.resource.name))
   }
 
   it should "retrieve a single property of the input dataset" in {
-    TestData.retrieve("data/parameters/file") shouldBe TestData.resource.name
+    TestData.retrieve("name") shouldBe TestData.resource.name
   }
 
 
@@ -40,7 +36,7 @@ class InputTaskJsonTransformerTest extends AnyFlatSpec with Matchers with TestWo
 
     def retrieve(path: String): String = {
       val taskContext = TaskContext(Seq(dataset), PluginContext.fromProject(project))
-      val transformer = InputTaskJsonTransformer(path).withContext(taskContext)
+      val transformer = InputFileAttributesTransformer(path).withContext(taskContext)
       transformer(Seq.empty).head
     }
 

@@ -2,6 +2,7 @@ package org.silkframework.runtime.resource
 
 import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
 import java.io.{ByteArrayOutputStream, File, InputStream}
@@ -151,6 +152,24 @@ trait Resource {
         }
       case None =>
         log.warning(s"Could not determine size of resource $name for loading contents into memory.")
+    }
+  }
+
+  /**
+   * The relative path within a resource manager.
+   *
+   * @throws IllegalArgumentException If the given resource manager is either empty or
+   *                                  does have a different base path than this resource.
+   */
+  def relativePath(resourceManager: ResourceManager): String = {
+    if (resourceManager == EmptyResourceManager()) {
+      throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
+    }
+    val basePath = resourceManager.basePath
+    if (path.startsWith(basePath)) {
+      path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
+    } else {
+      throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
     }
   }
 }

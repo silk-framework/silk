@@ -431,15 +431,7 @@ object StringParameterType {
       * @throws IllegalArgumentException If the project resources are either empty or use a different base path than this resource.
       **/
     override def toString(value: Resource)(implicit pluginContext: PluginContext): String = {
-      val basePath = pluginContext.resources.basePath
-      if (pluginContext.resources == EmptyResourceManager()) {
-        throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
-      }
-      if (value.path.startsWith(basePath)) {
-        value.path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
-      } else {
-        throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
-      }
+      value.relativePath(pluginContext.resources)
     }
   }
 

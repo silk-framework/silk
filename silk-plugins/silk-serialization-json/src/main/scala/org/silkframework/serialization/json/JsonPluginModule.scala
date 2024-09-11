@@ -8,6 +8,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.ReferenceLinksJsonFormat
 import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
 import org.silkframework.serialization.json.WorkflowSerializers.{TaskIdentifierParameterFormat, WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
+import org.silkframework.serialization.json.transformer.{InputFileAttributesTransformer, InputTaskJsonTransformer}
 
 class JsonPluginModule extends PluginModule {
 
@@ -55,5 +56,6 @@ class JsonPluginModule extends PluginModule {
       UiAnnotationsJsonFormat.getClass ::
       TaskIdentifierParameterFormat.getClass ::
       classOf[InputTaskJsonTransformer] ::
+      classOf[InputFileAttributesTransformer] ::
       Nil
 }
