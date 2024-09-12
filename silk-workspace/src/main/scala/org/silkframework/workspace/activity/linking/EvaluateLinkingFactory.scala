@@ -57,7 +57,7 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec],
 
   override def name: String = "EvaluateLinking"
 
-  override def initialValue: Option[Linking] = Some(Linking(task))
+  override def initialValue: Option[Linking] = Some(Linking(task, task.rule))
 
   /**
     * Executes this activity.

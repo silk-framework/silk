@@ -1110,14 +1110,14 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     var links: Seq[EvaluatedLinkWithDecision] = Seq.empty
     var evaluationStats: Option[LinkRuleEvaluationStats] = None
-    val linkingRule = linkTask.ruleWithContext
     if(includeEvaluationLinks) {
-      links = retrieveEvaluationLinks(linkTask, linkingRule)
+      links = retrieveEvaluationLinks(linkTask)
       evaluationStats = Some(linkEvaluationStats(evaluationActivity.value()))
     }
     if (includeReferenceLinks) {
-      links = (retrieveReferenceLinksSafe(linkTask, linkingRule) ++ links).distinct
+      links = (retrieveReferenceLinksSafe(linkTask) ++ links).distinct
     }
+    val linkingRule = linkTask.data.rule
     val overallLinkCount = links.size
     val searchTerms = StringUtils.extractSearchTerms(query)
     if (searchTerms.nonEmpty) {
@@ -1152,7 +1152,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveEvaluationLinks(linkTask: ProjectTask[LinkSpec], rule: LinkageRule)
+  private def retrieveEvaluationLinks(linkTask: ProjectTask[LinkSpec])
                                      (implicit userContext: UserContext): Seq[EvaluatedLinkWithDecision] = {
     val evaluationActivity = linkTask.activity[EvaluateLinkingActivity]
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
@@ -1167,7 +1167,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
           case link: Link =>
             link.entities match {
               case Some(entities) =>
-                DetailedEvaluator(rule, entities)
+                DetailedEvaluator(linkTask.data.rule, entities)
               case None =>
                 throw new IllegalArgumentException("Evaluation links are missing entities.")
             }
@@ -1176,11 +1176,11 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     }
   }
 
-  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec], rule: LinkageRule): Seq[EvaluatedLinkWithDecision] = {
+  private def retrieveReferenceLinksSafe(linkTask: ProjectTask[LinkSpec]): Seq[EvaluatedLinkWithDecision] = {
     val referenceEntityCache = linkTask.activity[ReferenceEntitiesCache].value()
     val DPair(sourceEntitySchema, targetEntitySchema) = linkTask.data.entityDescriptions
     for(link <- referenceEntityCache.toReferenceLinksSafe(sourceEntitySchema, targetEntitySchema)) yield {
-      val evaluatedLink = DetailedEvaluator(rule, link.linkEntities)
+      val evaluatedLink = DetailedEvaluator(linkTask.data.rule, link.linkEntities)
       evaluatedLink.withDecision(link.decision)
     }
   }

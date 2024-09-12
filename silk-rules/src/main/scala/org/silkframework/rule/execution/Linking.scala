@@ -12,12 +12,11 @@ import scala.collection.mutable
   * Set of links.
   */
 case class Linking(task: Task[LinkSpec],
+                   rule: LinkageRule,
                    links : Seq[Link] = Seq.empty,
                    statistics: LinkingStatistics = LinkingStatistics(),
                    matcherWarnings: Seq[String] = Seq.empty,
                    isDone: Boolean = false) extends ExecutionReport {
-
-  def rule: LinkageRule = task.data.rule
 
   lazy val summary: Seq[(String, String)] = {
     Seq(

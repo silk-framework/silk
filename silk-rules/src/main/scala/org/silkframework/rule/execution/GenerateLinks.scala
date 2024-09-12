@@ -41,9 +41,9 @@ class GenerateLinks(task: Task[LinkSpec],
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  private def linkSpec = task.data
+  private val rule = overrideLinkageRule.getOrElse(task.data.rule)
 
-  private val rule = overrideLinkageRule.getOrElse(linkSpec.rule)
+  private val linkSpec = task.data.copy(rule = rule)
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
@@ -60,12 +60,11 @@ class GenerateLinks(task: Task[LinkSpec],
    */
   def warnings: Seq[LogRecord] = warningLog
 
-  override def initialValue = Some(Linking(task))
+  override def initialValue: Option[Linking] = Some(Linking(task, rule))
 
-  //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    context.value.update(Linking(task))
+    context.value.update(Linking(task, rule))
 
     warningLog = CollectLogs() {
       if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
@@ -97,7 +96,7 @@ class GenerateLinks(task: Task[LinkSpec],
     // Execute matching
     val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
     val matcher = context.child(new Matcher(loaders, rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-    val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
+    val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, rule, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
     matcher.value.subscribe(updateLinks)
     children ::= matcher
     matcher.startBlocking()
@@ -125,7 +124,7 @@ class GenerateLinks(task: Task[LinkSpec],
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(task, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true))
+    context.value.update(Linking(task, rule, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
