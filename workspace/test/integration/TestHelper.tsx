@@ -1,5 +1,4 @@
 import React from "react";
-import "codemirror";
 import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
 import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
 import { Provider } from "react-redux";
@@ -36,6 +35,42 @@ const mockValues: IMockValues = {
     },
 };
 const host = process.env.HOST;
+
+jest.mock("@codemirror/view", () => {
+    return {
+        highlightSpecialChars() {},
+        domEventHandlers() {},
+        lineNumbers() {},
+        dispatch() {},
+        highlightActiveLine() {},
+        EditorView: class {
+            constructor(options: any) {}
+            dispatch() {}
+            destroy() {}
+            highlightSpecialChars() {}
+            domEventHandlers() {}
+            findFromDOM() {}
+            static get updateListener() {
+                return {
+                    of() {},
+                };
+            }
+        },
+        keymap: {
+            of: () => {},
+        },
+    };
+});
+
+jest.mock("@codemirror/language", () => {
+    return {
+        StreamLanguage: {
+            define: () => {},
+        },
+        foldGutter() {},
+        codeFolding() {},
+    };
+});
 
 // Mock global history object
 jest.mock("../../src/app/store/configureStore", () => {
