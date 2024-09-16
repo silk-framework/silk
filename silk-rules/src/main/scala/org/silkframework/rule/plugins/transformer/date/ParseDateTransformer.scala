@@ -17,11 +17,14 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
-import java.text.{ParseException, SimpleDateFormat}
-
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.validation.ValidationException;
+import org.silkframework.runtime.plugin.types.LocaleOptionParameter
+import org.silkframework.runtime.plugin.types.autoComlpetionProviders.LocaleParameterAutoCompletionProvider
+import org.silkframework.runtime.validation.ValidationException
+
+import java.text.{DateFormat, ParseException, SimpleDateFormat}
+import java.util.Locale;
 
 /**
  * Parses a date, returning an xsd:date.
@@ -49,6 +52,21 @@ import org.silkframework.runtime.validation.ValidationException;
     output = Array("2015-04-03")
   ),
   new TransformExample(
+    parameters = Array("format", "MMM yyyy", "locale", "en"),
+    input1 = Array("May 2024"),
+    output = Array("2024-05-01")
+  ),
+  new TransformExample(
+    parameters = Array("format", "MMM yyyy", "locale", "de"),
+    input1 = Array("Mai 2024"),
+    output = Array("2024-05-01")
+  ),
+  new TransformExample(
+    parameters = Array("format", "MMM yyyy", "locale", "de"),
+    input1 = Array("May 2024"),
+    throwsException = "org.silkframework.runtime.validation.ValidationException"
+  ),
+  new TransformExample(
     parameters = Array("format", "yyyyMMdd", "lenient", "false"),
     input1 = Array("20150000"),
     throwsException = "org.silkframework.runtime.validation.ValidationException"
@@ -58,7 +76,10 @@ case class ParseDateTransformer(
   @Param("The date pattern used to parse the input values")
   format: String = "dd-MM-yyyy",
   @Param("If set to true, the parser tries to use heuristics to parse dates with invalid fields (such as a day of zero).")
-  lenient: Boolean = false) extends Transformer with Serializable {
+  lenient: Boolean = false,
+  @Param(value = "Optional locale for the date format. If not set the system's locale will be used.",
+    autoCompletionProvider = classOf[LocaleParameterAutoCompletionProvider])
+  locale: LocaleOptionParameter = LocaleOptionParameter(None)) extends Transformer with Serializable {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     values.flatten.flatMap(parse)
@@ -67,7 +88,10 @@ case class ParseDateTransformer(
   def parse(value: String): Seq[String] = {
     try {
       // Parse date
-      val dateFormat = new SimpleDateFormat(format)
+      val dateFormat = locale.value match {
+        case Some(l) => new SimpleDateFormat(format, new Locale(l))
+        case None => new SimpleDateFormat(format)
+      }
       dateFormat.setLenient(lenient)
       val date = dateFormat.parse(value)
 
