@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.text
 
-import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.charset.{CharsetAutocompletionProvider, CharsetUtils}
@@ -26,6 +26,8 @@ case class TextFileDataset(
    typeName: String = "document",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
+   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+   override val zipFileRegex: String = ".*"
 ) extends Dataset with TextBulkResourceBasedDataset {
 
   override val codec: Codec = CharsetUtils.forName(charset)
