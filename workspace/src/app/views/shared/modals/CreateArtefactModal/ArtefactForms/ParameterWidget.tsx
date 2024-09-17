@@ -142,6 +142,7 @@ export const ParameterWidget = (props: IProps) => {
         let detailedLink: JSX.Element | undefined = undefined
         if(detailedDocumentationAvailable) {
             detailedLink = <Link
+                data-test-id={"parameter-doc-link"}
                 key={"showDoc"}
                 href={`#${formParamId}`}
                 onClick={() => parameterCallbacks.showDetailedParameterDocumentation(formParamId)}
