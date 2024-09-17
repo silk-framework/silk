@@ -380,9 +380,7 @@ export function TaskForm({
     const CodeEditorMemoed = React.useMemo(
         () => (
             <CodeEditor
-                outerDivAttributes={{
-                    id: DESCRIPTION,
-                }}
+                id={DESCRIPTION}
                 preventLineNumbers
                 name={DESCRIPTION}
                 mode="markdown"

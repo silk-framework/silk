@@ -265,9 +265,7 @@ export function Metadata(props: IProps) {
             <CodeEditor
                 name="description"
                 mode="markdown"
-                outerDivAttributes={{
-                    id: "description",
-                }}
+                id="description"
                 preventLineNumbers
                 defaultValue={formEditData?.description}
                 onChange={onDescriptionChange}
