@@ -24,7 +24,6 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
     * be presented to the user and the actual internal value is e.g. not human-readable.
     *
-    * @param projectId The project ID for context.
     * @param value     The value of the parameter.
     * @param dependOnParameterValues The parameter values this parameter auto-completion depends on.
     * */

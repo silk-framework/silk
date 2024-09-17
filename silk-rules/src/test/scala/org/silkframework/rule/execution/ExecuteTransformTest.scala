@@ -2,18 +2,19 @@ package org.silkframework.rule.execution
 
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, DatasetSpec, EmptyDataset, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
+import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
-import org.silkframework.util.{Identifier, MockitoSugar, Uri}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 
 class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
@@ -28,6 +29,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
     when(dataSourceMock.retrieve(any(), any())(any(), any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
+    when(dataSourceMock.underlyingTask).thenReturn(PlainTask("inputTaskDummy", DatasetSpec(InternalDataset())))
     val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
       PlainTask("transformTask", transform),

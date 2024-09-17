@@ -13,7 +13,7 @@ case class CombinedTemplateVariablesReader(readers: Seq[TemplateVariablesReader]
   /**
     * Retrieves all template variables.
     */
-  override def all: TemplateVariables = {
+  override lazy val all: TemplateVariables = {
     readers.map(_.all).reduce(_ merge _)
   }
 }
