@@ -146,7 +146,7 @@ export const ParameterWidget = (props: IProps) => {
                 key={"showDoc"}
                 href={`#${formParamId}`}
                 onClick={() => parameterCallbacks.showDetailedParameterDocumentation(formParamId)}
-            >Read more in the plugin documentation</Link>
+            >{t("ParameterWidget.parameterDocLinkText")}</Link>
             parameterDescription = <>
                 {parameterDescription}
                 <Spacing size={"tiny"} />

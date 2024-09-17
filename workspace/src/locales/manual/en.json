@@ -185,7 +185,8 @@
             "createNewItem": "Custom entry: '{{query}}'",
             "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
             "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
-        }
+        },
+        "parameterDocLinkText": "Read more in the plugin documentation"
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
