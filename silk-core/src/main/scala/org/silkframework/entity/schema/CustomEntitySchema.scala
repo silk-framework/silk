@@ -2,6 +2,7 @@ package org.silkframework.entity.schema
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.schema.FileType.FileType
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.LocalEntities
 import org.silkframework.runtime.iterator.CloseableIterator
@@ -35,6 +36,10 @@ abstract class CustomEntitySchema[EntityType] {
     }
   }
 
+  def create(values: CloseableIterator[EntityType], task: Task[TaskSpec])
+            (implicit pluginContext: PluginContext): CustomEntities[EntityType] = {
+    new CustomEntities(values, this, task)
+  }
 }
 
 class CustomEntities[EntityType](val customEntities: CloseableIterator[EntityType],
@@ -61,64 +66,56 @@ class CustomEntities[EntityType](val customEntities: CloseableIterator[EntityTyp
 
 }
 
-object ProjectFileEntitySchema extends CustomEntitySchema[Resource] {
-
-  override val schema: EntitySchema = {
-    EntitySchema(
-      typeUri = Uri(SilkVocab.DatasetResourceSchemaType),
-      typedPaths = IndexedSeq(
-        TypedPath(UntypedPath(SilkVocab.resourcePath), ValueType.STRING, isAttribute = true)
-      )
-    )
-  }
-
-  override def toEntity(v: Resource)(implicit pluginContext: PluginContext): Entity = {
-    //TODO this should use the relativePath method after it has been merged into develop
-    val relativePath = v.path.stripPrefix(pluginContext.resources.basePath).stripPrefix("/").stripPrefix(File.separator)
-    new Entity("", IndexedSeq(Seq(relativePath)), schema)
-  }
-
-  override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): Resource = {
-    //TODO validate schema
-    entity.values.head.headOption match {
-      case Some(value) =>
-        pluginContext.resources.getInPath(value)
-      case None =>
-        throw new ValidationException("No resource path provided")
-    }
-  }
-}
-
 //TODO delete temporary resources after use?
-object LocalFileEntitySchema extends CustomEntitySchema[LocalFile] {
+object FileEntitySchema extends CustomEntitySchema[FileEntity] {
 
   override val schema: EntitySchema = {
     EntitySchema(
       typeUri = Uri(SilkVocab.DatasetResourceSchemaType),
       typedPaths = IndexedSeq(
         TypedPath(UntypedPath(SilkVocab.resourcePath), ValueType.STRING, isAttribute = true),
-        TypedPath(UntypedPath(SilkVocab.contentType), ValueType.STRING, isAttribute = true)
+        TypedPath(UntypedPath(SilkVocab.fileType), ValueType.STRING, isAttribute = true),
+        TypedPath(UntypedPath(SilkVocab.contentType), ValueType.STRING, isAttribute = true),
       )
     )
   }
 
-  override def toEntity(v: LocalFile)(implicit pluginContext: PluginContext): Entity = {
-    new Entity("", IndexedSeq(Seq(v.file.path), v.contentType.toSeq), schema)
+  override def toEntity(v: FileEntity)(implicit pluginContext: PluginContext): Entity = {
+    val path = v.fileType match {
+      case FileType.Project =>
+        //TODO this should use the relativePath method after it has been merged into develop
+        v.file.path.stripPrefix(pluginContext.resources.basePath).stripPrefix("/").stripPrefix(File.separator)
+      case FileType.Local =>
+        v.file.path
+    }
+    new Entity(new File(v.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(v.fileType.toString), v.contentType.toSeq), schema)
   }
 
-  override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): LocalFile = {
+  override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
     //TODO validate schema
+    val fileType = FileType.Local //TODO entity.values(1).headOption.map(FileType.values.byName.apply).getOrElse(FileType.Local)
+    val contentType = entity.values(2).headOption.filter(_.isEmpty)
+
     val file = entity.values.head.headOption match {
       case Some(value) =>
-        FileResource(new File(value))
+        fileType match {
+          case FileType.Project =>
+            pluginContext.resources.getInPath(value)
+          case FileType.Local =>
+            FileResource(new File(value))
+        }
+
       case None =>
         throw new ValidationException("No resource path provided")
     }
 
-    val contentType = entity.values(1).headOption.filter(_.isEmpty)
-
-    LocalFile(file, contentType)
+    FileEntity(file, fileType, contentType)
   }
 }
 
-case class LocalFile(file: FileResource, contentType: Option[String])
+case class FileEntity(file: Resource, fileType: FileType, contentType: Option[String] = None)
+
+object FileType extends Enumeration {
+  type FileType = Value
+  val Project, Local = Value
+}

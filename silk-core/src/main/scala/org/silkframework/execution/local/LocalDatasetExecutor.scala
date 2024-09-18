@@ -6,10 +6,12 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
+import org.silkframework.entity.schema.{CustomEntities, FileEntity, FileEntitySchema, FileType}
 import org.silkframework.execution._
 import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -26,7 +28,10 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     * Reads data from a dataset.
     */
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
-                   (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): LocalEntities = {
+                   (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     lazy val source = access(dataset, execution).source
     schema match {
@@ -40,7 +45,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
         handleMultiEntitySchema(dataset, source, schema, multi)
-      case DatasetResourceEntitySchema.schema =>
+      case FileEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
         implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
@@ -49,12 +54,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]]) = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): CustomEntities[FileEntity] = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            new LocalDatasetResourceEntityTable(dsr.file, dataset)
+            val fileEntity = FileEntity(dsr.file, FileType.Project, dsr.mimeType)
+            FileEntitySchema.create(CloseableIterator.single(fileEntity), dataset)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -114,7 +120,10 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
-                              (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+                              (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): Unit = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
     DatasetSpec.checkDatasetAllowsWriteAccess(Some(dataset.fullLabel), dataset.readOnly)
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
@@ -140,8 +149,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           writeMultiTables(entitySink, tables)
         }
         report.executionDone()
-      case datasetResource: DatasetResourceEntityTable =>
-        writeDatasetResource(dataset, datasetResource)
+      case FileEntitySchema(data) =>
+        writeDatasetResource(data)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
         val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
         uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
@@ -282,16 +291,18 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     reportUpdater.executionDone()
   }
 
-  // Write the resource from the resource entity table to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], datasetResource: DatasetResourceEntityTable): Unit = {
-    val inputResource = datasetResource.datasetResource
+  // Write file entities to the dataset's resource
+  private def writeDatasetResource(fileEntities: CustomEntities[FileEntity]): Unit = {
+    val dataset = fileEntities.task
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(wr) =>
-                wr.writeResource(inputResource)
+                for(resource <- fileEntities.customEntities) {
+                  wr.writeResource(resource.file)
+                }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                     s"does not have a writable resource!")
