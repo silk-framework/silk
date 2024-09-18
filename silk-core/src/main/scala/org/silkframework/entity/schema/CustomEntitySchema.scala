@@ -7,7 +7,7 @@ import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.local.LocalEntities
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{FileResource, Resource}
+import org.silkframework.runtime.resource.{FileResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -24,15 +24,17 @@ abstract class CustomEntitySchema[EntityType] {
   def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): EntityType
 
   def unapply(entities: LocalEntities)(implicit pluginContext: PluginContext): Option[CustomEntities[EntityType]] = {
-    //TODO if(entities.isInstanceOf[CustomEntities])
-    if(entities.entitySchema.typeUri == schema.typeUri) {
-      Some(new CustomEntities[EntityType](
-        customEntities = entities.entities.map(fromEntity),
-        customEntitySchema = this,
-        task = entities.task
-      ))
-    } else {
-      None
+    entities match {
+      case customEntities: CustomEntities[EntityType] =>
+        Some(customEntities)
+      case _ if entities.entitySchema.typeUri == schema.typeUri =>
+        Some(new CustomEntities[EntityType](
+          customEntities = entities.entities.map(fromEntity),
+          customEntitySchema = this,
+          task = entities.task
+        ))
+      case _ =>
+        None
     }
   }
 
@@ -66,7 +68,6 @@ class CustomEntities[EntityType](val customEntities: CloseableIterator[EntityTyp
 
 }
 
-//TODO delete temporary resources after use?
 object FileEntitySchema extends CustomEntitySchema[FileEntity] {
 
   override val schema: EntitySchema = {
@@ -93,7 +94,7 @@ object FileEntitySchema extends CustomEntitySchema[FileEntity] {
 
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
     //TODO validate schema
-    val fileType = FileType.Local //TODO entity.values(1).headOption.map(FileType.values.byName.apply).getOrElse(FileType.Local)
+    val fileType = entity.values(1).headOption.map(FileType.withName).getOrElse(FileType.Local)
     val contentType = entity.values(2).headOption.filter(_.isEmpty)
 
     val file = entity.values.head.headOption match {
@@ -111,9 +112,25 @@ object FileEntitySchema extends CustomEntitySchema[FileEntity] {
 
     FileEntity(file, fileType, contentType)
   }
+
+  def local(resource: FileResource, task: Task[TaskSpec])(implicit pluginContext: PluginContext): CustomEntities[FileEntity] = {
+    create(CloseableIterator.single(FileEntity(resource, FileType.Local)), task)
+  }
 }
 
-case class FileEntity(file: Resource, fileType: FileType, contentType: Option[String] = None)
+case class FileEntity(file: WritableResource, fileType: FileType, contentType: Option[String] = None)
+
+object FileEntity {
+
+  def createTemp(prefix: String, suffix: String): FileEntity = {
+    val tempFile = File.createTempFile(prefix, suffix)
+    tempFile.deleteOnExit()
+    val tempResource = FileResource(tempFile)
+    tempResource.setDeleteOnGC(true) // Get rid of temporary file when file resource is garbage collected
+    FileEntity(tempResource, FileType.Local)
+  }
+
+}
 
 object FileType extends Enumeration {
   type FileType = Value

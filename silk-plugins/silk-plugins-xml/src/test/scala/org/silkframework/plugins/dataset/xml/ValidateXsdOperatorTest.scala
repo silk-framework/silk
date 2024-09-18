@@ -3,11 +3,12 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.PlainTask
-import org.silkframework.dataset.LocalDatasetResourceEntityTable
 import org.silkframework.entity.Entity
+import org.silkframework.entity.schema.{FileEntity, FileEntitySchema, FileType}
 import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.runtime.activity.ActivityMonitor
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
@@ -76,7 +77,8 @@ class ValidateXsdOperatorTest extends AnyFlatSpec with Matchers {
     implicit val pluginContext: PluginContext = PluginContext.empty
 
     // Execute
-    val result = executor.execute(task, Seq(new LocalDatasetResourceEntityTable(xmlResource, task)), ExecutorOutput.empty, LocalExecution(), new ActivityMonitor("test"))
+    val fileEntity = FileEntitySchema.create(CloseableIterator.single(FileEntity(xmlResource, FileType.Local)), task)
+    val result = executor.execute(task, Seq(fileEntity), ExecutorOutput.empty, LocalExecution(), new ActivityMonitor("test"))
     result should not be None
     result.get.entities.toIndexedSeq
   }

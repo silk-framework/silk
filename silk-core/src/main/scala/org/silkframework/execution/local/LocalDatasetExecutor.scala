@@ -12,6 +12,7 @@ import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.ReadOnlyResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -59,7 +60,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            val fileEntity = FileEntity(dsr.file, FileType.Project, dsr.mimeType)
+            val fileEntity = FileEntity(ReadOnlyResource(dsr.file), FileType.Project, dsr.mimeType)
             FileEntitySchema.create(CloseableIterator.single(fileEntity), dataset)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
@@ -150,7 +151,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         report.executionDone()
       case FileEntitySchema(data) =>
-        writeDatasetResource(data)
+        writeDatasetResource(dataset, data)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
         val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
         uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
@@ -292,8 +293,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   // Write file entities to the dataset's resource
-  private def writeDatasetResource(fileEntities: CustomEntities[FileEntity]): Unit = {
-    val dataset = fileEntities.task
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: CustomEntities[FileEntity]): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {

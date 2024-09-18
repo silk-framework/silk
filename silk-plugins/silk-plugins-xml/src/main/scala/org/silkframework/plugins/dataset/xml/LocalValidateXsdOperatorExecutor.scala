@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.DatasetResourceEntityTable
 import org.silkframework.entity.Entity
+import org.silkframework.entity.schema.FileEntitySchema
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
@@ -26,7 +26,7 @@ case class LocalValidateXsdOperatorExecutor() extends LocalExecutor[ValidateXsdO
                        context: ActivityContext[ExecutionReport])
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     inputs.headOption match {
-      case Some(et: DatasetResourceEntityTable) =>
+      case Some(FileEntitySchema(fileEntities)) =>
         // Create XSD validator
         val operator = task.data
         val factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI)
@@ -36,7 +36,9 @@ case class LocalValidateXsdOperatorExecutor() extends LocalExecutor[ValidateXsdO
         // Execute validator
         val errorHandler = new XsdErrorHandler()
         validator.setErrorHandler(errorHandler)
-        validator.validate(new StreamSource(et.datasetResource.inputStream))
+        for(fileEntity <- fileEntities.customEntities) {
+          validator.validate(new StreamSource(fileEntity.file.inputStream))
+        }
 
         // Return errors
         Some(GenericEntityTable(errorHandler.entities, ValidateXsdOperator.outputSchema, task))
