@@ -122,7 +122,7 @@ case class FileEntity(file: WritableResource, fileType: FileType, contentType: O
 
 object FileEntity {
 
-  def createTemp(prefix: String, suffix: String): FileEntity = {
+  def createTemp(prefix: String, suffix: String = ".tmp"): FileEntity = {
     val tempFile = File.createTempFile(prefix, suffix)
     tempFile.deleteOnExit()
     val tempResource = FileResource(tempFile)
