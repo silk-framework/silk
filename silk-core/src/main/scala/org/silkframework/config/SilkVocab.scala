@@ -33,6 +33,8 @@ object SilkVocab {
   val SparqlEndpointSchemaType: String = namespace + "SparqlEndpointSchemaType"
 
   val DatasetResourceSchemaType: String = namespace + "DatasetResourceSchemaType"
+  val resourcePath: String = namespace + "path"
+  val contentType: String = namespace + "contentType"
 
   val tripleSubject: String = namespace + "tripleSubject"
   val triplePredicate: String = namespace + "triplePredicate"
