@@ -261,7 +261,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         useInputs.drop(ports.size).foreach(executeAsDependency)
         // Only use defined inputs as actual data inputs
         executeOnInputs(useInputs.zip(ports))(process)
-      case FlexibleNumberOfInputs() =>
+      case FlexibleNumberOfInputs(_, _, _) =>
+        // FIXME: Throw error when input ports are not in range? This might break existing workflows.
         executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)
     }
   }
