@@ -232,7 +232,6 @@ export function Metadata(props: IProps) {
         const selectedTagsString = selectedTags.map((t) => t.uri).join("|");
         const originalTagsString = data.tags.map((t) => t.uri).join("|");
         const changedTags = selectedTagsString !== originalTagsString;
-        console.log("checker ==>", { ...formEditData });
         const labelChanged = formEditData && formEditData.label !== data.label;
         const descriptionChanged = formEditData && (formEditData.description ?? "") !== (data.description ?? "");
         if (changedTags || labelChanged || descriptionChanged) {
