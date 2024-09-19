@@ -27,11 +27,11 @@ object WorkflowNodePortConfig {
       .map(p => SinglePortPortsDefinition(p))
       .getOrElse(ZeroPortsDefinition)
     inputPorts match {
-      case FlexibleNumberOfInputs() =>
+      case FlexibleNumberOfInputs(portDefinition, min, max) =>
         WorkflowNodePortConfig(
-          1,
-          None,
-          MultipleSameTypePortsDefinition(FlexiblePortDefinition),
+          min,
+          max,
+          MultipleSameTypePortsDefinition(convertPort(portDefinition)),
           outDefinition
         )
       case FixedNumberOfInputs(ports) if ports.isEmpty =>
