@@ -232,6 +232,7 @@ export function Metadata(props: IProps) {
         const selectedTagsString = selectedTags.map((t) => t.uri).join("|");
         const originalTagsString = data.tags.map((t) => t.uri).join("|");
         const changedTags = selectedTagsString !== originalTagsString;
+        console.log("checker ==>", { ...formEditData });
         const labelChanged = formEditData && formEditData.label !== data.label;
         const descriptionChanged = formEditData && (formEditData.description ?? "") !== (data.description ?? "");
         if (changedTags || labelChanged || descriptionChanged) {
@@ -259,20 +260,6 @@ export function Metadata(props: IProps) {
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
     };
-
-    const CodeEditorMemoed = React.useMemo(
-        () => (
-            <CodeEditor
-                name="description"
-                mode="markdown"
-                id="description"
-                preventLineNumbers
-                defaultValue={formEditData?.description}
-                onChange={onDescriptionChange}
-            />
-        ),
-        [formEditData]
-    );
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -322,7 +309,14 @@ export function Metadata(props: IProps) {
                                     </p>
                                 }
                             >
-                                {CodeEditorMemoed}
+                                <CodeEditor
+                                    name="description"
+                                    mode="markdown"
+                                    id="description"
+                                    preventLineNumbers
+                                    defaultValue={formEditData?.description}
+                                    onChange={onDescriptionChange}
+                                />
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
