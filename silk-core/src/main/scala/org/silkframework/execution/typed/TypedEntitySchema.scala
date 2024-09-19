@@ -15,7 +15,7 @@ abstract class TypedEntitySchema[EntityType, TaskType <: TaskSpec] {
 
   /**
    * The fixed schema for this type.
-   * Entities will be associated with this custom type based on the type URI of the schema.
+   * Entities will be associated with this custom type based on the type URI of the schema, i.e., the type URI must be unique.
    */
   def schema: EntitySchema
 
@@ -34,19 +34,20 @@ abstract class TypedEntitySchema[EntityType, TaskType <: TaskSpec] {
    * Enables implementation classes to be used in pattern matching.
    */
   def unapply(entities: LocalEntities)(implicit pluginContext: PluginContext): Option[TypedEntities[EntityType, TaskType]] = {
-    entities match {
-      //TODO type erasure?
-      case customEntities: TypedEntities[EntityType, TaskType] =>
-        Some(customEntities)
-      case _ if entities.entitySchema.typeUri == schema.typeUri =>
+    if(entities.entitySchema.typeUri == schema.typeUri) {
+      // Since we assume that the type URI is unique, we can safely cast to the expected types.
+      // TODO we should still do some validation here
+      if(entities.isInstanceOf[TypedEntities[_, _]]) {
+        Some(entities.asInstanceOf[TypedEntities[EntityType, TaskType]])
+      } else {
         Some(new TypedEntities[EntityType, TaskType](
           typedEntities = entities.entities.map(fromEntity),
           typedEntitySchema = this,
-          //TODO check for wrong type and throw error
           task = entities.task.asInstanceOf[Task[TaskType]]
         ))
-      case _ =>
-        None
+      }
+    } else {
+      None
     }
   }
 
