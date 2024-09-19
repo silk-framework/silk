@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import net.sf.saxon.TransformerFactoryImpl
 import net.sf.saxon.s9api.SaxonApiException
 import org.silkframework.config.Task
-import org.silkframework.entity.schema.{FileEntity, FileEntitySchema}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
@@ -45,7 +45,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
         }
 
         val outputFiles =
-          for(inputEntity <- fileEntities.customEntities) yield {
+          for(inputEntity <- fileEntities.typedEntities) yield {
             val text = new StreamSource(inputEntity.file.inputStream)
             val tempFile = FileEntity.createTemp("xsltResult", ".xml")
             tempFile.file.write() { os =>

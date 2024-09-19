@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.config._
 import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.schema.FileEntitySchema
+import org.silkframework.execution.typed.FileEntitySchema
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.workspace.resources.ResourceAutoCompletionProvider

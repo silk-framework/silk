@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.Task
 import org.silkframework.entity.Entity
-import org.silkframework.entity.schema.FileEntitySchema
+import org.silkframework.execution.typed.FileEntitySchema
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
@@ -36,7 +36,7 @@ case class LocalValidateXsdOperatorExecutor() extends LocalExecutor[ValidateXsdO
         // Execute validator
         val errorHandler = new XsdErrorHandler()
         validator.setErrorHandler(errorHandler)
-        for(fileEntity <- fileEntities.customEntities) {
+        for(fileEntity <- fileEntities.typedEntities) {
           validator.validate(new StreamSource(fileEntity.file.inputStream))
         }
 

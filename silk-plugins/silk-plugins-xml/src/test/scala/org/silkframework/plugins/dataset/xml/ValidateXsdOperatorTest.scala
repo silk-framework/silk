@@ -4,7 +4,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.PlainTask
 import org.silkframework.entity.Entity
-import org.silkframework.entity.schema.{FileEntity, FileEntitySchema, FileType}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType}
 import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.LocalExecution
 import org.silkframework.runtime.activity.ActivityMonitor

@@ -6,9 +6,8 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
-import org.silkframework.entity.schema.{CustomEntities, FileEntity, FileEntitySchema, FileType}
 import org.silkframework.execution._
-import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, TypedEntities}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
@@ -55,7 +54,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): CustomEntities[FileEntity] = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): TypedEntities[FileEntity] = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
@@ -293,14 +292,14 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   // Write file entities to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: CustomEntities[FileEntity]): Unit = {
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: TypedEntities[FileEntity]): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(wr) =>
-                for(resource <- fileEntities.customEntities) {
+                for(resource <- fileEntities.typedEntities) {
                   wr.writeResource(resource.file)
                 }
               case None =>
