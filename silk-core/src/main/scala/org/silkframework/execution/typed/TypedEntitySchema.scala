@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.PluginContext
  *
  * @tparam EntityType The type of entities to be held.
  */
-abstract class TypedEntitySchema[EntityType] {
+abstract class TypedEntitySchema[EntityType, TaskType <: TaskSpec] {
 
   /**
    * The fixed schema for this type.
@@ -20,12 +20,12 @@ abstract class TypedEntitySchema[EntityType] {
   def schema: EntitySchema
 
   /**
-   * Creates a generic entity from a custom value.
+   * Creates a generic entity from a typed entity.
    */
-  def toEntity(v: EntityType)(implicit pluginContext: PluginContext): Entity
+  def toEntity(entity: EntityType)(implicit pluginContext: PluginContext): Entity
 
   /**
-   * Creates a custom value from a generic entity.
+   * Creates a typed entity from a generic entity.
    */
   def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): EntityType
 
@@ -33,16 +33,17 @@ abstract class TypedEntitySchema[EntityType] {
    * Converts a generic entity table to typed entities.
    * Enables implementation classes to be used in pattern matching.
    */
-  def unapply(entities: LocalEntities)(implicit pluginContext: PluginContext): Option[TypedEntities[EntityType]] = {
+  def unapply(entities: LocalEntities)(implicit pluginContext: PluginContext): Option[TypedEntities[EntityType, TaskType]] = {
     entities match {
       //TODO type erasure?
-      case customEntities: TypedEntities[EntityType] =>
+      case customEntities: TypedEntities[EntityType, TaskType] =>
         Some(customEntities)
       case _ if entities.entitySchema.typeUri == schema.typeUri =>
-        Some(new TypedEntities[EntityType](
+        Some(new TypedEntities[EntityType, TaskType](
           typedEntities = entities.entities.map(fromEntity),
           typedEntitySchema = this,
-          task = entities.task
+          //TODO check for wrong type and throw error
+          task = entities.task.asInstanceOf[Task[TaskType]]
         ))
       case _ =>
         None
@@ -50,10 +51,34 @@ abstract class TypedEntitySchema[EntityType] {
   }
 
   /**
+   * Checks if a given entity table can be converted to this type.
+   */
+  def hasType(entities: LocalEntities)(implicit pluginContext: PluginContext): Boolean = {
+    unapply(entities).isDefined
+  }
+
+  /**
    * Creates new local typed entities.
    */
-  def create(values: CloseableIterator[EntityType], task: Task[TaskSpec])
-            (implicit pluginContext: PluginContext): TypedEntities[EntityType] = {
+  def create(values: CloseableIterator[EntityType], task: Task[TaskType])
+            (implicit pluginContext: PluginContext): TypedEntities[EntityType, TaskType] = {
     new TypedEntities(values, this, task)
   }
+
+  /**
+   * Creates new local typed entities.
+   */
+  def create(values: Iterable[EntityType], task: Task[TaskType])
+            (implicit pluginContext: PluginContext): TypedEntities[EntityType, TaskType] = {
+    new TypedEntities(CloseableIterator(values), this, task)
+  }
+
+  /**
+   * Creates new empty typed entities.
+   */
+  def create(task: Task[TaskType])
+            (implicit pluginContext: PluginContext): TypedEntities[EntityType, TaskType] = {
+    new TypedEntities(CloseableIterator.empty, this, task)
+  }
+
 }

@@ -7,7 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
-import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, TypedEntities}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, LinksEntitySchema, SparqlEndpointEntitySchema, TypedEntities}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
@@ -54,7 +54,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): TypedEntities[FileEntity] = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): TypedEntities[FileEntity, TaskSpec] = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
@@ -96,12 +96,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         throw TaskException("Dataset is not a RDF dataset and thus cannot output triples!")
     }
   }
-  private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec]): SparqlEndpointEntityTable = {
+
+  private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec])(implicit pluginContext: PluginContext): TypedEntities[Unit, DatasetSpec[RdfDataset]] = {
     dataset.data match {
-      case rdfDataset: RdfDataset =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
-      case DatasetSpec(rdfDataset: RdfDataset, _, _) =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
+      case DatasetSpec(_: RdfDataset, _, _) =>
+        SparqlEndpointEntitySchema.create(dataset.asInstanceOf[Task[DatasetSpec[RdfDataset]]])
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
     }
@@ -125,11 +124,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     implicit val user: UserContext = pluginContext.user
 
     DatasetSpec.checkDatasetAllowsWriteAccess(Some(dataset.fullLabel), dataset.readOnly)
-    //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
+
     data match {
-      case LinksTable(links, linkType, inverseLinkType, _) =>
+      case LinksEntitySchema(links) =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(dataset, linkSink, links, linkType, inverseLinkType)
+          writeLinks(dataset, linkSink, links.typedEntities, links.task.linkType, links.task.inverseLinkType)
         }
       case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset, execution) { entitySink =>
@@ -292,7 +291,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   // Write file entities to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: TypedEntities[FileEntity]): Unit = {
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: TypedEntities[FileEntity, TaskSpec]): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
@@ -346,7 +345,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri, inverseLinkType: Option[Uri])
+  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: CloseableIterator[Link], linkType: Uri, inverseLinkType: Option[Uri])
                         (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport]): Unit = {
     implicit val report: ExecutionReportUpdater = WriteLinksReportUpdater(dataset, context)
     val startTime = System.currentTimeMillis()

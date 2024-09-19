@@ -15,7 +15,7 @@ import java.io.File
 /**
  * Entity schema that holds a collection of files.
  */
-object FileEntitySchema extends TypedEntitySchema[FileEntity] {
+object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
 
   override val schema: EntitySchema = {
     EntitySchema(
@@ -28,15 +28,15 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity] {
     )
   }
 
-  override def toEntity(v: FileEntity)(implicit pluginContext: PluginContext): Entity = {
-    val path = v.fileType match {
+  override def toEntity(entity: FileEntity)(implicit pluginContext: PluginContext): Entity = {
+    val path = entity.fileType match {
       case FileType.Project =>
         //TODO this should use the relativePath method after it has been merged into develop
-        v.file.path.stripPrefix(pluginContext.resources.basePath).stripPrefix("/").stripPrefix(File.separator)
+        entity.file.path.stripPrefix(pluginContext.resources.basePath).stripPrefix("/").stripPrefix(File.separator)
       case FileType.Local =>
-        v.file.path
+        entity.file.path
     }
-    new Entity(new File(v.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(v.fileType.toString), v.contentType.toSeq), schema)
+    new Entity(new File(entity.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(entity.fileType.toString), entity.contentType.toSeq), schema)
   }
 
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
@@ -60,7 +60,7 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity] {
     FileEntity(file, fileType, contentType)
   }
 
-  def local(resource: FileResource, task: Task[TaskSpec])(implicit pluginContext: PluginContext): TypedEntities[FileEntity] = {
+  def local(resource: FileResource, task: Task[TaskSpec])(implicit pluginContext: PluginContext): TypedEntities[FileEntity, TaskSpec] = {
     create(CloseableIterator.single(FileEntity(resource, FileType.Local)), task)
   }
 }

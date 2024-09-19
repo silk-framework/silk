@@ -14,11 +14,12 @@ import org.silkframework.runtime.plugin.PluginContext
  * @param task The task that generated these entities.
  * @param pluginContext The plugin context that will be used to (de-)serialize typed entities to generic entity tables.
  * @tparam EntityType The type of the entities in this collection.
+ * @tparam TaskType May restrict the type of tasks that produce this typed entities.
  */
-class TypedEntities[EntityType](val typedEntities: CloseableIterator[EntityType],
-                                val typedEntitySchema: TypedEntitySchema[EntityType],
-                                override val task: Task[TaskSpec])
-                               (implicit pluginContext: PluginContext) extends LocalEntities {
+class TypedEntities[EntityType, TaskType <: TaskSpec](val typedEntities: CloseableIterator[EntityType],
+                                                      val typedEntitySchema: TypedEntitySchema[EntityType, TaskType],
+                                                      override val task: Task[TaskType])
+                                                     (implicit pluginContext: PluginContext) extends LocalEntities {
 
   /**
    * The schema of the entities
@@ -42,7 +43,7 @@ class TypedEntities[EntityType](val typedEntities: CloseableIterator[EntityType]
    */
   override def updateEntities(newEntities: CloseableIterator[Entity], newSchema: EntitySchema): LocalEntities = {
     if(newSchema == entitySchema) {
-      new TypedEntities[EntityType](
+      new TypedEntities[EntityType, TaskType](
         typedEntities = newEntities.map(typedEntitySchema.fromEntity),
         typedEntitySchema = typedEntitySchema,
         task = task
