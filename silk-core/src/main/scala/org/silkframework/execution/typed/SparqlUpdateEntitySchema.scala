@@ -6,6 +6,7 @@ import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 /** Entity table that holds SPARQL Update queries */
@@ -28,7 +29,7 @@ object SparqlUpdateEntitySchema extends TypedEntitySchema[String, TaskSpec] {
    * Creates a generic entity from a typed entity.
    */
   override def toEntity(query: String)(implicit pluginContext: PluginContext): Entity = {
-    new Entity("urn:uuid:" + UUID.fromString(query), IndexedSeq(Seq(query)), schema)
+    new Entity("urn:uuid:" + UUID.nameUUIDFromBytes(query.getBytes(StandardCharsets.UTF_8)), IndexedSeq(Seq(query)), schema)
   }
 
   /**
