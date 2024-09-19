@@ -7,7 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
-import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, LinksEntitySchema, SparqlEndpointEntitySchema, TypedEntities}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, LinksEntitySchema, SparqlEndpointEntitySchema, SparqlUpdateEntitySchema, TypedEntities}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
@@ -153,8 +153,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
         val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
         uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
-      case sparqlUpdateTable: SparqlUpdateEntityTable =>
-        executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
+      case SparqlUpdateEntitySchema(queries) =>
+        executeSparqlUpdateQueries(dataset, queries, execution)
       case et: LocalEntities =>
         writeGenericLocalEntities(dataset, et, execution)
     }
@@ -218,14 +218,14 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[DatasetType]],
-                                         sparqlUpdateTable: SparqlUpdateEntityTable,
+                                         sparqlUpdateQueries: TypedEntities[String, TaskSpec],
                                          execution: LocalExecution)
                                         (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
         val executionReport = SparqlUpdateExecutionReportUpdater(dataset, context)
-        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateTable.entities)
+        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateQueries.typedEntities)
         for (updateQuery <- queryBuffer) {
           endpoint.update(updateQuery)
           executionReport.increaseEntityCounter()
@@ -233,7 +233,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         executionReport.executionDone()
       case _ =>
-        writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
+        writeGenericLocalEntities(dataset, sparqlUpdateQueries, execution)
     }
   }
 
@@ -241,13 +241,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     *
     * @param bufferSize max size of queries that should be buffered
     */
-  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[Entity]) extends TraversableIterator[String] {
+  case class SparqlQueryBuffer(queryBufferSize: Int, entities: CloseableIterator[String]) extends TraversableIterator[String] {
     private val queryBuffer = new util.LinkedList[String]()
 
     override def foreach[U](f: String => U): Unit = {
-      entities foreach { entity =>
-        assert(entity.values.size == 1 && entity.values.head.size == 1)
-        val query = entity.values.head.head
+      entities foreach { query =>
         queryBuffer.push(query)
         if(queryBuffer.size() > queryBufferSize) {
           f(queryBuffer.remove())

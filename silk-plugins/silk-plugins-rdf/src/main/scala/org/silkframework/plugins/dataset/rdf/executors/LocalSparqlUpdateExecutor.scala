@@ -5,6 +5,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local._
 import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
+import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
@@ -45,8 +46,8 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       }
     }
 
-    val traversable = new TraversableIterator[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
+    val traversable = new TraversableIterator[String] {
+      override def foreach[U](f: String => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)
         reportUpdater.startNewOutputSamples(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
@@ -67,7 +68,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         batchEmitter.close()
       }
     }
-    Some(new SparqlUpdateEntityTable(traversable, task))
+    Some(SparqlUpdateEntitySchema.create(traversable, task))
   }
 
   private def executeTemplate[U](batchEmitter: BatchSparqlUpdateEmitter[U],
@@ -164,7 +165,7 @@ case class CrossProductIterator(values: IndexedSeq[Seq[String]],
   }
 }
 
-case class BatchSparqlUpdateEmitter[U](f: Entity => U, batchSize: Int) {
+case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int) {
   private var sparqlUpdateQueries = new StringBuffer()
   private var queryCount = 0
 
@@ -182,7 +183,7 @@ case class BatchSparqlUpdateEmitter[U](f: Entity => U, batchSize: Int) {
 
   private var entityCount = 0
   private def emitEntity(): Unit = {
-    f(Entity(DataSource.URN_NID_PREFIX + entityCount, values = IndexedSeq(Seq(sparqlUpdateQueries.toString)), schema = SparqlUpdateEntitySchema.schema))
+    f(sparqlUpdateQueries.toString)
     sparqlUpdateQueries = new StringBuffer()
     queryCount = 0
     entityCount += 1
