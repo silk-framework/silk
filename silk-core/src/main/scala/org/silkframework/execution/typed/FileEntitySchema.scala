@@ -40,11 +40,10 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
   }
 
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
-    //TODO validate schema
     val fileType = entity.values(1).headOption.map(FileType.withName).getOrElse(FileType.Local)
-    val contentType = entity.values(2).headOption.filter(_.isEmpty)
+    val contentType = entity.values(2).headOption.filter(_.nonEmpty)
 
-    val file = entity.values.head.headOption match {
+    val file = entity.values(0).headOption match {
       case Some(value) =>
         fileType match {
           case FileType.Project =>
@@ -52,7 +51,6 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
           case FileType.Local =>
             FileResource(new File(value))
         }
-
       case None =>
         throw new ValidationException("No resource path provided")
     }
@@ -77,6 +75,7 @@ object FileEntity {
 
   /**
    * Creates a temporary file entity.
+   * File will be deleted on garbage collection of the returned entity and latest on exit.
    */
   def createTemp(prefix: String, suffix: String = ".tmp"): FileEntity = {
     val tempFile = File.createTempFile(prefix, suffix)
