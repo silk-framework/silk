@@ -14,6 +14,11 @@ import org.silkframework.runtime.plugin.PluginContext
 abstract class TypedEntitySchema[EntityType, TaskType <: TaskSpec] {
 
   /**
+   * User-readable name for this schema.
+   */
+  def name: String = getClass.getName
+
+  /**
    * The fixed schema for this type.
    * Entities will be associated with this custom type based on the type URI of the schema, i.e., the type URI must be unique.
    */
@@ -26,17 +31,42 @@ abstract class TypedEntitySchema[EntityType, TaskType <: TaskSpec] {
 
   /**
    * Creates a typed entity from a generic entity.
+   * Implementations may assume that the incoming schema matches the schema expected by this typed schema, i.e., schema validation is not required.
    */
   def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): EntityType
 
   /**
+   * Makes sure that a provided schema matches this schema.
+   *
+   * @throws WrongEntitySchemaException If the schema does not match.
+   */
+  def validateSchema(entitySchema: EntitySchema): Unit = {
+    if(entitySchema.typeUri != schema.typeUri) {
+      throw WrongEntitySchemaException(s"Expected entities of schema '$name' with type ${schema.typeUri}. Received entities of type ${entitySchema.typeUri}.")
+    }
+    if(entitySchema.typedPaths.size != schema.typedPaths.size) {
+      throw WrongEntitySchemaException(s"Schema '$name' expects ${schema.typedPaths.size} paths. Received ${entitySchema.typedPaths.size} paths.")
+    }
+    for(((receivedPath, expectedPath), index) <- (entitySchema.typedPaths zip schema.typedPaths).zipWithIndex) {
+      // We only check the path itself, but allow different value types
+      if(receivedPath.normalizedSerialization != expectedPath.normalizedSerialization) {
+        throw WrongEntitySchemaException(
+          s"Schema '$name' expects the path ${expectedPath.normalizedSerialization} at index $index. Received ${receivedPath.normalizedSerialization}.")
+      }
+    }
+  }
+
+  /**
    * Converts a generic entity table to typed entities.
    * Enables implementation classes to be used in pattern matching.
+   *
+   * @throws WrongEntitySchemaException If the schema does have the expected type URI, but the paths do not match the expected paths.
+   * @return The parsed typed entities, if the type URI matches. None, otherwise.
    */
   def unapply(entities: LocalEntities)(implicit pluginContext: PluginContext): Option[TypedEntities[EntityType, TaskType]] = {
     if(entities.entitySchema.typeUri == schema.typeUri) {
+      validateSchema(entities.entitySchema)
       // Since we assume that the type URI is unique, we can safely cast to the expected types.
-      // TODO we should still do some validation here
       if(entities.isInstanceOf[TypedEntities[_, _]]) {
         Some(entities.asInstanceOf[TypedEntities[EntityType, TaskType]])
       } else {
@@ -83,3 +113,5 @@ abstract class TypedEntitySchema[EntityType, TaskType <: TaskSpec] {
   }
 
 }
+
+case class WrongEntitySchemaException(msg: String) extends RuntimeException(msg)
