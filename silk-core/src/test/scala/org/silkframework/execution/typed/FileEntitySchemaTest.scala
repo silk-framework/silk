@@ -22,7 +22,7 @@ class FileEntitySchemaTest extends AnyFlatSpec with Matchers {
     projectFile.file.writeString("Project file content")
 
     // Create a local file.
-    val localFile = FileEntity.createTemp("testLocalFile").copy(contentType = Some("text/plain"))
+    val localFile = FileEntity.createTemp("testLocalFile").copy(mimeType = Some("text/plain"))
     localFile.file.writeString("Local file content")
 
     // Create file entities
@@ -40,12 +40,12 @@ class FileEntitySchemaTest extends AnyFlatSpec with Matchers {
     val firstFile = fileEntitiesReconstructed.typedEntities.next()
     firstFile.file.loadAsString() shouldBe "Project file content"
     firstFile.fileType shouldBe FileType.Project
-    firstFile.contentType shouldBe None
+    firstFile.mimeType shouldBe None
 
     val secondFile = fileEntitiesReconstructed.typedEntities.next()
     secondFile.file.loadAsString() shouldBe "Local file content"
     secondFile.fileType shouldBe FileType.Local
-    secondFile.contentType shouldBe Some("text/plain")
+    secondFile.mimeType shouldBe Some("text/plain")
   }
 
   private def createTempResourceManager(): ResourceManager = {

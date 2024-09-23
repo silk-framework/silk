@@ -36,7 +36,7 @@ object SilkVocab {
 
   val DatasetResourceSchemaType: String = namespace + "DatasetResourceSchemaType"
   val resourcePath: String = namespace + "path"
-  val contentType: String = namespace + "contentType"
+  val mimeType: String = namespace + "mimeType"
   val fileType: String = namespace + "fileType"
 
   val tripleSubject: String = namespace + "tripleSubject"

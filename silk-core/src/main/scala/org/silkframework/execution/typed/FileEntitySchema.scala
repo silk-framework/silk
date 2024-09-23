@@ -18,12 +18,12 @@ import java.io.File
 object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
 
   override val schema: EntitySchema = {
-    EntitySchema(
+    EntitySchema( //TODO use namespace used by DI RDF serialization /Entities/File
       typeUri = Uri(SilkVocab.DatasetResourceSchemaType),
       typedPaths = IndexedSeq(
         TypedPath(UntypedPath(SilkVocab.resourcePath), ValueType.STRING, isAttribute = true),
         TypedPath(UntypedPath(SilkVocab.fileType), ValueType.STRING, isAttribute = true),
-        TypedPath(UntypedPath(SilkVocab.contentType), ValueType.STRING, isAttribute = true),
+        TypedPath(UntypedPath(SilkVocab.mimeType), ValueType.STRING, isAttribute = true),
       )
     )
   }
@@ -36,7 +36,7 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
       case FileType.Local =>
         entity.file.path
     }
-    new Entity(new File(entity.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(entity.fileType.toString), entity.contentType.toSeq), schema)
+    new Entity(new File(entity.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(entity.fileType.toString), entity.mimeType.toSeq), schema)
   }
 
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
@@ -67,9 +67,9 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
  *
  * @param file The file to be exchanged.
  * @param fileType The file type. Affects how the file will be serialized to a generic entity table.
- * @param contentType Optional content type.
+ * @param mimeType Optional content type.
  */
-case class FileEntity(file: WritableResource, fileType: FileType, contentType: Option[String] = None)
+case class FileEntity(file: WritableResource, fileType: FileType, mimeType: Option[String] = None)
 
 object FileEntity {
 
