@@ -8,6 +8,8 @@ interface SearchHandlerReturnType {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onClear: () => void;
     onEnter: () => void;
+    /** Returns if there is a pending search. */
+    searchPending: () => boolean;
 }
 
 export const useSearch = ({
@@ -21,6 +23,10 @@ export const useSearch = ({
 }): SearchHandlerReturnType => {
     const [query, setQuery] = React.useState<string>(searchQuery);
     const [isSearching, setIsSearching] = React.useState<boolean>(false);
+    const searchState = React.useRef<{ currentQueryString: string; finishedQuery: string | undefined }>({
+        currentQueryString: searchQuery,
+        finishedQuery: undefined,
+    });
 
     React.useEffect(() => {
         setQuery(searchQuery);
@@ -34,10 +40,15 @@ export const useSearch = ({
             } catch (err) {
             } finally {
                 setIsSearching(false);
+                searchState.current.finishedQuery = query;
             }
         }, delay),
         []
     );
+
+    const searchPending = React.useCallback(() => {
+        return searchState.current.currentQueryString !== searchState.current.finishedQuery;
+    }, []);
 
     React.useEffect(() => {
         let shouldCancel = false;
@@ -53,6 +64,7 @@ export const useSearch = ({
 
     const onChange = React.useCallback((e) => {
         const inputValue = e.target.value;
+        searchState.current.currentQueryString = inputValue;
         setQuery(inputValue);
         !inputValue.length && debouncedSearch("");
     }, []);
@@ -66,5 +78,5 @@ export const useSearch = ({
         onSearch(query);
     }, [query]);
 
-    return { isSearching, setQuery, query, onChange, onClear, onEnter };
+    return { isSearching, setQuery, query, onChange, onClear, onEnter, searchPending };
 };
