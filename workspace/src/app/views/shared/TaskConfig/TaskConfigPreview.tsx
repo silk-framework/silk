@@ -132,7 +132,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 .filter(([paramId, { value }]) => value.trim() !== "")
                 .map(([paramId, { value, templateValue }]) => {
                     return (
-                        <Toolbar noWrap key={paramId}>
+                        <Toolbar data-test-id={`task-config-preview-parameter-${paramId}`} noWrap key={paramId}>
                             <ToolbarSection canGrow canShrink>
                                 <PropertyValuePair hasDivider nowrap>
                                     <PropertyName
@@ -165,6 +165,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                 )}
                                 {templateValue != null && (
                                     <Icon
+                                        data-test-id={"template-tooltip-icon"}
                                         name={"form-template"}
                                         intent={"info"}
                                         tooltipText={
