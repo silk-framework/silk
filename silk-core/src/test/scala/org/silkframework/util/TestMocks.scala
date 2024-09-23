@@ -15,7 +15,8 @@ object TestMocks extends MockitoSugar {
   /** Simple mock of the activity context */
   def activityContextMock(): ActivityContext[ExecutionReport] = {
     val context = mock[ActivityContext[ExecutionReport]]
-    when(context.value).thenReturn(new ValueHolder[ExecutionReport](None))
+    val valueHolder = new ValueHolder[ExecutionReport](None)
+    when(context.value).thenReturn(valueHolder)
     val statusMock = mock[StatusHolder];
     when(context.status).thenReturn(statusMock)
     context

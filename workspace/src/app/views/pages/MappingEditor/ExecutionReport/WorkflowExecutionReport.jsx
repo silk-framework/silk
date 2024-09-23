@@ -131,7 +131,7 @@ export default class WorkflowExecutionReport extends React.Component {
                 return <WorkflowExecutionReport project={this.props.project} executionReport={taskReport} />;
             } else {
                 // Render the report of the selected task
-                return <ExecutionReport project={this.props.project} nodeId={nodeId} executionReport={taskReport} />;
+                return <ExecutionReport executionReport={taskReport} />;
             }
         } else {
             // Render the report of the workflow itself

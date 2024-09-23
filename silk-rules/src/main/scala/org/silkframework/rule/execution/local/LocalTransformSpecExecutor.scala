@@ -6,7 +6,7 @@ import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, Loc
 import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, TaskException}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
-import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
+import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder, TransformReportExecutionContext}
 import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin.PluginContext
@@ -27,11 +27,13 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       throw TaskException("No input given to transform specification executor " + task.id + "!")
     }
     val transformContext = context.asInstanceOf[ActivityContext[TransformReport]]
-    transformContext.value() = TransformReport(task)
+    val transformReportExecutionContext = output.task.map(t => TransformReportExecutionContext(t)).getOrElse(TransformReportExecutionContext.default)
+    transformContext.value() = TransformReport(task, context = Some(transformReportExecutionContext))
     val flatInputs = flattenInputs(input).toIndexedSeq
     val outputTables = mutable.Buffer[LocalEntities]()
     val ruleSchemata = task.data.ruleSchemataWithoutEmptyObjectRules
     val report = new TransformReportBuilder(task, transformContext)
+    report.setExecutionContext(transformReportExecutionContext)
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val taskContext: TaskContext = TaskContext(Seq(input.task))
 
