@@ -11,7 +11,7 @@ import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.ReadOnlyResource
+import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -143,11 +143,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           writeMultiTables(entitySink, tables)
         }
         report.executionDone()
-      case FileEntitySchema(data) =>
-        writeDatasetResource(dataset, data)
-      case graphStoreFiles: LocalGraphStoreFileUploadTable =>
+      case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
+        writeDatasetResource(dataset, files)
+      case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
         val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
-        uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
+        uploadFilesViaGraphStore(dataset, files.typedEntities, reportUpdater)
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
       case et: LocalEntities =>
@@ -255,7 +255,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
-                                       table: GraphStoreFileUploadTable,
+                                       files: CloseableIterator[FileEntity],
                                        reportUpdater: ExecutionReportUpdater)
                                       (implicit userContext: UserContext): Unit = {
     val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
@@ -269,8 +269,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
               case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
             }
             val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
-            for(fileResource <- table.files) {
-              graphStore.uploadFileToGraph(targetGraph, fileResource.file, table.contentType, None)
+            for(fileEntity <- files) {
+              val file = fileEntity.file match {
+                case FileResource(file) => file
+                case _ => throw new ValidationException(s"Cannot upload non-local file to GraphStore: $fileEntity")
+              }
+              val mimeType = fileEntity.mimeType.getOrElse(throw new ValidationException(s"Cannot upload file to GraphStore that is missing the MIME type: $fileEntity"))
+              graphStore.uploadFileToGraph(targetGraph, file, mimeType, None)
               reportUpdater.increaseEntityCounter()
             }
           case _: Dataset =>
