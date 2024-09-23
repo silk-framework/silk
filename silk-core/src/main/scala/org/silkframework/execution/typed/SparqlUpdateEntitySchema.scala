@@ -29,7 +29,7 @@ object SparqlUpdateEntitySchema extends TypedEntitySchema[String, TaskSpec] {
    * Creates a generic entity from a typed entity.
    */
   override def toEntity(query: String)(implicit pluginContext: PluginContext): Entity = {
-    new Entity("urn:uuid:" + UUID.nameUUIDFromBytes(query.getBytes(StandardCharsets.UTF_8)), IndexedSeq(Seq(query)), schema)
+    new Entity(Uri.uuid(query), IndexedSeq(Seq(query)), schema)
   }
 
   /**

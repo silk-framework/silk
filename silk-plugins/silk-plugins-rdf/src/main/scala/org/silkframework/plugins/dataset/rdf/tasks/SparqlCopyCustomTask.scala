@@ -2,8 +2,7 @@ package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
 import org.silkframework.config._
-import org.silkframework.execution.local.QuadEntityTable
-import org.silkframework.execution.typed.SparqlEndpointEntitySchema
+import org.silkframework.execution.typed.{QuadEntitySchema, SparqlEndpointEntitySchema}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.validation.ValidationException
@@ -39,6 +38,6 @@ case class SparqlCopyCustomTask(
   }
 
   override def outputPort: Option[Port] = {
-    Some(FixedSchemaPort(QuadEntityTable.schema))
+    Some(FixedSchemaPort(QuadEntitySchema.schema))
   }
 }
