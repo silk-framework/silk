@@ -1,4 +1,10 @@
 /**
+ * Set variables
+ */
+
+$eccgui-selector-text-spot-highlight: "[id^=parameter_doc_]";
+
+/**
  * Legacy styles for older components
  * FIXME: they need to made be obsolete as soon as possible
  */
@@ -33,4 +39,4 @@
 @import "./../app/views/taskViews/linking/activeLearning/LinkingRuleActiveLeraningConfig";
 @import "./../app/views/taskViews/linking/evaluation/tabView/LinkingEvaluationTabview.scss";
 @import "./../app/views/taskViews/transform/evaluation/tabView/TransformEvaluationTabView.scss";
-@import "./../app/views/shared/FileUploader/cases/UploadNewFile/UploadNewFile.scss"
+@import "./../app/views/shared/FileUploader/cases/UploadNewFile/UploadNewFile.scss";
