@@ -21,7 +21,7 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginReg
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
-import {ArtefactDocumentation} from "../CreateArtefactModal";
+import { ArtefactDocumentation } from "../CreateArtefactModal";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -39,7 +39,7 @@ export interface ParameterCallbacks {
     /** Request template flag for a parameter. */
     templateFlag: (parameterId: string) => boolean;
     /** Shows the detailed task documentation and jumps to the named anchor of the parameter. */
-    showDetailedParameterDocumentation: (parameterId: string) => any
+    showDetailedParameterDocumentation: (parameterId: string) => any;
 }
 
 /** Extended parameter callbacks with internal callbacks. */
@@ -48,7 +48,7 @@ export interface ExtendedParameterCallbacks extends ParameterCallbacks {
     /** Returns the label of the parameter with the full parameter ID, i.e. of the form parentParamId.paramId. */
     parameterLabel: (fullParameterId: string) => string;
     /** Named anchors in the Markdown documentation. */
-    namedAnchors: string[]
+    namedAnchors: string[];
 }
 
 interface IProps {
@@ -135,23 +135,29 @@ export const ParameterWidget = (props: IProps) => {
               })
             : undefined;
 
-    const detailedDocumentationAvailable = parameterCallbacks.namedAnchors.includes(formParamId)
+    const detailedDocumentationAvailable = parameterCallbacks.namedAnchors.includes(formParamId);
     let propertyHelperText: JSX.Element | undefined = undefined;
-    if (description && description.length > MAXLENGTH_TOOLTIP || detailedDocumentationAvailable) {
-        let parameterDescription: JSX.Element = <Markdown>{description}</Markdown>
-        let detailedLink: JSX.Element | undefined = undefined
-        if(detailedDocumentationAvailable) {
-            detailedLink = <Link
-                data-test-id={"parameter-doc-link"}
-                key={"showDoc"}
-                href={`#${formParamId}`}
-                onClick={() => parameterCallbacks.showDetailedParameterDocumentation(formParamId)}
-            >{t("ParameterWidget.parameterDocLinkText")}</Link>
-            parameterDescription = <>
-                {parameterDescription}
-                <Spacing size={"tiny"} />
-                {detailedLink}
-            </>
+    if ((description && description.length > MAXLENGTH_TOOLTIP) || detailedDocumentationAvailable) {
+        let parameterDescription: JSX.Element = <Markdown>{description}</Markdown>;
+        let detailedLink: JSX.Element | undefined = undefined;
+        if (detailedDocumentationAvailable) {
+            detailedLink = (
+                <Link
+                    data-test-id={"parameter-doc-link"}
+                    key={"showDoc"}
+                    href={`#${formParamId}`}
+                    onClick={() => parameterCallbacks.showDetailedParameterDocumentation(formParamId)}
+                >
+                    {t("ParameterWidget.parameterDocLinkText")}
+                </Link>
+            );
+            parameterDescription = (
+                <>
+                    {parameterDescription}
+                    <Spacing size={"tiny"} />
+                    {detailedLink}
+                </>
+            );
         }
         propertyHelperText = (
             <StringPreviewContentBlobToggler
@@ -172,7 +178,7 @@ export const ParameterWidget = (props: IProps) => {
                 toggleExtendText={t("common.words.more", "more")}
                 toggleReduceText={t("common.words.less", "less")}
                 firstNonEmptyLineOnly={true}
-                noTogglerContentSuffix={detailedLink ? <><Spacing vertical={true} size={"tiny"} />{detailedLink}</> : detailedLink}
+                noTogglerContentSuffix={detailedLink ? <> {detailedLink}</> : detailedLink}
             />
         );
     }
@@ -326,4 +332,4 @@ export const missingDependentParameters = (
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
     return dependsOnParameters.filter((paramId) => !dependentValueIsSet(dependentValues[parameterPrefix + paramId]));
-}
+};
