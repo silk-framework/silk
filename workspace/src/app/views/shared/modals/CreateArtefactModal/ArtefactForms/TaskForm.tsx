@@ -22,7 +22,7 @@ import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSe
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
-import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils"
+import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -87,7 +87,7 @@ const isInt = (value) => {
     return intRegex.test(`${value}`);
 };
 
-const PARAMETER_DOC_PREFIX = "parameter_doc_"
+export const PARAMETER_DOC_PREFIX = "parameter_doc_";
 
 /** The task creation/update form. */
 export function TaskForm({
@@ -157,17 +157,18 @@ export function TaskForm({
     }, []);
 
     const extendedCallbacks = React.useMemo(() => {
-        let namedAnchors: string[] = []
-        if(artefact.markdownDocumentation) {
-            namedAnchors = utils.extractNamedAnchors(artefact.markdownDocumentation)
-                .filter(a => a.startsWith(PARAMETER_DOC_PREFIX))
-                .map(a => a.substring(PARAMETER_DOC_PREFIX.length))
+        let namedAnchors: string[] = [];
+        if (artefact.markdownDocumentation) {
+            namedAnchors = utils
+                .extractNamedAnchors(artefact.markdownDocumentation)
+                .filter((a) => a.startsWith(PARAMETER_DOC_PREFIX))
+                .map((a) => a.substring(PARAMETER_DOC_PREFIX.length));
         }
         return {
             ...parameterCallbacks,
             initialTemplateFlag,
             parameterLabel,
-            namedAnchors
+            namedAnchors,
         };
     }, [initialTemplateFlag, artefact.markdownDocumentation]);
 

@@ -22,6 +22,7 @@ import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { ArtefactDocumentation } from "../CreateArtefactModal";
+import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -145,7 +146,7 @@ export const ParameterWidget = (props: IProps) => {
                 <Link
                     data-test-id={"parameter-doc-link"}
                     key={"showDoc"}
-                    href={`#${formParamId}`}
+                    href={`#${PARAMETER_DOC_PREFIX}${formParamId}`}
                     onClick={() => parameterCallbacks.showDetailedParameterDocumentation(formParamId)}
                 >
                     {t("ParameterWidget.parameterDocLinkText")}
