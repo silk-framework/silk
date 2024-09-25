@@ -1,9 +1,9 @@
 package org.silkframework.execution.typed
 
-import org.silkframework.config.SilkVocab
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.typed.TypedEntitiesVocab.schemaType
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
@@ -15,7 +15,7 @@ object SparqlEndpointEntitySchema extends TypedEntitySchema[Unit, DatasetSpec[Rd
    */
   override val schema: EntitySchema = {
     EntitySchema(
-      typeUri = Uri(SilkVocab.SparqlEndpointSchemaType),
+      typeUri = Uri(schemaType("SparqlEndpoint")),
       typedPaths = IndexedSeq.empty
     )
   }

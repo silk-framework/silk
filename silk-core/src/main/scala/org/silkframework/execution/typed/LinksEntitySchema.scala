@@ -2,6 +2,7 @@ package org.silkframework.execution.typed
 import org.silkframework.config.{SilkVocab, TaskSpec}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, Link, LinkWithConfidence, ValueType}
+import org.silkframework.execution.typed.TypedEntitiesVocab.{schemaPath, schemaType}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
@@ -16,11 +17,11 @@ object LinksEntitySchema extends TypedEntitySchema[Link, LinkGenerator] {
    */
   override def schema: EntitySchema = {
     EntitySchema(
-      typeUri = SilkVocab.LinksSchemaType,
+      typeUri = schemaType("Link"),
       typedPaths =
         IndexedSeq(
-          TypedPath(UntypedPath("targetUri"), ValueType.URI, isAttribute = true),
-          TypedPath(UntypedPath("confidence"), ValueType.DOUBLE, isAttribute = true)
+          TypedPath(schemaPath("targetUri"), ValueType.URI, isAttribute = true),
+          TypedPath(schemaPath("confidence"), ValueType.DOUBLE, isAttribute = true)
         )
     )
   }

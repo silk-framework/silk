@@ -1,9 +1,10 @@
 package org.silkframework.execution.typed
 
-import org.silkframework.config.{SilkVocab, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.execution.typed.TypedEntitiesVocab.{schemaPath, schemaType}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
@@ -15,13 +16,13 @@ object QuadEntitySchema extends TypedEntitySchema[Quad, TaskSpec] {
    */
   override val schema: EntitySchema = {
     EntitySchema(
-      typeUri = Uri(SilkVocab.QuadSchemaType),
+      typeUri = schemaType("Quad"),
       typedPaths = IndexedSeq(
-        TypedPath(UntypedPath(SilkVocab.tripleSubject), ValueType.URI, isAttribute = false),
-        TypedPath(UntypedPath(SilkVocab.triplePredicate), ValueType.URI, isAttribute = false),
-        TypedPath(UntypedPath(SilkVocab.tripleObject), ValueType.STRING, isAttribute = false),
-        TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), ValueType.STRING, isAttribute = false),
-        TypedPath(UntypedPath(SilkVocab.quadContext), ValueType.STRING, isAttribute = false)
+        TypedPath(schemaPath("tripleSubject"), ValueType.URI, isAttribute = false),
+        TypedPath(schemaPath("triplePredicate"), ValueType.URI, isAttribute = false),
+        TypedPath(schemaPath("tripleObject"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("tripleObjectValueType"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quadContext"), ValueType.STRING, isAttribute = false)
       )
     )
   }

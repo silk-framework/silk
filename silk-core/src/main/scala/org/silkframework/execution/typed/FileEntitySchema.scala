@@ -4,6 +4,7 @@ import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.typed.FileType.FileType
+import org.silkframework.execution.typed.TypedEntitiesVocab.{schemaPath, schemaType}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
@@ -17,17 +18,24 @@ import java.io.File
  */
 object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
 
+  /**
+   * The fixed schema for file entities.
+   * Entities will be associated with this custom type based on the type URI of the schema, i.e., the type URI must be unique.
+   */
   override val schema: EntitySchema = {
-    EntitySchema( //TODO use namespace used by DI RDF serialization /Entities/File
-      typeUri = Uri(SilkVocab.DatasetResourceSchemaType),
+    EntitySchema(
+      typeUri = schemaType("File"),
       typedPaths = IndexedSeq(
-        TypedPath(UntypedPath(SilkVocab.resourcePath), ValueType.STRING, isAttribute = true),
-        TypedPath(UntypedPath(SilkVocab.fileType), ValueType.STRING, isAttribute = true),
-        TypedPath(UntypedPath(SilkVocab.mimeType), ValueType.STRING, isAttribute = true),
+        TypedPath(schemaPath("path"), ValueType.STRING, isAttribute = true),
+        TypedPath(schemaPath("fileType"), ValueType.STRING, isAttribute = true),
+        TypedPath(schemaPath("mimeType"), ValueType.STRING, isAttribute = true),
       )
     )
   }
 
+  /**
+   * Creates a generic entity from a file.
+   */
   override def toEntity(entity: FileEntity)(implicit pluginContext: PluginContext): Entity = {
     val path = entity.fileType match {
       case FileType.Project =>
@@ -39,6 +47,10 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
     new Entity(new File(entity.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(entity.fileType.toString), entity.mimeType.toSeq), schema)
   }
 
+  /**
+   * Parses a file from a generic entity.
+   * Implementations assumes that the incoming schema matches the schema expected by this typed schema, i.e., schema validation is not done.
+   */
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
     val fileType = entity.values(1).headOption.map(FileType.withName).getOrElse(FileType.Local)
     val contentType = entity.values(2).headOption.filter(_.nonEmpty)
@@ -58,6 +70,9 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
     FileEntity(file, fileType, contentType)
   }
 
+  /**
+   * Creates a single local file entity.
+   */
   def local(resource: FileResource, task: Task[TaskSpec])(implicit pluginContext: PluginContext): TypedEntities[FileEntity, TaskSpec] = {
     create(CloseableIterator.single(FileEntity(resource, FileType.Local)), task)
   }

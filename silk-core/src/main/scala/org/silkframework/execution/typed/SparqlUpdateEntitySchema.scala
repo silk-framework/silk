@@ -3,6 +3,7 @@ package org.silkframework.execution.typed
 import org.silkframework.config.{SilkVocab, TaskSpec}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
+import org.silkframework.execution.typed.TypedEntitiesVocab.{schemaPath, schemaType}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
@@ -18,9 +19,9 @@ object SparqlUpdateEntitySchema extends TypedEntitySchema[String, TaskSpec] {
    */
   override def schema: EntitySchema = {
     EntitySchema(
-      typeUri = Uri(SilkVocab.SparqlUpdateSchemaType),
+      typeUri = Uri(schemaType("SparqlUpdate")),
       typedPaths = IndexedSeq(
-        TypedPath(UntypedPath(SilkVocab.sparqlUpdateQuery), ValueType.STRING, isAttribute = true)
+        TypedPath(schemaPath("sparqlUpdateQuery"), ValueType.STRING, isAttribute = true)
       )
     )
   }
