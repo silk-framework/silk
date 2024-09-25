@@ -46,7 +46,7 @@ object TransformUtils {
   /** Returns true if the configured input task is a RDF dataset. */
   def isRdfInput(transformTask: ProjectTask[TransformSpec])
                 (implicit userContext: UserContext): Boolean = {
-    isRdfDatasetById(transformTask.project, transformTask.selection.inputId)
+    DatasetUtils.isRdfInput(transformTask.project, transformTask.selection)
   }
 
   /** Returns true if the configured output task is a RDF dataset. */

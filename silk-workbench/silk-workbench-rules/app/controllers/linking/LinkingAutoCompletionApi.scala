@@ -197,7 +197,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
                                            (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
     implicit val project: Project = linkingTask.project
     implicit val prefixes: Prefixes = project.config.prefixes
-    val isRdfInput = DatasetUtils.isRdfDataset(project, datasetSelection)
+    val isRdfInput = TransformUtils.isRdfDataset(project, datasetSelection)
     val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
     val dataSourceCharacteristicsOpt = DatasetUtils.datasetCharacteristics(project, datasetSelection)
     val supportsAsteriskOperator = dataSourceCharacteristicsOpt.exists(_.supportsAsteriskPathOperator)
