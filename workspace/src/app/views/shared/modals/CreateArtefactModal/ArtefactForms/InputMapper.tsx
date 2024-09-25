@@ -16,7 +16,7 @@ import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/Tex
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
-import { supportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/hooks/useCodemirrorModeExtension.hooks";
+import { supportedEditorModes } from "@eccenca/gui-elements";
 
 interface IProps {
     projectId: string;
@@ -130,7 +130,7 @@ export function InputMapper({
 
     if (param.parameterType.startsWith("code-")) {
         const mode = param.parameterType.substring(5);
-        if (supportedCodeEditorModes.find((m) => m === mode)) {
+        if (supportedEditorModes.find((m) => m === mode)) {
             return <CodeEditor mode={mode as any} {...inputAttributes} />;
         } else {
             return <CodeEditor {...inputAttributes} />;
