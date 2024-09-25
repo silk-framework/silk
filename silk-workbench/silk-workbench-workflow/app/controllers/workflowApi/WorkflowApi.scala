@@ -4,7 +4,6 @@ import akka.stream.scaladsl.FileIO
 import akka.util.ByteString
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.util.DatasetUtils
 import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
@@ -20,12 +19,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
-import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.resource.{FileResource, Resource}
 import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurablePluginDescription
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity

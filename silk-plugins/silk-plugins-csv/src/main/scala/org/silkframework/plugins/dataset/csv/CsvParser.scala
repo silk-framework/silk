@@ -1,10 +1,9 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.Reader
-import java.util.logging.Logger
-
 import com.univocity.parsers.csv.{CsvParserSettings, CsvParser => UniCsvParser}
 
+import java.io.Reader
+import java.util.logging.Logger
 import scala.util.Try
 
 class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
@@ -45,9 +44,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
     * Returns the next entry from the CSV file. beginParsing must be called before calling this method.
     * If it reached the end of the [[java.io.Reader]] it will return None.
     */
-  def parseNext(): Option[Array[String]] = {
-    Option(parser.parseNext())
-  }
+  def parseNext(): Option[Array[String]] = Option(parser.parseNext())
 
   /** Stops parsing and closes all open resources. */
   def stopParsing(): Unit = {

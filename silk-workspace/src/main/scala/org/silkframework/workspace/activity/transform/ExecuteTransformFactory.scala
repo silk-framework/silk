@@ -25,6 +25,7 @@ case class ExecuteTransformFactory(
       new ExecuteTransform(
         task,
         // No user context here, defer fetching data sources
+        (userContext: UserContext) => task.project.anyTask(task.selection.inputId)(userContext),
         (userContext: UserContext) => task.dataSource(userContext),
         (userContext: UserContext) => new CombinedEntitySink(task.entitySink(userContext).toSeq),
         (userContext: UserContext) => task.errorEntitySink(userContext),

@@ -15,11 +15,11 @@
 package org.silkframework.entity.paths
 
 import java.net.URLEncoder
-
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{ValueType, paths}
 import org.silkframework.util.Uri
 
+import scala.annotation.tailrec
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -127,5 +127,33 @@ object UntypedPath {
 
   def partialParse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): PartialParseResult = {
     new PathParser(prefixes).parseUntilError(pathStr)
+  }
+
+  def startsWithPrefix(operators: List[PathOperator],
+                     prefix: List[PathOperator],
+                     supportsAsteriskOperator: Boolean): Boolean = {
+    if (supportsAsteriskOperator) {
+      startsWithPathSupportingAsterisk(operators, prefix)
+    } else {
+      operators.startsWith(prefix)
+    }
+  }
+
+  private final val asteriskOperator = ForwardOperator("*")
+
+  @tailrec
+  private def startsWithPathSupportingAsterisk(path: List[PathOperator],
+                                               prefix: List[PathOperator]): Boolean = {
+    prefix match {
+      case Nil =>
+        true
+      case prefixHead :: prefixTail =>
+        path match {
+          case pathHead :: pathTail if pathHead == prefixHead || prefixHead == asteriskOperator =>
+            startsWithPathSupportingAsterisk(pathTail, prefixTail)
+          case _ =>
+            false
+        }
+    }
   }
 }

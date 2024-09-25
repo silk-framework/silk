@@ -56,7 +56,12 @@ sealed trait InputPorts
 case class FixedNumberOfInputs(ports: Seq[Port]) extends InputPorts
 
 /**
-  * Operator accepts a flexible number of inputs.
-  * At the moment, each input is a flexible schema port.
+  * Operator accepts a flexible number of inputs with the same port definition.
+  *
+  * @param portDefinition The port definition of each of the input ports.
+  * @param min            The minimum number of ports that need to be connected.
+  * @param max            The maximum number of ports that can be connected. None means unlimited.
   */
-case class FlexibleNumberOfInputs() extends InputPorts
+case class FlexibleNumberOfInputs(portDefinition: Port = FlexibleSchemaPort,
+                                  min: Int = 0,
+                                  max: Option[Int] = None) extends InputPorts

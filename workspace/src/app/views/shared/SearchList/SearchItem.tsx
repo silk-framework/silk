@@ -35,6 +35,7 @@ import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
 import ProjectTags from "../ProjectTags/ProjectTags";
+import { SearchTags } from "./SearchTags";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -225,6 +226,7 @@ export default function SearchItem({
                         )}
                         <Spacing vertical size="tiny" />
                         <ProjectTags tags={item.tags} query={searchValue} />
+                        <SearchTags searchTags={item.searchTags} searchText={searchValue} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>

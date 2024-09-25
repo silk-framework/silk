@@ -201,7 +201,7 @@ object StringParameterType {
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
-      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType)
+      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
   }
 
   /**
@@ -351,6 +351,25 @@ object StringParameterType {
 
     override def toString(value: IntOptionParameter)(implicit pluginContext: PluginContext): String = {
       value.value.map(_.toString).getOrElse("")
+    }
+  }
+
+  object LocaleOptionType extends StringParameterType[LocaleOptionParameter] {
+
+    override def name: String = "option[locale]"
+
+    override def description: String = "An optional locale."
+
+    override def fromString(str: String)(implicit context: PluginContext): LocaleOptionParameter = {
+      if (str.trim.isEmpty) {
+        LocaleOptionParameter(None)
+      } else {
+        LocaleOptionParameter(Some(str))
+      }
+    }
+
+    override def toString(value: LocaleOptionParameter)(implicit pluginContext: PluginContext): String = {
+      value.value.getOrElse("")
     }
   }
 

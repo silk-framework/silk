@@ -166,7 +166,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
-            let operatorPlugins = Object.values((await requestRuleOperatorPluginsDetails(false)).data);
+            const responseData = (await requestRuleOperatorPluginsDetails(false)).data;
+            let operatorPlugins = Object.values(responseData);
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
             }
@@ -239,7 +240,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         type: "int",
         advanced: true,
         defaultValue: "1",
-        orderIdx: -0.5
+        orderIdx: -0.5,
     });
 
     const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
@@ -288,7 +289,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             defaultValue: "0.0",
             customValidation: customValidation(pluginDetails.distanceMeasureRange),
             distanceMeasureRange: pluginDetails.distanceMeasureRange,
-            orderIdx: -1
+            orderIdx: -1,
         });
     };
 

@@ -4,6 +4,7 @@ import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local._
+import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
@@ -36,7 +37,9 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
-          batchEmitter.update(updateTask.generate(it.next(), taskProperties))
+          val query = updateTask.generate(it.next(), taskProperties)
+          batchEmitter.update(query)
+          reportUpdater.addSampleEntity(EntitySample(query))
           reportUpdater.increaseEntityCounter()
         }
       }
@@ -46,6 +49,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       override def foreach[U](f: Entity => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)
+        reportUpdater.startNewOutputSamples(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
         if (updateTask.isStaticTemplate) {
           // Static template needs to be executed exactly once
           executeTemplate(batchEmitter, reportUpdater, updateTask, pluginContext.resources, outputTask = output.task)
@@ -73,7 +77,9 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                                  inputTask: Option[Task[_ <: TaskSpec]] = None,
                                  outputTask: Option[Task[_ <: TaskSpec]] = None): Unit = {
     val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask, projectResources)
-    batchEmitter.update(updateTask.generate(Map.empty, taskProperties))
+    val query = updateTask.generate(Map.empty, taskProperties)
+    batchEmitter.update(query)
+    reportUpdater.addSampleEntity(EntitySample(query))
     reportUpdater.increaseEntityCounter()
   }
 

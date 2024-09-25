@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.paths.{PathOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 
 /**
@@ -37,7 +38,9 @@ case class ExtractedSchema[T](classes: Seq[ExtractedSchemaClass[T]])
   * @param sourceType The class URI or path, something that the corresponding dataset understands as type.
   * @param properties The direct properties connected to this schema class.
   */
-case class ExtractedSchemaClass[T](sourceType: String, properties: Seq[ExtractedSchemaProperty[T]])
+case class ExtractedSchemaClass[T](sourceType: String, properties: Seq[ExtractedSchemaProperty[T]]) {
+  def sourceTypeOperators(implicit prefixes: Prefixes): List[PathOperator] = UntypedPath.parse(sourceType).operators
+}
 
 /**
   * The extracted schema property, e.g. a RDF property, an XML/JSON path.

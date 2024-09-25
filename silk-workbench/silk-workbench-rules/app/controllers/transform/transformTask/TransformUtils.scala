@@ -6,6 +6,7 @@ import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.{Project, ProjectTask}
 
 /** Utility functions for transform tasks. */
@@ -20,8 +21,7 @@ object TransformUtils {
   def datasetCharacteristics(project: Project,
                              datasetSelection: DatasetSelection)
                             (implicit userContext: UserContext): Option[DatasetCharacteristics] = {
-    project.taskOption[GenericDatasetSpec](datasetSelection.inputId)
-      .map(_.data.characteristics)
+    DatasetUtils.datasetCharacteristics(project, datasetSelection)
   }
 
   /** Returns true if the dataset selection is a RDF dataset. */

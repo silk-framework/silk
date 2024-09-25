@@ -28,6 +28,11 @@ trait CsvDatasetTrait {
     * e.g. by doubling it, e.g. \"\". If left empty, it should default to quote. */
   def quoteEscapeCharacter: String
 
+  /**
+   * Delete file if dataset is cleared.
+   */
+  def clearBeforeExecution: Boolean
+
   val separatorChar: Char =
     if (separator == "\\t") { '\t' }
     else if (separator.length == 1) { separator.head }
@@ -54,5 +59,5 @@ trait CsvDatasetTrait {
   def mimeType: Option[String] = Some("text/csv")
 
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
-    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec)
+    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec, clearBeforeExecution = clearBeforeExecution)
 }

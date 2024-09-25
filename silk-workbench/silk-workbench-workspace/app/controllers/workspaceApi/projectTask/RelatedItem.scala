@@ -14,6 +14,7 @@ case class RelatedItem(id: String,
                        itemLinks: Seq[ItemLink],
                        pluginLabel: String,
                        tags: Set[FullTag],
+                       searchTags: Seq[String],
                        pluginId: Option[String],
                        projectId: Option[String],
                        readOnly: Option[Boolean])

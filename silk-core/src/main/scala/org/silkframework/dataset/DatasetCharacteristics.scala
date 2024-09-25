@@ -18,7 +18,9 @@ case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpress
                                   supportsMultipleTables: Boolean = true,
                                   readOnly: Boolean = false,
                                   supportsMultipleWrites: Boolean = false,
-                                  typedEntities: Boolean = false)
+                                  typedEntities: Boolean = false) {
+  def supportsAsteriskPathOperator: Boolean = supportedPathExpressions.specialPaths.exists(_.value == "*")
+}
 
 object DatasetCharacteristics {
 

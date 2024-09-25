@@ -1,10 +1,10 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.execution.report.Stacktrace
+import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema, Stacktrace}
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
-import org.silkframework.rule.execution.{Linking, TransformReport}
+import org.silkframework.rule.execution.{Linking, TransformReport, TransformReportExecutionContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.PairEntitySchemaJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.Keys._
@@ -19,6 +19,12 @@ import play.api.libs.json._
 import java.time.Instant
 
 object ExecutionReportSerializers {
+
+  private def parseSampleEntities(value: JsValue): Seq[SampleEntities] = {
+    arrayValueOption(value, OUTPUT_ENTITIES_SAMPLE)
+      .map(_.value.toSeq.map(_.as[SampleEntities]))
+      .getOrElse(Seq.empty)
+  }
 
   implicit object ExecutionReportJsonFormat extends JsonFormat[ExecutionReport] {
 
@@ -49,7 +55,8 @@ object ExecutionReportSerializers {
           operation = stringValueOption(value, OPERATION),
           operationDesc = stringValueOption(value, OPERATION_DESC).getOrElse(ExecutionReport.DEFAULT_OPERATION_DESC),
           isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
-          entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0)
+          entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0),
+          sampleOutputEntities = parseSampleEntities(value)
         )
       }
     }
@@ -64,7 +71,8 @@ object ExecutionReportSerializers {
         WARNINGS -> value.warnings,
         ERROR -> value.error,
         IS_DONE -> value.isDone,
-        ENTITY_COUNT -> value.entityCount
+        ENTITY_COUNT -> value.entityCount,
+        OUTPUT_ENTITIES_SAMPLE -> value.sampleOutputEntities
       )
     }
 
@@ -104,6 +112,7 @@ object ExecutionReportSerializers {
   }
 
   implicit object TransformReportJsonFormat extends JsonFormat[TransformReport] {
+    implicit val contextFormat: Format[TransformReportExecutionContext] = Json.format[TransformReportExecutionContext]
 
     override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
@@ -111,12 +120,13 @@ object ExecutionReportSerializers {
           ENTITY_COUNTER -> value.entityCount,
           ENTITY_ERROR_COUNTER -> value.entityErrorCount,
           RULE_RESULTS -> writeRuleResults(value.ruleResults),
-          GLOBAL_ERRORS -> value.globalErrors
+          GLOBAL_ERRORS -> value.globalErrors,
+          EXECUTION_REPORT_CONTEXT -> value.context
         )
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformReport = {
-      implicit val taskFormat = new TaskJsonFormat[TransformSpec]()
+      implicit val taskFormat: TaskJsonFormat[TransformSpec] = new TaskJsonFormat[TransformSpec]()
       TransformReport(
         task = taskFormat.read(requiredValue(value, TASK)),
         entityCount = numberValue(value, ENTITY_COUNTER).intValue,
@@ -124,7 +134,9 @@ object ExecutionReportSerializers {
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
         globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]).toIndexedSeq,
         isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
-        error = stringValueOption(value, ERROR)
+        error = stringValueOption(value, ERROR),
+        sampleOutputEntities = parseSampleEntities(value).toVector,
+        context = optionalValue(value, EXECUTION_REPORT_CONTEXT).map(_.as[TransformReportExecutionContext])
       )
     }
 
@@ -173,10 +185,12 @@ object ExecutionReportSerializers {
         operatorId = None, exception = None
       )
     }
-
   }
 
   implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
+  implicit val sampleEntitiesSchemaJsonFormat: Format[SampleEntitiesSchema] = Json.format[SampleEntitiesSchema]
+  implicit val entitySampleJsonFormat: Format[EntitySample] = Json.format[EntitySample]
+  implicit val sampleEntitiesJsonFormat: Format[SampleEntities] = Json.format[SampleEntities]
 
   implicit object WorkflowTaskReportJsonFormat extends JsonFormat[WorkflowTaskReport] {
 
@@ -274,6 +288,10 @@ object ExecutionReportSerializers {
     final val ERROR = "error"
 
     final val STACKTRACE = "stacktrace"
+
+    final val OUTPUT_ENTITIES_SAMPLE = "outputEntitiesSample"
+
+    final val EXECUTION_REPORT_CONTEXT = "executionReportContext"
   }
 
 }
