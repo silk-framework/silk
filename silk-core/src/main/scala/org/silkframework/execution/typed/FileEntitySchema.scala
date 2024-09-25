@@ -26,7 +26,7 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
     EntitySchema(
       typeUri = schemaType("File"),
       typedPaths = IndexedSeq(
-        TypedPath(schemaPath("path"), ValueType.STRING, isAttribute = true),
+        TypedPath(schemaPath("filePath"), ValueType.STRING, isAttribute = true),
         TypedPath(schemaPath("fileType"), ValueType.STRING, isAttribute = true),
         TypedPath(schemaPath("mimeType"), ValueType.STRING, isAttribute = true),
       )

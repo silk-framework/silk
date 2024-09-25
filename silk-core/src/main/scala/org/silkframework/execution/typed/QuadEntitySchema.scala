@@ -18,10 +18,10 @@ object QuadEntitySchema extends TypedEntitySchema[Quad, TaskSpec] {
     EntitySchema(
       typeUri = schemaType("Quad"),
       typedPaths = IndexedSeq(
-        TypedPath(schemaPath("tripleSubject"), ValueType.URI, isAttribute = false),
-        TypedPath(schemaPath("triplePredicate"), ValueType.URI, isAttribute = false),
-        TypedPath(schemaPath("tripleObject"), ValueType.STRING, isAttribute = false),
-        TypedPath(schemaPath("tripleObjectValueType"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quadSubject"), ValueType.URI, isAttribute = false),
+        TypedPath(schemaPath("quadPredicate"), ValueType.URI, isAttribute = false),
+        TypedPath(schemaPath("quadObject"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quadObjectValueType"), ValueType.STRING, isAttribute = false),
         TypedPath(schemaPath("quadContext"), ValueType.STRING, isAttribute = false)
       )
     )
