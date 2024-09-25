@@ -35,7 +35,7 @@ import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
 import ProjectTags from "../ProjectTags/ProjectTags";
-import {SearchTags} from "./SearchTags";
+import { SearchTags } from "./SearchTags";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -232,7 +232,7 @@ export default function SearchItem({
                 <OverviewItemActions>
                     <IconButton
                         data-test-id={"open-duplicate-modal"}
-                        name="item-copy"
+                        name="item-clone"
                         text={t("common.action.clone", "Clone")}
                         onClick={() => onOpenDuplicateModal(item)}
                     />
@@ -259,7 +259,7 @@ export default function SearchItem({
                         <MenuItem
                             data-test-id="search-item-copy-btn"
                             key="copy"
-                            icon="item-clone"
+                            icon="item-copy"
                             onClick={() => onOpenCopyToModal(item)}
                             text={t("common.action.copy", "Copy")}
                         />
@@ -272,7 +272,7 @@ export default function SearchItem({
                         />
                         <MenuItem
                             data-test-id={"open-duplicate-modal"}
-                            icon="item-copy"
+                            icon="item-clone"
                             text={t("common.action.clone", "Clone")}
                             onClick={() => onOpenDuplicateModal(item)}
                         />
