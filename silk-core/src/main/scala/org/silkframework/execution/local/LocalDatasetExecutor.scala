@@ -7,6 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
+import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.validation.ValidationException

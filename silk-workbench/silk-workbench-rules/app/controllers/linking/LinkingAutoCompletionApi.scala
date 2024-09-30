@@ -23,6 +23,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaData, PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.{DatasetSelection, LinkSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -196,9 +197,10 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
                                            (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
     implicit val project: Project = linkingTask.project
     implicit val prefixes: Prefixes = project.config.prefixes
-    val isRdfInput = TransformUtils.isRdfInput(project, datasetSelection)
+    val isRdfInput = DatasetUtils.isRdfInput(project, datasetSelection)
     val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
-    val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(project, datasetSelection)
+    val dataSourceCharacteristicsOpt = DatasetUtils.datasetCharacteristics(project, datasetSelection)
+    val supportsAsteriskOperator = dataSourceCharacteristicsOpt.exists(_.supportsAsteriskPathOperator)
     // compute relative paths
     val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
     val completeSubPath = pathBeforeReplacement.operators
@@ -214,7 +216,8 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
       case _ => OpFilter.None
     }
     val relativePaths = AutoCompletionApiUtils.extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
-      serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
+      serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter,
+      supportsAsteriskOperator = supportsAsteriskOperator
     )
     val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath = false)
     // Add known paths

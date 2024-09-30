@@ -2,7 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{BackwardOperator, DirectionalPathOperator, ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.rule.execution.local.MultipleValuesException
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -59,10 +59,13 @@ case class MappingTarget(propertyUri: Uri,
     sb.toString()
   }
 
+  def asPathOperator(): DirectionalPathOperator = {
+    if (isBackwardProperty) BackwardOperator(propertyUri.uri) else ForwardOperator(propertyUri.uri)
+  }
+
   /** Representation of the mapping target as Silk Path */
   def asPath(): UntypedPath = {
-    val op = if (isBackwardProperty) BackwardOperator(propertyUri.uri) else ForwardOperator(propertyUri.uri)
-    UntypedPath(List(op))
+    UntypedPath(List(asPathOperator()))
   }
 
   def asTypedPath(): TypedPath = {

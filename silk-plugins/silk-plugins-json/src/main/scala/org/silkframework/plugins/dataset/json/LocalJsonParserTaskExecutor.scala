@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution._
@@ -43,6 +43,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
         val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(schema)), execution, pathIndex)
         val entityIterator = if(createNewIterator) entities.newIterator() else entities
         implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
+        implicit val prefixes: Prefixes = Prefixes.empty
         ReportingIterator(new RepeatedIterator(() => entityIterator.nextOption().map(entityParser)).thenClose(entityIterator))
       }
 

@@ -31,6 +31,8 @@ abstract class JsonSource(taskId: Identifier, protected val basePath: String, pr
     }
   }
 
+  override val supportsAsteriskOperator: Boolean = true
+
   protected val basePathPartsReversed: Seq[String] = basePathParts.reverse
 
   protected val basePathLength: Int = basePathParts.length

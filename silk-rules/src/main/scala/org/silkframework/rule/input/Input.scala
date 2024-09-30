@@ -16,7 +16,7 @@ package org.silkframework.rule.input
 
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.Entity
-import org.silkframework.rule.Operator
+import org.silkframework.rule.{Operator, TaskContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.xml.Node
@@ -25,6 +25,7 @@ import scala.xml.Node
  * An input that retrieves a set of values.
  */
 trait Input extends Operator {
+
   /**
    * Retrieves the values of this input for a given entity.
    *
@@ -32,6 +33,8 @@ trait Input extends Operator {
    * @return The values.
    */
   def apply(entity: Entity): Value
+
+  override def withContext(taskContext: TaskContext): Input = this
 }
 
 object Input {

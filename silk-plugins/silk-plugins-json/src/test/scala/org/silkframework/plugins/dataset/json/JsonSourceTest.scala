@@ -226,6 +226,17 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     entities.map(_.values).toSeq mustBe Seq(Seq(Seq("Peter")), Seq(Seq("John")))
   }
 
+  it should "support * and #key special paths" in {
+    val source: DataSource = createSource(resources.get("exampleObjectKeys.json"), "", "#id")
+    val paths = IndexedSeq("datum", "#key", "*/#key")
+    val entities = source.retrieve(EntitySchema("SN/*", typedPaths = paths.map(UntypedPath.parse(_).asStringTypedPath))).entities
+    entities.take(3).map(_.values).toSeq mustBe Seq(
+      Seq(Seq("2022-01-01"), Seq("Neujahrstag"), Seq("datum", "hinweis")),
+      Seq(Seq("2022-04-15"), Seq("Karfreitag"), Seq("datum", "hinweis")),
+      Seq(Seq("2022-04-18"), Seq("Ostermontag"), Seq("datum", "hinweis"))
+    )
+  }
+
   class TestAnalyzer extends ValueAnalyzer[String] {
     private var maxString: Option[String] = None
 
@@ -342,6 +353,13 @@ abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
     result.size mustBe 2
     result(0).values mustBe IndexedSeq(Seq("John"), Seq("123", "456"))
     result(1).values mustBe IndexedSeq(Seq("Max"), Seq("789"))
+  }
+
+  it should "retrieve paths when the asterisk operator is used in the type string" in {
+    val jsonDataset = createDataset(ReadOnlyResource(resources.get("example.zip")))
+    val source = jsonDataset.source
+    source.retrievePaths("persons/*").map(_.serialize()) mustBe IndexedSeq("type", "number")
+    source.retrievePaths("*/phoneNumbers").map(_.serialize()) mustBe IndexedSeq("type", "number")
   }
 
   private def jsonSource(json: String, basePath: String = ""): JsonSource = {
