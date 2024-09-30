@@ -767,6 +767,7 @@
         }
     },
     "copyModal": {
+        "copyPrefixes": "Copy prefixes",
         "errorMessages": {
             "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"
