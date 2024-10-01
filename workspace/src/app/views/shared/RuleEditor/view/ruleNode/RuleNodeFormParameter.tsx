@@ -1,6 +1,6 @@
 import { RuleParameterInput } from "./RuleParameterInput";
 import React from "react";
-import { FieldItem } from "@eccenca/gui-elements";
+import { FieldItem, BreadcrumbList, BreadcrumbItem } from "@eccenca/gui-elements";
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
@@ -62,6 +62,20 @@ export const RuleNodeFormParameter = ({
     const parameterDescription =
         paramSpec.description && paramSpec.description !== "No description" ? paramSpec.description : undefined;
 
+    const dummyLabel =
+        languageFilter && languageFilter.enabled ? (
+            <BreadcrumbList
+                wrapperProps={{ style: { whiteSpace: "nowrap" } }}
+                items={[
+                    { text: "Lorem ipsum dolor sit amet" },
+                    { text: "consetetur sadipscing elitr" },
+                    { text: "sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat" },
+                    { text: "sed diam voluptua" },
+                    { text: "At vero eos et accusam et justo duo dolores et ea rebum" },
+                ]}
+            />
+        ) : undefined;
+
     return (
         <FieldItem
             key={parameter.parameterId}
@@ -73,7 +87,7 @@ export const RuleNodeFormParameter = ({
                 },
                 info: paramSpec.requiredLabel || (paramSpec.required ? "required" : undefined),
             }}
-            messageText={validationResult.message}
+            messageText={validationResult.message ?? dummyLabel}
             hasStateDanger={validationResult.intent === "danger"}
             hasStatePrimary={validationResult.intent === "primary"}
             hasStateSuccess={validationResult.intent === "success"}
