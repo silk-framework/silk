@@ -35,7 +35,6 @@
         "@uppy/xhr-upload": "1.7.5",
         "axios": "^0.25.0",
         "bfj": "6.1.1",
-        "codemirror": "^6.0.1",
         "connected-react-router": "^6.5.2",
         "dagre": "^0.8.5",
         "dexie": "^3.2.3",
