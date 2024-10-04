@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.config.TaskLink
+import org.silkframework.config.{Prefixes, TaskLink}
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory}
 import org.silkframework.runtime.resource.Resource
@@ -26,6 +26,8 @@ trait Dataset extends AnyPlugin with DatasetAccess {
   /** Characteristics of the data source. */
   def characteristics: DatasetCharacteristics
 
+  /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
+  def searchTags(prefixes: Prefixes): Seq[String] = Seq.empty
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {

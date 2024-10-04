@@ -79,7 +79,7 @@ trait TaskSpec {
   def mainActivities: Seq[String] = Seq.empty
 
   /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
-  def searchTags: Seq[String] = Seq.empty
+  def searchTags(prefixes: Prefixes): Seq[String] = Seq.empty
 }
 
 /** A task link.
