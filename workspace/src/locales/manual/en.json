@@ -344,7 +344,9 @@
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
             "filterOff": "Remove filter",
-            "showMoreDetails": "Show more details"
+            "showMoreDetails": "Show more details",
+            "restore": "Restore",
+            "revert": "Revert"
         },
         "app": {
             "build": "Workbench",
@@ -1193,6 +1195,16 @@
         "suggestionIssues": {
             "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
             "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
+        },
+        "SourceElement": {
+            "infobox": {
+                "exampleData": "Example data",
+                "sourcePath": "Source path",
+                "objectPath": "Object path",
+                "valuePath": "Value path",
+                "dataTypeSubPaths": "Datatype sub-paths",
+                "objectTypeSubPaths": "Object type sub-paths"
+            }
         }
     },
     "InvisibleCharacterHandling": {

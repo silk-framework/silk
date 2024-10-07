@@ -29,6 +29,7 @@ import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
+import {ProjectTaskTabViewContext} from "./ProjectTaskTabViewContext";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -144,7 +145,10 @@ export function ProjectTaskTabView({
     React.useEffect(() => {
         if (projectId && taskId) {
             if (taskViewConfig?.pluginId) {
-                setTaskViews(pluginRegistry.taskViews(taskViewConfig.pluginId));
+                const taskViewPlugins = pluginRegistry.taskViews(taskViewConfig.pluginId).sort((a, b) => {
+                    return (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999);
+                });
+                setTaskViews(taskViewPlugins);
             } else {
                 setTaskViews([]);
             }
@@ -364,7 +368,11 @@ export function ProjectTaskTabView({
             getTaskView(selectedTab)?.supportsTaskContext && viewActions?.taskContext
                 ? viewActions.taskContext.taskViewSuffix?.(viewActions.taskContext.context)
                 : undefined;
-        return (
+        return <ProjectTaskTabViewContext.Provider
+            value={{
+                fullScreen: displayFullscreen
+            }}
+        >
             <Card
                 className="diapp-iframewindow__content"
                 isOnlyLayout={true}
@@ -454,7 +462,7 @@ export function ProjectTaskTabView({
                 </CardContent>
                 {warnings && <CardContentWarnings warnings={warnings} />}
             </Card>
-        );
+        </ProjectTaskTabViewContext.Provider>
     };
 
     return (

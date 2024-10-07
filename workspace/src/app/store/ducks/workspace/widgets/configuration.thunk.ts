@@ -1,6 +1,6 @@
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { batch } from "react-redux";
-import { requestChangePrefixes, requestProjectPrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
+import { requestChangePrefixes, requestProjectPrefixesLegacy, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 
 const { setPrefixes, resetNewPrefix, toggleWidgetLoading, setWidgetError } = widgetsSlice.actions;
 
@@ -35,7 +35,7 @@ export const fetchProjectPrefixesAsync = (projectId: string) => {
     return async (dispatch) => {
         try {
             dispatch(toggleLoading());
-            const data = await requestProjectPrefixes(projectId);
+            const data = await requestProjectPrefixesLegacy(projectId);
             dispatch(updatePrefixList(data));
         } catch (e) {
             dispatch(setError(e));

@@ -12,3 +12,48 @@ export interface IUriPattern {
     // The full URI pattern
     value: string
 }
+
+/** Target property auto-completion */
+export interface TargetPropertyAutoCompletion {
+    /** The URI */
+    value: string,
+    /** label of the property */
+    label?: string,
+    /** description of the property */
+    description?: string,
+    category?: string,
+    isCompletion?: boolean,
+    extra: {
+        /** Object or data type property */
+        type: "object" | "value",
+        graph?: string
+        /** In case of an object property optionally the class info of the range. */
+        range?: {
+            uri: string,
+            label?: string
+        }
+    }
+}
+
+export interface GenericInfo {
+    uri: string
+    label?: string
+    description?: string
+    altLabels?: string[]
+}
+
+export interface TargetClassAutoCompletion {
+    /** The URI */
+    value: string,
+    /** label of the property */
+    label?: string,
+    /** description of the property */
+    description?: string
+}
+
+export interface PropertyByDomainAutoCompletion {
+    domain: string
+    genericInfo: GenericInfo
+    propertyType: "ObjectProperty" | "DatatypeProperty"
+    range: string
+}

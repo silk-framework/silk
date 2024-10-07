@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
+import { debounce } from "lodash";
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -128,6 +129,17 @@ export function ValueRuleForm(props: IProps) {
             label: mappingEditorContext.valueTypeLabels.get(valueType.nodeType) ?? valueType.nodeType,
         });
     }, []);
+
+    // Delay a bit so direct user interactions are not disturbed by re-renderings
+    const changeValuePathInputHasFocus = React.useCallback(
+        debounce(
+            (hasFocus: boolean) => {
+                setValuePathInputHasFocus(hasFocus)
+            },
+            200
+        ),
+        []
+    )
 
     const autoCompleteRuleId = id || parentId;
 
@@ -406,7 +418,7 @@ export function ValueRuleForm(props: IProps) {
                         }
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
-                        onFocusChange={setValuePathInputHasFocus}
+                        onFocusChange={changeValuePathInputHasFocus}
                         rightElement={<ComplexRuleEditButton />}
                     />
                 </>

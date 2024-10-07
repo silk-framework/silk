@@ -1,26 +1,26 @@
-import {Highlighter, Spacing, Tag} from "@eccenca/gui-elements"
+import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
 import React from "react";
 
 interface SearchTagsProps {
-    searchTags?: string[]
-    searchText?: string
+    searchTags?: string[];
+    searchText?: string;
 }
 
 /** Displays search tags. */
-export const SearchTags = ({searchTags, searchText}: SearchTagsProps) => {
+export const SearchTags = ({ searchTags, searchText }: SearchTagsProps) => {
     if (!searchTags || searchTags.length === 0) {
-        return null
+        return null;
     }
     return (
         <>
-            {searchTags.map(searchTag => (
+            {searchTags.map((searchTag) => (
                 <div key={searchTag}>
                     <Tag emphasis="weaker">
-                        <Highlighter label={searchTag} searchValue={searchText}/>
+                        <Highlighter label={searchTag} searchValue={searchText} />
                     </Tag>
-                    <Spacing size="tiny" vertical/>
+                    <Spacing size="tiny" vertical />
                 </div>
             ))}
         </>
     );
-}
+};

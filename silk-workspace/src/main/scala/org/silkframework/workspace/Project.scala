@@ -390,4 +390,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   override def tags()(implicit userContext: UserContext): Set[Tag] = {
     config.metaData.tags.map(uri => tagManager.getTag(uri))
   }
+
+  override def toString: String = s"Project ${config.labelAndId(config.prefixes)}"
 }
