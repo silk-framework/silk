@@ -4,6 +4,8 @@ import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.CloseableDataset.using
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
+import org.silkframework.dataset.operations.ClearDatasetOperator.ClearDatasetTable
+import org.silkframework.dataset.operations.ClearDatasetOperatorExecutionReportUpdater
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
@@ -147,6 +149,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         uploadFilesViaGraphStore(dataset, graphStoreFiles, reportUpdater)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
+      case _: ClearDatasetTable =>
+        executeClearDataset(dataset)
       case et: LocalEntities =>
         writeGenericLocalEntities(dataset, et, execution)
     }
@@ -227,6 +231,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
     }
+  }
+
+  private def executeClearDataset(dataset: Task[DatasetSpec[DatasetType]])
+                                 (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
+    if(dataset.readOnly) {
+      throw new RuntimeException(s"Cannot clear dataset '${dataset.fullLabel}', because it is configured as read-only.")
+    }
+    val executionReport = ClearDatasetOperatorExecutionReportUpdater(dataset, context)
+    dataset.entitySink.clear(force = true)
+    executionReport.increaseEntityCounter()
+    executionReport.executionDone()
   }
 
   /** Buffers queries to make prediction about how many queries will be executed.

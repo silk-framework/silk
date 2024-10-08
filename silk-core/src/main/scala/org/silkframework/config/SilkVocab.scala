@@ -27,6 +27,9 @@ object SilkVocab {
   val TripleSchemaType: String = namespace + "TripleSchemaType"
   val QuadSchemaType: String = namespace + "QuadSchemaType"
 
+  // Clear dataset
+  val ClearDatasetType: String = namespace + "ClearDatasetType"
+
   // Empty table
   val EmptySchemaType: String = namespace + "EmptySchemaType"
 

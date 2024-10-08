@@ -152,7 +152,7 @@ object WorkspaceTest {
   }
 
   case class TestTask(testParam: String = "test value") extends CustomTask {
-    override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+    override def inputPorts: InputPorts = InputPorts.NoInputPorts
     override def outputPort: Option[Port] = None
   }
 

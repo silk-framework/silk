@@ -64,7 +64,7 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
     writeLinkFn(link, predicateUri)
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = { clearFn() }
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = { clearFn() }
 
   override def close()(implicit userContext: UserContext): Unit = {}
 }

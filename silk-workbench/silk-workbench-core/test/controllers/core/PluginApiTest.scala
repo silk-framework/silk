@@ -96,7 +96,7 @@ case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletion
                                             autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true, autoCompletionDependsOnParameters = Array("otherParam"))
                                      completableParam: String,
                                      otherParam: String) extends CustomTask {
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
 }
 

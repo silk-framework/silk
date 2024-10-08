@@ -40,7 +40,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
     writeEntity("", IndexedSeq(Seq(link.source), Seq(link.target)))
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
     ds.file.writeString("", codec = ds.codec)
   }
 

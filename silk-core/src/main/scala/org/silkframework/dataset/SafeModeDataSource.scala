@@ -37,7 +37,7 @@ object SafeModeDataSource extends DataSource {
 
 object SafeModeSink extends DataSink with LinkSink with EntitySink {
 
-  override def clear()(implicit userContext: UserContext): Unit = {
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
     SafeModeException.throwSafeModeException()
   }
 

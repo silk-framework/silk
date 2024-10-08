@@ -43,7 +43,7 @@ object EmptyDataset extends Dataset with Serializable {
       * Makes sure that the next write will start from an empty dataset.
       * Does nothing as this dataset is always empty
       */
-    override def clear()(implicit userContext: UserContext): Unit = {}
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {}
   }
 
   /**
@@ -67,7 +67,7 @@ object EmptyDataset extends Dataset with Serializable {
       * Makes sure that the next write will start from an empty dataset.
       * Does nothing as this dataset is always empty
       */
-    override def clear()(implicit userContext: UserContext): Unit = {}
+    override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {}
   }
 
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
