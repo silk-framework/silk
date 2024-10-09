@@ -35,6 +35,7 @@ object SearchApiModel {
   final val PLUGIN_ID = "pluginId"
   final val PLUGIN_LABEL = "pluginLabel"
   final val TAGS = "tags"
+  final val SEARCH_TAGS = "searchTags"
   final val PARAMETERS = "parameters"
   final val READ_ONLY = "readOnly"
   final val URI_PROPERTY = "uriProperty"
@@ -167,7 +168,8 @@ object SearchApiModel {
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
-      val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels
+      val searchTags = task.searchTags
+      val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
       matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
     }
 
@@ -208,6 +210,8 @@ object SearchApiModel {
     // Workflow facets
     final val workflowExecutionStatus: Facet = Facet("workflowExecutionStatus", "Last Execution Status", "Allows to filter by the" +
         " status of the last execution of the workflow.", FacetType.keyword)
+    final val workflowInputOutput: Facet = Facet("workflowInputOutput", "Replaceable Input/Output", "Allows to filter by " +
+      "replaceable input/output datasets being included in the workflow.", FacetType.keyword)
     // Task facets
     final val taskType: Facet = Facet("taskType", "Task type", "The concrete type of a task.", FacetType.keyword)
     // Generic facets
@@ -220,7 +224,7 @@ object SearchApiModel {
     final val activityStartedBy: Facet = Facet("startedBy", "Started by", "The user that started the activity", FacetType.keyword)
 
     val facetIds: Seq[String] = Seq(datasetType, fileResource, readOnly, taskType, transformInputResource, workflowExecutionStatus,
-      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy).map(_.id)
+      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy, workflowInputOutput).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
@@ -520,7 +524,8 @@ object SearchApiModel {
           DESCRIPTION -> JsString(""),
           PLUGIN_ID -> JsString(pd.id),
           PLUGIN_LABEL -> JsString(pd.label),
-          TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
+          TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
+          SEARCH_TAGS -> Json.toJson(task.searchTags)
         )
           ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
           ++ parameters

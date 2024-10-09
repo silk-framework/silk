@@ -916,6 +916,7 @@ export function CreateArtefactModal() {
                                         focusOnCreation={true}
                                         onSearch={handleSearch}
                                         onEnter={handleAdd}
+                                        disableEnterDuringPendingSearch={true}
                                     />
                                     <Spacing />
                                     {loading ? (

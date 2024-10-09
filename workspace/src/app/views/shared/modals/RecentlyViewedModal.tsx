@@ -34,6 +34,7 @@ import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import ProjectTags from "../ProjectTags/ProjectTags";
+import { SearchTags } from "../SearchList/SearchTags";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -114,7 +115,7 @@ export function RecentlyViewedModal() {
         const projectLabel = item.projectLabel ? item.projectLabel : item.projectId;
         const taskLabel = item.taskLabel ? item.taskLabel : item.taskId;
         const label = taskLabel ? `${taskLabel} ${projectLabel} ${item.pluginLabel}` : projectLabel;
-        return `${label} ${itemType(item)}`;
+        return `${label} ${itemType(item)} ${item.searchTags?.join(" ")} ${item.tags?.map((t) => t.label).join(" ")}`;
     };
     const itemType = (item: IRecentlyViewedItem): string => uppercaseFirstChar(t("common.dataTypes." + item.itemType));
     // The representation of an item as an option in the selection list
@@ -176,6 +177,7 @@ export function RecentlyViewedModal() {
                         )}
                         {item.tags?.length ? <Spacing vertical size="tiny" /> : null}
                         <ProjectTags tags={item.tags} query={query} />
+                        <SearchTags searchTags={item.searchTags} searchText={query} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>
