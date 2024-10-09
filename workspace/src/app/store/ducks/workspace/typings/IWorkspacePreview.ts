@@ -54,7 +54,7 @@ export interface ISearchResultsServer {
     readOnly?: true;
 
     /** Tags of the task that are displayed and can be searched in. */
-    searchTags?: string[]
+    searchTags?: string[];
 }
 
 export const convertTaskTypeToSearchResultServerType = (taskType: TaskType): string => {
