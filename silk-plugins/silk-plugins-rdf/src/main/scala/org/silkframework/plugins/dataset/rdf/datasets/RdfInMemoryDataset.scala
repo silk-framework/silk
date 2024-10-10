@@ -20,9 +20,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 @Plugin(id = "rdf", label = "RDF in-memory", description = "A Dataset where all entities are given directly in the configuration.")
 case class RdfInMemoryDataset(data: String,
                               format: String,
-                              @Param(label = "Clear graph before workflow execution",
-                                value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-                              clearBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {
+                              @Param(label = "Clear graph before workflow execution (deprecated)",
+                                value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear the specified graph before executing a workflow that writes to it.",
+                                advanced = true)
+                              clearBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
 
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(data), null, format)

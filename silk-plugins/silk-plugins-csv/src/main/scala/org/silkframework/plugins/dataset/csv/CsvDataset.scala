@@ -45,8 +45,8 @@ case class CsvDataset (
   quoteEscapeCharacter: String = "\"",
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
   override val zipFileRegex: String = CsvDataset.defaultZipFileRegex,
-  @Param(label = "Delete file before workflow execution",
-         value = "If set to true this will clear the specified file before executing a workflow that writes to it.",
+  @Param(label = "Delete file before workflow execution (deprecated)",
+         value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear the specified file before executing a workflow that writes to it.",
          advanced = true)
   clearBeforeExecution: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
                                          with CsvDatasetTrait with TextBulkResourceBasedDataset with WritableResourceDataset {

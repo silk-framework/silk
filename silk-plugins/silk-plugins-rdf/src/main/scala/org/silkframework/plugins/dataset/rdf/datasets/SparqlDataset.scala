@@ -38,8 +38,9 @@ case class SparqlDataset(
   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
   @Param("Include useOrderBy in queries to enforce correct order of values.")
   useOrderBy: Boolean = true,
-  @Param(label = "Clear graph before workflow execution",
-    value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
+  @Param(label = "Clear graph before workflow execution (deprecated)",
+    value = "This is deprecated, use the 'Clear dataset' operator instead to clear a dataset in a workflow. If set to true this will clear the specified graph before executing a workflow that writes to it.",
+    advanced = true)
   clearGraphBeforeExecution: Boolean = false,
   @Param(
     label = "SPARQL query timeout (ms)",
