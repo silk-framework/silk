@@ -1,10 +1,10 @@
 package controllers.workspace
 
+import controllers.workspace.workspaceRequests.CopyTasksRequest.InconsistentPrefixesException
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import helper.IntegrationTestTrait
-
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
@@ -14,7 +14,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TYPE}
 import org.silkframework.util.Uri
-import org.silkframework.workspace.TestCustomTask
+import org.silkframework.workspace.{TestCustomTask, WorkspaceFactory}
 import play.api.http.Status
 import play.api.libs.json._
 
@@ -444,6 +444,41 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
           """.stripMargin
         ))
       Await.result(response2, 200.seconds).status mustBe 400
+    }
+
+    "copy prefixes" in {
+      val prefix = "myPrefix1"
+      val namespace1 = "http://eccenca.com/prefixTest1"
+      val namespace2 = "http://eccenca.com/prefixTest2"
+
+      // Create a new test project
+      val prefixProjectId = "prefixTest1"
+      createProject(prefixProjectId)
+      val prefixTestProject = WorkspaceFactory().workspace.project(prefixProjectId)
+
+      // Checks if the test task has been copied
+      def taskCopied: Boolean = {
+        prefixTestProject.anyTaskOption(transformId).isDefined
+      }
+
+      // Add the same prefix to the source and target projects, but with different namespaces
+      addPrefixes(project, Map(prefix -> namespace2))
+      addPrefixes(prefixProjectId, Map(prefix -> namespace1))
+
+      // It should fail to copy existing prefix with a different namespace
+      val request = CopyTasksRequest(dryRun = Some(false), overwriteTasks = None, copyPrefixes = Some(true), targetProject = prefixProjectId)
+      val ex = the[InconsistentPrefixesException] thrownBy {
+        request.copyTask(project, transformId)
+      }
+      ex.prefixes mustBe Set(prefix)
+      prefixTestProject.config.prefixes(prefix) mustBe namespace1
+      taskCopied mustBe false
+
+      // It should copy prefixes if there are no inconsistencies
+      prefixTestProject.config = prefixTestProject.config.copy(prefixes = Prefixes.empty)
+      request.copyTask(project, transformId)
+      prefixTestProject.config.prefixes(prefix) mustBe namespace2
+      taskCopied mustBe true
     }
   }
 

@@ -91,25 +91,29 @@ trait IntegrationTestTrait extends TaskApiClient
     checkResponse(response)
   }
 
+  def addPrefixes(projectId: String, prefixMap: Map[String, String]): WSResponse = {
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/prefixes")
+    val response = request.put(prefixMap.view.mapValues(Seq(_)).toMap)
+    checkResponse(response)
+  }
+
   /**
     * Adds common prefixes to the project, so URIs can be written as qualified names.
     */
   def addProjectPrefixes(projectId: String, extraPrefixes: Map[String, String] = Map.empty): WSResponse = {
-    val request = client.url(s"$baseUrl/workspace/projects/$projectId/prefixes")
-    val response = request.put(Map(
-      "rdf" -> Seq("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
-      "rdfs" -> Seq("http://www.w3.org/2000/01/rdf-schema#"),
-      "owl" -> Seq("http://www.w3.org/2002/07/owl#"),
-      "source" -> Seq("https://ns.eccenca.com/source/"),
-      "loan" -> Seq("http://eccenca.com/ds/loans/"),
-      "stat" -> Seq("http://eccenca.com/ds/unemployment/"),
+    addPrefixes(projectId, Map(
+      "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+      "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
+      "owl" -> "http://www.w3.org/2002/07/owl#",
+      "source" -> "https://ns.eccenca.com/source/",
+      "loan" -> "http://eccenca.com/ds/loans/",
+      "stat" -> "http://eccenca.com/ds/unemployment/",
       // TODO Currently the default mapping generator maps all properties to this namespace
-      "target" -> Seq("https://ns.eccenca.com/"),
+      "target" -> "https://ns.eccenca.com/",
       // The CMEM integration test maps to these URIs, which result in the same URIs as the schema extraction
-      "loans" -> Seq("http://eccenca.com/ds/loans/"),
-      "unemployment" -> Seq("http://eccenca.com/ds/unemployment/")
-    ) ++ extraPrefixes.view.mapValues(Seq(_)))
-    checkResponse(response)
+      "loans" -> "http://eccenca.com/ds/loans/",
+      "unemployment" -> "http://eccenca.com/ds/unemployment/"
+    ) ++ extraPrefixes)
   }
 
   def listResources(projectId: String): WSResponse = {
