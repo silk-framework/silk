@@ -178,7 +178,7 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
 }
 
 case class MessageTask(message: String) extends CustomTask {
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq.empty)
+  override def inputPorts: InputPorts = InputPorts.NoInputPorts
   override def outputPort: Option[Port] = None
 }
 

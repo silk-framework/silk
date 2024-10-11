@@ -46,6 +46,7 @@ GET           /projects/:project/datasets/:name/file                            
 PUT           /projects/:project/datasets/:name/file                            controllers.workspace.LegacyDatasetApi.uploadFile(project: String, name: String)
 GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.LegacyDatasetApi.getMappingCoverage(project: String, name: String)
 POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.LegacyDatasetApi.getMappingValueCoverage(project: String, name: String)
+POST          /projects/:projectId/datasets/:datasetId/clear                    controllers.workspace.LegacyDatasetApi.clearDataset(projectId: String, datasetId: String)
 
 ############################################################################################################################################
 # CustomTasks

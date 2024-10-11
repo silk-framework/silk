@@ -92,7 +92,7 @@ abstract class HierarchicalSink extends EntitySink {
   /**
    * Makes sure that the next write will start from an empty dataset.
    */
-  override def clear()(implicit userContext: UserContext): Unit = { }
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = { }
 
   /**
     * Outputs all entities in the cache to a HierarchicalEntityWriter.

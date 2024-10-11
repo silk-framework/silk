@@ -30,5 +30,5 @@ case class FilteredLinkSink(linkSink: LinkSink, filterFn: Link => Boolean) exten
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear()(implicit userContext: UserContext): Unit = linkSink.clear()
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = linkSink.clear(force)
 }

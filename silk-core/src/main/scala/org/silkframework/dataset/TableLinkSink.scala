@@ -27,8 +27,8 @@ class TableLinkSink(entitySink: EntitySink) extends LinkSink {
     entitySink.close()
   }
 
-  override def clear()(implicit userContext: UserContext): Unit = {
-    entitySink.clear()
+  override def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = {
+    entitySink.clear(force)
   }
 }
 
