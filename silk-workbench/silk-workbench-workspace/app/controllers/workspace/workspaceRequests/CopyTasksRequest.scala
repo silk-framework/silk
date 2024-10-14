@@ -25,6 +25,12 @@ case class CopyTasksRequest(@Schema(
                             )
                             overwriteTasks: Option[Boolean],
                             @Schema(
+                              description = "If true, all prefixes from the source project are copied to the target project.",
+                              required = false,
+                              nullable = true
+                            )
+                            copyPrefixes: Option[Boolean] = None,
+                            @Schema(
                               description = "The identifier of the target project."
                             )
                             targetProject: String) {
@@ -40,13 +46,13 @@ case class CopyTasksRequest(@Schema(
     val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
     val tasksToCopy = sourceProj.allTasks
     val targetProj = WorkspaceFactory().workspace.project(targetProject)
-    CopyTasksRequest.copyTasks(sourceProj, tasksToCopy, targetProj, isDryRun, overwriteConfirmed)
+    CopyTasksRequest.copyTasks(sourceProj, tasksToCopy, targetProj, isDryRun, overwriteConfirmed, copyPrefixes.contains(true))
   }
 
   def copyTask(sourceProject: String,
                taskName: String)
               (implicit userContext: UserContext): CopyTasksResponse = {
-    CopyTasksRequest.copyTask(sourceProject, taskName, targetProject, isDryRun, overwriteConfirmed)
+    CopyTasksRequest.copyTask(sourceProject, taskName, targetProject, isDryRun, overwriteConfirmed, copyPrefixes.contains(true))
   }
 }
 
@@ -61,6 +67,7 @@ object CopyTasksRequest {
     * @param targetProject      The target project ID.
     * @param isDryRun           Only return the response as if the task was copied, but do not actually do any changes.
     * @param overwriteConfirmed If true, then existing tasks will be overwritten.
+    * @param copyPrefixes       If true, all prefixes from the source project are copied to the target project.
     * @param taskRenameMap      Specifies how some tasks should be named in the target project.
     */
   def copyTask(sourceProject: String,
@@ -68,12 +75,13 @@ object CopyTasksRequest {
                targetProject: String,
                isDryRun: Boolean,
                overwriteConfirmed: Boolean,
+               copyPrefixes: Boolean = false,
                taskRenameMap: Map[Identifier, Identifier] = Map.empty)
               (implicit userContext: UserContext): CopyTasksResponse = {
     val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
     val tasksToCopy = collectTasks(sourceProj, taskName)
     val targetProj = WorkspaceFactory().workspace.project(targetProject)
-    copyTasks(sourceProj, tasksToCopy, targetProj, isDryRun, overwriteConfirmed, taskRenameMap)
+    copyTasks(sourceProj, tasksToCopy, targetProj, isDryRun, overwriteConfirmed, copyPrefixes, taskRenameMap)
   }
 
   /**
@@ -84,12 +92,18 @@ object CopyTasksRequest {
                         targetProject: Project,
                         isDryRun: Boolean,
                         overwriteConfirmed: Boolean,
+                        copyPrefixes: Boolean = false,
                         taskRenameMap: Map[Identifier, Identifier] = Map.empty)
                        (implicit userContext: UserContext): CopyTasksResponse = {
     sourceProj.synchronized {
       targetProject.synchronized {
         // Only copy resources if they are at different base paths
         val copyResources = sourceProj.resources.basePath != targetProject.resources.basePath
+
+        // Copy prefixes
+        if(copyPrefixes) {
+          copyAllPrefixes(sourceProj, targetProject)
+        }
 
         // Copy only those tags that do not exist in the target project
         val targetProjectTags = targetProject.tagManager.allTags().map(_.uri).toSet
@@ -132,6 +146,20 @@ object CopyTasksRequest {
     }
   }
 
+  private def copyAllPrefixes(sourceProject: Project, targetProject: Project)
+                             (implicit userContext: UserContext): Unit = {
+    // Make sure that a prefix is not already defined with a different namespace
+    val sourcePrefixes = sourceProject.config.prefixes.prefixMap
+    val targetPrefixes = targetProject.config.prefixes.prefixMap
+    val inconsistentPrefixes = for(key <- sourcePrefixes.keySet intersect targetPrefixes.keySet if sourcePrefixes(key) != targetPrefixes(key)) yield key
+    if(inconsistentPrefixes.nonEmpty) {
+      throw new InconsistentPrefixesException(inconsistentPrefixes)
+    }
+
+    // Update prefixes of target project
+    targetProject.config = targetProject.config.copy(prefixes = targetProject.config.prefixes ++ sourcePrefixes)
+  }
+
   /**
     * Returns a task and all its referenced tasks.
     */
@@ -140,5 +168,9 @@ object CopyTasksRequest {
     val task = project.anyTask(taskName)
     Seq(task) ++ task.data.referencedTasks.flatMap(collectTasks(project, _))
   }
+
+  class InconsistentPrefixesException(val prefixes: Set[String])
+    extends BadUserInputException("Cannot copy prefixes because the target project already contains some of the same prefixes with different namespaces. " +
+                                  "Inconsistent prefix keys: " + prefixes.mkString(", "))
 
 }

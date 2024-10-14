@@ -126,6 +126,7 @@ const Project = () => {
                                         onSort={handleSort}
                                         onSearch={handleSearch}
                                         onEnter={onEnter}
+                                        disableEnterDuringPendingSearch={true}
                                     />
                                 </GridColumn>
                             </GridRow>

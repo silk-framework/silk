@@ -1,8 +1,11 @@
 import React from "react";
 import {
     FieldSet,
+    IconButton,
     Label,
+    Link,
     Markdown,
+    Spacing,
     StringPreviewContentBlobToggler,
     TitleSubsection,
     WhiteSpaceContainer,
@@ -18,6 +21,8 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginReg
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
+import { ArtefactDocumentation } from "../CreateArtefactModal";
+import { PARAMETER_DOC_PREFIX } from "./TaskForm";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -34,6 +39,8 @@ export interface ParameterCallbacks {
     setTemplateFlag: (parameterId: string, isTemplate: boolean) => any;
     /** Request template flag for a parameter. */
     templateFlag: (parameterId: string) => boolean;
+    /** Shows the detailed task documentation and jumps to the named anchor of the parameter. */
+    showDetailedParameterDocumentation: (parameterId: string) => any;
 }
 
 /** Extended parameter callbacks with internal callbacks. */
@@ -41,6 +48,8 @@ export interface ExtendedParameterCallbacks extends ParameterCallbacks {
     initialTemplateFlag: (parameterId: string) => boolean;
     /** Returns the label of the parameter with the full parameter ID, i.e. of the form parentParamId.paramId. */
     parameterLabel: (fullParameterId: string) => string;
+    /** Named anchors in the Markdown documentation. */
+    namedAnchors: string[];
 }
 
 interface IProps {
@@ -127,10 +136,33 @@ export const ParameterWidget = (props: IProps) => {
               })
             : undefined;
 
+    const detailedDocumentationAvailable = parameterCallbacks.namedAnchors.includes(formParamId);
     let propertyHelperText: JSX.Element | undefined = undefined;
-    if (description && description.length > MAXLENGTH_TOOLTIP) {
+    if ((description && description.length > MAXLENGTH_TOOLTIP) || detailedDocumentationAvailable) {
+        let parameterDescription: JSX.Element = <Markdown>{description}</Markdown>;
+        let detailedLink: JSX.Element | undefined = undefined;
+        if (detailedDocumentationAvailable) {
+            detailedLink = (
+                <Link
+                    data-test-id={"parameter-doc-link"}
+                    key={"showDoc"}
+                    href={`#${PARAMETER_DOC_PREFIX}${formParamId}`}
+                    onClick={() => parameterCallbacks.showDetailedParameterDocumentation(formParamId)}
+                >
+                    {t("ParameterWidget.parameterDocLinkText")}
+                </Link>
+            );
+            parameterDescription = (
+                <>
+                    {parameterDescription}
+                    <Spacing size={"tiny"} />
+                    {detailedLink}
+                </>
+            );
+        }
         propertyHelperText = (
             <StringPreviewContentBlobToggler
+                key={"descriptionToggler"}
                 className="di__parameter_widget__description"
                 content={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
@@ -141,12 +173,13 @@ export const ParameterWidget = (props: IProps) => {
                         marginBottom="small"
                         marginLeft="regular"
                     >
-                        <Markdown>{description ?? ""}</Markdown>
+                        {parameterDescription}
                     </WhiteSpaceContainer>
                 }
                 toggleExtendText={t("common.words.more", "more")}
                 toggleReduceText={t("common.words.less", "less")}
                 firstNonEmptyLineOnly={true}
+                noTogglerContentSuffix={detailedLink ? <> {detailedLink}</> : detailedLink}
             />
         );
     }

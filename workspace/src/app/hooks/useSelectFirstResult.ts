@@ -10,6 +10,12 @@ export const useSelectFirstResult = () => {
     const dispatch = useDispatch();
     const data = useSelector(workspaceSel.resultsSelector);
     const dataArrayRef = React.useRef(data);
+    const enabled = React.useRef(true);
+
+    /** Sets if hitting Enter has any effect. */
+    const setEnabled = React.useCallback((value: boolean) => {
+        enabled.current = value;
+    }, []);
 
     React.useEffect(() => {
         dataArrayRef.current = data;
@@ -18,7 +24,7 @@ export const useSelectFirstResult = () => {
     const onEnter = React.useCallback(() => {
         const firstResult = dataArrayRef.current[0];
         const labels: IPageLabels = {};
-        if (firstResult && firstResult.itemLinks?.length) {
+        if (enabled && firstResult && firstResult.itemLinks?.length) {
             if (firstResult.type === DATA_TYPES.PROJECT) {
                 labels.projectLabel = firstResult.label;
             } else {
@@ -32,5 +38,5 @@ export const useSelectFirstResult = () => {
         }
     }, []);
 
-    return { onEnter };
+    return { onEnter, setEnabled };
 };

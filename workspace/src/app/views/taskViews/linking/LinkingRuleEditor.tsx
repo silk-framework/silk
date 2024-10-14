@@ -166,7 +166,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
-            const responseData = (await requestRuleOperatorPluginsDetails(false)).data
+            const responseData = (await requestRuleOperatorPluginsDetails(false)).data;
             let operatorPlugins = Object.values(responseData);
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));

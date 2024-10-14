@@ -26,6 +26,9 @@ interface IProps extends ISearchBarSearchInputProps {
 
     /** Optional onEnter handler. Default is to refresh the current search. */
     onEnter?: () => any;
+
+    /** Callback to signal when there is a pending (maybe not even executed search). */
+    disableEnterDuringPendingSearch?: boolean;
 }
 
 /** A simple search bar. */
@@ -37,6 +40,7 @@ export function SearchBar({
     focusOnCreation = false,
     warnOfInvisibleCharacters = true,
     onEnter,
+    disableEnterDuringPendingSearch = false,
     ...otherProps
 }: IProps) {
     const [t] = useTranslation();
@@ -46,6 +50,7 @@ export function SearchBar({
         onChange,
         onEnter: onEnterRefreshSearch,
         onClear,
+        searchPending,
     } = useSearch({ onSearch, searchQuery: textQuery });
 
     const emptySearchMessage = otherProps.emptySearchInputMessage
@@ -58,6 +63,14 @@ export function SearchBar({
         callbackDelay: 200,
     });
 
+    const onEnterExtended = React.useCallback(() => {
+        if (disableEnterDuringPendingSearch && searchPending()) {
+            // Enter has no effect if there is still a pending search
+            return;
+        }
+        onEnter ? onEnter() : onEnterRefreshSearch();
+    }, [onEnterRefreshSearch, onEnter]);
+
     return (
         <Toolbar>
             <ToolbarSection canGrow>
@@ -67,7 +80,7 @@ export function SearchBar({
                     data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
                     onFilterChange={onChange}
-                    onEnter={onEnter ? onEnter : onEnterRefreshSearch}
+                    onEnter={onEnterExtended}
                     filterValue={query}
                     onClearanceHandler={onClear}
                     emptySearchInputMessage={emptySearchMessage}
