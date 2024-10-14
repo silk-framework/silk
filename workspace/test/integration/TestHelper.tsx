@@ -36,41 +36,13 @@ const mockValues: IMockValues = {
 };
 const host = process.env.HOST;
 
-jest.mock("@codemirror/view", () => {
-    return {
-        highlightSpecialChars() {},
-        domEventHandlers() {},
-        lineNumbers() {},
-        dispatch() {},
-        highlightActiveLine() {},
-        EditorView: class {
-            constructor(options: any) {}
-            dispatch() {}
-            destroy() {}
-            highlightSpecialChars() {}
-            domEventHandlers() {}
-            findFromDOM() {}
-            static get updateListener() {
-                return {
-                    of() {},
-                };
-            }
-        },
-        keymap: {
-            of: () => {},
-        },
-    };
-});
+jest.mock("@codemirror/view", () => ({
+    ...jest.requireActual("@codemirror/view"),
+}));
 
-jest.mock("@codemirror/language", () => {
-    return {
-        StreamLanguage: {
-            define: () => {},
-        },
-        foldGutter() {},
-        codeFolding() {},
-    };
-});
+jest.mock("@codemirror/language", () => ({
+    ...jest.requireActual("@codemirror/language"),
+}));
 
 // Mock global history object
 jest.mock("../../src/app/store/configureStore", () => {
