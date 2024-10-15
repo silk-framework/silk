@@ -54,42 +54,6 @@ object JsonSerializer {
     }
   )
 
-  def projectResources(project: Project): JsArray = {
-    JsArray(resourcesArray(project.resources))
-  }
-
-  def resourcesArray(resources: ResourceManager, pathPrefix: String = ""): Seq[JsValue] = {
-    val directResources =
-      for(resourceName <- resources.list) yield
-        resourceProperties(resources.get(resourceName), pathPrefix)
-
-    val childResources =
-      for(resourceName <- resources.listChildren) yield
-        resourcesArray(resources.child(resourceName), pathPrefix + resourceName + File.separator)
-
-    directResources ++ childResources.flatten
-  }
-
-  def resourceProperties(resource: Resource, pathPrefix: String = ""): JsValue = {
-    val sizeValue = resource.size match {
-      case Some(size) => JsNumber(BigDecimal.decimal(size))
-      case None => JsNull
-    }
-
-    val modificationValue = resource.modificationTime match {
-      case Some(time) => JsString(time.toString)
-      case None => JsNull
-    }
-
-    Json.obj(
-      "name" -> resource.name,
-      "relativePath" -> JsString(pathPrefix + resource.name),
-      "absolutePath" -> resource.path,
-      "size" -> sizeValue,
-      "modified" -> modificationValue
-    )
-  }
-
   def activityConfig(config: Map[String, String]) = JsArray(
     for ((name, value) <- config.toSeq) yield
       Json.obj("name" -> name, "value" -> value)

@@ -6,6 +6,7 @@ import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.{ExecutorRegistry, TaskException}
 import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
@@ -73,9 +74,9 @@ object TransformTaskUtils {
     /**
      * Generates the task context assuming that this task is executed standalone (i.e., not in a workflow)
      */
-    def taskContext(implicit userContext: UserContext): TaskContext = {
-      val inputTask = task.project.anyTask(task.selection.inputId)
-      TaskContext(Seq(inputTask))
+    def taskContext(implicit pluginContext: PluginContext): TaskContext = {
+      val inputTask = task.project.anyTask(task.selection.inputId)(pluginContext.user)
+      TaskContext(Seq(inputTask), pluginContext)
     }
   }
 

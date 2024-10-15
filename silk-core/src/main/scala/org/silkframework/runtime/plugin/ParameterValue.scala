@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
 
+import scala.annotation.tailrec
 import scala.xml.Node
 
 /**
@@ -128,7 +129,6 @@ case class ParameterValues(values: Map[String, ParameterValue]) extends Paramete
 
     ParameterValues(updatedValues ++ (other.values -- updatedValues.keys))
   }
-
 }
 
 object ParameterValues {

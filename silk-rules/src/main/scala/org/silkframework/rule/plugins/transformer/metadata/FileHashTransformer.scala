@@ -1,4 +1,4 @@
-package org.silkframework.rule.plugins.transformer.dataset
+package org.silkframework.rule.plugins.transformer.metadata
 
 import org.silkframework.dataset.{DatasetSpec, ResourceBasedDataset}
 import org.silkframework.rule.TaskContext
@@ -14,7 +14,7 @@ import java.security.MessageDigest
 
 @Plugin(
   id = "fileHash",
-  categories = Array("Dataset"),
+  categories = Array("Metadata"),
   label = "File hash",
   description =
 """Calculates the hash sum of a file. The hash sum is cached so that subsequent calls to this operator are fast.

@@ -40,6 +40,14 @@ case class LinkageRule(operator: Option[SimilarityOperator] = None,
   operator.foreach(_.validateIds())
 
   /**
+   * Generates a copy of this rule that has been configured with a given task context.
+   * This is relevant for operators whose results are based on the input task(s), i.e., the file hash transformer.
+   */
+  def withContext(taskContext: TaskContext): LinkageRule = {
+    copy(operator = operator.map(_.withContext(taskContext)))
+  }
+
+  /**
    * Computes the similarity between two entities.
    *
    * @param entities The entities to be compared.

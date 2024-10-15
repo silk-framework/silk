@@ -1,12 +1,15 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.local.ErrorOutputWriter
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.workspace.ProjectTrait
 
 import scala.util.control.Breaks._
 import scala.util.control.NonFatal
@@ -15,7 +18,7 @@ import scala.util.control.NonFatal
   * Executes a set of transformation rules.
   */
 class ExecuteTransform(task: Task[TransformSpec],
-                       inputTask: UserContext => Task[_],
+                       inputTask: UserContext => Task[_ <: TaskSpec],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
@@ -50,7 +53,8 @@ class ExecuteTransform(task: Task[TransformSpec],
     val errorEntitySink = errorOutput(userContext)
     val report = new TransformReportBuilder(task, context)
     report.setExecutionContext(TransformReportExecutionContext(entitySink))
-    val taskContext = TaskContext(Seq(inputTask(userContext)))
+    val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext)
+    val taskContext = TaskContext(Seq(inputTask(userContext)), pluginContext)
 
     // Clear outputs before writing
     context.status.updateMessage("Clearing output")

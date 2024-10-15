@@ -22,6 +22,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{TaskContext, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -199,7 +200,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           case peakDataSource: PeakDataSource =>
             try {
               peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities).use { exampleEntities =>
-                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask))), exampleEntities, limit)
+                generateMappingPreviewResponse(ruleSchemata.transformRule.withContext(TaskContext(Seq(inputTask), PluginContext.fromProject(project))), exampleEntities, limit)
               }
             } catch {
               case pe: PeakException =>

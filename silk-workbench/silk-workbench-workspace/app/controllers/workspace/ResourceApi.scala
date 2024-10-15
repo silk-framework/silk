@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.serialization.json.ResourceSerializers
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.resources.CacheUpdaterHelper
 import play.api.libs.json.Json
@@ -128,7 +129,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       case index => resourcePath.substring(0, index + 1)
     }
 
-    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
+    Ok(ResourceSerializers.resourceProperties(resource, project.resources))
   }
 
   @deprecated("Use files-endpoints instead.")

@@ -15,7 +15,7 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.Operator
+import org.silkframework.rule.{Operator, TaskContext}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationIssue
@@ -59,6 +59,10 @@ trait SimilarityOperator extends Operator {
     */
   def validate(): Seq[ValidationIssue] = {
     Seq.empty
+  }
+
+  override def withContext(taskContext: TaskContext): SimilarityOperator = {
+    this
   }
 }
 

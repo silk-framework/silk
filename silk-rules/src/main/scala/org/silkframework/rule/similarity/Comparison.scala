@@ -15,7 +15,7 @@
 package org.silkframework.rule.similarity
 
 import org.silkframework.entity.{Entity, Index}
-import org.silkframework.rule.Operator
+import org.silkframework.rule.{Operator, TaskContext}
 import org.silkframework.rule.input.Input
 import org.silkframework.rule.similarity.Comparison.distanceToScore
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
@@ -99,6 +99,18 @@ case class Comparison(id: Identifier = Operator.generateId,
 
   override def withChildren(newChildren: Seq[Operator]): Comparison = {
     copy(inputs = DPair.fromSeq(newChildren.collect{ case input: Input => input }))
+  }
+
+  override def withContext(taskContext: TaskContext): Comparison = {
+    // Each input should receive only the task that it refers to (source or target)
+    taskContext.inputTasks match {
+      case Seq(sourceTask, targetTask) =>
+        val newSourceInput = inputs.source.withContext(taskContext.copy(inputTasks = Seq(sourceTask)))
+        val newTargetInput = inputs.target.withContext(taskContext.copy(inputTasks = Seq(targetTask)))
+        copy(inputs = DPair(newSourceInput, newTargetInput))
+      case _ =>
+        throw new ValidationException("Comparison operator expects exactly two inputs")
+    }
   }
 }
 
