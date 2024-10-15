@@ -116,19 +116,19 @@ export function ArtefactManagementOptions({
     const getFullMenu = () => {
         const fullMenu: TActionsMenuItem[] = [
             {
-                icon:"item-clone",
+                icon: "item-copy",
                 text: t("common.action.copy", "Copy to"),
                 actionHandler: toggleCopyToModal,
                 "data-test-id": "header-copy-button",
             },
             {
-                icon:"item-copy",
+                icon: "item-clone",
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
                 "data-test-id": "header-clone-button",
             },
             {
-                icon:"item-viewdetails",
+                icon: "item-viewdetails",
                 text: t("common.action.showIdentifier", "Show identifier"),
                 actionHandler: toggleShowIdentifierModal,
                 "data-test-id": "header-item-identifier-button",

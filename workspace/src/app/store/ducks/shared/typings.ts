@@ -151,6 +151,7 @@ export interface IRelatedItem {
     type: string;
     itemLinks: IItemLink[];
     pluginLabel: string;
+    searchTags: string[];
     tags: Keywords;
     projectId?: string;
     pluginId?: string;

@@ -11,7 +11,8 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 case class WorkflowFacetCollector() extends ItemTypeFacetCollector[ProjectTask[Workflow]] {
   override val facetCollectors: Seq[FacetCollector[ProjectTask[Workflow]]] = {
     Seq(
-      WorkflowExecutionStatus()
+      WorkflowExecutionStatus(),
+      WorkflowReplaceableInputOutput()
     )
   }
 }
@@ -28,4 +29,24 @@ case class WorkflowExecutionStatus() extends NoLabelKeywordFacetCollector[Projec
   }
 
   override def appliesForFacet: SearchApiModel.Facet = Facets.workflowExecutionStatus
+}
+
+/** Facet to filter a workflow by it including replaceable input/output datasets. */
+case class WorkflowReplaceableInputOutput() extends NoLabelKeywordFacetCollector[ProjectTask[Workflow]] {
+
+  override def extractKeywordIds(projectTask: ProjectTask[Workflow])
+                                (implicit user: UserContext): Set[String] = {
+    var keywords = Set.empty[String]
+    val workflow = projectTask.data
+    val variableDatasets = workflow.legacyVariableDatasets(projectTask.project)
+    if(workflow.replaceableInputs.nonEmpty || variableDatasets.dataSources.nonEmpty) {
+      keywords = keywords + "Input"
+    }
+    if(workflow.replaceableOutputs.nonEmpty || variableDatasets.dataSources.nonEmpty) {
+      keywords = keywords + "Output"
+    }
+    keywords
+  }
+
+  override def appliesForFacet: SearchApiModel.Facet = Facets.workflowInputOutput
 }

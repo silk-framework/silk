@@ -59,6 +59,7 @@ export interface IRecentlyViewedItem {
     pluginLabel?: string;
     itemLinks: IItemLink[];
     tags?: Keywords;
+    searchTags?: string[];
     readOnly?: boolean;
 }
 

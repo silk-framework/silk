@@ -17,7 +17,9 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, LinkSink}
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
 import org.silkframework.rule.{LinkSpec, LinkageRule, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
@@ -124,13 +126,22 @@ class GenerateLinks(task: Task[LinkSpec],
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(task, rule, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true))
+    context.value.update(Linking(task, rule, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true,
+      sampleOutputEntities = Seq(sampleEntities(filteredLinks))))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
     val outputTask = new OutputWriter(context.value().links, rule.linkType, rule.inverseLinkType, output)
     context.child(outputTask, 0.02).startBlocking()
     logStatistics(context)
+  }
+
+  private def sampleEntities(links: Seq[Link]): SampleEntities = {
+    SampleEntities(
+      entities = links.take(ExecutionReport.SAMPLE_ENTITY_LIMIT).map(link => EntitySample("",
+        IndexedSeq(Seq(link.source), Seq(link.target), Seq(link.confidence.map(_.toString).getOrElse("N/A"))))),
+      schema = SampleEntitiesSchema("", "", IndexedSeq("Source", "Target", "Confidence"))
+    )
   }
 
   private def logStatistics(context: ActivityContext[Linking]): Unit = {

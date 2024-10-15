@@ -77,6 +77,9 @@ trait TaskSpec {
 
   /** The main (execution) activities that should stand out from all the registered activities of this task. */
   def mainActivities: Seq[String] = Seq.empty
+
+  /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
+  def searchTags: Seq[String] = Seq.empty
 }
 
 /** A task link.

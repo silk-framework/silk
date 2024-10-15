@@ -82,7 +82,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     } else if(characteristics.supportsMultipleWrites) {
       FlexibleNumberOfInputs()
     } else {
-      FixedNumberOfInputs(Seq(FlexibleSchemaPort))
+      FlexibleNumberOfInputs(FlexibleSchemaPort, 0, Some(1))
     }
   }
 

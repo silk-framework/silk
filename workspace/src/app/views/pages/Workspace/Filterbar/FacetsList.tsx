@@ -68,7 +68,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
     };
 
     return (
-        <div>
+        <div data-test-id={"search-facets"}>
             {facets.map((facet) => (
                 <div className={HelperClasses.Typography.NOOVERFLOW} key={facet.id}>
                     <TitleSubsection>

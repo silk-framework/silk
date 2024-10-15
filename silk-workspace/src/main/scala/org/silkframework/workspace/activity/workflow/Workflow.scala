@@ -221,7 +221,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   private def nestedWorkflows(project: Project)
                              (implicit userContext: UserContext): Seq[Workflow] = {
     operators
-      .map(op => project.anyTask(op.task))
+      .flatMap(op => project.anyTaskOption(op.task))
       .filter(_.data.isInstanceOf[Workflow])
       .map(_.data.asInstanceOf[Workflow])
   }
@@ -250,7 +250,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
     val operatorsWithDataOutput: Set[Identifier] = operators
       .map(op => op.task).distinct
-      .filter(taskId => project.anyTask(taskId).outputPort.isDefined)
+      .filter(taskId => project.anyTaskOption(taskId).map(_.outputPort.isDefined).getOrElse(false))
       .toSet
     // Filter out datasets that have no real data input
     val datasetNodesWithRealInputs = operators.flatMap(op => {
@@ -362,6 +362,17 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   }
 
   override def mainActivities: Seq[String] = Seq("ExecuteDefaultWorkflow")
+
+  override def searchTags: Seq[String] = {
+    var l = Vector.empty[String]
+    if(replaceableInputs.nonEmpty) {
+      l = l :+ "Replaceable input"
+    }
+    if(replaceableOutputs.nonEmpty) {
+      l = l :+ "Replaceable output"
+    }
+    l
+  }
 }
 
 /** Plugin parameter for the workflow operators. */

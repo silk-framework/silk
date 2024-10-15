@@ -3,6 +3,7 @@ package org.silkframework.rule.execution
 import org.silkframework.config.Task
 import org.silkframework.entity.Link
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.report.{EntitySample, SampleEntities}
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.util.DPair
 
@@ -16,7 +17,8 @@ case class Linking(task: Task[LinkSpec],
                    links : Seq[Link] = Seq.empty,
                    statistics: LinkingStatistics = LinkingStatistics(),
                    matcherWarnings: Seq[String] = Seq.empty,
-                   isDone: Boolean = false) extends ExecutionReport {
+                   isDone: Boolean = false,
+                   override val sampleOutputEntities: Seq[SampleEntities] = Seq.empty) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
@@ -52,6 +54,9 @@ case class Linking(task: Task[LinkSpec],
     * Returns a done version of this report.
     */
   def asDone(): ExecutionReport = copy(isDone = true)
+
+  /** Updates the execution report with some sample entities. */
+  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this.copy(sampleOutputEntities = Seq(sampleEntities))
 }
 
 case class LinkingStatistics(entityCount: DPair[Int] = DPair.fill(0))

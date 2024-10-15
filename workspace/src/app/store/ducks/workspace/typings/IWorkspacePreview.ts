@@ -52,6 +52,9 @@ export interface ISearchResultsServer {
      * delimits if dataset is readonly
      */
     readOnly?: true;
+
+    /** Tags of the task that are displayed and can be searched in. */
+    searchTags?: string[];
 }
 
 export const convertTaskTypeToSearchResultServerType = (taskType: TaskType): string => {

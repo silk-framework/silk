@@ -3,7 +3,8 @@ package org.silkframework.rule.execution.local
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity.metadata.EntityMetadata
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
-import org.silkframework.execution.{AbortExecutionException, ExecutionException}
+import org.silkframework.execution.report.EntitySample
+import org.silkframework.execution.{AbortExecutionException, ExecutionException, ExecutionReport}
 import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
@@ -68,6 +69,12 @@ class TransformedEntities(task: Task[TransformSpec],
 
     val mappedEntities =
       for (entity <- entities; mappedEntity <- mapEntity(entity, report)) yield {
+        if(count < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
+          if(count == 1) {
+            report.setContainerRule(rule.id.toString, outputSchema)
+          }
+          report.sampleOutputEntity(EntitySample.entityToEntitySample(mappedEntity))
+        }
         if (count > lastCount && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
           report.build(logMessage = true)
           lastUpdateTime = System.currentTimeMillis()
