@@ -1,5 +1,6 @@
 package org.silkframework.serialization.json
 
+import org.silkframework.rule.plugins.transformer.metadata.InputFileAttributesTransformer
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.serialization.json.EntitySerializers.{EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
 import org.silkframework.serialization.json.ExecutionReportSerializers._
@@ -8,7 +9,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.ReferenceLinksJsonFormat
 import org.silkframework.serialization.json.PluginDescriptionSerializers.PluginListJsonFormat
 import org.silkframework.serialization.json.WorkflowSerializers.{TaskIdentifierParameterFormat, WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
-import org.silkframework.serialization.json.transformer.{InputFileAttributesTransformer, InputTaskAttributesTransformer}
+import org.silkframework.serialization.json.transformer.InputTaskAttributesTransformer
 
 class JsonPluginModule extends PluginModule {
 
