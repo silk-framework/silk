@@ -28,7 +28,7 @@ import org.silkframework.rule.plugins.distance.tokenbased._
 import org.silkframework.rule.plugins.transformer.combine.{ConcatMultipleValuesTransformer, ConcatPairwiseTransformer, ConcatTransformer, MergeTransformer}
 import org.silkframework.rule.plugins.transformer.conditional._
 import org.silkframework.rule.plugins.transformer.conversion.ConvertCharsetTransformer
-import org.silkframework.rule.plugins.transformer.dataset.{FileHashTransformer, InputTaskParameterTransformer}
+import org.silkframework.rule.plugins.transformer.metadata.FileHashTransformer
 import org.silkframework.rule.plugins.transformer.date._
 import org.silkframework.rule.plugins.transformer.extraction.RegexExtractionTransformer
 import org.silkframework.rule.plugins.transformer.filter._
@@ -113,7 +113,6 @@ class RulePlugins extends PluginModule {
         // Dataset
         classOf[FileHashTransformer] ::
         classOf[InputHashTransformer] ::
-        classOf[InputTaskParameterTransformer] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::

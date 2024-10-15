@@ -1,4 +1,4 @@
-package org.silkframework.rule.plugins.transformer.dataset
+package org.silkframework.rule.plugins.transformer.metadata
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

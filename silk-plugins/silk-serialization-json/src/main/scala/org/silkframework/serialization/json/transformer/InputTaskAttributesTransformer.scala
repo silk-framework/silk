@@ -17,9 +17,9 @@ import scala.annotation.tailrec
 
 @Plugin(
   id = "inputTaskAttributes",
-  categories = Array("Dataset"),
-  label = "Input Task attributes",
-  description = "Retrieves individual attributes from the input task (such as the modified date) or the entire task as JSONN."
+  categories = Array("Metadata"),
+  label = "Input task attributes",
+  description = "Retrieves individual attributes from the input task (such as the modified date) or the entire task as JSON."
 )
 case class InputTaskAttributesTransformer(@Param("Path to retrieve from the JSON, such as 'metadata/modified'. If left empty, the entire JSON will be returned.")
                                           path: String = "") extends JsonTransformer {

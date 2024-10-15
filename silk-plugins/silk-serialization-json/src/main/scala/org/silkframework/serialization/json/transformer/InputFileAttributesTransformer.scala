@@ -12,7 +12,7 @@ import play.api.libs.json.JsValue
 
 @Plugin(
   id = "inputFileAttributes",
-  categories = Array("Dataset"),
+  categories = Array("Metadata"),
   label = "Input file attributes",
   description = "Retrieves a metadata attribute from the input file (such as the file name) or the entire metadata as JSON."
 )

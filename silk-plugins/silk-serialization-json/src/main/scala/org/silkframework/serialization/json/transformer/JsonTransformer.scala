@@ -4,9 +4,10 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.rule.TaskContext
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.workspace.{ProjectTask, ProjectTrait}
+import org.silkframework.workspace.{ProjectTask, ProjectTrait, WorkspaceFactory}
 import play.api.libs.json._
 
 import scala.annotation.tailrec
@@ -23,16 +24,18 @@ trait JsonTransformer extends Transformer {
 
   /**
    * Retrieves the JSON.
-   * @return
    */
   def getJson(inputTask: Task[_ <: TaskSpec], project: ProjectTrait)
              (implicit pluginContext: PluginContext): JsValue
 
   override def withContext(taskContext: TaskContext): Transformer = {
     val inputTask = taskContext.inputTasks.headOption.getOrElse(throw new ValidationException("This task does not have an input"))
-    val project = inputTask match {
-      case projectTask: ProjectTask[_] => projectTask.project
-      case _ => throw new ValidationException("Input task needs to be a project task.")
+    val project = taskContext.pluginContext.projectId match {
+      case Some(projectId) =>
+        implicit val user: UserContext = taskContext.pluginContext.user
+        WorkspaceFactory().workspace.project(projectId)
+      case _ =>
+        throw new ValidationException("Needs to be executed in a project context")
     }
     val json = getJson(inputTask, project)(taskContext.pluginContext)
 
@@ -72,7 +75,7 @@ trait JsonTransformer extends Transformer {
       case JsNumber(value) =>
         value.toString()
       case _ =>
-        json.toString()
+        Json.prettyPrint(json)
     }
   }
 }
