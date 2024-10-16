@@ -3,12 +3,11 @@ package org.silkframework.plugins.dataset.xml
 import net.sf.saxon.TransformerFactoryImpl
 import net.sf.saxon.s9api.SaxonApiException
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResourceEntityTable}
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.runtime.validation.ValidationException
 
 import javax.xml.transform.TransformerConfigurationException
@@ -27,7 +26,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
                        context: ActivityContext[ExecutionReport])
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     inputs.headOption match {
-      case Some(et: DatasetResourceEntityTable) =>
+      case Some(FileEntitySchema(fileEntities)) =>
         val xSLTOperator = task.data
         val factory = new TransformerFactoryImpl()
         val xslt = new StreamSource(xSLTOperator.file.inputStream)
@@ -45,12 +44,16 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
             }
         }
 
-        val text = new StreamSource(et.datasetResource.inputStream)
-        val inMemoryResource = InMemoryResourceManager().get("tempResource.xml")
-        inMemoryResource.write() { os =>
-          transformer.transform(text, new StreamResult(os))
-        }
-        Some(new LocalDatasetResourceEntityTable(inMemoryResource, task))
+        val outputFiles =
+          for(inputEntity <- fileEntities.typedEntities) yield {
+            val text = new StreamSource(inputEntity.file.inputStream)
+            val tempFile = FileEntity.createTemp("xsltResult", ".xml")
+            tempFile.file.write() { os =>
+              transformer.transform(text, new StreamResult(os))
+            }
+            tempFile
+          }
+        Some(FileEntitySchema.create(outputFiles, task))
       case _ =>
         throw new ValidationException("XSLT operator executor did not receive a dataset resource table as input!")
     }

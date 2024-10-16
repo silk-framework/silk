@@ -5,7 +5,7 @@ import org.silkframework.config.{CustomTask, FixedNumberOfInputs, InputPorts, Pl
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
-import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, SparqlUpdateEntitySchema}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.SparqlUpdateTemplatingMode
@@ -16,7 +16,7 @@ import org.silkframework.util.{Identifier, TestMocks}
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.execution.report.EntitySample
+import org.silkframework.execution.typed.SparqlUpdateEntitySchema
 
 class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait {
   behavior of "Local SPARQL Update Executor"

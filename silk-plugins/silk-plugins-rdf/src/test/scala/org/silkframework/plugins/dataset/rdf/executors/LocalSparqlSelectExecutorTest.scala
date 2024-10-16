@@ -1,19 +1,18 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.PlainTask
 import org.silkframework.dataset.rdf._
+import org.silkframework.entity.Entity
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
+import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{MockitoSugar, TestMocks}
 
 import scala.collection.immutable.SortedMap
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
-import org.silkframework.entity.Entity
-import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
-import org.silkframework.runtime.iterator.TraversableIterator
-import org.silkframework.runtime.plugin.types.MultilineStringParameter
 
 class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     with Matchers
@@ -22,6 +21,7 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
   behavior of "Local SPARQL Select executor"
 
   val timeout = 50
+  implicit val pluginContext: PluginContext = PluginContext.empty
 
   it should "not run out of memory and fetch first entity immediately on large result sets" in {
     val quickReactionTime = 500 // quick in the sense that it won't take too long even on a heavy-loaded CI system
@@ -41,9 +41,8 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
       override def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = ???
     }
     Entity.empty("") // Make sure that Entity class is loaded
-    val entityTable = new SparqlEndpointEntityTable(sparqlEndpoint, mock[Task[TaskSpec]])
     val start = System.currentTimeMillis()
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpointEntityTable(task, entityTable, executionReportUpdater = Some(reportUpdater))
+    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, executionReportUpdater = Some(reportUpdater))
     val entity = entities.head
     entity.values.flatten.head mustBe "subject 0"
     (System.currentTimeMillis() - start).toInt must be < quickReactionTime
@@ -58,9 +57,8 @@ class LocalSparqlSelectExecutorTest extends AnyFlatSpec
     val sparqlEndpoint = sparqlEndpointStub(selectCallback = endpoint => {
       correctTimeout = endpoint.sparqlParams.timeout.contains(timeout)
     })
-    val entityTable = new SparqlEndpointEntityTable(sparqlEndpoint, mock[Task[TaskSpec]])
     val limit = 1000 * 1000 * 1000
-    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpointEntityTable(task, entityTable, limit, Some(reportUpdater))
+    val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpoint(task, sparqlEndpoint, limit, Some(reportUpdater))
     entities.headOption // Needed to actually execute the query
     correctTimeout mustBe true
   }

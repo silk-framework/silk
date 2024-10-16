@@ -14,16 +14,16 @@
 
 package org.silkframework.rule
 
-import org.silkframework.config.{DefaultConfig, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
-import org.silkframework.execution.local.LinksTable
+import org.silkframework.execution.typed.{LinkGenerator, LinksEntitySchema}
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext}
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.Resource
@@ -64,7 +64,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
                     @Param(label = "Matching timeout", value = "The timeout for the matching phase. If the matching takes longer the execution will be stopped.",
                       advanced = true)
-                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec with AnyPlugin {
+                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends LinkGenerator with AnyPlugin {
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
@@ -127,7 +127,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
     * Output are the generated links.
     */
   override lazy val outputPort: Option[Port] = {
-    Some(FixedSchemaPort(LinksTable.linkEntitySchema))
+    Some(FixedSchemaPort(LinksEntitySchema.schema))
   }
 
   override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
@@ -162,6 +162,10 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
   }
 
   override def mainActivities: Seq[String] = Seq("ExecuteLinking")
+
+  override def linkType: Uri = rule.linkType
+
+  override def inverseLinkType: Option[Uri] = rule.inverseLinkType
 }
 
 object LinkSpec {

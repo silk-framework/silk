@@ -17,6 +17,8 @@ package org.silkframework.util
 import java.net.{URI, URLDecoder}
 import org.silkframework.config.Prefixes
 
+import java.nio.charset.StandardCharsets
+import java.util.UUID
 import scala.language.implicitConversions
 import scala.util.{Success, Try}
 
@@ -152,4 +154,12 @@ object Uri {
     val localName = uri.substring(cutIndex + 1, uri.length)
     URLDecoder.decode(localName, "UTF-8")
   }
+
+  /**
+   * Generates a name based UUID URI.
+   */
+  def uuid(value: String): Uri = {
+    "urn:uuid:" + UUID.nameUUIDFromBytes(value.getBytes(StandardCharsets.UTF_8))
+  }
+
 }

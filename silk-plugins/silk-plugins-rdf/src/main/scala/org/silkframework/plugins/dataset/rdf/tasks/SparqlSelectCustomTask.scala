@@ -2,9 +2,10 @@ package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
 import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
-import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
+import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.typed.SparqlEndpointEntitySchema
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.SparqlCodeParameter
 import org.silkframework.runtime.validation.ValidationException

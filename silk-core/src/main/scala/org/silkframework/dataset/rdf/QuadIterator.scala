@@ -1,6 +1,5 @@
 package org.silkframework.dataset.rdf
 
-import org.silkframework.dataset.DataSource
 import org.silkframework.entity.Entity
 import org.silkframework.runtime.iterator.CloseableIterator
 
@@ -21,16 +20,5 @@ trait QuadIterator extends CloseableIterator[Quad] {
       isClosed = true
       closeResources()
     }
-  }
-
-  /**
-    * Will generate an Entity for each Quad (using the EntitySchema of [[org.silkframework.execution.local.QuadEntityTable]]
-    */
-  def asQuadEntities: CloseableIterator[Entity] = {
-    var count = 0L
-    this.map( quad => {
-      count += 1
-      quad.toQuadEntity(Some(DataSource.URN_NID_PREFIX + count))
-    })
   }
 }
