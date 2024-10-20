@@ -1,5 +1,5 @@
 import React from "react";
-import { IHandleProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { IHandleProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import {
@@ -73,6 +73,10 @@ export interface IOperatorCreateContext {
     readOnlyMode: boolean;
     /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
     languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
+    /** allow the width of nodes to be adjustable */
+    allowFlexibleWidth?: boolean;
+    /** change node size */
+    changeNodeSize: (nodeId: string, newNodeDimensions: NodeDimensions) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -118,7 +122,7 @@ function createOperatorNode(
     );
     const type = nodeType(node.pluginType, node.pluginId);
 
-    const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
+    let data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
         label: node.label,
         minimalShape: "none",
@@ -161,6 +165,18 @@ function createOperatorNode(
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
     };
+
+    if (operatorContext.allowFlexibleWidth) {
+        console.log("DIMENSIONS HERE ==>", node.dimension?.width);
+        data = {
+            ...data,
+            onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
+            resizeDirections: { right: true },
+            nodeDimensions: {
+                width: node.dimension?.width ?? 0,
+            },
+        };
+    }
 
     return {
         id: node.nodeId,
