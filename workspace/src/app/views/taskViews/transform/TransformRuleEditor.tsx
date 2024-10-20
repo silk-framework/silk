@@ -96,6 +96,7 @@ export const TransformRuleEditor = ({
     ): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
+            console.log("OPERATOR_NODE_MAP ==>", operatorNodeMap, "ROOT_NODES ==>", rootNodes);
             if (rootNodes.length !== 1) {
                 return {
                     success: false,
@@ -158,8 +159,13 @@ export const TransformRuleEditor = ({
             const pos = nodePositions[node.nodeId];
             if (pos) {
                 node.position = {
-                    x: pos[0],
-                    y: pos[1],
+                    x: pos.x,
+                    y: pos.y,
+                };
+                node.dimension = {
+                    ...node.dimension,
+                    width: pos.width,
+                    height: null,
                 };
             }
         });
@@ -265,6 +271,7 @@ export const TransformRuleEditor = ({
                 getStickyNotes={getStickyNotes}
                 additionalRuleOperators={[sourcePathInput()]}
                 validateConnection={ruleUtils.validateConnection}
+                allowFlexibleWidth
                 tabs={tabs}
                 showRuleOnly={false}
                 initialFitToViewZoomLevel={initialFitToViewZoomLevel}

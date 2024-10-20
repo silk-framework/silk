@@ -84,7 +84,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       inverseLinkType = Some("http://www.w3.org/2002/07/owl#sameAsInv"),
       excludeSelfReferences = true,
       layout = RuleLayout(
-        nodePositions = Map("compareNames" -> (1, 2))
+        nodePositions = Map("compareNames" -> NodePosition(1, 2))
       ),
       uiAnnotations = UiAnnotations(
         stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", (0, 0), (1, 1)))
@@ -147,9 +147,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     target = Some(MappingTarget(Uri("urn:complex:target"))),
                     layout = RuleLayout(
                       nodePositions = Map(
-                        "lower" -> (0, 1),
-                        "concat" -> (3, 4),
-                        "path" -> (5, 6)
+                        "lower" -> NodePosition(0, 1),
+                        "concat" -> NodePosition(3, 4, Some(250)),
+                        "path" -> NodePosition(5, 6)
                       )
                     ),
                     uiAnnotations = UiAnnotations(

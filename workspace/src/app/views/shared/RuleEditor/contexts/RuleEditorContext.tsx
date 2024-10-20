@@ -77,6 +77,8 @@ export interface RuleEditorContextProps {
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
     /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
     inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** allow the width of nodes to be adjustable */
+    allowFlexibleWidth?: boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -99,4 +101,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     instanceId: "uniqueId",
     datasetCharacteristics: new Map(),
     inputPathPluginPathType: () => undefined,
+    allowFlexibleWidth: false,
 });

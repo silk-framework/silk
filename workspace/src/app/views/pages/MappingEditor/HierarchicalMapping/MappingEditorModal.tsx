@@ -92,6 +92,9 @@ const MappingEditorModal = ({
             size="fullscreen"
             preventSimpleClosing={unsavedChanges}
             onClose={onClose}
+            wrapperDivProps={{
+                onMouseUp: () => {},
+            }}
             headerOptions={
                 <IconButton
                     name="navigation-close"
