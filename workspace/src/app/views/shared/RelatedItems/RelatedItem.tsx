@@ -23,7 +23,7 @@ import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import ProjectTags from "../ProjectTags/ProjectTags";
-import {SearchTags} from "../SearchList/SearchTags";
+import { SearchTags } from "../SearchList/SearchTags";
 
 interface IProps {
     // The related item to be shown

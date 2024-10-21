@@ -22,6 +22,7 @@ import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSe
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
+import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -45,7 +46,10 @@ export interface IProps {
     goBackOnEscape?: () => any;
 
     /** Allows to set some config/parameters for a newly created task. */
-    newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues" | "preConfiguredDataParameters">;
+    newTaskPreConfiguration?: Pick<
+        TaskPreConfiguration,
+        "metaData" | "preConfiguredParameterValues" | "preConfiguredDataParameters"
+    >;
 
     /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
     propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any;
@@ -86,6 +90,8 @@ const isInt = (value) => {
     return intRegex.test(`${value}`);
 };
 
+export const PARAMETER_DOC_PREFIX = "parameter_doc_";
+
 /** The task creation/update form. */
 export function TaskForm({
     form,
@@ -121,12 +127,12 @@ export function TaskForm({
     const initialValues = existingTaskValuesToFlatParameters(
         updateTask
             ? updateTask
-            : newTaskPreConfiguration && newTaskPreConfiguration.preConfiguredParameterValues ?
-                {
-                    parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
-                    variableTemplateValues: {},
-                } :
-                undefined
+            : newTaskPreConfiguration && newTaskPreConfiguration.preConfiguredParameterValues
+            ? {
+                  parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
+                  variableTemplateValues: {},
+              }
+            : undefined
     );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
@@ -154,12 +160,20 @@ export function TaskForm({
     }, []);
 
     const extendedCallbacks = React.useMemo(() => {
+        let namedAnchors: string[] = [];
+        if (artefact.markdownDocumentation) {
+            namedAnchors = utils
+                .extractNamedAnchors(artefact.markdownDocumentation)
+                .filter((a) => a.startsWith(PARAMETER_DOC_PREFIX))
+                .map((a) => a.substring(PARAMETER_DOC_PREFIX.length));
+        }
         return {
             ...parameterCallbacks,
             initialTemplateFlag,
             parameterLabel,
+            namedAnchors,
         };
-    }, [initialTemplateFlag]);
+    }, [initialTemplateFlag, artefact.markdownDocumentation]);
 
     /** Additional restrictions/validation for the form parameter values
      *  The returned error messages must be defined in such a way that the parameter label can be prefixed in front of it.
@@ -292,13 +306,13 @@ export function TaskForm({
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
             register({ name: READ_ONLY_PARAMETER });
-            if(newTaskPreConfiguration?.preConfiguredDataParameters) {
-                const dataParameters = newTaskPreConfiguration.preConfiguredDataParameters
-                if(dataParameters.readOnly) {
-                    setValue(READ_ONLY_PARAMETER, dataParameters.readOnly)
+            if (newTaskPreConfiguration?.preConfiguredDataParameters) {
+                const dataParameters = newTaskPreConfiguration.preConfiguredDataParameters;
+                if (dataParameters.readOnly) {
+                    setValue(READ_ONLY_PARAMETER, dataParameters.readOnly);
                 }
-                if(dataParameters.uriProperty) {
-                    setValue(URI_PROPERTY_PARAMETER_ID, dataParameters.uriProperty)
+                if (dataParameters.uriProperty) {
+                    setValue(URI_PROPERTY_PARAMETER_ID, dataParameters.uriProperty);
                 }
             }
         }
@@ -496,7 +510,11 @@ export function TaskForm({
                             <Switch
                                 id={READ_ONLY_PARAMETER}
                                 onChange={handleChange(READ_ONLY_PARAMETER)}
-                                defaultChecked={(updateTask?.dataParameters?.readOnly ?? newTaskPreConfiguration?.preConfiguredDataParameters?.readOnly ?? "false") === "true"}
+                                defaultChecked={
+                                    (updateTask?.dataParameters?.readOnly ??
+                                        newTaskPreConfiguration?.preConfiguredDataParameters?.readOnly ??
+                                        "false") === "true"
+                                }
                             />
                         </FieldItem>
                     ) : null
@@ -512,7 +530,10 @@ export function TaskForm({
                     {artefact.taskType === "Dataset" ? (
                         <UriAttributeParameterInput
                             onValueChange={handleChange(URI_PROPERTY_PARAMETER_ID)}
-                            initialValue={updateTask?.dataParameters?.uriProperty ?? newTaskPreConfiguration?.preConfiguredDataParameters?.uriProperty}
+                            initialValue={
+                                updateTask?.dataParameters?.uriProperty ??
+                                newTaskPreConfiguration?.preConfiguredDataParameters?.uriProperty
+                            }
                         />
                     ) : null}
                     {advancedParams.map(([key, param]) => (
