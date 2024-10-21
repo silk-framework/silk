@@ -71,6 +71,7 @@ export function Metadata(props: IProps) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<IMetadataExpanded>({ label: "", description: "", tags: [] });
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
+    const formRef = React.useRef<IMetadataUpdatePayload | undefined>();
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
@@ -213,9 +214,10 @@ export function Metadata(props: IProps) {
         if (formEditData && e.target !== undefined) {
             const hasToReRender = !formEditData.label || !e.target.value;
             formEditData.label = e.target.value;
+            formRef.current = formEditData;
             if (hasToReRender) {
                 // Label has changed either from empty or was set to empty. Need to re-render
-                setFormEditData({ ...formEditData });
+                setFormEditData({ ...formEditData }); //changing object ref
             }
             checkEditState();
         }
@@ -223,7 +225,8 @@ export function Metadata(props: IProps) {
 
     const onDescriptionChange = (value: string) => {
         if (formEditData && value !== undefined) {
-            formEditData.description = value;
+            const form = formRef.current ?? formEditData;
+            form.description = value;
             checkEditState();
         }
     };
@@ -259,22 +262,6 @@ export function Metadata(props: IProps) {
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
     };
-
-    const CodeEditorMemoed = React.useMemo(
-        () => (
-            <CodeEditor
-                name="description"
-                mode="markdown"
-                outerDivAttributes={{
-                    id: "description",
-                }}
-                preventLineNumbers
-                defaultValue={formEditData?.description}
-                onChange={onDescriptionChange}
-            />
-        ),
-        [formEditData]
-    );
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -324,7 +311,14 @@ export function Metadata(props: IProps) {
                                     </p>
                                 }
                             >
-                                {CodeEditorMemoed}
+                                <CodeEditor
+                                    name="description"
+                                    mode="markdown"
+                                    id="description"
+                                    preventLineNumbers
+                                    defaultValue={formEditData?.description}
+                                    onChange={onDescriptionChange}
+                                />
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>

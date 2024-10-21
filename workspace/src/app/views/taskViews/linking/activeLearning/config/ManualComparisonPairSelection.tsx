@@ -8,12 +8,12 @@ import {
     ComparisonDataRow,
 } from "./../components/ComparisionData";
 import {
-    AutoSuggestion,
     Card,
     CardContent,
     CardHeader,
     CardOptions,
     CardTitle,
+    CodeAutocompleteField,
     Divider,
     IconButton,
     Notification,
@@ -219,11 +219,8 @@ const PathAutoCompletion = ({
         if (!!path.current) {
             if (isValid.current) {
                 if (fetchValues) {
-                    const currentPath = path.current
-                    setTimeout(
-                        () => fetchExampleValues(currentPath),
-                        1000
-                    )
+                    const currentPath = path.current;
+                    setTimeout(() => fetchExampleValues(currentPath), 1000);
                 }
                 changeManualPath(path.current, undefined, exampleValues.current ?? []);
             } else {
@@ -250,9 +247,9 @@ const PathAutoCompletion = ({
     }, []);
 
     const fetchExampleValues = async (forPath: string) => {
-        if(path.current !== forPath) {
+        if (path.current !== forPath) {
             // Path has changed in the meantime, do not fetch.
-            return
+            return;
         }
         const requestId = `${path.current}__${isValid.current}`;
         if (path.current && requestId !== exampleValuesRequestId.current) {
@@ -312,7 +309,7 @@ const PathAutoCompletion = ({
     return (
         <ComparisonDataCell className="diapp-linking-learningdata__pathselection">
             {resetting ? null : (
-                <AutoSuggestion
+                <CodeAutocompleteField
                     label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
                     initialValue={""}
                     onChange={onChange}

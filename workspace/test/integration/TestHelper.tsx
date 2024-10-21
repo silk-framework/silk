@@ -36,6 +36,14 @@ const mockValues: IMockValues = {
 };
 const host = process.env.HOST;
 
+jest.mock("@codemirror/view", () => ({
+    ...jest.requireActual("@codemirror/view"),
+}));
+
+jest.mock("@codemirror/language", () => ({
+    ...jest.requireActual("@codemirror/language"),
+}));
+
 // Mock global history object
 jest.mock("../../src/app/store/configureStore", () => {
     return {
