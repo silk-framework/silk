@@ -164,6 +164,9 @@ export interface TaskPreConfiguration {
     preConfiguredParameterValues?: {
         [key: string]: string | object;
     };
+    preConfiguredDataParameters?: {
+        [key: string]: string;
+    };
     /** When this is set the modal starts directly in the create-task step. */
     taskPluginId?: string;
     /** If it should be possible to create a project. */

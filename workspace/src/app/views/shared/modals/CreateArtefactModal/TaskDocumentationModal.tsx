@@ -1,7 +1,7 @@
 import React from "react";
 
-import {Button, HtmlContentBlock, Markdown, SimpleDialog, CLASSPREFIX as eccgui} from "@eccenca/gui-elements";
-import {ArtefactDocumentation} from "./CreateArtefactModal";
+import { Button, HtmlContentBlock, Markdown, SimpleDialog, CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
+import { ArtefactDocumentation } from "./CreateArtefactModal";
 
 interface TaskDocumentationModalProps {
     documentationToShow: ArtefactDocumentation;
@@ -33,7 +33,7 @@ const findHeadingBefore = (element: Element): Element | undefined => {
 };
 
 /** Modal that shows the detailed task documentation, e.g. the Markdown. */
-export const TaskDocumentationModal = ({documentationToShow, onClose}: TaskDocumentationModalProps) => {
+export const TaskDocumentationModal = ({ documentationToShow, onClose }: TaskDocumentationModalProps) => {
     const [initialized, setInitialized] = React.useState(false);
 
     React.useEffect(() => {
@@ -41,11 +41,11 @@ export const TaskDocumentationModal = ({documentationToShow, onClose}: TaskDocum
         if (initialized && documentationToShow.markdownDocumentation) {
             // Make anchor links non-functional
             const elements = document.querySelectorAll(`[data-test-id=${testId}] a[id^=parameter_doc_]`);
-            elements.forEach(link => {
+            elements.forEach((link) => {
                 // Disable anchor links
-                const l = link as HTMLLinkElement
+                const l = link as HTMLLinkElement;
                 l.onclick = () => false;
-            })
+            });
             // Highlight named anchor
             if (documentationToShow.namedAnchor) {
                 const element = document.querySelector(
@@ -59,13 +59,17 @@ export const TaskDocumentationModal = ({documentationToShow, onClose}: TaskDocum
                         setTimeout(
                             // use minimal timeout to scroll via JS after the browser scrolled to the local anchor
                             function () {
-                                previousHeader.scrollIntoView({block: "start", inline: "nearest", behavior: "smooth"});
+                                previousHeader.scrollIntoView({
+                                    block: "start",
+                                    inline: "nearest",
+                                    behavior: "smooth",
+                                });
                             },
                             1
                         );
                     } else {
                         setTimeout(function () {
-                            element.scrollIntoView({block: "center", inline: "nearest", behavior: "smooth"});
+                            element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
                         }, 1);
                     }
                 }
@@ -81,11 +85,11 @@ export const TaskDocumentationModal = ({documentationToShow, onClose}: TaskDocum
             enforceFocus={true}
             onClose={onClose}
             title={documentationToShow.title ?? "Documentation"}
-            actions={<Button text="Close" onClick={onClose}/>}
+            actions={<Button text="Close" onClick={onClose} />}
             size="large"
         >
             <HtmlContentBlock>
-                <span ref={() => setInitialized(true)}/>
+                <span ref={() => setInitialized(true)} />
                 <Markdown allowHtml>
                     {documentationToShow.markdownDocumentation || documentationToShow.description || ""}
                 </Markdown>

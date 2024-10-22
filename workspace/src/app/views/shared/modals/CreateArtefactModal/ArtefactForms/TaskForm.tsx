@@ -46,7 +46,10 @@ export interface IProps {
     goBackOnEscape?: () => any;
 
     /** Allows to set some config/parameters for a newly created task. */
-    newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">;
+    newTaskPreConfiguration?: Pick<
+        TaskPreConfiguration,
+        "metaData" | "preConfiguredParameterValues" | "preConfiguredDataParameters"
+    >;
 
     /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
     propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any;
@@ -303,7 +306,17 @@ export function TaskForm({
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
             register({ name: READ_ONLY_PARAMETER });
+            if (newTaskPreConfiguration?.preConfiguredDataParameters) {
+                const dataParameters = newTaskPreConfiguration.preConfiguredDataParameters;
+                if (dataParameters.readOnly) {
+                    setValue(READ_ONLY_PARAMETER, dataParameters.readOnly);
+                }
+                if (dataParameters.uriProperty) {
+                    setValue(URI_PROPERTY_PARAMETER_ID, dataParameters.uriProperty);
+                }
+            }
         }
+
         registerParameters(
             "",
             visibleParams,
@@ -497,7 +510,11 @@ export function TaskForm({
                             <Switch
                                 id={READ_ONLY_PARAMETER}
                                 onChange={handleChange(READ_ONLY_PARAMETER)}
-                                defaultChecked={(updateTask?.dataParameters?.readOnly ?? "false") === "true"}
+                                defaultChecked={
+                                    (updateTask?.dataParameters?.readOnly ??
+                                        newTaskPreConfiguration?.preConfiguredDataParameters?.readOnly ??
+                                        "false") === "true"
+                                }
                             />
                         </FieldItem>
                     ) : null
@@ -513,7 +530,10 @@ export function TaskForm({
                     {artefact.taskType === "Dataset" ? (
                         <UriAttributeParameterInput
                             onValueChange={handleChange(URI_PROPERTY_PARAMETER_ID)}
-                            initialValue={updateTask?.dataParameters?.uriProperty}
+                            initialValue={
+                                updateTask?.dataParameters?.uriProperty ??
+                                newTaskPreConfiguration?.preConfiguredDataParameters?.uriProperty
+                            }
                         />
                     ) : null}
                     {advancedParams.map(([key, param]) => (
