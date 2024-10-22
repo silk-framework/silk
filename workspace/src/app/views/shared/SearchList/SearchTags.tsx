@@ -17,12 +17,12 @@ export const SearchTags = ({ searchTags, searchText, withSpacing = "tiny" }: Sea
     return (
         <>
             {searchTags.map((searchTag) => (
-                <>
-                    <Tag emphasis="weaker" key={searchTag}>
+                <React.Fragment key={searchTag}>
+                    <Tag emphasis="weaker">
                         <Highlighter label={searchTag} searchValue={searchText} />
                     </Tag>
                     {withSpacing !== "none" ? <Spacing size={withSpacing} vertical /> : null}
-                </>
+                </React.Fragment>
             ))}
         </>
     );
