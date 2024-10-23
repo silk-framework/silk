@@ -40,7 +40,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
 
   implicit val prefixes: Prefixes = task.project.config.prefixes
 
-  override val initialValue: Option[Linking] = Some(Linking(task))
+  override val initialValue: Option[Linking] = Some(Linking(task, task.rule))
 
   /**
     * Executes this activity.
