@@ -166,7 +166,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             leftIcon={prefixNameErrorIcon}
                             autoFocus={true}
                             onKeyUp={enterHandler}
-                            hasStateDanger={!isValidPrefixName && !!prefixDefinition.prefixName}
+                            intent={!isValidPrefixName && !!prefixDefinition.prefixName ? "danger" : undefined}
                         />
                     </FieldItem>
                     <FieldItem
@@ -182,7 +182,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             onChange={onPrefixUriChange}
                             leftIcon={prefixValueErrorIcon}
                             onKeyUp={enterHandler}
-                            hasStateDanger={highlightInvalidPrefixValue}
+                            intent={highlightInvalidPrefixValue ? "danger" : undefined}
                         />
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>

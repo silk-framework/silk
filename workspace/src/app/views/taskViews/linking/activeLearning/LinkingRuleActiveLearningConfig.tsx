@@ -8,6 +8,7 @@ import {
     CardTitle,
     Divider,
     HtmlContentBlock,
+    Icon,
     IconButton,
     Markdown,
     Notification,
@@ -554,7 +555,7 @@ const SuggestionWidget = ({
                         {showInfo && (
                             <>
                                 <Notification
-                                    iconName={suggestions.length > 0 ? "item-question" : undefined}
+                                    icon={suggestions.length > 0 ? <Icon name="item-question" /> : undefined}
                                     neutral={suggestions.length > 0}
                                     actions={
                                         suggestions.length > 0 ? (

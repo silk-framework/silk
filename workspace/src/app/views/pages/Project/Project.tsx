@@ -119,7 +119,7 @@ const Project = () => {
                                 <GridColumn small verticalAlign="center">
                                     <TitleMainsection>{t("pages.project.content", "Contents")}</TitleMainsection>
                                 </GridColumn>
-                                <GridColumn full>
+                                <GridColumn>
                                     <SearchBar
                                         textQuery={effectiveSearchQuery}
                                         sorters={sorters}
@@ -135,10 +135,10 @@ const Project = () => {
                     <Divider addSpacing="medium" />
                     <Grid>
                         <GridRow>
-                            <GridColumn small>
+                            <GridColumn>
                                 <Filterbar />
                             </GridColumn>
-                            <GridColumn full>
+                            <GridColumn>
                                 {!data.length && error.detail ? (
                                     <Notification
                                         danger={true}

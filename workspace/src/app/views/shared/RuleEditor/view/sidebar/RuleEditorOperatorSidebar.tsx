@@ -234,7 +234,7 @@ export const RuleEditorOperatorSidebar = () => {
         <Grid data-test-id={"rule-editor-sidebar"} verticalStretchable={true} useAbsoluteSpace={true}>
             {tabs.length > 0 && activeTabId ? (
                 <GridRow>
-                    <GridColumn full>
+                    <GridColumn>
                         {editorContext.tabs && (
                             <Tabs
                                 id={"rule-editor-sidebar-tabs"}
@@ -249,7 +249,7 @@ export const RuleEditorOperatorSidebar = () => {
                 </GridRow>
             ) : null}
             <GridRow>
-                <GridColumn full style={{ paddingTop: "3px" }}>
+                <GridColumn style={{ paddingTop: "3px" }}>
                     <SidebarSearchField
                         activeTabId={activeTabId}
                         onQueryChange={setTextQuery}
@@ -262,7 +262,7 @@ export const RuleEditorOperatorSidebar = () => {
                 <Loading />
             ) : (
                 <GridRow verticalStretched={true}>
-                    <GridColumn full style={{ paddingTop: "3px" }}>
+                    <GridColumn style={{ paddingTop: "3px" }}>
                         <RuleOperatorList
                             ruleOperatorList={filteredOperators}
                             textQuery={textQuery}

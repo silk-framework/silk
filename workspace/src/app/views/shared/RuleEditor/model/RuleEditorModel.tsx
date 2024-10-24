@@ -41,7 +41,7 @@ import {
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
@@ -244,7 +244,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const node = utils.nodeById(elements, nodeId);
             if (node) {
                 centerNodeInCanvas(node);
-                highlightNodes([nodeId], "warning", true);
+                highlightNodes([nodeId], { intent: "warning" }, true);
             }
         } else {
             clearHighlighting();
@@ -1405,31 +1405,38 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /**
      * Adds highlighting for all matching nodes in the canvas and optionally removed existing highlighting.
      */
-    const highlightNodes = (
-        nodeIds: string[],
-        highlightState: HighlightingState,
-        removeExistingHighlighting: boolean
-    ) => {
-        const currentHighlighting = (node: RuleEditorNode): HighlightingState[] =>
-            typeof node.data.highlightedState === "string"
-                ? [node.data.highlightedState]
-                : node.data.highlightedState ?? [];
+    type HighlightState = {
+        intent?: NodeContentProps<any, any>["intent"];
+        highlightColor?: NodeContentProps<any, any>["highlightColor"];
+    };
+    const highlightNodes = (nodeIds: string[], highlightState: HighlightState, removeExistingHighlighting: boolean) => {
+        const currentHighlighting = (node: RuleEditorNode): HighlightState => {
+            return {
+                intent: node.data.intent,
+                highlightColor: node.data.highlightColor,
+            };
+        };
         const nodeIdSet = new Set(nodeIds);
         changeElementsInternal((elements) =>
             elements.map((el) => {
                 if (utils.isNode(el)) {
                     const node = utils.asNode(el)!!;
                     if (nodeIdSet.has(node.id)) {
+                        const currentHighlightingState = currentHighlighting(node);
                         node.data = {
                             ...node.data,
-                            highlightedState: removeExistingHighlighting
-                                ? [highlightState]
-                                : [...currentHighlighting(node), highlightState],
+                            intent: removeExistingHighlighting
+                                ? highlightState.intent
+                                : highlightState.intent ?? currentHighlightingState.intent,
+                            highlightColor: removeExistingHighlighting
+                                ? highlightState.highlightColor
+                                : highlightState.highlightColor ?? currentHighlightingState.highlightColor,
                         };
                     } else if (removeExistingHighlighting) {
                         node.data = {
                             ...node.data,
-                            highlightedState: undefined,
+                            intent: undefined,
+                            highlightColor: undefined,
                         };
                     }
                 }
@@ -1445,7 +1452,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     const node = utils.asNode(el)!!;
                     node.data = {
                         ...node.data,
-                        highlightedState: undefined,
+                        intent: undefined,
+                        highlightColor: undefined,
                     };
                 }
                 return el;
@@ -1642,7 +1650,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 centerNodeInCanvas(node);
                 highlightNodes(
                     saveResult.nodeErrors!!.map((err) => err.nodeId),
-                    "danger",
+                    { intent: "danger" },
                     true
                 );
             }

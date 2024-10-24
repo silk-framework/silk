@@ -481,7 +481,7 @@ export function ProjectTaskTabView({
             ) : selectedTask === taskId ? (
                 <section className={"diapp-iframewindow"} {...otherProps}>
                     <div className="diapp-iframewindow__placeholder">
-                        <Grid fullWidth={true}>
+                        <Grid>
                             <GridRow fullHeight={true} />
                         </Grid>
                     </div>

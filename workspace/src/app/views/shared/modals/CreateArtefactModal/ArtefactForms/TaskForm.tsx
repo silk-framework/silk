@@ -438,7 +438,7 @@ export function TaskForm({
                                     autoFocus={true}
                                     value={label ?? ""}
                                     onChange={handleChange(LABEL)}
-                                    hasStateDanger={!!errors.label}
+                                    intent={!!errors.label ? "danger" : undefined}
                                     onKeyDown={(e) => {
                                         if (e.keyCode === 13) {
                                             e.preventDefault();
