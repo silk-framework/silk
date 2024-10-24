@@ -105,7 +105,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                             <AccordionItem
                                 label={<TitleSubsection>{t("common.action.showMoreDetails")}</TitleSubsection>}
                                 open={false}
-                                condensed={true}
+                                whitespaceSize={"none"}
                                 noBorder={true}
                             >
                                 {detailMessage}

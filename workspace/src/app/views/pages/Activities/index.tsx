@@ -145,7 +145,7 @@ const Activities = () => {
                                 <GridColumn small verticalAlign="center">
                                     <TitleMainsection>{t("pages.activities.title", "Activities")}</TitleMainsection>
                                 </GridColumn>
-                                <GridColumn full>
+                                <GridColumn>
                                     <div style={{ display: "flex", alignItems: "center" }}>
                                         <div style={{ width: "100%" }}>
                                             <SearchBar
@@ -175,7 +175,7 @@ const Activities = () => {
                                     projectId={projectId}
                                 />
                             </GridColumn>
-                            <GridColumn full>
+                            <GridColumn>
                                 {error.detail ? (
                                     <Notification
                                         danger={true}

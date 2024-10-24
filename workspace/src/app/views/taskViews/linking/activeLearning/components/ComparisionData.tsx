@@ -8,11 +8,7 @@ interface ComparisonDataObjectProps extends TestableComponent {
 }
 
 export const ComparisonDataContainer = ({ children, className = "" }: ComparisonDataObjectProps) => {
-    return (
-        <Grid fullWidth={true} className={`diapp-linking-learningdata__container ${className}`}>
-            {children}
-        </Grid>
-    );
+    return <Grid className={`diapp-linking-learningdata__container ${className}`}>{children}</Grid>;
 };
 
 export const ComparisonDataHead = ({ children }) => {

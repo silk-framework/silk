@@ -81,7 +81,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
                     id={IDENTIFIER}
                     name={IDENTIFIER}
                     onChange={onValueChange(IDENTIFIER)}
-                    hasStateDanger={errors.id ? true : false}
+                    intent={errors.id ? "danger" : undefined}
                     onKeyDown={(e) => {
                         if (e.keyCode === 13) {
                             e.preventDefault();

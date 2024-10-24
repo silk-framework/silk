@@ -64,7 +64,7 @@ const WorkspaceSearch = () => {
                                 <GridColumn small verticalAlign="center">
                                     <TitleMainsection>{t("pages.workspace.contents", "Contents")}</TitleMainsection>
                                 </GridColumn>
-                                <GridColumn full>
+                                <GridColumn>
                                     <SearchBar
                                         focusOnCreation={true}
                                         textQuery={effectiveSearchQuery}
@@ -84,7 +84,7 @@ const WorkspaceSearch = () => {
                             <GridColumn small>
                                 <Filterbar />
                             </GridColumn>
-                            <GridColumn full>
+                            <GridColumn>
                                 {error.detail ? (
                                     <Notification
                                         danger={true}

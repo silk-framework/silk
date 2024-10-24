@@ -55,8 +55,7 @@ export function CreateNewFile(props: IProps) {
                 onBlur={() => onBlur?.(newFileName)}
                 value={newFileName}
                 placeholder={""}
-                hasStateDanger={error}
-                hasStateSuccess={!error && !!newFileName}
+                intent={error ? "danger" : !error && !!newFileName ? "success" : undefined}
             />
         </FieldItem>
     );

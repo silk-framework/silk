@@ -303,7 +303,7 @@ export function Metadata(props: IProps) {
                                     data-test-id="metadata-label-input"
                                     onChange={onLabelChange}
                                     defaultValue={formEditData?.label}
-                                    hasStateDanger={errors.form.label ? true : false}
+                                    intent={errors.form.label ? "danger" : undefined}
                                 />
                             </FieldItem>
                         </PropertyValue>

@@ -14,7 +14,7 @@ interface RuleEditorViewProps {
     /** Defines minimun and maximum of the available zoom levels */
     zoomRange?: [number, number];
     /** In the permanent read-only mode the sidebar will be removed.*/
-    readOnlyMode: boolean
+    readOnlyMode: boolean;
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
@@ -45,14 +45,14 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
                 {!showRuleOnly ? (
                     <GridRow style={{ backgroundColor: "white" }}>
-                        <GridColumn full>
+                        <GridColumn>
                             <RuleEditorToolbar />
                             <Divider addSpacing="medium" />
                         </GridColumn>
                     </GridRow>
                 ) : null}
                 <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
-                    {!showRuleOnly && !readOnlyMode? (
+                    {!showRuleOnly && !readOnlyMode ? (
                         <GridColumn small>
                             <RuleEditorOperatorSidebar />
                         </GridColumn>

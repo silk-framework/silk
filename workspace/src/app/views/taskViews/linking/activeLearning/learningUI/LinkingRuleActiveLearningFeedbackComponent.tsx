@@ -12,6 +12,7 @@ import {
     Markdown,
     MenuItem,
     ContextMenu,
+    Icon,
     IconButton,
     InteractionGate,
     Notification,
@@ -38,7 +39,8 @@ import {
     ActiveLearningReferenceLink,
     ComparisonPair,
     ComparisonPairWithId,
-    TypedPath, UnlabeledEntityLink,
+    TypedPath,
+    UnlabeledEntityLink,
 } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -47,14 +49,14 @@ import ConnectionAvailable from "./../components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues, highlightedTagColor } from "../shared/ActiveLearningValueExamples";
-import {EntityLinkUrisModal} from "../../referenceLinks/EntityLinkUrisModal";
+import { EntityLinkUrisModal } from "../../referenceLinks/EntityLinkUrisModal";
 
 interface Props {
     /** Called when changes are made that still need to be saved. */
-    setUnsavedStateExists: () => any
+    setUnsavedStateExists: () => any;
 }
 
-export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExists}: Props) => {
+export const LinkingRuleActiveLearningFeedbackComponent = ({ setUnsavedStateExists }: Props) => {
     const [t] = useTranslation();
     const [showInfo, setShowInfo] = React.useState<boolean>(false);
     /** Contexts */
@@ -65,7 +67,9 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExist
     /** The values of the selected entity link. */
     const [valuesToDisplay, setValuesToDisplay] = React.useState<ComparisonPair[] | undefined>();
     const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
-    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(undefined)
+    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(
+        undefined
+    );
 
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
     // When the component is inactive, show spinner
@@ -110,7 +114,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExist
             setSubmittingEntityLink(true);
             try {
                 await activeLearningFeedbackContext.updateReferenceLink(link, decision);
-                setUnsavedStateExists()
+                setUnsavedStateExists();
             } finally {
                 setSubmittingEntityLink(false);
             }
@@ -125,9 +129,9 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExist
                 cancel={activeLearningFeedbackContext.cancel}
                 toggleInfo={() => setShowInfo(!showInfo)}
                 showEntityUris={
-                    activeLearningFeedbackContext.selectedLink ?
-                        () => setEntityUrisToOpenInModal(activeLearningFeedbackContext.selectedLink) :
-                        undefined
+                    activeLearningFeedbackContext.selectedLink
+                        ? () => setEntityUrisToOpenInModal(activeLearningFeedbackContext.selectedLink)
+                        : undefined
                 }
             />
             <Divider />
@@ -136,7 +140,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExist
                     <>
                         <Notification
                             neutral
-                            iconName={"item-question"}
+                            icon={<Icon name="item-question" />}
                             actions={
                                 <IconButton
                                     text={t("common.action.close")}
@@ -180,13 +184,12 @@ export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExist
                         <Notification message={t("ActiveLearning.feedback.noSelection")} />
                     )}
                 </InteractionGate>
-                {entityUrisToOpenInModal ?
+                {entityUrisToOpenInModal ? (
                     <EntityLinkUrisModal
                         link={entityUrisToOpenInModal}
                         onClose={() => setEntityUrisToOpenInModal(undefined)}
-                    /> :
-                    null
-                }
+                    />
+                ) : null}
             </CardContent>
         </Card>
     );
@@ -201,7 +204,7 @@ interface HeaderProps {
     /** Handler to toggle the info area. */
     toggleInfo: () => void;
     /** If defined, adds a menu to show the entity URIs. */
-    showEntityUris?: () => any
+    showEntityUris?: () => any;
 }
 
 const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo, showEntityUris }: HeaderProps) => {
@@ -233,12 +236,14 @@ const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo, showEnt
                     togglerText={t("common.action.moreOptions", "Show more options")}
                     disabled={!showEntityUris}
                 >
-                    {showEntityUris ? <MenuItem
-                        data-test-id="show-entity-uris"
-                        icon="item-viewdetails"
-                        onClick={showEntityUris}
-                        text={t("ReferenceLinks.showEntityUris.menuText")}
-                    /> : undefined}
+                    {showEntityUris ? (
+                        <MenuItem
+                            data-test-id="show-entity-uris"
+                            icon="item-viewdetails"
+                            onClick={showEntityUris}
+                            text={t("ReferenceLinks.showEntityUris.menuText")}
+                        />
+                    ) : undefined}
                 </ContextMenu>
             </CardOptions>
         </CardHeader>
@@ -306,28 +311,47 @@ interface EntityComparisonHeaderProps {
     targetUrl?: string;
 }
 
-const EntityComparisonHeader = ({
-    sourceTitle,
-    targetTitle,
-    sourceUrl,
-    targetUrl
-}: EntityComparisonHeaderProps) => {
+const EntityComparisonHeader = ({ sourceTitle, targetTitle, sourceUrl, targetUrl }: EntityComparisonHeaderProps) => {
     const [t] = useTranslation();
     return (
         <ComparisonDataHead>
             <ComparisonDataRow>
                 <ComparisonDataHeader className="diapp-linking-learningdata__source">
-                    {(!sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{t("ActiveLearning.feedback.sourceColumnTitle")}</Link> : t("ActiveLearning.feedback.sourceColumnTitle")}
+                    {!sourceTitle && sourceUrl ? (
+                        <Link href={sourceUrl} target="_new">
+                            {t("ActiveLearning.feedback.sourceColumnTitle")}
+                        </Link>
+                    ) : (
+                        t("ActiveLearning.feedback.sourceColumnTitle")
+                    )}
                     {sourceTitle ? ": " : ""}
-                    {(sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{sourceTitle}</Link> : sourceTitle}
+                    {sourceTitle && sourceUrl ? (
+                        <Link href={sourceUrl} target="_new">
+                            {sourceTitle}
+                        </Link>
+                    ) : (
+                        sourceTitle
+                    )}
                 </ComparisonDataHeader>
                 <ComparisonDataConnection>
                     <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
                 </ComparisonDataConnection>
                 <ComparisonDataHeader className="diapp-linking-learningdata__target">
-                {(!targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{t("ActiveLearning.feedback.targetColumnTitle")}</Link> : t("ActiveLearning.feedback.targetColumnTitle")}
-                {targetTitle ? ": " : ""}
-                {(targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{targetTitle}</Link> : targetTitle}
+                    {!targetTitle && targetUrl ? (
+                        <Link href={targetUrl} target="_new">
+                            {t("ActiveLearning.feedback.targetColumnTitle")}
+                        </Link>
+                    ) : (
+                        t("ActiveLearning.feedback.targetColumnTitle")
+                    )}
+                    {targetTitle ? ": " : ""}
+                    {targetTitle && targetUrl ? (
+                        <Link href={targetUrl} target="_new">
+                            {targetTitle}
+                        </Link>
+                    ) : (
+                        targetTitle
+                    )}
                 </ComparisonDataHeader>
             </ComparisonDataRow>
         </ComparisonDataHead>
@@ -335,7 +359,7 @@ const EntityComparisonHeader = ({
 };
 
 interface SelectedEntityLinkProps {
-    resourceLinks?: { source?: string, target?: string },
+    resourceLinks?: { source?: string; target?: string };
     valuesToDisplay: EntityLinkPropertyPairValues[] | ComparisonPair[];
     propertyPairs: ComparisonPairWithId[];
     labelPropertyPairIds: Set<string>;
@@ -348,7 +372,7 @@ const SelectedEntityLink = ({
     propertyPairs,
     labelPropertyPairIds,
     toggleLabelPropertyPair,
-    resourceLinks
+    resourceLinks,
 }: SelectedEntityLinkProps) => {
     const propertyPairMap = new Map(propertyPairs.map((pp, idx) => [pp.pairId, idx]));
     const labelPropertyPairValues = [...labelPropertyPairIds]
@@ -454,12 +478,11 @@ const EntityPropertyValues = ({ property, values, sameExampleValues, datasink }:
         <ComparisonDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
             <PropertyBox
                 propertyName={propertyLabel}
-                exampleValues={values.length > 0 ? (
-                    <ActiveLearningValueExamples
-                        exampleValues={values}
-                        valuesToHighlight={sameExampleValues}
-                    />
-                ) : undefined}
+                exampleValues={
+                    values.length > 0 ? (
+                        <ActiveLearningValueExamples exampleValues={values} valuesToHighlight={sameExampleValues} />
+                    ) : undefined
+                }
                 exampleTooltip={exampleTitle}
             />
         </ComparisonDataCell>
