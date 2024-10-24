@@ -135,7 +135,7 @@ const Project = () => {
                     <Divider addSpacing="medium" />
                     <Grid>
                         <GridRow>
-                            <GridColumn>
+                            <GridColumn small>
                                 <Filterbar />
                             </GridColumn>
                             <GridColumn>
