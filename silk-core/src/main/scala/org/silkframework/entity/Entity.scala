@@ -179,7 +179,7 @@ case class Entity(
     * @return - the result of the validation matrix (where all values are valid)
     */
   private def validate: Boolean = {
-    val entitySchema = entitySchema match {
+    val entitySchema = schema match {
       case mes: MultiEntitySchema => mes.pivotSchema
       case _ => schema
     }
