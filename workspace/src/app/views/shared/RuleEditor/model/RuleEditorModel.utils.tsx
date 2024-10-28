@@ -167,15 +167,16 @@ function createOperatorNode(
     };
 
     if (operatorContext.allowFlexibleWidth) {
-        console.log("DIMENSIONS HERE ==>", node.dimension?.width);
         data = {
             ...data,
             onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
             resizeDirections: { right: true },
-            nodeDimensions: {
-                width: node.dimension?.width ?? 0,
-            },
+            resizeMaxWidth: 500,
         };
+
+        if (node.dimension?.width) {
+            data = { ...data, nodeDimensions: { width: node.dimension.width } as NodeDimensions };
+        }
     }
 
     return {
