@@ -12,5 +12,5 @@ trait DataSink extends CloseableDataset {
     *
     * @param force If set to true, it should clear the dataset no matter what the config is.
     */
-  def clear(force: Boolean = false)(implicit userContext: UserContext): Unit
+  def clear(force: Boolean = false)(implicit userContext: UserContext): Unit = { }
 }
