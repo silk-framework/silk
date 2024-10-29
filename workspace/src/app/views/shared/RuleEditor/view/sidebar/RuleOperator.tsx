@@ -1,7 +1,14 @@
 import { wrapTooltip } from "../../../../../utils/uiUtils";
 import React from "react";
-import Highlighter, { createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing } from "@eccenca/gui-elements";
+import {
+    Icon,
+    OverflowText,
+    OverviewItemDescription,
+    OverviewItemLine,
+    Spacing,
+    Highlighter,
+    highlighterUtils,
+} from "@eccenca/gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 import Color from "color";
@@ -22,7 +29,7 @@ interface RuleOperatorProps {
 export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOperatorProps) => {
     const descriptionSearchSnippet =
         searchWords.length > 0 && ruleOperator.description
-            ? extractSearchSnippet(ruleOperator.description, createMultiWordRegex(searchWords))
+            ? extractSearchSnippet(ruleOperator.description, highlighterUtils.createMultiWordRegex(searchWords))
             : undefined;
     const itemLabel = ruleOperator.label;
     const [t] = useTranslation();

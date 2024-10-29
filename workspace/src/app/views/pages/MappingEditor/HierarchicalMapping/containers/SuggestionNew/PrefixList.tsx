@@ -2,10 +2,6 @@ import React, { useEffect, useState } from "react";
 import { Button, FieldItem, Highlighter, MenuItem, Select } from "@eccenca/gui-elements";
 import { IPrefix } from "./suggestion.typings";
 
-// Select<T> is a generic component to work with your data types.
-// In TypeScript, you must first obtain a non-generic reference:
-const PrefixSelect = Select.ofType<IPrefix>();
-
 interface IProps {
     disabled?: boolean;
 
@@ -86,7 +82,7 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
 
     return (
         <FieldItem labelProps={{ text: "Use known prefix" }}>
-            <PrefixSelect
+            <Select<IPrefix>
                 filterable={true}
                 onItemSelect={(t) => handleSelectTarget(t.uri)}
                 items={items}
@@ -106,7 +102,7 @@ export default function PrefixList({ prefixes, selectedPrefix, onChange, disable
                     }
                     disabled={disabled}
                 />
-            </PrefixSelect>
+            </Select>
         </FieldItem>
     );
 }

@@ -1,7 +1,6 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle, highlighterUtils } from "@eccenca/gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -59,7 +58,7 @@ export const RuleEditorOperatorSidebar = () => {
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
-        const searchWords = extractSearchWords(textQuery);
+        const searchWords = highlighterUtils.extractSearchWords(textQuery);
         const filterPreConfiguredOperatorsBasedOnTextQuery = (
             preConfiguredOperators: PreConfiguredOperatorConfig[]
         ) => {
@@ -298,7 +297,7 @@ function filterAndSortOperators<T>(
     searchWords: string[]
 ): T[] {
     const filteredOperators = operators.filter((op) => {
-        return matchesAllWords(searchText(op), searchWords);
+        return highlighterUtils.matchesAllWords(searchText(op), searchWords);
     });
     const matchCount = new Map<T, number>();
     const { matches: labelMatches, nonMatches: nonLabelMatches } = partitionArray(

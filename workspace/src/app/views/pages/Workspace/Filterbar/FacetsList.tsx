@@ -3,7 +3,7 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import { Button, HelperClasses, Spacing, TitleSubsection, Label } from "@eccenca/gui-elements";
+import { Button, ClassNames, Spacing, TitleSubsection, Label } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
@@ -70,7 +70,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
     return (
         <div data-test-id={"search-facets"}>
             {facets.map((facet) => (
-                <div className={HelperClasses.Typography.NOOVERFLOW} key={facet.id}>
+                <div className={ClassNames.Typography.NOOVERFLOW} key={facet.id}>
                     <TitleSubsection>
                         <Label
                             isLayoutForElement="h3"
@@ -92,7 +92,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
                                             onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
                                             label={
                                                 <>
-                                                    <span className={HelperClasses.Typography.FORCELINEBREAK}>
+                                                    <span className={ClassNames.Typography.FORCELINEBREAK}>
                                                         {t(
                                                             `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`,
                                                             val.label

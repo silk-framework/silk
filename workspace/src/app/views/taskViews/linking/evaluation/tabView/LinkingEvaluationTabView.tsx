@@ -25,6 +25,7 @@ import {
     Toolbar,
     ToolbarSection,
     WhiteSpaceContainer,
+    highlighterUtils,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -58,7 +59,6 @@ import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { getHistory } from "../../../../../store/configureStore";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
-import { extractSearchWords, createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -504,7 +504,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     );
 
     // To check if only the row body matches
-    const multiWordSearchRegex = createMultiWordRegex(extractSearchWords(searchQuery, true), false);
+    const multiWordSearchRegex = highlighterUtils.createMultiWordRegex(
+        highlighterUtils.extractSearchWords(searchQuery, true),
+        false
+    );
 
     return (
         <section className="diapp-linking-evaluation">

@@ -42,7 +42,7 @@ import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InteractionGate, Markdown, nodeUtils, NodeContentProps } from "@eccenca/gui-elements";
+import { InteractionGate, Markdown, nodeDefaultUtils, NodeContentProps } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
@@ -895,11 +895,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (node) {
                 const newStickyProps: StickyNodePropType = Object.create(null);
                 const oldStickyProps = {
-                    style: nodeUtils.generateStyleWithColor(node.data.style?.borderColor ?? "#000"),
+                    style: nodeDefaultUtils.generateStyleWithColor(node.data.style?.borderColor ?? "#000"),
                     content: node.data.businessData.stickyNote,
                 };
                 if (color) {
-                    newStickyProps.style = nodeUtils.generateStyleWithColor(color);
+                    newStickyProps.style = nodeDefaultUtils.generateStyleWithColor(color);
                 }
                 if (content) {
                     newStickyProps.content = content;
@@ -921,7 +921,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         dimension?: NodeDimensions,
         id?: string
     ): Node => {
-        const style = nodeUtils.generateStyleWithColor(color);
+        const style = nodeDefaultUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
         return {
             id: stickyId,
@@ -1633,7 +1633,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
             if (utils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                 const node = utils.asNode(elem)!;
-                stickyNodes.push(nodeUtils.transformNodeToStickyNode(node) as IStickyNote);
+                stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as IStickyNote);
             }
             return stickyNodes;
         }, [] as IStickyNote[]);
