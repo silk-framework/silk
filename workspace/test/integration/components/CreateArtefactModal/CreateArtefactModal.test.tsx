@@ -273,6 +273,12 @@ describe("Task creation widget", () => {
         const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
+        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
+         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
+         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
+         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
+         * but again the editor returns null, even after waiting
+         */
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
@@ -282,7 +288,6 @@ describe("Task creation widget", () => {
         const metaData = request.data.metadata;
         const data = request.data.data;
         expect(metaData.label).toBe("Some label");
-        // expect(metaData.description).toBe("Some description"); //todo find solution to inserting "refed" codemirror6 desc
         expect(data.taskType).toBe(TaskTypes.CUSTOM_TASK);
         expect(data.type).toBe("pluginA");
         expect(data.parameters.intParam).toEqual("100");
@@ -328,14 +333,18 @@ describe("Task creation widget", () => {
         clickWrapperElement(project);
         expect(findAll(wrapper, "#label")).toHaveLength(1);
         changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
-        // await setCodeMirrorValue(PROJECT_DESCRIPTION);  //todo find solution to inserting "refed" codemirror6 desc
+        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
+         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
+         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
+         * but again the editor returns null, even after waiting
+         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
+         */
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
         await waitFor(() => {
             const expectedPayload = {
                 metaData: {
                     label: PROJECT_LABEL,
-                    // description: PROJECT_DESCRIPTION,
                 },
             };
             checkRequestMade(apiUrl("/workspace/projects"), "POST", expectedPayload);
@@ -440,9 +449,15 @@ describe("Task creation widget", () => {
             },
         });
         await waitFor(() => findSingleElement(wrapper, byTestId("stringParam-template-switch-back-btn")));
-        // await waitFor(() =>
-        //     expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value") //fixme
-        // );
+        /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
+         * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
+         * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
+         * but again the editor returns null, even after waiting 
+         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
+         *  await waitFor(() =>
+             expect(findSingleElement(wrapper, "#restrictionParam").text()).toContain("restriction value") 
+           );
+         */
         const updateRequest = await updateTask(wrapper);
         // Build expected request parameter object
         const expectedObject: any = {};
