@@ -18,8 +18,6 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
-    logRequests,
-    logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
@@ -276,8 +274,8 @@ describe("Task creation widget", () => {
         /** FIXME: CodeMirror Editor refed in the codemirror-wrapper div doesn't show and is still null even at this point
          * This wasn't the case with version 5 where I could do this document.querySelector('#description .CodeMirror').CodeMirror.setValue('')
          * In v6 I should be able to do cmView.view.dispatch({ changes: {from:0, to: document.querySelector('.cm-content').cmView.view.state.doc.length, insert:''}})
-         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
          * but again the editor returns null, even after waiting
+         * created follow up issue https://jira.eccenca.com/browse/CMEM-6208
          */
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
