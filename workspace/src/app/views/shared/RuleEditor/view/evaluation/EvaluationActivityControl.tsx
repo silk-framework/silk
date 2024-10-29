@@ -1,11 +1,12 @@
 import { IEvaluatedReferenceLinksScore } from "../../../../taskViews/linking/linking.types";
 import React from "react";
-import { Tooltip } from "@eccenca/gui-elements";
-import { Markdown, ActivityControlWidget } from "@eccenca/gui-elements";
 import {
-    IActivityControlProps,
-    IActivityAction,
-} from "@eccenca/gui-elements/src/cmem/ActivityControl/ActivityControlWidget";
+    Tooltip,
+    Markdown,
+    ActivityControlWidget,
+    ActivityControlWidgetProps,
+    ActivityControlWidgetAction,
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface EvaluationActivityControlProps {
@@ -13,8 +14,8 @@ interface EvaluationActivityControlProps {
     loading: boolean;
     referenceLinksUrl?: string;
     evaluationResultsShown?: boolean;
-    evaluationResultsShownToggleButton?: IActivityAction;
-    manualStartButton?: IActivityAction;
+    evaluationResultsShownToggleButton?: ActivityControlWidgetAction;
+    manualStartButton?: ActivityControlWidgetAction;
 }
 
 /** Displays evaluation score and buttons to manually start evaluation for a rule. */
@@ -29,7 +30,7 @@ export const EvaluationActivityControl = ({
     const [t] = useTranslation();
 
     const Menu = () => {
-        const actionButtons = [] as IActivityAction[];
+        const actionButtons = [] as ActivityControlWidgetAction[];
         if (referenceLinksUrl) {
             actionButtons.push({
                 "data-test-id": "open-reference-links-ui",
@@ -50,7 +51,7 @@ export const EvaluationActivityControl = ({
     let activityInfo = {
         label: <strong>{t("RuleEditor.evaluation.scoreWidget.title")}</strong>,
         statusMessage: t("RuleEditor.evaluation.scoreWidget.notStarted"),
-    } as IActivityControlProps;
+    } as ActivityControlWidgetProps;
     let EvaluationTooltip = ({ children }: { children: JSX.Element }): JSX.Element => children;
 
     if (score) {

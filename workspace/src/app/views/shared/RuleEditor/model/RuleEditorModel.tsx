@@ -41,15 +41,16 @@ import {
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
+import { InteractionGate, Markdown, nodeUtils, NodeContentProps } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+
+type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */

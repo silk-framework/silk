@@ -6,7 +6,7 @@ import {
     TaskPreConfiguration,
 } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, Spacing, Switch, TextField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
@@ -18,7 +18,6 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginReg
 import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
 import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
 import { Keyword } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
@@ -377,7 +376,7 @@ export function TaskForm({
     );
 
     const handleTagSelectionChange = React.useCallback(
-        (params: SelectedParamsType<Keyword>) => setValue(TAGS, params),
+        (params: MultiSelectSelectionProps<Keyword>) => setValue(TAGS, params),
         []
     );
     const preConfiguredFileAndLabel =

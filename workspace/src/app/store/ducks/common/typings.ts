@@ -6,7 +6,7 @@ import {
     TaskType,
     TemplateValueType,
 } from "@ducks/shared/typings";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { SuggestFieldItemRendererModifierProps } from "@eccenca/gui-elements";
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
 export interface IAvailableDataTypes {
@@ -35,7 +35,7 @@ interface AutoCompletionFrontendExtensions {
     customItemRenderer?: (
         autoCompleteResponse: IAutocompleteDefaultResponse,
         query: string,
-        modifiers: IRenderModifiers,
+        modifiers: SuggestFieldItemRendererModifierProps,
         handleSelectClick: () => any
     ) => string | JSX.Element;
 }

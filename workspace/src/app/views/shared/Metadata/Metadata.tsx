@@ -23,9 +23,9 @@ import {
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
-    TextArea,
     TextField,
-    TimeUnits,
+    ElapsedDateTimeDisplayUnits,
+    MultiSelectSelectionProps,
 } from "@eccenca/gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -38,7 +38,6 @@ import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { MultiTagSelect } from "../MultiTagSelect";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 
@@ -241,7 +240,7 @@ export function Metadata(props: IProps) {
         }
     };
 
-    const handleTagSelectionChange = React.useCallback((params: SelectedParamsType<Keyword>) => {
+    const handleTagSelectionChange = React.useCallback((params: MultiSelectSelectionProps<Keyword>) => {
         setCreatedTags(params.createdItems);
         setSelectedTags((oldSelectedTags) => {
             return params.selectedItems;
@@ -252,7 +251,7 @@ export function Metadata(props: IProps) {
         dispatch(routerOp.goToPage(path));
     };
 
-    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
 
     const getDeltaInDays = (dateTime: number | string) => {
         const now = Date.now();
