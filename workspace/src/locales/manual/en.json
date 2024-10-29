@@ -185,7 +185,8 @@
             "createNewItem": "Custom entry: '{{query}}'",
             "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
             "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
-        }
+        },
+        "parameterDocLinkText": "See documentation"
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
@@ -767,6 +768,7 @@
         }
     },
     "copyModal": {
+        "copyPrefixes": "Copy prefixes",
         "errorMessages": {
             "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"
