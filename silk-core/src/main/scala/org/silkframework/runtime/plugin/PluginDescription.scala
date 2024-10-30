@@ -2,6 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 
@@ -135,7 +136,15 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
-        val evaluatedValue = template.evaluate(context.templateVariables.all)
+        // Only password parameters are allowed to resolve sensitive variables
+        val templateVariables =
+          if(stringParam == PasswordParameterType) {
+            context.templateVariables.all
+          } else {
+            context.templateVariables.all.withoutSensitiveVariables()
+          }
+        // Evaluate template
+        val evaluatedValue = template.evaluate(templateVariables)
         try {
           stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
         } catch {
