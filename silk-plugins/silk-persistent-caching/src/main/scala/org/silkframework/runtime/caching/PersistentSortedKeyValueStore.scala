@@ -180,7 +180,7 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
     }
     close()
     try {
-      org.apache.commons.io.FileUtils.forceDelete(dbDirectory)
+      dbDirectory.deleteRecursive()
     } catch {
       case ex: IOException =>
         log.log(Level.WARNING, s"Key value cache store files could not be deleted. Store directory: ${dbDirectory.getAbsolutePath}. Cause: ", ex)
@@ -433,7 +433,7 @@ object PersistentSortedKeyValueStore {
   private def removeTempDirectories(): Unit = {
     log.info("Cleaning tmp key/value database directory.")
     try {
-      org.apache.commons.io.FileUtils.deleteDirectory(tempCacheDirectory)
+      tempCacheDirectory.deleteRecursive()
       tempCacheDirectory.safeMkdirs()
     } catch {
       case exception: IOException =>
