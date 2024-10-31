@@ -229,6 +229,7 @@ export const ArtefactFormParameter = ({
                             evaluatedValueMessage={
                                 supportVariableTemplateElement.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
+                            allowSensitiveVariables={isPasswordInput}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -281,6 +282,7 @@ interface TemplateInputComponentProps {
     variableName?: string;
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
+    allowSensitiveVariables?: boolean;
 }
 
 /** The input component for the template value. */
@@ -295,6 +297,7 @@ export const TemplateInputComponent = memo(
         variableName,
         handleTemplateErrors,
         multiline,
+        allowSensitiveVariables,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -325,8 +328,15 @@ export const TemplateInputComponent = memo(
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
-                    .data;
+                return (
+                    await requestAutoCompleteTemplateString(
+                        inputString,
+                        cursorPosition,
+                        projectId,
+                        variableName,
+                        allowSensitiveVariables
+                    )
+                ).data;
             } catch (error) {
                 handleTemplateErrors
                     ? handleTemplateErrors(error)

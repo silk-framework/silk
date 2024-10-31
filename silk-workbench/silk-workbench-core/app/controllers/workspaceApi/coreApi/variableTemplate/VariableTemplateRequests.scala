@@ -20,8 +20,8 @@ trait VariableTemplateRequest {
   /**
     * Collects all variables given the optional project and variable name.
     */
-  def collectVariables(ignoreVariableName: Boolean = false)(implicit user: UserContext): TemplateVariables = {
-    project match {
+  def collectVariables(ignoreVariableName: Boolean = false, includeSensitiveVariables: Boolean = false)(implicit user: UserContext): TemplateVariables = {
+    val collectedVariables = project match {
       case Some(projectName) =>
         val project = WorkspaceFactory().workspace.project(projectName)
         var variables = project.templateVariables.all.variables
@@ -32,6 +32,12 @@ trait VariableTemplateRequest {
         TemplateVariables(variables)
       case None =>
         GlobalTemplateVariables.all
+    }
+
+    if(includeSensitiveVariables) {
+      collectedVariables
+    } else {
+      collectedVariables.withoutSensitiveVariables()
     }
   }
 
@@ -95,9 +101,10 @@ case class AutoCompleteVariableTemplateRequest(inputString: String,
                                                cursorPosition: Int,
                                                maxSuggestions: Option[Int],
                                                project: Option[String] = None,
-                                               variableName: Option[String] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
+                                               variableName: Option[String] = None,
+                                               includeSensitiveVariables: Option[Boolean] = None) extends AutoSuggestAutoCompletionRequest with VariableTemplateRequest {
   def execute()(implicit user: UserContext): AutoSuggestAutoCompletionResponse = {
-    AutoCompleteVariableTemplateRequest.suggestions(this,  collectVariables().variableNames)
+    AutoCompleteVariableTemplateRequest.suggestions(this, collectVariables(includeSensitiveVariables = includeSensitiveVariables.getOrElse(false)).variableNames)
   }
 }
 

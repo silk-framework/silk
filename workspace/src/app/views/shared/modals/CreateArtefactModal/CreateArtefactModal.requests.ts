@@ -47,13 +47,15 @@ export const requestValidateTemplateString = async (
  * @param cursorPosition
  * @param project
  * @param variableName optional parameter to make correct suggestions for when an existing variable is edited
+ * @param includeSensitiveVariables include sensitive variables in the autocompletion.
  * @returns
  */
 export const requestAutoCompleteTemplateString = async (
     inputString: string,
     cursorPosition: number,
     project?: string,
-    variableName?: string
+    variableName?: string,
+    includeSensitiveVariables?: boolean
 ): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
     return fetch({
         url: coreApi("/variableTemplate/completion"),
@@ -63,6 +65,7 @@ export const requestAutoCompleteTemplateString = async (
             cursorPosition,
             project,
             variableName,
+            includeSensitiveVariables,
         },
     });
 };
