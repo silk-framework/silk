@@ -51,6 +51,4 @@ class GlobalTemplateVariablesTest extends AnyFlatSpec with Matchers {
       ))
   }
 
-  //TODO add test for invalid config
-
 }
