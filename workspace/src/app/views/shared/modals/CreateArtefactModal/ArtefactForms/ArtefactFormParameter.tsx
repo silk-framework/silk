@@ -352,7 +352,12 @@ export const TemplateInputComponent = memo(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
                     const validationResponse = (
-                        await requestValidateTemplateString(inputString, projectId, variableName)
+                        await requestValidateTemplateString(
+                            inputString,
+                            projectId,
+                            variableName,
+                            allowSensitiveVariables
+                        )
                     ).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate

@@ -43,11 +43,14 @@ trait VariableTemplateRequest {
 
 }
 
-case class ValidateVariableTemplateRequest(templateString: String, project: Option[String] = None, variableName: Option[String] = None) extends VariableTemplateRequest {
+case class ValidateVariableTemplateRequest(templateString: String,
+                                           project: Option[String] = None,
+                                           variableName: Option[String] = None,
+                                           includeSensitiveVariables: Boolean = false) extends VariableTemplateRequest {
 
   def execute()(implicit user: UserContext): VariableTemplateValidationResponse = {
     val resultOrError: Either[String, String] = try {
-      Left(collectVariables().resolveTemplateValue(templateString))
+      Left(collectVariables(includeSensitiveVariables = includeSensitiveVariables).resolveTemplateValue(templateString))
     } catch {
       case ex: UnboundVariablesException if variableName.isDefined && ex.missingVars.size == 1 =>
         // Check if the variable is unbound because it is defined after the current one

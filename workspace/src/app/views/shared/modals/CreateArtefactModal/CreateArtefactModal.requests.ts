@@ -28,7 +28,8 @@ export interface ValidateTemplateResponse extends IValidationResult {
 export const requestValidateTemplateString = async (
     templateString: string,
     project?: string,
-    variableName?: string
+    variableName?: string,
+    includeSensitiveVariables?: boolean
 ): Promise<FetchResponse<ValidateTemplateResponse>> => {
     return fetch({
         url: coreApi("/variableTemplate/validation"),
@@ -37,6 +38,7 @@ export const requestValidateTemplateString = async (
             templateString,
             project,
             variableName,
+            includeSensitiveVariables,
         },
     });
 };
