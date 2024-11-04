@@ -8,12 +8,12 @@ import {
     ComparisonDataRow,
 } from "./../components/ComparisionData";
 import {
-    AutoSuggestion,
     Card,
     CardContent,
     CardHeader,
     CardOptions,
     CardTitle,
+    CodeAutocompleteField,
     Divider,
     Icon,
     IconButton,
@@ -310,7 +310,7 @@ const PathAutoCompletion = ({
     return (
         <ComparisonDataCell className="diapp-linking-learningdata__pathselection">
             {resetting ? null : (
-                <AutoSuggestion
+                <CodeAutocompleteField
                     label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
                     initialValue={""}
                     onChange={onChange}
