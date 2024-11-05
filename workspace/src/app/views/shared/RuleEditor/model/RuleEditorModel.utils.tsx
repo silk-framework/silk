@@ -173,7 +173,6 @@ function createOperatorNode(
             resizeDirections: { right: true },
             resizeMaxWidth: 500,
         };
-
         if (node.dimension?.width) {
             data = { ...data, nodeDimensions: { width: node.dimension.width } as NodeDimensions };
         }
