@@ -64,8 +64,13 @@ object PluginSerializers {
           case (key, template: ParameterTemplateValue) =>
             (key, JsString(template.evaluate(writeContext.templateVariables.all)))
           case (key, parameterObjectValue: ParameterObjectValue) =>
-            val value = parameterObjectValue.value(writeContext)
-            (key, Serialization.formatForDynamicType[JsValue](value.getClass).write(value))
+            val valueJson = parameterObjectValue.value(writeContext) match {
+              case plugin: AnyPlugin =>
+                writeParameters(plugin.parameters)
+              case value: AnyRef =>
+                Serialization.formatForDynamicType[JsValue](value.getClass).write(value)
+            }
+            (key, valueJson)
           case (key, values: ParameterValues) =>
             (key, writeParameters(values))
         }
