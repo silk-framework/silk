@@ -138,7 +138,7 @@ trait PluginDescription[+T] {
       case template: ParameterTemplateValue =>
         // Only password parameters are allowed to resolve sensitive variables
         val templateVariables =
-          if(stringParam == PasswordParameterType) {
+          if(stringParam.name == PasswordParameterType.name) {
             context.templateVariables.all
           } else {
             context.templateVariables.all.withoutSensitiveVariables()
