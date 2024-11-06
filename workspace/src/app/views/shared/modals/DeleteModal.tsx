@@ -31,6 +31,8 @@ export interface IDeleteModalOptions extends TestableComponent {
     //optional prop to disable the delete button
     deleteDisabled?: boolean;
     alternativeCancelButtonLabel?: string;
+    /** An alternative button text than the 'Delete' text. */
+    alternativeDeleteButtonText?: string;
 }
 
 export default function DeleteModal({
@@ -46,6 +48,7 @@ export default function DeleteModal({
     submitOnEnter = true,
     deleteDisabled,
     alternativeCancelButtonLabel,
+    alternativeDeleteButtonText,
     ...otherProps
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -88,7 +91,7 @@ export default function DeleteModal({
                             disabled={(confirmationRequired && !isConfirmed) || deleteDisabled}
                             data-test-id={"remove-item-button"}
                         >
-                            {t("common.action.delete", "Delete")}
+                            {alternativeDeleteButtonText ?? t("common.action.delete", "Delete")}
                         </Button>,
                         <Button key="cancel" onClick={onDiscard}>
                             {alternativeCancelButtonLabel ?? t("common.action.cancel", "Cancel")}
