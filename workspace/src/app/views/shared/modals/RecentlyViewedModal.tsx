@@ -13,8 +13,8 @@ import {
     OverviewItemLine,
     SimpleDialog,
     Spacing,
-    Tooltip,
     Icon,
+    SuggestFieldItemRendererModifierProps,
 } from "@eccenca/gui-elements";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
@@ -31,7 +31,6 @@ import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 import ProjectTags from "../ProjectTags/ProjectTags";
 import { SearchTags } from "../SearchList/SearchTags";
@@ -122,7 +121,7 @@ export function RecentlyViewedModal() {
     const itemOption = (
         item: IRecentlyViewedItem,
         query: string,
-        modifiers: IRenderModifiers,
+        modifiers: SuggestFieldItemRendererModifierProps,
         handleSelectClick: () => any
     ) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;

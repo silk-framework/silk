@@ -27,9 +27,9 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
+    SuggestFieldItemRendererModifierProps,
+    CLASSPREFIX as eccguiprefix,
 } from "@eccenca/gui-elements";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { optionallyLabelledParameterToValue } from "../../linking/linking.types";
 
 /** Extracts the operator node from a path input. */
@@ -119,7 +119,7 @@ const extractOperatorNodeFromValueInput = (
 const customInputPathRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
-    modifiers: IRenderModifiers,
+    modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any
 ): JSX.Element | string => {
     return autoCompleteResponse.label ? (

@@ -15,6 +15,7 @@ import {
     CardTitle,
     CodeAutocompleteField,
     Divider,
+    Icon,
     IconButton,
     Notification,
     OverflowText,
@@ -125,7 +126,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                     <>
                         <Notification
                             neutral
-                            iconName={"item-question"}
+                            icon={<Icon name="item-question" />}
                             message={t("ActiveLearning.config.manualSelection.info")}
                             actions={
                                 <IconButton

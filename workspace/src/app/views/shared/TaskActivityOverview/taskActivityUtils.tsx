@@ -1,13 +1,13 @@
 import { fetchActivityErrorReport } from "./taskActivityOverviewRequests";
 import { DIErrorTypes } from "@ducks/error/typings";
-import { IActivityExecutionReport } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+import { SilkActivityExecutionReportProps } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
 
 /** Returns the error report function that should be given to the activity control as parameter. */
 export const activityErrorReportFactory = (
     activityName: string,
     project: string | undefined,
     task: string | undefined,
-    handleError: (error: DIErrorTypes) => IActivityExecutionReport | undefined | void
+    handleError: (error: DIErrorTypes) => SilkActivityExecutionReportProps | undefined | void
 ) => {
     return async (markdown: boolean) => {
         try {
