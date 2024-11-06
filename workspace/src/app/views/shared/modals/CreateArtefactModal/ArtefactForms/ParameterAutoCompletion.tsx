@@ -9,6 +9,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spinner,
+    SuggestFieldItemRendererModifierProps,
 } from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
@@ -16,7 +17,6 @@ import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
@@ -270,7 +270,7 @@ const displayAutoCompleteLabel = (item: StringOrReifiedValue) => {
 export const labelAndOrValueItemRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
-    modifiers: IRenderModifiers,
+    modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any
 ): JSX.Element | string => {
     const labelValueKindOfSame =

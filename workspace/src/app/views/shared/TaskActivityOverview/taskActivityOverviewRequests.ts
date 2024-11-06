@@ -3,10 +3,7 @@ import { fetch } from "../../../services/fetch/fetch";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { IActivityListEntry } from "./taskActivityOverviewTypings";
 import { DIErrorTypes } from "@ducks/error/typings";
-import {
-    ActivityAction,
-    IActivityExecutionReport,
-} from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+import { SilkActivityControlAction, SilkActivityExecutionReportProps } from "@eccenca/gui-elements";
 
 /** Fetch available activities for the workspace, project or task with optional infos, e.g. characteristics. */
 export const fetchActivityInfos = async (
@@ -28,9 +25,9 @@ export const activityActionCreator = (
     activityName: string,
     projectId: string | undefined,
     taskId: string | undefined,
-    handleError: (activityName: string, action: ActivityAction, error: DIErrorTypes) => any
-): ((action: ActivityAction) => Promise<boolean>) => {
-    return async (action: ActivityAction) => {
+    handleError: (activityName: string, action: SilkActivityControlAction, error: DIErrorTypes) => any
+): ((action: SilkActivityControlAction) => Promise<boolean>) => {
+    return async (action: SilkActivityControlAction) => {
         try {
             await fetch({
                 url: legacyApiEndpoint("/activities/" + action),
@@ -41,10 +38,10 @@ export const activityActionCreator = (
                     activity: activityName,
                 },
             });
-            return true
+            return true;
         } catch (ex) {
             handleError(activityName, action, ex);
-            return false
+            return false;
         }
     };
 };
@@ -77,7 +74,7 @@ export const fetchActivityErrorReport = async (
     projectId?: string,
     taskId?: string,
     markdown: boolean = true
-): Promise<FetchResponse<string | IActivityExecutionReport | undefined>> => {
+): Promise<FetchResponse<string | SilkActivityExecutionReportProps | undefined>> => {
     return fetch({
         url: legacyApiEndpoint(`/activities/errorReport`),
         headers: {

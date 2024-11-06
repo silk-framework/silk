@@ -21,7 +21,7 @@ import { RuleEditorNode } from "../RuleEditorModel.typings";
 import { rangeArray } from "../../../../../utils/basicUtils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
-import { nodeUtils } from "@eccenca/gui-elements";
+import { nodeDefaultUtils } from "@eccenca/gui-elements";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -743,7 +743,7 @@ describe("Rule editor model", () => {
             currentContext().elements.reduce((stickyNodes, elem) => {
                 if (modelUtils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                     const node = modelUtils.asNode(elem)!;
-                    stickyNodes.push(nodeUtils.transformNodeToStickyNode(node) as IStickyNote);
+                    stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as IStickyNote);
                 }
                 return stickyNodes;
             }, [] as IStickyNote[]);

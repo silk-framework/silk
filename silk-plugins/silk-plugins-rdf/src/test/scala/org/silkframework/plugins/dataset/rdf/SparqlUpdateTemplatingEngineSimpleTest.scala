@@ -6,6 +6,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.validation.ValidationException
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort}
 
 class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   behavior of "SPARQL Update Simple Templating Engine"
@@ -55,13 +56,16 @@ class SparqlUpdateTemplatingEngineSimpleTest extends AnyFlatSpec with Matchers {
   }
 
   it should "generate the correct input schema from the template" in {
-    val is = SparqlUpdateCustomTask(sparqlUpdateTemplate).inputSchemataOpt
-    is.get.size mustBe 1
-    is.get.head.typedPaths.flatMap(_.propertyUri).map(_.uri).toSet mustBe Set(
-      "PROP_FROM_ENTITY_SCHEMA1",
-      "PROP_FROM_ENTITY_SCHEMA2",
-      "PROP_FROM_ENTITY_SCHEMA3"
-    )
+    SparqlUpdateCustomTask(sparqlUpdateTemplate).inputPorts match {
+      case FixedNumberOfInputs(Seq(FixedSchemaPort(schema))) =>
+        schema.typedPaths.flatMap(_.propertyUri).map(_.uri).toSet mustBe Set(
+          "PROP_FROM_ENTITY_SCHEMA1",
+          "PROP_FROM_ENTITY_SCHEMA2",
+          "PROP_FROM_ENTITY_SCHEMA3"
+        )
+      case _ =>
+        fail("Expected a single fixed schema port")
+    }
   }
 
   it should "generate the correct SPARQL Update query from the template" in {

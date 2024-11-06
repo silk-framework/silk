@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.text
 
-import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.charset.{CharsetAutocompletionProvider, CharsetUtils}
@@ -15,16 +15,19 @@ import scala.io.Codec
 @Plugin(
   id = "text",
   label = "Text",
-  description= "Reads and writes plain text files.")
+  description= "Reads and writes plain text files.",
+  documentationFile = "TextFileDataset.md")
 case class TextFileDataset(
    @Param("The plain text file. May also be a zip archive containing multiple text files.")
    file: WritableResource,
    @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
    charset: String = "UTF-8",
    @Param(value = "A type name that represents this file.", advanced = true)
-   typeName: String = "type",
+   typeName: String = "document",
    @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
+   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+   override val zipFileRegex: String = ".*"
 ) extends Dataset with TextBulkResourceBasedDataset {
 
   override val codec: Codec = CharsetUtils.forName(charset)

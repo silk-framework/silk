@@ -185,7 +185,8 @@
             "createNewItem": "Custom entry: '{{query}}'",
             "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
             "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
-        }
+        },
+        "parameterDocLinkText": "See documentation"
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
@@ -389,6 +390,7 @@
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
             "noValuesAvailable": "No values available",
+            "notAvailable": "Not available",
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
@@ -427,7 +429,8 @@
             "unlimited": "unlimited",
             "added": "Added",
             "removed": "Removed",
-            "paths": "Paths"
+            "paths": "Paths",
+            "unknown": "Unknown"
         },
         "tooltips": {
             "dataset": {
@@ -771,6 +774,7 @@
         }
     },
     "copyModal": {
+        "copyPrefixes": "Copy prefixes",
         "errorMessages": {
             "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"
@@ -846,7 +850,7 @@
             "files": "Files",
             "loading": "Loading file list.",
             "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
-            "removeText": "Do you really want to delete file",
+            "removeText": "Do you really want to delete file {{file}}?",
             "sort": {
                 "modified": "Last modified",
                 "name": "Name",
@@ -1225,5 +1229,31 @@
     },
     "SampleError": {
         "title": "Sample error report"
+    },
+    "ExecutionReport": {
+        "defaultTitle": "Execution report",
+        "execution": "Execution",
+        "statusMessages": {
+            "taskCancelled": "Task {{label}} has been cancelled.",
+            "taskError": "Task {{label}} failed to execute. Details: {{error}}",
+            "taskFailed": "Task {{label}} failed to execute.",
+            "running": "Task {{label}} has not finished execution yet.",
+            "done": "Task {{label}} has been executed without any issues."
+        },
+        "samplePreview": {
+            "title": "Sample output entities"
+        },
+        "transform": {
+            "messages": {
+                "selectMapping": "Select a mapping for detailed results.",
+                "noIssues": "This mapping rule executed successfully without any issues.",
+                "validationIssues": "This mapping rule generated {{count}} validation issues during execution. Examples are shown below."
+            }
+        },
+        "errorTable": {
+            "entity": "Entity",
+            "values": "Values",
+            "issue": "Issue"
+        }
     }
 }

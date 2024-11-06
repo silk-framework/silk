@@ -1,6 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.execution.report.{EntitySample, SampleEntities}
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.util.Identifier
 
@@ -12,8 +13,10 @@ import java.time.Instant
   * @param task The workflow that was executed
   * @param taskReports A map from each workflow operator id to its corresponding report
   */
-case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty,
-                                   isDone: Boolean = false, version: Int = 0) extends ExecutionReport {
+case class WorkflowExecutionReport(task: Task[TaskSpec],
+                                   taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty,
+                                   isDone: Boolean = false,
+                                   version: Int = 0) extends ExecutionReport {
 
   /**
     * Retrieves all current task reports.
@@ -59,7 +62,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     * @return The updated workflow report
     */
   def addFailedNode(nodeId: Identifier, ex: Throwable): WorkflowExecutionReport = {
-    taskReports.zipWithIndex.reverse.find(_._1.nodeId == nodeId) match {
+    taskReports.zipWithIndex.findLast(_._1.nodeId == nodeId) match {
       case Some((workflowReport, index)) =>
         val timestamp = Instant.now()
         val report = workflowReport.report
@@ -102,13 +105,20 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
   override def entityCount: Int = taskReports.map(_.nodeId).distinct.size
 
   override def operationDesc: String = "nodes executed"
+
+  // Workflow has no output entities, yet, might be introduced with input/output of nested workflows.
+  override def sampleOutputEntities: Seq[SampleEntities] = Seq.empty
+  override def withSampleOutputEntities(sampleEntities: SampleEntities): ExecutionReport = this
 }
 
 /**
   * Report of a single workflow operator execution.
   *
   * @param nodeId The node identifier within the workflow
-  * @param report The execution report.
-  * @param timestamp Timestamp of the last update.
+  * @param report             The execution report.
+  * @param timestamp          Timestamp of the last update.
   */
-case class WorkflowTaskReport(nodeId: Identifier, report: ExecutionReport, version: Int = 0, timestamp: Instant = Instant.now())
+case class WorkflowTaskReport(nodeId: Identifier,
+                              report: ExecutionReport,
+                              version: Int = 0,
+                              timestamp: Instant = Instant.now())

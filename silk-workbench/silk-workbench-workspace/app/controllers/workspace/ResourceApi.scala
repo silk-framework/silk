@@ -15,7 +15,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.serialization.json.ResourceSerializers
 import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.resources.CacheUpdaterHelper
 import play.api.libs.json.Json
 import play.api.mvc._
 import resources.ResourceHelper
@@ -127,7 +129,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
       case index => resourcePath.substring(0, index + 1)
     }
 
-    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
+    Ok(ResourceSerializers.resourceProperties(resource, project.resources))
   }
 
   @deprecated("Use files-endpoints instead.")
@@ -262,7 +264,8 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     )
                     filePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(filePath, project)
+    val resource = project.resources.getInPath(filePath)
+    val dependentTasks: Seq[TaskLinkInfo] = CacheUpdaterHelper.tasksDependingOnResource(resource, project)
       .map { task =>
         TaskLinkInfo(task.id, task.fullLabel, PluginApiCache.taskTypeByClass(task.taskType))
       }

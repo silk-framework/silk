@@ -8,7 +8,7 @@ import {
     CardOptions,
     CardTitle,
     Divider,
-    HelperClasses,
+    ClassNames,
     Highlighter,
     IconButton,
     Spacing,
@@ -145,7 +145,7 @@ export const FileWidget = () => {
                                                                     key={property.key}
                                                                     className={
                                                                         property.key === "name"
-                                                                            ? HelperClasses.Typography.FORCELINEBREAK
+                                                                            ? ClassNames.Typography.FORCELINEBREAK
                                                                             : ""
                                                                     }
                                                                 >

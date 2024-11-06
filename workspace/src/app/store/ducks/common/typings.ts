@@ -6,7 +6,7 @@ import {
     TaskType,
     TemplateValueType,
 } from "@ducks/shared/typings";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { SuggestFieldItemRendererModifierProps } from "@eccenca/gui-elements";
 import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
 export interface IAvailableDataTypes {
@@ -35,7 +35,7 @@ interface AutoCompletionFrontendExtensions {
     customItemRenderer?: (
         autoCompleteResponse: IAutocompleteDefaultResponse,
         query: string,
-        modifiers: IRenderModifiers,
+        modifiers: SuggestFieldItemRendererModifierProps,
         handleSelectClick: () => any
     ) => string | JSX.Element;
 }
@@ -164,6 +164,9 @@ export interface TaskPreConfiguration {
     preConfiguredParameterValues?: {
         [key: string]: string | object;
     };
+    preConfiguredDataParameters?: {
+        [key: string]: string;
+    };
     /** When this is set the modal starts directly in the create-task step. */
     taskPluginId?: string;
     /** If it should be possible to create a project. */
@@ -174,6 +177,8 @@ export interface TaskPreConfiguration {
     pluginBlackList?: string[];
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
     alternativeCallback?: (newTask: IProjectTask) => any;
+    /** Called when the create dialog has been closed without creating a new task. */
+    onCloseCallback?: () => any;
     /** A factory function that should be called to generate meta data based on the selected plugin. */
     metaDataFactoryFunction?: MetaDataFactoryFunction;
 }
@@ -224,6 +229,9 @@ export interface IArtefactModal {
     newTaskPreConfiguration?: TaskPreConfiguration;
 
     error: any;
+
+    /** An info notification that will be shown in the modal at the bottom. */
+    info?: string;
 }
 
 export interface ICommonState {

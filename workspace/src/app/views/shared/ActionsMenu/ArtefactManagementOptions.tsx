@@ -116,16 +116,19 @@ export function ArtefactManagementOptions({
     const getFullMenu = () => {
         const fullMenu: TActionsMenuItem[] = [
             {
+                icon: "item-copy",
                 text: t("common.action.copy", "Copy to"),
                 actionHandler: toggleCopyToModal,
                 "data-test-id": "header-copy-button",
             },
             {
+                icon: "item-clone",
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
                 "data-test-id": "header-clone-button",
             },
             {
+                icon: "item-viewdetails",
                 text: t("common.action.showIdentifier", "Show identifier"),
                 actionHandler: toggleShowIdentifierModal,
                 "data-test-id": "header-item-identifier-button",
@@ -135,6 +138,7 @@ export function ArtefactManagementOptions({
         if (itemType === DATA_TYPES.PROJECT) {
             const projectPath = `projects/${projectId}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`;
             fullMenu.push({
+                icon: "application-activities",
                 text: t("widget.ActivityInfoWidget.title", "Activities"),
                 "data-test-id": "header-item-activities-button",
                 actionHandler: (e) => {

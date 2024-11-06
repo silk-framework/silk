@@ -16,6 +16,7 @@ import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformT
 import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
@@ -101,7 +102,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
 
     SerializationUtils.deserializeCompileTime[TransformRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { transformRule =>
-      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)
+      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)(PluginContext.fromProject(project))
       Ok(JsArray(transformedValues.map(ValueJsonFormat.write).toSeq))
     }
   }
@@ -213,25 +214,28 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
       })
   }
 
-  private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String): TransformSpec.RuleSchemata = {
+  private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
+                            (implicit pluginContext: PluginContext): TransformSpec.RuleSchemata = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
     task.data.ruleSchemataWithoutEmptyObjectRules
       .find(_.transformRule.id.toString == objectMappingId)
       .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is either an empty object rule, i.e. it has at most a URI rule,  or is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
         s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
+      .withContext(task.taskContext)
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
-                          (implicit userContext: UserContext): CloseableIterator[Value] = {
+                          (implicit pluginContext: PluginContext): CloseableIterator[Value] = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
+    implicit val user: UserContext = pluginContext.user
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)
-
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
+    val ruleWithContext = transformRule.withContext(task.taskContext)
 
     val entities = task.dataSource.retrieve(inputSchema, Some(limit)).entities.take(limit)
     for(entity <- entities) yield {
-      DetailedEvaluator(transformRule, entity)
+      DetailedEvaluator(ruleWithContext, entity)
     }
   }
 

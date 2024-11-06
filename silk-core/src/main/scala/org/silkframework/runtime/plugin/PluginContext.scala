@@ -9,18 +9,33 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectConfig, ProjectTrait}
 
 /**
-  * Combines context objects that are available during plugin creation or update.
+  * Combines context objects that are available during plugin creation, update and execution.
   */
 trait PluginContext {
 
+  /**
+   * The URI namespace prefixes that are defined in the current project.
+   */
   def prefixes: Prefixes
 
+  /**
+   * The file resources in the current project.
+   */
   def resources: ResourceManager
 
+  /**
+   * The user that initiated the current operation.
+   */
   def user: UserContext
 
+  /**
+   * The identifier of the current project.
+   */
   def projectId: Option[Identifier]
 
+  /**
+   * The template variables that are available in the current scope.
+   */
   def templateVariables: TemplateVariablesReader
 
 }

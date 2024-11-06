@@ -1,7 +1,6 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle, highlighterUtils } from "@eccenca/gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -59,7 +58,7 @@ export const RuleEditorOperatorSidebar = () => {
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
-        const searchWords = extractSearchWords(textQuery);
+        const searchWords = highlighterUtils.extractSearchWords(textQuery);
         const filterPreConfiguredOperatorsBasedOnTextQuery = (
             preConfiguredOperators: PreConfiguredOperatorConfig[]
         ) => {
@@ -174,10 +173,14 @@ export const RuleEditorOperatorSidebar = () => {
             const originalOperatorsPerConfig = await Promise.all(
                 configs.map((config) => config.fetchOperators(prefLang))
             );
-            const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((originalOperators, idx) => {
+            const preConfiguredOperatorConfigs = originalOperatorsPerConfig.map((_originalOperators, idx) => {
                 const config = configs[idx];
+                const originalOperators = _originalOperators ?? [];
+                if (config.defaultOperators.length) {
+                    originalOperators.unshift(...config.defaultOperators);
+                }
                 const preConfiguredOperatorConfig: PreConfiguredOperatorConfig = {
-                    originalOperators: originalOperators ?? [],
+                    originalOperators,
                     isOriginalOperator: config.isOriginalOperator,
                     toPreConfiguredRuleOperator: config.convertToOperator,
                     // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
@@ -230,7 +233,7 @@ export const RuleEditorOperatorSidebar = () => {
         <Grid data-test-id={"rule-editor-sidebar"} verticalStretchable={true} useAbsoluteSpace={true}>
             {tabs.length > 0 && activeTabId ? (
                 <GridRow>
-                    <GridColumn full>
+                    <GridColumn>
                         {editorContext.tabs && (
                             <Tabs
                                 id={"rule-editor-sidebar-tabs"}
@@ -245,7 +248,7 @@ export const RuleEditorOperatorSidebar = () => {
                 </GridRow>
             ) : null}
             <GridRow>
-                <GridColumn full style={{ paddingTop: "3px" }}>
+                <GridColumn style={{ paddingTop: "3px" }}>
                     <SidebarSearchField
                         activeTabId={activeTabId}
                         onQueryChange={setTextQuery}
@@ -258,7 +261,7 @@ export const RuleEditorOperatorSidebar = () => {
                 <Loading />
             ) : (
                 <GridRow verticalStretched={true}>
-                    <GridColumn full style={{ paddingTop: "3px" }}>
+                    <GridColumn style={{ paddingTop: "3px" }}>
                         <RuleOperatorList
                             ruleOperatorList={filteredOperators}
                             textQuery={textQuery}
@@ -294,7 +297,7 @@ function filterAndSortOperators<T>(
     searchWords: string[]
 ): T[] {
     const filteredOperators = operators.filter((op) => {
-        return matchesAllWords(searchText(op), searchWords);
+        return highlighterUtils.matchesAllWords(searchText(op), searchWords);
     });
     const matchCount = new Map<T, number>();
     const { matches: labelMatches, nonMatches: nonLabelMatches } = partitionArray(

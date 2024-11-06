@@ -466,7 +466,7 @@ export const RuleEditorCanvas = () => {
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
-        const pluginData = e.dataTransfer.getData("text/plain");
+        const pluginData = e.dataTransfer.getData("application/reactflow");
         if (pluginData) {
             try {
                 const { pluginType, pluginId, parameterValues } = JSON.parse(pluginData);
@@ -505,7 +505,7 @@ export const RuleEditorCanvas = () => {
     const permanentReadOnly = !!ruleEditorUiContext.showRuleOnly;
     return (
         <>
-            <GridColumn full>
+            <GridColumn>
                 <ReactFlow
                     id={modelContext.canvasId}
                     data-test-id={"ruleEditor-react-flow-canvas"}
@@ -545,6 +545,7 @@ export const RuleEditorCanvas = () => {
                         scrollStepSize: 0.1,
                         scrollInterval: 50,
                     }}
+                    dropzoneFor={["application/reactflow"]}
                 >
                     {!ruleEditorUiContext.hideMinimap && (
                         <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />

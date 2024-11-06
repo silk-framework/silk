@@ -4,6 +4,7 @@ import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.execution._
+import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
@@ -207,12 +208,19 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     */
   private val reportListeners: mutable.Buffer[TaskReportListener] = mutable.Buffer.empty
 
+  /**
+   * Listeners for updates to the workflow status.
+   * We need to hold them to prevent their garbage collection.
+   */
+  private val statusListeners: mutable.Buffer[WorkflowStatusListener] = mutable.Buffer.empty
+
   /** Creates an activity context for a specific task that will be executed in the workflow.
     * Also wires the task execution report to the workflow execution report. */
-  def taskContext(nodeId: Identifier, task: Task[_ <: TaskSpec]): ActivityContext[ExecutionReport] = {
+  def taskContext(nodeId: Identifier, task: Task[_ <: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): ActivityContext[ExecutionReport] = {
     val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + task.id)))
     val taskContext = new ActivityMonitor[ExecutionReport](task.id, Some(activityContext), projectAndTaskId = projectAndTaskString)
     listenForTaskReports(nodeId, task, taskContext)
+    listenForWorkflowCancellation(taskContext, workflowRunContext.activityContext.status)
     taskContext
   }
 
@@ -228,12 +236,31 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     reportListeners.append(listener)
   }
 
+  // Listens for updates to the workflow status
+  private def listenForWorkflowCancellation(taskContext: ActivityMonitor[ExecutionReport], workflowStatus: Observable[Status]): Unit = {
+    val listener = new WorkflowStatusListener(taskContext.status)
+    workflowStatus.subscribe(listener)
+    statusListeners.append(listener)
+  }
+
   /**
     * Updates the workflow execution report on each update of a task report.
     */
   private class TaskReportListener(index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
       activityContext.value.updateWith(_.updateReport(index, nodeId, report))
+    }
+  }
+
+  private class WorkflowStatusListener(taskStatus: StatusHolder) extends (Status => Unit) {
+    override def apply(workflowStatus: Status): Unit = {
+      if(workflowStatus.isInstanceOf[Canceling]) {
+        taskStatus.synchronized {
+          if(taskStatus().isRunning) {
+            taskStatus.update(Canceling(None), logStatus = false)
+          }
+        }
+      }
     }
   }
 }

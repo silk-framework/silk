@@ -1,9 +1,11 @@
 package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.entity.paths.{Path, TypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities}
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.validation.ValidationException
 
 import java.io.Closeable
 
@@ -51,13 +53,42 @@ trait EntityHolder extends Closeable {
   def taskLabel: String = task.metaData.formattedLabel(task.id.toString)
 
   /**
-    * get head Entity
+    * Get the first entity, or None if this table is empty.
     */
   def headOption: Option[Entity]
 
+  /**
+   * Map all entities using a provided function.
+   */
   def mapEntities(f: Entity => Entity): EntityHolder
 
+  /**
+   * Flat map all entities using a provided function.
+   *
+   * @param outputSchema The output schema of the mapped entities.
+   * @param updateTask The updated task of the mapped entities.
+   * @param f The mapping function.
+   */
   def flatMapEntities(outputSchema: EntitySchema, updateTask: Task[TaskSpec] = task)(f: Entity => Iterator[Entity]): EntityHolder
+
+  /**
+   * Returns entities that only contain the selected paths.
+   */
+  def selectPaths(paths: IndexedSeq[TypedPath]): EntityHolder = {
+    val updatedSchema = entitySchema.copy(typedPaths = paths)
+    val indices = {
+      for(path <- paths) yield {
+        val index = entitySchema.typedPaths.indexOf(path)
+        if(index == -1) {
+          throw new ValidationException(s"Path $path does not exist on $this")
+        }
+        index
+      }
+    }
+    flatMapEntities(updatedSchema) { entity =>
+      Iterator(entity.copy(values = indices.map(entity.values(_)), schema = updatedSchema))
+    }
+  }
 
   def filter(f: Entity => Boolean): EntityHolder
 }

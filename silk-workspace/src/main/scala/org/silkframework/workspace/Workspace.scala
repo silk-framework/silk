@@ -16,12 +16,15 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
+import org.silkframework.runtime.metrics.MeterRegistryProvider
+import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
+import org.silkframework.workspace.metrics.WorkspaceMetrics
 import org.silkframework.workspace.resources.ResourceRepository
 
 import java.io._
@@ -29,7 +32,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -38,8 +41,9 @@ import scala.util.control.NonFatal
   * @param provider    the workspace provider
   * @param repository  the resource repository
   */
-class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) extends WorkspaceReadTrait {
-
+class Workspace(val provider: WorkspaceProvider,
+                val repository: ResourceRepository)
+  extends WorkspaceReadTrait {
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
   private val cfg = DefaultConfig.instance()
@@ -112,6 +116,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
           if (!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
             loadProjects()
             initialized = true
+            log.info("Register workspace metrics")
+            registerWorkspaceMetrics(userContext)
           }
         } finally {
           loadProjectsLock.unlock()
@@ -283,7 +289,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
-  private def addProjectToCache(project: Project) = {
+  private def addProjectToCache(project: Project): Unit = {
     cachedProjects :+= project
   }
 
@@ -314,6 +320,10 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
     log.info(s"${cachedProjects.size} projects loaded.")
   }
+
+  private def registerWorkspaceMetrics(implicit userContext: UserContext): Unit =
+    new WorkspaceMetrics(prefix, () => projects, () => projects.flatMap(_.allTasks))
+      .bindTo(MeterRegistryProvider.meterRegistry)
 }
 
 object Workspace {

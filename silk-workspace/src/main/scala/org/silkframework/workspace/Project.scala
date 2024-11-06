@@ -133,7 +133,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @throws NotFoundException
     */
   def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
-    projectActivities.find(_.name == activityName)
+    projectActivities.find(_.name.toString == activityName)
       .getOrElse(throw NotFoundException(s"Project '$id' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
   }

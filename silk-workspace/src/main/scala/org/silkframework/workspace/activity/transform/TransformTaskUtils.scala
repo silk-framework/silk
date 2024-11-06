@@ -3,9 +3,10 @@ package org.silkframework.workspace.activity.transform
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.execution.TaskException
-import org.silkframework.rule.{TransformSpec, TransformedDataSource}
+import org.silkframework.execution.{ExecutorRegistry, TaskException}
+import org.silkframework.rule.{TaskContext, TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
@@ -60,14 +61,22 @@ object TransformTaskUtils {
       * Retrieves all entity sinks for this transform task.
       */
     def entitySink(implicit userContext: UserContext): Option[EntitySink] = {
-      task.data.output.flatMap(o => task.project.taskOption[GenericDatasetSpec](o)).map(_.data.entitySink)
+      task.data.output.flatMap(o => task.project.taskOption[GenericDatasetSpec](o)).map(ExecutorRegistry.access(_).entitySink)
     }
 
     /**
       * Retrieves all error entity sinks for this transform task.
       */
     def errorEntitySink(implicit userContext: UserContext): Option[EntitySink] = {
-      task.data.errorOutput.flatMap(o => task.project.taskOption[GenericDatasetSpec](o)).map(_.data.entitySink)
+      task.data.errorOutput.flatMap(o => task.project.taskOption[GenericDatasetSpec](o)).map(ExecutorRegistry.access(_).entitySink)
+    }
+
+    /**
+     * Generates the task context assuming that this task is executed standalone (i.e., not in a workflow)
+     */
+    def taskContext(implicit pluginContext: PluginContext): TaskContext = {
+      val inputTask = task.project.anyTask(task.selection.inputId)(pluginContext.user)
+      TaskContext(Seq(inputTask), pluginContext)
     }
   }
 

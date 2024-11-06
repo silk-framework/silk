@@ -1,5 +1,6 @@
 package org.silkframework.rule.util
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 
@@ -43,6 +44,8 @@ class UriPatternParserTest extends AnyFlatSpec with Matchers {
         case Success(_) =>
         case Failure(ex: UriPatternParserException) =>
           throw new AssertionError(s"Valid URI pattern '$validPattern' was not segmented successfully. Error details: $ex.")
+        case Failure(ex) =>
+          throw ex
       }
     }
   }

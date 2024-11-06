@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, PlainTask, Prefixes}
+import org.silkframework.config.{FixedNumberOfInputs, FixedSchemaPort, MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity._
@@ -736,7 +736,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                               withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val rule = task.data.rule
+    val rule = task.ruleWithContext
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
     val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
@@ -789,12 +789,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
+      val ruleWithContext = linkageRule.withContext(task.taskContext)
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       def serialize(links: Iterable[DPair[Entity]]): JsValue = {
-        serializeLinks(links.take(linkLimit), linkageRule)
+        serializeLinks(links.take(linkLimit), ruleWithContext)
       }
-      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
+      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(ruleWithContext, referenceEntityCacheValue)
 
       try {
         val result =
@@ -964,11 +965,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
-      val updatedLinkSpec = task.data.copy(rule = linkageRule)
-      val updatedTask = PlainTask(linkingTaskName, updatedLinkSpec, task.metaData)
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(updatedTask, sources, None, runtimeConfig)
+      val linksActivity = new GenerateLinksActivity(task, sources, None, runtimeConfig, Some(linkageRule.withContext(task.taskContext)))
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {
@@ -1140,8 +1139,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def schemaPathFunctions(linkSpec: LinkSpec): (String => Boolean, String => Boolean) = {
-    linkSpec.inputSchemataOpt match {
-      case Some(Seq(sourceSchema, targetSchema)) =>
+    linkSpec.inputPorts match {
+      case FixedNumberOfInputs(Seq(FixedSchemaPort(sourceSchema), FixedSchemaPort(targetSchema))) =>
         val sourcePaths = sourceSchema.typedPaths.map(_.normalizedSerialization).toSet
         val targetPaths = targetSchema.typedPaths.map(_.normalizedSerialization).toSet
         (sourcePaths.contains, targetPaths.contains)

@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
 import { ILinkingRule, ILinkingTaskParameters } from "../linking.types";
-import { ActivityAction, IActivityStatus, Spinner } from "@eccenca/gui-elements";
+import { SilkActivityControlAction, SilkActivityStatusProps, Spinner } from "@eccenca/gui-elements";
 import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
 import { LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -123,7 +123,7 @@ export const LinkingRuleActiveLearning = ({
     );
 
     const checkComparisonPairsActivityFinished = (
-        activityStatus: IActivityStatus,
+        activityStatus: SilkActivityStatusProps,
         unregisterFromUpdates: () => any
     ) => {
         let finished = true;
@@ -149,7 +149,7 @@ export const LinkingRuleActiveLearning = ({
 
     const startComparisonPairActivity = async () => {
         setComparisonPairsLoading(true);
-        const errorHandler = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
+        const errorHandler = (activityName: string, action: SilkActivityControlAction, error: DIErrorTypes) => {
             registerError(
                 "LinkingRuleActiveLearning.startComparisonPairActivity",
                 "Could not start comparison pair finder activity.",

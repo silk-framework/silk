@@ -6,7 +6,7 @@ import org.silkframework.util.Uri
 /**
   * An entity sink that forwards all calls to given a sequence of sinks.
   */
-class CombinedEntitySink(sinks: Seq[EntitySink]) extends EntitySink {
+class CombinedEntitySink(val sinks: Seq[EntitySink]) extends EntitySink {
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {

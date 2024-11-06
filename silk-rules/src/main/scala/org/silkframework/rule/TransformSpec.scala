@@ -106,6 +106,10 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     resources.toSeq
   }
 
+  override def resourceUpdated(resource: Resource): Unit = {
+    updatedResourceOfRule(mappingRule, resource)
+  }
+
   private def extractResourcesFromRule(rule: TransformRule,
                                        resources: mutable.HashSet[Resource]): Unit = {
     extractResourcesFromOperator(rule.operator, resources)
@@ -122,18 +126,34 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
     }
   }
 
+  private def updatedResourceOfRule(rule: TransformRule, resource: Resource): Unit = {
+    updateResourceOfOperator(rule.operator, resource)
+    rule.rules.foreach(rule => updatedResourceOfRule(rule, resource))
+  }
+
+  private def updateResourceOfOperator(operator: Operator, resource: Resource): Unit = {
+    operator match {
+      case TransformInput(_, transformer, inputs) =>
+        inputs.foreach(input => updateResourceOfOperator(input, resource))
+        if(transformer.referencedResources.exists(_.path == resource.path)) {
+          transformer.resourceUpdated(resource)
+        }
+      case _ =>
+    }
+  }
+
   /**
     * Input and output schemata of all object rules in the tree.
     */
   lazy val ruleSchemata: Seq[RuleSchemata] = {
-    collectSchemata(mappingRule, UntypedPath.empty, withEmptyObjectRules = true)
+    collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = true)
   }
 
   /**
     * The same with ruleSchemata, but without empty object mapping rules, i.e. object rules that contain at most a URI rule and nothing else.
     **/
   lazy val ruleSchemataWithoutEmptyObjectRules: Seq[RuleSchemata] = {
-    collectSchemata(mappingRule, UntypedPath.empty, withEmptyObjectRules = false)
+    collectSchemata(mappingRule, UntypedPath.empty, UntypedPath.empty, withEmptyObjectRules = false)
   }
 
   /**
@@ -154,16 +174,19 @@ case class TransformSpec(@Param(label = "Input", value = "The source from which 
   /**
     * Collects the input and output schemata of all rules recursively.
     */
-  private def collectSchemata(rule: TransformRule, subPath: UntypedPath, withEmptyObjectRules: Boolean): Seq[RuleSchemata] = {
+  private def collectSchemata(rule: TransformRule, sourceSubPath: UntypedPath, targetSubPath: UntypedPath, withEmptyObjectRules: Boolean): Seq[RuleSchemata] = {
     var schemata = Seq[RuleSchemata]()
 
     // Add rule schemata for this rule
-    schemata :+= RuleSchemata.create(rule, selection, subPath)
+    schemata :+= RuleSchemata.create(rule, selection, sourceSubPath, targetSubPath)
 
     // Add rule schemata of all child object rules
-    for(objectMapping @ ObjectMapping(_, relativePath, _, objectMappingRules, _, _) <- rule.rules.allRules
+    for(objectMapping @ ObjectMapping(_, relativePath, target, objectMappingRules, _, _) <- rule.rules.allRules
         if withEmptyObjectRules || objectMappingRules.typeRules.nonEmpty || objectMappingRules.propertyRules.nonEmpty) {
-      schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath, withEmptyObjectRules)
+      val newTargetSubPath = target.filter(_.propertyUri.uri.nonEmpty)
+        .map(t => targetSubPath ++ UntypedPath(List(t.asPathOperator())))
+        .getOrElse(targetSubPath)
+      schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, sourceSubPath ++ relativePath, newTargetSubPath, withEmptyObjectRules)
     }
 
     schemata
@@ -354,24 +377,29 @@ object TransformSpec {
         }
       }
     }
+
+    def withContext(taskContext: TaskContext): RuleSchemata = {
+      copy(transformRule = transformRule.withContext(taskContext))
+    }
   }
 
   object RuleSchemata {
-    def create(rule: TransformRule, selection: DatasetSelection, subPath: UntypedPath): RuleSchemata = {
+    def create(rule: TransformRule, selection: DatasetSelection, sourceSubPath: UntypedPath, targetSubPath: UntypedPath): RuleSchemata = {
       val inputSchema = EntitySchema(
         typeUri = selection.typeUri,
         typedPaths = extractTypedPaths(rule),
         filter = selection.restriction,
-        subPath = subPath
+        subPath = sourceSubPath
       )
 
       val outputSchema = EntitySchema(
-        typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
+        typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(""),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
                        val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
                        TypedPath(UntypedPath(List(path)), mt.valueType, mt.isAttribute)
                      }.distinct.toIndexedSeq,
-        singleEntity = rule.target.exists(_.isAttribute)
+        singleEntity = rule.target.exists(_.isAttribute),
+        subPath = targetSubPath
       )
 
       RuleSchemata(rule, inputSchema, outputSchema)

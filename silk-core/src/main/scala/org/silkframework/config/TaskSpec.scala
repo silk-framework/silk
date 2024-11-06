@@ -1,6 +1,5 @@
 package org.silkframework.config
 
-import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
@@ -28,32 +27,6 @@ trait TaskSpec {
   def outputPort: Option[Port]
 
   /**
-    * The schemata of the input data for this task.
-    * A separate entity schema is returned for each input.
-    * Or None is returned, which means that this task can handle any number of inputs and any kind
-    * of entity schema.
-    * A result of Some(Seq()) on the other hand means that this task has no inputs at all.
-    */
-  @deprecated("Use `inputPorts` instead")
-  def inputSchemataOpt: Option[Seq[EntitySchema]] = {
-    inputPorts match {
-      case FixedNumberOfInputs(inputs) =>
-        Some(inputs.flatMap(_.schemaOpt))
-      case FlexibleNumberOfInputs() =>
-        None
-    }
-  }
-
-  /**
-    * The schema of the output data.
-    * Returns None, if the schema is unknown or if no output is written by this task.
-    */
-  @deprecated("Use `outputPort` instead")
-  def outputSchemaOpt: Option[EntitySchema] = {
-    outputPort.flatMap(_.schemaOpt)
-  }
-
-  /**
     * The tasks that this task reads from.
     */
   def inputTasks: Set[Identifier] = Set.empty
@@ -73,6 +46,15 @@ trait TaskSpec {
     * The resources that are directly referenced by this task.
     */
   def referencedResources: Seq[Resource] = Seq.empty
+
+  /**
+   * Called if a referenced resource has been updated.
+   * The calls are done on a best-effort basis and there is not guarantee that this method is called for all updates.
+   * In particular, it is only called if the resource is updated via Silk/DataIntegration and not for external updates.
+   */
+  def resourceUpdated(resource: Resource): Unit = {
+    // Overwrite to handle updates
+  }
 
   /**
     * Retrieves all parameter values for this task.
@@ -95,6 +77,9 @@ trait TaskSpec {
 
   /** The main (execution) activities that should stand out from all the registered activities of this task. */
   def mainActivities: Seq[String] = Seq.empty
+
+  /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
+  def searchTags(prefixes: Prefixes): Seq[String] = Seq.empty
 }
 
 /** A task link.

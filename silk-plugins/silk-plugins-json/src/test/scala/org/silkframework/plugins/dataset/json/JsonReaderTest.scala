@@ -94,6 +94,6 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
 
   private def json(fileName: String) = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
-    JsonTraverser("alibi_task_id", resources.get(fileName))
+    JsonTraverser.fromResource("alibi_task_id", resources.get(fileName))
   }
 }

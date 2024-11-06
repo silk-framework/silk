@@ -2,8 +2,9 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptySource, LinkSink}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, TaskContext, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
@@ -43,6 +44,22 @@ object LinkingTaskUtils {
       */
     def linkSink(implicit userContext: UserContext): Option[LinkSink] = {
       task.data.output.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(_.data.linkSink)
+    }
+
+    /**
+     * Generates the task context assuming that this task is executed standalone (i.e., not in a workflow)
+     */
+    def taskContext(implicit userContext: UserContext): TaskContext = {
+      implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
+      val inputTasks = task.dataSelections.map(selection => task.project.anyTask(selection.inputId)(pluginContext.user))
+      TaskContext(inputTasks, pluginContext)
+    }
+
+    /**
+     * Returns the linking rule with the task context.
+     */
+    def ruleWithContext(implicit userContext: UserContext): LinkageRule = {
+      task.data.rule.withContext(taskContext)
     }
   }
 

@@ -27,7 +27,6 @@ import { FetchError, FetchResponse } from "../../../services/fetch/responseInter
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
 import { IStickyNote } from "../shared/task.typings";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 import Loading from "../../shared/Loading";
@@ -37,7 +36,7 @@ import {
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
-import { Notification } from "@eccenca/gui-elements";
+import { Notification, highlighterUtils } from "@eccenca/gui-elements";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface LinkingRuleEditorProps {
@@ -146,11 +145,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             let results: (IAutocompleteDefaultResponse & { valueType?: string })[] =
                 inputType === "source" ? sourcePathLabels.current : targetPathLabels.current;
-            const searchWords = extractSearchWords(term, true);
+            const searchWords = highlighterUtils.extractSearchWords(term, true);
             if (searchWords.length) {
                 results = results.filter((path) => {
                     const searchText = `${path.value} ${path.valueType} ${path.label ?? ""}`.toLowerCase();
-                    return matchesAllWords(searchText, searchWords);
+                    return highlighterUtils.matchesAllWords(searchText, searchWords);
                 });
             } else if (results[0]?.value !== "") {
                 results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
@@ -171,7 +170,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
-            let operatorPlugins = Object.values((await requestRuleOperatorPluginsDetails(false)).data);
+            const responseData = (await requestRuleOperatorPluginsDetails(false)).data;
+            let operatorPlugins = Object.values(responseData);
             if (hideGreyListedParameters) {
                 operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
             }
@@ -337,6 +337,29 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             inputPathAutoCompletion("target")
         );
 
+    const tabs = React.useMemo(() => {
+        return [
+            ruleUtils.sidebarTabs.all,
+            utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
+                registerError(
+                    "linking-rule-editor-fetch-source-paths",
+                    t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                    ex
+                )
+            ),
+            utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
+                registerError(
+                    "linking-rule-editor-fetch-source-paths",
+                    t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                    ex
+                )
+            ),
+            ruleUtils.sidebarTabs.transform,
+            ruleUtils.sidebarTabs.comparison,
+            ruleUtils.sidebarTabs.aggregation,
+        ];
+    }, []);
+
     const fetchDatasetCharacteristics = async (taskData: TaskPlugin<ILinkingTaskParameters> | undefined) => {
         const result = new Map<string, DatasetCharacteristics>();
         if (taskData) {
@@ -415,26 +438,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     }
                 }}
                 validateConnection={ruleUtils.validateConnection}
-                tabs={[
-                    ruleUtils.sidebarTabs.all,
-                    utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
-                        registerError(
-                            "linking-rule-editor-fetch-source-paths",
-                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                            ex
-                        )
-                    ),
-                    utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
-                        registerError(
-                            "linking-rule-editor-fetch-source-paths",
-                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                            ex
-                        )
-                    ),
-                    ruleUtils.sidebarTabs.transform,
-                    ruleUtils.sidebarTabs.comparison,
-                    ruleUtils.sidebarTabs.aggregation,
-                ]}
+                tabs={tabs}
                 additionalToolBarComponents={() => [
                     <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />,
                 ]}

@@ -8,11 +8,9 @@ import {
     Grid,
     GridColumn,
     GridRow,
-    HelperClasses,
+    ClassNames,
     Highlighter,
-    HtmlContentBlock,
     IconButton,
-    Markdown,
     Notification,
     OverflowText,
     OverviewItem,
@@ -23,8 +21,8 @@ import {
     OverviewItemList,
     SimpleDialog,
     Spacing,
+    highlighterUtils,
 } from "@eccenca/gui-elements";
-import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     IArtefactModal,
@@ -53,6 +51,8 @@ import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { CreateArtefactModalContext } from "./CreateArtefactModalContext";
+import { TaskDocumentationModal } from "./TaskDocumentationModal";
+import { PARAMETER_DOC_PREFIX } from "./ArtefactForms/TaskForm";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -66,11 +66,12 @@ export interface InfoMessage {
     removeAfterSeconds?: number;
 }
 
-interface ArtefactDocumentation {
+export interface ArtefactDocumentation {
     key: string;
     title?: string;
     description?: string;
     markdownDocumentation?: string;
+    namedAnchor: string | undefined;
 }
 
 export function CreateArtefactModal() {
@@ -96,6 +97,7 @@ export function CreateArtefactModal() {
         loading,
         updateExistingTask,
         error,
+        info,
         newTaskPreConfiguration,
     }: IArtefactModal = modalStore;
 
@@ -171,6 +173,10 @@ export function CreateArtefactModal() {
         !didTimeoutExpire && dispatch(commonOp.setModalError({}));
     };
 
+    const resetModalInfo = () => {
+        dispatch(commonOp.setModalInfo(undefined));
+    };
+
     // Function to set template parameter flag for a parameter
     const setTemplateFlag = React.useCallback((parameterId: string, isTemplate: boolean) => {
         if (isTemplate) {
@@ -207,7 +213,7 @@ export function CreateArtefactModal() {
             resetModal(true);
         } else {
             // Clear errors when freshly opened
-            form.clearError()
+            form.clearError();
         }
     }, [isOpen]);
 
@@ -278,11 +284,28 @@ export function CreateArtefactModal() {
         setLastSelectedClick(Date.now);
     };
 
-    const handleShowEnhancedDescription = (event, artefactDocumentation: ArtefactDocumentation) => {
+    const handleShowEnhancedDescriptionClickHandler = (event, artefactDocumentation: ArtefactDocumentation) => {
         event.preventDefault();
         event.stopPropagation();
-        setDocumentationToShow(artefactDocumentation);
+        showEnhancedDescription(artefactDocumentation);
     };
+
+    const showEnhancedDescription = React.useCallback((artefactDocumentation: ArtefactDocumentation) => {
+        setDocumentationToShow(artefactDocumentation);
+    }, []);
+
+    const showDetailedParameterDocumentation = React.useCallback(
+        (parameterId: string) => {
+            if (selectedArtefact) {
+                const artefactDocumentation: ArtefactDocumentation = pluginOverviewToArtefactDocumentation(
+                    selectedArtefact,
+                    PARAMETER_DOC_PREFIX + parameterId
+                );
+                showEnhancedDescription(artefactDocumentation);
+            }
+        },
+        [selectedArtefact]
+    );
 
     const handleEnter = (e) => {
         if (e.key === "Enter" && toBeAdded.current) {
@@ -322,7 +345,6 @@ export function CreateArtefactModal() {
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
-                    console.log({formValues})
                     const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
                     let dataParameters: any;
                     if (type === "Dataset") {
@@ -382,6 +404,7 @@ export function CreateArtefactModal() {
     const closeModal = () => {
         setSearchValue("");
         resetModal(true);
+        newTaskPreConfiguration?.onCloseCallback?.();
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
@@ -551,6 +574,7 @@ export function CreateArtefactModal() {
                     setTemplateFlag,
                     registerForExternalChanges,
                     templateFlag,
+                    showDetailedParameterDocumentation,
                 }}
                 // Close modal immediately from update dialog
                 goBackOnEscape={() => handleBack(true)}
@@ -589,6 +613,7 @@ export function CreateArtefactModal() {
                                 setTemplateFlag,
                                 registerForExternalChanges,
                                 templateFlag,
+                                showDetailedParameterDocumentation,
                             }}
                             goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
@@ -631,7 +656,7 @@ export function CreateArtefactModal() {
 
     // Rank title matches higher
     if (searchValue.trim() !== "") {
-        const regex = createMultiWordRegex(extractSearchWords(searchValue), false);
+        const regex = highlighterUtils.createMultiWordRegex(highlighterUtils.extractSearchWords(searchValue), false);
         const titleMatches: IPluginOverview[] = [];
         const nonTitleMatches: IPluginOverview[] = [];
         artefactListWithProject.forEach((artefactItem) => {
@@ -731,12 +756,10 @@ export function CreateArtefactModal() {
                 key={"show-enhanced-description-btn"}
                 name="item-question"
                 onClick={(e) =>
-                    handleShowEnhancedDescription(e, {
-                        key: selectedArtefact.key,
-                        title: selectedArtefactTitle,
-                        description: selectedArtefact.description,
-                        markdownDocumentation: selectedArtefact.markdownDocumentation,
-                    })
+                    handleShowEnhancedDescriptionClickHandler(
+                        e,
+                        pluginOverviewToArtefactDocumentation(selectedArtefact)
+                    )
                 }
             />
         );
@@ -768,6 +791,10 @@ export function CreateArtefactModal() {
                 danger
             />
         );
+    }
+
+    if (info) {
+        notifications.push(<Notification onDismiss={resetModalInfo} message={info} timeout={30000} />);
     }
 
     if (infoMessage) {
@@ -886,6 +913,7 @@ export function CreateArtefactModal() {
                                         focusOnCreation={true}
                                         onSearch={handleSearch}
                                         onEnter={handleAdd}
+                                        disableEnterDuringPendingSearch={true}
                                     />
                                     <Spacing />
                                     {loading ? (
@@ -910,7 +938,7 @@ export function CreateArtefactModal() {
                                                         key={artefact.key}
                                                         className={
                                                             toBeAddedKey.current === artefact.key
-                                                                ? HelperClasses.Intent.ACCENT
+                                                                ? ClassNames.Intent.ACCENT
                                                                 : ""
                                                         }
                                                     >
@@ -949,13 +977,12 @@ export function CreateArtefactModal() {
                                                                     <IconButton
                                                                         name="item-question"
                                                                         onClick={(e) => {
-                                                                            handleShowEnhancedDescription(e, {
-                                                                                key: artefact.key,
-                                                                                title: artefact.title,
-                                                                                description: artefact.description,
-                                                                                markdownDocumentation:
-                                                                                    artefact.markdownDocumentation,
-                                                                            });
+                                                                            handleShowEnhancedDescriptionClickHandler(
+                                                                                e,
+                                                                                pluginOverviewToArtefactDocumentation(
+                                                                                    artefact
+                                                                                )
+                                                                            );
                                                                         }}
                                                                     />
                                                                 </OverviewItemActions>
@@ -971,29 +998,10 @@ export function CreateArtefactModal() {
                         </Grid>
                     )}
                     {documentationToShow && (
-                        <SimpleDialog
-                            data-test-id={"artefact-documentation-modal"}
-                            isOpen
-                            showFullScreenToggler={true}
-                            enforceFocus={true}
+                        <TaskDocumentationModal
+                            documentationToShow={documentationToShow}
                             onClose={() => setDocumentationToShow(undefined)}
-                            title={documentationToShow.title ?? "Documentation"}
-                            actions={
-                                <Button
-                                    text="Close"
-                                    onClick={() => {
-                                        setDocumentationToShow(undefined);
-                                    }}
-                                />
-                            }
-                            size="large"
-                        >
-                            <HtmlContentBlock>
-                                <Markdown allowHtml>
-                                    {documentationToShow.markdownDocumentation || documentationToShow.description || ""}
-                                </Markdown>
-                            </HtmlContentBlock>
-                        </SimpleDialog>
+                        />
                     )}
                 </>
             }
@@ -1015,3 +1023,16 @@ export function CreateArtefactModal() {
         </CreateArtefactModalContext.Provider>
     );
 }
+
+const pluginOverviewToArtefactDocumentation = (
+    pluginOverview: IPluginOverview,
+    namedAnchor?: string
+): ArtefactDocumentation => {
+    return {
+        key: pluginOverview.key,
+        title: pluginOverview.title,
+        description: pluginOverview.description,
+        markdownDocumentation: pluginOverview.markdownDocumentation,
+        namedAnchor,
+    };
+};

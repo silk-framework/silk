@@ -17,9 +17,11 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, LinkSink}
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.report.{EntitySample, SampleEntities, SampleEntitiesSchema}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
-import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkageRule, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair}
@@ -35,12 +37,15 @@ import scala.util.Try
 class GenerateLinks(task: Task[LinkSpec],
                     inputs: DPair[DataSource],
                     output: Option[LinkSink],
-                    runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig())
+                    runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig(),
+                    overrideLinkageRule: Option[LinkageRule] = None)
                    (implicit prefixes: Prefixes) extends Activity[Linking] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  private def linkSpec = task.data
+  private val rule = overrideLinkageRule.getOrElse(task.data.rule)
+
+  private val linkSpec = task.data.copy(rule = rule)
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
@@ -57,12 +62,11 @@ class GenerateLinks(task: Task[LinkSpec],
    */
   def warnings: Seq[LogRecord] = warningLog
 
-  override def initialValue = Some(Linking(task))
+  override def initialValue: Option[Linking] = Some(Linking(task, rule))
 
-  //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    context.value.update(Linking(task))
+    context.value.update(Linking(task, rule))
 
     warningLog = CollectLogs() {
       if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
@@ -93,8 +97,8 @@ class GenerateLinks(task: Task[LinkSpec],
     if(context.status.isCanceling) return
     // Execute matching
     val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
-    val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-    val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
+    val matcher = context.child(new Matcher(loaders, rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
+    val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, rule, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
     matcher.value.subscribe(updateLinks)
     children ::= matcher
     matcher.startBlocking()
@@ -106,7 +110,7 @@ class GenerateLinks(task: Task[LinkSpec],
     if(context.status.isCanceling) return
 
     // Filter links
-    val filterTask = new Filter(matcher.value().links, linkSpec.rule.filter)
+    val filterTask = new Filter(matcher.value().links, rule.filter)
     var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
     if(context.status.isCanceling) return
 
@@ -122,13 +126,22 @@ class GenerateLinks(task: Task[LinkSpec],
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(task, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true))
+    context.value.update(Linking(task, rule, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true,
+      sampleOutputEntities = Seq(sampleEntities(filteredLinks))))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
-    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, linkSpec.rule.inverseLinkType, output)
+    val outputTask = new OutputWriter(context.value().links, rule.linkType, rule.inverseLinkType, output)
     context.child(outputTask, 0.02).startBlocking()
     logStatistics(context)
+  }
+
+  private def sampleEntities(links: Seq[Link]): SampleEntities = {
+    SampleEntities(
+      entities = links.take(ExecutionReport.SAMPLE_ENTITY_LIMIT).map(link => EntitySample("",
+        IndexedSeq(Seq(link.source), Seq(link.target), Seq(link.confidence.map(_.toString).getOrElse("N/A"))))),
+      schema = SampleEntitiesSchema("", "", IndexedSeq("Source", "Target", "Confidence"))
+    )
   }
 
   private def logStatistics(context: ActivityContext[Linking]): Unit = {
@@ -174,11 +187,11 @@ class GenerateLinks(task: Task[LinkSpec],
 
 
   private def createCaches() = {
-    val sourceIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = true)
-    val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = false)
+    val sourceIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, rule, sourceOrTarget = true)
+    val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, rule, sourceOrTarget = false)
 
-    val sourceSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, linkSpec.rule, sourceOrTarget = true)
-    val targetSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, linkSpec.rule, sourceOrTarget = false)
+    val sourceSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, rule, sourceOrTarget = true)
+    val targetSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, rule, sourceOrTarget = false)
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + task.id + UUID.randomUUID().toString)
 

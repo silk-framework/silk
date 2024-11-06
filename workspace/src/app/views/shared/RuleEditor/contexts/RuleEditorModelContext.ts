@@ -2,7 +2,9 @@ import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
-import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeContentProps } from "@eccenca/gui-elements";
+
+type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.

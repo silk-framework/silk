@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 import scala.runtime.BoxedUnit
 
 /**
-  * Holds an activity that is part of an task.
+  * Holds an activity that is part of a task.
   *
   * @param task           The task this activity belongs to.
   * @param defaultFactory The initial activity factory for generating the activity.

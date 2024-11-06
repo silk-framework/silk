@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.{FixedSchemaPort, Prefixes, TaskSpec}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
@@ -9,6 +9,7 @@ import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
+import org.silkframework.workspace.activity.dataset.DatasetUtils
 
 /**
   * Defines methods useful to all paths caches.
@@ -33,10 +34,10 @@ trait PathsCacheTrait {
           case None => IndexedSeq()
         }
       case task: TaskSpec =>
-        task.outputSchemaOpt match {
-          case Some(schema) =>
+        task.outputPort match {
+          case Some(FixedSchemaPort(schema)) =>
             schema.typedPaths
-          case None =>
+          case _ =>
             IndexedSeq()
         }
     }

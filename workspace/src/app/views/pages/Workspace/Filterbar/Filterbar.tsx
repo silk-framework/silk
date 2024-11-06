@@ -43,7 +43,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
                         />
                     </TitleSubsection>
                     <Spacing size="tiny" />
-                    <ul>
+                    <ul data-test-id={"search-item-type-selection"}>
                         <li key={"alltypes"}>
                             <RadioButton
                                 data-test-id={"item-type-radio-button-all"}

@@ -201,7 +201,7 @@ object StringParameterType {
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
-      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType)
+      YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
   }
 
   /**
@@ -354,6 +354,25 @@ object StringParameterType {
     }
   }
 
+  object LocaleOptionType extends StringParameterType[LocaleOptionParameter] {
+
+    override def name: String = "option[locale]"
+
+    override def description: String = "An optional locale."
+
+    override def fromString(str: String)(implicit context: PluginContext): LocaleOptionParameter = {
+      if (str.trim.isEmpty) {
+        LocaleOptionParameter(None)
+      } else {
+        LocaleOptionParameter(Some(str))
+      }
+    }
+
+    override def toString(value: LocaleOptionParameter)(implicit pluginContext: PluginContext): String = {
+      value.value.getOrElse("")
+    }
+  }
+
   object IdentifierOptionType extends StringParameterType[IdentifierOptionParameter] {
 
     override def name: String = "option[identifier]"
@@ -431,15 +450,7 @@ object StringParameterType {
       * @throws IllegalArgumentException If the project resources are either empty or use a different base path than this resource.
       **/
     override def toString(value: Resource)(implicit pluginContext: PluginContext): String = {
-      val basePath = pluginContext.resources.basePath
-      if (pluginContext.resources == EmptyResourceManager()) {
-        throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
-      }
-      if (value.path.startsWith(basePath)) {
-        value.path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
-      } else {
-        throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
-      }
+      value.relativePath(pluginContext.resources)
     }
   }
 

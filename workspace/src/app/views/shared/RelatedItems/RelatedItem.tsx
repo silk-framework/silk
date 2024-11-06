@@ -23,6 +23,7 @@ import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import ProjectTags from "../ProjectTags/ProjectTags";
+import { SearchTags } from "../SearchList/SearchTags";
 
 interface IProps {
     // The related item to be shown
@@ -110,6 +111,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     )}
                     <Spacing vertical size="tiny" />
                     <ProjectTags tags={relatedItem.tags} query={textQuery} />
+                    <SearchTags searchTags={relatedItem.searchTags} searchText={textQuery} />
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>

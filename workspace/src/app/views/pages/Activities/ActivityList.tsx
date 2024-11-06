@@ -1,7 +1,21 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl, TimeUnits } from "@eccenca/gui-elements";
-import { Card, Tag, TagList, Highlighter, Spacing, OverflowText, Notification, Icon } from "@eccenca/gui-elements";
+import {
+    Card,
+    Tag,
+    TagList,
+    Highlighter,
+    Spacing,
+    OverflowText,
+    Notification,
+    Icon,
+    SilkActivityControlTranslationKeys,
+    SilkActivityControlAction,
+    SilkActivityStatusProps,
+    Markdown,
+    SilkActivityControl,
+    ElapsedDateTimeDisplayUnits,
+} from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Datalist from "../../../views/shared/Datalist";
@@ -21,7 +35,6 @@ import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
 import { SERVE_PATH } from "../../../constants/path";
-import { ActivityControlTranslationKeys } from "@eccenca/gui-elements/src/cmem/ActivityControl/SilkActivityControl";
 import { DIErrorTypes } from "@ducks/error/typings";
 
 interface IActivity extends ISearchResultsServer {
@@ -54,10 +67,10 @@ const ActivityList = () => {
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
 
     // Stores the current status for each activity
-    const [activityStatusMap] = React.useState<Map<string, IActivityStatus>>(new Map());
+    const [activityStatusMap] = React.useState<Map<string, SilkActivityStatusProps>>(new Map());
 
     // Contains the callback function from a specific activity control that needs to be called every time the status changes, so only the affected activity is re-rendered.
-    const [activityUpdateCallback] = React.useState<Map<string, (status: IActivityStatus) => any>>(new Map());
+    const [activityUpdateCallback] = React.useState<Map<string, (status: SilkActivityStatusProps) => any>>(new Map());
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
 
@@ -66,7 +79,7 @@ const ActivityList = () => {
     const isEmpty = !isLoading && !data.length;
 
     const translateActions = React.useCallback(
-        (key: ActivityControlTranslationKeys) => t("widget.TaskActivityOverview.activityControl." + key),
+        (key: SilkActivityControlTranslationKeys) => t("widget.TaskActivityOverview.activityControl." + key),
         [t]
     );
     const emptyListWithoutFilters: boolean = isEmpty && !textQuery && !appliedFacets.length;
@@ -75,7 +88,7 @@ const ActivityList = () => {
     const activityKey = (activity: string, projectId?: string, taskId?: string): string =>
         `${activity}|${projectId ?? ""}|${taskId ?? ""}`;
 
-    const updateActivityStatus = (status: IActivityStatus) => {
+    const updateActivityStatus = (status: SilkActivityStatusProps) => {
         const key = activityKey(status.activity, status.project, status.task);
         activityStatusMap.set(key, status);
         activityUpdateCallback.get(key)?.(status);
@@ -98,18 +111,19 @@ const ActivityList = () => {
     };
 
     // Register an observer from the activity widget
-    const createRegisterForUpdatesFn = (activityKey: string) => (callback: (status: IActivityStatus) => any) => {
-        activityUpdateCallback.set(activityKey, callback);
-        const currentStatus = activityStatusMap.get(activityKey);
-        currentStatus && callback(currentStatus);
-    };
+    const createRegisterForUpdatesFn =
+        (activityKey: string) => (callback: (status: SilkActivityStatusProps) => any) => {
+            activityUpdateCallback.set(activityKey, callback);
+            const currentStatus = activityStatusMap.get(activityKey);
+            currentStatus && callback(currentStatus);
+        };
 
     // Unregister from updates when an activity control is not shown anymore
     const createUnregisterFromUpdateFn = (activityKey: string) => () => {
         activityUpdateCallback.delete(activityKey);
     };
 
-    const executeAction = (activityName: string, action: ActivityAction, project, task) => {
+    const executeAction = (activityName: string, action: SilkActivityControlAction, project, task) => {
         const mainAction = activityActionCreator(activityName, project, task, () => {});
         return mainAction(action);
     };
@@ -182,7 +196,7 @@ const ActivityList = () => {
         <Notification>{t("pages.activities.noActivities", { items: "items" })}</Notification>
     );
 
-    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
 
     return (
         <>
@@ -242,7 +256,7 @@ const ActivityList = () => {
                                 showStartAction={!activity.isCacheActivity && startableActivity}
                                 translateUnits={translateUnits}
                                 showStopAction
-                                executeActivityAction={(action: ActivityAction) =>
+                                executeActivityAction={(action: SilkActivityControlAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)
                                 }
                                 failureReportAction={{

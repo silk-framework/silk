@@ -127,7 +127,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                 "taskLabel" -> JsString(taskOpt.get.label()),
                 PLUGIN_ID -> JsString(pd.id),
                 PLUGIN_LABEL -> JsString(pd.label),
-                TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
+                TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
+                SEARCH_TAGS -> Json.toJson(task.searchTags(task.project.config.prefixes))
               )
             task.data match {
               case ds: GenericDatasetSpec =>

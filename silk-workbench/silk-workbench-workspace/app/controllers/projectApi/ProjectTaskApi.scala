@@ -145,6 +145,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         }
       }
       RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label, task.tags().map(FullTag.fromTag),
+        task.searchTags(project.config.prefixes),
         Some(pd.id),
         Some(project.id),
         readOnly
@@ -437,7 +438,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       relatedItems.filter(relatedItem => // Description is not displayed, so don't search in description.
         TextSearchUtils.matchesSearchTerm(
           searchWords,
-          s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")}".toLowerCase
+          s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")} ${relatedItem.searchTags.mkString(" ")}".toLowerCase
         )
       )
     }

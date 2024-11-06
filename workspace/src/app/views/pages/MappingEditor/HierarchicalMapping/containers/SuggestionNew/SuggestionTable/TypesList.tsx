@@ -2,10 +2,6 @@ import React from "react";
 import { MenuItem, Select } from "@eccenca/gui-elements";
 import { SuggestionTypeValues } from "../suggestion.typings";
 
-// Select<T> is a generic component to work with your data types.
-// In TypeScript, you must first obtain a non-generic reference:
-const TypesSelect = Select.ofType<string>();
-
 const TYPES = ["value", "object"];
 
 interface IProps {
@@ -24,7 +20,7 @@ export default function TypesList({ onChange, selected }: IProps) {
     };
 
     return (
-        <TypesSelect
+        <Select<string>
             filterable={false}
             onItemSelect={onChange}
             items={TYPES}

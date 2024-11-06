@@ -7,6 +7,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
+import org.silkframework.execution.report.{EntitySample, SampleEntitiesSchema}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.validation.ValidationException
@@ -354,7 +355,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     sink match {
       case tripleSink: TripleSink =>
         writeTriples(entities, tripleSink)
-      case EntitySinkWrapper(tripleSink: TripleSink, _, _) =>
+      case EntitySinkWrapper(tripleSink: TripleSink, _) =>
         writeTriples(entities, tripleSink)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")

@@ -26,7 +26,8 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     * Writes a row.
     */
   def writeLine(values: Seq[String]): Unit = {
-    csvWriter.writeRow(values: _*)
+    val sanitizedRow = values.map(CSVSanitizer.sanitize)
+    csvWriter.writeRow(sanitizedRow: _*)
   }
 
   /**
@@ -47,7 +48,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     val writerSettings = new CsvWriterSettings
     writerSettings.getFormat.setLineSeparator("\n")
     if(properties.nonEmpty) {
-      writerSettings.setHeaders(properties.map(_.propertyUri): _*)
+      writerSettings.setHeaders(properties.map(_.propertyUri.uri): _*)
     }
     writerSettings.getFormat.setDelimiter(settings.separator)
 
