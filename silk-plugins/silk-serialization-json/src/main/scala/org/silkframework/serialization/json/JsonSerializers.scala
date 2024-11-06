@@ -467,7 +467,8 @@ object JsonSerializers {
           NodePosition(
             x = numberValue(node , "x").toInt,
             y = numberValue(node, "y").toInt,
-            width = numberValueOption(node, "width").map(_.toInt)
+            width = numberValueOption(node, "width").map(_.toInt),
+            height = numberValueOption(node, "height").map(_.toInt)
           )
         case JsArray(IndexedSeq(JsNumber(x), JsNumber(y)))  =>
           NodePosition(x.toInt, y.toInt)
@@ -480,7 +481,8 @@ object JsonSerializers {
       Json.obj(
         "x" -> value.x,
         "y" -> value.y,
-        "width" -> value.width
+        "width" -> value.width,
+        "height" -> value.height
       )
     }
   }

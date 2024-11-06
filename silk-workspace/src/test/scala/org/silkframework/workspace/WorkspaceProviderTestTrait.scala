@@ -149,7 +149,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                       nodePositions = Map(
                         "lower" -> NodePosition(0, 1),
                         "concat" -> NodePosition(3, 4, Some(250)),
-                        "path" -> NodePosition(5, 6)
+                        "path" -> NodePosition(5, 6, Some(250), Some(300))
                       )
                     ),
                     uiAnnotations = UiAnnotations(
