@@ -4,9 +4,7 @@ import {
     Spacing,
     Tag,
     Tooltip,
-    Icon,
     OverflowText,
-    OverviewItemLine,
     Link,
 } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
@@ -60,6 +58,10 @@ export const LinkRuleNodeEvaluation = ({
 
     const EXAMPLES_MAX = 20;
 
+    const wrappedHtmlContent = (value) => {
+        return <div style={{ whiteSpace: "break-spaces" }}>{value}</div>;
+    };
+
     return evaluationResult ? (
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             {evaluationResult.length > 0 ? (
@@ -84,16 +86,12 @@ export const LinkRuleNodeEvaluation = ({
                                     ) : (
                                         <Tooltip
                                             content={
-                                                <HtmlContentBlock>
-                                                    {value.length === 1 && value[0]}
+                                                <HtmlContentBlock style={{ maxHeight: "45vh", overflow: "hidden" }}>
+                                                    {value.length === 1 && wrappedHtmlContent(value[0])}
                                                     {value.length > 1 && (
                                                         <ul>
                                                             {value.slice(0, EXAMPLES_MAX - 1).map((exampleValue) => {
-                                                                return (
-                                                                    <li>
-                                                                        <OverflowText>{exampleValue}</OverflowText>
-                                                                    </li>
-                                                                );
+                                                                return <li>{wrappedHtmlContent(exampleValue)}</li>;
                                                             })}
                                                             {value.length > EXAMPLES_MAX && (
                                                                 <li>+{value.length - EXAMPLES_MAX}</li>
