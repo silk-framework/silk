@@ -16,7 +16,11 @@ import {
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, {
+    fetchLinkSpec,
+    partialAutoCompleteLinkingInputPaths,
+    updateLinkageRule,
+} from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
@@ -33,6 +37,7 @@ import {
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils } from "@eccenca/gui-elements";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -290,6 +295,30 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         });
     };
 
+    const fetchPartialAutoCompletionResult = React.useCallback(
+        (inputType: "source" | "target") =>
+            async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+                try {
+                    const result = await partialAutoCompleteLinkingInputPaths(
+                        projectId,
+                        linkingTaskId,
+                        inputType,
+                        inputString,
+                        cursorPosition,
+                        200
+                    );
+                    return result.data;
+                } catch (err) {
+                    registerError(
+                        "LinkingRuleEditor_partialAutoCompletion",
+                        t("taskViews.linkRulesEditor.errors.partialPathAutoCompletion.msg"),
+                        err
+                    );
+                }
+            },
+        []
+    );
+
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
             "sourcePathInput",
@@ -386,6 +415,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 taskId={linkingTaskId}
                 fetchRuleData={fetchTaskData}
                 fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+                partialAutoCompletion={fetchPartialAutoCompletionResult}
                 saveRule={saveLinkageRule}
                 getStickyNotes={utils.getStickyNotes}
                 convertRuleOperator={ruleUtils.convertRuleOperator}

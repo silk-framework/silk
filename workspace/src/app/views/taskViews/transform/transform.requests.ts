@@ -3,7 +3,8 @@ import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { IComplexMappingRule, ITransformRule } from "./transform.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import {TaskContext} from "../../shared/projectTaskTabView/projectTaskTabView.typing";
+import { TaskContext } from "../../shared/projectTaskTabView/projectTaskTabView.typing";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Fetches a transform rule. */
 export const requestTransformRule = async (
@@ -19,13 +20,46 @@ export const requestTransformRule = async (
     });
 };
 
+/**
+ * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+ * without replacing the complete path.
+ *
+ * @param projectId
+ * @param transformTaskId
+ * @param rule
+ * @param inputType      Fetches paths either from the source or target input data source.
+ * @param inputString    The path input string
+ * @param cursorPosition The cursor position inside the input string
+ * @param limit          The max number of results to return.
+ */
+export const partialAutoCompleteTransformInputPaths = (
+    projectId: string,
+    transformTaskId: string,
+    rule: string,
+    inputString: string,
+    cursorPosition: number,
+    limit?: number
+): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
+    return fetch({
+        url: legacyTransformEndpoint(
+            `/tasks/${projectId}/${transformTaskId}/rule/${rule}/completions/partialSourcePaths`
+        ),
+        method: "POST",
+        body: {
+            inputString,
+            cursorPosition,
+            maxSuggestions: limit,
+        },
+    });
+};
+
 /** fetch source paths for transform editor */
 export const autoCompleteTransformSourcePath = (
     projectId: string,
     taskId: string,
     ruleId: string,
     term = "",
-    taskContext?: TaskContext, 
+    taskContext?: TaskContext,
     limit = 100
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
@@ -34,8 +68,8 @@ export const autoCompleteTransformSourcePath = (
         ),
         method: "POST",
         body: {
-            taskContext
-        }
+            taskContext,
+        },
     });
 };
 

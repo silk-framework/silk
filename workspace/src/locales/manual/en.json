@@ -703,6 +703,9 @@
     "taskViews": {
         "linkRulesEditor": {
             "errors": {
+                "partialPathAutoCompletion": {
+                    "msg": "Could not fetch partial autocompletion"
+                },
                 "fetchTaskData": {
                     "msg": "An error has occurred while fetching the linking task."
                 },
@@ -752,6 +755,9 @@
                 }
             },
             "errors": {
+                "partialPathAutoCompletion": {
+                    "msg": "Could not fetch partial autocompletion"
+                },
                 "fetchTransformRule": {
                     "msg": "An error has occurred while fetching the transform rule."
                 },

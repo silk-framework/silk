@@ -1,5 +1,5 @@
 import fetch from "../../../services/fetch";
-import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
+import { legacyLinkingEndpoint, legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
