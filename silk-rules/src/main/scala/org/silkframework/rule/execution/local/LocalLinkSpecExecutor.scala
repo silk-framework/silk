@@ -9,7 +9,7 @@ import org.silkframework.execution.typed.LinksEntitySchema
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KEY}
 import org.silkframework.rule.execution._
-import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
@@ -42,7 +42,8 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       linkLimit = Some(adaptedLinkLimit),
       executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
     )
-    val activity = new GenerateLinks(task, sources, None, linkConfig)
+    val taskContext = TaskContext(inputs.map(_.task), pluginContext)
+    val activity = new GenerateLinks(task, sources, None, linkConfig, Some(task.data.rule.withContext(taskContext)))
     var linking = context.child(activity, progressContribution = 1.0).startBlockingAndGetValue()
     if(adaptedLinkLimit < task.linkLimit) {
       linking = linking.copy(matcherWarnings = linking.matcherWarnings ++ Seq(

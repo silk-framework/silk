@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-    IActivityStatus,
-    ActivityAction,
+    SilkActivityStatusProps,
+    SilkActivityControlAction,
     useSilkActivityControl,
-    IActivityControlLayoutProps,
+    SilkActivityControlLayoutProps,
     Markdown,
-    TimeUnits,
+    ElapsedDateTimeDisplayUnits,
 } from "@eccenca/gui-elements";
 import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -23,11 +23,11 @@ interface TaskActivityWidgetProps {
     // Label that should be displayed above the progress bar
     label?: string;
     // display config
-    layoutConfig?: IActivityControlLayoutProps;
+    layoutConfig?: SilkActivityControlLayoutProps;
     // Allows to add logic that is executed when an action button has been clicked and may call the actual action (mainAction) at any time.
     // It may abort the execution of the action by not calling 'mainAction'.
     activityActionPreAction?: {
-        // key is typed as string but should be an ActivityAction (start, cancel, restart), which is not allowed for index signature parameter types
+        // key is typed as string but should be an SilkActivityControlAction (start, cancel, restart), which is not allowed for index signature parameter types
         [key: string]: (mainAction: () => Promise<boolean>) => Promise<boolean>;
     };
     /** If the activity is a cache activity the presentation will be different, e.g. reload button shown etc. */
@@ -35,7 +35,7 @@ interface TaskActivityWidgetProps {
     /**
      * callback executed when an update is received.
      */
-    updateCallback?: (status: IActivityStatus) => void;
+    updateCallback?: (status: SilkActivityStatusProps) => void;
     /** Optional test ID. */
     testId?: string;
 }
@@ -59,12 +59,14 @@ export const useTaskActivityWidget = ({
 }: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
-    const [updatesHandler] = useState<{ updateHandler: ((status: IActivityStatus) => any) | undefined }>({
+    const [updatesHandler] = useState<{ updateHandler: ((status: SilkActivityStatusProps) => any) | undefined }>({
         updateHandler: undefined,
     });
-    const [activityStatus] = useState<{ activityStatus: IActivityStatus | undefined }>({ activityStatus: undefined });
+    const [activityStatus] = useState<{ activityStatus: SilkActivityStatusProps | undefined }>({
+        activityStatus: undefined,
+    });
 
-    const updateActivityStatus = (status: IActivityStatus) => {
+    const updateActivityStatus = (status: SilkActivityStatusProps) => {
         activityStatus.activityStatus = status;
         if (updatesHandler.updateHandler) {
             updatesHandler.updateHandler(status);
@@ -74,7 +76,7 @@ export const useTaskActivityWidget = ({
         }
     };
 
-    const handleError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
+    const handleError = (activityName: string, action: SilkActivityControlAction, error: DIErrorTypes) => {
         registerError(
             `taskActivityWidget-${projectId}-${taskId}-${activityName}-${action}`,
             t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
@@ -83,7 +85,7 @@ export const useTaskActivityWidget = ({
     };
 
     // Callback for the activity control to register for updates
-    const registerForUpdate = (callback: (status: IActivityStatus) => any) => {
+    const registerForUpdate = (callback: (status: SilkActivityStatusProps) => any) => {
         updatesHandler.updateHandler = callback;
     };
 
@@ -108,7 +110,7 @@ export const useTaskActivityWidget = ({
         );
     });
 
-    const executeAction = (action: ActivityAction) => {
+    const executeAction = (action: SilkActivityControlAction) => {
         const preAction = activityActionPreAction[action];
         const originalAction = activityActionCreator(activityName, projectId, taskId, handleError);
         if (preAction !== undefined) {
@@ -131,7 +133,7 @@ export const useTaskActivityWidget = ({
 
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
     // For the elapsed time component, showing when a cache was last updated
-    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+    const translateUnits = (unit: ElapsedDateTimeDisplayUnits) => t("common.units." + unit, unit);
 
     return useSilkActivityControl({
         label,

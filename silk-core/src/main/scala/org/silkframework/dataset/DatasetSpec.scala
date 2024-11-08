@@ -107,6 +107,10 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
       throw UriAttributeNotUniqueException(uriColumn)
     }
   }
+
+  override def searchTags(prefixes: Prefixes): Seq[String] = {
+    plugin.searchTags(prefixes)
+  }
 }
 
 case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]] {

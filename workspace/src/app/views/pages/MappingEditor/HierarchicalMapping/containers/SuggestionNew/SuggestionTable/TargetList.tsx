@@ -8,14 +8,10 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
+    highlighterUtils,
 } from "@eccenca/gui-elements";
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-
-// Select<T> is a generic component to work with your data types.
-// In TypeScript, you must first obtain a non-generic reference:
-const TargetSelect = Select.ofType<ITargetWithSelected>();
 
 interface IProps {
     targets: ITargetWithSelected[];
@@ -42,10 +38,10 @@ export default function TargetList({ targets, onChange }: IProps) {
         if (!inputQuery) {
             setItems(targets);
         } else {
-            const words = extractSearchWords(inputQuery, true);
+            const words = highlighterUtils.extractSearchWords(inputQuery, true);
             const filtered = targets.filter((o) => {
                 const searchIn = `${o?.uri || ""} ${o?.label || ""} ${o?.description || ""}`.toLowerCase();
-                return matchesAllWords(searchIn, words);
+                return highlighterUtils.matchesAllWords(searchIn, words);
             });
             const existingUris = new Set(filtered.map((f) => f.uri));
             if (suggestVocabularyProperties && context.fetchTargetPropertySuggestions) {
@@ -129,7 +125,7 @@ export default function TargetList({ targets, onChange }: IProps) {
     };
 
     return (
-        <TargetSelect
+        <Select<ITargetWithSelected>
             className={"ecc-silk-mapping__suggestionlist__target-select"}
             filterable={suggestVocabularyProperties || targets.length > 1}
             onItemSelect={handleSelectTarget}
@@ -152,6 +148,6 @@ export default function TargetList({ targets, onChange }: IProps) {
             query={inputQuery}
         >
             <Button fill outlined rightIcon="toggler-caretdown" text={itemLabel(selected, context.search)} />
-        </TargetSelect>
+        </Select>
     );
 }
