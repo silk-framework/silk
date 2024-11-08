@@ -505,7 +505,7 @@ export const RuleEditorCanvas = () => {
     const permanentReadOnly = !!ruleEditorUiContext.showRuleOnly;
     return (
         <>
-            <GridColumn full>
+            <GridColumn>
                 <ReactFlow
                     id={modelContext.canvasId}
                     data-test-id={"ruleEditor-react-flow-canvas"}

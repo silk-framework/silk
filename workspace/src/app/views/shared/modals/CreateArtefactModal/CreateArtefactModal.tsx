@@ -8,11 +8,9 @@ import {
     Grid,
     GridColumn,
     GridRow,
-    HelperClasses,
+    ClassNames,
     Highlighter,
-    HtmlContentBlock,
     IconButton,
-    Markdown,
     Notification,
     OverflowText,
     OverviewItem,
@@ -23,8 +21,8 @@ import {
     OverviewItemList,
     SimpleDialog,
     Spacing,
+    highlighterUtils,
 } from "@eccenca/gui-elements";
-import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     IArtefactModal,
@@ -347,7 +345,6 @@ export function CreateArtefactModal() {
             try {
                 if (isValidFields) {
                     const formValues = form.getValues();
-                    console.log({ formValues });
                     const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
                     let dataParameters: any;
                     if (type === "Dataset") {
@@ -659,7 +656,7 @@ export function CreateArtefactModal() {
 
     // Rank title matches higher
     if (searchValue.trim() !== "") {
-        const regex = createMultiWordRegex(extractSearchWords(searchValue), false);
+        const regex = highlighterUtils.createMultiWordRegex(highlighterUtils.extractSearchWords(searchValue), false);
         const titleMatches: IPluginOverview[] = [];
         const nonTitleMatches: IPluginOverview[] = [];
         artefactListWithProject.forEach((artefactItem) => {
@@ -941,7 +938,7 @@ export function CreateArtefactModal() {
                                                         key={artefact.key}
                                                         className={
                                                             toBeAddedKey.current === artefact.key
-                                                                ? HelperClasses.Intent.ACCENT
+                                                                ? ClassNames.Intent.ACCENT
                                                                 : ""
                                                         }
                                                     >
