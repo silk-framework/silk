@@ -297,4 +297,4 @@ export const labelAndOrValueItemRenderer = (
 };
 
 /** At the moment a dependent value must be non-empty, else it is not considered to be set. */
-export const dependentValueIsSet = (value: any): boolean => value != null && `${value}` !== "";
+export const dependentValueIsSet = (value: any): boolean => value != null; //TODO CMEM-5379 && `${value}` !== "";
