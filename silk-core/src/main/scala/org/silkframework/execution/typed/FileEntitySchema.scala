@@ -39,8 +39,7 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
   override def toEntity(entity: FileEntity)(implicit pluginContext: PluginContext): Entity = {
     val path = entity.fileType match {
       case FileType.Project =>
-        //TODO this should use the relativePath method after it has been merged into develop
-        entity.file.path.stripPrefix(pluginContext.resources.basePath).stripPrefix("/").stripPrefix(File.separator)
+        entity.file.relativePath(pluginContext.resources)
       case FileType.Local =>
         entity.file.path
     }
