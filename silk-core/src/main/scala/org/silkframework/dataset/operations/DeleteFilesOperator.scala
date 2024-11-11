@@ -9,9 +9,10 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   description =
     """Removes file resources from the project."""
 )
-case class DeleteFilesOperator(@Param(label = "File matching regex" ,value = "The regex for filtering the file names")
+case class DeleteFilesOperator(@Param(label = "File matching regex",
+  value = "The regex for filtering the file names. The regex needs to match the full path (i.e. including sub-directories) in order for the file to be deleted.")
                                filesRegex: String) extends CustomTask {
-  assert(filesRegex.trim.nonEmpty, "File regex must not be empty!")
+
   /**
     * The input ports and their schemata.
     */

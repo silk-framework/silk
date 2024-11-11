@@ -39,10 +39,15 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
   }
 
   it should "remove files based on a regex" in {
+    // Empty regex does nothing
+    execute(
+      regex = "",
+      existingFiles = Seq("file.csv")
+    ) mustBe List("file.csv")
     execute(
       regex = "file.*\\.csv",
-      existingFiles = Seq("file.csv", "file1.csv", "File1.csv", "files.csv")
-    ) mustBe List("File1.csv")
+      existingFiles = Seq("file.csv", "file1.csv", "File1.csv", "files.csv", "subdir/file.csv")
+    ) mustBe List("File1.csv", "subdir/file.csv")
   }
 
   it should "remove files based on a regex in sub-directories" in {
@@ -50,5 +55,10 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
       regex = "subdir.*",
       existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this")
     ) mustBe List("another", "this")
+    // The regex needs to match the full path
+    execute(
+      regex = "subdir",
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this")
+    ) mustBe List("another", "subdir/File1.csv", "subdir/file.csv", "subdir/file1.csv", "subdir/files.csv", "subdirFile.csv", "this")
   }
 }

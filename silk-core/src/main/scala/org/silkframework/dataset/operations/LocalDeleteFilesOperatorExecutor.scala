@@ -19,7 +19,7 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
     val regex = task.data.filesRegex.trim.r
     val resourceManager = pluginContext.resources
     val filesToDelete = resourceManager.listRecursive
-      .filter(f => regex.findFirstIn(f).isDefined)
+      .filter(f => regex.matches(f))
     for(file <- filesToDelete) {
       resourceManager.delete(file)
       executionReport.increaseEntityCounter()
