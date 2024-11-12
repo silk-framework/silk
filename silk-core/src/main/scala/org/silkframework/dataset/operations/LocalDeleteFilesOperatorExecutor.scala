@@ -1,9 +1,12 @@
 package org.silkframework.dataset.operations
 
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.entity.Entity
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.report.EntitySample
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 
 /** Executes the delete files operator. */
@@ -20,13 +23,19 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
     val resourceManager = pluginContext.resources
     val filesToDelete = resourceManager.listRecursive
       .filter(f => regex.matches(f))
+    executionReport.startNewOutputSamples(DeleteFilesOperator.schema)(pluginContext.prefixes)
     for(file <- filesToDelete) {
       resourceManager.delete(file)
       executionReport.addFile(file)
+      executionReport.addSampleEntity(EntitySample(file))
       executionReport.increaseEntityCounter()
     }
     executionReport.executionDone()
-    None
+    Some(GenericEntityTable(
+      CloseableIterator(filesToDelete.map(filePath => Entity("deletedFile", IndexedSeq(Seq(filePath)), DeleteFilesOperator.schema))),
+      DeleteFilesOperator.schema,
+      task
+    ))
   }
 }
 

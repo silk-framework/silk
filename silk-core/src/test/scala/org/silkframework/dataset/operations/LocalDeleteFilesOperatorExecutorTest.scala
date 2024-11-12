@@ -1,14 +1,13 @@
 package org.silkframework.dataset.operations
 
-import ch.qos.logback.core.testUtil.FileTestUtil
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.LocalExecution
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityExecution, TestUserContextTrait}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
+import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{FileResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager}
 import org.silkframework.util.{ActivityContextMock, FileUtils, MockitoSugar}
 
 import java.nio.file.Files
@@ -24,7 +23,9 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
     val resourceManager = createResourceManager(existingFiles)
     implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
     val activityContext = ActivityContextMock[ExecutionReport]()
-    executor.execute(task, Seq.empty, output = ExecutorOutput.empty, execution = LocalExecution(), context = activityContext)
+    val outputEntities = executor.execute(task, Seq.empty, output = ExecutorOutput.empty, execution = LocalExecution(), context = activityContext)
+    outputEntities mustBe defined
+    outputEntities.get.entities.size mustBe (existingFiles.size - resourceManager.listRecursive.size)
     resourceManager.listRecursive.sorted
   }
 
