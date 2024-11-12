@@ -1,7 +1,7 @@
 package org.silkframework.runtime.templating
 
-import com.typesafe.config.Config
-import org.silkframework.config.ConfigValue
+import com.typesafe.config.{Config, ConfigObject, ConfigValueType, ConfigValue => TypesafeConfigValue}
+import org.silkframework.config.{ConfigValue, InvalidConfigException}
 
 import scala.jdk.CollectionConverters.SetHasAsScala
 
@@ -36,12 +36,25 @@ object GlobalTemplateVariablesConfig {
     val variablesConfigVar = configNamespace + ".global"
     if(config.hasPath(variablesConfigVar)) {
       val variables =
-        for (entry <- config.getConfig(variablesConfigVar).entrySet().asScala.toSeq) yield {
-          TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, None, None, isSensitive = false, globalScope)
+        for (entry <- config.getConfig(variablesConfigVar).root().entrySet().asScala.toSeq) yield {
+          readVariable(entry.getKey, entry.getValue)
         }
       TemplateVariables(variables)
     } else {
       TemplateVariables.empty
+    }
+  }
+
+  private def readVariable(key: String, value: TypesafeConfigValue): TemplateVariable = {
+    value match {
+      case objValue: ConfigObject =>
+        val value = Option(objValue.get("value"))
+          .getOrElse(throw new InvalidConfigException(configNamespace + ".global." + key, objValue.origin(), "Parameter 'value' is missing."))
+        val description = if(objValue.containsKey("description")) Some(objValue.toConfig.getString("description")) else None
+        val isSensitive = if(objValue.containsKey("isSensitive")) objValue.toConfig.getBoolean("isSensitive") else false
+        TemplateVariable(key, value.unwrapped().toString, None, description, isSensitive = isSensitive, globalScope)
+      case _ =>
+        TemplateVariable(key, value.unwrapped().toString, None, None, isSensitive = false, globalScope)
     }
   }
 
