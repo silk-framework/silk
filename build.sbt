@@ -59,7 +59,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.13.12",
+  scalaVersion := "2.13.15",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
