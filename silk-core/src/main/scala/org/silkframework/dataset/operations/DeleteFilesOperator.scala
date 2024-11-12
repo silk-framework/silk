@@ -9,11 +9,13 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   id = "deleteProjectFiles",
   label = "Delete project files",
   description =
-    """Removes file resources from the project based on a regular expression. Outputs one entity for each deleted file with the file path as attribute 'filePath'."""
+    """Removes file resources from the project based on a regular expression."""
 )
 case class DeleteFilesOperator(@Param(label = "File matching regex",
   value = "The regex for filtering the file names. The regex needs to match the full path (i.e. from beginning to end, including sub-directories) in order for the file to be deleted.")
-                               filesRegex: String) extends CustomTask {
+                               filesRegex: String,
+                              @Param(label = "Output deleted files", value = "If enabled the operator outputs entities, one entity for each deleted file, with the path of the file as attribute 'filePath'.")
+                               outputEntities: Boolean = false) extends CustomTask {
 
   /**
     * The input ports and their schemata.
@@ -24,7 +26,7 @@ case class DeleteFilesOperator(@Param(label = "File matching regex",
     * The output port and it's schema.
     * None, if this operator does not generate any output.
     */
-  override def outputPort: Option[Port] = Some(FixedSchemaPort(DeleteFilesOperator.schema))
+  override def outputPort: Option[Port] = if(outputEntities) Some(FixedSchemaPort(DeleteFilesOperator.schema)) else None
 }
 
 object DeleteFilesOperator {

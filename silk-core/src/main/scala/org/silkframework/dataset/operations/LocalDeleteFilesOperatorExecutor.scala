@@ -31,11 +31,15 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
       executionReport.increaseEntityCounter()
     }
     executionReport.executionDone()
-    Some(GenericEntityTable(
-      CloseableIterator(filesToDelete.map(filePath => Entity("deletedFile", IndexedSeq(Seq(filePath)), DeleteFilesOperator.schema))),
-      DeleteFilesOperator.schema,
-      task
-    ))
+    if(task.data.outputEntities) {
+      Some(GenericEntityTable(
+        CloseableIterator(filesToDelete.map(filePath => Entity("deletedFile", IndexedSeq(Seq(filePath)), DeleteFilesOperator.schema))),
+        DeleteFilesOperator.schema,
+        task
+      ))
+    } else {
+      None
+    }
   }
 }
 

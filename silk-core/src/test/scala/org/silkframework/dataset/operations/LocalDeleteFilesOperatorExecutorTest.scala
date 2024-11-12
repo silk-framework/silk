@@ -18,14 +18,18 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
   private val executor = LocalDeleteFilesOperatorExecutor()
 
   /** Returns the still existing files after the operator gets executed sorted. */
-  private def execute(regex: String, existingFiles: Seq[String]): Seq[String] = {
-    val task = PlainTask("task", DeleteFilesOperator(regex))
+  private def execute(regex: String, existingFiles: Seq[String], entityOutput: Boolean): Seq[String] = {
+    val task = PlainTask("task", DeleteFilesOperator(regex, outputEntities = entityOutput))
     val resourceManager = createResourceManager(existingFiles)
     implicit val pluginContext: PluginContext = PluginContext(Prefixes.empty, resourceManager)
     val activityContext = ActivityContextMock[ExecutionReport]()
     val outputEntities = executor.execute(task, Seq.empty, output = ExecutorOutput.empty, execution = LocalExecution(), context = activityContext)
-    outputEntities mustBe defined
-    outputEntities.get.entities.size mustBe (existingFiles.size - resourceManager.listRecursive.size)
+    if(entityOutput) {
+      outputEntities mustBe defined
+      outputEntities.get.entities.size mustBe (existingFiles.size - resourceManager.listRecursive.size)
+    } else {
+      outputEntities must not be defined
+    }
     resourceManager.listRecursive.sorted
   }
 
@@ -43,23 +47,27 @@ class LocalDeleteFilesOperatorExecutorTest extends AnyFlatSpec with Matchers wit
     // Empty regex does nothing
     execute(
       regex = "",
-      existingFiles = Seq("file.csv")
+      existingFiles = Seq("file.csv"),
+      entityOutput = false
     ) mustBe List("file.csv")
     execute(
       regex = "file.*\\.csv",
-      existingFiles = Seq("file.csv", "file1.csv", "File1.csv", "files.csv", "subdir/file.csv")
+      existingFiles = Seq("file.csv", "file1.csv", "File1.csv", "files.csv", "subdir/file.csv"),
+      entityOutput = true
     ) mustBe List("File1.csv", "subdir/file.csv")
   }
 
   it should "remove files based on a regex in sub-directories" in {
     execute(
       regex = "subdir.*",
-      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this")
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this"),
+      entityOutput = true
     ) mustBe List("another", "this")
     // The regex needs to match the full path
     execute(
       regex = "subdir",
-      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this")
+      existingFiles = Seq("another", "subdir/file.csv", "subdir/file1.csv", "subdir/File1.csv", "subdir/files.csv", "subdirFile.csv", "this"),
+      entityOutput = true
     ) mustBe List("another", "subdir/File1.csv", "subdir/file.csv", "subdir/file1.csv", "subdir/files.csv", "subdirFile.csv", "this")
   }
 }
