@@ -22,6 +22,7 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
       .filter(f => regex.matches(f))
     for(file <- filesToDelete) {
       resourceManager.delete(file)
+      executionReport.addFile(file)
       executionReport.increaseEntityCounter()
     }
     executionReport.executionDone()
@@ -31,6 +32,7 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
 
 case class DeleteFilesOperatorExecutionReportUpdater(task: Task[TaskSpec],
                                                      context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private var files = Vector.empty[String]
 
   override def operationLabel: Option[String] = Some("delete files")
 
@@ -41,4 +43,16 @@ case class DeleteFilesOperatorExecutionReportUpdater(task: Task[TaskSpec],
   override def entityProcessVerb: String = "deleted"
 
   override def minEntitiesBetweenUpdates: Int = 1
+
+  def addFile(file: String): Unit = {
+    files = files appended file
+  }
+
+  override def additionalFields(): Seq[(String, String)] = {
+    // files is still null when this method is called in the constructor of ExecutionReportUpdater
+    val deletedFiles = if(files != null) files.mkString(", ") else ""
+    Seq(
+      "Deleted files" -> deletedFiles
+    )
+  }
 }
