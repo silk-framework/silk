@@ -1,5 +1,6 @@
 package controllers.workspace.workspaceRequests
 
+import controllers.workspace.workspaceRequests.CopyTasksRequest.CopyTaskExecutor
 import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
@@ -43,16 +44,14 @@ case class CopyTasksRequest(@Schema(
     */
   def copyProject(sourceProject: String)
                  (implicit userContext: UserContext): CopyTasksResponse = {
-    val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
-    val tasksToCopy = sourceProj.allTasks
-    val targetProj = WorkspaceFactory().workspace.project(targetProject)
-    CopyTasksRequest.copyTasks(sourceProj, tasksToCopy, targetProj, isDryRun, overwriteConfirmed, copyPrefixes.contains(true))
+    val tasksToCopy = WorkspaceFactory().workspace.project(sourceProject).allTasks
+    new CopyTaskExecutor(sourceProject, targetProject, isDryRun, overwriteConfirmed, copyPrefixes.contains(true)).copyTasks(tasksToCopy)
   }
 
   def copyTask(sourceProject: String,
                taskName: String)
               (implicit userContext: UserContext): CopyTasksResponse = {
-    CopyTasksRequest.copyTask(sourceProject, taskName, targetProject, isDryRun, overwriteConfirmed, copyPrefixes.contains(true))
+    new CopyTaskExecutor(sourceProject, targetProject, isDryRun, overwriteConfirmed, copyPrefixes.contains(true)).copyTaskWithDependencies(taskName)
   }
 }
 
@@ -61,112 +60,123 @@ object CopyTasksRequest {
   implicit val jsonFormat: OFormat[CopyTasksRequest] = Json.format[CopyTasksRequest]
 
   /**
-    * Copies a task and all its referenced tasks to the target project.
-    * @param sourceProject      The source project ID.
-    * @param taskName           The task that should be copied from the source project to the target project.
-    * @param targetProject      The target project ID.
-    * @param isDryRun           Only return the response as if the task was copied, but do not actually do any changes.
-    * @param overwriteConfirmed If true, then existing tasks will be overwritten.
-    * @param copyPrefixes       If true, all prefixes from the source project are copied to the target project.
-    * @param taskRenameMap      Specifies how some tasks should be named in the target project.
-    */
-  def copyTask(sourceProject: String,
-               taskName: String,
-               targetProject: String,
-               isDryRun: Boolean,
-               overwriteConfirmed: Boolean,
-               copyPrefixes: Boolean = false,
-               taskRenameMap: Map[Identifier, Identifier] = Map.empty)
-              (implicit userContext: UserContext): CopyTasksResponse = {
-    val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
-    val tasksToCopy = collectTasks(sourceProj, taskName)
-    val targetProj = WorkspaceFactory().workspace.project(targetProject)
-    copyTasks(sourceProj, tasksToCopy, targetProj, isDryRun, overwriteConfirmed, copyPrefixes, taskRenameMap)
-  }
+   * Copies a task and all its referenced tasks to the target project.
+   *
+   * @param sourceProjectName  The source project ID.
+   * @param targetProjectName  The target project ID.
+   * @param isDryRun           Only return the response as if the task was copied, but do not actually do any changes.
+   * @param overwriteConfirmed If true, then existing tasks will be overwritten.
+   * @param copyPrefixes       If true, all prefixes from the source project are copied to the target project.
+   * @param taskRenameMap      Specifies how some tasks should be named in the target project.
+   */
+  class CopyTaskExecutor(sourceProjectName: String,
+                         targetProjectName: String,
+                         isDryRun: Boolean,
+                         overwriteConfirmed: Boolean,
+                         copyPrefixes: Boolean = false,
+                         taskRenameMap: Map[Identifier, Identifier] = Map.empty)
+                        (implicit userContext: UserContext) {
 
-  /**
-    * Copies all provided tasks to the target project.
-    */
-  private def copyTasks(sourceProj: Project,
-                        tasksToCopy: Seq[ProjectTask[_ <: TaskSpec]],
-                        targetProject: Project,
-                        isDryRun: Boolean,
-                        overwriteConfirmed: Boolean,
-                        copyPrefixes: Boolean = false,
-                        taskRenameMap: Map[Identifier, Identifier] = Map.empty)
-                       (implicit userContext: UserContext): CopyTasksResponse = {
-    sourceProj.synchronized {
-      targetProject.synchronized {
-        // Only copy resources if they are at different base paths
-        val copyResources = sourceProj.resources.basePath != targetProject.resources.basePath
+    private val sourceProject = WorkspaceFactory().workspace.project(sourceProjectName)
+    private val targetProject = WorkspaceFactory().workspace.project(targetProjectName)
 
-        // Copy prefixes
-        if(copyPrefixes) {
-          copyAllPrefixes(sourceProj, targetProject)
-        }
+    // Only copy resources if they are at different base paths
+    private val copyResources = sourceProject.resources.basePath != targetProject.resources.basePath
 
-        // Copy only those tags that do not exist in the target project
-        val targetProjectTags = targetProject.tagManager.allTags().map(_.uri).toSet
-        val tagsToCopy = tasksToCopy.flatMap(_.metaData.tags)
-          .filter(tag => !targetProjectTags.contains(tag.uri))
-          .map(tagUri => sourceProj.tagManager.getTag(tagUri.uri))
-        for (tag <- tagsToCopy) {
-          targetProject.tagManager.putTag(tag)
-        }
+    /**
+     * Copies a task and all its referenced tasks.
+     *
+     * @param taskName The task that should be copied from the source project to the target project.
+     */
+    def copyTaskWithDependencies(taskName: String): CopyTasksResponse = {
+      val tasksToCopy = collectTasks(sourceProject, taskName)
+      copyTasks(tasksToCopy)
+    }
 
-        // Tasks to be overwritten
-        val overwrittenTasks =
-          for {task <- tasksToCopy
-               overwrittenTask <- targetProject.anyTaskOption(taskRenameMap.getOrElse(task.id, task.id))} yield TaskToBeCopied.fromTask(task, Some(overwrittenTask))
-
-        // Copy tasks
-        if (!isDryRun) {
-          if (overwrittenTasks.nonEmpty && !overwriteConfirmed) {
-            throw BadUserInputException("Please confirm that you intend to overwrite tasks in the target project.")
+    /**
+     * Copies all provided tasks to the target project.
+     */
+    def copyTasks(tasksToCopy: Seq[ProjectTask[_ <: TaskSpec]]): CopyTasksResponse = {
+      sourceProject.synchronized {
+        targetProject.synchronized {
+          // Copy prefixes
+          if(copyPrefixes) {
+            copyAllPrefixes()
           }
 
-          for (task <- tasksToCopy) {
-            val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProj).copy(prefixes = Prefixes.empty))
-            val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject))
-            targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
-            // Copy resources
-            if (copyResources) {
-              for (resource <- task.referencedResources if resource.exists) {
-                targetProject.resources.get(resource.name).writeResource(resource)
-              }
+          // Copy only those tags that do not exist in the target project
+          copyTags(tasksToCopy)
+
+          // Tasks to be overwritten
+          val overwrittenTasks =
+            for {task <- tasksToCopy
+                 overwrittenTask <- targetProject.anyTaskOption(taskRenameMap.getOrElse(task.id, task.id))} yield TaskToBeCopied.fromTask(task, Some(overwrittenTask))
+
+          // Copy tasks
+          if (!isDryRun) {
+            if (overwrittenTasks.nonEmpty && !overwriteConfirmed) {
+              throw BadUserInputException("Please confirm that you intend to overwrite tasks in the target project.")
+            }
+            for (task <- tasksToCopy) {
+              copyTask(task)
             }
           }
-        }
 
-        // Generate response
-        val overwrittenTaskIds = overwrittenTasks.map(_.id).toSet
-        val copiedTasks = for (task <- tasksToCopy if !overwrittenTaskIds.contains(task.id)) yield TaskToBeCopied.fromTask(task, None)
-        CopyTasksResponse(copiedTasks.toSet, overwrittenTasks.toSet)
+          // Generate response
+          val overwrittenTaskIds = overwrittenTasks.map(_.id).toSet
+          val copiedTasks = for (task <- tasksToCopy if !overwrittenTaskIds.contains(task.id)) yield TaskToBeCopied.fromTask(task, None)
+          CopyTasksResponse(copiedTasks.toSet, overwrittenTasks.toSet)
+        }
       }
     }
-  }
 
-  private def copyAllPrefixes(sourceProject: Project, targetProject: Project)
-                             (implicit userContext: UserContext): Unit = {
-    // Make sure that a prefix is not already defined with a different namespace
-    val sourcePrefixes = sourceProject.config.prefixes.prefixMap
-    val targetPrefixes = targetProject.config.prefixes.prefixMap
-    val inconsistentPrefixes = for(key <- sourcePrefixes.keySet intersect targetPrefixes.keySet if sourcePrefixes(key) != targetPrefixes(key)) yield key
-    if(inconsistentPrefixes.nonEmpty) {
-      throw new InconsistentPrefixesException(inconsistentPrefixes)
+    private def copyAllPrefixes(): Unit = {
+      // Make sure that a prefix is not already defined with a different namespace
+      val sourcePrefixes = sourceProject.config.prefixes.prefixMap
+      val targetPrefixes = targetProject.config.prefixes.prefixMap
+      val inconsistentPrefixes = for(key <- sourcePrefixes.keySet intersect targetPrefixes.keySet if sourcePrefixes(key) != targetPrefixes(key)) yield key
+      if(inconsistentPrefixes.nonEmpty) {
+        throw new InconsistentPrefixesException(inconsistentPrefixes)
+      }
+
+      // Update prefixes of target project
+      targetProject.config = targetProject.config.copy(prefixes = targetProject.config.prefixes ++ sourcePrefixes)
     }
 
-    // Update prefixes of target project
-    targetProject.config = targetProject.config.copy(prefixes = targetProject.config.prefixes ++ sourcePrefixes)
-  }
+    /**
+     * Copies only those tags that do not exist in the target project
+     */
+    private def copyTags(tasksToCopy: Seq[ProjectTask[_ <: TaskSpec]]): Unit = {
+      val targetProjectTags = targetProject.tagManager.allTags().map(_.uri).toSet
+      val tagsToCopy = tasksToCopy.flatMap(_.metaData.tags)
+        .filter(tag => !targetProjectTags.contains(tag.uri))
+        .map(tagUri => sourceProject.tagManager.getTag(tagUri.uri))
+      for (tag <- tagsToCopy) {
+        targetProject.tagManager.putTag(tag)
+      }
+    }
 
-  /**
-    * Returns a task and all its referenced tasks.
-    */
-  private def collectTasks(project: Project, taskName: Identifier)
-                          (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    val task = project.anyTask(taskName)
-    Seq(task) ++ task.data.referencedTasks.flatMap(collectTasks(project, _))
+    private def copyTask(task: ProjectTask[_ <: TaskSpec]): Unit = {
+      val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProject).copy(prefixes = Prefixes.empty))
+      val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject))
+      targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
+      // Copy resources
+      if (copyResources) {
+        for (resource <- task.referencedResources if resource.exists) {
+          targetProject.resources.get(resource.name).writeResource(resource)
+        }
+      }
+    }
+
+    /**
+     * Returns a task and all its referenced tasks.
+     */
+    private def collectTasks(project: Project, taskName: Identifier)
+                            (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+      val task = project.anyTask(taskName)
+      Seq(task) ++ task.data.referencedTasks.flatMap(collectTasks(project, _))
+    }
+
   }
 
   class InconsistentPrefixesException(val prefixes: Set[String])
