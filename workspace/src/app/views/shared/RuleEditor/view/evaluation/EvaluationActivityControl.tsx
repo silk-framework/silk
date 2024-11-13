@@ -16,6 +16,7 @@ interface EvaluationActivityControlProps {
     evaluationResultsShown?: boolean;
     evaluationResultsShownToggleButton?: ActivityControlWidgetAction;
     manualStartButton?: ActivityControlWidgetAction;
+    ruleType?: "linking" | "transform";
 }
 
 /** Displays evaluation score and buttons to manually start evaluation for a rule. */
@@ -26,12 +27,14 @@ export const EvaluationActivityControl = ({
     evaluationResultsShown,
     evaluationResultsShownToggleButton,
     manualStartButton,
+    ruleType,
 }: EvaluationActivityControlProps) => {
     const [t] = useTranslation();
+    const isLinkingEvaluation = ruleType === "linking";
 
     const Menu = () => {
         const actionButtons = [] as ActivityControlWidgetAction[];
-        if (referenceLinksUrl) {
+        if (isLinkingEvaluation && referenceLinksUrl) {
             actionButtons.push({
                 "data-test-id": "open-reference-links-ui",
                 icon: "item-edit",
@@ -82,7 +85,7 @@ export const EvaluationActivityControl = ({
                 {children}
             </Tooltip>
         );
-    } else if (!!evaluationResultsShown) {
+    } else if (isLinkingEvaluation && !!evaluationResultsShown) {
         activityInfo = {
             ...activityInfo,
             statusMessage: t("RuleEditor.evaluation.scoreWidget.noScore"),

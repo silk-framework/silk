@@ -723,6 +723,9 @@
                 },
                 "startEvaluation": {
                     "msg": "Could not fetch evaluation results."
+                },
+                "beforeStartEvaluation": {
+                    "msg": "Could not start evaluation."
                 }
             },
             "cacheWidgets": {
