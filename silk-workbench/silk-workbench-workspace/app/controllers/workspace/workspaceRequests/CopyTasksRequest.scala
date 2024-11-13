@@ -4,7 +4,9 @@ import controllers.workspace.workspaceRequests.CopyTasksRequest.CopyTaskExecutor
 import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables}
+import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -158,13 +160,29 @@ object CopyTasksRequest {
 
     private def copyTask(task: ProjectTask[_ <: TaskSpec]): Unit = {
       val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProject).copy(prefixes = Prefixes.empty))
-      val clonedTaskSpec = task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject))
+      val currentVariables = targetProject.templateVariables.all
+      val clonedTaskSpec = copyMissingVariables { task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject)) }
       targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
       // Copy resources
       if (copyResources) {
         for (resource <- task.referencedResources if resource.exists) {
           targetProject.resources.get(resource.name).writeResource(resource)
         }
+      }
+    }
+
+    //TODO check if variable already exists in target project
+    private def copyMissingVariables[T](f: => T): T = {
+      try {
+        f
+      } catch {
+        case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
+          for(missingVar <- unboundEx.missingVars if missingVar.scope == TemplateVariableScopes.project) {
+            val sourceVariable = sourceProject.templateVariables.get(missingVar.name)
+            val newVariables = (targetProject.templateVariables.all merge TemplateVariables(Seq(sourceVariable))).resolved(GlobalTemplateVariables.all)
+            targetProject.templateVariables.put(newVariables)
+          }
+          f
       }
     }
 

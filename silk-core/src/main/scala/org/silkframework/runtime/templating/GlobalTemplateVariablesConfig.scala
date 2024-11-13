@@ -13,11 +13,6 @@ object GlobalTemplateVariablesConfig {
   private final val configNamespace: String = "config.variables"
 
   /**
-    * Global template variables are nested under this name.
-    */
-  final val globalScope = "global"
-
-  /**
     * The configured template engine.
     */
   private val engine: ConfigValue[TemplateEngine] = (config: Config) => {
@@ -37,7 +32,7 @@ object GlobalTemplateVariablesConfig {
     if(config.hasPath(variablesConfigVar)) {
       val variables =
         for (entry <- config.getConfig(variablesConfigVar).entrySet().asScala.toSeq) yield {
-          TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, None, None, isSensitive = false, globalScope)
+          TemplateVariable(entry.getKey, entry.getValue.unwrapped().toString, None, None, isSensitive = false, TemplateVariableScopes.global)
         }
       TemplateVariables(variables)
     } else {
@@ -67,7 +62,7 @@ object GlobalTemplateVariables extends TemplateVariablesReader with Serializable
   /**
     * The available variable scopes.
     */
-  override def scopes: Set[String] = Set(GlobalTemplateVariablesConfig.globalScope)
+  override def scopes: Set[String] = Set(TemplateVariableScopes.global)
 
   /**
     * Retrieves all template variables.
