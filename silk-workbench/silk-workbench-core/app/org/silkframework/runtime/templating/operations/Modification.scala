@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterTemplateValue, ParameterValues, PluginContext}
 import org.silkframework.runtime.templating.exceptions._
-import org.silkframework.runtime.templating.{InMemoryTemplateVariablesReader, TemplateVariables}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, InMemoryTemplateVariablesReader, TemplateVariables}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
 
@@ -57,7 +57,8 @@ abstract class Modification {
   }
 
   private def updateTasks(newVariables: TemplateVariables)(implicit user: UserContext): Iterable[Identifier] = {
-    val currentVariables = project.templateVariables.all
+    val allCurrentVariables = project.combinedTemplateVariables.all
+    val allNewVariables = GlobalTemplateVariables.all merge newVariables
 
     val currentContext: PluginContext = PluginContext.fromProject(project)
     val newContext: PluginContext =
@@ -65,12 +66,12 @@ abstract class Modification {
         resources = project.resources,
         user = user,
         projectId = Some(project.config.id),
-        templateVariables = InMemoryTemplateVariablesReader(newVariables, currentContext.templateVariables.scopes))
+        templateVariables = InMemoryTemplateVariablesReader(allNewVariables, currentContext.templateVariables.scopes))
 
     val updatedTasks = mutable.Buffer[(Identifier, TaskSpec)]()
     for (task <- project.allTasks) {
       try {
-        if (hasUpdatedTemplateValues(task.parameters(currentContext), currentVariables, newVariables)) {
+        if (hasUpdatedTemplateValues(task.parameters(currentContext), allCurrentVariables, allNewVariables)) {
           updatedTasks.append((task.id, task.withParameters(task.parameters(currentContext), dropExistingValues = true)(newContext)))
         }
       } catch {
