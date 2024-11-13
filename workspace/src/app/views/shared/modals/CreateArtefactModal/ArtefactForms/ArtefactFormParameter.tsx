@@ -218,9 +218,9 @@ export const ArtefactFormParameter = ({
                             projectId={projectId}
                             parameterId={parameterId}
                             initialValue={
-                                valueState.current.templateValueBeforeSwitch ??
-                                (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ??
-                                initialValue ??
+                                valueState.current.templateValueBeforeSwitch ||
+                                (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ||
+                                initialValue ||
                                 ""
                             }
                             multiline={!!multiline}
