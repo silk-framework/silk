@@ -1534,7 +1534,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
         languageFilterEnabled,
-        allowFlexibleWidth: ruleEditorContext.allowFlexibleWidth ?? false,
+        allowFlexibleSize: ruleEditorContext.allowFlexibleSize ?? false,
         changeNodeSize: changeSize,
     });
 

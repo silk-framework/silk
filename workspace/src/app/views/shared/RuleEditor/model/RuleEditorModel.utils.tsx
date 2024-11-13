@@ -74,7 +74,7 @@ export interface IOperatorCreateContext {
     /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
     languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
     /** allow the width of nodes to be adjustable */
-    allowFlexibleWidth?: boolean;
+    allowFlexibleSize?: boolean;
     /** change node size */
     changeNodeSize: (nodeId: string, newNodeDimensions: NodeDimensions) => void;
 }
@@ -166,16 +166,17 @@ function createOperatorNode(
             : undefined,
     };
 
-    if (operatorContext.allowFlexibleWidth) {
+    if (operatorContext.allowFlexibleSize) {
         data = {
             ...data,
             onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
             resizeDirections: { right: true },
-            resizeMaxWidth: 500,
+            resizeMaxDimensions: { width: 500 },
+            nodeDimensions: {
+                width: node.dimension?.width ?? undefined, // if it doesn't then set to undefined instead of null
+                height: node.dimension?.height ?? undefined,
+            } as NodeDimensions,
         };
-        if (node.dimension?.width) {
-            data = { ...data, nodeDimensions: { width: node.dimension.width } as NodeDimensions };
-        }
     }
 
     return {

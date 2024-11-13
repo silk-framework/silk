@@ -165,7 +165,7 @@ export const TransformRuleEditor = ({
                 node.dimension = {
                     ...node.dimension,
                     width: pos.width,
-                    height: null,
+                    height: pos.height,
                 };
             }
         });
@@ -271,7 +271,7 @@ export const TransformRuleEditor = ({
                 getStickyNotes={getStickyNotes}
                 additionalRuleOperators={[sourcePathInput()]}
                 validateConnection={ruleUtils.validateConnection}
-                allowFlexibleWidth
+                allowFlexibleSize
                 tabs={tabs}
                 showRuleOnly={false}
                 initialFitToViewZoomLevel={initialFitToViewZoomLevel}

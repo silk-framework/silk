@@ -474,6 +474,7 @@ const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
                 x: Math.round(node.position.x),
                 y: Math.round(node.position.y),
                 width: node.dimension?.width || null,
+                height: node.dimension?.height || null,
             };
         }
     });

@@ -89,8 +89,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     ) => Map<string, DatasetCharacteristics> | Promise<Map<string, DatasetCharacteristics>>;
     /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
     inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
-    /** allow the width of nodes to be adjustable */
-    allowFlexibleWidth?: boolean;
+    /** allow the width and height of nodes to be adjustable */
+    allowFlexibleSize?: boolean;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -120,7 +120,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     instanceId,
     fetchDatasetCharacteristics,
     inputPathPluginPathType,
-    allowFlexibleWidth,
+    allowFlexibleSize,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -281,7 +281,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 instanceId,
                 datasetCharacteristics,
                 inputPathPluginPathType,
-                allowFlexibleWidth,
+                allowFlexibleSize,
             }}
         >
             <ReactFlowHotkeyContext.Provider

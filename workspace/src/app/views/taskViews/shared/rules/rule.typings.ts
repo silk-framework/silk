@@ -46,6 +46,7 @@ export interface RuleLayout {
             x: number;
             y: number;
             width: number | null;
+            height: number | null;
         };
     };
 }
