@@ -23,7 +23,6 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
     val resourceManager = pluginContext.resources
     val filesToDelete = resourceManager.listRecursive
       .filter(f => regex.matches(f))
-    executionReport.startNewOutputSamples(DeleteFilesOperator.schema)(pluginContext.prefixes)
     for(file <- filesToDelete) {
       resourceManager.delete(file)
       executionReport.addFile(file)
@@ -32,6 +31,7 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
     }
     executionReport.executionDone()
     if(task.data.outputEntities) {
+      executionReport.startNewOutputSamples(DeleteFilesOperator.schema)(pluginContext.prefixes)
       Some(GenericEntityTable(
         CloseableIterator(filesToDelete.map(filePath => Entity("deletedFile", IndexedSeq(Seq(filePath)), DeleteFilesOperator.schema))),
         DeleteFilesOperator.schema,
