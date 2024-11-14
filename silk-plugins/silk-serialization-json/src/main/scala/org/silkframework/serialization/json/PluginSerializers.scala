@@ -90,7 +90,7 @@ object PluginSerializers {
                 // If no JSON format is found, use the default serialization for plugins
                 value match {
                   case plugin: AnyPlugin =>
-                    writeParameters(plugin.parameters)
+                    writeParameters(plugin.parameters, failOnInvalidTemplates)
                   case _: AnyRef =>
                     throw new RuntimeException(s"Plugin parameter '$value' cannot be serialized to JSON because it's not a plugin itself and no custom JSON format has been found.")
                 }
