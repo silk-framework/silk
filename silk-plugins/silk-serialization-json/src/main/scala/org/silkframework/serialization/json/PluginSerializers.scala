@@ -82,7 +82,20 @@ object PluginSerializers {
             }
           case (key, parameterObjectValue: ParameterObjectValue) =>
             val value = parameterObjectValue.value(writeContext)
-            (key, Serialization.formatForDynamicType[JsValue](value.getClass).write(value))
+            // First try to find a custom JSON format
+            val valueJson = Serialization.formatForDynamicTypeOption[JsValue](value.getClass) match {
+              case Some(format) =>
+                format.write(value)
+              case None =>
+                // If no JSON format is found, use the default serialization for plugins
+                value match {
+                  case plugin: AnyPlugin =>
+                    writeParameters(plugin.parameters)
+                  case _: AnyRef =>
+                    throw new RuntimeException(s"Plugin parameter '$value' cannot be serialized to JSON because it's not a plugin itself and no custom JSON format has been found.")
+                }
+            }
+            (key, valueJson)
           case (key, values: ParameterValues) =>
             (key, writeParameters(values, failOnInvalidTemplates))
         }
