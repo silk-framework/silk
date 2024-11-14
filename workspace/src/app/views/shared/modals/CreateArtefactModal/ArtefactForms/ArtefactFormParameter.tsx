@@ -218,6 +218,7 @@ export const ArtefactFormParameter = ({
                             projectId={projectId}
                             parameterId={parameterId}
                             initialValue={
+                                valueState.current.currentTemplateValue ??
                                 valueState.current.templateValueBeforeSwitch ??
                                 (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ??
                                 initialValue ??
