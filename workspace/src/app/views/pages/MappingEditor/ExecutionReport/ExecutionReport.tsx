@@ -23,8 +23,9 @@ import MappingsTree from "../HierarchicalMapping/containers/MappingsTree";
 import { SampleError } from "../../../shared/SampleError/SampleError";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../plugins/PluginRegistry";
 import { DataPreviewProps } from "../../../plugins/plugin.types";
-import { ExecutionReportResponse, OutputEntitiesSample } from "./report-typings";
+import { ExecutionReportResponse, OutputEntitiesSample, TypeRuleData } from "./report-typings";
 import { useTranslation } from "react-i18next";
+import { MAPPING_RULE_TYPE_OBJECT } from "../HierarchicalMapping/utils/constants";
 
 interface ExecutionReportProps {
     /** The execution report to render. */
@@ -190,21 +191,44 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         );
     };
 
+    // Returns all type rules associated with the mappingRule
+    const typeRules = (mappingRule: any): Map<string, TypeRuleData[]> => {
+        const m = new Map<string, TypeRuleData[]>();
+        const traverse = (rule: any): void => {
+            const rules = rule.rules;
+            if (rules.typeRules != null) {
+                m.set(
+                    rule.id,
+                    rules.typeRules.map((r) => ({ id: r.id, typeRuleId: r.typeUri }))
+                );
+            }
+            if (rules.propertyRules != null) {
+                rules.propertyRules.filter(({ type }) => type === MAPPING_RULE_TYPE_OBJECT).forEach((r) => traverse(r));
+            }
+        };
+        if (mappingRule) {
+            traverse(mappingRule);
+        }
+        return m;
+    };
+
     const renderTransformReport = () => {
+        const ruleValidationIcons = generateIcons();
+        const mappingRule = executionReport?.task.data.parameters.mappingRule;
         return (
             <Grid condensed>
                 <GridRow>
                     <GridColumn medium>
                         <MappingsTree
                             currentRuleId={currentRuleId ?? "root"}
-                            ruleTree={executionReport?.task.data.parameters.mappingRule}
+                            ruleTree={mappingRule}
                             showValueMappings={true}
                             handleRuleNavigation={onRuleNavigation}
-                            ruleValidation={generateIcons()}
+                            ruleValidation={ruleValidationIcons}
                             trackRuleInUrl={trackRuleInUrl}
                         />
                     </GridColumn>
-                    <GridColumn>{renderRuleReport()}</GridColumn>
+                    <GridColumn>{renderRuleReport(ruleValidationIcons)}</GridColumn>
                 </GridRow>
             </Grid>
         );
@@ -273,8 +297,8 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         }
     };
 
-    const generateIcons = () => {
-        let ruleIcons = Object.create(null);
+    const generateIcons = (): Record<string, "ok" | "warning"> => {
+        let ruleIcons: Record<string, "ok" | "warning"> = Object.create(null);
         for (let [ruleId, ruleResults] of Object.entries(executionReport?.ruleResults ?? {})) {
             if (ruleResults.errorCount === 0) {
                 ruleIcons[ruleId] = "ok";
@@ -285,29 +309,48 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         return ruleIcons;
     };
 
-    const renderRuleReport = () => {
-        const ruleResults = currentRuleId ? executionReport?.ruleResults?.[currentRuleId] : undefined;
+    const renderRuleReport = (ruleValidation: Record<string, "ok" | "warning">) => {
+        const ruleId = currentRuleId ?? "root";
+        const mappingRule = executionReport?.task.data.parameters.mappingRule;
+        const typeRulesPerContainerRule = typeRules(mappingRule);
+        const ruleResults = executionReport?.ruleResults?.[ruleId];
         let title;
+        let typeRulesWithIssues: TypeRuleData[] = [];
         const showURI = !!executionReport?.executionReportContext?.entityUriOutput;
-        if (ruleResults === undefined) {
-            title = t("ExecutionReport.transform.messages.selectMapping");
-        } else if (ruleResults.errorCount === 0) {
-            title = t("ExecutionReport.transform.messages.noIssues");
-        } else {
-            title = t("ExecutionReport.transform.messages.validationIssues", { errors: ruleResults.errorCount });
+        if (ruleResults) {
+            if (ruleResults.errorCount === 0) {
+                title = t("ExecutionReport.transform.messages.noIssues");
+            } else {
+                const errorCount = `${ruleResults.errorCount}`;
+                title = t("ExecutionReport.transform.messages.validationIssues", { errors: errorCount });
+            }
         }
+        // Check type rules
+        const typeRulesOfRule = typeRulesPerContainerRule.get(ruleId) ?? [];
+        typeRulesWithIssues = typeRulesOfRule.filter(
+            (typeRuleId) => ruleValidation && ruleValidation[typeRuleId.id] === "warning"
+        );
         return (
             <Section className="ecc-silk-mapping__treenav">
-                <Notification
-                    neutral={ruleResults === undefined}
-                    success={ruleResults?.errorCount === 0}
-                    warning={(ruleResults?.errorCount ?? 0) > 0}
-                >
-                    {title}
-                </Notification>
+                {typeRulesWithIssues.length ? (
+                    <Notification data-test-id={"type-rule-validation-issues"} warning={true}>
+                        {t("ExecutionReport.transform.messages.InvalidTypeUris", {
+                            typeUris: typeRulesWithIssues.map((r) => r.typeRuleId).join(", "),
+                        })}
+                    </Notification>
+                ) : null}
+                {title ? (
+                    <Notification
+                        neutral={ruleResults === undefined}
+                        success={ruleResults?.errorCount === 0}
+                        warning={(ruleResults?.errorCount ?? 0) > 0}
+                    >
+                        {title}
+                    </Notification>
+                ) : null}
                 {ruleResults !== undefined && ruleResults.errorCount > 0 && renderRuleErrors(ruleResults)}
                 <Spacing size={"small"} />
-                {renderEntityPreview(currentRuleId ?? "root", showURI)}
+                {renderEntityPreview(ruleId, showURI)}
             </Section>
         );
     };

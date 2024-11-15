@@ -95,13 +95,16 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
         [data, currentRuleId]
     );
 
-    const renderRuleIcon = (ruleId) => {
-        if (!ruleValidation || ruleValidation[ruleId] === undefined) {
+    const renderRuleIcon = (ruleIds: string[]) => {
+        const rulesWithValidation = ruleIds.filter((ruleId) => ruleValidation && ruleValidation[ruleId] !== undefined);
+        if (rulesWithValidation.length === 0) {
             return null;
-        } else if (ruleValidation[ruleId] === "ok") {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
-        } else {
+        } else if (
+            rulesWithValidation.findIndex((ruleId) => ruleValidation && ruleValidation[ruleId] === "warning") > -1
+        ) {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />;
+        } else {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
         }
     };
 
@@ -118,6 +121,10 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             }
 
             const childNodes = allRules.filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT);
+            const ruleIdsToValidate = [id];
+            if (rules.typeRules != null) {
+                ruleIdsToValidate.push(...rules.typeRules.map((r) => r.id));
+            }
 
             const label = (
                 <div
@@ -130,7 +137,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                         minimal
                         fill
                         active={currentRuleId === id}
-                        icon={renderRuleIcon(id) ?? undefined}
+                        icon={renderRuleIcon(ruleIdsToValidate) ?? undefined}
                         className="ecc-silk-mapping__treenav--item-handler"
                         data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
                         onClick={() => {
