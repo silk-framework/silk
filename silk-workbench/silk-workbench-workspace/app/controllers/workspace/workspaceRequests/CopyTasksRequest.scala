@@ -160,7 +160,6 @@ object CopyTasksRequest {
 
     private def copyTask(task: ProjectTask[_ <: TaskSpec]): Unit = {
       val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProject).copy(prefixes = Prefixes.empty))
-      val currentVariables = targetProject.templateVariables.all
       val clonedTaskSpec = copyMissingVariables { task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject)) }
       targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
       // Copy resources
@@ -171,7 +170,6 @@ object CopyTasksRequest {
       }
     }
 
-    //TODO check if variable already exists in target project
     private def copyMissingVariables[T](f: => T): T = {
       try {
         f
@@ -179,11 +177,41 @@ object CopyTasksRequest {
         case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
           for(missingVar <- unboundEx.missingVars if missingVar.scope == TemplateVariableScopes.project) {
             val sourceVariable = sourceProject.templateVariables.get(missingVar.name)
-            val newVariables = (targetProject.templateVariables.all merge TemplateVariables(Seq(sourceVariable))).resolved(GlobalTemplateVariables.all)
+            val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withFirst(sourceVariable))
             targetProject.templateVariables.put(newVariables)
           }
           f
       }
+    }
+
+    /**
+     * Tries to resolve template variables while adding missing variables from the source project.
+     */
+    private def resolveAndAddMissingVariables(variables: TemplateVariables): TemplateVariables = {
+      var currentVariables = variables
+      var resolvedVariables: Option[TemplateVariables] = None
+      var iteration = 0
+      while(resolvedVariables.isEmpty) {
+        try {
+          resolvedVariables = Some(currentVariables.resolved(GlobalTemplateVariables.all))
+        } catch {
+          case ex: TemplateVariablesEvaluationException =>
+            // We only try a number of times in case of loops
+            iteration += 1
+            if(iteration > 10) {
+              throw new RuntimeException("Cannot copy all dependent variables after 10 iterations", ex)
+            }
+            // Add all missing variables before trying again
+            ex.issues.collect {
+              case TemplateVariableEvaluationException(_, unboundEx: UnboundVariablesException) =>
+                for(missingVarName <- unboundEx.missingVars if missingVarName.scope == TemplateVariableScopes.project && !currentVariables.map.contains(missingVarName.name)) {
+                  val missingVar = sourceProject.templateVariables.get(missingVarName.name)
+                  currentVariables = currentVariables.withFirst(missingVar)
+                }
+            }
+        }
+      }
+      resolvedVariables.get
     }
 
     /**

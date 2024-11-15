@@ -74,6 +74,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
     TemplateVariables(variables ++ other.variables)
   }
 
+  /**
+   * Returns a copy with an added variable at the beginning.
+   */
+  def withFirst(variable: TemplateVariable): TemplateVariables = {
+    TemplateVariables(variable +: variables)
+  }
+
   private def validate(): Unit = {
     val duplicateNames = variables.groupBy(_.scopedName).filter(_._2.size > 1).keys
     if (duplicateNames.nonEmpty) {
