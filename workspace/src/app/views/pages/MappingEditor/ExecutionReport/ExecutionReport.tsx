@@ -52,9 +52,9 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
         }
     }, [executionReport?.ruleResults]);
 
-    const onRuleNavigation = ({ newRuleId }: { newRuleId: string }) => {
+    const onRuleNavigation = React.useCallback(({ newRuleId }: { newRuleId: string }) => {
         setCurrentRuleId(newRuleId);
-    };
+    }, []);
 
     const renderSummary = () => {
         let title;
