@@ -170,6 +170,9 @@ object CopyTasksRequest {
       }
     }
 
+    /**
+     * Executes a function and copies all missing variables if an UnboundVariablesException is raised.
+     */
     private def copyMissingVariables[T](f: => T): T = {
       try {
         f
