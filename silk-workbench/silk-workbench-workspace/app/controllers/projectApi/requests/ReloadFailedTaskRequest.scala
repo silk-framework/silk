@@ -49,7 +49,8 @@ object OriginalTaskDataResponse {
     override def write(value: OriginalTaskData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         PLUGIN_ID -> value.pluginId,
-        PARAMETER_VALUES -> ParameterValuesJsonFormat.write(value.parameterValues)
+        // Invalid templates should not fail the evaluation to give the user a chance to fix the template.
+        PARAMETER_VALUES -> ParameterValuesJsonFormat.write(value.parameterValues, failOnInvalidTemplates = false)
       )
     }
   }

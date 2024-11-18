@@ -10,7 +10,7 @@ case class UpdateVariablesModification(project: Project, updatedVariables: Templ
   override def operation: String = s"Updated the following variables ${updatedVariables.variables.map(_.name).mkString("'", "', '", "'")}"
 
   override protected def updateVariables(currentVariables: TemplateVariables): TemplateVariables = {
-    updatedVariables.resolved(GlobalTemplateVariables.all)
+    updatedVariables.resolved(GlobalTemplateVariables.all.withoutSensitiveVariables())
   }
 
   override protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException = {

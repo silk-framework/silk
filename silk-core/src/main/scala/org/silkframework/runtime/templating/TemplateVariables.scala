@@ -14,7 +14,7 @@ import scala.xml.Node
   */
 case class TemplateVariables(variables: Seq[TemplateVariable]) {
 
-  val map: Map[String, TemplateVariable] = variables.map(v => (v.name, v)).toMap
+  lazy val map: Map[String, TemplateVariable] = variables.map(v => (v.name, v)).toMap
 
   validate()
 
@@ -79,6 +79,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
    */
   def withFirst(variable: TemplateVariable): TemplateVariables = {
     TemplateVariables(variable +: variables)
+  }
+
+  /**
+   * Returns only non-sensitive variables
+   */
+  def withoutSensitiveVariables(): TemplateVariables = {
+    TemplateVariables(variables.filterNot(_.isSensitive))
   }
 
   private def validate(): Unit = {

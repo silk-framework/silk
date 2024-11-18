@@ -56,8 +56,8 @@ public @interface Plugin {
   String documentationFile() default "";
 
   /**
-   * Optional icon as data URL string. If not set the plugin will have a generic icon.
+   * Optional icon. If not set the plugin will have a generic icon.
    * This icon is rendered in the UI.
    */
-  String pluginIcon() default "";
+  String iconFile() default "";
 }
