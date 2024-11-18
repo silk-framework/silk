@@ -134,7 +134,7 @@ export default function VocabularyMatchingDialog({
     return (
         <SimpleDialog
             portalContainer={context.portalContainer}
-            size="medium"
+            size="regular"
             title={"Refine matching options"}
             isOpen={true}
             preventSimpleClosing={true}

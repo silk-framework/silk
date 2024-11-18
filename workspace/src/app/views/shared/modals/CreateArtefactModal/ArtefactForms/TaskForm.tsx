@@ -8,7 +8,7 @@ import {
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { CodeEditor, FieldItem, Spacing, Switch, TextField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { errorMessage, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
+import { errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
@@ -91,6 +91,23 @@ const isInt = (value) => {
 
 export const PARAMETER_DOC_PREFIX = "parameter_doc_";
 
+const extractDefaultValues = (pluginDetails: IPluginDetails): Map<string, string | null> => {
+    const m = new Map<string, string | null>();
+    const traverse = (parameterId: string, parameter: IArtefactItemProperty, prefix: string = "") => {
+        m.set(
+            prefix + parameterId,
+            parameter.value && typeof parameter.value === "object" ? parameter.value.value : (parameter.value as string)
+        );
+        if (parameter.properties) {
+            Object.entries(parameter.properties).forEach(([id, prop]) =>
+                traverse(id, prop, `${prefix}${parameterId}.`)
+            );
+        }
+    };
+    Object.entries(pluginDetails.properties).forEach(([id, prop]) => traverse(id, prop));
+    return m;
+};
+
 /** The task creation/update form. */
 export function TaskForm({
     form,
@@ -111,6 +128,8 @@ export function TaskForm({
     const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map());
     const [doChange, setDoChange] = useState<boolean>(false);
     const { registerError } = useErrorHandler();
+    const parameterDefaultValues = React.useRef<Map<string, string | null>>(new Map());
+    parameterDefaultValues.current = extractDefaultValues(artefact);
 
     const addDependentParameter = React.useCallback((dependentParameter: string, dependsOn: string) => {
         const m = dependentParameters.current!;
@@ -158,7 +177,10 @@ export function TaskForm({
         return parameterLabels.current.get(fullParameterId) ?? "N/A";
     }, []);
 
-    const extendedCallbacks = React.useMemo(() => {
+    const extendedCallbacks: ExtendedParameterCallbacks = React.useMemo(() => {
+        const parameterDefaultValueFn = (fullParameterId: string): string | null | undefined => {
+            return parameterDefaultValues.current.get(fullParameterId);
+        };
         let namedAnchors: string[] = [];
         if (artefact.markdownDocumentation) {
             namedAnchors = utils
@@ -171,6 +193,7 @@ export function TaskForm({
             initialTemplateFlag,
             parameterLabel,
             namedAnchors,
+            defaultValue: parameterDefaultValueFn,
         };
     }, [initialTemplateFlag, artefact.markdownDocumentation]);
 
@@ -242,7 +265,9 @@ export function TaskForm({
                             fullParameterId + ".",
                             nestedParams,
                             parameterValues && parameterValues[paramId] !== undefined
-                                ? parameterValues[paramId].value
+                                ? typeof parameterValues[paramId].value === "object"
+                                    ? parameterValues[paramId].value
+                                    : parameterValues[paramId]
                                 : {},
                             param.required ? param.required : []
                         );
