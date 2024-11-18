@@ -96,7 +96,6 @@ export const TransformRuleEditor = ({
     ): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
-            console.log("OPERATOR_NODE_MAP ==>", operatorNodeMap, "ROOT_NODES ==>", rootNodes);
             if (rootNodes.length !== 1) {
                 return {
                     success: false,
