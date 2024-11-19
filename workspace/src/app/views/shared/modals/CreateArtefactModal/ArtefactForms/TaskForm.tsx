@@ -15,13 +15,14 @@ import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentif
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
-import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
+import { DataPreviewProps, IDatasetConfigPreview, TaskParameters } from "../../../../plugins/plugin.types";
 import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
 import { Keyword } from "@ducks/workspace/typings";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
+import { commonOp } from "@ducks/common";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -73,7 +74,7 @@ const TAGS = "tags";
 const datasetConfigPreview = (
     projectId: string,
     pluginId: string,
-    parameterValues: Record<string, string>
+    parameterValues: TaskParameters
 ): IDatasetConfigPreview => {
     return {
         project: projectId,
@@ -439,6 +440,10 @@ export function TaskForm({
         []
     );
 
+    const datasetConfigValues = React.useCallback(() => {
+        return commonOp.buildNestedTaskParameterObject(getValues());
+    }, []);
+
     return doChange ? (
         <Loading />
     ) : (
@@ -583,7 +588,7 @@ export function TaskForm({
                         {dataPreviewPlugin && (
                             <dataPreviewPlugin.Component
                                 title={t("pages.dataset.title")}
-                                preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
+                                preview={datasetConfigPreview(projectId, artefact.pluginId, datasetConfigValues())}
                                 externalValidation={{
                                     validate: triggerValidation,
                                     errorMessage: t(
@@ -591,7 +596,7 @@ export function TaskForm({
                                         "Parameter validation failed. Please fix the issues first."
                                     ),
                                 }}
-                                datasetConfigValues={getValues}
+                                datasetConfigValues={datasetConfigValues}
                                 autoLoad={showPreviewAutomatically}
                                 startWithRawView={showRawView}
                             />
