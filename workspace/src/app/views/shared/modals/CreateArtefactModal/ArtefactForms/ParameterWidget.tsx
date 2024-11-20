@@ -50,6 +50,8 @@ export interface ExtendedParameterCallbacks extends ParameterCallbacks {
     parameterLabel: (fullParameterId: string) => string;
     /** Named anchors in the Markdown documentation. */
     namedAnchors: string[];
+    /** The default value as defined in the parameter spec. */
+    defaultValue: (paramId: string) => string | null | undefined;
 }
 
 interface IProps {
@@ -123,10 +125,15 @@ export const ParameterWidget = (props: IProps) => {
         return dependentValues.current[prefixedParamId];
     };
 
+    const hasDefaultValue = (paramId: string) => {
+        return parameterCallbacks.defaultValue(paramId) != null;
+    };
+
     const missingParameterLabels = missingDependentParameters(
         taskParameter.param,
         dependentValues.current,
-        formParameterPrefix
+        formParameterPrefix,
+        hasDefaultValue
     ).map((paramId) => parameterCallbacks.parameterLabel(formParameterPrefix + paramId));
     /** Text that should be displayed below the input element for this parameter as long as there is no error message displayed. */
     const infoHelperText =
@@ -298,6 +305,7 @@ export const ParameterWidget = (props: IProps) => {
                                 intent={errors ? Intent.DANGER : Intent.NONE}
                                 formParamId={formParamId}
                                 dependentValue={dependentValue}
+                                defaultValue={parameterCallbacks.defaultValue}
                                 required={required}
                                 registerForExternalChanges={parameterCallbacks.registerForExternalChanges}
                             />
@@ -329,8 +337,12 @@ export const ParameterWidget = (props: IProps) => {
 export const missingDependentParameters = (
     propertyDetails: IArtefactItemProperty,
     dependentValues: Record<string, any>,
-    parameterPrefix: string
+    parameterPrefix: string,
+    hasDefaultValue: (paramId: string) => boolean
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
-    return dependsOnParameters.filter((paramId) => !dependentValueIsSet(dependentValues[parameterPrefix + paramId]));
+    return dependsOnParameters.filter(
+        (paramId) =>
+            !dependentValueIsSet(dependentValues[parameterPrefix + paramId], hasDefaultValue(parameterPrefix + paramId))
+    );
 };

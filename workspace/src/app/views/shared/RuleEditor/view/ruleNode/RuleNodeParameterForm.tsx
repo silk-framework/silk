@@ -13,6 +13,8 @@ export interface RuleNodeParametersProps {
     parameters: IRuleNodeParameter[];
     /** Requests values of parameters this parameter might depend on for auto-completion. */
     dependentValue: (paramId: string) => string | undefined;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
     /** If the form will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** If this is true then the parameters are put into an advanced section that is collapsed by default. */
@@ -33,6 +35,7 @@ export const RuleNodeParameterForm = ({
     hasAdvancedSection,
     insideModal,
     languageFilter,
+    parameterDefaultValue,
 }: RuleNodeParametersProps) => {
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const { matches: normalParameters, nonMatches: advancedParameters } = partitionArray(
@@ -52,6 +55,7 @@ export const RuleNodeParameterForm = ({
                 nodeId={nodeId}
                 parameter={param}
                 dependentValue={dependentValue}
+                parameterDefaultValue={parameterDefaultValue}
                 pluginId={pluginId}
                 large={large}
                 insideModal={insideModal}

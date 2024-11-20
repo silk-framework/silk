@@ -14,6 +14,8 @@ interface RuleNodeFormParameterProps {
     parameter: IRuleNodeParameter;
     /** Requests values of parameters this parameter might depend on for auto-completion. */
     dependentValue: (paramId: string) => string | undefined;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
@@ -31,6 +33,7 @@ export const RuleNodeFormParameter = ({
     large,
     insideModal,
     languageFilter,
+    parameterDefaultValue,
 }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });
@@ -85,6 +88,7 @@ export const RuleNodeFormParameter = ({
                 nodeId={nodeId}
                 hasValidationError={!validationResult.valid}
                 dependentValue={dependentValue}
+                parameterDefaultValue={parameterDefaultValue}
                 large={large}
                 insideModal={insideModal}
                 languageFilter={languageFilter}
