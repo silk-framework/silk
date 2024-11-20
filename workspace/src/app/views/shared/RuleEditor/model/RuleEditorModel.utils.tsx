@@ -171,7 +171,7 @@ function createOperatorNode(
             ...data,
             onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
             resizeDirections: { right: true },
-            resizeMaxDimensions: { width: 2000 },
+            resizeMaxDimensions: { width: 1400 },
         };
     }
 
