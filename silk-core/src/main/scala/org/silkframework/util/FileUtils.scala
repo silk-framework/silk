@@ -86,5 +86,5 @@ class FileUtils(file: File) {
   /**
    * Adds a suffix to the file path.
    */
-  def +(suffix: String) = new File(file + suffix)
+  def +(suffix: String): File = new File(file.toString + suffix)
 }

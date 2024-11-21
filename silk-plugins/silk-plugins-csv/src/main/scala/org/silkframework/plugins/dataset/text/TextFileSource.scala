@@ -39,7 +39,7 @@ class TextFileSource(ds: TextFileDataset, textFile: Resource) extends DataSource
   }
 
   private def retrieveEntity(entitySchema: EntitySchema): EntityHolder = {
-    if(entitySchema.typedPaths == IndexedSeq(ds.path)) {
+    if(entitySchema.typedPaths.map(_.normalizedSerialization) == IndexedSeq(ds.path.normalizedSerialization)) {
       val text = textFile.loadAsString(ds.codec)
       val entity = new Entity(
         uri = ds.uri,

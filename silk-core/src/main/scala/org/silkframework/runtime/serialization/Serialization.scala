@@ -72,12 +72,15 @@ object Serialization {
   }
 
   def formatForDynamicType[U: ClassTag](valueType: Class[_]): SerializationFormat[Any, U] = {
+    formatForDynamicTypeOption[U](valueType).getOrElse(
+      throw new NoSuchElementException(s"No serialization format for type $valueType for serialization type ${implicitly[ClassTag[U]].runtimeClass} available.")
+    )
+  }
+
+  def formatForDynamicTypeOption[U: ClassTag](valueType: Class[_]): Option[SerializationFormat[Any, U]] = {
     val serializedType = implicitly[ClassTag[U]].runtimeClass
-    serializationFormats.find(f => f.valueType == valueType && f.serializedType == serializedType) match {
-      case Some(format) =>
-        format.asInstanceOf[SerializationFormat[Any, U]]
-      case None =>
-        throw new NoSuchElementException(s"No serialization format for type $valueType for serialization type $serializedType available.")
+    for(format <- serializationFormats.find(f => f.valueType == valueType && f.serializedType == serializedType)) yield {
+      format.asInstanceOf[SerializationFormat[Any, U]]
     }
   }
 
