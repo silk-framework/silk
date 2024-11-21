@@ -382,8 +382,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     val project = getProject(projectId)
     validateJson[String] { prefixUri =>
       if(Try(new URI(prefixUri)).map(_.isAbsolute).getOrElse(false)) {
-        val newPrefixes = Prefixes(project.config.prefixes.prefixMap ++ Map(prefixName -> prefixUri))
-        project.config = project.config.copy(prefixes = newPrefixes)
+        val newPrefixes = Prefixes(project.config.projectPrefixes.prefixMap ++ Map(prefixName -> prefixUri))
+        project.config = project.config.copy(projectPrefixes = newPrefixes)
         Ok(Json.toJson(newPrefixes.prefixMap))
       } else {
         throw BadUserInputException("Invalid URI prefix: " + prefixUri)
@@ -426,8 +426,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                           )
                           prefixName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    val newPrefixes = Prefixes(project.config.prefixes.prefixMap - prefixName)
-    project.config = project.config.copy(prefixes = newPrefixes)
+    val newPrefixes = Prefixes(project.config.projectPrefixes.prefixMap - prefixName)
+    project.config = project.config.copy(projectPrefixes = newPrefixes)
     Ok(Json.toJson(newPrefixes.prefixMap))
   }
 

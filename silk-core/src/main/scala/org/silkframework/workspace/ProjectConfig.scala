@@ -24,15 +24,23 @@ import org.silkframework.util.Identifier
 /**
   * The project specific config.
   *
-  * @param id
-  * @param prefixes Prefixes that can be used in qualified names instead of providing full URIs.
+  * @param id                    Unique ID of the project
+  * @param projectPrefixes       Prefixes that can be used in qualified names instead of providing full URIs. These were added
+  *                              to this project specifically and will be exported/imported.
+  * @param workspacePrefixes     Prefixes that can be used in qualified names instead of providing full URIs. These were added
+  *                              from external sources and won't be exported/imported. These prefixes are only set by the workspace
+  *                              and should never be set otherwise.
   * @param projectResourceUriOpt The URI of the project. Usually this is formed by the id and the config parameter
-  *                           project.resourceUriPrefix. This URI usually does not change anymore, once it is set.
+  *                              project.resourceUriPrefix. This URI usually does not change anymore, once it is set.
+  * @param metaData              Meta data of the project.
   */
 case class ProjectConfig(id: Identifier = Identifier.random,
-                         prefixes: Prefixes = Prefixes.default,
+                         projectPrefixes: Prefixes = Prefixes.default,
+                         workspacePrefixes: Prefixes = Prefixes.empty,
                          projectResourceUriOpt: Option[String] = None,
                          metaData: MetaData = MetaData.empty) extends HasMetaData {
+
+  lazy val prefixes: Prefixes = workspacePrefixes ++ projectPrefixes
 
   def withMetaData(metaData: MetaData): ProjectConfig = this.copy(metaData = metaData)
 
