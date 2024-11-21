@@ -66,6 +66,14 @@ object PluginContext {
     PlainPluginContext(readContext.prefixes, readContext.resources, readContext.user, readContext.projectId, readContext.templateVariables)
   }
 
+  /**
+   * Creates an updated plugin context where some parameters are overwritten.
+   */
+  def updatedPluginContext(context: PluginContext,
+                           prefixes: Option[Prefixes] = None): PluginContext = {
+    PlainPluginContext(prefixes.getOrElse(context.prefixes), context.resources, context.user, context.projectId, context.templateVariables)
+  }
+
   case class PlainPluginContext(prefixes: Prefixes,
                                 resources: ResourceManager,
                                 user: UserContext,
