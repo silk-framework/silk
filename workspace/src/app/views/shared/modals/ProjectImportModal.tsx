@@ -12,6 +12,8 @@ import {
     SimpleDialog,
     Spacing,
     TitleSubsection,
+    Markdown,
+    StringPreviewContentBlobToggler,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import Uppy, { UppyFile } from "@uppy/core";
@@ -28,7 +30,6 @@ import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {
@@ -306,7 +307,11 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                                 className="di__dataset__metadata-description"
                                 content={details.description}
                                 previewMaxLength={128}
-                                fullviewContent={<Markdown>{details.description}</Markdown>}
+                                fullviewContent={
+                                    <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
+                                        {details.description}
+                                    </Markdown>
+                                }
                                 toggleExtendText={t("common.words.more", "more")}
                                 toggleReduceText={t("common.words.less", "less")}
                                 firstNonEmptyLineOnly={true}
