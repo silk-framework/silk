@@ -164,7 +164,7 @@ export const TransformRuleEditor = ({
                 node.dimension = {
                     ...node.dimension,
                     width: pos.width,
-                    height: pos.height,
+                    height: null,
                 };
             }
         });

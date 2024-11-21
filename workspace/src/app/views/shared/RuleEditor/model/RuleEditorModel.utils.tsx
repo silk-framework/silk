@@ -172,11 +172,10 @@ function createOperatorNode(
             onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
             resizeDirections: { right: true },
             resizeMaxDimensions: { width: 1400 },
+            nodeDimensions: {
+                width: node.dimension?.width ?? undefined,
+            } as NodeDimensions,
         };
-    }
-
-    if (node.dimension?.width) {
-        data = { ...data, nodeDimensions: node.dimension as NodeDimensions };
     }
 
     return {

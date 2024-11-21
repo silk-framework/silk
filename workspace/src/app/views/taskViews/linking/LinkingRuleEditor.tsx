@@ -420,6 +420,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 instanceId={instanceId}
                 fetchDatasetCharacteristics={fetchDatasetCharacteristics}
                 inputPathPluginPathType={inputPathPluginPathType}
+                allowFlexibleSize
             />
         </LinkingRuleEvaluation>
     );
