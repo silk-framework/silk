@@ -5,11 +5,13 @@ import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.local._
+import org.silkframework.execution.typed.LinksEntitySchema
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KEY}
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
@@ -50,7 +52,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       ))
     }
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, linkSpec.rule.inverseLinkType, task))
+    Some(LinksEntitySchema.create(linking.links, task))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {

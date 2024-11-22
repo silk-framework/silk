@@ -178,7 +178,7 @@ case class EntitySchema(
           tps.flatMap(tp => if(tp.valueType == ValueType.UNTYPED) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
             case None =>
-              throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
+              throw new IllegalArgumentException(s"$tp was not found in EntitySchema: ${this.typedPaths.mkString(", ")}")
           }).toIndexedSeq,
           es.filter,
           es.subPath

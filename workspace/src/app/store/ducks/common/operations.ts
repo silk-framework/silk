@@ -21,6 +21,7 @@ import { Keyword } from "@ducks/workspace/typings";
 import { MultiSelectSelectionProps } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
+import { TaskParameters } from "../../../views/plugins/plugin.types";
 
 const {
     setError,
@@ -178,8 +179,8 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 };
 
 /** Builds a request object for project/task create call. */
-const buildTaskObject = (formData: Record<string, any>): object => {
-    const returnObject = Object.create(null);
+const buildNestedTaskParameterObject = (formData: Record<string, any>): TaskParameters => {
+    const returnObject: TaskParameters = Object.create(null);
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
     // Add direct parameters
@@ -197,7 +198,7 @@ const buildTaskObject = (formData: Record<string, any>): object => {
     }, {});
     // Add nested parameters to result object and call buildTaskObject recursively
     Object.entries(nestedParamsMap).forEach(([propName, value]) => {
-        returnObject[propName] = buildTaskObject(value as Record<string, any>);
+        returnObject[propName] = buildNestedTaskParameterObject(value as Record<string, any>);
     });
     return returnObject;
 };
@@ -294,8 +295,8 @@ const fetchCreateTaskAsync = (
             restFormData,
             variableTemplateParameterSet
         );
-        const parameterData = buildTaskObject(parameters);
-        const variableTemplateData = buildTaskObject(variableTemplateParameters);
+        const parameterData = buildNestedTaskParameterObject(parameters);
+        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
         const metadata = {
             label,
             description,
@@ -367,8 +368,8 @@ const fetchUpdateTaskAsync = (
             formData,
             variableTemplateParameterSet
         );
-        const parameterData = buildTaskObject(parameters);
-        const variableTemplateData = buildTaskObject(variableTemplateParameters);
+        const parameterData = buildNestedTaskParameterObject(parameters);
+        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
         const payload = {
             data: {
                 ...dataParameters,
@@ -460,7 +461,7 @@ const commonOps = {
     setSelectedArtefactDType,
     setModalError,
     setModalInfo,
-    buildTaskObject,
+    buildNestedTaskParameterObject: buildNestedTaskParameterObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,

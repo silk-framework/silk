@@ -8,6 +8,10 @@ interface IValidation {
     errorMessage: string;
 }
 
+export interface TaskParameters {
+    [key: string]: string | TaskParameters;
+}
+
 /**
  * The dataset configuration.
  */
@@ -15,7 +19,7 @@ export interface IDatasetInfo {
     /** The plugin ID, e.g. 'csv'. */
     type: string;
     /** The parameters of the plugin. */
-    parameters: Record<string, string>;
+    parameters: TaskParameters;
 }
 
 /**
@@ -75,7 +79,7 @@ export interface DataPreviewProps extends TestableComponent {
     externalValidation?: IValidation;
     // If defined this should be used to get the parameters for the dataset config.
     // Reason for use: In forms the data preview widget won't be re-rendered when form values change.
-    datasetConfigValues?: () => Record<string, string>;
+    datasetConfigValues?: () => TaskParameters;
     // If the data preview should be loaded automatically without user interaction. Default: false
     autoLoad?: boolean;
     // An optional ID for the preview widget

@@ -723,6 +723,9 @@
                 },
                 "startEvaluation": {
                     "msg": "Could not fetch evaluation results."
+                },
+                "beforeStartEvaluation": {
+                    "msg": "Could not start evaluation."
                 }
             },
             "cacheWidgets": {
@@ -1241,7 +1244,8 @@
             "messages": {
                 "selectMapping": "Select a mapping for detailed results.",
                 "noIssues": "This mapping rule executed successfully without any issues.",
-                "validationIssues": "This mapping rule generated {{count}} validation issues during execution. Examples are shown below."
+                "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
+                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}"
             }
         },
         "errorTable": {

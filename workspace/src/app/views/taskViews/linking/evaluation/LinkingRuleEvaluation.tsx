@@ -225,7 +225,11 @@ export const LinkingRuleEvaluation = ({
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
             } else {
-                console.warn("Could not fetch evaluation results!", ex);
+                registerError(
+                    "LinkingRuleEvaluation.beforeStartEvaluation",
+                    t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
+                    ex
+                );
             }
         } finally {
             setEvaluationRunning(false);
@@ -276,6 +280,7 @@ export const LinkingRuleEvaluation = ({
                 setEvaluationRootNode,
                 evaluationRootNode,
                 canBeEvaluated,
+                ruleType: "linking",
             }}
         >
             {pathNotInCacheValidationError && triggerEvaluation.current && (

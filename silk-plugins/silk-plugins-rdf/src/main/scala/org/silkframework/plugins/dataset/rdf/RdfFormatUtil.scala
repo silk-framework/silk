@@ -33,8 +33,8 @@ object RdfFormatUtil {
     val obj = q.objectVal match{
       case r: Resource => NodeFactory.createURI(r.value)
       case b: BlankNode => NodeFactory.createBlankNode(b.value)
-      case ll: LanguageLiteral => NodeFactory.createLiteral(ll.value, ll.language)
-      case pl: PlainLiteral => NodeFactory.createLiteral(pl.value)
+      case ll: LanguageLiteral => NodeFactory.createLiteralLang(ll.value, ll.language)
+      case pl: PlainLiteral => NodeFactory.createLiteralString(pl.value)
       case tl: DataTypeLiteral => NodeFactory.createLiteral(tl.value, NodeFactory.getType(tl.dataType))
     }
     val graph = q.context.map(c => NodeFactory.createURI(c.value)).orNull
