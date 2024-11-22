@@ -32,7 +32,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
-      val taskProperties = createTaskProperties(Some(input.task), output.task, pluginContext.resources)
+      val taskProperties = createTaskProperties(Some(input.task), output.task, pluginContext)
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
@@ -53,12 +53,12 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         reportUpdater.startNewOutputSamples(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
         if (updateTask.isStaticTemplate) {
           // Static template needs to be executed exactly once
-          executeTemplate(batchEmitter, reportUpdater, updateTask, pluginContext.resources, outputTask = output.task)
+          executeTemplate(batchEmitter, reportUpdater, updateTask, outputTask = output.task)
         } else {
           for (input <- inputs) {
             if(expectedProperties.isEmpty) {
               // Template without input path placeholders should be executed once per input, e.g. it uses input task properties
-              executeTemplate(batchEmitter, reportUpdater, updateTask, pluginContext.resources, inputTask = Some(input.task), outputTask = output.task)
+              executeTemplate(batchEmitter, reportUpdater, updateTask, inputTask = Some(input.task), outputTask = output.task)
             } else {
               executeOnInput(batchEmitter, expectedProperties, input)
             }
@@ -74,10 +74,10 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
   private def executeTemplate[U](batchEmitter: BatchSparqlUpdateEmitter[U],
                                  reportUpdater: SparqlUpdateExecutionReportUpdater,
                                  updateTask: SparqlUpdateCustomTask,
-                                 projectResources: ResourceManager,
                                  inputTask: Option[Task[_ <: TaskSpec]] = None,
-                                 outputTask: Option[Task[_ <: TaskSpec]] = None): Unit = {
-    val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask, projectResources)
+                                 outputTask: Option[Task[_ <: TaskSpec]] = None)
+                                (implicit pluginContext: PluginContext): Unit = {
+    val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
     val query = updateTask.generate(Map.empty, taskProperties)
     batchEmitter.update(query)
     reportUpdater.addSampleEntity(EntitySample(query))
@@ -86,9 +86,9 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
 
   private def createTaskProperties(inputTask: Option[Task[_ <: TaskSpec]],
                                    outputTask: Option[Task[_ <: TaskSpec]],
-                                   projectResources: ResourceManager): TaskProperties = {
+                                   pluginContext: PluginContext): TaskProperties = {
     // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
-    implicit val pluginContext: PluginContext = PluginContext(prefixes= Prefixes.empty, resources = projectResources)
+    implicit val updatedPluginContext: PluginContext = PluginContext.updatedPluginContext(pluginContext, prefixes = Some(Prefixes.empty))
     val inputProperties = inputTask.toSeq.flatMap(_.parameters.toStringMap).toMap
     val outputProperties = outputTask.toSeq.flatMap(_.parameters.toStringMap).toMap
     TaskProperties(inputProperties, outputProperties)
