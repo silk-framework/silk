@@ -690,8 +690,8 @@ export function CreateArtefactModal() {
                 form.getValues(),
                 templateParameters.current
             );
-            const parameterData = commonOp.buildTaskObject(parameters);
-            const variableTemplateData = commonOp.buildTaskObject(variableTemplateParameters);
+            const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
+            const variableTemplateData = commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
             const requestBody: DatasetTaskPlugin<any> = {
                 taskType: taskType(artefactId) as TaskType,
                 type: artefactId,

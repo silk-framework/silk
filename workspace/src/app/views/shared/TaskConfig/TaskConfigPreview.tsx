@@ -51,6 +51,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 parameterIdPrefix: string,
                 paramDescriptions: Record<string, IArtefactItemProperty>
             ) => {
+                const paramOrder = new Map(Object.entries(paramDescriptions).map(([key], idx) => [key, idx]));
                 Object.entries(obj)
                     .filter(([key]) => {
                         const pd = paramDescriptions[key];
@@ -62,6 +63,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                             return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
                         }
                     })
+                    .sort((left, right) => (paramOrder.get(left[0]) ?? 0) - (paramOrder.get(right[0]) ?? 0))
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);
                         const propertyTitle = t(
