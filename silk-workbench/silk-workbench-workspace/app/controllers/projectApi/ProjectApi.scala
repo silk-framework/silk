@@ -307,7 +307,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   /** Returns all project prefixes */
   @Operation(
     summary = "Project prefixes",
-    description = "Project namespace prefix definitions that map from a prefix name to a URI prefix.",
+    description = "Project namespace prefix definitions that map from a prefix name to a URI prefix. These include prefixes that are loaded globally by the workspace, e.g. vocabulary prefixes.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -384,7 +384,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       if(Try(new URI(prefixUri)).map(_.isAbsolute).getOrElse(false)) {
         val newPrefixes = Prefixes(project.config.projectPrefixes.prefixMap ++ Map(prefixName -> prefixUri))
         project.config = project.config.copy(projectPrefixes = newPrefixes)
-        Ok(Json.toJson(newPrefixes.prefixMap))
+        Ok(Json.toJson(project.config.prefixes.prefixMap))
       } else {
         throw BadUserInputException("Invalid URI prefix: " + prefixUri)
       }
@@ -428,7 +428,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     val project = getProject(projectId)
     val newPrefixes = Prefixes(project.config.projectPrefixes.prefixMap - prefixName)
     project.config = project.config.copy(projectPrefixes = newPrefixes)
-    Ok(Json.toJson(newPrefixes.prefixMap))
+    Ok(Json.toJson(project.config.prefixes.prefixMap))
   }
 
   @Operation(
