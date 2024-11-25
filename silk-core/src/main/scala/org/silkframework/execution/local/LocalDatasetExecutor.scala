@@ -144,10 +144,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         report.executionDone()
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
-        writeDatasetResource(dataset, files)
+        writeDatasetResource(dataset, files,  WriteFilesReportUpdater(dataset, context))
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
-        val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
-        uploadFilesViaGraphStore(dataset, files.typedEntities, reportUpdater)
+        uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
       case et: LocalEntities =>
@@ -289,7 +288,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   // Write file entities to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: TypedEntities[FileEntity, TaskSpec]): Unit = {
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]],
+                                   fileEntities: TypedEntities[FileEntity, TaskSpec],
+                                   reportUpdater: ExecutionReportUpdater): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
@@ -298,6 +299,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
               case Some(wr) =>
                 for(resource <- fileEntities.typedEntities) {
                   wr.writeResource(resource.file)
+                  reportUpdater.increaseEntityCounter()
                 }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
@@ -310,6 +312,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         throw new ValidationException("No dataset spec found!")
     }
+    reportUpdater.executionDone()
   }
 
   private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
@@ -384,30 +387,34 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
-  case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }
 
-  case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
-  case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteFilesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "File"
-
     override def entityLabelPlural: String = "Files"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
+  }
 
+  private case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+    override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
-
     override def entityProcessVerb: String = "uploaded"
   }
 }
