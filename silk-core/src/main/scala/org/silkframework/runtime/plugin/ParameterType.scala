@@ -199,7 +199,7 @@ object StringParameterType {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
-      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringIterableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
       YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
   }
@@ -262,22 +262,22 @@ object StringParameterType {
     }
   }
 
-  object StringTraversableParameterType extends StringParameterType[StringTraversableParameter] {
+  object StringIterableParameterType extends StringParameterType[StringIterableParameter] {
 
     override def name: String = "traversable[string]"
 
     override def description: String = "A comma-separated list."
 
     override def fromString(str: String)
-                           (implicit context: PluginContext): StringTraversableParameter = {
+                           (implicit context: PluginContext): StringIterableParameter = {
       if(str.isEmpty) {
-        StringTraversableParameter(Iterable.empty)
+        StringIterableParameter(Iterable.empty)
       } else {
-        StringTraversableParameter(str.split("\\s*,\\s*"))
+        StringIterableParameter(str.split("\\s*,\\s*"))
       }
     }
 
-    override def toString(value: StringTraversableParameter)
+    override def toString(value: StringIterableParameter)
                          (implicit pluginContext: PluginContext): String = {
       value.mkString(", ")
     }

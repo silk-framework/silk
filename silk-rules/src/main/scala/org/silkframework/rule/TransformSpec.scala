@@ -8,7 +8,7 @@ import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
-import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
+import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringIterableParameterType}
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
@@ -553,7 +553,7 @@ object TransformSpec {
         case Some(enumValue) =>
           TargetVocabularyCategory(enumValue.asInstanceOf[TargetVocabularyParameterEnum])
         case None =>
-          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str)(PluginContext.empty).value)
+          TargetVocabularyListParameter(StringIterableParameterType.fromString(str)(PluginContext.empty).value)
       }
     }
   }
