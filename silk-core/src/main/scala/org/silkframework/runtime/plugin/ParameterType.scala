@@ -657,7 +657,7 @@ object StringParameterType {
 
     override def description: String = "A template."
 
-    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str, context.templateVariables)
+    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str)
 
     override def toString(value: TemplateParameter)(implicit pluginContext: PluginContext): String = value.templateStr
   }
