@@ -127,7 +127,11 @@ class WorkspaceTest extends AnyFlatSpec with Matchers with ConfigTestTrait with 
     workspace.reloadPrefixes()
     workspace.project(projectId).config.prefixes.get(initialPrefix) must not be defined
     workspace.project(projectId).config.prefixes.get(secondPrefix) mustBe defined
-    workspace.project(projectId).config.prefixes.get(projectPrefix) must not be defined
+    workspace.project(projectId).config.prefixes.get(projectPrefix) mustBe defined
+    val projectId2 = "project2"
+    val project2 = workspace.createProject(ProjectConfig(projectId2, Prefixes.empty))
+    workspace.project(projectId2).config.prefixes.get(secondPrefix) mustBe defined
+    workspace.project(projectId2).config.prefixes.get(projectPrefix) must not be defined
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(
