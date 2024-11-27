@@ -4,6 +4,7 @@ import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.CloseableDataset.using
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
@@ -11,7 +12,7 @@ import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource}
+import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -296,9 +297,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
-              case Some(wr) =>
-                for(resource <- fileEntities.typedEntities) {
-                  wr.writeResource(resource.file)
+              case Some(outputResource) =>
+                for(inputResource <- fileEntities.typedEntities) {
+                  // Either of both files could be a zip
+                  (BulkResourceBasedDataset.isZip(inputResource.file), BulkResourceBasedDataset.isZip(outputResource)) match {
+                    case (false, false) | (true, true) =>
+                      outputResource.writeResource(inputResource.file)
+                    case (false, true) =>
+                      ZipWritableResource(outputResource).writeResource(inputResource.file)
+                    case (true, false) =>
+                      throw new ValidationException("Cannot write a zip file to a dataset that's not based on a zip file.")
+                  }
                   reportUpdater.increaseEntityCounter()
                 }
               case None =>
