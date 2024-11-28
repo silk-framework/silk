@@ -6,23 +6,23 @@ import {
     TaskPreConfiguration,
 } from "@ducks/common/typings";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { CodeEditor, FieldItem, Spacing, Switch, TextArea, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, Spacing, Switch, TextField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { errorMessage, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
+import { errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
-import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
+import { DataPreviewProps, IDatasetConfigPreview, TaskParameters } from "../../../../plugins/plugin.types";
 import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
 import { Keyword } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
+import { commonOp } from "@ducks/common";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -46,7 +46,10 @@ export interface IProps {
     goBackOnEscape?: () => any;
 
     /** Allows to set some config/parameters for a newly created task. */
-    newTaskPreConfiguration?: Pick<TaskPreConfiguration, "metaData" | "preConfiguredParameterValues">;
+    newTaskPreConfiguration?: Pick<
+        TaskPreConfiguration,
+        "metaData" | "preConfiguredParameterValues" | "preConfiguredDataParameters"
+    >;
 
     /** If a parameter value is changed in a way that did not use the parameter widget, this must be called in order to update the value in the widget itself. */
     propagateExternallyChangedParameterValue: (fullParamId: string, value: string) => any;
@@ -71,7 +74,7 @@ const TAGS = "tags";
 const datasetConfigPreview = (
     projectId: string,
     pluginId: string,
-    parameterValues: Record<string, string>
+    parameterValues: TaskParameters
 ): IDatasetConfigPreview => {
     return {
         project: projectId,
@@ -88,6 +91,23 @@ const isInt = (value) => {
 };
 
 export const PARAMETER_DOC_PREFIX = "parameter_doc_";
+
+const extractDefaultValues = (pluginDetails: IPluginDetails): Map<string, string | null> => {
+    const m = new Map<string, string | null>();
+    const traverse = (parameterId: string, parameter: IArtefactItemProperty, prefix: string = "") => {
+        m.set(
+            prefix + parameterId,
+            parameter.value && typeof parameter.value === "object" ? parameter.value.value : (parameter.value as string)
+        );
+        if (parameter.properties) {
+            Object.entries(parameter.properties).forEach(([id, prop]) =>
+                traverse(id, prop, `${prefix}${parameterId}.`)
+            );
+        }
+    };
+    Object.entries(pluginDetails.properties).forEach(([id, prop]) => traverse(id, prop));
+    return m;
+};
 
 /** The task creation/update form. */
 export function TaskForm({
@@ -109,6 +129,8 @@ export function TaskForm({
     const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map());
     const [doChange, setDoChange] = useState<boolean>(false);
     const { registerError } = useErrorHandler();
+    const parameterDefaultValues = React.useRef<Map<string, string | null>>(new Map());
+    parameterDefaultValues.current = extractDefaultValues(artefact);
 
     const addDependentParameter = React.useCallback((dependentParameter: string, dependsOn: string) => {
         const m = dependentParameters.current!;
@@ -156,7 +178,10 @@ export function TaskForm({
         return parameterLabels.current.get(fullParameterId) ?? "N/A";
     }, []);
 
-    const extendedCallbacks = React.useMemo(() => {
+    const extendedCallbacks: ExtendedParameterCallbacks = React.useMemo(() => {
+        const parameterDefaultValueFn = (fullParameterId: string): string | null | undefined => {
+            return parameterDefaultValues.current.get(fullParameterId);
+        };
         let namedAnchors: string[] = [];
         if (artefact.markdownDocumentation) {
             namedAnchors = utils
@@ -169,6 +194,7 @@ export function TaskForm({
             initialTemplateFlag,
             parameterLabel,
             namedAnchors,
+            defaultValue: parameterDefaultValueFn,
         };
     }, [initialTemplateFlag, artefact.markdownDocumentation]);
 
@@ -240,7 +266,9 @@ export function TaskForm({
                             fullParameterId + ".",
                             nestedParams,
                             parameterValues && parameterValues[paramId] !== undefined
-                                ? parameterValues[paramId].value
+                                ? typeof parameterValues[paramId].value === "object"
+                                    ? parameterValues[paramId].value
+                                    : parameterValues[paramId]
                                 : {},
                             param.required ? param.required : []
                         );
@@ -303,7 +331,17 @@ export function TaskForm({
         if (artefact.taskType === "Dataset") {
             register({ name: URI_PROPERTY_PARAMETER_ID });
             register({ name: READ_ONLY_PARAMETER });
+            if (newTaskPreConfiguration?.preConfiguredDataParameters) {
+                const dataParameters = newTaskPreConfiguration.preConfiguredDataParameters;
+                if (dataParameters.readOnly) {
+                    setValue(READ_ONLY_PARAMETER, dataParameters.readOnly);
+                }
+                if (dataParameters.uriProperty) {
+                    setValue(URI_PROPERTY_PARAMETER_ID, dataParameters.uriProperty);
+                }
+            }
         }
+
         registerParameters(
             "",
             visibleParams,
@@ -364,7 +402,7 @@ export function TaskForm({
     );
 
     const handleTagSelectionChange = React.useCallback(
-        (params: SelectedParamsType<Keyword>) => setValue(TAGS, params),
+        (params: MultiSelectSelectionProps<Keyword>) => setValue(TAGS, params),
         []
     );
     const preConfiguredFileAndLabel =
@@ -391,9 +429,7 @@ export function TaskForm({
     const CodeEditorMemoed = React.useMemo(
         () => (
             <CodeEditor
-                outerDivAttributes={{
-                    id: DESCRIPTION,
-                }}
+                id={DESCRIPTION}
                 preventLineNumbers
                 name={DESCRIPTION}
                 mode="markdown"
@@ -403,6 +439,10 @@ export function TaskForm({
         ),
         []
     );
+
+    const datasetConfigValues = React.useCallback(() => {
+        return commonOp.buildNestedTaskParameterObject(getValues());
+    }, []);
 
     return doChange ? (
         <Loading />
@@ -425,7 +465,7 @@ export function TaskForm({
                                     autoFocus={true}
                                     value={label ?? ""}
                                     onChange={handleChange(LABEL)}
-                                    hasStateDanger={!!errors.label}
+                                    intent={!!errors.label ? "danger" : undefined}
                                     onKeyDown={(e) => {
                                         if (e.keyCode === 13) {
                                             e.preventDefault();
@@ -497,7 +537,11 @@ export function TaskForm({
                             <Switch
                                 id={READ_ONLY_PARAMETER}
                                 onChange={handleChange(READ_ONLY_PARAMETER)}
-                                defaultChecked={(updateTask?.dataParameters?.readOnly ?? "false") === "true"}
+                                defaultChecked={
+                                    (updateTask?.dataParameters?.readOnly ??
+                                        newTaskPreConfiguration?.preConfiguredDataParameters?.readOnly ??
+                                        "false") === "true"
+                                }
                             />
                         </FieldItem>
                     ) : null
@@ -513,7 +557,10 @@ export function TaskForm({
                     {artefact.taskType === "Dataset" ? (
                         <UriAttributeParameterInput
                             onValueChange={handleChange(URI_PROPERTY_PARAMETER_ID)}
-                            initialValue={updateTask?.dataParameters?.uriProperty}
+                            initialValue={
+                                updateTask?.dataParameters?.uriProperty ??
+                                newTaskPreConfiguration?.preConfiguredDataParameters?.uriProperty
+                            }
                         />
                     ) : null}
                     {advancedParams.map(([key, param]) => (
@@ -541,7 +588,7 @@ export function TaskForm({
                         {dataPreviewPlugin && (
                             <dataPreviewPlugin.Component
                                 title={t("pages.dataset.title")}
-                                preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
+                                preview={datasetConfigPreview(projectId, artefact.pluginId, datasetConfigValues())}
                                 externalValidation={{
                                     validate: triggerValidation,
                                     errorMessage: t(
@@ -549,7 +596,7 @@ export function TaskForm({
                                         "Parameter validation failed. Please fix the issues first."
                                     ),
                                 }}
-                                datasetConfigValues={getValues}
+                                datasetConfigValues={datasetConfigValues}
                                 autoLoad={showPreviewAutomatically}
                                 startWithRawView={showRawView}
                             />

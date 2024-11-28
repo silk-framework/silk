@@ -621,7 +621,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     val templateVariables1 = TemplateVariables(Seq(
       TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project"),
       TemplateVariable("myVar2", "myValue2", None, Some("test description"), isSensitive = true, "project"),
-      TemplateVariable("myVar3", "myValue3", None, None, isSensitive = true, "project")
+      TemplateVariable("myVar3", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, "project")
     ))
     variables.putVariables(templateVariables1)
     refreshTest {
@@ -631,7 +631,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     // Modify variables and read again
     val templateVariables2 = TemplateVariables(Seq(
       TemplateVariable("myVar2", "myValue2", None, Some("test description 2"), isSensitive = true, "project"),
-      TemplateVariable("myVar4", "myValue4", None, None, isSensitive = true, "project"),
+      TemplateVariable("myVar4", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, "project"),
       TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project")
     ))
     variables.putVariables(templateVariables2)

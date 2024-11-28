@@ -9,6 +9,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spinner,
+    SuggestFieldItemRendererModifierProps,
 } from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
@@ -16,7 +17,6 @@ import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Intent } from "@blueprintjs/core";
 import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
-import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/interfaces";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import { RegisterForExternalChangesFn } from "./InputMapper";
 import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
@@ -37,6 +37,8 @@ export interface ParameterAutoCompletionProps {
     initialValue?: IAutocompleteDefaultResponse;
     /** Get parameter values this auto-completion might depend on. */
     dependentValue: (paramId: string) => string | undefined;
+    /** The default value as defined in the parameter spec. */
+    defaultValue: (paramId: string) => string | null | undefined;
     /** If a value is required. If true, a reset won't be possible. */
     required: boolean;
     onChange: (value: IAutocompleteDefaultResponse) => any;
@@ -74,6 +76,7 @@ export const ParameterAutoCompletion = ({
     autoCompletion,
     initialValue,
     dependentValue,
+    defaultValue,
     required,
     onChange,
     showErrorsInline = false,
@@ -123,9 +126,11 @@ export const ParameterAutoCompletion = ({
     }, [externalValue]);
 
     const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
+        const prefixIdx = formParamId.lastIndexOf(".");
+        const parameterPrefix = prefixIdx >= 0 ? formParamId.substring(0, prefixIdx + 1) : "";
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
-            if (dependentValueIsSet(value)) {
+            if (dependentValueIsSet(value, defaultValue(parameterPrefix + paramId) != null)) {
                 return [`${value}`];
             } else {
                 return [];
@@ -262,7 +267,7 @@ const displayAutoCompleteLabel = (item: StringOrReifiedValue) => {
 export const labelAndOrValueItemRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
-    modifiers: IRenderModifiers,
+    modifiers: SuggestFieldItemRendererModifierProps,
     handleSelectClick: () => any
 ): JSX.Element | string => {
     const labelValueKindOfSame =
@@ -297,4 +302,5 @@ export const labelAndOrValueItemRenderer = (
 };
 
 /** At the moment a dependent value must be non-empty, else it is not considered to be set. */
-export const dependentValueIsSet = (value: any): boolean => value != null && `${value}` !== "";
+export const dependentValueIsSet = (value: any, hasDefaultValue: boolean): boolean =>
+    value != null && (value !== "" || hasDefaultValue); //TODO CMEM-5379 && `${value}` !== "";

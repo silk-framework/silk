@@ -179,16 +179,17 @@ case class Entity(
     * @return - the result of the validation matrix (where all values are valid)
     */
   private def validate: Boolean = {
-    val tps = schema match {
+    val entitySchema = schema match {
       case mes: MultiEntitySchema => mes.pivotSchema
       case _ => schema
     }
-    val valsSize = values.size >= tps.typedPaths.size
-    val valsConform = tps.typedPaths.zipWithIndex.forall(tp =>{
-      if(tp._2 < values.size)
-        values(tp._2).forall(v => tp._1.valueType.validate(v))
-      else
-        throw new ArrayIndexOutOfBoundsException(tp._2)
+    val valsSize = values.size >= entitySchema.typedPaths.size
+    val valsConform = entitySchema.typedPaths.zipWithIndex.forall(path => {
+      if(path._2 < values.size) {
+        values(path._2).forall(v => path._1.valueType.validate(v))
+      } else {
+        throw new ArrayIndexOutOfBoundsException(s"Entity with URI $uri is invalid. Values have size ${values.size} but schema has size ${entitySchema.typedPaths.size}.")
+      }
     })
     valsSize && valsConform
   }

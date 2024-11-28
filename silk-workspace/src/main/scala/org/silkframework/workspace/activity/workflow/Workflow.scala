@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{FlexibleNumberOfInputs, InputPorts, Port, TaskSpec}
+import org.silkframework.config.{FlexibleNumberOfInputs, InputPorts, Port, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.runtime.activity.UserContext
@@ -363,7 +363,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
 
   override def mainActivities: Seq[String] = Seq("ExecuteDefaultWorkflow")
 
-  override def searchTags: Seq[String] = {
+  override def searchTags(prefixes: Prefixes): Seq[String] = {
     var l = Vector.empty[String]
     if(replaceableInputs.nonEmpty) {
       l = l :+ "Replaceable input"

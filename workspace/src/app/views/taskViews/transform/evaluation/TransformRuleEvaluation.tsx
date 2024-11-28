@@ -9,15 +9,15 @@ import { evaluateTransformRule } from "../transform.requests";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import {
     RuleEditorEvaluationContext,
-    RuleEditorEvaluationNotification
+    RuleEditorEvaluationNotification,
 } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import ruleUtils from "../../shared/rules/rule.utils";
 import { transformToValueMap } from "../transformEditor.utils";
 import { LinkRuleNodeEvaluation } from "../../linking/evaluation/LinkRuleNodeEvaluation";
 import { EvaluationResultType } from "../../linking/evaluation/LinkingRuleEvaluation";
 import evaluationUtils from "../../shared/evaluations/evaluationOperations";
-import {GlobalMappingEditorContext} from "../../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
-import {requestTaskContextInfo} from "@ducks/workspace/requests";
+import { GlobalMappingEditorContext } from "../../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
+import { requestTaskContextInfo } from "@ducks/workspace/requests";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -47,21 +47,24 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
     );
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
-    const [validationNotifications, setValidationNotifications] = React.useState<RuleEditorEvaluationNotification[]>([])
+    const [validationNotifications, setValidationNotifications] = React.useState<RuleEditorEvaluationNotification[]>(
+        []
+    );
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
-    const taskContextWarningShown = React.useRef(false)
+    const taskContextWarningShown = React.useRef(false);
     const mappingEditorContext = React.useContext(GlobalMappingEditorContext);
     // The root node of the sub-tree that will be evaluated
     const evaluatedSubTreeNode = React.useRef<string>();
+    const [evaluationError, setEvaluationError] = React.useState<string | undefined>();
 
     const addValidationNotification = React.useCallback((n: RuleEditorEvaluationNotification) => {
-        setValidationNotifications(old => [n, ...old])
-    }, [])
+        setValidationNotifications((old) => [n, ...old]);
+    }, []);
 
     const removeValidationNotification = React.useCallback((n: RuleEditorEvaluationNotification) => {
-        setValidationNotifications(old => old.filter(oldN => oldN !== n))
-    }, [])
+        setValidationNotifications((old) => old.filter((oldN) => oldN !== n));
+    }, []);
 
     React.useEffect(() => {
         setEvaluationResult([]);
@@ -97,7 +100,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         setEvaluationResultsShown(show);
     };
 
-    const fetchReferenceLinksEvaluation: (
+    const fetchTransformRuleEvaluation: (
         rule: IComplexMappingRule
     ) => Promise<EvaluatedTransformEntity[] | undefined> = async (rule: IComplexMappingRule) => {
         try {
@@ -161,7 +164,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 operator: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             };
-            const result = await fetchReferenceLinksEvaluation(rule);
+            const result = await fetchTransformRuleEvaluation(rule);
             setEvaluationResult(result ?? []);
         } catch (ex) {
             if (ex.isFetchError) {
@@ -170,24 +173,34 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                     t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
                     ex
                 );
+            } else if (ex.isRuleValidationError) {
+                setRuleValidationError(ex);
             } else {
-                console.warn("Could not fetch evaluation results!", ex);
+                registerError(
+                    "LinkingRuleEvaluation.beforeStartEvaluation",
+                    t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
+                    ex
+                );
             }
         } finally {
             setEvaluationRunning(false);
         }
-        if (mappingEditorContext.taskContext &&
+        if (
+            mappingEditorContext.taskContext &&
             (mappingEditorContext.taskContext.inputTasks ?? []).length &&
-            !taskContextWarningShown.current) {
-            const contextInfo = (await requestTaskContextInfo(projectId, transformTaskId, mappingEditorContext.taskContext)).data
-            taskContextWarningShown.current = true
-            if(contextInfo.originalInputs != null && !contextInfo.originalInputs) {
+            !taskContextWarningShown.current
+        ) {
+            const contextInfo = (
+                await requestTaskContextInfo(projectId, transformTaskId, mappingEditorContext.taskContext)
+            ).data;
+            taskContextWarningShown.current = true;
+            if (contextInfo.originalInputs != null && !contextInfo.originalInputs) {
                 const notification: RuleEditorEvaluationNotification = {
                     intent: "warning",
-                    message: t("taskViews.transformRulesEditor.evaluation.evaluationDifferentContext")
-                }
-                notification.onDiscard = () => removeValidationNotification(notification)
-                addValidationNotification(notification)
+                    message: t("taskViews.transformRulesEditor.evaluation.evaluationDifferentContext"),
+                };
+                notification.onDiscard = () => removeValidationNotification(notification);
+                addValidationNotification(notification);
             }
         }
     };
@@ -237,7 +250,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 setEvaluationRootNode,
                 evaluationRootNode,
                 canBeEvaluated,
-                notifications: validationNotifications
+                notifications: validationNotifications,
+                ruleType: "transform",
             }}
         >
             {children}

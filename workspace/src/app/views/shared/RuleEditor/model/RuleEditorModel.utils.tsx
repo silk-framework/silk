@@ -1,5 +1,4 @@
 import React from "react";
-import { IHandleProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import {
@@ -15,7 +14,7 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton } from "@eccenca/gui-elements";
+import { IconButton, NodeContentHandleProps, NodeContentProps } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
@@ -30,7 +29,7 @@ export const SOURCE_HANDLE_TYPE = "source";
 export const TARGET_HANDLE_TYPE = "target";
 
 /** Creates a new input handle. Handle IDs need to be numbers that are unique for the same node. */
-function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): IHandleProps {
+function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): NodeContentHandleProps {
     return {
         id: `${handleId}`,
         type: TARGET_HANDLE_TYPE,
@@ -76,7 +75,7 @@ export interface IOperatorCreateContext {
     /** allow the width of nodes to be adjustable */
     allowFlexibleSize?: boolean;
     /** change node size */
-    changeNodeSize: (nodeId: string, newNodeDimensions: NodeDimensions) => void;
+    changeNodeSize: (nodeId: string, newNodeDimensions: NodeContentProps<any>["nodeDimensions"]) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -96,7 +95,7 @@ function createOperatorNode(
             ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
             : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
 
-    const handles: IHandleProps[] = [
+    const handles: NodeContentHandleProps[] = [
         ...createInputHandles(numberOfInputPorts, operatorContext),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
@@ -174,7 +173,7 @@ function createOperatorNode(
             resizeMaxDimensions: { width: 1400 },
             nodeDimensions: {
                 width: node.dimension?.width ?? undefined,
-            } as NodeDimensions,
+            } as NodeContentProps<any>["nodeDimensions"],
         };
     }
 

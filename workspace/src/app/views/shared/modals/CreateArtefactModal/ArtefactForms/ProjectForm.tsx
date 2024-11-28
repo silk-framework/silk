@@ -1,12 +1,11 @@
 import React from "react";
-import { CodeEditor, FieldItem, TextArea, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, FieldItem, TextField, MultiSelectSelectionProps } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { Keyword } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 
@@ -58,21 +57,19 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
     };
 
     const handleTagSelectionChange = React.useCallback(
-        (params: SelectedParamsType<Keyword>) => setValue("tags", params),
+        (params: MultiSelectSelectionProps<Keyword>) => setValue("tags", params),
         []
     );
 
     const CodeEditorMemoed = React.useMemo(
         () => (
-            <CodeEditor 
-            outerDivAttributes={{
-                id:DESCRIPTION
-           }} 
-           preventLineNumbers
-           name={DESCRIPTION} 
-           mode="markdown" 
-           onChange={onValueChange(DESCRIPTION)} 
-           />
+            <CodeEditor
+                id={DESCRIPTION}
+                preventLineNumbers
+                name={DESCRIPTION}
+                mode="markdown"
+                onChange={onValueChange(DESCRIPTION)}
+            />
         ),
         []
     );
@@ -94,7 +91,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     placeholder={t("form.projectForm.projectTitle", "Project title")}
                     name={LABEL}
                     autoFocus={true}
-                    hasStateDanger={errors.label ? true : false}
+                    intent={errors.label ? "danger" : undefined}
                     onChange={onValueChange(LABEL)}
                     escapeToBlur={true}
                 />
@@ -114,7 +111,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                     </p>
                 }
             >
-           {CodeEditorMemoed}
+                {CodeEditorMemoed}
             </FieldItem>
             <FieldItem
                 key={TAGS}

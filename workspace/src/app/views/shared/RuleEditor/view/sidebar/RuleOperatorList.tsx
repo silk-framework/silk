@@ -1,5 +1,12 @@
-import { Button, Card, List, OverviewItem, OverviewItemActions, Spacing } from "@eccenca/gui-elements";
-import { extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import {
+    Button,
+    Card,
+    List,
+    OverviewItem,
+    OverviewItemActions,
+    Spacing,
+    highlighterUtils,
+} from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { IRuleOperator, RuleOperatorNodeParameters } from "../../RuleEditor.typings";
@@ -38,7 +45,7 @@ export function RuleOperatorList<T>({
     showPreconfiguredOperatorsOnlyWithQuery,
 }: RuleOperatorListProps<T>) {
     const { t } = useTranslation();
-    const searchWords = extractSearchWords(textQuery, true);
+    const searchWords = highlighterUtils.extractSearchWords(textQuery, true);
     const [currentlyCycledTaskId] = React.useState<string | undefined>(undefined);
     const [taskCycleIndex] = React.useState<number>(0);
     const totalMatches = 0; // FIXME: Node cycle logic

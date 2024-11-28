@@ -1,6 +1,6 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { CodeEditor, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeEditor, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";
@@ -20,7 +20,6 @@ import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/Text
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
 import { supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
-import { SupportedCodeEditorModes } from "@eccenca/gui-elements/src/extensions/codemirror/CodeMirror";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -39,6 +38,8 @@ interface RuleParameterInputProps {
     insideModal: boolean;
     /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
     languageFilter?: LanguageFilterProps;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
 }
 
 /** An input widget for a parameter value. */
@@ -51,6 +52,7 @@ export const RuleParameterInput = ({
     large,
     insideModal,
     languageFilter,
+    parameterDefaultValue,
 }: RuleParameterInputProps) => {
     const _onChange = ruleParameter.update;
     const onChangeRef = React.useRef(_onChange);
@@ -107,6 +109,7 @@ export const RuleParameterInput = ({
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
+        defaultValue: parameterDefaultValue,
     });
 
     if (
@@ -117,7 +120,7 @@ export const RuleParameterInput = ({
         if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
             return (
                 <CodeEditor
-                    mode={ruleParameter.parameterSpecification.type.substring(5) as SupportedCodeEditorModes}
+                    mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
                     outerDivAttributes={{
                         ...preventEventsFromBubblingToReactFlow,
                     }}

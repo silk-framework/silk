@@ -1,6 +1,13 @@
-import { Button, FieldItem, Highlighter, MenuItem, OverflowText, MultiSelect } from "@eccenca/gui-elements";
+import {
+    Button,
+    FieldItem,
+    Highlighter,
+    MenuItem,
+    OverflowText,
+    MultiSuggestField,
+    highlighterUtils,
+} from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { IVocabularyInfo } from "./typings";
 
 interface IProps {
@@ -16,7 +23,7 @@ interface IProps {
     allowCustomEntries?: boolean;
 }
 
-const VocabularyMultiSelectBP = MultiSelect.ofType<IVocabularyInfo>();
+const VocabularyMultiSelectBP = MultiSuggestField.ofType<IVocabularyInfo>();
 
 const vocabLabel = (vocabInfo: IVocabularyInfo) => {
     return vocabInfo.label ? vocabInfo.label : vocabInfo.uri;
@@ -62,11 +69,11 @@ export default function VocabularyMultiSelect({
 
     useEffect(() => {
         if (searchQuery) {
-            const searchWords = extractSearchWords(searchQuery, true);
+            const searchWords = highlighterUtils.extractSearchWords(searchQuery, true);
             const filtered = availableVocabularies.filter((vocab) => {
                 const vocabLabel = vocab.label ? vocab.label : "";
                 const searchIn = `${vocabLabel} ${vocab.uri}`.toLowerCase();
-                return matchesAllWords(searchIn, searchWords);
+                return highlighterUtils.matchesAllWords(searchIn, searchWords);
             });
             setFilteredVocabs(filtered);
         } else {

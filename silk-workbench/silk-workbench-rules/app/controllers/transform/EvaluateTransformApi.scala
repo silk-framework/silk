@@ -16,6 +16,7 @@ import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformT
 import org.silkframework.rule.{ObjectMapping, TransformRule, TransformSpec, ValueTransformRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers.TransformRuleJsonFormat
@@ -101,7 +102,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
     implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
 
     SerializationUtils.deserializeCompileTime[TransformRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { transformRule =>
-      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)
+      val transformedValues = evaluateRule(task, parentRuleId, transformRule, limit)(PluginContext.fromProject(project))
       Ok(JsArray(transformedValues.map(ValueJsonFormat.write).toSeq))
     }
   }
@@ -214,7 +215,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   }
 
   private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
-                            (implicit userContext: UserContext): TransformSpec.RuleSchemata = {
+                            (implicit pluginContext: PluginContext): TransformSpec.RuleSchemata = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
     task.data.ruleSchemataWithoutEmptyObjectRules
       .find(_.transformRule.id.toString == objectMappingId)
@@ -224,8 +225,9 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   }
 
   private def evaluateRule(task: ProjectTask[TransformSpec], parentRuleId: Identifier, transformRule: TransformRule, limit: Int)
-                          (implicit userContext: UserContext): CloseableIterator[Value] = {
+                          (implicit pluginContext: PluginContext): CloseableIterator[Value] = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
+    implicit val user: UserContext = pluginContext.user
 
     val ruleSchema = ruleSchemaById(task, parentRuleId)
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)

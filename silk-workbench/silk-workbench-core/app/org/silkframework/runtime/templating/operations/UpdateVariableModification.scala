@@ -17,7 +17,7 @@ case class UpdateVariableModification(project: Project, variable: TemplateVariab
       case index: Int =>
         TemplateVariables(variables.updated(index, variable))
     }
-    updatedVariables.resolved(GlobalTemplateVariables.all)
+    updatedVariables.resolved(GlobalTemplateVariables.all.withoutSensitiveVariables())
   }
 
   override protected def generateException(task: Task[_ <: TaskSpec], cause: Throwable): CannotModifyVariablesUsedByTaskException = {
