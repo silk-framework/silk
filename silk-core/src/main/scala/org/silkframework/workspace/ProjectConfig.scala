@@ -35,8 +35,8 @@ import org.silkframework.util.Identifier
   * @param metaData              Meta data of the project.
   */
 case class ProjectConfig(id: Identifier = Identifier.random,
-                         projectPrefixes: Prefixes = Prefixes.default,
-                         workspacePrefixes: Prefixes = Prefixes.empty,
+                         projectPrefixes: Prefixes = Prefixes.empty,
+                         workspacePrefixes: Prefixes = Prefixes.default,
                          projectResourceUriOpt: Option[String] = None,
                          metaData: MetaData = MetaData.empty) extends HasMetaData {
 

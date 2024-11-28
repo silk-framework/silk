@@ -63,7 +63,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   @volatile
   // Additional prefixes loaded from the workspace provider that will be added to every project
-  private var workspacePrefixes: Prefixes = Prefixes.empty
+  private var workspacePrefixes: Prefixes = Prefixes.default
 
   // All global workspace activities
   lazy val activities: Seq[GlobalWorkspaceActivity[_ <: HasValue]] = {
@@ -263,7 +263,7 @@ class Workspace(val provider: WorkspaceProvider,
 
   /** Reloads the registered prefixes if the workspace provider supports this operation. */
   def reloadPrefixes()(implicit userContext: UserContext): Unit = {
-    workspacePrefixes = provider.fetchRegisteredPrefixes()
+    workspacePrefixes = provider.fetchRegisteredPrefixes() ++ Prefixes.default
     cachedProjects foreach { project =>
       project.setWorkspacePrefixes(workspacePrefixes)
     }
