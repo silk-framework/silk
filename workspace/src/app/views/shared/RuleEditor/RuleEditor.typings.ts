@@ -59,6 +59,8 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     parameters: RuleOperatorNodeParameters;
     /** The position on the canvas. */
     position?: NodePosition;
+    /** The node size */
+    dimension?: NodeDimension;
     /** The input node IDs. */
     inputs: (string | undefined)[];
     /** Tags that will be displayed inside the node. */
@@ -127,6 +129,11 @@ export type RuleParameterType =
 interface NodePosition {
     x: number;
     y: number;
+}
+
+interface NodeDimension {
+    width: number | null;
+    height: number | null;
 }
 
 export interface RuleOperatorNodeParameters {

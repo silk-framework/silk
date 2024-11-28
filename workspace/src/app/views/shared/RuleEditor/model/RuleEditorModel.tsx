@@ -1543,6 +1543,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
         languageFilterEnabled,
+        allowFlexibleSize: ruleEditorContext.allowFlexibleSize ?? false,
+        changeNodeSize: changeSize,
     });
 
     /** Auto-layout the rule nodes.
@@ -1622,6 +1624,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
+                dimension: node.data?.nodeDimensions,
                 description: originalNode.description,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
