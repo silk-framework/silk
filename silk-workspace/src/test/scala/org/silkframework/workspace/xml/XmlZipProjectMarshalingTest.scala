@@ -31,15 +31,21 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
 
   PluginRegistry.registerPlugin(classOf[MockTemplateEngine])
 
+  private val externalPrefix = "externalPrefix"
+
   it should "marshal and unmarshal correctly" in {
     val file = new File(getClass.getResource("exampleProject.zip").getFile)
     val marshaller = XmlZipWithResourcesProjectMarshaling()
     val resources = InMemoryResourceManager()
     val resourceRepository = InMemoryResourceRepository()
-    val workspaceProvider = new InMemoryWorkspaceProvider()
+    val workspaceProvider = new InMemoryWorkspaceProvider() {
+      override def fetchRegisteredPrefixes()(implicit userContext: UserContext): Prefixes = {
+        Prefixes(Map(externalPrefix -> "urn:external:"))
+      }
+    }
     val workspace = new Workspace(workspaceProvider, resourceRepository)
     marshaller.unmarshalProject(projectName, workspaceProvider, resources, file)
-    validateWorkspace(workspaceProvider, resources, requireResources = true)
+    validateWorkspace(workspace, resources, requireResources = true)
 
     testRoundtrip(workspace, resources, exportResources = true, importResources = true)
     testRoundtrip(workspace, resources, exportResources = false, importResources = true)
@@ -47,7 +53,7 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
   }
 
   private def testRoundtrip(workspace: Workspace, resources: ResourceManager,
-                            exportResources: Boolean, importResources: Boolean) = {
+                            exportResources: Boolean, importResources: Boolean): Unit = {
 
     val exportMarshaller = XmlZipProjectMarshaling(exportResources)
     val project = workspace.projects.head
@@ -60,16 +66,23 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     }
 
     val importMarshaller = XmlZipProjectMarshaling(importResources)
-    val workspace2 = new InMemoryWorkspaceProvider()
+    val workspaceProvider2 = new InMemoryWorkspaceProvider() {
+      override def fetchRegisteredPrefixes()(implicit userContext: UserContext): Prefixes = {
+        Prefixes(Map(externalPrefix -> "urn:external:"))
+      }
+    }
     val resources2 = InMemoryResourceManager()
-    importMarshaller.unmarshalProject(projectName, workspace2, resources2, marshalledFile.toFile)
+    importMarshaller.unmarshalProject(projectName, workspaceProvider2, resources2, marshalledFile.toFile)
+    val workspace2 = new Workspace(workspaceProvider2, InMemoryResourceRepository())
+    workspace2.reloadPrefixes()
+    workspace2.reloadProject(projectName)
     // Validate after complete round-trip
     validateWorkspace(workspace2, resources2, requireResources = exportResources && importResources)
 
     Files.delete(marshalledFile)
   }
 
-  private def validateWorkspace(workspace: InMemoryWorkspaceProvider, resources: ResourceManager, requireResources: Boolean): Unit = {
+  private def validateWorkspace(workspace: Workspace, resources: ResourceManager, requireResources: Boolean): Unit = {
     if(requireResources) {
       resources.list should contain allOf("source.csv", "target.csv")
     } else {
@@ -77,10 +90,13 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     }
 
     // Project
-    val project = workspace.readProject(projectName).get
+    val project = workspace.project(projectName)
+    val projectConfig = project.config
+    projectConfig.prefixes.get(externalPrefix) shouldBe defined
+    projectConfig.projectPrefixes.get(externalPrefix) should not be defined
 
     // Variables
-    val variables = workspace.projectVariables(projectName).readVariables()
+    val variables = workspace.provider.projectVariables(projectName).readVariables()
     variables.map should contain key "linkLimit"
     variables.map should contain key "linkLimitTimesTen"
     variables.map("linkLimit").value shouldBe "1000"
@@ -90,13 +106,13 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
       templateVariables = InMemoryTemplateVariablesReader(variables, Set("project")))
 
     // Datasets
-    val datasets = workspace.readTasks[GenericDatasetSpec](projectName)
+    val datasets = workspace.provider.readTasks[GenericDatasetSpec](projectName)
     datasets.map(_.task.id.toString) should contain allOf("DBpedia", "linkedmdb")
     val dbpediaDataset = datasets.find(_.task.id.toString == "DBpedia").get.task
     val linkedmdbDataset = datasets.find(_.task.id.toString == "linkedmdb").get.task
 
     // Linking task
-    val linkingTasks = workspace.readTasks[LinkSpec](projectName)
+    val linkingTasks = workspace.provider.readTasks[LinkSpec](projectName)
     linkingTasks.map(_.task.id.toString) should contain("movies")
     // Link limit is based on the linkLimitTimesTen template variable
     val linkingTask = linkingTasks.find(_.task.id.toString == "movies").get.task
@@ -106,7 +122,7 @@ class XmlZipProjectMarshalingTest extends AnyFlatSpec with Matchers with ConfigT
     // Tags
     val tag1 = Tag(Uri("urn:silkframework:tag:example+tag+1"), "example tag 1")
     val tag2 = Tag(Uri("urn:silkframework:tag:example+tag+2"), "example tag 2")
-    workspace.readTags(projectName) should contain theSameElementsAs Iterable(tag1, tag2)
+    workspace.provider.readTags(projectName) should contain theSameElementsAs Iterable(tag1, tag2)
     project.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
     dbpediaDataset.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
     linkedmdbDataset.metaData.tags shouldBe Set()
