@@ -475,7 +475,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with Matchers {
       taskCopied mustBe false
 
       // It should copy prefixes if there are no inconsistencies
-      prefixTestProject.config = prefixTestProject.config.copy(prefixes = Prefixes.empty)
+      prefixTestProject.config = prefixTestProject.config.copy(projectPrefixes = Prefixes.empty)
       request.copyTask(project, transformId)
       prefixTestProject.config.prefixes(prefix) mustBe namespace2
       taskCopied mustBe true
