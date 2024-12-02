@@ -20,7 +20,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
 import org.silkframework.execution.typed.{LinkGenerator, LinksEntitySchema}
 import org.silkframework.rule.evaluation.ReferenceLinks
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.AnyPlugin
@@ -29,6 +29,7 @@ import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
@@ -136,27 +137,33 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   override lazy val referencedResources: Seq[Resource] = {
     val resources = new mutable.HashSet[Resource]()
-    rule.operator foreach (operator => extractResourcesFromSimilarityOperator(operator, resources))
+    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.referencedResources.foreach(resources.add)))
     resources.toSeq
   }
 
-  private def extractResourcesFromSimilarityOperator(rule: SimilarityOperator,
-                                                     resources: mutable.HashSet[Resource]): Unit = {
+  override def referencedVariables: Seq[TemplateVariableName] = {
+    val variables = mutable.Buffer[TemplateVariableName]()
+    rule.operator foreach (operator => iterateAllTransformersFromSimilarityOperator(operator, _.referencedVariables.foreach(variables.append)))
+    variables.toSeq
+  }
+
+  private def iterateAllTransformersFromSimilarityOperator(rule: SimilarityOperator,
+                                                           f: Transformer => Unit): Unit = {
     rule match {
       case agg: Aggregation =>
-        agg.operators.foreach(op => extractResourcesFromSimilarityOperator(op, resources))
+        agg.operators.foreach(op => iterateAllTransformersFromSimilarityOperator(op, f))
       case comp: Comparison =>
-        comp.inputs.foreach(input => extractResourcesFromOperator(input, resources))
+        comp.inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
       case _ =>
     }
   }
 
-  private def extractResourcesFromOperator(operator: Operator,
-                                           resources: mutable.HashSet[Resource]): Unit = {
+  private def iterateAllTransformersFromOperator(operator: Operator,
+                                                 f: Transformer => Unit): Unit = {
     operator match {
       case TransformInput(_, transformer, inputs) =>
-        inputs.foreach(input => extractResourcesFromOperator(input, resources))
-        transformer.referencedResources.foreach(resources.add)
+        inputs.foreach(input => iterateAllTransformersFromOperator(input, f))
+        f(transformer)
       case _ =>
     }
   }

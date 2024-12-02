@@ -18,6 +18,7 @@ import org.silkframework.rule.TaskContext
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.templating.TemplateVariableName
 
 /**
  * Transforms values.
@@ -51,6 +52,14 @@ trait Transformer extends AnyPlugin {
    */
   def resourceUpdated(resource: Resource): Unit = {
     // Overwrite to handle updates
+  }
+
+  /**
+   * All variables that are referenced by this transformer.
+   * This list is just a hint and not guaranteed to be complete.
+   */
+  def referencedVariables: Seq[TemplateVariableName] = {
+    Seq.empty
   }
 }
 
