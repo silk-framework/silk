@@ -19,10 +19,11 @@ interface IProps {
 /** Creates possible icon names ordered by priority. This can be used directly with the Icon component. */
 export const createIconNameStack = (itemType?: string, pluginId?: string): string[] => {
     const generatedIconNames: string[] = [];
-    pluginId && generatedIconNames.push((itemType ? itemType + "-" : "") + pluginId);
-    itemType && generatedIconNames.push(itemType);
+    const realItemType = itemType ? convertTaskTypeToItemType(itemType as TaskType, true) : undefined;
+    pluginId && generatedIconNames.push((realItemType ? realItemType + "-" : "") + pluginId);
+    realItemType && generatedIconNames.push(realItemType);
     const prefixedGeneratedIconNames = generatedIconNames.map((type) => {
-        return "artefact-" + type.toLowerCase();
+        return "artefact-" + convertTaskTypeToItemType(type as TaskType, true).toLowerCase();
     });
     return prefixedGeneratedIconNames.filter((x, i, a) => a.indexOf(x) === i);
 };
