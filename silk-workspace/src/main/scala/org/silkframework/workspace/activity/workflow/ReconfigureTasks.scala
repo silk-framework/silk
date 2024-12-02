@@ -77,7 +77,9 @@ object ReconfigureTasks {
       val updatedValues =
         for ((name, value) <- parameterValues.values) yield {
           value match {
-            case _: ParameterStringValue =>
+            case values: ParameterValues =>
+              name -> entityToParameterValues(values, entity, name + "-")
+            case _ =>
               entity.schema.findPath(UntypedPath(prefix + name)) match {
                 case Some(path) =>
                   entity.evaluate(path).headOption match {
@@ -89,10 +91,6 @@ object ReconfigureTasks {
                 case None =>
                   name -> value
               }
-            case values: ParameterValues =>
-              name -> entityToParameterValues(values, entity, name + "-")
-            case _ =>
-              name -> value
           }
         }
       ParameterValues(updatedValues)

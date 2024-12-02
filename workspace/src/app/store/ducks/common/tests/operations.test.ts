@@ -26,6 +26,6 @@ describe("commonOps", () => {
                 name: "3",
             },
         };
-        expect(commonOps.buildTaskObject(flatObject)).toEqual(expectedResult);
+        expect(commonOps.buildNestedTaskParameterObject(flatObject)).toEqual(expectedResult);
     });
 });

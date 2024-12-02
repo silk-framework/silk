@@ -134,15 +134,15 @@ object CopyTasksRequest {
 
     private def copyAllPrefixes(): Unit = {
       // Make sure that a prefix is not already defined with a different namespace
-      val sourcePrefixes = sourceProject.config.prefixes.prefixMap
-      val targetPrefixes = targetProject.config.prefixes.prefixMap
+      val sourcePrefixes = sourceProject.config.projectPrefixes.prefixMap
+      val targetPrefixes = targetProject.config.projectPrefixes.prefixMap
       val inconsistentPrefixes = for(key <- sourcePrefixes.keySet intersect targetPrefixes.keySet if sourcePrefixes(key) != targetPrefixes(key)) yield key
       if(inconsistentPrefixes.nonEmpty) {
         throw new InconsistentPrefixesException(inconsistentPrefixes)
       }
 
       // Update prefixes of target project
-      targetProject.config = targetProject.config.copy(prefixes = targetProject.config.prefixes ++ sourcePrefixes)
+      targetProject.config = targetProject.config.copy(projectPrefixes = targetProject.config.projectPrefixes ++ sourcePrefixes)
     }
 
     /**

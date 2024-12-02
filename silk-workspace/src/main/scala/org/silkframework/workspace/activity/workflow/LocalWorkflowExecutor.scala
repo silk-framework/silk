@@ -364,7 +364,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         )
       }
       // Refresh all caches that depend on the written resources
-      for(referencedResource <- DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(resolvedDataset.referencedResources)) {
+      val updatedResourcesBySinks = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(resolvedDataset.referencedResources)
+      val updatedResourcesByOtherMeans = executionContext.fetchAndClearUpdatedFiles(resolvedDataset.referencedResources)
+      for(referencedResource <- updatedResourcesBySinks ++ updatedResourcesByOtherMeans) {
         CacheUpdaterHelper.refreshCachesOfDependingTasks(referencedResource, project)(workflowRunContext.userContext)
       }
       ()

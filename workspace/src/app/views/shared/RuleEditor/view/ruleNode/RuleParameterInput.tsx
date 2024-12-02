@@ -38,6 +38,8 @@ interface RuleParameterInputProps {
     insideModal: boolean;
     /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
     languageFilter?: LanguageFilterProps;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
 }
 
 /** An input widget for a parameter value. */
@@ -50,6 +52,7 @@ export const RuleParameterInput = ({
     large,
     insideModal,
     languageFilter,
+    parameterDefaultValue,
 }: RuleParameterInputProps) => {
     const _onChange = ruleParameter.update;
     const onChangeRef = React.useRef(_onChange);
@@ -106,6 +109,7 @@ export const RuleParameterInput = ({
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
+        defaultValue: parameterDefaultValue,
     });
 
     if (
