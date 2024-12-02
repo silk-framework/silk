@@ -51,7 +51,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
       val configXML = resources.child(projectName).get("config.xml").read(XML.load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)
       val resourceURI = (configXML \ "@resourceUri").headOption.map(_.text.trim)
-      Some(ProjectConfig(projectName, prefixes, resourceURI, metaData(configXML, projectName)))
+      Some(ProjectConfig(projectName, prefixes, projectResourceUriOpt = resourceURI, metaData = metaData(configXML, projectName)))
     } catch {
       case NonFatal(ex) =>
         log.log(Level.WARNING, s"Could not load project $projectName", ex)
@@ -72,7 +72,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     val uri = config.resourceUriOrElseDefaultUri
     val configXMl =
       <ProjectConfig resourceUri={uri}>
-        { config.prefixes.toXML }
+        { config.projectPrefixes.toXML }
         { XmlSerialization.toXml(config.metaData) }
       </ProjectConfig>
     resources.child(config.id).get("config.xml").write(){ os => configXMl.write(os) }

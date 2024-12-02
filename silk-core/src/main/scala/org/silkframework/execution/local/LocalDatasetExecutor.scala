@@ -8,7 +8,7 @@ import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableReso
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
-import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, LinksEntitySchema, QuadEntitySchema, SparqlEndpointEntitySchema, SparqlUpdateEntitySchema, TypedEntities}
+import org.silkframework.execution.typed._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
@@ -145,7 +145,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         report.executionDone()
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
-        writeDatasetResource(dataset, files,  WriteFilesReportUpdater(dataset, context))
+        writeDatasetResource(dataset, files, WriteFilesReportUpdater(dataset, context), resource => execution.addUpdatedFile(resource.name))
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
         uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
       case SparqlUpdateEntitySchema(queries) =>
@@ -291,24 +291,31 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   // Write file entities to the dataset's resource
   private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]],
                                    fileEntities: TypedEntities[FileEntity, TaskSpec],
-                                   reportUpdater: ExecutionReportUpdater): Unit = {
+                                   reportUpdater: ExecutionReportUpdater,
+                                   onUpdate: WritableResource => Unit): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(outputResource) =>
+                var resourceWritten = false
                 for(inputResource <- fileEntities.typedEntities) {
                   // Either of both files could be a zip
                   (BulkResourceBasedDataset.isZip(inputResource.file), BulkResourceBasedDataset.isZip(outputResource)) match {
                     case (false, false) | (true, true) =>
                       outputResource.writeResource(inputResource.file)
+                      resourceWritten = true
                     case (false, true) =>
                       ZipWritableResource(outputResource).writeResource(inputResource.file)
+                      resourceWritten = true
                     case (true, false) =>
                       throw new ValidationException("Cannot write a zip file to a dataset that's not based on a zip file.")
                   }
                   reportUpdater.increaseEntityCounter()
+                }
+                if(resourceWritten) {
+                  onUpdate(outputResource)
                 }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
