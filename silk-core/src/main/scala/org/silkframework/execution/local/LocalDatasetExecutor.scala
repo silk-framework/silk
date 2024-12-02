@@ -11,7 +11,7 @@ import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource}
+import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -144,7 +144,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         report.executionDone()
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
-        writeDatasetResource(dataset, files)
+        writeDatasetResource(dataset, files, resource => execution.addUpdatedFile(resource.name))
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
         val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
         uploadFilesViaGraphStore(dataset, files.typedEntities, reportUpdater)
@@ -289,15 +289,22 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   // Write file entities to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: TypedEntities[FileEntity, TaskSpec]): Unit = {
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]],
+                                   fileEntities: TypedEntities[FileEntity, TaskSpec],
+                                   onUpdate: WritableResource => Unit): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(wr) =>
+                var resourceWritten = false
                 for(resource <- fileEntities.typedEntities) {
                   wr.writeResource(resource.file)
+                  resourceWritten = true
+                }
+                if(resourceWritten) {
+                  onUpdate(wr)
                 }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
