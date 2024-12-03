@@ -3,7 +3,11 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
-import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
+import {
+    IRuleOperatorNode,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
+    RuleValidationError,
+} from "../../../shared/RuleEditor/RuleEditor.typings";
 import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
 import { evaluateTransformRule } from "../transform.requests";
 import { FetchError } from "../../../../services/fetch/responseInterceptor";
@@ -114,7 +118,11 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
-                registerErrorI18N("taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg", ex);
+                registerErrorI18N(
+                    "taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg",
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                );
             } else {
                 throw ex;
             }
@@ -171,7 +179,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 registerError(
                     "TransformRuleEvaluation.startEvaluation",
                     t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
-                    ex
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
                 );
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
@@ -179,7 +188,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 registerError(
                     "LinkingRuleEvaluation.beforeStartEvaluation",
                     t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
-                    ex
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
                 );
             }
         } finally {
