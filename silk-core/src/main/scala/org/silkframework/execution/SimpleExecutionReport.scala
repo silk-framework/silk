@@ -7,11 +7,11 @@ import org.silkframework.execution.report.SampleEntities
   * An execution report that only contains generic task-independent execution information.
   */
 case class SimpleExecutionReport(task: Task[TaskSpec],
-                                 summary: Seq[(String, String)],
-                                 warnings: Seq[String],
-                                 override val error: Option[String],
-                                 isDone: Boolean,
-                                 entityCount: Int,
+                                 summary: Seq[(String, String)] = Seq.empty,
+                                 warnings: Seq[String] = Seq.empty,
+                                 override val error: Option[String] = None,
+                                 isDone: Boolean = false,
+                                 entityCount: Int = 0,
                                  override val operation: Option[String] = None,
                                  override val operationDesc: String = ExecutionReport.DEFAULT_OPERATION_DESC,
                                  override val sampleOutputEntities: Seq[SampleEntities] = Seq.empty) extends ExecutionReport {

@@ -59,9 +59,9 @@ case class CsvDataset (
     csvSource(resource)
   }
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(bulkWritableResource, csvSettings)
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(bulkWritableResource, csvSettings)
 
   private def csvSource(resource: Resource, ignoreMalformed: Boolean = false): CsvSource = resource match{
     case ror: ReadOnlyResource => csvSource(ror.resource, ignoreMalformed)
