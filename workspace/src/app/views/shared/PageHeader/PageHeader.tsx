@@ -18,6 +18,7 @@ import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 import ItemDepiction from "../ItemDepiction";
+import { convertTaskTypeToItemType, TaskType } from "@ducks/shared/typings";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
     /** Optional type of the page item. Can be an ItemType. */
@@ -121,7 +122,8 @@ function PageHeaderContent({
     const getDepictionIcons = () => {
         const iconNames: string[] = [];
         if (!!type) {
-            iconNames.push("artefact-" + type.toLowerCase());
+            // The type is either a TaskType or an ItemType. If already an ItemType, keep ItemType.
+            iconNames.push("artefact-" + convertTaskTypeToItemType(type as TaskType, true).toLowerCase());
         }
         if (!!alternateDepiction) {
             iconNames.push(alternateDepiction);

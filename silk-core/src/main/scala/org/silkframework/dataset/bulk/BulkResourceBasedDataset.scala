@@ -1,10 +1,10 @@
 package org.silkframework.dataset.bulk
 
-import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
+import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipInputStreamResourceIterator
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.File
@@ -31,6 +31,23 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
 
   /** A file regex specifying the files in the zip file that are part of the dataset, e.g. '.*\.csv$', '.*\.xml$'. */
   def zipFileRegex: String = ".*" // by default all files in the archive
+
+  /**
+   * Resource that will write to the underlying file.
+   * If the underlying file is a zip, it will write to a single file within this zip.
+   */
+  def bulkWritableResource: WritableResource = {
+    writableResource match {
+      case Some(outputResource) =>
+        if (BulkResourceBasedDataset.isBulkResource(file)) {
+          ZipWritableResource(outputResource)
+        } else {
+          outputResource
+        }
+      case _ =>
+        throw new ValidationException(s"Cannot write to $this.")
+    }
+  }
 
   private val internalRegex = zipFileRegex.trim.r
 

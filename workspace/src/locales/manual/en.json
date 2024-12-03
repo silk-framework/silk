@@ -306,7 +306,7 @@
             "DeleteSmth": "Delete {{smth}}",
             "RemoveSmth": "Remove {{smth}}",
             "ShowSmth": "Show {{smth}}",
-            "CopyItems": "Copy Items to another project",
+            "CopyItems": "Copy items to another project",
             "CopyProject": "Copy to another project",
             "abort": "Abort",
             "add": "Add",
@@ -772,6 +772,7 @@
     },
     "copyModal": {
         "copyPrefixes": "Copy prefixes",
+        "projectVarInfo": "Project variables that are missing in the target project will be copied.",
         "errorMessages": {
             "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"

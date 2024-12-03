@@ -18,6 +18,7 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleEditorValidationNode,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
@@ -1013,7 +1014,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 registerError(
                     "RuleEditorModel.requestRuleOperatorPluginDetails",
                     "Could not fetch rule operator plugin details. Human-readable labels for default values might be missing.",
-                    ex
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
                 );
             }
         }

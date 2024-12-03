@@ -194,6 +194,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     {t("common.action.cancel")}
                 </Button>,
             ]}
+            notifications={
+                error ? (
+                    <Notification message={error.detail} danger />
+                ) : (
+                    <Notification message={t("copyModal.projectVarInfo")} />
+                )
+            }
         >
             <FieldItem
                 key={"copy-label"}
@@ -313,12 +320,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     {t("common.messages.taskOverwrittenPrompt")}
                 </Checkbox>
             ) : null}
-            {error && (
-                <>
-                    <Spacing />
-                    <Notification message={error.detail} danger />
-                </>
-            )}
         </SimpleDialog>
     );
 };

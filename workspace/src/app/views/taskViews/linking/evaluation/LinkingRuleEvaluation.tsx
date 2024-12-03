@@ -1,7 +1,11 @@
 /** Component that handles the linking rule (inline) evaluation. */
 import { RuleEditorEvaluationContext } from "../../../shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import React, { ReactElement } from "react";
-import { IRuleOperatorNode, RuleValidationError } from "../../../shared/RuleEditor/RuleEditor.typings";
+import {
+    IRuleOperatorNode,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
+    RuleValidationError,
+} from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
 import { TaskPlugin } from "@ducks/shared/typings";
 import {
@@ -142,7 +146,8 @@ export const LinkingRuleEvaluation = ({
                 registerError(
                     "LinkingRuleEvaluation.fetchReferenceLinksEvaluation",
                     "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation.",
-                    ex
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
                 );
             } else {
                 throw ex;
@@ -219,7 +224,8 @@ export const LinkingRuleEvaluation = ({
                     registerError(
                         "LinkingRuleEvaluation.startEvaluation",
                         t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
-                        ex
+                        ex,
+                        RULE_EDITOR_NOTIFICATION_INSTANCE
                     );
                 }
             } else if (ex.isRuleValidationError) {
@@ -228,7 +234,8 @@ export const LinkingRuleEvaluation = ({
                 registerError(
                     "LinkingRuleEvaluation.beforeStartEvaluation",
                     t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
-                    ex
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
                 );
             }
         } finally {

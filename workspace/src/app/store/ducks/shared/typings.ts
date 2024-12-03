@@ -50,7 +50,10 @@ export const TaskTypes: ITaskTypes = {
 export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
 
 /** Converts the task type from the backend to the item type of the UI. */
-export const convertTaskTypeToItemType = (taskType: TaskType | undefined): ItemType => {
+export const convertTaskTypeToItemType = (
+    taskType: TaskType | undefined,
+    returnInputStringOnNoMatch: boolean = false
+): ItemType => {
     switch (taskType) {
         case "Dataset":
             return "dataset";
@@ -62,8 +65,10 @@ export const convertTaskTypeToItemType = (taskType: TaskType | undefined): ItemT
             return "workflow";
         case "CustomTask":
             return "task";
-        default:
+        case undefined:
             return "task";
+        default:
+            return returnInputStringOnNoMatch ? (taskType as ItemType) : "task";
     }
 };
 

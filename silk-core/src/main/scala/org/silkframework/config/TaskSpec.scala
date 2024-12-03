@@ -4,6 +4,7 @@ import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -54,6 +55,14 @@ trait TaskSpec {
    */
   def resourceUpdated(resource: Resource): Unit = {
     // Overwrite to handle updates
+  }
+
+  /**
+   * All variables that are referenced by this task.
+   * This list is just a hint and not guaranteed to be complete.
+   */
+  def referencedVariables: Seq[TemplateVariableName] = {
+    Seq.empty
   }
 
   /**
