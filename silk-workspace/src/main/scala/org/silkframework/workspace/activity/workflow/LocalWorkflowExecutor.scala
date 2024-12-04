@@ -354,15 +354,16 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           "dataset", workflowDataset.nodeId
         )
       )
-      entityTables.foreach { entityTable =>
-        Try {entityTable.use(_.size)}.foreach(
-          registry.counter(
-            s"$prefix.workflow.dataset.count",
-            "workflow", workflowTask.id.toString,
-            "dataset", workflowDataset.nodeId
-          ).increment(_)
-        )
-      }
+//TODO this will exhaust the entity table iterator
+//      entityTables.foreach { entityTable =>
+//        Try {entityTable.use(_.size)}.foreach(
+//          registry.counter(
+//            s"$prefix.workflow.dataset.count",
+//            "workflow", workflowTask.id.toString,
+//            "dataset", workflowDataset.nodeId
+//          ).increment(_)
+//        )
+//      }
       // Refresh all caches that depend on the written resources
       val updatedResourcesBySinks = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles(resolvedDataset.referencedResources)
       val updatedResourcesByOtherMeans = executionContext.fetchAndClearUpdatedFiles(resolvedDataset.referencedResources)

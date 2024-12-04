@@ -16,16 +16,21 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
 
   private val queue = new ArrayBlockingQueue[T](bufferSize)
 
-  // Load entities in the background
-  private lazy val loadingFuture: Future[Unit] = TraversableIterator.threadPool.submit[Unit](() => {
-    foreach(queue.put)
-  })
+  // Loads entities in the background
+  private var loadingFuture: Option[Future[Unit]] = None
 
   def foreach[U](f: T => U): Unit
 
   override def retrieveNext(): Option[T] = {
+    if(loadingFuture.isEmpty) {
+      // Start retrieving entities from the traversable
+      loadingFuture = Some(TraversableIterator.threadPool.submit[Unit](() => {
+        foreach(queue.put)
+      }))
+    }
+    // Retrieve next element from the queue
     try {
-      while (!loadingFuture.isDone) {
+      while (!loadingFuture.get.isDone) {
         val nextElement = queue.poll(100, TimeUnit.MILLISECONDS)
         if (nextElement != null) {
           checkForException()
@@ -36,15 +41,15 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
       Option(queue.poll())
     } catch {
       case ex: InterruptedException =>
-        loadingFuture.cancel(true)
+        loadingFuture.get.cancel(true)
         throw ex
     }
   }
 
   private def checkForException(): Unit = {
     try {
-      if(loadingFuture.isDone) {
-        loadingFuture.get()
+      for(future <- loadingFuture if future.isDone) {
+        future.get()
       }
     } catch {
       case ex: ExecutionException =>
@@ -57,7 +62,9 @@ trait TraversableIterator[T] extends BufferingIterator[T] with DoSomethingOnGC {
   }
 
   override def close(): Unit = {
-    loadingFuture.cancel(true)
+    for(future <- loadingFuture) {
+      future.cancel(true)
+    }
   }
 }
 
