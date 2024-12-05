@@ -109,9 +109,9 @@ interface IAutoCompleteItem {
 const hasDistinctLabel = (autoCompleteItem: IAutoCompleteItem) =>
     autoCompleteItem.label && autoCompleteItem.label.toLowerCase() !== autoCompleteItem.value.toLowerCase();
 
-const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
+export function autoCompleteItemRendererFactory<T = {}>(showValueWhenLabelExists: boolean, optionalLabelFn?: (obj: T) => string) {
     return (
-        autoCompleteItem: IAutoCompleteItem,
+        autoCompleteItem: IAutoCompleteItem & T,
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
         handleClick: () => any
@@ -124,6 +124,9 @@ const autoCompleteItemRendererFactory = (showValueWhenLabelExists: boolean) => {
             value = autoCompleteItem.value;
         } else {
             label = autoCompleteItem.value;
+        }
+        if(optionalLabelFn) {
+            label = optionalLabelFn(autoCompleteItem)
         }
         const highlighter = (value: string | undefined) =>
             modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value;

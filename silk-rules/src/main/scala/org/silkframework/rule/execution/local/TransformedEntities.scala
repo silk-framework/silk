@@ -180,19 +180,28 @@ class TransformedEntities(task: Task[TransformSpec],
   }
 
   private class TransformReportIterator(iterator: CloseableIterator[Entity], report: TransformReportBuilder) extends CloseableIterator[Entity] {
+    @volatile
+    private var reportDone = false
+
+    private def closeReport(): Unit = {
+      if(!reportDone) {
+        report.build(isDone = true)
+        reportDone = true
+      }
+    }
 
     override def hasNext: Boolean = {
       try {
         if (iterator.hasNext) {
           true
         } else {
-          report.build(isDone = true)
+          closeReport()
           false
         }
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
-          report.build(isDone = true)
+          closeReport()
           throw ex
       }
     }
@@ -203,11 +212,14 @@ class TransformedEntities(task: Task[TransformSpec],
       } catch {
         case NonFatal(ex) =>
           report.setExecutionError(ex.getMessage)
-          report.build(isDone = true)
+          closeReport()
           throw ex
       }
     }
 
-    override def close(): Unit = iterator.close()
+    override def close(): Unit = {
+      closeReport()
+      iterator.close()
+    }
   }
 }

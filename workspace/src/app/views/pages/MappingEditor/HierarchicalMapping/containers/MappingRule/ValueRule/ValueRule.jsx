@@ -153,7 +153,9 @@ class ValueRule extends React.Component {
                         ) : null}
                     </CardContent>
                     <Divider />
-                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                    <CardActions
+                        data-test-id={"mapping-rule-card-actions"}
+                        className="ecc-silk-mapping__ruleseditor__actionrow">
                         <EditButton onEdit={this.handleEdit} />
                         <CopyButton onCopy={this.handleCopy} />
                         <CloneButton onClone={this.handleClone} />

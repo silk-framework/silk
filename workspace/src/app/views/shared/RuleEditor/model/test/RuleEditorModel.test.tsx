@@ -175,6 +175,7 @@ describe("Rule editor model", () => {
             label: paramId,
             required: false,
             type: "textField",
+            orderIdx: 1
         };
     };
 

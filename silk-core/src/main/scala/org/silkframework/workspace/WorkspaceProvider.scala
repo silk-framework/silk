@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.config._
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{AnyPlugin, ParameterValues, PluginContext}
@@ -16,7 +16,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.xml.{Attribute, Elem, Node, Text, Null}
+import scala.xml.{Attribute, Elem, Node, Null, Text}
 
 @PluginType()
 trait WorkspaceProvider extends AnyPlugin {
@@ -146,7 +146,7 @@ trait WorkspaceProvider extends AnyPlugin {
     * Returns an SPARQL endpoint that allows query access to the projects.
     * May return None if the projects are not held as RDF.
     */
-  def sparqlEndpoint: Option[SparqlEndpoint]
+  def sparqlEndpoint: Option[SparqlEndpoint with GraphStoreTrait]
 
   private val externalLoadingErrors: mutable.HashMap[String, Vector[TaskLoadingError]] = new mutable.HashMap[String, Vector[TaskLoadingError]]()
 

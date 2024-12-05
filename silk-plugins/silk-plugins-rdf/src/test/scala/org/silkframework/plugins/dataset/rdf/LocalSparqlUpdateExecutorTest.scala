@@ -72,10 +72,10 @@ class LocalSparqlUpdateExecutorTest extends AnyFlatSpec with Matchers with TestW
     report mustBe defined
     report.get.sampleOutputEntities must not be empty
     val samplesEntities = report.get.sampleOutputEntities.head
+    // One sample entities is emitted
     samplesEntities.schema.properties must not be empty
-    samplesEntities.entities must have size ExecutionReport.SAMPLE_ENTITY_LIMIT
-    // Each entity currently represents one query, NOT one batch
-    samplesEntities.entities.head.values mustBe IndexedSeq(Seq("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;"""))
+    samplesEntities.entities must have size 1
+    samplesEntities.entities.head.values.head.head must startWith ("""INSERT DATA { <http://s1> <urn:prop> "s1a" } ;""")
   }
 
   it should "throw validation exception if an invalid input schema is found" in {

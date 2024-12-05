@@ -18,7 +18,7 @@ import scala.reflect.ClassTag._
   * @tparam T The value type. Set to [[Unit]] if no values are generated.
   */
 class ActivityMonitor[T](name: String,
-                         parent: Option[ActivityContext[_]] = None,
+                         override val parent: Option[ActivityContext[_]] = None,
                          progressContribution: Double = 0.0,
                          initialValue: => Option[T] = None,
                          val contextMetaData: Option[ActivityContextData[_]] = None,

@@ -27,7 +27,6 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
-    val reportUpdater = SparqlUpdateExecutionReportUpdater(task, context)
 
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
@@ -40,25 +39,24 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         while (it.hasNext) {
           val query = updateTask.generate(it.next(), taskProperties)
           batchEmitter.update(query)
-          reportUpdater.addSampleEntity(EntitySample(query))
-          reportUpdater.increaseEntityCounter()
         }
       }
     }
 
     val traversable = new TraversableIterator[String] {
       override def foreach[U](f: String => U): Unit = {
-        val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
+        val reportUpdater = SparqlUpdateExecutionReportUpdater(task, context)
+        val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize, reportUpdater)
         val expectedProperties = getInputProperties(expectedSchema)
         reportUpdater.startNewOutputSamples(SampleEntitiesSchema("", "", IndexedSeq("Sparql Update query")))
         if (updateTask.isStaticTemplate) {
           // Static template needs to be executed exactly once
-          executeTemplate(batchEmitter, reportUpdater, updateTask, outputTask = output.task)
+          executeTemplate(batchEmitter, updateTask, outputTask = output.task)
         } else {
           for (input <- inputs) {
             if(expectedProperties.isEmpty) {
               // Template without input path placeholders should be executed once per input, e.g. it uses input task properties
-              executeTemplate(batchEmitter, reportUpdater, updateTask, inputTask = Some(input.task), outputTask = output.task)
+              executeTemplate(batchEmitter, updateTask, inputTask = Some(input.task), outputTask = output.task)
             } else {
               executeOnInput(batchEmitter, expectedProperties, input)
             }
@@ -72,7 +70,6 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
   }
 
   private def executeTemplate[U](batchEmitter: BatchSparqlUpdateEmitter[U],
-                                 reportUpdater: SparqlUpdateExecutionReportUpdater,
                                  updateTask: SparqlUpdateCustomTask,
                                  inputTask: Option[Task[_ <: TaskSpec]] = None,
                                  outputTask: Option[Task[_ <: TaskSpec]] = None)
@@ -80,8 +77,6 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
     val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask, pluginContext = pluginContext)
     val query = updateTask.generate(Map.empty, taskProperties)
     batchEmitter.update(query)
-    reportUpdater.addSampleEntity(EntitySample(query))
-    reportUpdater.increaseEntityCounter()
   }
 
   private def createTaskProperties(inputTask: Option[Task[_ <: TaskSpec]],
@@ -165,7 +160,7 @@ case class CrossProductIterator(values: IndexedSeq[Seq[String]],
   }
 }
 
-case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int) {
+case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int, reportUpdater: SparqlUpdateExecutionReportUpdater) {
   private var sparqlUpdateQueries = new StringBuffer()
   private var queryCount = 0
 
@@ -184,6 +179,8 @@ case class BatchSparqlUpdateEmitter[U](f: String => U, batchSize: Int) {
   private var entityCount = 0
   private def emitEntity(): Unit = {
     f(sparqlUpdateQueries.toString)
+    reportUpdater.addSampleEntity(EntitySample(sparqlUpdateQueries.toString))
+    reportUpdater.increaseEntityCounter()
     sparqlUpdateQueries = new StringBuffer()
     queryCount = 0
     entityCount += 1

@@ -19,11 +19,11 @@ export const SearchTags = ({ searchTags, searchText, withSpacing = "tiny" }: Sea
             {searchTags.map((searchTag) => (
                 <React.Fragment key={searchTag}>
                     <Tag emphasis="weaker">
-                        <Highlighter label={searchTag} searchValue={searchText} />
+                        <Highlighter label={searchTag} searchValue={searchText}/>
                     </Tag>
                     {withSpacing !== "none" ? <Spacing size={withSpacing} vertical /> : null}
                 </React.Fragment>
             ))}
         </>
     );
-};
+}

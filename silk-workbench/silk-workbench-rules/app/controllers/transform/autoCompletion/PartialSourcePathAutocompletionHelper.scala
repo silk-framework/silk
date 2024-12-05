@@ -141,8 +141,10 @@ object PartialSourcePathAutocompletionHelper {
     def completion(predicate: Boolean, value: String, description: String): Option[CompletionBase] = {
       if(predicate) Some(CompletionBase(value, description = Some(description))) else None
     }
+    val operatorComplextionsRequested = !autoCompletionRequest.ignorePathOperatorCompletions.getOrElse(false)
     // Propose operators
-    if (!pathToReplace.insideQuotesOrUri && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
+    if (operatorComplextionsRequested && !pathToReplace.insideQuotesOrUri &&
+      !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
       val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DatasetCharacteristics()).supportedPathExpressions
       val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
         "/", "Starts a forward path segment")

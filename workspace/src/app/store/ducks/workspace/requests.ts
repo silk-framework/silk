@@ -168,7 +168,7 @@ export const requestCreateProject = async (payload: ICreateProjectPayload): Prom
 };
 
 //missing-type
-export const requestProjectPrefixes = async (projectId: string): Promise<any | never> => {
+export const requestProjectPrefixesLegacy = async (projectId: string): Promise<any | never> => {
     try {
         const { data } = await fetch({
             url: workspaceApi(`/projects/${projectId}/prefixes`),
@@ -177,6 +177,13 @@ export const requestProjectPrefixes = async (projectId: string): Promise<any | n
     } catch (e) {
         throw handleError(e);
     }
+};
+
+/** Fetch project prefixes. */
+export const requestProjectPrefixes = async (projectId: string): Promise<FetchResponse<Record<string, string>>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes`),
+    })
 };
 
 //missing-type

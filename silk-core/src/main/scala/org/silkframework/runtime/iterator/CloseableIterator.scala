@@ -182,6 +182,8 @@ trait AutoClose[+T] extends CloseableIterator[T] with DoSomethingOnGC {
   * Iterator that closes another resource after iteration.
   */
 private class CloseResourceIterator[+T](iterator: Iterator[T], closeable: Closeable) extends CloseableIterator[T] {
+  @volatile
+  private var closed = false
 
   override def hasNext: Boolean = {
     if(iterator.hasNext) {
@@ -197,7 +199,10 @@ private class CloseResourceIterator[+T](iterator: Iterator[T], closeable: Closea
   }
 
   override def close(): Unit = {
-    closeable.close()
+    if(!closed) {
+      closeable.close()
+      closed = true
+    }
   }
 }
 
@@ -219,6 +224,8 @@ private class WrappedCloseableIterator[+T](iterator: Iterator[T]) extends Closea
   * Closeable iterator that also closes another Closeable.
   */
 private class ChainedCloseableIterator[+T](iterator: CloseableIterator[T], closeable: Closeable) extends CloseableIterator[T] {
+  @volatile
+  private var closed = false
 
   override def hasNext: Boolean = {
     if (iterator.hasNext) {
@@ -234,10 +241,13 @@ private class ChainedCloseableIterator[+T](iterator: CloseableIterator[T], close
   }
 
   override def close(): Unit = {
-    try {
-      iterator.close()
-    } finally {
-      closeable.close()
+    if(!closed) {
+      try {
+        iterator.close()
+      } finally {
+        closeable.close()
+        closed = true
+      }
     }
   }
 }

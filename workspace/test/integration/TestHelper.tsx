@@ -1,10 +1,10 @@
 import React from "react";
-import { createBrowserHistory, createMemoryHistory, History, LocationState } from "history";
-import { EnzymePropSelector, mount, ReactWrapper, shallow } from "enzyme";
-import { Provider } from "react-redux";
-import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
+import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
+import {EnzymePropSelector, mount, ReactWrapper, shallow} from "enzyme";
+import {Provider} from "react-redux";
+import {configureStore, getDefaultMiddleware} from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
-import { ConnectedRouter, routerMiddleware } from "connected-react-router";
+import {ConnectedRouter, routerMiddleware} from "connected-react-router";
 import {
     AxiosMockQueueItem,
     AxiosMockRequestCriteria,
@@ -12,15 +12,15 @@ import {
     HttpResponse,
 } from "jest-mock-axios/dist/lib/mock-axios-types";
 import mockAxios from "../__mocks__/axios";
-import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
-import { mergeDeepRight } from "ramda";
-import { IStore } from "../../src/app/store/typings/IStore";
-import { render, waitFor } from "@testing-library/react";
+import {CONTEXT_PATH, SERVE_PATH} from "../../src/app/constants/path";
+import {mergeDeepRight} from "ramda";
+import {IStore} from "../../src/app/store/typings/IStore";
+import {render, RenderResult, waitFor} from "@testing-library/react";
 import {
     responseInterceptorOnError,
     responseInterceptorOnSuccess,
 } from "../../src/app/services/fetch/responseInterceptor";
-import { AxiosError } from "axios";
+import {AxiosError} from "axios";
 
 interface IMockValues {
     history: History;
@@ -449,3 +449,56 @@ export const checkRequestMade = (
 
 /** Cleans up the DOM. This is needed to avoid DOM elements from one test interfering with the subsequent tests. */
 export const cleanUpDOM = () => (document.body.innerHTML = "");
+
+export class RenderResultApi {
+    renderResult: RenderResult
+
+    constructor(renderResult: RenderResult) {
+        this.renderResult = renderResult
+    }
+
+    find = (cssSelector: string): Element | null => {
+        return this.renderResult.container.querySelector(cssSelector)
+    }
+
+    findExisting = (cssSelector: string): Element => {
+        const element = this.find(cssSelector)
+        this.assert(!!element, `Element with selector '${cssSelector}' does not exist!`)
+        return element!
+    }
+
+    findNth = (cssSelector: string, idx: number): Element => {
+        const element = this.findAll(cssSelector)[idx]
+        this.assert(!!element, `${idx + 1}th element with selector '${cssSelector}' does not exist!`)
+        return element!
+    }
+
+    findAll = (cssSelector: string): NodeListOf<Element> => {
+        return this.renderResult.container.querySelectorAll(cssSelector)
+    }
+
+    assert = (predicate: any, errorMessage: string) => {
+        if(!predicate) {
+            fail(errorMessage)
+        }
+    }
+
+    click = (cssSelector: string, idx: number = 0) => {
+        const element = (this.findAll(cssSelector)[idx]) as HTMLButtonElement
+        this.assert(element, `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`)
+        if(element.click) {
+            element.click()
+        } else {
+            element.dispatchEvent(new Event('click'))
+        }
+    }
+
+    printHtml = (selector?: string) => {
+        const elementToPrint = selector ? this.findExisting(selector) : this.renderResult.container
+        console.log(elementToPrint.outerHTML)
+    }
+
+    static testId = (testId: string): string => {
+        return `[data-test-id = '${testId}']`
+    }
+}

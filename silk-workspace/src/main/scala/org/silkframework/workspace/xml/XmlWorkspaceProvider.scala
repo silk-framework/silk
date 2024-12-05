@@ -2,7 +2,7 @@ package org.silkframework.workspace.xml
 
 import org.silkframework.config.Tag.TagXmlFormat
 import org.silkframework.config._
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
@@ -201,5 +201,5 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Returns None, because the projects are not held as RDF.
     */
-  override def sparqlEndpoint: Option[SparqlEndpoint] = None
+  override def sparqlEndpoint: Option[SparqlEndpoint with GraphStoreTrait] = None
 }

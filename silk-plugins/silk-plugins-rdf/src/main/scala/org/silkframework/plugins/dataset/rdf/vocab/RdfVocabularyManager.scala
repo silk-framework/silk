@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
@@ -20,7 +20,7 @@ case class RdfVocabularyManager() extends VocabularyManager {
     loader.retrieveVocabulary(uri)
   }
 
-  private def workspaceSparqlEndpoint(implicit userContext: UserContext): SparqlEndpoint = {
+  private def workspaceSparqlEndpoint(implicit userContext: UserContext): SparqlEndpoint with GraphStoreTrait = {
     WorkspaceFactory().workspace.provider.sparqlEndpoint match {
       case Some(endpoint) =>
         endpoint
