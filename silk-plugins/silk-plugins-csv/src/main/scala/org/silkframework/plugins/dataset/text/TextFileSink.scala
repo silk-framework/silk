@@ -15,7 +15,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     if(writer.isEmpty) {
-      writer = Some(new OutputStreamWriter(ds.file.createOutputStream(), ds.charset))
+      writer = Some(new OutputStreamWriter(ds.bulkWritableResource.createOutputStream(), ds.charset))
     }
   }
 
@@ -41,7 +41,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
   }
 
   override def clear()(implicit userContext: UserContext): Unit = {
-    ds.file.writeString("", codec = ds.codec)
+    ds.bulkWritableResource.writeString("", codec = ds.codec)
   }
 
   override def close()(implicit userContext: UserContext): Unit = {

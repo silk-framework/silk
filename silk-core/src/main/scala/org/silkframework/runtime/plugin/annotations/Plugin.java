@@ -43,12 +43,21 @@ public @interface Plugin {
    * Classpath to a Markdown file.
    * Typically the Markdown file is at the same classpath as the documented plugin,
    * in which case the local file name can be provided instead of the full classpath.
+   *
+   * Parameter links:
+   *
+   * It is possible to define special HTML links in the Markdown documentation for parameters of a plugin.
+   * This allows for direct links into the documentation for a specific parameter. The format is as follows:
+   *
+   * <a id="parameter_doc_<PARAMETER_ID></>">documentation text</a>
+   *
+   * Replace <PARAMETER_ID> with the parameter ID it corresponds to.
    */
   String documentationFile() default "";
 
   /**
-   * Optional icon as data URL string. If not set the plugin will have a generic icon.
+   * Optional icon. If not set the plugin will have a generic icon.
    * This icon is rendered in the UI.
    */
-  String pluginIcon() default "";
+  String iconFile() default "";
 }

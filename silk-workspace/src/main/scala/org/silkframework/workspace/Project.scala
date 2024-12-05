@@ -153,12 +153,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /**
-    * Adds additional prefixes that are not persisted with the project. The additional prefixes will overwrite
-    * existing prefixes with the same prefix name.
-    * @param additionalPrefixes The prefixes that should be added to the project config.
+    * Adds additional prefixes that are defined for the whole workspace and are not persisted with the project.
+    * Project prefixes overwrite workspace prefixes.
+    *
+    * @param workspacePrefixes The prefixes that should be added to the project config.
     */
-  def setAdditionalPrefixes(additionalPrefixes: Prefixes) {
-    cachedConfig = cachedConfig.copy(prefixes = cachedConfig.prefixes ++ additionalPrefixes)
+  def setWorkspacePrefixes(workspacePrefixes: Prefixes) {
+    cachedConfig = cachedConfig.copy(projectPrefixes = cachedConfig.projectPrefixes, workspacePrefixes = workspacePrefixes)
   }
 
   /** Update the meta data of a project. */

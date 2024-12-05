@@ -37,6 +37,7 @@ interface CopyPayloadProps {
     targetProject: string;
     dryRun: boolean;
     overwriteTasks?: boolean;
+    copyPrefixes?: boolean;
 }
 
 interface ItemResponseType {
@@ -62,6 +63,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [targetProject, setTargetProject] = React.useState<string | undefined>(undefined);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
     const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
+    const [shouldCopyPrefixes, setShouldCopyPrefixes] = React.useState<boolean>(false);
 
     const [t] = useTranslation();
 
@@ -117,6 +119,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 targetProject: targetProject,
                 dryRun: false,
                 overwriteTasks: overWrittenAcknowledgement,
+                copyPrefixes: shouldCopyPrefixes,
             };
             await copyTaskOrProject(projectId, payload, id);
             onConfirmed();
@@ -191,6 +194,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     {t("common.action.cancel")}
                 </Button>,
             ]}
+            notifications={
+                error ? (
+                    <Notification message={error.detail} danger />
+                ) : (
+                    <Notification message={t("copyModal.projectVarInfo")} />
+                )
+            }
         >
             <FieldItem
                 key={"copy-label"}
@@ -297,6 +307,10 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 </Accordion>
             )}
             <Spacing size="large" />
+            <Checkbox checked={shouldCopyPrefixes} onChange={() => setShouldCopyPrefixes((c) => !c)}>
+                {t("copyModal.copyPrefixes")}
+            </Checkbox>
+            <Spacing />
             {info?.overwrittenTasks.length ? (
                 <Checkbox
                     data-test-id={"overwrite-tasks-checkbox"}
@@ -306,12 +320,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     {t("common.messages.taskOverwrittenPrompt")}
                 </Checkbox>
             ) : null}
-            {error && (
-                <>
-                    <Spacing />
-                    <Notification message={error.detail} danger />
-                </>
-            )}
         </SimpleDialog>
     );
 };

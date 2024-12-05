@@ -2,12 +2,12 @@ package org.silkframework.workspace
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.templating.exceptions.InvalidScopeException
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariables, TemplateVariablesManager}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableScopes, TemplateVariables, TemplateVariablesManager}
 
 class ProjectTemplateVariablesManager(serializer: TemplateVariablesSerializer)
                                      (implicit user: UserContext) extends TemplateVariablesManager {
 
-  private val projectScope = "project"
+  private def projectScope = TemplateVariableScopes.project
 
   private var variables: TemplateVariables = serializer.readVariables()
 

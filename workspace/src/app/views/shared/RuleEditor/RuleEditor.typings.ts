@@ -237,3 +237,5 @@ export interface RuleEditorValidationNode {
     inputs: () => (RuleEditorValidationNode | undefined)[];
     output: () => RuleEditorValidationNode | undefined;
 }
+
+export const RULE_EDITOR_NOTIFICATION_INSTANCE = "RuleEditor";

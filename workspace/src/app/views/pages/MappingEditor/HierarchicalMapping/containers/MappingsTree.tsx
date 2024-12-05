@@ -52,6 +52,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
     const [treeNodes, setTreeNodes] = React.useState<TreeNodeInfo[]>([]);
     const [data, setData] = React.useState();
     const [t] = useTranslation();
+    const nodeExpansionState = React.useRef<Map<string, boolean>>(new Map());
 
     React.useEffect(() => {
         updateNavigationTree();
@@ -83,6 +84,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
     const handleNodeExpand = React.useCallback(
         (node) => {
+            nodeExpansionState.current.set(node.id, true);
             setTreeNodes([buildTree(data, { nodeId: node.id, expanded: true })]);
         },
         [data, currentRuleId]
@@ -90,23 +92,27 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 
     const handleNodeCollapse = React.useCallback(
         (node) => {
+            nodeExpansionState.current.set(node.id, false);
             setTreeNodes([buildTree(data, { nodeId: node.id, expanded: false })]);
         },
         [data, currentRuleId]
     );
 
-    const renderRuleIcon = (ruleId) => {
-        if (!ruleValidation || ruleValidation[ruleId] === undefined) {
+    const renderRuleIcon = (ruleIds: string[]) => {
+        const rulesWithValidation = ruleIds.filter((ruleId) => ruleValidation && ruleValidation[ruleId] !== undefined);
+        if (rulesWithValidation.length === 0) {
             return null;
-        } else if (ruleValidation[ruleId] === "ok") {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
-        } else {
+        } else if (
+            rulesWithValidation.findIndex((ruleId) => ruleValidation && ruleValidation[ruleId] === "warning") > -1
+        ) {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />;
+        } else {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
         }
     };
 
     const buildTree = React.useCallback(
-        (parent, config?: { nodeId: string; expanded: boolean }): TreeNodeInfo => {
+        (parent, config?: { nodeId: string; expanded: boolean }): TreeNodeInfo<TreeNodeMetaData> => {
             const { id, type: parentType, rules = {} } = parent;
 
             let allRules = [] as any[];
@@ -118,6 +124,10 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
             }
 
             const childNodes = allRules.filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT);
+            const ruleIdsToValidate = [id];
+            if (rules.typeRules != null) {
+                ruleIdsToValidate.push(...rules.typeRules.map((r) => r.id));
+            }
 
             const label = (
                 <div
@@ -130,7 +140,7 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                         minimal
                         fill
                         active={currentRuleId === id}
-                        icon={renderRuleIcon(id) ?? undefined}
+                        icon={renderRuleIcon(ruleIdsToValidate) ?? undefined}
                         className="ecc-silk-mapping__treenav--item-handler"
                         data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
                         onClick={() => {
@@ -161,14 +171,14 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 </div>
             );
 
-            let isExpanded =
-                config && config.nodeId === id
-                    ? config.expanded
-                    : currentRuleId === id
-                    ? true
-                    : parentType === MAPPING_RULE_TYPE_ROOT;
+            let containsCurrentRuleId = false;
+            let isExpanded = nodeExpansionState.current.has(id)
+                ? nodeExpansionState.current.get(id)
+                : currentRuleId === id
+                ? true
+                : parentType === MAPPING_RULE_TYPE_ROOT;
 
-            const tree = {
+            const tree: TreeNodeInfo<TreeNodeMetaData> = {
                 id,
                 hasCaret: !!childNodes.length,
                 isExpanded,
@@ -182,12 +192,17 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
                 ) : undefined,
                 childNodes: childNodes.map((child) => {
                     const subtree = buildTree(child, config);
-                    if (!config && subtree.isExpanded) {
+                    if (subtree.nodeData?.containsCurrentRule || child.id === currentRuleId) {
+                        nodeExpansionState.current.set(id, true);
                         isExpanded = true;
+                        containsCurrentRuleId = true;
                     }
                     return subtree;
                 }),
             };
+            if (containsCurrentRuleId) {
+                tree.nodeData = { ...tree.nodeData, containsCurrentRule: true };
+            }
             tree.isExpanded = isExpanded;
             return tree;
         },
@@ -273,3 +288,8 @@ const MappingsTreeNew: React.FC<MappingTreeProps> = ({
 };
 
 export default MappingsTreeNew;
+
+interface TreeNodeMetaData {
+    // True if this tre node contains the currently selected rule somewhere in its hierarchy
+    containsCurrentRule?: boolean;
+}

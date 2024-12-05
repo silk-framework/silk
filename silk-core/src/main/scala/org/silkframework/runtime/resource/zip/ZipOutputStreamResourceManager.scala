@@ -56,7 +56,7 @@ class ZipOutputStreamResourceManager(zip: OutputStream, val basePath: String = "
 
   override def get(name: String, mustExist: Boolean): WritableResource = synchronized {
     val resolvedPath = resolvePath(name)
-    val res = ZipWritableResource(name, resolvedPath, zipOutput, closeEntriesAutomatically)
+    val res = ZipOutputStreamResource(name, resolvedPath, zipOutput, closeEntriesAutomatically)
     resources.put(name, res)
     res
   }

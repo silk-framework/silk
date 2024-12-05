@@ -22,6 +22,9 @@ import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
 
 import java.lang.reflect.{Constructor, InvocationTargetException, ParameterizedType, Type}
+import java.net.URLConnection
+import java.nio.charset.StandardCharsets
+import java.util.Base64
 import scala.io.{Codec, Source}
 import scala.language.existentials
 
@@ -136,8 +139,6 @@ object ClassPluginDescription {
     } {
       customDescription.generateDocumentation(docBuilder)
     }
-    val pluginIconString = annotation.pluginIcon().trim
-    val pluginIcon = if(pluginIconString.isEmpty || !pluginIconString.startsWith("data:")) None else Some(annotation.pluginIcon().trim)
 
     new ClassPluginDescription(
       id = annotation.id,
@@ -148,7 +149,7 @@ object ClassPluginDescription {
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass),
       pluginTypes = pluginTypes,
-      icon = pluginIcon
+      icon = loadIcon(pluginClass, annotation.iconFile())
     )
   }
 
@@ -171,20 +172,38 @@ object ClassPluginDescription {
     }
   }
 
-  private def loadMarkdownDocumentation(pluginClass: Class[_], classpath: String): String = {
-    if(classpath.trim.isEmpty) {
+  private def loadMarkdownDocumentation(pluginClass: Class[_], fileName: String): String = {
+    if(fileName.trim.isEmpty) {
       ""
     } else {
-      val inputStream = pluginClass.getResourceAsStream(classpath)
-      if (inputStream == null) {
-        throw new ResourceNotFoundException(s"The documentation file for plugin $pluginClass has not been found at '$classpath'.")
-      }
-      val source = Source.fromInputStream(inputStream)(Codec.UTF8)
-      try {
-        source.getLines.mkString("\n")
-      } finally {
-        source.close()
-      }
+      loadFileIntoString(pluginClass, fileName)
+    }
+  }
+
+  private def loadIcon(pluginClass: Class[_], fileName: String): Option[String] = {
+    if(fileName.isEmpty) {
+      None
+    } else {
+      val data = loadFileIntoString(pluginClass, fileName)
+      val dataBase64 = Base64.getEncoder.encodeToString(data.getBytes(StandardCharsets.UTF_8))
+      val mimeType = URLConnection.guessContentTypeFromName(fileName)
+      Some(s"data:$mimeType;base64,$dataBase64")
+    }
+  }
+
+  /**
+   * Loads a file from the classpath into a string.
+   */
+  private def loadFileIntoString(pluginClass: Class[_], fileName: String): String = {
+    val inputStream = pluginClass.getResourceAsStream(fileName)
+    if (inputStream == null) {
+      throw new ResourceNotFoundException(s"The file for plugin $pluginClass has not been found at '$fileName'.")
+    }
+    val source = Source.fromInputStream(inputStream)(Codec.UTF8)
+    try {
+      source.getLines.mkString("\n")
+    } finally {
+      source.close()
     }
   }
 

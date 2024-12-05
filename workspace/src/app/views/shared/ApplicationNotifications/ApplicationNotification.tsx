@@ -36,11 +36,14 @@ export const ApplicationNotification = ({ errorItem, removeError, interactionCal
         }
     };
 
-    const onDismiss = React.useCallback((didTimeoutExpire: boolean) => {
-        if(!didTimeoutExpire) {
-            removeError(errorItem)
-        }
-    }, [removeError])
+    const onDismiss = React.useCallback(
+        (didTimeoutExpire: boolean) => {
+            if (!didTimeoutExpire) {
+                removeError(errorItem);
+            }
+        },
+        [removeError]
+    );
 
     return (
         <Notification
@@ -57,7 +60,7 @@ export const ApplicationNotification = ({ errorItem, removeError, interactionCal
                         <AccordionItem
                             label={<TitleSubsection>More details</TitleSubsection>}
                             elevated
-                            condensed
+                            whitespaceSize="none"
                             open={false}
                         >
                             {errorDetails}

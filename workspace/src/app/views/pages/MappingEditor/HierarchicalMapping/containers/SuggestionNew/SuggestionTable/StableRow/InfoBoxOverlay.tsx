@@ -12,7 +12,7 @@ import {
     WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
 import { SuggestionListContext } from "../../SuggestionContainer";
-import {TestableComponent} from "@eccenca/gui-elements/src/components/interfaces";
+import { TestableComponent } from "@eccenca/gui-elements/src/components/interfaces";
 
 interface IDataStackItem {
     key: string;
@@ -26,7 +26,7 @@ interface IDataStack extends TestableComponent {
 }
 
 export function InfoBoxOverlay({data, embed = false,...otherProps}: IDataStack) {
-    const {portalContainer} =useContext(SuggestionListContext);
+    const { portalContainer } = useContext(SuggestionListContext);
     const dataTestId = (suffix: string) => otherProps["data-test-id"] ? otherProps["data-test-id"] + suffix : undefined
     const Content = () => <WhiteSpaceContainer
         style={{
@@ -42,7 +42,7 @@ export function InfoBoxOverlay({data, embed = false,...otherProps}: IDataStack) 
         data-test-id={dataTestId("-overlay")}
     >
         <TableContainer>
-            <Table size="compact">
+            <Table size="small">
                 <colgroup>
                     <col
                         style={{
@@ -56,23 +56,23 @@ export function InfoBoxOverlay({data, embed = false,...otherProps}: IDataStack) 
                     />
                 </colgroup>
                 <TableBody>
-                    {
-                        data.map((item, idx) => item.value ? <TableRow key={item.key ?? idx} data-test-id={`info-box-row-${item.key ?? idx}`}>
+                                {data.map((item, idx) =>
+                                    item.value ? (
+                                        <TableRow
+                                            key={item.key ?? idx}
+                                            data-test-id={`info-box-row-${item.key ?? idx}`}
+                                        >
                                     <TableCell key={"label"}>
                                         <OverflowText passDown={true}>
-                                            <Label
-                                                text={item.key}
-                                                isLayoutForElement="span"
-                                            />
+                                                    <Label text={item.key} isLayoutForElement="span" />
                                         </OverflowText>
                                     </TableCell>
                                     <TableCell key={"description"} data-test-id={"info-box-row-values"}>
                                         {item.value}
                                     </TableCell>
-                                </TableRow> :
-                                null
-                        )
-                    }
+                                        </TableRow>
+                                    ) : null
+                                )}
                 </TableBody>
             </Table>
         </TableContainer>

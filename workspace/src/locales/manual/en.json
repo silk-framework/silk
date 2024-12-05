@@ -185,7 +185,8 @@
             "createNewItem": "Custom entry: '{{query}}'",
             "fetchErrorTitle": "Could not fetch auto-completion suggestions. ",
             "missingDependsOnValuesInfo": "Parameter is disabled because it requires following parameters to be non-empty: {{parameterLabels}}"
-        }
+        },
+        "parameterDocLinkText": "See documentation"
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
@@ -305,7 +306,7 @@
             "DeleteSmth": "Delete {{smth}}",
             "RemoveSmth": "Remove {{smth}}",
             "ShowSmth": "Show {{smth}}",
-            "CopyItems": "Copy Items to another project",
+            "CopyItems": "Copy items to another project",
             "CopyProject": "Copy to another project",
             "abort": "Abort",
             "add": "Add",
@@ -724,6 +725,9 @@
                 },
                 "startEvaluation": {
                     "msg": "Could not fetch evaluation results."
+                },
+                "beforeStartEvaluation": {
+                    "msg": "Could not start evaluation."
                 }
             },
             "cacheWidgets": {
@@ -769,6 +773,8 @@
         }
     },
     "copyModal": {
+        "copyPrefixes": "Copy prefixes",
+        "projectVarInfo": "Project variables that are missing in the target project will be copied.",
         "errorMessages": {
             "searchFailure": "Retrieving project list failed",
             "copyFailure": "Failed to copy"
@@ -1251,7 +1257,8 @@
             "messages": {
                 "selectMapping": "Select a mapping for detailed results.",
                 "noIssues": "This mapping rule executed successfully without any issues.",
-                "validationIssues": "This mapping rule generated {{count}} validation issues during execution. Examples are shown below."
+                "validationIssues": "This mapping rule generated {{errors}} validation issues during execution. Examples are shown below.",
+                "InvalidTypeUris": "There exist invalid type URIs: {{typeUris}}"
             }
         },
         "errorTable": {

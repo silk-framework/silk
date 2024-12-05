@@ -218,6 +218,7 @@ export const ArtefactFormParameter = ({
                             projectId={projectId}
                             parameterId={parameterId}
                             initialValue={
+                                valueState.current.currentTemplateValue ??
                                 valueState.current.templateValueBeforeSwitch ??
                                 (!isPasswordInput ? valueState.current.inputValueBeforeSwitch : "") ??
                                 initialValue ??
@@ -229,6 +230,7 @@ export const ArtefactFormParameter = ({
                             evaluatedValueMessage={
                                 supportVariableTemplateElement.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
+                            allowSensitiveVariables={isPasswordInput}
                         />
                     ) : (
                         inputElementFactory(valueState.current.inputValueBeforeSwitch, onElementValueChange)
@@ -281,6 +283,7 @@ interface TemplateInputComponentProps {
     variableName?: string;
     handleTemplateErrors?: (error?: string) => any;
     multiline?: boolean;
+    allowSensitiveVariables?: boolean;
 }
 
 /** The input component for the template value. */
@@ -295,6 +298,7 @@ export const TemplateInputComponent = memo(
         variableName,
         handleTemplateErrors,
         multiline,
+        allowSensitiveVariables,
     }: TemplateInputComponentProps) => {
         const modalContext = React.useContext(CreateArtefactModalContext);
         const { registerError: globalErrorHandler } = useErrorHandler();
@@ -325,8 +329,15 @@ export const TemplateInputComponent = memo(
 
         const autoComplete = React.useCallback(async (inputString: string, cursorPosition: number) => {
             try {
-                return (await requestAutoCompleteTemplateString(inputString, cursorPosition, projectId, variableName))
-                    .data;
+                return (
+                    await requestAutoCompleteTemplateString(
+                        inputString,
+                        cursorPosition,
+                        projectId,
+                        variableName,
+                        allowSensitiveVariables
+                    )
+                ).data;
             } catch (error) {
                 handleTemplateErrors
                     ? handleTemplateErrors(error)
@@ -342,7 +353,12 @@ export const TemplateInputComponent = memo(
             async (inputString: string): Promise<ValidateTemplateResponse | undefined> => {
                 try {
                     const validationResponse = (
-                        await requestValidateTemplateString(inputString, projectId, variableName)
+                        await requestValidateTemplateString(
+                            inputString,
+                            projectId,
+                            variableName,
+                            allowSensitiveVariables
+                        )
                     ).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate

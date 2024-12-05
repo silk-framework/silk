@@ -181,9 +181,10 @@ object Silk {
    * @param transform The transform specification.
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
-    val input = config.source(transform.selection.inputId).source
+    val inputTask =  config.source(transform.selection.inputId)
+    val inputSource = inputTask.source
     implicit val prefixes: Prefixes = config.prefixes
-    Activity(new ExecuteTransform(transform, (_) => input, (_) =>
+    Activity(new ExecuteTransform(transform, (_) => inputTask, (_) => inputSource, (_) =>
       new CombinedEntitySink(config.output.map(_.entitySink).toSeq))).startBlocking() // TODO: Allow to set error output
   }
 

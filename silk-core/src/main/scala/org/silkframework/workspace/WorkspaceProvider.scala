@@ -136,7 +136,7 @@ trait WorkspaceProvider extends AnyPlugin {
     */
   def refresh(projectResources: ResourceRepository)(implicit userContext: UserContext): Unit
 
-  /** Fetches registered prefix definitions, e.g. from known voabularies. */
+  /** Fetches registered prefix definitions, e.g. from known vocabularies. */
   def fetchRegisteredPrefixes()(implicit userContext: UserContext): Prefixes = {
     // Most workspace providers won't be able to offer this functionality, since they are not vocabulary aware, so this defaults to empty prefixes.
     Prefixes.empty

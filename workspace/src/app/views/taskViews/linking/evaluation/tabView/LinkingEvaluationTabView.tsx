@@ -4,7 +4,7 @@ import {
     ContextOverlay,
     Divider,
     HtmlContentBlock,
-    IActivityStatus,
+    SilkActivityStatusProps,
     MenuItem,
     Notification,
     OverflowText,
@@ -25,6 +25,7 @@ import {
     Toolbar,
     ToolbarSection,
     WhiteSpaceContainer,
+    highlighterUtils,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -58,7 +59,6 @@ import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { getHistory } from "../../../../../store/configureStore";
 import { legacyLinkingEndpoint } from "../../../../../utils/getApiEndpoint";
-import { extractSearchWords, createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface LinkingEvaluationTabViewProps {
     projectId: string;
@@ -97,7 +97,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const [allRowsExpanded, setAllRowsExpanded] = React.useState<boolean>(false);
     const linksToValueMap = React.useRef<Array<Map<string, EvaluationResultType[number]>>>([]);
     const [taskEvaluationStatus, setTaskEvaluationStatus] = React.useState<
-        IActivityStatus["concreteStatus"] | undefined
+        SilkActivityStatusProps["concreteStatus"] | undefined
     >();
     const [operatorPlugins, setOperatorPlugins] = React.useState<Array<IPluginDetails>>([]);
     const searchState = React.useRef<{ currentSearchId?: number }>({});
@@ -440,7 +440,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         };
     }, []);
 
-    const handleActivityUpdates = React.useCallback((status: IActivityStatus) => {
+    const handleActivityUpdates = React.useCallback((status: SilkActivityStatusProps) => {
         if (status.concreteStatus !== "Successful") {
             setLoading(false);
         }
@@ -504,7 +504,10 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     );
 
     // To check if only the row body matches
-    const multiWordSearchRegex = createMultiWordRegex(extractSearchWords(searchQuery, true), false);
+    const multiWordSearchRegex = highlighterUtils.createMultiWordRegex(
+        highlighterUtils.extractSearchWords(searchQuery, true),
+        false
+    );
 
     return (
         <section className="diapp-linking-evaluation">

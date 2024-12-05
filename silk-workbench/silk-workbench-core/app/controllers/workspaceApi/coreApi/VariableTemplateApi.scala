@@ -345,7 +345,7 @@ class VariableTemplateApi @Inject()() extends InjectedController with UserContex
           new Content(
             mediaType = "application/json",
             schema = new Schema(`type` = "object"),
-            examples = Array(new ExampleObject(VariableTemplateApiDoc.validateVariableTemplateResponse)) // TODO
+            examples = Array(new ExampleObject(VariableTemplateApiDoc.validateVariableTemplateResponse))
           )
         )
       )

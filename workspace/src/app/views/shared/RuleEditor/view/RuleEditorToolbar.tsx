@@ -38,6 +38,7 @@ export const RuleEditorToolbar = () => {
     const [t] = useTranslation();
     const integratedView = !!ruleEditorContext.viewActions?.integratedView;
     const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
+    const [generalNotificationMinDateTime, setGeneralNotificationMinDateTime] = React.useState(Date.now());
 
     useHotKey({
         hotkey: "mod+z",
@@ -83,7 +84,9 @@ export const RuleEditorToolbar = () => {
         ruleEvaluationContext.fetchTriggerEvaluationFunction?.(startEvaluation);
     }, [ruleEvaluationContext.startEvaluation, ruleEvaluationContext.toggleEvaluationResults]);
 
-    const saveLinkingRule = async (e) => {
+    const saveRule = async (e) => {
+        // After every save, reset error notification queue
+        setGeneralNotificationMinDateTime(Date.now() - 1);
         e.preventDefault();
         setSavingWorkflow(true);
         await modelContext.saveRule();
@@ -239,6 +242,7 @@ export const RuleEditorToolbar = () => {
                                 tooltip: t("RuleEditor.toolbar.startEvaluation"),
                                 action: startEvaluation,
                             }}
+                            ruleType={ruleEvaluationContext.ruleType}
                         />
                         <Spacing vertical size="small" />
                     </ToolbarSection>
@@ -252,7 +256,7 @@ export const RuleEditorToolbar = () => {
                             modelContext.isReadOnly() ? t("RuleEditor.toolbar.readOnly") : t("RuleEditor.toolbar.save")
                         }
                         tooltipProps={{ hoverCloseDelay: 0 }}
-                        onClick={saveLinkingRule}
+                        onClick={saveRule}
                         disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
                         href={modelContext.isReadOnly() || !modelContext.unsavedChanges ? "#" : undefined}
                         loading={savingWorkflow}
@@ -274,6 +278,7 @@ export const RuleEditorToolbar = () => {
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
                         evaluationNotifications={ruleEvaluationContext.notifications}
+                        generalNotificationMinDateTime={generalNotificationMinDateTime}
                     />
                 </ToolbarSection>
             </Toolbar>

@@ -78,6 +78,17 @@ export const NodeContent = ({
             return value as string | undefined;
         }
     };
+    const parameterDefaultValue: (paramId: string) => string | undefined = React.useCallback(
+        (paramId) => {
+            const spec = operatorContext.operatorParameterSpecification.get(paramId);
+            if (spec) {
+                return spec.defaultValue;
+            } else {
+                return undefined;
+            }
+        },
+        [operatorContext.operatorParameterSpecification]
+    );
     return rerender ? null : (
         <>
             {parameters.length ? (
@@ -87,6 +98,7 @@ export const NodeContent = ({
                     pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
                     parameters={parameters}
                     dependentValue={dependentValue}
+                    parameterDefaultValue={parameterDefaultValue}
                     large={false}
                     insideModal={false}
                     languageFilter={operatorContext.languageFilterEnabled(nodeId)}
@@ -101,6 +113,7 @@ export const NodeContent = ({
                     pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
                     parameters={parameters}
                     dependentValue={dependentValue}
+                    parameterDefaultValue={parameterDefaultValue}
                     onClose={() => {
                         setRerender(true);
                         onCloseEditModal();

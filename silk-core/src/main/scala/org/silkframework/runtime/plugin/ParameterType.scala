@@ -199,7 +199,7 @@ object StringParameterType {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType,
       SparqlEndpointDatasetParameterType, LongType, GraphUriParameterType, TemplateParameterType,
-      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType,
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringIterableParameterType, RestrictionType,
       Jinja2CodeParameterType, JsonCodeParameterType, SparqlCodeParameterType, SqlCodeParameterType, XmlCodeParameterType,
       YamlCodeParameterType, PythonCodeParameterType, TurtleCodeParameterType, LocaleOptionType)
   }
@@ -262,22 +262,22 @@ object StringParameterType {
     }
   }
 
-  object StringTraversableParameterType extends StringParameterType[StringTraversableParameter] {
+  object StringIterableParameterType extends StringParameterType[StringIterableParameter] {
 
     override def name: String = "traversable[string]"
 
     override def description: String = "A comma-separated list."
 
     override def fromString(str: String)
-                           (implicit context: PluginContext): StringTraversableParameter = {
+                           (implicit context: PluginContext): StringIterableParameter = {
       if(str.isEmpty) {
-        StringTraversableParameter(Iterable.empty)
+        StringIterableParameter(Iterable.empty)
       } else {
-        StringTraversableParameter(str.split("\\s*,\\s*"))
+        StringIterableParameter(str.split("\\s*,\\s*"))
       }
     }
 
-    override def toString(value: StringTraversableParameter)
+    override def toString(value: StringIterableParameter)
                          (implicit pluginContext: PluginContext): String = {
       value.mkString(", ")
     }
@@ -450,15 +450,7 @@ object StringParameterType {
       * @throws IllegalArgumentException If the project resources are either empty or use a different base path than this resource.
       **/
     override def toString(value: Resource)(implicit pluginContext: PluginContext): String = {
-      val basePath = pluginContext.resources.basePath
-      if (pluginContext.resources == EmptyResourceManager()) {
-        throw new IllegalArgumentException("Need non-empty resource manager in order to serialize resource paths relative to base path.")
-      }
-      if (value.path.startsWith(basePath)) {
-        value.path.stripPrefix(basePath).stripPrefix("/").stripPrefix(File.separator)
-      } else {
-        throw new IllegalArgumentException("The context uses a different base path than the provided resource.")
-      }
+      value.relativePath(pluginContext.resources)
     }
   }
 
@@ -665,7 +657,7 @@ object StringParameterType {
 
     override def description: String = "A template."
 
-    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str, context.templateVariables)
+    override def fromString(str: String)(implicit context: PluginContext): TemplateParameter = TemplateParameter(str)
 
     override def toString(value: TemplateParameter)(implicit pluginContext: PluginContext): String = value.templateStr
   }

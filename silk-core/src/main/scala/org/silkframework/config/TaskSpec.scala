@@ -4,6 +4,7 @@ import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
+import org.silkframework.runtime.templating.TemplateVariableName
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -57,6 +58,14 @@ trait TaskSpec {
   }
 
   /**
+   * All variables that are referenced by this task.
+   * This list is just a hint and not guaranteed to be complete.
+   */
+  def referencedVariables: Seq[TemplateVariableName] = {
+    Seq.empty
+  }
+
+  /**
     * Retrieves all parameter values for this task.
     */
   def parameters(implicit pluginContext: PluginContext): ParameterValues
@@ -79,7 +88,7 @@ trait TaskSpec {
   def mainActivities: Seq[String] = Seq.empty
 
   /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
-  def searchTags: Seq[String] = Seq.empty
+  def searchTags(prefixes: Prefixes): Seq[String] = Seq.empty
 }
 
 /** A task link.

@@ -32,7 +32,7 @@ const props = {
 
 const selectors = {
     TARGET_PROP_AUTOCOMPLETE: '[data-id="autocomplete_target_prop"]',
-    ENTITY_CON_RADIO: 'ul[data-id="entity_radio_group"]',
+    ENTITY_CON_RADIO: '[data-test-id="entity-relationship-selection"]',
     OBJECT_VALUE_PATH: "#object-value-path-auto-suggestion",
     URI_INPUT: "#uri-pattern-auto-suggestion",
     RULE_LABEL_INPUT: ".ecc-silk-mapping__ruleseditor__label",
