@@ -50,6 +50,8 @@ import StickyMenuButton from "../view/components/StickyMenuButton";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { PUBLIC_URL } from "../../../../constants/path";
+import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
@@ -125,6 +127,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
+
+    useHotKey({
+        hotkey: "mod+v",
+        handler: async () => await pasteNodes(),
+    });
 
     const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
         if (ruleOperatorNode) {
@@ -1219,6 +1226,117 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, true);
     };
 
+    const pasteNodes = async () => {
+        try {
+            const text = await navigator.clipboard.readText(); // Read text from clipboard
+            const pasteInfo = JSON.parse(text); // Parse JSON
+            const [context] = window.location.pathname.split("/").slice(-2);
+            if (pasteInfo[context]) {
+                changeElementsInternal((els) => {
+                    const nodes = pasteInfo[context].data.nodes ?? [];
+                    const nodeIdMap = new Map<string, string>();
+                    const newNodes: RuleEditorNode[] = [];
+                    nodes.forEach((node) => {
+                        const position = { x: node.position.x + 100, y: node.position.y + 100 };
+                        const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
+                        if (op) {
+                            const newNode = createNodeInternal(
+                                op,
+                                position,
+                                Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                            );
+                            if (newNode) {
+                                nodeIdMap.set(node.id, newNode.id);
+                                newNodes.push(newNode);
+                            }
+                        }
+                    });
+
+                    const newEdges: Edge[] = [];
+                    pasteInfo[context].data.edges.forEach((edge) => {
+                        if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                            const newEdge = utils.createEdge(
+                                nodeIdMap.get(edge.source)!!,
+                                nodeIdMap.get(edge.target)!!,
+                                edge.targetHandle!!,
+                                edge.type ?? "step"
+                            );
+                            newEdges.push(newEdge);
+                        }
+                    });
+
+                    const withNodes = addAndExecuteRuleModelChangeInternal(
+                        RuleModelChangesFactory.addNodes(newNodes),
+                        els
+                    );
+                    resetSelectedElements();
+                    setTimeout(() => {
+                        unsetUserSelection();
+                        setSelectedElements([...newNodes, ...newEdges]);
+                    }, 100);
+                    return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
+                });
+            }
+        } catch (err) {
+            //todo handle errors
+            console.error("ERROR ==>", err);
+        }
+    };
+
+    const copyNodes = async (nodeIds: string[]) => {
+        //Get nodes and related edges
+        const nodeIdMap = new Map<string, string>(nodeIds.map((id) => [id, id]));
+        const edges: Partial<Edge>[] = [];
+
+        const originalNodes = utils.nodesById(elements, nodeIds);
+        const nodes = originalNodes.map((node) => {
+            const ruleOperatorNode = node.data.businessData.originalRuleOperatorNode;
+            return {
+                id: node.id,
+                pluginId: ruleOperatorNode.pluginId,
+                pluginType: ruleOperatorNode.pluginType,
+                position: node.position,
+            };
+        });
+
+        elements.forEach((elem) => {
+            if (utils.isEdge(elem)) {
+                const edge = utils.asEdge(elem)!!;
+                if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                    //edges worthy of copying
+                    edges.push({
+                        source: edge.source,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: edge.type ?? "step",
+                    });
+                }
+            }
+        });
+        //paste to clipboard.
+        const [, , , project, taskType, task] = window.location.pathname.split("/");
+        navigator.clipboard
+            .writeText(
+                JSON.stringify({
+                    [taskType]: {
+                        data: {
+                            nodes,
+                            edges,
+                        },
+                        metaData: {
+                            domain: PUBLIC_URL,
+                            project,
+                            task,
+                        },
+                    },
+                })
+            )
+            .catch((err) => {
+                //todo handle errors
+                console.error("ERROR ==>", err);
+            });
+    };
+
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition = { x: 100, y: 100 }) => {
         changeElementsInternal((els) => {
@@ -1780,6 +1898,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
+                    copyNodes,
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,

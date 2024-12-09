@@ -21,7 +21,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import utils, { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
@@ -202,6 +202,17 @@ export const RuleEditorToolbar = () => {
                         name="item-comment"
                         text={t("StickyNoteModal.tooltip")}
                         onClick={() => setShowCreateStickyModal(true)}
+                    />
+                    <Spacing vertical size={"small"} />
+                    <IconButton
+                        data-test-id="rule-editor-header-sticky-btn"
+                        name="item-copy"
+                        text={t("RuleEditor.selection.menu.copy.label")}
+                        onClick={() =>
+                            modelContext.executeModelEditOperation.copyNodes(
+                                utils.elementNodes(ruleEditorUiContext.selectionState.elements ?? []).map((n) => n.id)
+                            )
+                        }
                     />
                     <Spacing vertical size={"small"} />
                     <Switch
