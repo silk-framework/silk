@@ -97,7 +97,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
           schemaReported = true
           updater.startNewOutputSamples(entity.schema)
         }
-        updater.addSampleEntity(entity)
+        updater.addEntityAsSampleEntity(entity)
         updater.increaseEntityCounter()
       case None => // no-op
     }

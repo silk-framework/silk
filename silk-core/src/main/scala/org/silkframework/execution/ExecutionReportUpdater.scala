@@ -88,7 +88,7 @@ trait ExecutionReportUpdater {
     updateCurrentSampleEntities()
   }
 
-  def addSampleEntity(entity: Entity): Unit = {
+  def addEntityAsSampleEntity(entity: => Entity): Unit = {
     if(sampleEntities.size < ExecutionReport.SAMPLE_ENTITY_LIMIT) {
       addSampleEntity(EntitySample.entityToEntitySample(entity))
     }
