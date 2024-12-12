@@ -12,11 +12,11 @@ import java.io.{File, FileInputStream}
 /**
   * A [[QuadIterator]] based on a RDF file.
   */
-case class RdfFileQuadIterator(rdfFile: File, lang: Lang, executionReportUpdater: ExecutionReportUpdater) extends QuadIterator {
+case class RdfFileQuadIterator(rdfFile: File, lang: Lang, executionReportUpdater: ExecutionReportUpdater, prefixes: Prefixes) extends QuadIterator {
   private lazy val fis = new FileInputStream(rdfFile)
   private lazy val iter = RDFDataMgr.createIteratorQuads(fis, lang, null)
   private var reporterInitialized = false
-  implicit val prefixes: Prefixes = Prefixes.empty
+  implicit val p: Prefixes = prefixes
 
   override protected def closeResources(): Unit = fis.close()
 
