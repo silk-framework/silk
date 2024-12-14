@@ -314,7 +314,6 @@ export const TemplateInputComponent = memo(
                     const result = /error at position (\d+)/.exec(errorMessage);
                     if (result && Number.isInteger(Number.parseInt(result[1]))) {
                         const errorPosition = Number.parseInt(result[1]);
-                        console.log("Error Position ==>", errorPosition);
                         adaptedValidationResult.parseError = {
                             start: errorPosition,
                             end: errorPosition + 2,
