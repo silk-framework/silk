@@ -3,10 +3,11 @@ import // FIXME: should be transcoded to a tsx file
 React from "react";
 import PropTypes from "prop-types";
 import { URI } from "ecc-utils";
-import { Notification, Spacing } from "@eccenca/gui-elements";
+import { IconButton, Notification, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { withHistoryHOC } from "../HierarchicalMapping/utils/withHistoryHOC";
 import silkStore from "../api/silkStore";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";
+import { CONTEXT_PATH } from "../../../../constants/path";
 
 /**
  * Let's the user view execution reports.
@@ -84,15 +85,27 @@ class WorkflowReportManager extends React.Component {
     renderReportChooser() {
         // FIXME: should be a select using the select styles but this is currently not provided via the GUI elements
         return (
-            <select
-                name="reports"
-                id="reports"
-                value={this.state.selectedReport}
-                onChange={(e) => this.updateSelectedReport(e.target.value)}
-                style={{ width: "100%", padding: "7px" }}
-            >
-                {this.state.availableReports.map((e) => this.renderReportItem(e))}
-            </select>
+            <Toolbar>
+                <ToolbarSection canGrow>
+                    <select
+                        name="reports"
+                        id="reports"
+                        value={this.state.selectedReport}
+                        onChange={(e) => this.updateSelectedReport(e.target.value)}
+                        style={{ width: "100%", padding: "7px" }}
+                    >
+                        {this.state.availableReports.map((e) => this.renderReportItem(e))}
+                    </select>
+                </ToolbarSection>
+                <ToolbarSection>
+                    <Spacing vertical size="tiny" />
+                    <IconButton
+                        name="item-download"
+                        download={`report_${new Date(this.state.selectedReport).getTime()}`}
+                        href={`${CONTEXT_PATH}/api/workspace/reports/report?projectId=${this.props.project}&taskId=${this.props.task}&time=${this.state.selectedReport}`}
+                    />
+                </ToolbarSection>
+            </Toolbar>
         );
     }
 
