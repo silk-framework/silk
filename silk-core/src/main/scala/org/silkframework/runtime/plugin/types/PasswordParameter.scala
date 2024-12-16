@@ -15,7 +15,6 @@ import javax.crypto.BadPaddingException
   * @param encryptedValue The AES encrypted Base64-encoded password
   */
 case class PasswordParameter(encryptedValue: String) {
-  private val log: Logger = Logger.getLogger(getClass.getName)
 
   override def toString: String = if(encryptedValue == null || encryptedValue == "") {
     encryptedValue // Handle empty string as empty password and vice versa
@@ -24,20 +23,7 @@ case class PasswordParameter(encryptedValue: String) {
   }
 
   def decryptedString: String = {
-    if(encryptedValue == null || encryptedValue == "") {
-      encryptedValue // Handle empty string as empty password and vice versa
-    } else {
-      try {
-        AesCrypto.decrypt(PasswordParameterType.key, encryptedValue)
-      } catch {
-        case ex: InvalidKeyException =>
-          throw AbortExecutionException(s"The password parameter encryption key is invalid. Value for " +
-              s"${PasswordParameterType.CONFIG_KEY} needs to be a character string of length 16.", cause = Some(ex))
-        case _: BadPaddingException =>
-          throw AbortExecutionException(s"Password parameter value could not be decrypted. If the value for config key ${PasswordParameterType.CONFIG_KEY} has been changed, " +
-              s"all passwords for the operator need to be re-entered.")
-      }
-    }
+    PasswordParameter.decrypt(encryptedValue)
   }
 }
 
@@ -51,4 +37,20 @@ object PasswordParameter {
     )
   }
 
+  def decrypt(encryptedValue: String): String = {
+    if(encryptedValue == null || encryptedValue == "") {
+      encryptedValue // Handle empty string as empty password and vice versa
+    } else {
+      try {
+        AesCrypto.decrypt(PasswordParameterType.key, encryptedValue)
+      } catch {
+        case ex: InvalidKeyException =>
+          throw AbortExecutionException(s"The password parameter encryption key is invalid. Value for " +
+            s"${PasswordParameterType.CONFIG_KEY} needs to be a character string of length 16.", cause = Some(ex))
+        case _: BadPaddingException =>
+          throw AbortExecutionException(s"Password parameter value could not be decrypted. If the value for config key ${PasswordParameterType.CONFIG_KEY} has been changed, " +
+            s"all passwords for the operator need to be re-entered.")
+      }
+    }
+  }
 }
