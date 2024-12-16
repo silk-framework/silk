@@ -1,8 +1,10 @@
 package org.silkframework.plugins.dataset.rdf
-
+
+
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
 /**
   * Execute a workflow using the SPARQL Update task and check the result.
@@ -36,6 +38,23 @@ class SparqlUpdateTaskIntegrationTest extends AnyFlatSpec with Matchers with Sin
           Seq("Abbigail Lesch", "Abbigail Ziemann", "Abigale Purdy", "Ronny Wiegand", "Rosalia Lueilwitz",
             "Rosalyn Wisozk", "Rosamond Rath", "Willy Rath"
           ).map(resultFn)
+      val workflowReport = project.task[Workflow](workflowId).activity[LocalWorkflowExecutorGeneratingProvenance].value.get
+      workflowReport mustBe defined
+      val taskReports = workflowReport.get.report.taskReports
+      // 8 operators, the 2 intermediate datasets have 2 reports each
+      taskReports must have size 10
+      taskReports.map(r => r.report.summary.filter(item => item._1.startsWith("Number of executions")).map(_._2).mkString) mustBe Seq(
+        // Transformations and datasets read by the SPARQL select task do not have a 'Number of executions' summary item (yet)
+        "1", "", "1", "", "1", "1", "1", "1", "", "1"
+      )
+      val sparqlSelectTaskReport = taskReports(4).report
+      sparqlSelectTaskReport.entityCount mustBe 8
+      sparqlSelectTaskReport.summary.filter(r => r._1 == "No. of rows processed").map(_._2) mustBe Seq("8")
+
+      val sparqlUpdateTaskReport = taskReports(5).report
+      // Batch size is set to 2, so half the number of the SPARQL Select task
+      sparqlUpdateTaskReport.entityCount mustBe 4
+      sparqlUpdateTaskReport.summary.filter(r => r._1 == "No. of queries generated").map(_._2) mustBe Seq("4")
     }
   }
 

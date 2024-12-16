@@ -14,6 +14,7 @@
 
 package org.silkframework.config
 
+import org.silkframework.execution.typed.TypedEntitiesVocab
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.collection.immutable
@@ -106,7 +107,9 @@ object Prefixes {
       "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
       "rdfs" -> "http://www.w3.org/2000/01/rdf-schema#",
       "owl" -> "http://www.w3.org/2002/07/owl#",
-      "xsd" -> "http://www.w3.org/2001/XMLSchema#"))
+      "xsd" -> "http://www.w3.org/2001/XMLSchema#",
+      TypedEntitiesVocab.prefix -> TypedEntitiesVocab.namespace
+    ))
   }
 
   implicit def fromMap(map: Map[String, String]): Prefixes = apply(map)

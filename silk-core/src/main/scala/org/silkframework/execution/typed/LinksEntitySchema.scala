@@ -20,8 +20,8 @@ object LinksEntitySchema extends TypedEntitySchema[Link, LinkGenerator] {
       typeUri = schemaType("Link"),
       typedPaths =
         IndexedSeq(
-          TypedPath(schemaPath("targetUri"), ValueType.URI, isAttribute = true),
-          TypedPath(schemaPath("confidence"), ValueType.DOUBLE, isAttribute = true)
+          TypedPath(schemaPath("linkTargetUri"), ValueType.URI, isAttribute = true),
+          TypedPath(schemaPath("linkConfidence"), ValueType.DOUBLE, isAttribute = true)
         )
     )
   }
