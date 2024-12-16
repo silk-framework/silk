@@ -40,7 +40,8 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
           // save to temp file
           IteratorFormatter.saveToFile(tempFile, results, new NTriplesQuadFormatter())
           val executionReportUpdater = SparqlCopyExecutionReportUpdater(task, context)
-          Some(QuadEntitySchema.create(RdfFileQuadIterator(tempFile, Lang.NQUADS, executionReportUpdater).thenClose(() => executionReportUpdater.executionDone()), task))
+          Some(QuadEntitySchema.create(RdfFileQuadIterator(tempFile, Lang.NQUADS, executionReportUpdater, pluginContext.prefixes)
+            .thenClose(() => executionReportUpdater.executionDone()), task))
         }
         // else we just stream it to the output
         else {
