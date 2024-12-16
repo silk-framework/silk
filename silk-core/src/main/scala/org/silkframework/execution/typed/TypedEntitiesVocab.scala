@@ -8,27 +8,24 @@ import org.silkframework.util.Uri
  */
 object TypedEntitiesVocab {
 
-  // Types and paths share this prefix
-  private val prefix = "https://vocab.eccenca.com/di/entity/"
+  // Namespace prefix to be used
+  final val prefix = "entity"
 
-  // Types are prefixed with this URI
-  private val typePrefix = prefix + "type/"
-
-  // Paths are prefixed with this URI
-  private val pathPrefix = prefix + "path/"
+  // Types and paths share this namespace
+  final val namespace = "https://vocab.eccenca.com/di/entity/"
 
   /**
    * Creates a new  entity schema type URI
    */
   def schemaType(suffix: String): Uri = {
-    Uri(typePrefix + suffix)
+    Uri(namespace + suffix)
   }
 
   /**
    * Creates a new entity schema path.
    */
   def schemaPath(suffix: String): UntypedPath = {
-    UntypedPath(pathPrefix + suffix)
+    UntypedPath(namespace + suffix)
   }
 
 }
