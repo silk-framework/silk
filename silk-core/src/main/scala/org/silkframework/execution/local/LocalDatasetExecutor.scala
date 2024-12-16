@@ -132,7 +132,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
       case QuadEntitySchema(quads) =>
         withEntitySink(dataset, execution) { entitySink =>
-          writeQuads(entitySink, quads)
+          writeQuads(entitySink, quads, WriteTriplesReportUpdater(dataset, context))
         }
       case tables: MultiEntityTable =>
         implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
@@ -376,24 +376,26 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
-  private def writeQuads(sink: EntitySink, quads: TypedEntities[Quad, TaskSpec])
+  private def writeQuads(sink: EntitySink, quads: TypedEntities[Quad, TaskSpec], reportUpdater: WriteTriplesReportUpdater)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink match {
       case tripleSink: TripleSink =>
-        writeQuadsToTripleSink(tripleSink, quads)
+        writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case EntitySinkWrapper(tripleSink: TripleSink, _) =>
-        writeQuadsToTripleSink(tripleSink, quads)
+        writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")
     }
   }
 
-  private def writeQuadsToTripleSink(sink: TripleSink, quads: TypedEntities[Quad, TaskSpec])
+  private def writeQuadsToTripleSink(sink: TripleSink, quads: TypedEntities[Quad, TaskSpec], reportUpdater: WriteTriplesReportUpdater)
                                     (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink.init()
     for (quad <- quads.typedEntities) {
       sink.writeTriple(quad.subject.value, quad.predicate.value, quad.objectVal.value, QuadEntitySchema.getValueType(quad.objectVal))
+      reportUpdater.increaseEntityCounter()
     }
+    reportUpdater.executionDone()
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
@@ -432,6 +434,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
     override def entityProcessVerb: String = "uploaded"
+  }
+
+  case class WriteTriplesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Triple"
+    override def entityLabelPlural: String = "Triples"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
   }
 }
 
