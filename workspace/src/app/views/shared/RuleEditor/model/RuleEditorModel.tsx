@@ -128,10 +128,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
 
-    useHotKey({
-        hotkey: "mod+v",
-        handler: async () => await pasteNodes(),
-    });
+    React.useEffect(() => {
+        const handlePaste = async (e) => await pasteNodes(e);
+        window.addEventListener("paste", handlePaste);
+
+        return () => {
+            window.removeEventListener("paste", handlePaste);
+        };
+    }, [nodeParameters, ruleEditorContext.operatorList]);
 
     const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
         if (ruleOperatorNode) {
@@ -1226,10 +1230,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, true);
     };
 
-    const pasteNodes = async () => {
+    const pasteNodes = async (e: any) => {
         try {
-            const text = await navigator.clipboard.readText(); // Read text from clipboard
-            const pasteInfo = JSON.parse(text); // Parse JSON
+            // const text = await navigator.clipboard.readText(); // Read text from clipboard
+            // const pasteInfo = JSON.parse(text); // Parse JSON
+            const clipboardData = e.clipboardData?.getData("Text");
+            const pasteInfo = JSON.parse(clipboardData); // Parse JSON
             const [context] = window.location.pathname.split("/").slice(-2);
             if (pasteInfo[context]) {
                 changeElementsInternal((els) => {
@@ -1251,7 +1257,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             }
                         }
                     });
-
                     const newEdges: Edge[] = [];
                     pasteInfo[context].data.edges.forEach((edge) => {
                         if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
