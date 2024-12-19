@@ -960,7 +960,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
             changeElementsInternal((elements) => {
                 deselectNodes(elements);
-                selectNodes(stickyNoteNode);
+                selectNodes([stickyNoteNode]);
                 const updatedElements = [...elements, stickyNoteNode];
                 startChangeTransaction();
                 addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode), elements);
