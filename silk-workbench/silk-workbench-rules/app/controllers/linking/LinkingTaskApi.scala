@@ -736,7 +736,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                               withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val rule = task.data.rule
+    val rule = task.ruleWithContext
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
     val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
@@ -789,12 +789,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
+      val ruleWithContext = linkageRule.withContext(task.taskContext)
       val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       def serialize(links: Iterable[DPair[Entity]]): JsValue = {
-        serializeLinks(links.take(linkLimit), linkageRule)
+        serializeLinks(links.take(linkLimit), ruleWithContext)
       }
-      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
+      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(ruleWithContext, referenceEntityCacheValue)
 
       try {
         val result =
@@ -964,11 +965,9 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
-      val updatedLinkSpec = task.data.copy(rule = linkageRule)
-      val updatedTask = PlainTask(linkingTaskName, updatedLinkSpec, task.metaData)
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(updatedTask, sources, None, runtimeConfig)
+      val linksActivity = new GenerateLinksActivity(task, sources, None, runtimeConfig, Some(linkageRule.withContext(task.taskContext)))
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {

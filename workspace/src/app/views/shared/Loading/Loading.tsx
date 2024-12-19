@@ -1,14 +1,13 @@
 import React, { memo } from "react";
-import { Spinner } from "@eccenca/gui-elements";
-import { SpinnerPosition, SpinnerSize, SpinnerStroke } from "@eccenca/gui-elements/src/components/Spinner/Spinner";
+import { Spinner, SpinnerProps } from "@eccenca/gui-elements";
 
 interface IProps {
     className?: string;
     color?: string;
     description?: string; // currently unsupported
-    position?: SpinnerPosition;
-    size?: SpinnerSize;
-    stroke?: SpinnerStroke;
+    position?: SpinnerProps["position"];
+    size?: SpinnerProps["size"];
+    stroke?: SpinnerProps["stroke"];
     posGlobal?: boolean;
     posLocal?: boolean;
     posInline?: boolean;

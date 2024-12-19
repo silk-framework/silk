@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
 import {
-    CodeAutocompleteField,
     Button,
+    CodeAutocompleteField,
     FieldItem,
     Notification,
     Spacing,
-    TextField,
     Spinner,
     TextArea,
+    TextField,
 } from "@eccenca/gui-elements";
-import { AffirmativeButton, DismissiveButton, Radio } from "@eccenca/gui-elements/src/legacy-replacements";
+import { AffirmativeButton, DismissiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
-import { ParentElement } from "../../../components/ParentElement";
 import {
     checkUriPatternValidity,
     checkValuePathValidity,
@@ -38,8 +37,8 @@ import { IUriPattern } from "../../../../api/types";
 import { UriPatternSelectionModal } from "./UriPatternSelectionModal";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { defaultUriPattern } from "./ObjectRule.utils";
-import taskConfig from "../../../../../../shared/TaskConfig";
-import {GlobalMappingEditorContext} from "../../../../contexts/GlobalMappingEditorContext";
+import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
+import { EntityRelationshipSelection } from "../../../components/EntityRelationshipSelection";
 
 interface IProps {
     id?: string;
@@ -296,6 +295,9 @@ export const ObjectRuleForm = (props: IProps) => {
     );
 
     const initialValues: any = props.ruleData;
+    const entityRelationDirection = !_.isEmpty(modifiedValues().entityConnection)
+        ? modifiedValues().entityConnection
+        : "from";
 
     if (modifiedValues().type !== MAPPING_RULE_TYPE_ROOT) {
         targetPropertyInput = (
@@ -318,34 +320,10 @@ export const ObjectRuleForm = (props: IProps) => {
             />
         );
         entityRelationInput = (
-            <FieldItem>
-                <RadioGroup
-                    onChange={({ value }) => {
-                        handleChangeValue("entityConnection", value);
-                    }}
-                    value={!_.isEmpty(modifiedValues().entityConnection) ? modifiedValues().entityConnection : "from"}
-                    name=""
-                    disabled={false}
-                    data-id="entity_radio_group"
-                >
-                    <Radio
-                        value="from"
-                        label={
-                            <span>
-                                Connect from <ParentElement parent={parent} />
-                            </span>
-                        }
-                    />
-                    <Radio
-                        value="to"
-                        label={
-                            <span>
-                                Connect to <ParentElement parent={parent} />
-                            </span>
-                        }
-                    />
-                </RadioGroup>
-            </FieldItem>
+            <EntityRelationshipSelection
+                initialValue={entityRelationDirection}
+                onChange={(value) => handleChangeValue("entityConnection", value)}
+            />
         );
         const valuePath =
             initialValues.sourceProperty == null
@@ -435,6 +413,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             </>
                         ) : undefined
                     }
+                    reInitOnInitialValueChange={true}
                 />
             );
         }

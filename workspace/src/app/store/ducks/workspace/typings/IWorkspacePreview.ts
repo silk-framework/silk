@@ -57,23 +57,6 @@ export interface ISearchResultsServer {
     searchTags?: string[];
 }
 
-export const convertTaskTypeToSearchResultServerType = (taskType: TaskType): string => {
-    switch (taskType) {
-        case "CustomTask":
-            return "task";
-        case "Dataset":
-            return "dataset";
-        case "Transform":
-            return "transform";
-        case "Workflow":
-            return "workflow";
-        case "Linking":
-            return "linking";
-        default:
-            return "task";
-    }
-};
-
 export interface IPreviewState {
     /**
      * Array of results, contains Projects and other types

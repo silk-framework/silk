@@ -117,9 +117,9 @@ case class RdfFileDataset(
 
   override def createSource(resource: Resource): DataSource = new FileSource(resource)
 
-  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
+  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkWritableResource, formatter)
 
-  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(file, formatter)
+  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkWritableResource, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))

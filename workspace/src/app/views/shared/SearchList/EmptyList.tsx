@@ -1,7 +1,7 @@
 import React from "react";
 import {
     Card,
-    HelperClasses,
+    ClassNames,
     OverviewItem,
     OverviewItemActions,
     Depiction,
@@ -16,7 +16,7 @@ function EmptyList({
     actionButtons,
 }) {
     return (
-        <Card isOnlyLayout className={HelperClasses.Intent.INFO}>
+        <Card isOnlyLayout className={ClassNames.Intent.INFO}>
             <OverviewItem hasSpacing>
                 {depiction && <Depiction image={depiction} ratio="1:1" backgroundColor="dark" padding="medium" />}
                 <OverviewItemDescription>

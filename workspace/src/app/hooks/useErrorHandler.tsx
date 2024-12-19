@@ -28,7 +28,10 @@ type ErrorHandlerRegisterShortFuncType = (
     /** A valid language key from the language files. This key will be used as error ID. */
     langKey: string,
     /** The error cause. */
-    cause: DIErrorTypes | null
+    cause: DIErrorTypes | null,
+    /** The notification instance where the error should be displayed. If this is set, the
+     error will NOT be displayed in the global notification widget. */
+    errorNotificationInstanceId?: string
 ) => JSX.Element | null;
 
 interface ErrorHandlerDict {
@@ -105,7 +108,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                             <AccordionItem
                                 label={<TitleSubsection>{t("common.action.showMoreDetails")}</TitleSubsection>}
                                 open={false}
-                                condensed={true}
+                                whitespaceSize={"none"}
                                 noBorder={true}
                             >
                                 {detailMessage}
@@ -118,8 +121,12 @@ const useErrorHandler = (): ErrorHandlerDict => {
     };
 
     /** Shorter version that uses the language file key as error ID. */
-    const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (langKey: string, cause: DIErrorTypes | null) => {
-        return registerError(langKey, t(langKey), cause);
+    const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
+        langKey: string,
+        cause: DIErrorTypes | null,
+        errorNotificationInstanceId?: string
+    ) => {
+        return registerError(langKey, t(langKey), cause, errorNotificationInstanceId);
     };
 
     const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {

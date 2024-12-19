@@ -34,7 +34,7 @@ object TestFileUtils {
     }
   }
 
-  /** Executens a block of code with a temporary file that will be deleted after the block has finished executing or failed. */
+  /** Executes a block of code with a temporary file that will be deleted after the block has finished executing or failed. */
   def withTempFile[T](block: File => T,
                       baseName: String = "tempFile",
                       suffix: String = ""): T = {

@@ -18,9 +18,10 @@ import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 import utils from "../../../views/shared/Metadata/MetadataUtils";
 import { Keyword } from "@ducks/workspace/typings";
-import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
+import { MultiSelectSelectionProps } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
+import { TaskParameters } from "../../../views/plugins/plugin.types";
 
 const {
     setError,
@@ -178,8 +179,8 @@ const splitParameterAndVariableTemplateParameters = (formData: any, variableTemp
 };
 
 /** Builds a request object for project/task create call. */
-const buildTaskObject = (formData: Record<string, any>): object => {
-    const returnObject = Object.create(null);
+const buildNestedTaskParameterObject = (formData: Record<string, any>): TaskParameters => {
+    const returnObject: TaskParameters = Object.create(null);
     const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
     const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
     // Add direct parameters
@@ -197,7 +198,7 @@ const buildTaskObject = (formData: Record<string, any>): object => {
     }, {});
     // Add nested parameters to result object and call buildTaskObject recursively
     Object.entries(nestedParamsMap).forEach(([propName, value]) => {
-        returnObject[propName] = buildTaskObject(value as Record<string, any>);
+        returnObject[propName] = buildNestedTaskParameterObject(value as Record<string, any>);
     });
     return returnObject;
 };
@@ -247,7 +248,7 @@ const createArtefactAsync = (
 const createTagsAndAddToMetadata = async (payload: {
     label: string;
     description?: string;
-    tags?: SelectedParamsType<Keyword>;
+    tags?: MultiSelectSelectionProps<Keyword>;
     projectId?: string;
     taskId?: string;
 }) => {
@@ -294,8 +295,8 @@ const fetchCreateTaskAsync = (
             restFormData,
             variableTemplateParameterSet
         );
-        const parameterData = buildTaskObject(parameters);
-        const variableTemplateData = buildTaskObject(variableTemplateParameters);
+        const parameterData = buildNestedTaskParameterObject(parameters);
+        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
         const metadata = {
             label,
             description,
@@ -367,8 +368,8 @@ const fetchUpdateTaskAsync = (
             formData,
             variableTemplateParameterSet
         );
-        const parameterData = buildTaskObject(parameters);
-        const variableTemplateData = buildTaskObject(variableTemplateParameters);
+        const parameterData = buildNestedTaskParameterObject(parameters);
+        const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
         const payload = {
             data: {
                 ...dataParameters,
@@ -398,7 +399,7 @@ const fetchCreateProjectAsync = (formData: {
     label: string;
     description?: string;
     id?: string;
-    tags?: SelectedParamsType<Keyword>;
+    tags?: MultiSelectSelectionProps<Keyword>;
 }) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
@@ -460,7 +461,7 @@ const commonOps = {
     setSelectedArtefactDType,
     setModalError,
     setModalInfo,
-    buildTaskObject,
+    buildNestedTaskParameterObject: buildNestedTaskParameterObject,
     fetchCreateTaskAsync,
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,
