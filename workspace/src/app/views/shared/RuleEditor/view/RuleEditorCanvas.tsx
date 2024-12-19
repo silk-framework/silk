@@ -87,6 +87,17 @@ export const RuleEditorCanvas = () => {
         enabled: !ruleEditorUiContext.modalShown && !hotKeysDisabled,
     });
 
+    useHotKey({
+        hotkey: "mod+c",
+        handler: (e) => {
+            const nodeIds = selectedNodeIds();
+            if (nodeIds.length > 0) {
+                modelContext.executeModelEditOperation.copyNodes(nodeIds);
+            }
+        },
+        enabled: !hotKeysDisabled,
+    });
+
     /** Selection helper methods. */
     const selectedNodeIds = (): string[] => {
         const selectedNodes = modelUtils.elementNodes(selectionState.elements ?? []);
@@ -439,6 +450,9 @@ export const RuleEditorCanvas = () => {
                 cloneSelection={() => {
                     cloneNodes(nodeIds);
                 }}
+                copySelection={() => {
+                    modelContext.executeModelEditOperation.copyNodes(nodeIds);
+                }}
             />
         );
     };
@@ -454,6 +468,7 @@ export const RuleEditorCanvas = () => {
     // Track current selection
     const onSelectionChange = (elements: Elements | null) => {
         selectionState.elements = elements;
+        ruleEditorUiContext.onSelection(elements);
     };
 
     // Triggered after the react-flow instance has been loaded

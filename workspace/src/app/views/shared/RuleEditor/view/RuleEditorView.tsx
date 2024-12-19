@@ -4,7 +4,7 @@ import { RuleEditorOperatorSidebar } from "./sidebar/RuleEditorOperatorSidebar";
 import React from "react";
 import { RuleEditorCanvas } from "./RuleEditorCanvas";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
-import { OnLoadParams } from "react-flow-renderer";
+import { Elements, OnLoadParams } from "react-flow-renderer";
 
 interface RuleEditorViewProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
@@ -24,6 +24,12 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
     const [currentRuleNodeDescription, setCurrentRuleNodeDescription] = React.useState<string | undefined>("");
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
+    // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
+    // Until fixed, we will track selections ourselves and use them where bugs exist.
+    const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });
+    const onSelection = React.useCallback((elements: Elements | null) => {
+        selectionState.elements = elements;
+    }, []);
 
     return (
         <RuleEditorUiContext.Provider
@@ -40,6 +46,8 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange, readOnlyM
                 showRuleOnly,
                 hideMinimap,
                 zoomRange,
+                onSelection,
+                selectionState,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
