@@ -1232,11 +1232,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const pasteNodes = async (e: any) => {
         try {
-            // const text = await navigator.clipboard.readText(); // Read text from clipboard
-            // const pasteInfo = JSON.parse(text); // Parse JSON
             const clipboardData = e.clipboardData?.getData("Text");
             const pasteInfo = JSON.parse(clipboardData); // Parse JSON
-            const [context] = window.location.pathname.split("/").slice(-2);
+            const context = window.location.pathname.split("/").find((path) => path === "linking")
+                ? "linking"
+                : "transform";
             if (pasteInfo[context]) {
                 changeElementsInternal((els) => {
                     const nodes = pasteInfo[context].data.nodes ?? [];
@@ -1274,6 +1274,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         RuleModelChangesFactory.addNodes(newNodes),
                         els
                     );
+                    console.log({ newNodes, newEdges });
                     resetSelectedElements();
                     setTimeout(() => {
                         unsetUserSelection();
@@ -1284,7 +1285,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
         } catch (err) {
             //todo handle errors
-            console.error("ERROR ==>", err);
+            console.log("Error ==>", err);
+            const unExpectedTokenError = /Unexpected token/.exec(err);
+            if (unExpectedTokenError) {
+                //that is, not the expected json format that contains nodes
+                registerError(
+                    "RuleEditorModel.pasteCopiedNodes",
+                    "No operator has been found in the pasted data",
+                    err,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                );
+            }
         }
     };
 
