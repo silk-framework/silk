@@ -1,12 +1,12 @@
 import React from "react";
 import { Accordion, AccordionItem, TitleSubsection } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import {compact} from "lodash";
+import { compact } from "lodash";
 
 interface AdvancedOptionsAreaProps {
-    children: any
-    open?: boolean
-    compact?: boolean
+    children: any;
+    open?: boolean;
+    compact?: boolean;
 }
 export function AdvancedOptionsArea({ children, open = false, compact = false }: AdvancedOptionsAreaProps) {
     const [t] = useTranslation();
@@ -18,7 +18,7 @@ export function AdvancedOptionsArea({ children, open = false, compact = false }:
                 fullWidth
                 elevated
                 noBorder={compact}
-                condensed={compact}
+                whitespaceSize={"none"}
                 open={open}
             >
                 {children}
