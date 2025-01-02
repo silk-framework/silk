@@ -1253,7 +1253,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             );
                             if (newNode) {
                                 nodeIdMap.set(node.id, newNode.id);
-                                newNodes.push(newNode);
+                                newNodes.push({
+                                    ...newNode,
+                                    data: {
+                                        ...newNode.data,
+                                        introductionTime: {
+                                            run: 1800,
+                                            delay: 300,
+                                        },
+                                    },
+                                });
                             }
                         }
                     });
