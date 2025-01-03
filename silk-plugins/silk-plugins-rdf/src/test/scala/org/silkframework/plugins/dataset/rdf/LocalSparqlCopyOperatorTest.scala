@@ -50,15 +50,18 @@ import org.silkframework.runtime.plugin.PluginContext
     private val OUTPUT_DATASET_ID = "sparql_out"
     private val INPUT_DATASET_ID = "test"
 
-    for(withTempfile <- Seq(true, false)){
-      val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempfile))
+    for(withTempFile <- Seq(true, false)){
+      val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempFile))
 
-      it should "copy correct triples and store them optionally in a temp file " + withTempfile in {
+      it should "copy correct triples and store them optionally in a temp file " + withTempFile in {
         val result = executor.execute(task, input, ExecutorOutput.empty, execution, context)
         result match{
           case Some(copy) =>
             copy.entities.size mustBe 5                    // number of triples in source
             copy.entities.forall(e => e.values.size == 5) mustBe true   // default number of quad values as entities
+            val report = context.value.get
+            report mustBe defined
+            report.get.entityCount mustBe 5
           case None => fail("Empty result of copy task")
         }
       }

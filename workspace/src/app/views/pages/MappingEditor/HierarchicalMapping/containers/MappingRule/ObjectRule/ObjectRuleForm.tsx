@@ -413,6 +413,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             </>
                         ) : undefined
                     }
+                    reInitOnInitialValueChange={true}
                 />
             );
         }
