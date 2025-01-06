@@ -17,10 +17,14 @@ val silkVersion = {
   } else {
     new File(configPath)
   }
-  val os = new FileWriter(outFile)
-  os.append(s"workbench.version = $version")
-  os.flush()
-  os.close()
+  if(outFile.canWrite) {
+    val os = new FileWriter(outFile)
+    os.append(s"workbench.version = $version")
+    os.flush()
+    os.close()
+  } else {
+    System.err.println("Cannot write to file " + outFile.getPath)
+  }
   version
 }
 
