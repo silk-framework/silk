@@ -7,7 +7,7 @@ type RegisterErrorActionType = {
         /** The error that should be displayed. */
         newError: Pick<DIErrorFormat, "id" | "message" | "cause" | "alternativeIntent">;
         /** An optional error notification instance ID when this error should only be shown in a specific error notification widget. */
-        errorNotificationInstanceId?: string
+        errorNotificationInstanceId?: string;
     };
 };
 
@@ -23,6 +23,7 @@ const errorSlice = createSlice({
     reducers: {
         registerNewError(state, action: RegisterErrorActionType) {
             const { newError, errorNotificationInstanceId } = action.payload;
+            console.log("NEW ERROR -->", newError, "instanceId -->", errorNotificationInstanceId);
             // Remove old error from the same component action
             const newErrors = state.errors.filter((err) => err.id !== newError.id);
             // Always add new error to the end with current timestamp

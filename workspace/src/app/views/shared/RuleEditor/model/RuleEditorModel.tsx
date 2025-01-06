@@ -1245,25 +1245,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     nodes.forEach((node) => {
                         const position = { x: node.position.x + 100, y: node.position.y + 100 };
                         const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
-                        if (op) {
-                            const newNode = createNodeInternal(
-                                op,
-                                position,
-                                Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
-                            );
-                            if (newNode) {
-                                nodeIdMap.set(node.id, newNode.id);
-                                newNodes.push({
-                                    ...newNode,
-                                    data: {
-                                        ...newNode.data,
-                                        introductionTime: {
-                                            run: 1800,
-                                            delay: 300,
-                                        },
+                        if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
+                        const newNode = createNodeInternal(
+                            op,
+                            position,
+                            Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                        );
+                        if (newNode) {
+                            nodeIdMap.set(node.id, newNode.id);
+                            newNodes.push({
+                                ...newNode,
+                                data: {
+                                    ...newNode.data,
+                                    introductionTime: {
+                                        run: 1800,
+                                        delay: 300,
                                     },
-                                });
-                            }
+                                },
+                            });
                         }
                     });
                     const newEdges: Edge[] = [];
@@ -1283,7 +1282,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         RuleModelChangesFactory.addNodes(newNodes),
                         els
                     );
-                    console.log({ newNodes, newEdges });
                     resetSelectedElements();
                     setTimeout(() => {
                         unsetUserSelection();
@@ -1294,17 +1292,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
         } catch (err) {
             //todo handle errors
-            console.log("Error ==>", err);
-            const unExpectedTokenError = /Unexpected token/.exec(err);
+            const unExpectedTokenError = /Unexpected token/.exec(err?.message ?? "");
             if (unExpectedTokenError) {
                 //that is, not the expected json format that contains nodes
-                registerError(
-                    "RuleEditorModel.pasteCopiedNodes",
-                    "No operator has been found in the pasted data",
-                    err,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                );
+                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err);
             }
+            registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err);
         }
     };
 
