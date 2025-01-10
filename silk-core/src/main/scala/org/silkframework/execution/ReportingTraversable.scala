@@ -56,7 +56,7 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
       schemaReported = true
       executionReport.startNewOutputSamples(entity.schema)
     }
-    executionReport.addSampleEntity(entity)
+    executionReport.addEntityAsSampleEntity(entity)
     executionReport.increaseEntityCounter()
     entity
   }

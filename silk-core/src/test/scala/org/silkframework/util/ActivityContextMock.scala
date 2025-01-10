@@ -5,6 +5,7 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityCo
 import java.util.logging.Logger
 
 case class ActivityContextMock[T](initialValue: Option[T] = None) extends ActivityContext[T] {
+  override def parent: Option[ActivityContext[_]] = None
   override def value: ValueHolder[T] = new ValueHolder(initialValue)
   override def status: StatusHolder = new StatusHolder()
   override def log: Logger = Logger.getAnonymousLogger
