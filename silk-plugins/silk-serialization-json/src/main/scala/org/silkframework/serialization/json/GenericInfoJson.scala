@@ -19,7 +19,7 @@ object GenericInfoJson extends JsonCompanion[GenericInfo, GenericInfoJson] {
 
   override def read(json: GenericInfoJson)(implicit readContext: ReadContext): GenericInfo = {
     GenericInfo(
-      uri = Uri.parse(json.uri),
+      uri = Uri.parse(json.uri, readContext.prefixes),
       label = json.label,
       description = json.description,
       altLabels = json.altLabels
