@@ -52,6 +52,7 @@ import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
@@ -124,18 +125,31 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
+    /** when a node is clicked the selected nodes appears here */
+    const [selectedElements, updateSelectedElements] = React.useState<Elements | null>(null);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
 
     React.useEffect(() => {
         const handlePaste = async (e) => await pasteNodes(e);
+        const handleCopy = async (e) => {
+            selectedElements &&
+                (await copyNodes(
+                    selectedElements.map((n) => n.id),
+                    e
+                ));
+            e.preventDefault();
+        };
+
         window.addEventListener("paste", handlePaste);
+        window.addEventListener("copy", handleCopy);
 
         return () => {
             window.removeEventListener("paste", handlePaste);
+            window.removeEventListener("copy", handleCopy);
         };
-    }, [nodeParameters, ruleEditorContext.operatorList]);
+    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements]);
 
     const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
         if (ruleOperatorNode) {
@@ -1301,7 +1315,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
     };
 
-    const copyNodes = async (nodeIds: string[]) => {
+    const copyNodes = async (nodeIds: string[], event?: any) => {
         //Get nodes and related edges
         const nodeIdMap = new Map<string, string>(nodeIds.map((id) => [id, id]));
         const edges: Partial<Edge>[] = [];
@@ -1333,26 +1347,25 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
         //paste to clipboard.
         const [, , , project, taskType, task] = window.location.pathname.split("/");
-        navigator.clipboard
-            .writeText(
-                JSON.stringify({
-                    [taskType]: {
-                        data: {
-                            nodes,
-                            edges,
-                        },
-                        metaData: {
-                            domain: PUBLIC_URL,
-                            project,
-                            task,
-                        },
-                    },
-                })
-            )
-            .catch((err) => {
-                //todo handle errors
-                console.error("ERROR ==>", err);
-            });
+        const data = JSON.stringify({
+            [taskType]: {
+                data: {
+                    nodes,
+                    edges,
+                },
+                metaData: {
+                    domain: PUBLIC_URL,
+                    project,
+                    task,
+                },
+            },
+        });
+        event
+            ? event.clipboardData?.setData("text/plain", data)
+            : navigator.clipboard.writeText(data).catch((err) => {
+                  //todo handle errors
+                  console.error("ERROR ==>", err);
+              });
     };
 
     /** Copy and paste nodes with a given offset. */
@@ -1898,6 +1911,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 canvasId,
+                updateSelectedElements,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,

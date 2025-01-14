@@ -47,6 +47,7 @@ export interface RuleEditorModelContextProps {
     ruleOperatorNodes: () => IRuleOperatorNode[];
     /** The ID of the rule editor canvas element. */
     canvasId: string;
+    updateSelectedElements: (elements: Elements | null) => void;
 }
 
 export interface IModelActions {
@@ -131,6 +132,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         return false;
     },
     unsavedChanges: false,
+    updateSelectedElements: () => {},
     executeModelEditOperation: {
         startChangeTransaction: NOP,
         addStickyNode: NOP,
