@@ -134,14 +134,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     React.useEffect(() => {
         const handlePaste = async (e) => await pasteNodes(e);
         const handleCopy = async (e) => {
-            selectedElements &&
-                (await copyNodes(
+            if (selectedElements) {
+                await copyNodes(
                     selectedElements.map((n) => n.id),
                     e
-                ));
-            e.preventDefault();
+                );
+                e.preventDefault();
+            }
         };
-
         window.addEventListener("paste", handlePaste);
         window.addEventListener("copy", handleCopy);
 
