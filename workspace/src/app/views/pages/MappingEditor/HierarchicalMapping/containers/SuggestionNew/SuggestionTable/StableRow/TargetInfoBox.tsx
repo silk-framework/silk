@@ -1,16 +1,15 @@
-import React, { useContext } from "react";
+import React from "react";
 import { IPageSuggestion, ITargetWithSelected } from "../../suggestion.typings";
-import { SuggestionListContext } from "../../SuggestionContainer";
 import { InfoBoxOverlay } from "./InfoBoxOverlay";
-import { useInitFrontend } from "../../../../../api/silkRestApi.hooks";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 
 interface IProps {
     selectedTarget: ITargetWithSelected | IPageSuggestion;
 }
 
 export default function TargetInfoBox({ selectedTarget }: IProps) {
-    const initData = useInitFrontend();
-    const dmBaseUrl = initData?.dmBaseUrl;
+    const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
     const dmResourceLink = (graph: string, dmBaseUrl: string) => {
         return `${dmBaseUrl}/explore?resource=${encodeURIComponent(selectedTarget.uri)}&graph=${encodeURIComponent(
             graph
