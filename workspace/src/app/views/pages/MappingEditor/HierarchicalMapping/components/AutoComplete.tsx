@@ -109,13 +109,23 @@ interface IAutoCompleteItem {
 const hasDistinctLabel = (autoCompleteItem: IAutoCompleteItem) =>
     autoCompleteItem.label && autoCompleteItem.label.toLowerCase() !== autoCompleteItem.value.toLowerCase();
 
-export function autoCompleteItemRendererFactory<T = {}>(showValueWhenLabelExists: boolean, optionalLabelFn?: (obj: T) => string) {
+interface OptionalRenderFunctions<T> {
+    optionalLabelFn?: (obj: T) => string | undefined;
+    optionalValueFn?: (obj: T) => string;
+    optionalDescriptionFn?: (obj: T) => string | undefined;
+}
+
+export function autoCompleteItemRendererFactory<T = {}>(
+    showValueWhenLabelExists: boolean,
+    optionalFunctions: OptionalRenderFunctions<T> = {}
+) {
     return (
         autoCompleteItem: IAutoCompleteItem & T,
         query: string,
         modifiers: SuggestFieldItemRendererModifierProps,
         handleClick: () => any
     ): JSX.Element => {
+        const { optionalLabelFn, optionalValueFn, optionalDescriptionFn } = optionalFunctions;
         let label: string | undefined;
         let value: string | undefined = undefined;
         // Do not display value and label if they are basically the same
@@ -125,13 +135,19 @@ export function autoCompleteItemRendererFactory<T = {}>(showValueWhenLabelExists
         } else {
             label = autoCompleteItem.value;
         }
-        if(optionalLabelFn) {
-            label = optionalLabelFn(autoCompleteItem)
+        if (optionalLabelFn) {
+            label = optionalLabelFn(autoCompleteItem);
+        }
+        if (optionalValueFn && label !== optionalValueFn(autoCompleteItem)) {
+            value = optionalValueFn(autoCompleteItem);
         }
         const highlighter = (value: string | undefined) =>
             modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value;
+        const description: string | undefined | null = optionalDescriptionFn
+            ? optionalDescriptionFn(autoCompleteItem)
+            : autoCompleteItem.description;
         const item =
-            value || autoCompleteItem.description ? (
+            value || description ? (
                 <OverviewItem style={modifiers.styleWidth}>
                     <OverviewItemDescription>
                         <OverviewItemLine>
@@ -142,9 +158,9 @@ export function autoCompleteItemRendererFactory<T = {}>(showValueWhenLabelExists
                                 <OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText>
                             </OverviewItemLine>
                         )}
-                        {autoCompleteItem.description && (
+                        {description && (
                             <OverviewItemLine small={true}>
-                                <OverflowText>{highlighter(autoCompleteItem.description)}</OverflowText>
+                                <OverflowText>{highlighter(description)}</OverflowText>
                             </OverviewItemLine>
                         )}
                     </OverviewItemDescription>
@@ -158,13 +174,13 @@ export function autoCompleteItemRendererFactory<T = {}>(showValueWhenLabelExists
             <MenuItem
                 active={modifiers.active}
                 disabled={modifiers.disabled}
-                key={autoCompleteItem.value}
+                key={value ?? label}
                 onClick={handleClick}
                 text={item}
             />
         );
     };
-};
+}
 
 // Renders an option item in the suggest list
 export const autoCompleteItemRenderer = autoCompleteItemRendererFactory(true);
