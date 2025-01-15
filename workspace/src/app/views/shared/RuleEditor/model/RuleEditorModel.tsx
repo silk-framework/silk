@@ -53,7 +53,7 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
-import {copyToClipboard} from "../../../../utils/copyToClipboard";
+import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
@@ -1311,8 +1311,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (unExpectedTokenError) {
                 //that is, not the expected json format that contains nodes
                 registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err);
+            } else {
+                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err);
             }
-            registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err);
         }
     };
 
@@ -1361,11 +1362,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 },
             },
         });
-        if(event) {
-            event.clipboardData.setData("text/plain", data)
-            event.preventDefault()
+        if (event) {
+            event.clipboardData.setData("text/plain", data);
+            event.preventDefault();
         } else {
-            copyToClipboard(data)
+            copyToClipboard(data);
         }
     };
 
