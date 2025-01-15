@@ -53,6 +53,7 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
 import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
+import {copyToClipboard} from "../../../../utils/copyToClipboard";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
@@ -1360,12 +1361,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 },
             },
         });
-        event
-            ? event.clipboardData?.setData("text/plain", data)
-            : navigator.clipboard.writeText(data).catch((err) => {
-                  //todo handle errors
-                  console.error("ERROR ==>", err);
-              });
+        if(event) {
+            event.clipboardData.setData("text/plain", data)
+            event.preventDefault()
+        } else {
+            copyToClipboard(data)
+        }
     };
 
     /** Copy and paste nodes with a given offset. */

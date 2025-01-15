@@ -649,7 +649,7 @@
                 },
                 "copy": {
                     "label": "Copy selected nodes",
-                    "tooltip": "Copy all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
+                    "tooltip": "Copy all selected nodes and inter-connections. Following key combination also triggers this action: CTRL/CMD + c. The copied elements can be inserted as copies via CTRL/CMD + v, this holds true also for editors in different tabs/windows/browsers."
                 }
             }
         },
