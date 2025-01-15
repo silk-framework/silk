@@ -16,49 +16,45 @@
 
 package org.silkframework.rule.evaluation.statistics
 
-import scala.math.abs
+import java.util.Locale
+import scala.math.{abs, sqrt}
 
 /**
  * Statistics about a stochastic variable such as the fMeasure of a set of linkage rules.
  */
-case class VariableStatistic(mean: Double, standardDeviation: Double) {
-  /**
-   * Transforms this statistics by applying a function to all measures.
-   */
-  def map(f: Double => Double) = {
-    VariableStatistic(f(mean), f(standardDeviation))
-  }
-
+case class AggregatedMetric(mean: Double, standardDeviation: Double) {
   /**
    * Formats this variable statistics as a string.
    *
    * @param precision The number of digits after the decimal separator
    * @param includeDeviation Include the standard deviation
    */
-  def format(precision: Int = 3, includeDeviation: Boolean = true) = {
-    def meanStr = ("%." + precision + "f").format(mean)
-    def stdStr  = ("%." + precision + "f").format(standardDeviation)
+  def format(precision: Int = 3, includeDeviation: Boolean = true): String = {
+    def meanStr = (s"%." + precision + "f").formatLocal(Locale.US, mean)
+    def stdStr  = ("%." + precision + "f").formatLocal(Locale.US, standardDeviation)
 
-    if(includeDeviation)
+    if(includeDeviation) {
       meanStr + " (" + stdStr + ")"
-    else
+    } else {
       meanStr
+    }
   }
-  
-  override def toString = format()
+
+  override def toString: String = format()
 }
 
 /**
  * Generates the statistics for variable.
  */
-object VariableStatistic {
+object AggregatedMetric {
   /**
    * Generates the statistics for variable based on a sample of values.
    */
-  def apply(values: Iterable[Double]): VariableStatistic = {
+  def apply(values: Iterable[Double]): AggregatedMetric = {
     val mean = values.sum / values.size
-    val standardDeviation = values.map(x => abs(x - mean)).sum / values.size
+    val variance = values.map(x => math.pow(x - mean, 2)).sum / values.size
+    val standardDeviation = sqrt(variance)
 
-    VariableStatistic(mean, standardDeviation)
+    AggregatedMetric(mean, standardDeviation)
   }
 }
