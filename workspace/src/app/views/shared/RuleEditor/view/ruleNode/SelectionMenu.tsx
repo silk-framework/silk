@@ -1,7 +1,7 @@
 import React from "react";
 import { EdgeTools } from "@eccenca/gui-elements/src/extensions/react-flow";
 import { XYPosition } from "react-flow-renderer/dist/types";
-import { Button } from "@eccenca/gui-elements";
+import { Button, Spacing } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface SelectionMenuProps {
@@ -40,6 +40,7 @@ export const SelectionMenu = ({
                     openOnTargetFocus: false,
                 }}
                 small
+                hasStateDanger
                 onClick={() => {
                     onClose();
                     removeSelection();
@@ -47,6 +48,7 @@ export const SelectionMenu = ({
             >
                 {t("RuleEditor.selection.menu.delete.label")}
             </Button>
+            <Spacing size="tiny" />
             <Button
                 minimal
                 icon="item-clone"
@@ -65,6 +67,7 @@ export const SelectionMenu = ({
             >
                 {t("RuleEditor.selection.menu.clone.label")}
             </Button>
+            <Spacing size="tiny" />
             <Button
                 minimal
                 icon="item-copy"
