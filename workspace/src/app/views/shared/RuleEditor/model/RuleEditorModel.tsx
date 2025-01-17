@@ -1249,12 +1249,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         try {
             const clipboardData = e.clipboardData?.getData("Text");
             const pasteInfo = JSON.parse(clipboardData); // Parse JSON
-            const context = window.location.pathname.split("/").find((path) => path === "linking")
-                ? "linking"
-                : "transform";
-            if (pasteInfo[context]) {
+            const taskType =
+                (ruleEditorContext.editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
+
+            if (pasteInfo[taskType]) {
                 changeElementsInternal((els) => {
-                    const nodes = pasteInfo[context].data.nodes ?? [];
+                    const nodes = pasteInfo[taskType].data.nodes ?? [];
                     const nodeIdMap = new Map<string, string>();
                     const newNodes: RuleEditorNode[] = [];
                     nodes.forEach((node) => {
@@ -1281,7 +1281,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         }
                     });
                     const newEdges: Edge[] = [];
-                    pasteInfo[context].data.edges.forEach((edge) => {
+                    pasteInfo[taskType].data.edges.forEach((edge) => {
                         if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
                             const newEdge = utils.createEdge(
                                 nodeIdMap.get(edge.source)!!,
@@ -1348,7 +1348,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
         });
         //paste to clipboard.
-        const [, , , project, taskType, task] = window.location.pathname.split("/");
+        const { projectId, editedItemId, editedItem } = ruleEditorContext;
+        const taskType = (editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
         const data = JSON.stringify({
             [taskType]: {
                 data: {
@@ -1357,8 +1358,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 },
                 metaData: {
                     domain: PUBLIC_URL,
-                    project,
-                    task,
+                    project: projectId,
+                    task: editedItemId,
                 },
             },
         });
