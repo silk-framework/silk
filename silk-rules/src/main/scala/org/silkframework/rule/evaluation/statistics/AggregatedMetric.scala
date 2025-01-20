@@ -34,7 +34,7 @@ case class AggregatedMetric(mean: Double, standardDeviation: Double) {
     def stdStr  = ("%." + precision + "f").formatLocal(Locale.US, standardDeviation)
 
     if(includeDeviation) {
-      meanStr + " (" + stdStr + ")"
+      meanStr + " ± " + stdStr
     } else {
       meanStr
     }
@@ -56,5 +56,15 @@ object AggregatedMetric {
     val standardDeviation = sqrt(variance)
 
     AggregatedMetric(mean, standardDeviation)
+  }
+
+  /**
+   * Combines multiple metrics into one.
+   */
+  def combined(metrics: Iterable[AggregatedMetric]): AggregatedMetric = {
+    val combinedMean = metrics.map(_.mean).sum / metrics.size
+    val combinedVariance = metrics.map(m => m.standardDeviation * m.standardDeviation).sum / metrics.size
+    val combinedStandardDeviation = sqrt(combinedVariance)
+    AggregatedMetric(combinedMean, combinedStandardDeviation)
   }
 }
