@@ -1,59 +1,59 @@
 /** URI patterns found for requested target type URIs. */
 export interface IUriPatternsResult {
-    results: IUriPattern[]
+    results: IUriPattern[];
 }
 
 /** An URI pattern for a specific type. */
 export interface IUriPattern {
     // The target class URI this URI pattern was applied to
-    targetClassUri: string
+    targetClassUri: string;
     // A simplified version of the pattern where the path expressions are reduced to the most relevant parts
-    label: string
+    label: string;
     // The full URI pattern
-    value: string
+    value: string;
 }
 
 /** Target property auto-completion */
 export interface TargetPropertyAutoCompletion {
     /** The URI */
-    value: string,
+    value: string;
     /** label of the property */
-    label?: string,
+    label?: string;
     /** description of the property */
-    description?: string,
-    category?: string,
-    isCompletion?: boolean,
+    description?: string;
+    category?: string;
+    isCompletion?: boolean;
     extra: {
         /** Object or data type property */
-        type: "object" | "value",
-        graph?: string
+        type: "object" | "value";
+        graph?: string;
         /** In case of an object property optionally the class info of the range. */
         range?: {
-            uri: string,
-            label?: string
-        }
-    }
+            uri: string;
+            label?: string;
+        };
+    };
 }
 
 export interface GenericInfo {
-    uri: string
-    label?: string
-    description?: string
-    altLabels?: string[]
+    uri: string;
+    label?: string;
+    description?: string;
+    altLabels: string[];
 }
 
 export interface TargetClassAutoCompletion {
     /** The URI */
-    value: string,
+    value: string;
     /** label of the property */
-    label?: string,
+    label?: string;
     /** description of the property */
-    description?: string
+    description?: string;
 }
 
 export interface PropertyByDomainAutoCompletion {
-    domain: string
-    genericInfo: GenericInfo
-    propertyType: "ObjectProperty" | "DatatypeProperty"
-    range: string
+    domain: string;
+    genericInfo: GenericInfo;
+    propertyType: "ObjectProperty" | "DatatypeProperty";
+    range: string;
 }
