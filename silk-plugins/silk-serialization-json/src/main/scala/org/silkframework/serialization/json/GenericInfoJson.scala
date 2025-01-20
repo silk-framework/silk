@@ -6,12 +6,18 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.util.Uri
 import play.api.libs.json.{Format, JsValue, Json}
 
+@Schema(description = "Information about a schema element, such as a class or property.")
 case class GenericInfoJson(
-  @Schema(description = "The URI or prefixed name of the class")
+  @Schema(description = "The URI or prefixed name of this schema element")
   uri: String,
+  @Schema(description = "The label of this schema element")
   label: Option[String] = None,
+  @Schema(description = "The description of this schema element")
   description: Option[String] = None,
-  altLabels: Seq[String] = Seq.empty
+  @Schema(description = "Alternative labels of this schema element")
+  altLabels: Seq[String] = Seq.empty,
+  @Schema(description = "The URI of the vocabulary where this element is defined")
+  vocabularyUri: Option[String] = None
 )
 
 object GenericInfoJson extends JsonCompanion[GenericInfo, GenericInfoJson] {
@@ -22,7 +28,8 @@ object GenericInfoJson extends JsonCompanion[GenericInfo, GenericInfoJson] {
       uri = Uri.parse(json.uri, readContext.prefixes),
       label = json.label,
       description = json.description,
-      altLabels = json.altLabels
+      altLabels = json.altLabels,
+      vocabularyUri = json.vocabularyUri
     )
   }
 
@@ -31,7 +38,8 @@ object GenericInfoJson extends JsonCompanion[GenericInfo, GenericInfoJson] {
       uri = writeContext.prefixes.shorten(data.uri),
       label = data.label,
       description = data.description,
-      altLabels = data.altLabels
+      altLabels = data.altLabels,
+      vocabularyUri = data.vocabularyUri
     )
   }
 }
