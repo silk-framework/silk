@@ -5,6 +5,7 @@ import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{LocalEntities, MultiEntityTable}
 import org.silkframework.runtime.iterator.CloseableIterator
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -22,19 +23,21 @@ case class ReportingIterable(entities: Iterable[Entity])(implicit executionRepor
   */
 case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater, prefixes: Prefixes) extends CloseableIterator[Entity] {
   private var schemaReported = false
+  @volatile
+  private var closed = false
 
   override def hasNext: Boolean = {
     try {
       if (entities.hasNext) {
         true
       } else {
-        executionReport.executionDone()
+        close()
         false
       }
     } catch {
       case NonFatal(ex) =>
         executionReport.setExecutionError(Some(ex.getMessage))
-        executionReport.executionDone()
+        Try(close())
         throw ex
     }
   }
@@ -53,13 +56,17 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
       schemaReported = true
       executionReport.startNewOutputSamples(entity.schema)
     }
-    executionReport.addSampleEntity(entity)
+    executionReport.addEntityAsSampleEntity(entity)
     executionReport.increaseEntityCounter()
     entity
   }
 
   override def close(): Unit = {
-    entities.close()
+    if(!closed) {
+      executionReport.executionDone()
+      closed = true
+      entities.close()
+    }
   }
 }
 

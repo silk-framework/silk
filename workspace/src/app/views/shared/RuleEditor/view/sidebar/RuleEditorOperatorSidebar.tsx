@@ -7,6 +7,7 @@ import {
     IRuleOperator,
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
 } from "../../RuleEditor.typings";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
@@ -202,7 +203,8 @@ export const RuleEditorOperatorSidebar = () => {
                 t("taskViews.ruleEditor.errors.loadExternalOperators", {
                     tabName: configs.map((c) => c.label).join(", "),
                 }),
-                ex
+                ex,
+                RULE_EDITOR_NOTIFICATION_INSTANCE
             );
         } finally {
             setPreConfiguredOperatorListLoading(false);

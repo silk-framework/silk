@@ -38,6 +38,7 @@ export const RuleEditorToolbar = () => {
     const [t] = useTranslation();
     const integratedView = !!ruleEditorContext.viewActions?.integratedView;
     const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
+    const [generalNotificationMinDateTime, setGeneralNotificationMinDateTime] = React.useState(Date.now());
 
     useHotKey({
         hotkey: "mod+z",
@@ -84,6 +85,8 @@ export const RuleEditorToolbar = () => {
     }, [ruleEvaluationContext.startEvaluation, ruleEvaluationContext.toggleEvaluationResults]);
 
     const saveRule = async (e) => {
+        // After every save, reset error notification queue
+        setGeneralNotificationMinDateTime(Date.now() - 1);
         e.preventDefault();
         setSavingWorkflow(true);
         await modelContext.saveRule();
@@ -275,6 +278,7 @@ export const RuleEditorToolbar = () => {
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
                         evaluationNotifications={ruleEvaluationContext.notifications}
+                        generalNotificationMinDateTime={generalNotificationMinDateTime}
                     />
                 </ToolbarSection>
             </Toolbar>

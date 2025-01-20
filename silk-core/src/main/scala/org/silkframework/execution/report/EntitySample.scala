@@ -50,7 +50,7 @@ object SampleEntitiesSchema {
   def entitySchemaToSampleEntitiesSchema(entitySchema: EntitySchema)
                                         (implicit prefixes: Prefixes): SampleEntitiesSchema = {
     SampleEntitiesSchema(
-      typeUri = entitySchema.typeUri.uri,
+      typeUri = entitySchema.typeUri.serialize,
       typePath = entitySchema.subPath.serialize(),
       properties = entitySchema.typedPaths.map(_.serialize())
     )

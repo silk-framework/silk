@@ -13,7 +13,7 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
   * @param name - the name of the entry
   * @param closeEntriesAutomatically - if true, each write call will create a new entry, else the caller has to manage entries
   */
-case class ZipWritableResource(
+case class ZipOutputStreamResource(
   name: String,
   path: String,
   zip: ZipOutputStream,
@@ -54,6 +54,6 @@ case class ZipWritableResource(
   }
 }
 
-case class ZipReadException() extends UnsupportedOperationException(s"${classOf[ZipWritableResource]} does not support any read operations.")
+case class ZipReadException() extends UnsupportedOperationException(s"${classOf[ZipOutputStreamResource]} does not support any read operations.")
 
-case class ZipDeleteException() extends UnsupportedOperationException(s"${classOf[ZipWritableResource]} does not support deleting resources.")
+case class ZipDeleteException() extends UnsupportedOperationException(s"${classOf[ZipOutputStreamResource]} does not support deleting resources.")

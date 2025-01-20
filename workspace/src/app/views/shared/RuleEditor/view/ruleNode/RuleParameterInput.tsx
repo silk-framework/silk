@@ -19,7 +19,7 @@ import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/Tex
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
-import { supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
+import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -84,7 +84,12 @@ export const RuleParameterInput = ({
                 })
             ).data;
         } catch (e) {
-            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e);
+            registerError(
+                "RuleParameterInput.handleFileSearch",
+                "Could not fetch project resource files!",
+                e,
+                RULE_EDITOR_NOTIFICATION_INSTANCE
+            );
             return [];
         }
     };

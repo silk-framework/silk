@@ -9,6 +9,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
 import {
     IRuleOperatorNode,
+    RULE_EDITOR_NOTIFICATION_INSTANCE,
     RuleSaveNodeError,
     RuleSaveResult,
     RuleValidationError,
@@ -70,7 +71,8 @@ export const TransformRuleEditor = ({
             registerError(
                 "transformRuleEditor_fetchTransformRule",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
-                err
+                err,
+                RULE_EDITOR_NOTIFICATION_INSTANCE
             );
         }
     };
@@ -83,7 +85,8 @@ export const TransformRuleEditor = ({
             registerError(
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRuleOperatorDetails.msg"),
-                err
+                err,
+                RULE_EDITOR_NOTIFICATION_INSTANCE
             );
         }
     };
@@ -195,7 +198,8 @@ export const TransformRuleEditor = ({
             registerError(
                 "LinkingRuleEditor_inputPathAutoCompletion",
                 t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
-                err
+                err,
+                RULE_EDITOR_NOTIFICATION_INSTANCE
             );
             return [];
         }
@@ -223,7 +227,8 @@ export const TransformRuleEditor = ({
                 registerError(
                     "TransformRuleEditor-fetchDatasetCharacteristics",
                     "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                    ex
+                    ex,
+                    RULE_EDITOR_NOTIFICATION_INSTANCE
                 );
             }
         }
@@ -242,7 +247,8 @@ export const TransformRuleEditor = ({
                     registerError(
                         "linking-rule-editor-fetch-source-paths",
                         t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex
+                        ex,
+                        RULE_EDITOR_NOTIFICATION_INSTANCE
                     ),
                 mappingEditorContext.taskContext
             ),

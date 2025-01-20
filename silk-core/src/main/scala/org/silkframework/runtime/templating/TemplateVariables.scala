@@ -75,6 +75,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   }
 
   /**
+   * Returns a copy with an added variable at the beginning.
+   */
+  def withFirst(variable: TemplateVariable): TemplateVariables = {
+    TemplateVariables(variable +: variables)
+  }
+
+  /**
    * Returns only non-sensitive variables
    */
   def withoutSensitiveVariables(): TemplateVariables = {

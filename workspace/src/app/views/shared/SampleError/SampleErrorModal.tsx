@@ -66,7 +66,7 @@ export const sampleErrorToMarkdown = (sampleError: SampleError): string => {
 * Error message: \`${sampleError.error}\`
 ${sampleError.entity ? "* Input entity URI: `" + sampleError.entity + "`" : ""}
 ${
-    sampleError.values.length
+    sampleError.values?.length
         ? `* Input values: ${sampleError.values.map(
               (vals, idx) => `\n  ${idx + 1}. ${vals.map((v) => `\`${v}\``).join(", ")}`
           )}`

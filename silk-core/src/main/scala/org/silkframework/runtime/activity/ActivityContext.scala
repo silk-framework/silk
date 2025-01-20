@@ -10,6 +10,11 @@ import scala.reflect.ClassTag
 trait ActivityContext[T] {
 
   /**
+   * The parent activity that started this activity.
+   */
+  def parent: Option[ActivityContext[_]]
+
+  /**
    * Holds the current value.
    */
   def value: ValueHolder[T]

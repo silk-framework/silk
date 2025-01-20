@@ -13,11 +13,6 @@ object GlobalTemplateVariablesConfig {
   private final val configNamespace: String = "config.variables"
 
   /**
-    * Global template variables are nested under this name.
-    */
-  final val globalScope = "global"
-
-  /**
     * The configured template engine.
     */
   private val engine: ConfigValue[TemplateEngine] = (config: Config) => {
@@ -52,9 +47,9 @@ object GlobalTemplateVariablesConfig {
           .getOrElse(throw new InvalidConfigException(configNamespace + ".global." + key, objValue.origin(), "Parameter 'value' is missing."))
         val description = if(objValue.containsKey("description")) Some(objValue.toConfig.getString("description")) else None
         val isSensitive = if(objValue.containsKey("isSensitive")) objValue.toConfig.getBoolean("isSensitive") else false
-        TemplateVariable(key, value.unwrapped().toString, None, description, isSensitive = isSensitive, globalScope)
+        TemplateVariable(key, value.unwrapped().toString, None, description, isSensitive = isSensitive, TemplateVariableScopes.global)
       case _ =>
-        TemplateVariable(key, value.unwrapped().toString, None, None, isSensitive = false, globalScope)
+        TemplateVariable(key, value.unwrapped().toString, None, None, isSensitive = false, TemplateVariableScopes.global)
     }
   }
 
@@ -80,7 +75,7 @@ object GlobalTemplateVariables extends TemplateVariablesReader with Serializable
   /**
     * The available variable scopes.
     */
-  override def scopes: Set[String] = Set(GlobalTemplateVariablesConfig.globalScope)
+  override def scopes: Set[String] = Set(TemplateVariableScopes.global)
 
   /**
     * Retrieves all template variables.

@@ -4,14 +4,15 @@ import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.CloseableDataset.using
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, ZipWritableResource}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution._
-import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType, LinksEntitySchema, QuadEntitySchema, SparqlEndpointEntitySchema, SparqlUpdateEntitySchema, TypedEntities}
+import org.silkframework.execution.typed._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource}
+import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -131,7 +132,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
       case QuadEntitySchema(quads) =>
         withEntitySink(dataset, execution) { entitySink =>
-          writeQuads(entitySink, quads)
+          writeQuads(entitySink, quads, WriteTriplesReportUpdater(dataset, context))
         }
       case tables: MultiEntityTable =>
         implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
@@ -144,10 +145,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         report.executionDone()
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[ResourceBasedDataset] =>
-        writeDatasetResource(dataset, files)
+        writeDatasetResource(dataset, files, WriteFilesReportUpdater(dataset, context), resource => execution.addUpdatedFile(resource.name))
       case FileEntitySchema(files) if dataset.data.plugin.isInstanceOf[RdfDataset] =>
-        val reportUpdater = UploadFilesViaGspReportUpdater(dataset, context)
-        uploadFilesViaGraphStore(dataset, files.typedEntities, reportUpdater)
+        uploadFilesViaGraphStore(dataset, files.typedEntities, UploadFilesViaGspReportUpdater(dataset, context))
       case SparqlUpdateEntitySchema(queries) =>
         executeSparqlUpdateQueries(dataset, queries, execution)
       case et: LocalEntities =>
@@ -289,15 +289,33 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   // Write file entities to the dataset's resource
-  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]], fileEntities: TypedEntities[FileEntity, TaskSpec]): Unit = {
+  private def writeDatasetResource(dataset: Task[DatasetSpec[Dataset]],
+                                   fileEntities: TypedEntities[FileEntity, TaskSpec],
+                                   reportUpdater: ExecutionReportUpdater,
+                                   onUpdate: WritableResource => Unit): Unit = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
-              case Some(wr) =>
-                for(resource <- fileEntities.typedEntities) {
-                  wr.writeResource(resource.file)
+              case Some(outputResource) =>
+                var resourceWritten = false
+                for(inputResource <- fileEntities.typedEntities) {
+                  // Either of both files could be a zip
+                  (BulkResourceBasedDataset.isZip(inputResource.file), BulkResourceBasedDataset.isZip(outputResource)) match {
+                    case (false, false) | (true, true) =>
+                      outputResource.writeResource(inputResource.file)
+                      resourceWritten = true
+                    case (false, true) =>
+                      ZipWritableResource(outputResource).writeResource(inputResource.file)
+                      resourceWritten = true
+                    case (true, false) =>
+                      throw new ValidationException("Cannot write a zip file to a dataset that's not based on a zip file.")
+                  }
+                  reportUpdater.increaseEntityCounter()
+                }
+                if(resourceWritten) {
+                  onUpdate(outputResource)
                 }
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
@@ -310,6 +328,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case _ =>
         throw new ValidationException("No dataset spec found!")
     }
+    reportUpdater.executionDone()
   }
 
   private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
@@ -357,24 +376,26 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
-  private def writeQuads(sink: EntitySink, quads: TypedEntities[Quad, TaskSpec])
+  private def writeQuads(sink: EntitySink, quads: TypedEntities[Quad, TaskSpec], reportUpdater: WriteTriplesReportUpdater)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink match {
       case tripleSink: TripleSink =>
-        writeQuadsToTripleSink(tripleSink, quads)
+        writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case EntitySinkWrapper(tripleSink: TripleSink, _) =>
-        writeQuadsToTripleSink(tripleSink, quads)
+        writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case _ =>
         throw TaskException("Cannot write triples to non-RDF dataset!")
     }
   }
 
-  private def writeQuadsToTripleSink(sink: TripleSink, quads: TypedEntities[Quad, TaskSpec])
+  private def writeQuadsToTripleSink(sink: TripleSink, quads: TypedEntities[Quad, TaskSpec], reportUpdater: WriteTriplesReportUpdater)
                                     (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink.init()
     for (quad <- quads.typedEntities) {
       sink.writeTriple(quad.subject.value, quad.predicate.value, quad.objectVal.value, QuadEntitySchema.getValueType(quad.objectVal))
+      reportUpdater.increaseEntityCounter()
     }
+    reportUpdater.executionDone()
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
@@ -384,31 +405,42 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
-  case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }
 
-  case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "Link"
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
-  case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  private case class WriteFilesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityLabelSingle: String = "File"
-
     override def entityLabelPlural: String = "Files"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
+  }
 
+  private case class UploadFilesViaGspReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+    override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("upload")
-
     override def entityProcessVerb: String = "uploaded"
+  }
+
+  case class WriteTriplesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Triple"
+    override def entityLabelPlural: String = "Triples"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
   }
 }
 
