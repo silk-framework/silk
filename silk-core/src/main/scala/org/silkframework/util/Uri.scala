@@ -98,6 +98,11 @@ case class Uri(uri: String) {
       Some(part.substring(splitIndex))
     case _ => None
   }
+
+  def namespace: Option[String] = {
+    val localNameIndex = uri.lastIndexOf('/') max uri.lastIndexOf('#') max uri.lastIndexOf(':')
+    if (localNameIndex >= 0) Some(uri.substring(0, localNameIndex + 1)) else None
+  }
 }
 
 object Uri {
