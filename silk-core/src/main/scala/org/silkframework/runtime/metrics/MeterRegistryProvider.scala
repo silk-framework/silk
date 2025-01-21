@@ -1,7 +1,7 @@
 package org.silkframework.runtime.metrics
 
 import io.micrometer.core.instrument.MeterRegistry
-import io.micrometer.prometheus.{PrometheusConfig, PrometheusMeterRegistry}
+import io.micrometer.prometheusmetrics.{PrometheusConfig, PrometheusMeterRegistry}
 import org.silkframework.config.DefaultConfig
 
 import scala.util.{Failure, Success, Try}
