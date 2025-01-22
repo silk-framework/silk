@@ -7,8 +7,8 @@ import {
     HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
-import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
 import React, { MouseEvent as ReactMouseEvent } from "react";
+import { GridColumn, MiniMap, ReactFlowExtended, ReactFlowHotkeyContext } from "@eccenca/gui-elements";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import { SelectionMenu } from "./ruleNode/SelectionMenu";
 import {
@@ -21,14 +21,11 @@ import {
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
-import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -506,7 +503,7 @@ export const RuleEditorCanvas = () => {
     return (
         <>
             <GridColumn>
-                <ReactFlow
+                <ReactFlowExtended
                     id={modelContext.canvasId}
                     data-test-id={"ruleEditor-react-flow-canvas"}
                     configuration={"linking"}
@@ -560,7 +557,7 @@ export const RuleEditorCanvas = () => {
                         }
                     />
                     <Background variant={BackgroundVariant.Lines} gap={16} />
-                </ReactFlow>
+                </ReactFlowExtended>
                 {contextMenu}
             </GridColumn>
         </>
