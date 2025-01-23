@@ -69,6 +69,16 @@ interface RuleTreeNode {
     node: IRuleOperatorNode;
 }
 
+type DimensionRecord = {
+    defaultSize: number | null;
+    changed?: boolean; //if the value changes
+};
+
+export type NodeResizeRecord = {
+    width: DimensionRecord;
+    height: DimensionRecord;
+};
+
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here.
  *  It contains the main (core) rule editor logic. */
@@ -110,6 +120,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
     const unsetUserSelection = useStoreActions((actions) => actions.unsetUserSelection);
     const setInteractive = useStoreActions((a) => a.setInteractive);
+    const [resizedNodes, setResizedNodes] = React.useState<Map<string, NodeResizeRecord>>(new Map());
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
@@ -689,6 +700,66 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
         return changedElements;
     };
+
+    const registerNodeResize = (nodeId: string, newSizes: { height: number; width: number }) => {
+        setResizedNodes((prev) => {
+            const prevSizes = prev.get(nodeId);
+            return new Map([
+                ...prev,
+                [
+                    nodeId,
+                    {
+                        width: {
+                            ...prevSizes?.width,
+                            changed: !prevSizes ? false : prevSizes?.width?.defaultSize === newSizes.width,
+                            defaultSize: prevSizes?.width?.defaultSize ?? newSizes.width,
+                        },
+                        height: {
+                            ...prevSizes?.height,
+                            changed: !prevSizes ? false : prevSizes?.height?.defaultSize === newSizes.height,
+                            defaultSize: prevSizes?.height?.defaultSize ?? newSizes.height,
+                        },
+                    },
+                ],
+            ]);
+        });
+    };
+
+    const resetNodeSize = React.useCallback(
+        (nodeId: string) => {
+            const foundResizedNodeDimensions = resizedNodes.get(nodeId);
+            if (!foundResizedNodeDimensions) return;
+            const { width, height } = foundResizedNodeDimensions;
+            const dimensions = {
+                width: width.defaultSize,
+                height: height.defaultSize,
+            };
+            changeSize(nodeId, dimensions as NodeDimensions);
+            setResizedNodes((prev) => {
+                prev.delete(nodeId);
+                return new Map([...prev]);
+            });
+        },
+        [resizedNodes]
+    );
+
+    const persistedNodeDimensions = React.useCallback((nodeId: string) => {
+        const resizeNodeDefaultSizes = resizedNodes.get(nodeId);
+        const defaultSizes = {
+            width: null,
+            height: null,
+        };
+        if (!resizeNodeDefaultSizes) return defaultSizes;
+        const { width, height } = resizeNodeDefaultSizes;
+        const dimensions = {
+            width: width.defaultSize,
+            height: height.defaultSize,
+        };
+        return {
+            ...defaultSizes,
+            ...dimensions,
+        };
+    }, []);
 
     /** Adds a rule model change action to the undo stack and executes the change on the model. */
     const addAndExecuteRuleModelChangeInternal = (
@@ -1545,8 +1616,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
         languageFilterEnabled,
-        allowFlexibleSize: ruleEditorContext.allowFlexibleSize ?? false,
         changeNodeSize: changeSize,
+        registerNodeResize: registerNodeResize,
     });
 
     /** Auto-layout the rule nodes.
@@ -1626,13 +1697,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
-                dimension: node.data?.nodeDimensions,
+                dimension: persistedNodeDimensions(node.id),
                 description: originalNode.description,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
         });
     };
 
+    //node.data?.nodeDimensions
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
@@ -1765,6 +1837,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 canvasId,
+                resetNodeSize,
+                resizedNodes,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,

@@ -14,6 +14,7 @@ interface NodeMenuProps {
     ruleOperatorDescription?: string;
     ruleOperatorDocumentation?: string;
     nodeType?: string;
+    handleNodeSizeReset?: (nodeId: string) => void;
 }
 
 /** The menu of a rule node. */
@@ -22,6 +23,7 @@ export const RuleNodeMenu = ({
     t,
     handleDeleteNode,
     handleCloneNode,
+    handleNodeSizeReset,
     ruleOperatorDescription,
     ruleOperatorDocumentation,
     nodeType,
@@ -39,6 +41,8 @@ export const RuleNodeMenu = ({
     const operatorDoc = `${ruleOperatorDescription ?? ""} ${
         ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
     }`;
+    const resizeNodeInfo = modelContext.resizedNodes.get(nodeId);
+    const resetBtnIsDisabled = !(resizeNodeInfo?.width.changed || resizeNodeInfo?.height.changed);
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
             <Menu>
@@ -103,6 +107,13 @@ export const RuleNodeMenu = ({
                         )}
                     />
                 ) : null}
+                <MenuItem
+                    data-test-id="rule-node-evaluate-btn"
+                    icon="item-reset"
+                    disabled={resetBtnIsDisabled}
+                    onClick={() => modelContext.resetNodeSize(nodeId)}
+                    text="Reset node size"
+                ></MenuItem>
             </Menu>
         </NodeTools>
     );

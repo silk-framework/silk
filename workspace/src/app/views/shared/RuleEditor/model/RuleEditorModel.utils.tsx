@@ -18,6 +18,8 @@ import { IconButton, NodeContentHandleProps, NodeContentProps } from "@eccenca/g
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
+type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
+
 /** Constants */
 
 export const DEFAULT_NODE_HEIGHT = 70;
@@ -72,10 +74,9 @@ export interface IOperatorCreateContext {
     readOnlyMode: boolean;
     /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
     languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
-    /** allow the width of nodes to be adjustable */
-    allowFlexibleSize?: boolean;
     /** change node size */
     changeNodeSize: (nodeId: string, newNodeDimensions: NodeContentProps<any>["nodeDimensions"]) => void;
+    registerNodeResize: (nodeId: string, defaultSizes: Partial<NodeDimensions>) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -163,19 +164,17 @@ function createOperatorNode(
         contentExtension: operatorContext.ruleEvaluationContext.supportsEvaluation
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
+        onNodeResize: (data) => {
+            operatorContext.registerNodeResize(node.nodeId, data);
+            operatorContext.changeNodeSize(node.nodeId, data);
+        },
+        resizeDirections: { bottomRight: true },
+        resizeMaxDimensions: { width: 1400 },
+        nodeDimensions: {
+            width: node.dimension?.width,
+            height: node.dimension?.height,
+        } as NodeContentProps<any>["nodeDimensions"],
     };
-
-    if (operatorContext.allowFlexibleSize) {
-        data = {
-            ...data,
-            onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
-            resizeDirections: { right: true },
-            resizeMaxDimensions: { width: 1400 },
-            nodeDimensions: {
-                width: node.dimension?.width ?? undefined,
-            } as NodeContentProps<any>["nodeDimensions"],
-        };
-    }
 
     return {
         id: node.nodeId,

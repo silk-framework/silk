@@ -3,6 +3,7 @@ import React from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContentProps } from "@eccenca/gui-elements";
+import { NodeResizeRecord } from "../model/RuleEditorModel";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
@@ -47,6 +48,10 @@ export interface RuleEditorModelContextProps {
     ruleOperatorNodes: () => IRuleOperatorNode[];
     /** The ID of the rule editor canvas element. */
     canvasId: string;
+
+    resetNodeSize: (nodeId: string) => void;
+
+    resizedNodes: Map<string, NodeResizeRecord>;
 }
 
 export interface IModelActions {
@@ -156,4 +161,6 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     centerNode: () => true,
     ruleOperatorNodes: () => [],
     canvasId: "canvasId",
+    resetNodeSize: NOP,
+    resizedNodes: new Map(),
 });

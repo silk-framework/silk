@@ -473,8 +473,8 @@ const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
             nodePositions[node.nodeId] = {
                 x: Math.round(node.position.x),
                 y: Math.round(node.position.y),
-                width: node.dimension?.width || null,
-                height: null,
+                width: node.dimension?.width ?? null,
+                height: node.dimension?.height ?? null,
             };
         }
     });
