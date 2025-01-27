@@ -28,6 +28,8 @@ export interface RuleEditorModelContextProps {
     saveRule: () => Promise<boolean> | boolean;
     /** If there are unsaved changes. */
     unsavedChanges: boolean;
+    /** Number of selected nodes copied */
+    copiedNodesCount: number;
     /** Executes an operation that will change the model. */
     executeModelEditOperation: IModelActions;
     /** Undo last changes. Return true if changes have been undone. */
@@ -132,6 +134,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         return false;
     },
     unsavedChanges: false,
+    copiedNodesCount: 0,
     updateSelectedElements: () => {},
     executeModelEditOperation: {
         startChangeTransaction: NOP,

@@ -138,6 +138,8 @@ export const RuleEditorToolbar = () => {
         }
     };
 
+    const numberOfCopiedNodes = modelContext.copiedNodesCount;
+
     return (
         <>
             {ruleEditorContext.editorTitle ? (
@@ -204,17 +206,6 @@ export const RuleEditorToolbar = () => {
                         onClick={() => setShowCreateStickyModal(true)}
                     />
                     <Spacing vertical size={"small"} />
-                    <IconButton
-                        data-test-id="rule-editor-header-sticky-btn"
-                        name="item-copy"
-                        text={t("RuleEditor.selection.menu.copy.label")}
-                        onClick={() =>
-                            modelContext.executeModelEditOperation.copyNodes(
-                                utils.elementNodes(ruleEditorUiContext.selectionState.elements ?? []).map((n) => n.id)
-                            )
-                        }
-                    />
-                    <Spacing vertical size={"small"} />
                     <Switch
                         data-test-id={"rule-editor-advanced-toggle"}
                         label={t("RuleEditor.toolbar.advancedParameterMode")}
@@ -229,6 +220,20 @@ export const RuleEditorToolbar = () => {
                 <ToolbarSection canGrow>
                     <Spacing vertical size={"small"} />
                 </ToolbarSection>
+                {numberOfCopiedNodes ? (
+                    <>
+                        <Icon
+                            name="item-copy"
+                            tooltipText={t("RuleEditor.toolbar.copiedNotificationText", {
+                                numberOfNodes: `${numberOfCopiedNodes} node${numberOfCopiedNodes > 1 ? "s" : ""}`,
+                            })}
+                            tooltipProps={{
+                                isOpen: true,
+                            }}
+                        />
+                        <Spacing vertical size={"small"} />
+                    </>
+                ) : null}
                 {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                     <ToolbarSection>

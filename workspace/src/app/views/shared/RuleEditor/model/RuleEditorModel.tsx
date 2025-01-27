@@ -51,8 +51,6 @@ import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
-import useHotKey from "../../../../views/shared/HotKeyHandler/HotKeyHandler";
-import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
@@ -128,9 +126,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
     /** when a node is clicked the selected nodes appears here */
     const [selectedElements, updateSelectedElements] = React.useState<Elements | null>(null);
+    const [copiedNodesCount, setCopiedNodesCount] = React.useState<number>(0);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
+
+    React.useEffect(() => {
+        if (copiedNodesCount) {
+            setTimeout(() => {
+                setCopiedNodesCount(0);
+            }, 3000);
+        }
+    }, [copiedNodesCount]);
 
     React.useEffect(() => {
         const handlePaste = async (e) => await pasteNodes(e);
@@ -1369,6 +1376,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         } else {
             copyToClipboard(data);
         }
+        setCopiedNodesCount(nodes.length);
     };
 
     /** Copy and paste nodes with a given offset. */
@@ -1915,6 +1923,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canRedo,
                 canvasId,
                 updateSelectedElements,
+                copiedNodesCount,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,

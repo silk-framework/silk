@@ -648,7 +648,7 @@
                     "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
                 },
                 "copy": {
-                    "label": "Copy selected nodes",
+                    "label": "Copy selected nodes to clipboard",
                     "tooltip": "Copy all selected nodes and inter-connections. Following key combination also triggers this action: CTRL/CMD + c. The copied elements can be inserted as copies via CTRL/CMD + v, this holds true also for editors in different tabs/windows/browsers."
                 }
             }
@@ -701,7 +701,8 @@
             },
             "startEvaluation": "Start evaluation",
             "showEvaluation": "Show evaluation examples",
-            "hideEvaluation": "Hide evaluation examples"
+            "hideEvaluation": "Hide evaluation examples",
+            "copiedNotificationText": "Copied {{numberOfNodes}} to clipboard"
         }
     },
     "taskViews": {
