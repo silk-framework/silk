@@ -347,7 +347,8 @@
             "filterOff": "Remove filter",
             "showMoreDetails": "Show more details",
             "restore": "Restore",
-            "revert": "Revert"
+            "revert": "Revert",
+            "edit": "Edit"
         },
         "app": {
             "build": "Workbench",
