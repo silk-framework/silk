@@ -47,7 +47,6 @@ interface IProps {
     onAddNewRule: (callback: () => any) => any;
     scrollElementIntoView: () => any;
     ruleData: object;
-    parent: any;
     viewActions: IViewActions;
 }
 
@@ -90,7 +89,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const { project, transformTask } = useApiDetails();
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
     const [uriPatternInputHasFocus, setUriPatternInputHasFocus] = useState<boolean>(false);
-    const { id, parentId, parent } = props;
+    const { id, parentId } = props;
 
     const autoCompleteRuleId = id || parentId;
 
