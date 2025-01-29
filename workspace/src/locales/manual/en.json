@@ -262,14 +262,16 @@
                     }
                 },
                 "rule-editors": {
-                    "label": "Linking editor",
+                    "label": "Linking editor / Value formula editor",
                     "shortcuts": {
                         "duplicate-nodes": "Duplicate selected nodes",
                         "undo": "Undo change",
                         "redo": "Redo change",
                         "delete": "Remove selected elements",
                         "multiselect": "Select multiple nodes",
-                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area"
+                        "multiselectDesc": "Select nodes either by clicking on them or by dragging a selection area",
+                        "copySelectedNodes": "Copy selected nodes to clipboard",
+                        "pasteNodes": "Paste copied nodes"
                     }
                 },
                 "workflow-editor": {
@@ -649,7 +651,7 @@
                 },
                 "copy": {
                     "label": "Copy selected nodes to clipboard",
-                    "tooltip": "Copy all selected nodes and inter-connections. Following key combination also triggers this action: CTRL/CMD + c. The copied elements can be inserted as copies via CTRL/CMD + v, this holds true also for editors in different tabs/windows/browsers."
+                    "tooltip": "Copy all selected nodes and inter-connections. Can be also triggered with with following keyboard shortcut: ^Ctrl + c / ⌘Command + c. The copied elements can be inserted as copies with following keyboard shortcut: ^Ctrl + v / ⌘Command + v.The copied elements can also be inserted in editors in different tabs, windows or browsers."
                 }
             }
         },

@@ -518,6 +518,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addOrMergeRuleModelChange = (ruleModelChanges: RuleModelChanges) => {
         const lastChange = asChangeNodeParameter(ruleUndoStack[ruleUndoStack.length - 1]);
         const parameterChange = asChangeNodeParameter(ruleModelChanges);
+
         if (
             parameterChange &&
             lastChange &&
@@ -528,6 +529,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleUndoStack.push(ruleModelChanges);
         } else {
             ruleUndoStack.push(ruleModelChanges);
+            console.log("Rule undo stack ==>", ruleUndoStack);
         }
     };
 
@@ -1256,12 +1258,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         try {
             const clipboardData = e.clipboardData?.getData("Text");
             const pasteInfo = JSON.parse(clipboardData); // Parse JSON
-            const taskType =
-                (ruleEditorContext.editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
-
-            if (pasteInfo[taskType]) {
+            if (pasteInfo.task) {
                 changeElementsInternal((els) => {
-                    const nodes = pasteInfo[taskType].data.nodes ?? [];
+                    const nodes = pasteInfo.task.data.nodes ?? [];
                     const nodeIdMap = new Map<string, string>();
                     const newNodes: RuleEditorNode[] = [];
                     nodes.forEach((node) => {
@@ -1288,7 +1287,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         }
                     });
                     const newEdges: Edge[] = [];
-                    pasteInfo[taskType].data.edges.forEach((edge) => {
+                    pasteInfo.task.data.edges.forEach((edge) => {
                         if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
                             const newEdge = utils.createEdge(
                                 nodeIdMap.get(edge.source)!!,
@@ -1299,7 +1298,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             newEdges.push(newEdge);
                         }
                     });
-
+                    startChangeTransaction();
                     const withNodes = addAndExecuteRuleModelChangeInternal(
                         RuleModelChangesFactory.addNodes(newNodes),
                         els
@@ -1358,7 +1357,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         const { projectId, editedItemId, editedItem } = ruleEditorContext;
         const taskType = (editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
         const data = JSON.stringify({
-            [taskType]: {
+            task: {
                 data: {
                     nodes,
                     edges,
