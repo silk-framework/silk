@@ -229,6 +229,7 @@ export const RuleEditorToolbar = () => {
                             })}
                             tooltipProps={{
                                 isOpen: true,
+                                placement: "left",
                             }}
                         />
                         <Spacing vertical size={"small"} />
