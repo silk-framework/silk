@@ -1,7 +1,6 @@
 import React from "react";
-import { EdgeTools } from "@eccenca/gui-elements/src/extensions/react-flow";
 import { XYPosition } from "react-flow-renderer/dist/types";
-import { Button, Spacing, Menu, MenuItem, MenuDivider } from "@eccenca/gui-elements";
+import { ContextMenu, MenuItem, MenuDivider } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface SelectionMenuProps {
@@ -17,20 +16,6 @@ interface SelectionMenuProps {
     copySelection: () => any;
 }
 
-/**
- * 
- *            <MenuDivider />
-                    <MenuItem
-                        data-test-id="workflow-node-delete-btn"
-                        key="delete"
-                        icon={"item-remove"}
-                        onClick={() => handleDeleteNode(nodeId)}
-                        text={t("WorkflowEditor.node.menu.remove.label")}
-                        intent="danger"
-                    />
- * @returns 
- */
-/** Rule edge menu. */
 export const SelectionMenu = ({
     position,
     onClose,
@@ -40,9 +25,22 @@ export const SelectionMenu = ({
 }: SelectionMenuProps) => {
     const [t] = useTranslation();
     return (
-        // FIXME: CMEM-3742: Use a generic "tools" component or rename EdgeTools
-        <EdgeTools posOffset={{ left: position.x, top: position.y }} onClose={onClose}>
-            <Menu>
+        <div
+            style={{
+                position: "fixed",
+                left: position.x,
+                top: position.y,
+            }}
+        >
+            <ContextMenu
+                contextOverlayProps={{
+                    onClose,
+                    defaultIsOpen: true,
+                    autoFocus: true,
+                    interactionKind: "hover",
+                }}
+                togglerElement={<div />}
+            >
                 <MenuItem
                     text={t("RuleEditor.selection.menu.copy.label")}
                     icon="item-copy"
@@ -75,7 +73,7 @@ export const SelectionMenu = ({
                     intent="danger"
                     text={t("RuleEditor.selection.menu.delete.label")}
                 />
-            </Menu>
-        </EdgeTools>
+            </ContextMenu>
+        </div>
     );
 };
