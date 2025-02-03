@@ -5,6 +5,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.Status.Waiting
 import org.silkframework.runtime.activity.{HasValue, UserContext}
+import org.silkframework.runtime.plugin.ParameterValues
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -129,9 +130,9 @@ object ActivityFacade {
     } else {
       val id =
         if (blocking) {
-          activity.startBlocking(activityConfig)
+          activity.startBlocking(ParameterValues.fromStringMap(activityConfig))
         } else {
-          activity.start(activityConfig)
+          activity.start(ParameterValues.fromStringMap(activityConfig))
         }
       StartActivityResponse(activityName, id.toString)
     }

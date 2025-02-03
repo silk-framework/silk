@@ -2,7 +2,6 @@ package helper
 
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
-
 import org.openqa.selenium.interactions.Actions
 import org.openqa.selenium.{TimeoutException, WebElement}
 import org.scalatest.{Suite, TestSuite}
@@ -10,6 +9,8 @@ import org.scalatestplus.play.{ChromeFactory, OneBrowserPerSuite}
 
 import scala.language.implicitConversions
 import org.scalatest.matchers.must.Matchers
+
+import java.time.Duration
 
 /**
   * Created on 7/20/16.
@@ -42,7 +43,7 @@ trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with 
     * else if a timeout has occurred returns None.
     */
   def withIgnoredPageLoadTimeout[T](block: => T, timeoutMs: Long = DEFAULT_PAGE_LOAD_TIMEOUT): Option[T] = {
-    implicit val timeouts = webDriver.manage().timeouts().pageLoadTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+    implicit val timeouts = webDriver.manage().timeouts().pageLoadTimeout(Duration.ofMillis(timeoutMs))
     try {
       Some(block)
     } catch {
