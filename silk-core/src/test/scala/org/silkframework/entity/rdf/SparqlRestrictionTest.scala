@@ -33,6 +33,11 @@ class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
     resolve(restriction) should be (restriction)
   }
 
+  it should "resolve prefixes correctly if using property paths with prefixed names" in {
+    val restriction = "?a owl:sameAs/rdf:type owl:Thing ."
+    resolve(restriction) should be ("?a <http://www.w3.org/2002/07/owl#sameAs>/<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Thing> .")
+  }
+
   private def resolve(sparql: String) = SparqlRestriction.fromSparql("a", sparql).toSparql
 
 }

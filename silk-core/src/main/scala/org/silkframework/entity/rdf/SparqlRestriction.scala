@@ -17,6 +17,8 @@ package org.silkframework.entity.rdf
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
+import scala.util.matching.Regex
+
 /**
  * Represents a SPARQL restriction.
  */
@@ -55,15 +57,27 @@ object SparqlRestriction {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 
-    var restrictionsFull = cleanedRestrictions
+    val prefixRegex = new Regex("""([\w-]+):([\w-]+)""")
+
+    // Replace all prefixes with their full URIs
+    val restrictionsFull = prefixRegex.replaceAllIn(cleanedRestrictions, replacePrefix _)
+
+    // Replace full URIs with their prefixed names
     var restrictionsQualified = cleanedRestrictions
     for ((id, namespace) <- prefixes.toSeq.sortBy(_._1.length).reverse) {
-      // Replace prefixes in properties and types
-      restrictionsFull = restrictionsFull.replaceAll("([\\s^])" + id + ":" + "([^;\\s\\{\\}+*]+)([+*]*\\s+\\.;)?", "$1<" + namespace + "$2>$3")
       restrictionsQualified = restrictionsQualified.replaceAll("<" + namespace + "([^>]+)>", id + ":" + "$1")
     }
 
     new SparqlRestriction(variable, restrictionsFull, restrictionsQualified)
+  }
+
+  private def replacePrefix(m: Regex.Match)(implicit prefixes: Prefixes = Prefixes.empty): String = {
+    val prefix = m.group(1)
+    val name = m.group(2)
+    prefixes.get(prefix) match {
+      case Some(namespace) => s"<$namespace$name>"
+      case None => m.toString() // Keep the original if the prefix is not found
+    }
   }
 
   /** Restrict entity to a specific type */
