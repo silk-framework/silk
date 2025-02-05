@@ -15,6 +15,7 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
 
 import scala.util.matching.Regex
@@ -57,7 +58,7 @@ object SparqlRestriction {
     val strippedRestrictions = restrictions.trim.stripSuffix(".").trim
     val cleanedRestrictions = if (strippedRestrictions.isEmpty) "" else strippedRestrictions + " ."
 
-    val prefixRegex = new Regex("""([\w-]+):([\w.-]+)""")
+    val prefixRegex = new Regex("""([\w-]+):([\w.-]+(?:\\/[\w.-]+)*)""")
 
     // Replace all prefixes with their full URIs
     val restrictionsFull = prefixRegex.replaceAllIn(cleanedRestrictions, replacePrefix _)
@@ -76,7 +77,7 @@ object SparqlRestriction {
     val name = m.group(2)
     prefixes.get(prefix) match {
       case Some(namespace) => s"<$namespace$name>"
-      case None => m.toString() // Keep the original if the prefix is not found
+      case None => throw new BadUserInputException(s"Unknown prefix '$prefix' in SPARQL restriction.")
     }
   }
 
