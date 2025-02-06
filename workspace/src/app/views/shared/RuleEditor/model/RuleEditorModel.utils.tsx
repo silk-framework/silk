@@ -165,10 +165,11 @@ function createOperatorNode(
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
         onNodeResize: (data) => {
+            console.log("ResizeData ==> ", data);
             operatorContext.registerNodeResize(node.nodeId, data);
             operatorContext.changeNodeSize(node.nodeId, data);
         },
-        resizeDirections: { bottomRight: true },
+        resizeDirections: { right: true },
         resizeMaxDimensions: { width: 1400 },
         nodeDimensions: {
             width: node.dimension?.width,

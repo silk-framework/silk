@@ -70,7 +70,8 @@ interface RuleTreeNode {
 }
 
 type DimensionRecord = {
-    defaultSize: number | null;
+    lastValue: number | null;
+    currentValue: number | null;
     changed?: boolean; //if the value changes
 };
 
@@ -711,13 +712,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     {
                         width: {
                             ...prevSizes?.width,
-                            changed: !prevSizes ? false : prevSizes?.width?.defaultSize === newSizes.width,
-                            defaultSize: prevSizes?.width?.defaultSize ?? newSizes.width,
+                            changed: prevSizes?.width?.currentValue !== newSizes.width,
+                            currentValue: newSizes.width,
+                            lastValue: prevSizes?.width?.currentValue ?? 240,
                         },
                         height: {
                             ...prevSizes?.height,
-                            changed: !prevSizes ? false : prevSizes?.height?.defaultSize === newSizes.height,
-                            defaultSize: prevSizes?.height?.defaultSize ?? newSizes.height,
+                            changed: prevSizes?.height?.currentValue !== newSizes.height,
+                            currentValue: newSizes.height,
+                            lastValue: prevSizes?.height?.currentValue ?? 143,
                         },
                     },
                 ],
@@ -725,23 +728,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const resetNodeSize = React.useCallback(
-        (nodeId: string) => {
-            const foundResizedNodeDimensions = resizedNodes.get(nodeId);
-            if (!foundResizedNodeDimensions) return;
-            const { width, height } = foundResizedNodeDimensions;
-            const dimensions = {
-                width: width.defaultSize,
-                height: height.defaultSize,
-            };
-            changeSize(nodeId, dimensions as NodeDimensions);
-            setResizedNodes((prev) => {
-                prev.delete(nodeId);
-                return new Map([...prev]);
-            });
-        },
-        [resizedNodes]
-    );
+    const resetNodeSize = (nodeId: string) => {
+        const foundResizedNodeDimensions = resizedNodes.get(nodeId);
+        if (!foundResizedNodeDimensions) return;
+        const { height, width } = foundResizedNodeDimensions;
+        const dimensions = {
+            width: width.lastValue,
+            height: height.lastValue,
+        };
+        changeSize(nodeId, dimensions as NodeDimensions);
+        setResizedNodes((prev) => {
+            prev.delete(nodeId);
+            return new Map([...prev]);
+        });
+    };
 
     const persistedNodeDimensions = React.useCallback((nodeId: string) => {
         const resizeNodeDefaultSizes = resizedNodes.get(nodeId);
@@ -752,8 +752,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (!resizeNodeDefaultSizes) return defaultSizes;
         const { width, height } = resizeNodeDefaultSizes;
         const dimensions = {
-            width: width.defaultSize,
-            height: height.defaultSize,
+            width: width.currentValue,
+            height: height.currentValue,
         };
         return {
             ...defaultSizes,
