@@ -44,6 +44,11 @@ class SparqlRestrictionTest extends AnyFlatSpec with Matchers {
     an[BadUserInputException] should be thrownBy resolve(restriction)
   }
 
+  it should "not replace prefixes in full URIs" in {
+    val restriction = "?a <urn:test:prop1> <http://www.example.com/someValue> ."
+    resolve(restriction) should be (restriction)
+  }
+
   private def resolve(sparql: String) = SparqlRestriction.fromSparql("a", sparql).toSparql
 
 }
