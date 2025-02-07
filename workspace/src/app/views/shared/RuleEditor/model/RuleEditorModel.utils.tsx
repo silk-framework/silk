@@ -165,7 +165,6 @@ function createOperatorNode(
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
         onNodeResize: (data) => {
-            console.log("ResizeData ==> ", data);
             operatorContext.registerNodeResize(node.nodeId, data);
             operatorContext.changeNodeSize(node.nodeId, data);
         },
@@ -175,6 +174,7 @@ function createOperatorNode(
             width: node.dimension?.width,
             height: node.dimension?.height,
         } as NodeContentProps<any>["nodeDimensions"],
+        getDefaultDimensions: (dimensions) => operatorContext.registerNodeResize(node.nodeId, dimensions),
     };
 
     return {

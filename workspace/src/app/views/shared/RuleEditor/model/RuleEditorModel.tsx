@@ -69,15 +69,10 @@ interface RuleTreeNode {
     node: IRuleOperatorNode;
 }
 
-type DimensionRecord = {
-    lastValue: number | null;
-    currentValue: number | null;
-    changed?: boolean; //if the value changes
-};
-
 export type NodeResizeRecord = {
-    width: DimensionRecord;
-    height: DimensionRecord;
+    width: number | null;
+    height: number | null;
+    changed: boolean;
 };
 
 /** The actual rule model, i.e. the model that is displayed in the editor.
@@ -704,62 +699,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const registerNodeResize = (nodeId: string, newSizes: { height: number; width: number }) => {
         setResizedNodes((prev) => {
-            const prevSizes = prev.get(nodeId);
-            return new Map([
-                ...prev,
-                [
-                    nodeId,
-                    {
-                        width: {
-                            ...prevSizes?.width,
-                            changed: prevSizes?.width?.currentValue !== newSizes.width,
-                            currentValue: newSizes.width,
-                            lastValue: prevSizes?.width?.currentValue ?? 240,
-                        },
-                        height: {
-                            ...prevSizes?.height,
-                            changed: prevSizes?.height?.currentValue !== newSizes.height,
-                            currentValue: newSizes.height,
-                            lastValue: prevSizes?.height?.currentValue ?? 143,
-                        },
-                    },
-                ],
-            ]);
+            const newResizeInfo = new Map([...prev]);
+            newResizeInfo.has(nodeId)
+                ? newResizeInfo.set(nodeId, { ...newResizeInfo.get(nodeId)!, changed: true })
+                : newResizeInfo.set(nodeId, { width: newSizes.width, height: newSizes.height, changed: false });
+            return newResizeInfo;
         });
     };
 
     const resetNodeSize = (nodeId: string) => {
         const foundResizedNodeDimensions = resizedNodes.get(nodeId);
         if (!foundResizedNodeDimensions) return;
-        const { height, width } = foundResizedNodeDimensions;
-        const dimensions = {
-            width: width.lastValue,
-            height: height.lastValue,
-        };
-        changeSize(nodeId, dimensions as NodeDimensions);
-        setResizedNodes((prev) => {
-            prev.delete(nodeId);
-            return new Map([...prev]);
-        });
+        changeSize(nodeId, foundResizedNodeDimensions as NodeDimensions);
+        setResizedNodes((prev) => new Map([...prev, [nodeId, { ...foundResizedNodeDimensions, changed: false }]]));
     };
-
-    const persistedNodeDimensions = React.useCallback((nodeId: string) => {
-        const resizeNodeDefaultSizes = resizedNodes.get(nodeId);
-        const defaultSizes = {
-            width: null,
-            height: null,
-        };
-        if (!resizeNodeDefaultSizes) return defaultSizes;
-        const { width, height } = resizeNodeDefaultSizes;
-        const dimensions = {
-            width: width.currentValue,
-            height: height.currentValue,
-        };
-        return {
-            ...defaultSizes,
-            ...dimensions,
-        };
-    }, []);
 
     /** Adds a rule model change action to the undo stack and executes the change on the model. */
     const addAndExecuteRuleModelChangeInternal = (
@@ -1697,7 +1650,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
-                dimension: persistedNodeDimensions(node.id),
+                dimension: node.data.nodeDimensions,
                 description: originalNode.description,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
