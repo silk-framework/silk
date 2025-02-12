@@ -240,11 +240,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -303,11 +303,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+          executeWorkflowNode(input, output) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+          executeWorkflowNode(input, output) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -327,13 +327,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
     }
     // Read from the dataset
-    (output.task, output.requestedSchema) match {
-      case (Some(outputTask), Some(entitySchema)) =>
-        readFromDataset(datasetNode, entitySchema, outputTask) { result =>
-          process(Some(result))
-        }
-      case _ =>
-        process(None)
+    if(output.compatibleWithDataset) {
+      readFromDataset(datasetNode, output) { result =>
+        process(Some(result))
+      }
+    } else {
+      process(None)
     }
   }
 
@@ -400,12 +399,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   def readFromDataset[T](workflowDataset: WorkflowDependencyNode,
-                         entitySchema: EntitySchema,
-                         outputTask: Task[_ <: TaskSpec])
+                         output: ExecutorOutput)
                         (process: LocalEntities => T)
                         (implicit workflowRunContext: WorkflowRunContext): T = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceDataSources)
-    executeAndClose("Reading", workflowDataset.nodeId, resolvedDataset, Seq.empty, ExecutorOutput(Some(outputTask), Some(entitySchema))) {
+    executeAndClose("Reading", workflowDataset.nodeId, resolvedDataset, Seq.empty, output) {
       case Some(entityTable) =>
         process(entityTable)
       case None =>
@@ -480,6 +478,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                                  outputTask: Task[_ <: TaskSpec])
                                                 (process: Option[EntityHolder] => T)
                                                 (implicit workflowRunContext: WorkflowRunContext): T = {
-    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), Some(outputTask.configSchema)))(process)
+    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), outputTask.configPort))(process)
   }
 }

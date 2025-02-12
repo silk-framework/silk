@@ -5,6 +5,7 @@ import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Writes and/or reads a data set.
@@ -45,11 +46,42 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     context: ActivityContext[ExecutionReport]
   )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
     implicit val c: ActivityContext[ExecutionReport] = context
+    // Write all inputs into the dataset
     for (input <- inputs) {
       write(input, task, execution)
     }
-    output.requestedSchema.map {
-      read(task, _, execution)
+    // Determine output schema
+    val outputSchema = {
+      output.requestedSchema match {
+        case Some(schema) =>
+          schema
+        case None =>
+          retrieveSchema(task, execution)
+      }
+    }
+    // Read from dataset
+    Some(read(task, outputSchema, execution))
+  }
+
+  /**
+    * Retrieves the schema of the dataset if no output schema has been provided.
+    * Will fail if the dataset does not provide an explicit schema.
+    */
+  protected def retrieveSchema(dataset: Task[DatasetSpec[DatasetType]], execution: ExecType)(implicit pluginContext: PluginContext): EntitySchema = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
+    if(!dataset.data.characteristics.explicitSchema) {
+      throw new ValidationException(s"Dataset ${dataset.labelAndId} does not provide an explicit schema and thus cannot be read without a schema!")
+    }
+    val source = access(dataset, execution).source(pluginContext.user)
+    val types = source.retrieveTypes()
+
+    if(types.isEmpty) {
+      throw new ValidationException(s"No types found in dataset ${dataset.labelAndId()}")
+    } else {
+      val typeUri = types.head._1
+      EntitySchema(typeUri, source.retrievePaths(typeUri))
     }
   }
 }
