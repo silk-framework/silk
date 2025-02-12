@@ -54,13 +54,17 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     val outputSchema = {
       output.requestedSchema match {
         case Some(schema) =>
-          schema
+          Some(schema)
+        case None if output.compatibleWithDataset =>
+          Some(retrieveSchema(task, execution))
         case None =>
-          retrieveSchema(task, execution)
+          None
       }
     }
     // Read from dataset
-    Some(read(task, outputSchema, execution))
+    for(schema <- outputSchema) yield {
+      read(task, schema, execution)
+    }
   }
 
   /**
