@@ -6,7 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
-import org.silkframework.execution.{EntityHolder, ExecutorOutput}
+import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -327,8 +327,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
     }
     // Read from the dataset
-    //TODO improve this
-    if(output.connectedPort.exists(_.isInstanceOf[FixedSchemaPort]) || (output.connectedPort.contains(FlexibleSchemaPort) && task.data.characteristics.explicitSchema)) {
+    if(DatasetExecutor.canRead(task.data.plugin, output)) {
       readFromDataset(datasetNode, output) { result =>
         process(Some(result))
       }

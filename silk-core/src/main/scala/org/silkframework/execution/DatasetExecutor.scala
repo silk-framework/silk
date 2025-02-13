@@ -85,3 +85,21 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     }
   }
 }
+
+object DatasetExecutor {
+
+  /**
+   * Checks if a dataset can read data for a given output port.
+   */
+  def canRead(dataset: Dataset, output: ExecutorOutput): Boolean = {
+    output.connectedPort match {
+      case Some(FixedSchemaPort(_)) =>
+        true
+      case Some(FlexibleSchemaPort) if dataset.characteristics.explicitSchema =>
+        true
+      case _ =>
+        false
+    }
+  }
+
+}
