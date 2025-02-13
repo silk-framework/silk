@@ -55,7 +55,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
       output.requestedSchema match {
         case Some(schema) =>
           Some(schema)
-        case None if output.compatibleWithDataset =>
+        case None if task.data.characteristics.explicitSchema =>
           Some(retrieveSchema(task, execution))
         case None =>
           None
@@ -69,15 +69,11 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
 
   /**
     * Retrieves the schema of the dataset if no output schema has been provided.
-    * Will fail if the dataset does not provide an explicit schema.
     */
   protected def retrieveSchema(dataset: Task[DatasetSpec[DatasetType]], execution: ExecType)(implicit pluginContext: PluginContext): EntitySchema = {
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val user: UserContext = pluginContext.user
 
-    if(!dataset.data.characteristics.explicitSchema) {
-      throw new ValidationException(s"Dataset ${dataset.labelAndId} does not provide an explicit schema and thus cannot be read without a schema!")
-    }
     val source = access(dataset, execution).source(pluginContext.user)
     val types = source.retrieveTypes()
 

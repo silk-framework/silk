@@ -303,11 +303,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowNode(input, output) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), FlexibleSchemaPort)) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowNode(input, output) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), FlexibleSchemaPort)) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -327,7 +327,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
     }
     // Read from the dataset
-    if(output.compatibleWithDataset) {
+    if(output.requestedSchema.isDefined || task.data.characteristics.explicitSchema) {
       readFromDataset(datasetNode, output) { result =>
         process(Some(result))
       }
