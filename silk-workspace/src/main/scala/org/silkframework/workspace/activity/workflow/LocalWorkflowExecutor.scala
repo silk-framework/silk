@@ -240,11 +240,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), Some(input._2)), operatorTask) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), Some(input._2)), operatorTask) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -303,11 +303,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), FlexibleSchemaPort)) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort))) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), FlexibleSchemaPort)) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort))) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -327,7 +327,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
     }
     // Read from the dataset
-    if(output.requestedSchema.isDefined || task.data.characteristics.explicitSchema) {
+    //TODO improve this
+    if(output.connectedPort.exists(_.isInstanceOf[FixedSchemaPort]) || (output.connectedPort.contains(FlexibleSchemaPort) && task.data.characteristics.explicitSchema)) {
       readFromDataset(datasetNode, output) { result =>
         process(Some(result))
       }
@@ -478,6 +479,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                                  outputTask: Task[_ <: TaskSpec])
                                                 (process: Option[EntityHolder] => T)
                                                 (implicit workflowRunContext: WorkflowRunContext): T = {
-    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), outputTask.configPort))(process)
+    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), Some(outputTask.configPort)))(process)
   }
 }

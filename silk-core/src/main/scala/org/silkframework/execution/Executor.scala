@@ -25,18 +25,16 @@ trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugi
   * The output parameters of an execution.
   * @param task                  Optional output task. Not defined if no output task to write to exists or
   *                              the output task is not available for other reasons.
-  * @param connectedPort         The connected output port.
+  * @param connectedPort         The connected output port. None if the output is not connected.
   */
-case class ExecutorOutput(task: Option[Task[_ <: TaskSpec]], connectedPort: Port) {
+case class ExecutorOutput(task: Option[Task[_ <: TaskSpec]], connectedPort: Option[Port]) {
 
   /**
    * The requested output, which should only be used by tasks that allow to react to such requests, e.g. datasets.
    */
-  def requestedSchema: Option[EntitySchema] = connectedPort.schemaOpt
-
-  def compatibleWithDataset: Boolean = connectedPort.schemaOpt.isDefined || connectedPort == FlexibleSchemaPort
+  def requestedSchema: Option[EntitySchema] = connectedPort.flatMap(_.schemaOpt)
 }
 
 object ExecutorOutput {
-  final val empty = ExecutorOutput(None, UnknownSchemaPort)
+  final val empty = ExecutorOutput(None, None)
 }

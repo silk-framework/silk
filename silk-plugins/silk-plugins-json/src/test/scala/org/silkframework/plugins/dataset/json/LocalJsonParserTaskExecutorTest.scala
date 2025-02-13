@@ -47,7 +47,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
 
   it should "parse the JSON and allow entity schema requests against it" in {
     val result = executor.execute(task, Seq(inputEntities),
-      output = ExecutorOutput(None, FixedSchemaPort(EntitySchema("", IndexedSeq(UntypedPath("name")).map(_.asStringTypedPath)))),
+      output = ExecutorOutput(None, Some(FixedSchemaPort(EntitySchema("", IndexedSeq(UntypedPath("name")).map(_.asStringTypedPath))))),
       execution = LocalExecution(false)
     )
     result mustBe defined
@@ -57,7 +57,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
   it should "produce multi schema entities" in {
     val outputSchema = EntitySchema("", IndexedSeq(UntypedPath("name")).map(_.asStringTypedPath))
     val result = executor.execute(task, Seq(inputEntities),
-      output = ExecutorOutput(None, FixedSchemaPort(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema)))),
+      output = ExecutorOutput(None, Some(FixedSchemaPort(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema))))),
       execution = LocalExecution(false)
     )
     result mustBe defined
@@ -71,7 +71,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
   it should "support the in-memory version of the JSON dataset, e.g. supporting backward paths" in {
     val outputSchema = EntitySchema("", IndexedSeq(UntypedPath.parse("\\../rootId")).map(_.asStringTypedPath))
     val result = executor.execute(task, Seq(inputEntities),
-      output = ExecutorOutput(None, FixedSchemaPort(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema)))),
+      output = ExecutorOutput(None, Some(FixedSchemaPort(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema))))),
       execution = LocalExecution(false)
     )
     result mustBe defined
@@ -102,7 +102,7 @@ class LocalJsonParserTaskExecutorTest extends AnyFlatSpec with Matchers with Moc
     def inputEntities = GenericEntityTable(CloseableIterator(entities.iterator), entitySchema, task)
 
     val result = executor.execute(task, Seq(inputEntities),
-      output = ExecutorOutput(None, FixedSchemaPort(EntitySchema("", IndexedSeq(UntypedPath("id")).map(_.asStringTypedPath)))),
+      output = ExecutorOutput(None, Some(FixedSchemaPort(EntitySchema("", IndexedSeq(UntypedPath("id")).map(_.asStringTypedPath))))),
       execution = LocalExecution(false)
     )
     result mustBe defined

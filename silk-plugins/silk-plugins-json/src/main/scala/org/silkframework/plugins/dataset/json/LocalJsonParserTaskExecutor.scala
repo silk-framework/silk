@@ -40,7 +40,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
       }
 
       def parseEntities(schema: EntitySchema, createNewIterator: Boolean = false): CloseableIterator[Entity] = {
-        val entityParser = new EntityParser(task, ExecutorOutput(output.task, FixedSchemaPort(schema)), execution, pathIndex)
+        val entityParser = new EntityParser(task, ExecutorOutput(output.task, Some(FixedSchemaPort(schema))), execution, pathIndex)
         val entityIterator = if(createNewIterator) entities.newIterator() else entities
         implicit val reportUpdater: ExecutionReportUpdater = JsonParserReportUpdater(task, context)
         implicit val prefixes: Prefixes = Prefixes.empty

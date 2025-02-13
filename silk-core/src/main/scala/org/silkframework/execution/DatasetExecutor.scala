@@ -1,6 +1,6 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{FixedSchemaPort, FlexibleSchemaPort, Prefixes, Task}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -52,12 +52,12 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     }
     // Determine output schema
     val outputSchema = {
-      output.requestedSchema match {
-        case Some(schema) =>
+      output.connectedPort match {
+        case Some(FixedSchemaPort(schema)) =>
           Some(schema)
-        case None if task.data.characteristics.explicitSchema =>
+        case Some(FlexibleSchemaPort) if task.data.characteristics.explicitSchema =>
           Some(retrieveSchema(task, execution))
-        case None =>
+        case _ =>
           None
       }
     }
