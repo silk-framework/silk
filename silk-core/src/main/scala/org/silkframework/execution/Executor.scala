@@ -1,6 +1,6 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{FlexibleSchemaPort, Port, Task, TaskSpec, UnknownSchemaPort}
+import org.silkframework.config.{Port, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor}
 import org.silkframework.runtime.plugin.annotations.PluginType
