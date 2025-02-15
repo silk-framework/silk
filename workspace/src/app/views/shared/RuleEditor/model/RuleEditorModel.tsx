@@ -68,13 +68,6 @@ interface RuleTreeNode {
     output: string | undefined;
     node: IRuleOperatorNode;
 }
-
-export type NodeResizeRecord = {
-    width: number | null;
-    height: number | null;
-    changed: boolean;
-};
-
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here.
  *  It contains the main (core) rule editor logic. */
@@ -116,7 +109,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
     const unsetUserSelection = useStoreActions((actions) => actions.unsetUserSelection);
     const setInteractive = useStoreActions((a) => a.setInteractive);
-    const [resizedNodes, setResizedNodes] = React.useState<Map<string, NodeResizeRecord>>(new Map());
+    const [resizedNodes, setResizedNodes] = React.useState<Map<string, boolean>>(new Map());
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
@@ -697,21 +690,45 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return changedElements;
     };
 
-    const registerNodeResize = (nodeId: string, newSizes: { height: number; width: number }) => {
-        setResizedNodes((prev) => {
-            const newResizeInfo = new Map([...prev]);
-            newResizeInfo.has(nodeId)
-                ? newResizeInfo.set(nodeId, { ...newResizeInfo.get(nodeId)!, changed: true })
-                : newResizeInfo.set(nodeId, { width: newSizes.width, height: newSizes.height, changed: false });
-            return newResizeInfo;
-        });
-    };
-
     const resetNodeSize = (nodeId: string) => {
-        const foundResizedNodeDimensions = resizedNodes.get(nodeId);
-        if (!foundResizedNodeDimensions) return;
-        changeSize(nodeId, foundResizedNodeDimensions as NodeDimensions);
-        setResizedNodes((prev) => new Map([...prev, [nodeId, { ...foundResizedNodeDimensions, changed: false }]]));
+        const nodeDimensions = utils.nodeById(elements, nodeId)?.data.nodeDimensions;
+        changeSize(nodeId, {
+            height: nodeDimensions?.defaultHeight,
+            width: nodeDimensions?.defaultWidth,
+        } as unknown as NodeDimensions);
+        setResizedNodes((prev) => {
+            const newNodes = new Map([...prev]);
+            newNodes.delete(nodeId);
+            return newNodes;
+        });
+        const undoIndexesToRemove: number[] = [];
+        const redoIndexesToRemove: number[] = [];
+
+        const removeNodeSizeChangeFootPrint = (event: ChangeStackType, index: number, stack: "undo" | "redo") => {
+            if (typeof event !== "string") {
+                const [op] = event.operations;
+                if (op.type == "Change node size" && op.nodeId === nodeId) {
+                    stack === "undo"
+                        ? undoIndexesToRemove.push(...[index - 1, index])
+                        : redoIndexesToRemove.push(...[index - 1, index]);
+                }
+            }
+        };
+        ruleUndoStack.forEach((e, i) => removeNodeSizeChangeFootPrint(e, i, "undo"));
+        ruleRedoStack.forEach((e, i) => removeNodeSizeChangeFootPrint(e, i, "redo"));
+
+        const ruleUndoStackFiltered = ruleUndoStack.filter((_, i) => !undoIndexesToRemove.includes(i));
+        const ruleRedoStackFiltered = ruleRedoStack.filter((_, i) => !redoIndexesToRemove.includes(i));
+
+        ruleUndoStack.splice(0, ruleUndoStack.length, ...ruleUndoStackFiltered);
+        ruleRedoStack.splice(0, ruleRedoStack.length, ...ruleRedoStackFiltered);
+
+        if (!ruleUndoStack.length) {
+            setCanUndo(false);
+        }
+        if (!ruleRedoStack.length) {
+            setCanRedo(false);
+        }
     };
 
     /** Adds a rule model change action to the undo stack and executes the change on the model. */
@@ -1570,7 +1587,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
         languageFilterEnabled,
         changeNodeSize: changeSize,
-        registerNodeResize: registerNodeResize,
     });
 
     /** Auto-layout the rule nodes.
@@ -1791,7 +1807,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canRedo,
                 canvasId,
                 resetNodeSize,
-                resizedNodes,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,

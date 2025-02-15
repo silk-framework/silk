@@ -5,6 +5,7 @@ import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext } from "../../contexts/RuleEditorEvaluationContext";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ruleEditorModelUtilsFactory } from "../../model/RuleEditorModel.utils";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -14,7 +15,6 @@ interface NodeMenuProps {
     ruleOperatorDescription?: string;
     ruleOperatorDocumentation?: string;
     nodeType?: string;
-    handleNodeSizeReset?: (nodeId: string) => void;
 }
 
 /** The menu of a rule node. */
@@ -23,7 +23,6 @@ export const RuleNodeMenu = ({
     t,
     handleDeleteNode,
     handleCloneNode,
-    handleNodeSizeReset,
     ruleOperatorDescription,
     ruleOperatorDocumentation,
     nodeType,
@@ -33,6 +32,7 @@ export const RuleNodeMenu = ({
     const ruleEvaluationContext = React.useContext(RuleEditorEvaluationContext);
     const modelContext = React.useContext(RuleEditorModelContext);
     const ruleEditorContext = React.useContext(RuleEditorContext);
+    const [utils] = React.useState(ruleEditorModelUtilsFactory());
 
     const closeMenu = () => {
         menuFns?.closeMenu();
@@ -41,6 +41,11 @@ export const RuleNodeMenu = ({
     const operatorDoc = `${ruleOperatorDescription ?? ""} ${
         ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
     }`;
+
+    const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
+    const resetBtnIsDisabled =
+        nodeDimensions?.width === nodeDimensions?.defaultWidth &&
+        nodeDimensions?.height === nodeDimensions?.defaultHeight;
 
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
@@ -109,7 +114,7 @@ export const RuleNodeMenu = ({
                 <MenuItem
                     data-test-id="rule-node-evaluate-btn"
                     icon="item-reset"
-                    disabled={!modelContext.resizedNodes.get(nodeId)?.changed}
+                    disabled={resetBtnIsDisabled}
                     onClick={() => modelContext.resetNodeSize(nodeId)}
                     text="Reset node size"
                 ></MenuItem>

@@ -134,6 +134,8 @@ interface NodePosition {
 interface NodeDimension {
     width: number | null;
     height: number | null;
+    defaultWidth?: number | null;
+    defaultHeight?: number | null;
 }
 
 export interface RuleOperatorNodeParameters {

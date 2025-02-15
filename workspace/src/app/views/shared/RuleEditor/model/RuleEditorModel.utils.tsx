@@ -76,7 +76,6 @@ export interface IOperatorCreateContext {
     languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
     /** change node size */
     changeNodeSize: (nodeId: string, newNodeDimensions: NodeContentProps<any>["nodeDimensions"]) => void;
-    registerNodeResize: (nodeId: string, defaultSizes: Partial<NodeDimensions>) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -165,7 +164,6 @@ function createOperatorNode(
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
         onNodeResize: (data) => {
-            operatorContext.registerNodeResize(node.nodeId, data);
             operatorContext.changeNodeSize(node.nodeId, data);
         },
         resizeDirections: { right: true },
@@ -173,8 +171,9 @@ function createOperatorNode(
         nodeDimensions: {
             width: node.dimension?.width,
             height: node.dimension?.height,
+            defaultWidth: node.dimension?.defaultWidth ?? node.dimension?.width ?? null,
+            defaultHeight: node.dimension?.height ?? node.dimension?.defaultHeight ?? null,
         } as NodeContentProps<any>["nodeDimensions"],
-        getDefaultDimensions: (dimensions) => operatorContext.registerNodeResize(node.nodeId, dimensions),
     };
 
     return {
