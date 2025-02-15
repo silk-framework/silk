@@ -172,7 +172,7 @@ function createOperatorNode(
             width: node.dimension?.width,
             height: node.dimension?.height,
             defaultWidth: node.dimension?.defaultWidth ?? node.dimension?.width ?? null,
-            defaultHeight: node.dimension?.height ?? node.dimension?.defaultHeight ?? null,
+            defaultHeight: node.dimension?.defaultHeight ?? node.dimension?.height ?? null,
         } as NodeContentProps<any>["nodeDimensions"],
     };
 

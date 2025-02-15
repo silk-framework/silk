@@ -109,7 +109,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
     const unsetUserSelection = useStoreActions((actions) => actions.unsetUserSelection);
     const setInteractive = useStoreActions((a) => a.setInteractive);
-    const [resizedNodes, setResizedNodes] = React.useState<Map<string, boolean>>(new Map());
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
@@ -696,11 +695,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             height: nodeDimensions?.defaultHeight,
             width: nodeDimensions?.defaultWidth,
         } as unknown as NodeDimensions);
-        setResizedNodes((prev) => {
-            const newNodes = new Map([...prev]);
-            newNodes.delete(nodeId);
-            return newNodes;
-        });
         const undoIndexesToRemove: number[] = [];
         const redoIndexesToRemove: number[] = [];
 
