@@ -226,7 +226,7 @@ object JsonTraverser {
     */
   private def resolveArray(node: JsonNode): Seq[JsonNode] = {
     node match {
-      case array: JsonArray if array.value.nonEmpty =>
+      case array: JsonArray =>
         array.value.flatMap(resolveArray).toSeq
       case _ =>
         Seq(node)
