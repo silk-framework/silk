@@ -55,7 +55,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
       output.connectedPort match {
         case Some(FixedSchemaPort(schema)) =>
           Some(schema)
-        case Some(FlexibleSchemaPort) if task.data.characteristics.explicitSchema =>
+        case Some(FlexibleSchemaPort(_)) if task.data.characteristics.explicitSchema =>
           Some(retrieveSchema(task, execution))
         case _ =>
           None
@@ -95,7 +95,7 @@ object DatasetExecutor {
     output.connectedPort match {
       case Some(FixedSchemaPort(_)) =>
         true
-      case Some(FlexibleSchemaPort) if dataset.characteristics.explicitSchema =>
+      case Some(FlexibleSchemaPort(_)) if dataset.characteristics.explicitSchema =>
         true
       case _ =>
         false

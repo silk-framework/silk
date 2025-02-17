@@ -63,7 +63,7 @@ object WorkflowNodePortConfig {
           Some(typeUri),
           paths
         ))
-      case FlexibleSchemaPort =>
+      case FlexibleSchemaPort(_) =>
         FlexiblePortDefinition
       case UnknownSchemaPort =>
         UnknownTypePortDefinition

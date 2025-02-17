@@ -263,7 +263,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         executeOnInputs(useInputs.zip(ports))(process)
       case FlexibleNumberOfInputs(_, _, _) =>
         // FIXME: Throw error when input ports are not in range? This might break existing workflows.
-        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)
+        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort())))(process)
     }
   }
 
@@ -303,11 +303,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort))) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort()))) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort))) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort()))) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
