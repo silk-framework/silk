@@ -4,6 +4,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
+import org.silkframework.plugins.dataset.json.JsonTraverser.resolveArray
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
@@ -28,7 +29,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         }
       case obj: JsonObject =>
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
-        obj.values.get(decodedProp).toSeq.map(value => asNewParent(prop, value))
+        obj.values.get(decodedProp).toSeq.flatMap(resolveArray).map(value => asNewParent(prop, value))
       case array: JsonArray if array.value.nonEmpty =>
         array.value.flatMap(v => keepParent(v).children(prop)).toSeq
       case _ =>
@@ -218,6 +219,18 @@ object JsonTraverser {
 
   def fromNode(taskId: Identifier, json: JsonNode, parentName: Option[String] = None): JsonTraverser = {
     JsonTraverser(taskId, None, parentName, json)
+  }
+
+  /**
+    * Resolves all nested arrays in a JSON node.
+    */
+  private def resolveArray(node: JsonNode): Seq[JsonNode] = {
+    node match {
+      case array: JsonArray if array.value.nonEmpty =>
+        array.value.flatMap(resolveArray).toSeq
+      case _ =>
+        Seq(node)
+    }
   }
 }
 
