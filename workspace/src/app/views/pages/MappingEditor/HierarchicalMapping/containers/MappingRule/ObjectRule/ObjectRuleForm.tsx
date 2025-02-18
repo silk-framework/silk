@@ -99,6 +99,8 @@ export const ObjectRuleForm = (props: IProps) => {
             uriPatternSuggestions.filter((p) => p.value !== (modifiedValues() as any).pattern).map((p) => [p.value, p])
         ).values()
     );
+    const currentUriPatterns = React.useRef<IUriPattern[]>([])
+    currentUriPatterns.current = distinctUriPatterns
 
     useEffect(() => {
         const { id, scrollIntoView } = props;
@@ -273,20 +275,20 @@ export const ObjectRuleForm = (props: IProps) => {
     };
 
     const uriPatternSelector = React.useMemo(() => {
-        return distinctUriPatterns.length > 0 ? (
+        return currentUriPatterns.current.length > 0 ? (
             <>
                 <Spacing vertical={true} size={"tiny"}/>
                 <Button
                     data-test-id="object-rule-form-uri-pattern-selection-btn"
                     elevated={true}
-                    tooltip={`Choose URI pattern from ${distinctUriPatterns.length} existing URI pattern/s.`}
+                    tooltip={`Choose URI pattern from ${currentUriPatterns.current.length} existing URI pattern/s.`}
                     onClick={() => setShowUriPatternModal(true)}
                 >
                     Choose
                 </Button>
             </>
         ) : undefined
-    }, [distinctUriPatterns.length]);
+    }, [uriPatternSuggestions.length > 0]);
 
     const uriPatternComponent = React.useMemo(() =>
         <CodeAutocompleteField
@@ -504,7 +506,11 @@ export const ObjectRuleForm = (props: IProps) => {
                             onClose={() => setShowUriPatternModal(false)}
                             uriPatterns={distinctUriPatterns}
                             onSelect={(uriPattern) => {
-                                setInitialUriPattern(uriPattern.value);
+                                // Necessary if the URI pattern has been changed and the selected URI pattern is the initial pattern
+                                if(initialUriPattern === uriPattern.value) {
+                                    setInitialUriPattern("");
+                                }
+                                setTimeout(() => setInitialUriPattern(uriPattern.value), 0);
                                 handleChangeValue("pattern", uriPattern.value);
                             }}
                         />
