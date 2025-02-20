@@ -3,7 +3,8 @@ package org.silkframework.dataset.operations
 import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port}
 import org.silkframework.entity.{EntitySchema, ValueType}
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin}
 
 @Plugin(
   id = "deleteProjectFiles",
@@ -18,6 +19,16 @@ case class DeleteFilesOperator(@Param(label = "File matching regex",
                               @Param(label = "Output deleted files", value = "If enabled the operator outputs entities, one entity for each deleted file, with the path of the file as attribute 'filePath'.")
                                outputEntities: Boolean = false) extends CustomTask {
 
+  private val regex = filesRegex.trim.r
+
+  @Action(
+    label = "Dry run",
+    description = "Performs a dry run and returns the files that would be deleted."
+  )
+  def dryRun(implicit pluginContext: PluginContext): DryRunResult = {
+    new DryRunResult(getFilesToDelete())
+  }
+
   /**
     * The input ports and their schemata.
     */
@@ -28,8 +39,28 @@ case class DeleteFilesOperator(@Param(label = "File matching regex",
     * None, if this operator does not generate any output.
     */
   override def outputPort: Option[Port] = if(outputEntities) Some(FixedSchemaPort(DeleteFilesOperator.schema)) else None
+
+  /**
+    * Retrieves the files that should be deleted.
+    */
+  def getFilesToDelete()(implicit pluginContext: PluginContext): Seq[String] = {
+    val resourceManager = pluginContext.resources
+    resourceManager.listRecursive.filter(f => regex.matches(f))
+  }
 }
 
 object DeleteFilesOperator {
   final val schema = EntitySchema("DeletedFile", IndexedSeq(TypedPath("filePath", ValueType.STRING, isAttribute = true)))
+}
+
+class DryRunResult(val filesToDelete: Seq[String]) {
+
+  override def toString: String = {
+    val result = new StringBuilder()
+    result ++= "The following files would be deleted:\n"
+    for(file <- filesToDelete) {
+      result ++= s"* $file\n"
+    }
+    result.toString()
+  }
 }
