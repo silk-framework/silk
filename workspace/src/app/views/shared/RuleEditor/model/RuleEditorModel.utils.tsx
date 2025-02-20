@@ -163,9 +163,7 @@ function createOperatorNode(
         contentExtension: operatorContext.ruleEvaluationContext.supportsEvaluation
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
-        onNodeResize: (data) => {
-            operatorContext.changeNodeSize(node.nodeId, data);
-        },
+        onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
         resizeDirections: { right: true },
         resizeMaxDimensions: { width: 1400 },
         nodeDimensions: {
