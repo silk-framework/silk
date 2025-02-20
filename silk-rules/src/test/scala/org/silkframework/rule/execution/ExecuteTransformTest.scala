@@ -14,6 +14,7 @@ import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 
 class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
@@ -21,6 +22,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
 
   implicit val userContext: UserContext = UserContext.Empty
   implicit val prefixes: Prefixes = Prefixes.empty
+  implicit val variables: TemplateVariablesReader = GlobalTemplateVariables
 
   it should "output faulty entities to error output" in {
     val prop = "http://prop"

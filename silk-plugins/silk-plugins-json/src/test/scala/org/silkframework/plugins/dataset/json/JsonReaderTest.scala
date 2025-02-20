@@ -63,9 +63,13 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
 
   it should "allow retrieving ids and texts from array values" in {
     val example = json("exampleArrays.json")
+
     val arrayItems = example.select("data" :: Nil)
     evaluate(arrayItems, "#id") should equal (Seq("65", "66"))
     evaluate(arrayItems, "#text") should equal (Seq("\"A\"", "\"B\""))
+
+    val rootItems = Seq(example)
+    evaluate(rootItems, "data/#text") should equal (Seq("\"A\"", "\"B\""))
   }
 
   it should "allow retrieving a JSON object as string" in {
@@ -75,8 +79,8 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
       """{"id":"0","name":"John","phoneNumbers":[{"type":"home","number":"123"},{"type":"office","number":"456"}]}""",
       """{"id":"1","name":"Max","phoneNumbers":[{"type":"home","number":"789"}]}"""))
     evaluate(persons, "phoneNumbers/#text") should equal(Seq(
-      """[{"type":"home","number":"123"},{"type":"office","number":"456"}]""",
-      """[{"type":"home","number":"789"}]"""))
+      """{"type":"home","number":"123"}""", """{"type":"office","number":"456"}""",
+      """{"type":"home","number":"789"}"""))
   }
 
   it should "support retrieving the line and column positions" in {
