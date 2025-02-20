@@ -14,14 +14,14 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginType}
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin}
 import org.silkframework.runtime.plugin.types.EnumerationParameterType
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
 
-import java.lang.reflect.{Constructor, InvocationTargetException, ParameterizedType, Type}
+import java.lang.reflect.{Constructor, InvocationTargetException, Method, ParameterizedType, Type}
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -50,7 +50,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               val parameters: Seq[ClassPluginParameter],
                                               constructor: Constructor[T],
                                               val pluginTypes: Seq[PluginTypeDescription],
-                                              val icon: Option[String]) extends PluginDescription[T] {
+                                              val icon: Option[String],
+                                              val actions: Seq[PluginAction]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -149,7 +150,8 @@ object ClassPluginDescription {
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass),
       pluginTypes = pluginTypes,
-      icon = loadIcon(pluginClass, annotation.iconFile())
+      icon = loadIcon(pluginClass, annotation.iconFile()),
+      actions = getActions(pluginClass)
     )
   }
 
@@ -164,7 +166,8 @@ object ClassPluginDescription {
         parameters = getParameters(pluginClass),
         constructor = getConstructor(pluginClass),
         pluginTypes = getPluginTypes(pluginClass),
-        icon = None
+        icon = None,
+        actions = Seq.empty
       )
     } catch {
       case ex: InvalidPluginException =>
@@ -240,6 +243,24 @@ object ClassPluginDescription {
       val autoCompletion: Option[ParameterAutoCompletion] = pluginParam.flatMap(param => parameterAutoCompletion(parType, param))
 
       ClassPluginParameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion)
+    }
+  }
+
+  private def getActions[T](pluginClass: Class[T]): Array[ClassPluginAction] = {
+    pluginClass.getMethods.flatMap { method =>
+      method.getAnnotations.collect {
+        case action: Action =>
+          val provideContext = method.getParameters match {
+            case Array() =>
+              false
+            case Array(param) if classOf[PluginContext].isAssignableFrom(param.getType) =>
+              true
+            case _ =>
+              throw new InvalidPluginException(s"Action method ${method.getName} in class ${pluginClass.getName} has an invalid signature. " +
+                s"Only methods with no parameters or a single PluginContext parameter are allowed.")
+          }
+          ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile()))
+      }
     }
   }
 
@@ -346,6 +367,17 @@ object ClassPluginDescription {
     }
     catch {
       case _: ClassNotFoundException => Array.fill(count)(None)
+    }
+  }
+}
+
+case class ClassPluginAction(method: Method, provideContext: Boolean, label: String, description: String, icon: Option[String]) extends PluginAction {
+
+  override def call(plugin: AnyRef)(implicit context: PluginContext): String = {
+    if(provideContext) {
+      method.invoke(plugin, context).toString
+    } else {
+      method.invoke(plugin).toString
     }
   }
 }

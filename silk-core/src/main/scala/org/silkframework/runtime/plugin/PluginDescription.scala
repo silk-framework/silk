@@ -42,6 +42,9 @@ trait PluginDescription[+T] {
   /** The plugin icon as Data URL string. If the string is empty, a generic icon is used. */
   val icon: Option[String]
 
+  /** The actions that can be performed on this plugin. */
+  val actions: Seq[PluginAction]
+
   /** Custom plugin descriptions */
   lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescription.generate(pluginClass))
 
