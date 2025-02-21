@@ -1,6 +1,5 @@
 package controllers.workspace
 
-import config.WorkbenchLinks
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.{SerializationUtils, TaskLink}
@@ -13,13 +12,11 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{CustomTask, MetaData, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginAction, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
@@ -657,8 +654,8 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                 )
                 taskName: String,
                 @Parameter(
-                  name = "task",
-                  description = "The task identifier",
+                  name = "action",
+                  description = "The name of the action",
                   required = true,
                   in = ParameterIn.PATH,
                   schema = new Schema(implementation = classOf[String])
