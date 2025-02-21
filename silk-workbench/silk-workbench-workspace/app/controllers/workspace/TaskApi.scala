@@ -5,7 +5,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.{SerializationUtils, TaskLink}
 import controllers.workspace.doc.TaskApiDoc
-import controllers.workspace.taskApi.TaskApiUtils
+import controllers.workspace.taskApi.{TaskActionRequest, TaskApiUtils}
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -13,14 +13,17 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{CustomTask, MetaData, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterValues, PluginContext}
+import org.silkframework.runtime.plugin.{ParameterValues, PluginAction, PluginContext}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
+import org.silkframework.workbench.utils.ErrorResult.ErrorResultFormat
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
@@ -135,7 +138,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
               )
               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext.fromProject(project)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
@@ -594,6 +597,75 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[CopyTasksRequest] { copyRequest =>
       val result = copyRequest.copyTask(projectName, taskName)
+      Ok(Json.toJson(result))
+    }
+  }
+
+  @Operation(
+    summary = "Call an action",
+    description = "Calls an action on a task. The action is identified by its method name. The available actions can be retrieved via the plugin API.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The result of the action",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[TaskActionRequest])
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If the action failed.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[ErrorResultFormat])
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project, task or action does not exist."
+      )
+    )
+  )
+  @RequestBody(
+    description = "The call action request.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[TaskActionRequest])
+      ))
+  )
+  def callAction(@Parameter(
+                  name = "project",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectName: String,
+                @Parameter(
+                  name = "task",
+                  description = "The task identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                taskName: String,
+                @Parameter(
+                  name = "task",
+                  description = "The task identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                actionName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[TaskActionRequest] { actionRequest =>
+      val result = actionRequest.call(projectName, taskName, actionName)
       Ok(Json.toJson(result))
     }
   }
