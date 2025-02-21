@@ -968,6 +968,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 handles: [],
                 nodeDimensions: dimension,
                 onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
+                resizeDirections: {
+                    bottomRight: true,
+                },
                 menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,
                 style,
