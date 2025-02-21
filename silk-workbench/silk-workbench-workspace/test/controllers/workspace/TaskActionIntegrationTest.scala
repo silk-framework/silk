@@ -4,7 +4,7 @@ import controllers.workspace.taskApi.{TaskActionRequest, TaskActionResponse}
 import helper.IntegrationTestTrait
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.dataset.operations.{DeleteFilesOperator, DeleteFilesOperatorTest}
+import org.silkframework.dataset.operations.DeleteFilesOperator
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers.TaskSpecJsonFormat
 import org.silkframework.workspace.Project
@@ -14,7 +14,6 @@ class TaskActionIntegrationTest extends AnyFlatSpec with Matchers with Integrati
 
   behavior of "Task action endpoints"
 
-  private val projectId = "testProject"
   private val taskId = "deleteProjectFilesTask"
   private val pluginId = "deleteProjectFiles"
   private val actionId = "dryRun"
@@ -35,31 +34,48 @@ class TaskActionIntegrationTest extends AnyFlatSpec with Matchers with Integrati
     dryRunAction \ "icon" shouldBe JsDefined(JsNull)
   }
 
-  it should "allow to call an action of a plugin task" in {
-    // Create a test project with some files
-    val project = retrieveOrCreateProject(projectId)
-    addFiles(project, Seq("file1.csv", "file2.csv"))
+  it should "allow to call an action on an existing project task" in {
+    // Create a project with two files
+    val project = createTestProject("testProject2", Seq("file1.csv", "file2.csv"))
 
-    // Create a task
+    // Add a task to the project
+    project.addTask(taskId, DeleteFilesOperator(filesRegex = "file2.csv"))
+
+    // Call the action and check response
+    val response = callAction(project.id, TaskActionRequest(task = None))
+    response.message should not include ("file1.csv")
+    response.message should include ("file2.csv")
+  }
+
+  it should "allow to call an action on a task that is provided in the request" in {
+    // Create a project with two files
+    val project = createTestProject("testProject1", Seq("file1.csv", "file2.csv"))
+
+    // Create a task, but don't add it to the project
     val deleteFilesOperator = DeleteFilesOperator(filesRegex = "file1.csv")
-
-    // Call the action
     val taskJson = TaskSpecJsonFormat.write(deleteFilesOperator)(WriteContext.fromProject(project))
-    val requestJson = Json.toJson(TaskActionRequest(Some(taskJson)))
-    val responseJson = checkResponse(client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/action/$actionId").post(requestJson)).json
-    val response = Json.fromJson[TaskActionResponse](responseJson).get
 
-    // Check the response
+    // Call the action and check response
+    val response = callAction(project.id, TaskActionRequest(Some(taskJson)))
     response.message should include ("file1.csv")
     response.message should not include ("file2.csv")
   }
 
-  private def addFiles(project: Project, fileNames: Seq[String]): Unit = {
+  private def createTestProject(projectId: String, fileNames: Seq[String]): Project = {
+    val project = retrieveOrCreateProject(projectId)
     val resourceManager = project.resources
     for (fileName <- fileNames) {
       resourceManager.get(fileName).writeString("content")
     }
+    project
   }
+
+  private def callAction(projectId: String, request: TaskActionRequest): TaskActionResponse = {
+    val responseJson = checkResponse(client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/action/$actionId").post(Json.toJson(request))).json
+    Json.fromJson[TaskActionResponse](responseJson).get
+  }
+
+
 
   override def workspaceProviderId: String = "inMemory"
 

@@ -27,7 +27,7 @@ case class TaskActionRequest(@Schema(description = "Optional task to call the ac
           TaskSpecJsonFormat.read(taskJson)
         case None =>
           // Retrieve exiting task
-          project.task[TaskSpec](taskName)
+          project.anyTask(taskName)
       }
 
     // Retrieve plugin spec
