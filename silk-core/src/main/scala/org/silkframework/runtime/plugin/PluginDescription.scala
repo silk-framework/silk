@@ -43,7 +43,7 @@ trait PluginDescription[+T] {
   val icon: Option[String]
 
   /** The actions that can be performed on this plugin. */
-  val actions: Seq[PluginAction]
+  val actions: Map[String, PluginAction]
 
   /** Custom plugin descriptions */
   lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescription.generate(pluginClass))
@@ -184,8 +184,8 @@ trait PluginDescription[+T] {
 object PluginDescription {
 
   /** Returns a plugin description for a given task. */
-  def forTask(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
-    task.data match {
+  def forTask(task: TaskSpec): PluginDescription[_] = {
+    task match {
       case plugin: AnyPlugin => plugin.pluginSpec
       case DatasetSpec(plugin, _, _) => plugin.pluginSpec
       case _ => throw new IllegalArgumentException(s"Provided task $task is not a plugin.")

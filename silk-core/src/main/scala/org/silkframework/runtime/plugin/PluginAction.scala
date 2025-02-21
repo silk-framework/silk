@@ -15,5 +15,5 @@ trait PluginAction {
   def icon: Option[String]
 
   /** Executes the action. */
-  def call(plugin: AnyRef)(implicit pluginContext: PluginContext): String
+  def apply(plugin: AnyRef)(implicit pluginContext: PluginContext): String
 }

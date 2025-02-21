@@ -51,7 +51,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               constructor: Constructor[T],
                                               val pluginTypes: Seq[PluginTypeDescription],
                                               val icon: Option[String],
-                                              val actions: Seq[PluginAction]) extends PluginDescription[T] {
+                                              val actions: Map[String, PluginAction]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -167,7 +167,7 @@ object ClassPluginDescription {
         constructor = getConstructor(pluginClass),
         pluginTypes = getPluginTypes(pluginClass),
         icon = None,
-        actions = Seq.empty
+        actions = Map.empty
       )
     } catch {
       case ex: InvalidPluginException =>
@@ -246,7 +246,7 @@ object ClassPluginDescription {
     }
   }
 
-  private def getActions[T](pluginClass: Class[T]): Array[ClassPluginAction] = {
+  private def getActions[T](pluginClass: Class[T]): Map[String, ClassPluginAction] = {
     pluginClass.getMethods.flatMap { method =>
       method.getAnnotations.collect {
         case action: Action =>
@@ -259,9 +259,9 @@ object ClassPluginDescription {
               throw new InvalidPluginException(s"Action method ${method.getName} in class ${pluginClass.getName} has an invalid signature. " +
                 s"Only methods with no parameters or a single PluginContext parameter are allowed.")
           }
-          ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile()))
+          (method.getName, ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile())))
       }
-    }
+    }.toMap
   }
 
   private def getPluginTypes(pluginClass: Class[_]): Seq[PluginTypeDescription] = {
@@ -373,7 +373,7 @@ object ClassPluginDescription {
 
 case class ClassPluginAction(method: Method, provideContext: Boolean, label: String, description: String, icon: Option[String]) extends PluginAction {
 
-  override def call(plugin: AnyRef)(implicit context: PluginContext): String = {
+  override def apply(plugin: AnyRef)(implicit context: PluginContext): String = {
     if(provideContext) {
       method.invoke(plugin, context).toString
     } else {
