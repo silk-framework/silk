@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { NodeTools, NodeToolsMenuFunctions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
-import { Menu, MenuItem } from "@eccenca/gui-elements";
+import { Menu, MenuDivider, MenuItem } from "@eccenca/gui-elements";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext } from "../../contexts/RuleEditorEvaluationContext";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
@@ -50,18 +50,6 @@ export const RuleNodeMenu = ({
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
             <Menu>
-                <MenuItem
-                    data-test-id="rule-node-delete-btn"
-                    key="delete"
-                    icon={"item-remove"}
-                    onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteNode(nodeId);
-                    }}
-                    text={t("RuleEditor.node.menu.remove.label")}
-                    htmlTitle={"Hotkey: <Backspace>"}
-                    intent="danger"
-                />
                 <MenuItem
                     data-test-id="rule-node-clone-btn"
                     key="clone"
@@ -118,6 +106,19 @@ export const RuleNodeMenu = ({
                     onClick={() => modelContext.resetNodeSize(nodeId)}
                     text="Reset node size"
                 ></MenuItem>
+                <MenuDivider />
+                <MenuItem
+                    data-test-id="rule-node-delete-btn"
+                    key="delete"
+                    icon={"item-remove"}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteNode(nodeId);
+                    }}
+                    text={t("RuleEditor.node.menu.remove.label")}
+                    htmlTitle={"Hotkey: <Backspace>"}
+                    intent="danger"
+                />
             </Menu>
         </NodeTools>
     );
