@@ -9,6 +9,7 @@ import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesReader}
 import org.silkframework.workspace.ProjectTrait
 
 import scala.util.control.Breaks._
@@ -22,7 +23,7 @@ class ExecuteTransform(task: Task[TransformSpec],
                        input: UserContext => DataSource,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
-                       limit: Option[Int] = None)(implicit prefixes: Prefixes) extends Activity[TransformReport] {
+                       limit: Option[Int] = None)(implicit prefixes: Prefixes, templateVariables: TemplateVariablesReader) extends Activity[TransformReport] {
 
   private def transform = task.data
 
@@ -53,7 +54,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val errorEntitySink = errorOutput(userContext)
     val report = new TransformReportBuilder(task, context)
     report.setExecutionContext(TransformReportExecutionContext(entitySink))
-    val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext)
+    val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext, templateVariables = templateVariables)
     val taskContext = TaskContext(Seq(inputTask(userContext)), pluginContext)
 
     // Clear outputs before writing

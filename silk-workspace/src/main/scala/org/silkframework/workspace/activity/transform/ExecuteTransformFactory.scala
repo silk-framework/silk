@@ -4,6 +4,7 @@ import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.types.IntOptionParameter
 import org.silkframework.workspace.ProjectTask
@@ -16,8 +17,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
   categories = Array("TransformSpecification"),
   description = "Executes the transformation."
 )
-case class ExecuteTransformFactory(
-                                   @Param("Limits the maximum number of entities that are transformed.")
+case class ExecuteTransformFactory(@Param("Limits the maximum number of entities that are transformed.")
                                    limit: IntOptionParameter = None) extends TaskActivityFactory[TransformSpec, ExecuteTransform] {
 
   override def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
@@ -30,7 +30,7 @@ case class ExecuteTransformFactory(
         (userContext: UserContext) => new CombinedEntitySink(task.entitySink(userContext).toSeq),
         (userContext: UserContext) => task.errorEntitySink(userContext),
         limit
-      )(task.project.config.prefixes)
+      )(task.project.config.prefixes, task.project.combinedTemplateVariables)
     }
   }
 }
