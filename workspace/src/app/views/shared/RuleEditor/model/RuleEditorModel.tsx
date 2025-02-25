@@ -413,7 +413,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             });
             resetSelectedElements();
         }
-        console.log("After changes ==>", ruleUndoStack);
         if (ruleUndoStack.length === 0 || !ruleUndoStack.find((change) => change !== "Transaction boundary")) {
             // If stack is empty or only transaction markers exist
             setCanUndo(false);
@@ -495,7 +494,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleUndoStack.push(ruleModelChanges);
         } else {
             ruleUndoStack.push(ruleModelChanges);
-            console.log("ruleUndoStack", ruleUndoStack);
         }
     };
 
@@ -918,8 +916,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
                 startChangeTransaction();
+                //if null, then should be defaults
+                const width = node.data?.nodeDimensions?.width ?? newNodeDimensions?.defaultWidth;
+                const height = node.data?.nodeDimensions?.height ?? newNodeDimensions?.defaultHeight;
                 return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions!, newNodeDimensions),
+                    RuleModelChangesFactory.changeNodeSize(
+                        nodeId,
+                        {
+                            ...node.data.nodeDimensions,
+                            width,
+                            height,
+                            defaultHeight: newNodeDimensions?.defaultHeight,
+                            defaultWidth: newNodeDimensions?.defaultWidth,
+                        } as NodeDimensions,
+                        newNodeDimensions
+                    ),
                     els
                 );
             } else {
