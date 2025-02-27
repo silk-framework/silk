@@ -6,6 +6,7 @@ import {
     FieldItem,
     Highlighter,
     highlighterUtils,
+    Icon,
     MenuItem,
     OverflowText,
     OverviewItem,
@@ -13,8 +14,10 @@ import {
     OverviewItemLine,
     Spacing,
     SuggestFieldItemRendererModifierProps,
+    OverviewItemDepiction,
 } from "@eccenca/gui-elements";
 import { TaskContext } from "../../../../shared/projectTaskTabView/projectTaskTabView.typing";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 
 // Creates a search function for the auto-complete field
 const onSearchFactory = (
@@ -113,6 +116,7 @@ interface OptionalRenderFunctions<T> {
     optionalLabelFn?: (obj: T) => string | undefined;
     optionalValueFn?: (obj: T) => string;
     optionalDescriptionFn?: (obj: T) => string | undefined;
+    optionalIconFn?: (obj: T) => ValidIconName | JSX.Element | undefined;
 }
 
 export function autoCompleteItemRendererFactory<T = {}>(
@@ -125,7 +129,7 @@ export function autoCompleteItemRendererFactory<T = {}>(
         modifiers: SuggestFieldItemRendererModifierProps,
         handleClick: () => any
     ): JSX.Element => {
-        const { optionalLabelFn, optionalValueFn, optionalDescriptionFn } = optionalFunctions;
+        const { optionalLabelFn, optionalValueFn, optionalDescriptionFn, optionalIconFn } = optionalFunctions;
         let label: string | undefined;
         let value: string | undefined = undefined;
         // Do not display value and label if they are basically the same
@@ -146,9 +150,15 @@ export function autoCompleteItemRendererFactory<T = {}>(
         const description: string | undefined | null = optionalDescriptionFn
             ? optionalDescriptionFn(autoCompleteItem)
             : autoCompleteItem.description;
+        const icon = optionalIconFn ? optionalIconFn(autoCompleteItem) : undefined;
         const item =
             value || description ? (
                 <OverviewItem style={modifiers.styleWidth}>
+                    {icon ? (
+                        <OverviewItemDepiction>
+                            {typeof icon === "string" ? <Icon name={icon} /> : icon}
+                        </OverviewItemDepiction>
+                    ) : null}
                     <OverviewItemDescription>
                         <OverviewItemLine>
                             <OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText>
