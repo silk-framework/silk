@@ -1,6 +1,7 @@
 package controllers.workspace.taskApi
 
 import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
@@ -11,7 +12,11 @@ import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.json.{Format, JsValue, Json}
 
 @Schema(description = "Request to call a task action.")
-case class TaskActionRequest(@Schema(description = "Optional task to call the action on. If not provided, the task will be retrieved from the project.")
+case class TaskActionRequest(@Schema(
+                               description = "Optional task to call the action on. If not provided, the task will be retrieved from the project.",
+                               implementation = classOf[Object], // Dummy type, because JsValue is not recognized as JSON by Swagger
+                               requiredMode = RequiredMode.NOT_REQUIRED,
+                             )
                              task: Option[JsValue]) {
 
   def call(projectName: String, taskName: String, actionName: String)(implicit user: UserContext): TaskActionResponse = {
