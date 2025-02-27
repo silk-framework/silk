@@ -166,8 +166,8 @@ export const TransformRuleEditor = ({
                 };
                 node.dimension = {
                     ...node.dimension,
-                    width: pos.width,
-                    height: pos.height,
+                    width: pos.width ?? undefined,
+                    height: pos.height ?? undefined,
                 };
             }
         });

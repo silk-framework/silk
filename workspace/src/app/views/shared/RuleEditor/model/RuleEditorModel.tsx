@@ -691,11 +691,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const resetNodeSize = (nodeId: string) => {
         const nodeDimensions = utils.nodeById(elements, nodeId)?.data.nodeDimensions;
-        changeSize(nodeId, {
-            ...nodeDimensions,
-            height: nodeDimensions?.defaultHeight,
-            width: nodeDimensions?.defaultWidth,
-        } as unknown as NodeDimensions);
+        changeSize(nodeId, undefined);
         const undoIndexesToRemove: number[] = [];
         const redoIndexesToRemove: number[] = [];
 
@@ -916,21 +912,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
                 startChangeTransaction();
-                //if null, then should be defaults
-                const width = node.data?.nodeDimensions?.width ?? newNodeDimensions?.defaultWidth;
-                const height = node.data?.nodeDimensions?.height ?? newNodeDimensions?.defaultHeight;
                 return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeSize(
-                        nodeId,
-                        {
-                            ...node.data.nodeDimensions,
-                            width,
-                            height,
-                            defaultHeight: newNodeDimensions?.defaultHeight,
-                            defaultWidth: newNodeDimensions?.defaultWidth,
-                        } as NodeDimensions,
-                        newNodeDimensions
-                    ),
+                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions, newNodeDimensions),
                     els
                 );
             } else {
@@ -983,7 +966,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 nodeDimensions: dimension,
                 onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
                 resizeDirections: {
-                    bottomRight: true,
+                    bottom: true,
+                    right: true,
                 },
                 menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,

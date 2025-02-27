@@ -43,9 +43,7 @@ export const RuleNodeMenu = ({
     }`;
 
     const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
-    const resetBtnIsDisabled =
-        nodeDimensions?.width === nodeDimensions?.defaultWidth &&
-        nodeDimensions?.height === nodeDimensions?.defaultHeight;
+    const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
 
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
@@ -102,7 +100,7 @@ export const RuleNodeMenu = ({
                 <MenuItem
                     data-test-id="rule-node-evaluate-btn"
                     icon="item-reset"
-                    disabled={resetBtnIsDisabled}
+                    disabled={resizeResetIsDisabled}
                     onClick={() => modelContext.resetNodeSize(nodeId)}
                     text="Reset node size"
                 ></MenuItem>

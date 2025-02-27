@@ -135,7 +135,7 @@ const convertLinkingRuleToRuleOperatorNodes = (
         const { x, y, width } = nodePositions[node.nodeId] ?? { x: null, y: null };
         if (x !== null) {
             node.position = { x, y };
-            node.dimension = { width, height: null };
+            node.dimension = { width: width ?? undefined };
         }
     });
     return operatorNodes;

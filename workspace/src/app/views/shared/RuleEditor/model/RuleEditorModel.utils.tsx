@@ -166,12 +166,7 @@ function createOperatorNode(
         onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
         resizeDirections: { right: true },
         resizeMaxDimensions: { width: 1400 },
-        nodeDimensions: {
-            width: node.dimension?.width,
-            height: node.dimension?.height,
-            defaultWidth: node.dimension?.defaultWidth ?? node.dimension?.width ?? null,
-            defaultHeight: node.dimension?.defaultHeight ?? node.dimension?.height ?? null,
-        } as NodeContentProps<any>["nodeDimensions"],
+        nodeDimensions: node.dimension ? (node.dimension as NodeContentProps<any>["nodeDimensions"]) : undefined,
     };
 
     return {
