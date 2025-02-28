@@ -45,7 +45,7 @@ class DeleteFilesOperatorTest extends AnyFlatSpec with Matchers {
     dryRunAction.label shouldBe "Dry run"
 
     val plugin = pluginDesc(ParameterValues.fromStringMap(Map("filesRegex" -> regex)))
-    dryRunAction(plugin)
+    dryRunAction(plugin).get
   }
 
 }

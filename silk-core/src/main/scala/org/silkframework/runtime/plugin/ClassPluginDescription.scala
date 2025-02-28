@@ -373,11 +373,17 @@ object ClassPluginDescription {
 
 case class ClassPluginAction(method: Method, provideContext: Boolean, label: String, description: String, icon: Option[String]) extends PluginAction {
 
-  override def apply(plugin: AnyRef)(implicit context: PluginContext): String = {
-    if(provideContext) {
-      method.invoke(plugin, context).toString
-    } else {
-      method.invoke(plugin).toString
+  override def apply(plugin: AnyRef)(implicit context: PluginContext): Option[String] = {
+    val result =
+      if(provideContext) {
+        method.invoke(plugin, context)
+      } else {
+        method.invoke(plugin)
+      }
+    result match {
+      case Some(value) => Some(value.toString)
+      case None | null => None
+      case _ => Some(result.toString)
     }
   }
 }
