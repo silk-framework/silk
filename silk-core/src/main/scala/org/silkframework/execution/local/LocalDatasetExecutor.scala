@@ -384,7 +384,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case EntitySinkWrapper(tripleSink: TripleSink, _) =>
         writeQuadsToTripleSink(tripleSink, quads, reportUpdater)
       case _ =>
-        throw TaskException("Cannot write triples to non-RDF dataset!")
+        // Write the statements as generic entities
+        implicit val executionReportUpdater: ExecutionReportUpdater = reportUpdater
+        writeEntities(sink, quads)
     }
   }
 
