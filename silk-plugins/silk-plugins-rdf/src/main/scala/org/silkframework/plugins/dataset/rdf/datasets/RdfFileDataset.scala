@@ -4,7 +4,7 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
@@ -38,7 +38,8 @@ case class RdfFileDataset(
   file: WritableResource,
   @Param(
     value = """Optional RDF format. If left empty, it will be auto-detected based on the file extension. N-Triples is the only format that can be written, while other formats can only be read.""",
-    autoCompletionProvider = classOf[RdfLangAutocompletionProvider]
+    autoCompletionProvider = classOf[RdfLangAutocompletionProvider],
+    autoCompleteValueWithLabels = true
   )
   format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
