@@ -56,11 +56,16 @@ object DeleteFilesOperator {
 class DryRunResult(val filesToDelete: Seq[String]) {
 
   override def toString: String = {
-    val result = new StringBuilder()
-    result ++= "The following files would be deleted:\n"
-    for(file <- filesToDelete) {
-      result ++= s"* $file\n"
+    if(filesToDelete.isEmpty) {
+      "No files would be deleted because the regex does not match any project file."
+    } else {
+      val result = new StringBuilder()
+      result ++= "The following files would be deleted:\n"
+      for(file <- filesToDelete) {
+        result ++= s"* $file\n"
+      }
+      result.toString()
     }
-    result.toString()
+
   }
 }
