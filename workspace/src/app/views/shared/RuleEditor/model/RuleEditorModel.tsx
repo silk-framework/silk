@@ -690,7 +690,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const resetNodeSize = (nodeId: string) => {
-        const nodeDimensions = utils.nodeById(elements, nodeId)?.data.nodeDimensions;
         changeSize(nodeId, undefined);
         const undoIndexesToRemove: number[] = [];
         const redoIndexesToRemove: number[] = [];
