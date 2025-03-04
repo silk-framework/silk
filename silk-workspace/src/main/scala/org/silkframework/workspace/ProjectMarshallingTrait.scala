@@ -31,6 +31,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   /** The preferred file extension, e.g., "zip". */
   def fileExtension: String
 
+  /** Optional qualifier to distinguish file names with the same extension, e.g., "no-resoures". */
+  def qualifier: Option[String] = None
+
   /** MIME-Type */
   def mediaType: Option[String]
 

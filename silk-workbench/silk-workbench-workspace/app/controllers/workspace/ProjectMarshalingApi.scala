@@ -130,7 +130,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                              )
                              marshallerPluginId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      val fileName = s"${LocalDate.now()}-${request.domain}-$projectName.project.${marshaller.fileExtension}"
+      val fileName = s"${LocalDate.now()}-${request.domain}-$projectName${qualifier(marshaller)}.project.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
         WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
       }
@@ -197,7 +197,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                )
                                marshallerPluginId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      val fileName = s"${LocalDate.now()}-${request.domain}.workspace.${marshaller.fileExtension}"
+      val fileName = s"${LocalDate.now()}-${request.domain}${qualifier(marshaller)}.workspace.${marshaller.fileExtension}"
       sendFile(fileName) { outputStream =>
         val workspace = WorkspaceFactory().workspace
         marshaller.marshalWorkspace(outputStream, workspace.projects, workspace.repository)
@@ -212,6 +212,11 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
       case None =>
         throw BadUserInputException("No marshaller plugin '" + marshallerId + "' found. Available marshallers: " + marshallingPlugins.map(_.id).mkString(", "))
     }
+  }
+
+  /** Qualifier, such as `no-resources`. */
+  private def qualifier(marshaller: ProjectMarshallingTrait): String = {
+    marshaller.qualifier.map("-" + _).getOrElse("")
   }
 
   private def sendFile(fileName: String)(serializeFunc: java.io.OutputStream => Unit): Result = {
