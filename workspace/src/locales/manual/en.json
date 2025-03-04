@@ -651,7 +651,7 @@
                 },
                 "copy": {
                     "label": "Copy selected nodes to clipboard",
-                    "tooltip": "Copy all selected nodes and inter-connections. Can be also triggered with with following keyboard shortcut: ^Ctrl + c / ⌘Command + c. The copied elements can be inserted as copies with following keyboard shortcut: ^Ctrl + v / ⌘Command + v.The copied elements can also be inserted in editors in different tabs, windows or browsers."
+                    "tooltip": "Copy all selected nodes and inter-connections. Can be also triggered with following keyboard shortcut: ^Ctrl + c / ⌘Command + c. The copied elements can be inserted as copies with following keyboard shortcut: ^Ctrl + v / ⌘Command + v.The copied elements can also be inserted in editors in different tabs, windows or browsers."
                 }
             }
         },
