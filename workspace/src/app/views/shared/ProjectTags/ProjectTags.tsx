@@ -12,7 +12,7 @@ interface IProps {
 export const projectTagsRenderer = (props: IProps): JSX.Element[] => {
     const { tags = [], query = "" } = props;
     return metadataUtils.sortTags(tags.slice()).map((t, i) => (
-        <Tag emphasis="weaker" key={i}>
+        <Tag emphasis="weaker" key={i} className="diapp-projecttags__tag">
             <Highlighter label={t.label} searchValue={query} />
         </Tag>
     ));

@@ -1,5 +1,6 @@
 import React from "react";
 import { Highlighter, Tag, TagList } from "@eccenca/gui-elements";
+import { ArtefactTag } from "../ArtefactTag";
 
 interface SearchTagsProps {
     searchTags?: string[];
@@ -8,11 +9,22 @@ interface SearchTagsProps {
 
 export const searchTagsRenderer = (props: SearchTagsProps): JSX.Element[] => {
     const { searchTags = [], searchText = "" } = props;
-    return searchTags.map((searchTag) => (
-        <Tag emphasis="weaker" key={searchTag}>
-            <Highlighter label={searchTag} searchValue={searchText} />
-        </Tag>
-    ));
+    return searchTags.map((searchTag) => {
+        const tagContent = <Highlighter label={searchTag} searchValue={searchText} />;
+        const tagProps = {
+            key: searchTag,
+            className: "diapp-searchtags__tag",
+        };
+        return searchTag.includes("Replaceable") ? (
+            <ArtefactTag artefactType="replaceableInput" {...tagProps}>
+                {tagContent}
+            </ArtefactTag>
+        ) : (
+            <Tag emphasis="weaker" {...tagProps}>
+                {tagContent}
+            </Tag>
+        );
+    });
 };
 
 /** Displays search tags. */
