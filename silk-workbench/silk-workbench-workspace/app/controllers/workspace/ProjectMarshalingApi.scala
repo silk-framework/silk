@@ -20,6 +20,7 @@ import play.api.mvc._
 
 import java.io._
 import java.nio.file.Files
+import java.time.LocalDate
 import java.util.logging.Logger
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
@@ -127,9 +128,10 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                in = ParameterIn.PATH,
                                schema = new Schema(implementation = classOf[String])
                              )
-                             marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+                             marshallerPluginId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      sendFile(projectName, marshaller.suffix) { outputStream =>
+      val fileName = s"${LocalDate.now()}-${request.domain}-$projectName.project.${marshaller.fileExtension}"
+      sendFile(fileName) { outputStream =>
         WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
       }
     }
@@ -193,9 +195,10 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
                                  in = ParameterIn.PATH,
                                  schema = new Schema(implementation = classOf[String])
                                )
-                               marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+                               marshallerPluginId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      sendFile("workspace", marshaller.suffix) { outputStream =>
+      val fileName = s"${LocalDate.now()}-${request.domain}.workspace.${marshaller.fileExtension}"
+      sendFile(fileName) { outputStream =>
         val workspace = WorkspaceFactory().workspace
         marshaller.marshalWorkspace(outputStream, workspace.projects, workspace.repository)
       }
@@ -211,12 +214,9 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     }
   }
 
-  private def sendFile(name: String, suffix: Option[String])(serializeFunc: java.io.OutputStream => Unit): Result = {
-    // Create temporary file
-    val fileSuffix = suffix.map("." + _).getOrElse("")
-    val tempFile = Files.createTempFile(name, fileSuffix).toFile
-
-    // Write into file
+  private def sendFile(fileName: String)(serializeFunc: java.io.OutputStream => Unit): Result = {
+    // Serialize into temporary file
+    val tempFile = Files.createTempFile(fileName, ".tmp").toFile
     val outputStream = new BufferedOutputStream(new FileOutputStream(tempFile))
     try {
       serializeFunc(outputStream)
@@ -232,7 +232,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     implicit val ec: ExecutionContext = ProjectMarshalingApi.exportExecutionContext
     Ok.sendFile(
       content = tempFile,
-      fileName = _ => Some(name + fileSuffix),
+      fileName = _ => Some(fileName),
       onClose = () => tempFile.delete()
     )
   }
