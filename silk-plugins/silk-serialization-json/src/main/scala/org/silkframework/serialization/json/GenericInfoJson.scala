@@ -15,7 +15,7 @@ case class GenericInfoJson(
   @Schema(description = "The description of this schema element")
   description: Option[String] = None,
   @Schema(description = "Alternative labels of this schema element")
-  altLabels: Seq[String] = Seq.empty,
+  altLabels: Option[Seq[String]] = None,
   @Schema(description = "The URI of the vocabulary where this element is defined")
   vocabularyUri: Option[String] = None
 )
@@ -28,7 +28,7 @@ object GenericInfoJson extends JsonCompanion[GenericInfo, GenericInfoJson] {
       uri = Uri.parse(json.uri, readContext.prefixes),
       label = json.label,
       description = json.description,
-      altLabels = json.altLabels,
+      altLabels = json.altLabels.getOrElse(Seq.empty),
       vocabularyUri = json.vocabularyUri
     )
   }
@@ -38,7 +38,7 @@ object GenericInfoJson extends JsonCompanion[GenericInfo, GenericInfoJson] {
       uri = writeContext.prefixes.shorten(data.uri),
       label = data.label,
       description = data.description,
-      altLabels = data.altLabels,
+      altLabels = Some(data.altLabels),
       vocabularyUri = data.vocabularyUri
     )
   }
