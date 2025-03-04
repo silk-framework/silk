@@ -1,4 +1,4 @@
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, rootPath, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import qs from "qs";
 import {
@@ -168,5 +168,13 @@ export const requestDatasetCharacteristics = async (
 ): Promise<FetchResponse<DatasetCharacteristics>> => {
     return fetch({
         url: projectApi(`/${projectId}/datasets/${datasetId}/characteristics`),
+    });
+};
+
+export const performAction = (projectId: string, task: string, actionKey: string) => {
+    return fetch({
+        url: rootPath(`/workspace/projects/${projectId}/tasks/${task}/action/${actionKey}`),
+        method: "POST",
+        body: {},
     });
 };

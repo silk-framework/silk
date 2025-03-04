@@ -22,6 +22,7 @@ import {
     SimpleDialog,
     Spacing,
     highlighterUtils,
+    Markdown,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -46,7 +47,7 @@ import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
 import { objectToFlatRecord, uppercaseFirstChar } from "../../../../utils/transformers";
-import { requestProjectMetadata } from "@ducks/shared/requests";
+import { performAction, requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
@@ -145,6 +146,8 @@ export function CreateArtefactModal() {
         toBeAdded.current = plugin;
         toBeAddedKey.current = plugin?.key;
     }, []);
+    const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
+    const [taskActionLoading, setTaskActionLoading] = React.useState<boolean>(false);
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
             const timeoutId = setTimeout(() => {
@@ -749,6 +752,59 @@ export function CreateArtefactModal() {
         );
     }
 
+    const actionResultModal = (
+        <SimpleDialog
+            size="small"
+            title={`${taskActionResult?.label} info`}
+            isOpen={!!taskActionResult}
+            actions={[
+                <Button
+                    key="cancel"
+                    onClick={() => {
+                        setTaskActionResult(undefined);
+                    }}
+                >
+                    {t("common.action.cancel")}
+                </Button>,
+            ]}
+        >
+            <Markdown>{taskActionResult?.message ?? ""}</Markdown>
+        </SimpleDialog>
+    );
+
+    if (selectedArtefact?.actions && updateExistingTask?.taskId) {
+        additionalButtons.push(
+            ...Object.entries(selectedArtefact.actions).map(([actionKey, action]) => {
+                const executeAction = async () => {
+                    try {
+                        setTaskActionLoading(true);
+                        const result = await performAction(
+                            updateExistingTask.projectId,
+                            updateExistingTask.taskId,
+                            actionKey
+                        );
+                        setTaskActionResult({ label: action.label, message: result.data.message });
+                    } catch (err) {
+                    } finally {
+                        setTaskActionLoading(false);
+                    }
+                };
+                return (
+                    <Button
+                        active
+                        loading={taskActionLoading}
+                        data-test-id={`${actionKey}-btn`}
+                        key={actionKey}
+                        onClick={executeAction}
+                        tooltip={action.description}
+                    >
+                        {action.label}
+                    </Button>
+                );
+            })
+        );
+    }
+
     const headerOptions: JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(
@@ -896,6 +952,7 @@ export function CreateArtefactModal() {
         >
             {
                 <>
+                    {actionResultModal}
                     {artefactForm ? (
                         <>{artefactForm}</>
                     ) : (

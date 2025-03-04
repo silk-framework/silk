@@ -117,6 +117,14 @@ export interface IPluginOverview {
     markdownDocumentation?: string;
     /** Plugin icon in Data URL format. */
     pluginIcon?: string;
+    actions?: Record<
+        string,
+        {
+            description: string;
+            icon: string | null;
+            label: string;
+        }
+    >;
 }
 
 export type AlternativeTaskUpdateFunction = (
