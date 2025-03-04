@@ -15,6 +15,7 @@ import {
     Spacing,
     SuggestFieldItemRendererModifierProps,
     OverviewItemDepiction,
+    OverviewItemActions,
 } from "@eccenca/gui-elements";
 import { TaskContext } from "../../../../shared/projectTaskTabView/projectTaskTabView.typing";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
@@ -117,6 +118,7 @@ interface OptionalRenderFunctions<T> {
     optionalValueFn?: (obj: T) => string;
     optionalDescriptionFn?: (obj: T) => string | undefined;
     optionalIconFn?: (obj: T) => ValidIconName | JSX.Element | undefined;
+    optionalItemActionsFn?: (obj: T) => JSX.Element | undefined;
 }
 
 export function autoCompleteItemRendererFactory<T = {}>(
@@ -129,7 +131,8 @@ export function autoCompleteItemRendererFactory<T = {}>(
         modifiers: SuggestFieldItemRendererModifierProps,
         handleClick: () => any
     ): JSX.Element => {
-        const { optionalLabelFn, optionalValueFn, optionalDescriptionFn, optionalIconFn } = optionalFunctions;
+        const { optionalLabelFn, optionalValueFn, optionalDescriptionFn, optionalIconFn, optionalItemActionsFn } =
+            optionalFunctions;
         let label: string | undefined;
         let value: string | undefined = undefined;
         // Do not display value and label if they are basically the same
@@ -150,7 +153,8 @@ export function autoCompleteItemRendererFactory<T = {}>(
         const description: string | undefined | null = optionalDescriptionFn
             ? optionalDescriptionFn(autoCompleteItem)
             : autoCompleteItem.description;
-        const icon = optionalIconFn ? optionalIconFn(autoCompleteItem) : undefined;
+        const icon = optionalIconFn?.(autoCompleteItem);
+        const itemActions = optionalItemActionsFn?.(autoCompleteItem);
         const item =
             value || description ? (
                 <OverviewItem style={modifiers.styleWidth}>
@@ -174,6 +178,7 @@ export function autoCompleteItemRendererFactory<T = {}>(
                             </OverviewItemLine>
                         )}
                     </OverviewItemDescription>
+                    {itemActions ? <OverviewItemActions>{itemActions}</OverviewItemActions> : null}
                 </OverviewItem>
             ) : (
                 <OverflowText style={modifiers.styleWidth} ellipsis={"reverse"}>
