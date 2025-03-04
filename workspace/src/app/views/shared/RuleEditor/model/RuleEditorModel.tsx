@@ -689,38 +689,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return changedElements;
     };
 
-    const resetNodeSize = (nodeId: string) => {
-        changeSize(nodeId, undefined);
-        const undoIndexesToRemove: number[] = [];
-        const redoIndexesToRemove: number[] = [];
-
-        const removeNodeSizeChangeFootPrint = (event: ChangeStackType, index: number, stack: "undo" | "redo") => {
-            if (typeof event !== "string") {
-                const [op] = event.operations;
-                if (op.type == "Change node size" && op.nodeId === nodeId) {
-                    stack === "undo"
-                        ? undoIndexesToRemove.push(...[index - 1, index])
-                        : redoIndexesToRemove.push(...[index - 1, index]);
-                }
-            }
-        };
-        ruleUndoStack.forEach((e, i) => removeNodeSizeChangeFootPrint(e, i, "undo"));
-        ruleRedoStack.forEach((e, i) => removeNodeSizeChangeFootPrint(e, i, "redo"));
-
-        const ruleUndoStackFiltered = ruleUndoStack.filter((_, i) => !undoIndexesToRemove.includes(i));
-        const ruleRedoStackFiltered = ruleRedoStack.filter((_, i) => !redoIndexesToRemove.includes(i));
-
-        ruleUndoStack.splice(0, ruleUndoStack.length, ...ruleUndoStackFiltered);
-        ruleRedoStack.splice(0, ruleRedoStack.length, ...ruleRedoStackFiltered);
-
-        if (!ruleUndoStack.length) {
-            setCanUndo(false);
-        }
-        if (!ruleRedoStack.length) {
-            setCanRedo(false);
-        }
-    };
-
     /** Adds a rule model change action to the undo stack and executes the change on the model. */
     const addAndExecuteRuleModelChangeInternal = (
         ruleModelChange: RuleModelChanges,
@@ -1800,7 +1768,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 canvasId,
-                resetNodeSize,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
