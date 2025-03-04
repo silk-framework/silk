@@ -135,7 +135,7 @@ export default function SearchItem({
 
     const projectOrDataset = item.type === "dataset" || item.type === "project";
     return (
-        <Card isOnlyLayout>
+        <Card isOnlyLayout className="diapp-searchitem">
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.type} pluginId={item.pluginId} />

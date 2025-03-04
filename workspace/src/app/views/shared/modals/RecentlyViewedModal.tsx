@@ -15,6 +15,8 @@ import {
     Spacing,
     Icon,
     SuggestFieldItemRendererModifierProps,
+    Tag,
+    TagList,
 } from "@eccenca/gui-elements";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
@@ -29,11 +31,11 @@ import { routerOp } from "@ducks/router";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
-import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { uppercaseFirstChar } from "../../../utils/transformers";
-import ProjectTags from "../ProjectTags/ProjectTags";
-import { SearchTags } from "../SearchList/SearchTags";
+import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
+import { searchTagsRenderer } from "../SearchList/SearchTags";
+import { ArtefactTag } from "../ArtefactTag";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -124,10 +126,14 @@ export function RecentlyViewedModal() {
         modifiers: SuggestFieldItemRendererModifierProps,
         handleSelectClick: () => any
     ) => {
+        console.log("quick search item", item);
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
-                className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+                className={
+                    "diapp-recentlyviewedmodal__searchitem" +
+                    (modifiers.active ? ` ${eccguiprefix}-overviewitem__item--active` : "")
+                }
                 key={item.projectId + item.taskId}
                 hasSpacing
                 onClick={handleSelectClick}
@@ -144,39 +150,33 @@ export function RecentlyViewedModal() {
                         </h4>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        {(item.itemType === "dataset" || item.itemType === "task") && (
-                            <>
+                        <TagList>
+                            {(item.itemType === "project" || item.itemType === "dataset") && (
+                                <ArtefactTag artefactType={`${item.itemType}Node`}>
+                                    <Highlighter label={itemType(item)} searchValue={query} />
+                                </ArtefactTag>
+                            )}
+                            {item.itemType === "dataset" && item.readOnly && (
                                 <Tag>
-                                    <Highlighter label={item.pluginLabel} searchValue={query} />
+                                    <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
                                 </Tag>
-                                <Spacing vertical size="tiny" />
-                            </>
-                        )}
-                        <Tag>
-                            <Highlighter label={itemType(item)} searchValue={query} />
-                        </Tag>
-                        <Spacing vertical size="tiny" />
-                        {item.taskId && (
-                            <>
+                            )}
+                            {item.pluginLabel && (
+                                <ArtefactTag artefactType={`${item.pluginLabel?.toLowerCase()}Node`}>
+                                    <Highlighter label={item.pluginLabel} searchValue={query} />
+                                </ArtefactTag>
+                            )}
+                            {item.taskId && (
                                 <Tag emphasis={"weak"}>
                                     <Highlighter
                                         label={item.projectLabel ? item.projectLabel : item.projectId}
                                         searchValue={query}
                                     />
                                 </Tag>
-                            </>
-                        )}
-                        {item.itemType === "dataset" && item.readOnly && (
-                            <>
-                                <Spacing vertical size="tiny" />
-                                <Tag>
-                                    <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
-                                </Tag>
-                            </>
-                        )}
-                        {item.tags?.length ? <Spacing vertical size="tiny" /> : null}
-                        <ProjectTags tags={item.tags} query={query} />
-                        <SearchTags searchTags={item.searchTags} searchText={query} />
+                            )}
+                            {projectTagsRenderer({ tags: item.tags, query })}
+                            {searchTagsRenderer({ searchTags: item.searchTags, searchText: query })}
+                        </TagList>
                     </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>
@@ -247,6 +247,7 @@ export function RecentlyViewedModal() {
     };
     return (
         <SimpleDialog
+            className="diapp-recentlyviewedmodal"
             data-test-id={"quick-search-modal"}
             transitionDuration={20}
             onClose={close}
