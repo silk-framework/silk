@@ -134,7 +134,7 @@ case class FixedSchemaPortDefinition(schema: PortSchema) extends PortDefinition 
 }
 
 /** A flexible port can take or output various kinds of schemata.  */
-case class FlexiblePortDefinition(explicitSchema: Boolean) extends PortDefinition {
+case class FlexiblePortDefinition(explicitSchema: Boolean = false) extends PortDefinition {
   override def portsType: String = "flexibleType"
 }
 

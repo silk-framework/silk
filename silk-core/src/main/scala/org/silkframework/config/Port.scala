@@ -26,7 +26,7 @@ case class FixedSchemaPort(schema: EntitySchema) extends Port {
   * Flexible input ports will adapt the schema to the connected output.
   * Flexible output ports will adapt the schema to the connected input.
   *
-  * @param explicitSchema Indicates whether a dataset has an explicitly defined and quickly retrievable schema (like CSV).
+  * @param explicitSchema Indicates whether an output port has an explicitly defined and quickly retrievable schema (like CSV).
   */
 case class FlexibleSchemaPort(explicitSchema: Boolean = false) extends Port {
 
