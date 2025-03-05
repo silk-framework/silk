@@ -247,6 +247,10 @@ class Workspace(val provider: WorkspaceProvider,
     for(workspaceActivity <- activities) {
       workspaceActivity.control.cancel()
     }
+    for(workspaceActivity <- activities) {
+      Try(workspaceActivity.control.waitUntilFinished())
+    }
+
     // Refresh workspace provider
     provider.refresh(repository)
 
