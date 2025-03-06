@@ -783,7 +783,7 @@ export function CreateArtefactModal() {
                         const formValues = form.getValues();
                         const result = await performAction({
                             projectId: project,
-                            taskId: updateExistingTask?.taskId ?? "",
+                            taskId: updateExistingTask?.taskId ?? "task",
                             actionKey,
                             taskPayload: {
                                 taskType:
