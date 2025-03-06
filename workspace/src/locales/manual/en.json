@@ -345,7 +345,8 @@
             "clearInput": "Clear input",
             "filterOn": "Use as filter",
             "filterOff": "Remove filter",
-            "showMoreDetails": "Show more details"
+            "showMoreDetails": "Show more details",
+            "ok": "Ok"
         },
         "app": {
             "build": "Workbench",

@@ -764,7 +764,7 @@ export function CreateArtefactModal() {
                         setTaskActionResult(undefined);
                     }}
                 >
-                    {t("common.action.cancel")}
+                    {t("common.action.ok")}
                 </Button>,
             ]}
         >
@@ -772,23 +772,25 @@ export function CreateArtefactModal() {
         </SimpleDialog>
     );
 
-    if (selectedArtefact?.actions && updateExistingTask?.taskId) {
+    if (selectedArtefact?.actions) {
         additionalButtons.push(
             ...Object.entries(selectedArtefact.actions).map(([actionKey, action]) => {
                 const executeAction = async () => {
                     try {
                         setTaskActionLoading(true);
+                        const project = updateExistingTask?.projectId || currentProject?.id || projectId;
+                        if (!project) return;
                         const formValues = form.getValues();
                         const result = await performAction({
-                            projectId: updateExistingTask.projectId,
-                            taskId: updateExistingTask.taskId,
+                            projectId: project,
+                            taskId: updateExistingTask?.taskId ?? "",
                             actionKey,
                             taskPayload: {
                                 taskType:
                                     updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey),
                                 type: selectedArtefact.key,
                                 parameters: {
-                                    filesRegex: formValues.filesRegex?.trim() ?? ".*",
+                                    filesRegex: formValues.filesRegex ?? ".*",
                                     outputEntities: formValues.outputEntities ?? "false",
                                 },
                                 templates: {
@@ -798,6 +800,7 @@ export function CreateArtefactModal() {
                         });
                         setTaskActionResult({ label: action.label, message: result.data.message });
                     } catch (err) {
+                        registerError("CreateArtefactModal.action", `Could not perform ${action.label} action`, error);
                     } finally {
                         setTaskActionLoading(false);
                     }
