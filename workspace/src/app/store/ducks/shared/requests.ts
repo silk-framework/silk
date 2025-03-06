@@ -171,10 +171,30 @@ export const requestDatasetCharacteristics = async (
     });
 };
 
-export const performAction = (projectId: string, task: string, actionKey: string) => {
+type taskPayloadType = {
+    taskType?: string;
+    type?: string;
+    parameters: {
+        filesRegex: string;
+        outputEntities: string;
+    };
+    templates: {};
+};
+
+export const performAction = ({
+    projectId,
+    taskId,
+    actionKey,
+    taskPayload,
+}: {
+    projectId: string;
+    taskId: string;
+    actionKey: string;
+    taskPayload: taskPayloadType;
+}) => {
     return fetch({
-        url: rootPath(`/workspace/projects/${projectId}/tasks/${task}/action/${actionKey}`),
+        url: rootPath(`/workspace/projects/${projectId}/tasks/${taskId}/action/${actionKey}`),
         method: "POST",
-        body: {},
+        body: { task: taskPayload },
     });
 };

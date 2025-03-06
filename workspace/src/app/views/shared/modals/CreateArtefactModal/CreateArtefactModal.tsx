@@ -778,11 +778,24 @@ export function CreateArtefactModal() {
                 const executeAction = async () => {
                     try {
                         setTaskActionLoading(true);
-                        const result = await performAction(
-                            updateExistingTask.projectId,
-                            updateExistingTask.taskId,
-                            actionKey
-                        );
+                        const formValues = form.getValues();
+                        const result = await performAction({
+                            projectId: updateExistingTask.projectId,
+                            taskId: updateExistingTask.taskId,
+                            actionKey,
+                            taskPayload: {
+                                taskType:
+                                    updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey),
+                                type: selectedArtefact.key,
+                                parameters: {
+                                    filesRegex: formValues.filesRegex?.trim() ?? ".*",
+                                    outputEntities: formValues.outputEntities ?? "false",
+                                },
+                                templates: {
+                                    ...commonOp.buildNestedTaskParameterObject(templateParameters.current),
+                                },
+                            },
+                        });
                         setTaskActionResult({ label: action.label, message: result.data.message });
                     } catch (err) {
                     } finally {

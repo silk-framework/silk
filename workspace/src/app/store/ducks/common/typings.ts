@@ -117,6 +117,7 @@ export interface IPluginOverview {
     markdownDocumentation?: string;
     /** Plugin icon in Data URL format. */
     pluginIcon?: string;
+    pluginId?: string;
     actions?: Record<
         string,
         {
