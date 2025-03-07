@@ -60,7 +60,7 @@ object TaskActionRequest {
 }
 
 @Schema(description = "Response of a task action.")
-case class TaskActionResponse(@Schema(description = "Message as a user-readable markdown.", requiredMode = RequiredMode.NOT_REQUIRED)
+case class TaskActionResponse(@Schema(description = "Message as a user-readable markdown.")
                               message: String)
 
 object TaskActionResponse {
