@@ -43,8 +43,8 @@ class TaskActionIntegrationTest extends AnyFlatSpec with Matchers with Integrati
 
     // Call the action and check response
     val response = callAction(project.id, TaskActionRequest(task = None))
-    response.message.get should not include ("file1.csv")
-    response.message.get should include ("file2.csv")
+    response.message should not include ("file1.csv")
+    response.message should include ("file2.csv")
   }
 
   it should "allow to call an action on a task that is provided in the request" in {
@@ -57,8 +57,8 @@ class TaskActionIntegrationTest extends AnyFlatSpec with Matchers with Integrati
 
     // Call the action and check response
     val response = callAction(project.id, TaskActionRequest(Some(taskJson)))
-    response.message.get should include ("file1.csv")
-    response.message.get should not include ("file2.csv")
+    response.message should include ("file1.csv")
+    response.message should not include ("file2.csv")
   }
 
   private def createTestProject(projectId: String, fileNames: Seq[String]): Project = {
