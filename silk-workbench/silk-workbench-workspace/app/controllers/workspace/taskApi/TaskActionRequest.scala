@@ -42,7 +42,12 @@ case class TaskActionRequest(@Schema(
     // Call action
     pluginSpec.actions.get(actionName) match {
       case Some(action) =>
-        TaskActionResponse(action(taskSpec))
+        action(taskSpec) match {
+          case Some(message) =>
+            TaskActionResponse(message)
+          case None =>
+            TaskActionResponse("Action executed successfully.")
+        }
       case None =>
         throw new NotFoundException(s"Action '$actionName' not found on task $taskName in project $projectName.")
     }
@@ -55,8 +60,8 @@ object TaskActionRequest {
 }
 
 @Schema(description = "Response of a task action.")
-case class TaskActionResponse(@Schema(description = "Optional message as a user-readable markdown.", requiredMode = RequiredMode.NOT_REQUIRED)
-                              message: Option[String])
+case class TaskActionResponse(@Schema(description = "Message as a user-readable markdown.", requiredMode = RequiredMode.NOT_REQUIRED)
+                              message: String)
 
 object TaskActionResponse {
   implicit val format: Format[TaskActionResponse] = Json.format[TaskActionResponse]
