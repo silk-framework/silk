@@ -51,7 +51,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
-    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
+    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+json")
     setConnectionTimeouts(httpConnection)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
