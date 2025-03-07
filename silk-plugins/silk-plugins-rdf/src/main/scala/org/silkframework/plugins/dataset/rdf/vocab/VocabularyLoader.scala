@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.vocab
 
-import org.apache.jena.vocabulary.{OWL, RDF}
+import org.apache.jena.vocabulary.{OWL2, RDF}
 import org.silkframework.dataset.rdf._
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
@@ -220,8 +220,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
   val propertyClasses = Set(
     RDF.Property.getURI,
-    OWL.DatatypeProperty.getURI,
-    OWL.ObjectProperty.getURI
+    OWL2.DatatypeProperty.getURI,
+    OWL2.ObjectProperty.getURI
   )
 
   def retrieveProperties(uri: String, classes: Iterable[VocabularyClass])
