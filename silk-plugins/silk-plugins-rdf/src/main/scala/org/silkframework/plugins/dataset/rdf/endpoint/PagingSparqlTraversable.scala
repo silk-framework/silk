@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.{Query, QueryFactory, Syntax}
-import org.apache.jena.riot.ResultSetMgr
+import org.apache.jena.riot.{Lang, ResultSetMgr}
 import org.apache.jena.riot.resultset.ResultSetLang
 import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
@@ -51,11 +51,22 @@ object PagingSparqlTraversable {
     */
   trait QueryExecutor {
 
+    /**
+     * The format of the SPARQL result set.
+     */
+    protected val resultLang: Lang = ResultSetLang.RS_JSON
+
+    /**
+     * Executes a query and returns the unparsed result stream.
+     */
     def execute(query: String): InputStream
 
+    /**
+     * Executes a query and parses the result set.
+     */
     def executeAndParse(query: Query): SparqlResults = {
       val inputStream = execute(query.serialize(Syntax.syntaxSPARQL_11))
-      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_JSON)
+      val resultSet = ResultSetMgr.read(inputStream, resultLang)
       val results = JenaResultsReader.read(resultSet).thenClose(inputStream)
       SparqlResults(resultSet.getResultVars.asScala.toSeq, results)
     }
