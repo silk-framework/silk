@@ -736,6 +736,7 @@ export function CreateArtefactModal() {
     ) {
         additionalButtons.push(
             <Button
+                outlined
                 data-test-id={"autoConfigureItem-btn"}
                 key="autoConfig"
                 tooltip={t("CreateModal.autoConfigTooltip")}
@@ -772,8 +773,9 @@ export function CreateArtefactModal() {
         </SimpleDialog>
     );
 
+    const pluginActions: JSX.Element[] = [];
     if (selectedArtefact?.actions) {
-        additionalButtons.push(
+        pluginActions.push(
             ...Object.entries(selectedArtefact.actions).map(([actionKey, action]) => {
                 const executeAction = async () => {
                     try {
@@ -807,7 +809,7 @@ export function CreateArtefactModal() {
                 };
                 return (
                     <Button
-                        active
+                        outlined
                         loading={taskActionLoading}
                         data-test-id={`${actionKey}-btn`}
                         key={actionKey}
@@ -932,17 +934,23 @@ export function CreateArtefactModal() {
                             <Button key="cancel" data-test-id="create-dialog-cancel-btn" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
-                            ...additionalButtons,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button
-                                        data-test-id={"create-dialog-back-btn"}
-                                        key="back"
-                                        onClick={() => handleBack(false)}
-                                    >
-                                        {t("common.words.back", "Back")}
-                                    </Button>
+                                    <>
+                                        <Button
+                                            data-test-id={"create-dialog-back-btn"}
+                                            key="back"
+                                            onClick={() => handleBack(false)}
+                                        >
+                                            {t("common.words.back", "Back")}
+                                        </Button>
+                                        {additionalButtons.length + pluginActions.length > 0 && (
+                                            <Spacing vertical hasDivider />
+                                        )}
+                                    </>
                                 )}
+                                {additionalButtons}
+                                {pluginActions}
                             </CardActionsAux>,
                         ]
                     )
@@ -960,7 +968,10 @@ export function CreateArtefactModal() {
                         <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}
                         </Button>,
-                        ...additionalButtons,
+                        <CardActionsAux key="aux">
+                            {additionalButtons}
+                            {pluginActions}
+                        </CardActionsAux>,
                     ]
                 )
             }
