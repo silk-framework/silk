@@ -23,6 +23,8 @@ import {
     Spacing,
     highlighterUtils,
     Markdown,
+    MenuItem,
+    ContextMenu,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -76,6 +78,8 @@ export interface ArtefactDocumentation {
 }
 
 export function CreateArtefactModal() {
+    const MAX_SINGLEPLUGINBUTTONS = 2;
+
     const dispatch = useDispatch();
     const form = useForm();
 
@@ -147,7 +151,7 @@ export function CreateArtefactModal() {
         toBeAddedKey.current = plugin?.key;
     }, []);
     const [taskActionResult, setTaskActionResult] = React.useState<{ label: string; message: string }>();
-    const [taskActionLoading, setTaskActionLoading] = React.useState<boolean>(false);
+    const [taskActionLoading, setTaskActionLoading] = React.useState<string | null>(null);
     React.useEffect(() => {
         if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
             const timeoutId = setTimeout(() => {
@@ -775,11 +779,12 @@ export function CreateArtefactModal() {
 
     const pluginActions: JSX.Element[] = [];
     if (selectedArtefact?.actions) {
+        const describedActions = Object.entries(selectedArtefact.actions);
         pluginActions.push(
-            ...Object.entries(selectedArtefact.actions).map(([actionKey, action]) => {
+            ...describedActions.map(([actionKey, action]) => {
                 const executeAction = async () => {
                     try {
-                        setTaskActionLoading(true);
+                        setTaskActionLoading(actionKey);
                         const project = updateExistingTask?.projectId || currentProject?.id || projectId;
                         if (!project) return;
                         const formValues = form.getValues();
@@ -804,13 +809,22 @@ export function CreateArtefactModal() {
                     } catch (err) {
                         registerError("CreateArtefactModal.action", `Could not perform ${action.label} action`, err);
                     } finally {
-                        setTaskActionLoading(false);
+                        setTaskActionLoading(null);
                     }
                 };
-                return (
+                return describedActions.length > MAX_SINGLEPLUGINBUTTONS ? (
+                    <MenuItem
+                        text={action.label}
+                        data-test-id={`${actionKey}-btn`}
+                        key={actionKey}
+                        onClick={executeAction}
+                        htmlTitle={action.description}
+                    />
+                ) : (
                     <Button
                         outlined
-                        loading={taskActionLoading}
+                        loading={taskActionLoading == actionKey}
+                        disabled={!!taskActionLoading}
                         data-test-id={`${actionKey}-btn`}
                         key={actionKey}
                         onClick={executeAction}
@@ -822,6 +836,26 @@ export function CreateArtefactModal() {
             })
         );
     }
+
+    const pluginActionsMenu =
+        pluginActions.length > MAX_SINGLEPLUGINBUTTONS ? (
+            <ContextMenu
+                key="menu-pluginactions"
+                disabled={!!taskActionLoading}
+                togglerElement={
+                    <Button
+                        outlined
+                        text={t("CreateModal.pluginActions", "Additional actions")}
+                        loading={!!taskActionLoading}
+                        rightIcon={"toggler-caretdown"}
+                    />
+                }
+            >
+                {pluginActions}
+            </ContextMenu>
+        ) : (
+            pluginActions
+        );
 
     const headerOptions: JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
@@ -950,7 +984,7 @@ export function CreateArtefactModal() {
                                     </>
                                 )}
                                 {additionalButtons}
-                                {pluginActions}
+                                {pluginActionsMenu}
                             </CardActionsAux>,
                         ]
                     )
@@ -970,7 +1004,7 @@ export function CreateArtefactModal() {
                         </Button>,
                         <CardActionsAux key="aux">
                             {additionalButtons}
-                            {pluginActions}
+                            {pluginActionsMenu}
                         </CardActionsAux>,
                     ]
                 )
