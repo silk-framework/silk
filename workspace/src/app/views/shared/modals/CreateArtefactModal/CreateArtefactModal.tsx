@@ -964,7 +964,7 @@ export function CreateArtefactModal() {
                     ]
                 )
             }
-            notifications={notifications}
+            notifications={notifications.length > 0 ? notifications : undefined}
         >
             {
                 <>
