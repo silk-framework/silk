@@ -25,6 +25,8 @@ import {
     Markdown,
     MenuItem,
     ContextMenu,
+    Accordion,
+    AccordionItem,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -757,26 +759,6 @@ export function CreateArtefactModal() {
         );
     }
 
-    const actionResultModal = (
-        <SimpleDialog
-            size="small"
-            title={`${taskActionResult?.label} info`}
-            isOpen={!!taskActionResult}
-            actions={[
-                <Button
-                    key="cancel"
-                    onClick={() => {
-                        setTaskActionResult(undefined);
-                    }}
-                >
-                    {t("common.action.ok")}
-                </Button>,
-            ]}
-        >
-            <Markdown>{taskActionResult?.message ?? ""}</Markdown>
-        </SimpleDialog>
-    );
-
     const pluginActions: JSX.Element[] = [];
     if (selectedArtefact?.actions) {
         const describedActions = Object.entries(selectedArtefact.actions);
@@ -807,6 +789,7 @@ export function CreateArtefactModal() {
                         });
                         setTaskActionResult({ label: action.label, message: result.data.message });
                     } catch (err) {
+                        setTaskActionResult(undefined);
                         registerError("CreateArtefactModal.action", `Could not perform ${action.label} action`, err);
                     } finally {
                         setTaskActionLoading(null);
@@ -929,6 +912,35 @@ export function CreateArtefactModal() {
     const submitEnabled = !!isCreationUpdateDialog && !isErrorPresented();
     useHotKey({ hotkey: "enter", handler: handleCreate, enabled: submitEnabled });
 
+    if (taskActionResult) {
+        notifications.push(
+            <Notification
+                success
+                message={
+                    <Accordion whitespaceSize={"none"}>
+                        <AccordionItem
+                            open={(taskActionResult?.message ?? "").length < 500}
+                            label={taskActionResult?.label}
+                            noBorder
+                        >
+                            <Markdown>{taskActionResult?.message ?? ""}</Markdown>
+                        </AccordionItem>
+                    </Accordion>
+                }
+                actions={[
+                    <IconButton
+                        key="cancel"
+                        name="navigation-close"
+                        text={t("common.action.close")}
+                        onClick={() => {
+                            setTaskActionResult(undefined);
+                        }}
+                    />,
+                ]}
+            />
+        );
+    }
+
     const createDialog = (
         <SimpleDialog
             size="large"
@@ -1013,7 +1025,6 @@ export function CreateArtefactModal() {
         >
             {
                 <>
-                    {actionResultModal}
                     {artefactForm ? (
                         <>{artefactForm}</>
                     ) : (
