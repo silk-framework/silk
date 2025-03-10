@@ -55,7 +55,7 @@ object PagingSparqlTraversable {
 
     def executeAndParse(query: Query): SparqlResults = {
       val inputStream = execute(query.serialize(Syntax.syntaxSPARQL_11))
-      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
+      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_JSON)
       val results = JenaResultsReader.read(resultSet).thenClose(inputStream)
       SparqlResults(resultSet.getResultVars.asScala.toSeq, results)
     }
