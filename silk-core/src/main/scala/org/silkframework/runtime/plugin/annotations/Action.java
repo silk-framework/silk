@@ -2,6 +2,15 @@ package org.silkframework.runtime.plugin.annotations;
 
 import java.lang.annotation.*;
 
+/**
+ * Annotates a method that can be executed as an action.
+ * The method can have one optional parameter of type PluginContext.
+ * The return value of the method will be converted to a string and displayed in the UI.
+ * The string may use Markdown formatting.
+ * The method may return an Option, in which case None will result in no message being displayed.
+ * It may raise an exception to signal an error to the user.
+ * Note that actions are not sorted at the moment and can appear in the UI any order.
+ */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
