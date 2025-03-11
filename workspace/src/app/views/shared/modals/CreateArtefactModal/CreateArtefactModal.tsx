@@ -922,8 +922,19 @@ export function CreateArtefactModal() {
                             open={(taskActionResult?.message ?? "").length < 500}
                             label={taskActionResult?.label}
                             noBorder
+                            fullWidth
                         >
-                            <Markdown>{taskActionResult?.message ?? ""}</Markdown>
+                            <Spacing size="small" />
+                            <Markdown
+                                htmlContentBlockProps={{
+                                    style: {
+                                        maxHeight: "25vh",
+                                        overflow: "auto",
+                                    },
+                                }}
+                            >
+                                {taskActionResult?.message ?? ""}
+                            </Markdown>
                         </AccordionItem>
                     </Accordion>
                 }
