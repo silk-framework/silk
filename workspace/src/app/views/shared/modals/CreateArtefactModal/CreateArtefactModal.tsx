@@ -828,7 +828,7 @@ export function CreateArtefactModal() {
                 togglerElement={
                     <Button
                         outlined
-                        text={t("CreateModal.pluginActions", "Additional actions")}
+                        text={t("CreateModal.pluginActions")}
                         loading={!!taskActionLoading}
                         rightIcon={"toggler-caretdown"}
                     />
