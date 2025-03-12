@@ -27,4 +27,11 @@ public @interface Action {
      * This icon is rendered in the UI.
      */
     String iconFile() default "";
+
+    /**
+     * The optional index of this action. Actions are sorted by this index.
+     * Actions with a lower index are displayed first.
+     * If not set, the order is undefined.
+     */
+    int index() default Integer.MAX_VALUE;
 }

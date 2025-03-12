@@ -25,6 +25,7 @@ import java.lang.reflect.{Constructor, InvocationTargetException, Method, Parame
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+import scala.collection.immutable.{ListMap, SeqMap, TreeMap}
 import scala.io.{Codec, Source}
 import scala.language.existentials
 
@@ -51,7 +52,7 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               constructor: Constructor[T],
                                               val pluginTypes: Seq[PluginTypeDescription],
                                               val icon: Option[String],
-                                              val actions: Map[String, PluginAction]) extends PluginDescription[T] {
+                                              val actions: SeqMap[String, PluginAction]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -167,7 +168,7 @@ object ClassPluginDescription {
         constructor = getConstructor(pluginClass),
         pluginTypes = getPluginTypes(pluginClass),
         icon = None,
-        actions = Map.empty
+        actions = SeqMap.empty
       )
     } catch {
       case ex: InvalidPluginException =>
@@ -246,22 +247,28 @@ object ClassPluginDescription {
     }
   }
 
-  private def getActions[T](pluginClass: Class[T]): Map[String, ClassPluginAction] = {
-    pluginClass.getMethods.flatMap { method =>
-      method.getAnnotations.collect {
-        case action: Action =>
-          val provideContext = method.getParameters match {
-            case Array() =>
-              false
-            case Array(param) if classOf[PluginContext].isAssignableFrom(param.getType) =>
-              true
-            case _ =>
-              throw new InvalidPluginException(s"Action method ${method.getName} in class ${pluginClass.getName} has an invalid signature. " +
-                s"Only methods with no parameters or a single PluginContext parameter are allowed.")
-          }
-          (method.getName, ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile())))
+  private def getActions[T](pluginClass: Class[T]): ListMap[String, ClassPluginAction] = {
+    val actionsAnnotations = {
+      pluginClass.getMethods
+        .flatMap { method => method.getAnnotations.collect { case a: Action => a } }
+        .sortBy(_.index())
+    }
+
+    val actions = actionsAnnotations.map { action =>
+      val method = pluginClass.getMethods.find(_.getAnnotations.contains(action)).get
+      val provideContext = method.getParameters match {
+        case Array() =>
+          false
+        case Array(param) if classOf[PluginContext].isAssignableFrom(param.getType) =>
+          true
+        case _ =>
+          throw new InvalidPluginException(s"Action method ${method.getName} in class ${pluginClass.getName} has an invalid signature. " +
+            s"Only methods with no parameters or a single PluginContext parameter are allowed.")
       }
-    }.toMap
+      (action.label(), ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile())))
+    }
+
+    ListMap(actions: _*)
   }
 
   private def getPluginTypes(pluginClass: Class[_]): Seq[PluginTypeDescription] = {
