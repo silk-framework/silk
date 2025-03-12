@@ -790,7 +790,7 @@ export function CreateArtefactModal() {
                         setTaskActionResult({ label: action.label, message: result.data.message });
                     } catch (err) {
                         setTaskActionResult(undefined);
-                        registerError("CreateArtefactModal.action", `Could not perform ${action.label} action`, err);
+                        registerError("CreateArtefactModal.action", `Could not perform action '${action.label}'.`, err);
                     } finally {
                         setTaskActionLoading(null);
                     }
