@@ -5,6 +5,7 @@ import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext } from "../../contexts/RuleEditorEvaluationContext";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ruleEditorModelUtilsFactory } from "../../model/RuleEditorModel.utils";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -31,6 +32,7 @@ export const RuleNodeMenu = ({
     const ruleEvaluationContext = React.useContext(RuleEditorEvaluationContext);
     const modelContext = React.useContext(RuleEditorModelContext);
     const ruleEditorContext = React.useContext(RuleEditorContext);
+    const [utils] = React.useState(ruleEditorModelUtilsFactory());
 
     const closeMenu = () => {
         menuFns?.closeMenu();
@@ -39,6 +41,10 @@ export const RuleNodeMenu = ({
     const operatorDoc = `${ruleOperatorDescription ?? ""} ${
         ruleOperatorDocumentation ? `\n\n${ruleOperatorDocumentation}` : ""
     }`;
+
+    const nodeDimensions = utils.nodeById(modelContext.elements, nodeId)?.data.nodeDimensions;
+    const resizeResetIsDisabled = !nodeDimensions?.width && !nodeDimensions?.height;
+
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
             <Menu>
@@ -91,6 +97,13 @@ export const RuleNodeMenu = ({
                         )}
                     />
                 ) : null}
+                <MenuItem
+                    data-test-id="rule-node-reset-size-btn"
+                    icon="item-reset"
+                    disabled={resizeResetIsDisabled}
+                    onClick={() => modelContext.executeModelEditOperation.changeSize(nodeId, undefined)}
+                    text="Reset node size"
+                ></MenuItem>
                 <MenuDivider />
                 <MenuItem
                     data-test-id="rule-node-delete-btn"

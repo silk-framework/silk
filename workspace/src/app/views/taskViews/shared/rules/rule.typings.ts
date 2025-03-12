@@ -42,7 +42,12 @@ export interface IOperatorNodeParameters {
 /** Rule layout information. */
 export interface RuleLayout {
     nodePositions: {
-        [nodeId: string]: [number, number];
+        [nodeId: string]: {
+            x: number;
+            y: number;
+            width: number | null;
+            height: number | null;
+        };
     };
 }
 

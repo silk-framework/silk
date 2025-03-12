@@ -70,7 +70,6 @@ interface RuleTreeNode {
     output: string | undefined;
     node: IRuleOperatorNode;
 }
-
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here.
  *  It contains the main (core) rule editor logic. */
@@ -916,7 +915,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (node) {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions!, newNodeDimensions),
+                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions, newNodeDimensions),
                     els
                 );
             } else {
@@ -968,6 +967,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 handles: [],
                 nodeDimensions: dimension,
                 onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
+                resizeDirections: {
+                    bottom: true,
+                    right: true,
+                },
                 menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,
                 style,
@@ -1704,6 +1707,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
         languageFilterEnabled,
+        changeNodeSize: changeSize,
     });
 
     /** Auto-layout the rule nodes.
@@ -1783,12 +1787,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
+                dimension: node.data.nodeDimensions,
                 description: originalNode.description,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
         });
     };
 
+    //node.data?.nodeDimensions
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {

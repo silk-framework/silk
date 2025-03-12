@@ -161,8 +161,13 @@ export const TransformRuleEditor = ({
             const pos = nodePositions[node.nodeId];
             if (pos) {
                 node.position = {
-                    x: pos[0],
-                    y: pos[1],
+                    x: pos.x,
+                    y: pos.y,
+                };
+                node.dimension = {
+                    ...node.dimension,
+                    width: pos.width ?? undefined,
+                    height: pos.height ?? undefined,
                 };
             }
         });
