@@ -132,7 +132,7 @@ abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
   }
 
   /** Handler for file suffix */
-  override def suffix: Option[String] = Some("zip")
+  override def fileExtension: String = "zip"
 
   override def mediaType: Option[String] = Some("application/zip")
 }

@@ -28,8 +28,11 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   /** A descriptive name of this marshaller */
   def name: String
 
-  /** Handler for file suffix */
-  def suffix: Option[String]
+  /** The preferred file extension, e.g., "zip". */
+  def fileExtension: String
+
+  /** Optional qualifier to distinguish file names with the same extension, e.g., "no-resoures". */
+  def qualifier: Option[String] = None
 
   /** MIME-Type */
   def mediaType: Option[String]

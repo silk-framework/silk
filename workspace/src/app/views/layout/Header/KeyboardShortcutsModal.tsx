@@ -57,6 +57,8 @@ const shortcuts: Record<typeof sectionKeys[number], Array<{ key: string; command
         },
         { key: "delete", commands: ["backspace"] },
         { key: "multiselect", commands: ["shift+mouse select"] },
+        { key: "copySelectedNodes", commands: ["ctrl+c", "cmd+c"] },
+        { key: "pasteNodes", commands: ["ctrl+v", "cmd+v"] },
     ],
     "workflow-editor": [
         { key: "delete", commands: ["backspace"] },

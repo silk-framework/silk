@@ -14,9 +14,11 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton, NodeContentHandleProps } from "@eccenca/gui-elements";
+import { IconButton, NodeContentHandleProps, NodeContentProps } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+
+type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 /** Constants */
 
@@ -72,6 +74,8 @@ export interface IOperatorCreateContext {
     readOnlyMode: boolean;
     /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
     languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
+    /** change node size */
+    changeNodeSize: (nodeId: string, newNodeDimensions: NodeContentProps<any>["nodeDimensions"]) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -117,7 +121,7 @@ function createOperatorNode(
     );
     const type = nodeType(node.pluginType, node.pluginId);
 
-    const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
+    let data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
         label: node.label,
         minimalShape: "none",
@@ -159,6 +163,10 @@ function createOperatorNode(
         contentExtension: operatorContext.ruleEvaluationContext.supportsEvaluation
             ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
             : undefined,
+        onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
+        resizeDirections: { right: true },
+        resizeMaxDimensions: { width: 1400 },
+        nodeDimensions: node.dimension ? (node.dimension as NodeContentProps<any>["nodeDimensions"]) : undefined,
     };
 
     return {
