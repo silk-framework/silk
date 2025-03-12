@@ -174,11 +174,8 @@ export const requestDatasetCharacteristics = async (
 type taskPayloadType = {
     taskType?: string;
     type?: string;
-    parameters: {
-        filesRegex: string;
-        outputEntities: string;
-    };
-    templates: {};
+    parameters: Record<string, any>;
+    templates: Record<string, any>;
 };
 
 export const performAction = ({

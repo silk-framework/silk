@@ -770,6 +770,14 @@ export function CreateArtefactModal() {
                         const project = updateExistingTask?.projectId || currentProject?.id || projectId;
                         if (!project) return;
                         const formValues = form.getValues();
+                        const { parameters, variableTemplateParameters } =
+                            commonOp.splitParameterAndVariableTemplateParameters(
+                                formValues,
+                                templateParameters.current
+                            );
+                        const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
+                        const variableTemplateData =
+                            commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
                         const result = await performAction({
                             projectId: project,
                             taskId: updateExistingTask?.taskId ?? "task",
@@ -779,11 +787,10 @@ export function CreateArtefactModal() {
                                     updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey),
                                 type: selectedArtefact.key,
                                 parameters: {
-                                    filesRegex: formValues.filesRegex ?? ".*",
-                                    outputEntities: formValues.outputEntities ?? "false",
+                                    ...parameterData,
                                 },
                                 templates: {
-                                    ...commonOp.buildNestedTaskParameterObject(templateParameters.current),
+                                    ...variableTemplateData,
                                 },
                             },
                         });
