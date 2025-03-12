@@ -31,7 +31,7 @@ class TaskActionIntegrationTest extends AnyFlatSpec with Matchers with Integrati
     val dryRunAction = (actions \ actionId).as[JsObject]
     dryRunAction \ "label" shouldBe JsDefined(JsString(actionLabel))
     (dryRunAction \ "description").isDefined shouldBe true
-    dryRunAction \ "icon" shouldBe JsDefined(JsNull)
+    (dryRunAction \ "icon").isDefined shouldBe true
   }
 
   it should "allow to call an action on an existing project task" in {

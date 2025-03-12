@@ -250,11 +250,11 @@ object ClassPluginDescription {
   private def getActions[T](pluginClass: Class[T]): ListMap[String, ClassPluginAction] = {
     val actionsAnnotations = {
       pluginClass.getMethods
-        .flatMap { method => method.getAnnotations.collect { case a: Action => a } }
-        .sortBy(_.index())
+        .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method.getName, a)) }
+        .sortBy(_._2.index())
     }
 
-    val actions = actionsAnnotations.map { action =>
+    val actions = actionsAnnotations.map { case (name, action) =>
       val method = pluginClass.getMethods.find(_.getAnnotations.contains(action)).get
       val provideContext = method.getParameters match {
         case Array() =>
@@ -265,7 +265,7 @@ object ClassPluginDescription {
           throw new InvalidPluginException(s"Action method ${method.getName} in class ${pluginClass.getName} has an invalid signature. " +
             s"Only methods with no parameters or a single PluginContext parameter are allowed.")
       }
-      (action.label(), ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile())))
+      (name, ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile())))
     }
 
     ListMap(actions: _*)
@@ -381,12 +381,18 @@ object ClassPluginDescription {
 case class ClassPluginAction(method: Method, provideContext: Boolean, label: String, description: String, icon: Option[String]) extends PluginAction {
 
   override def apply(plugin: AnyRef)(implicit context: PluginContext): Option[String] = {
-    val result =
-      if(provideContext) {
-        method.invoke(plugin, context)
-      } else {
-        method.invoke(plugin)
+    val result = {
+      try {
+        if (provideContext) {
+          method.invoke(plugin, context)
+        } else {
+          method.invoke(plugin)
+        }
+      } catch {
+        case ex: InvocationTargetException if ex.getCause != null =>
+          throw ex.getCause
       }
+    }
     result match {
       case Some(value) => Some(value.toString)
       case None | null => None
