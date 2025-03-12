@@ -813,6 +813,8 @@ export function CreateArtefactModal() {
                 ) : (
                     <Button
                         outlined
+                        fill
+                        ellipsizeText
                         loading={taskActionLoading == actionKey}
                         disabled={!!taskActionLoading}
                         data-test-id={`${actionKey}-btn`}
@@ -828,24 +830,24 @@ export function CreateArtefactModal() {
     }
 
     const pluginActionsMenu =
-        pluginActions.length > MAX_SINGLEPLUGINBUTTONS ? (
-            <ContextMenu
-                key="menu-pluginactions"
-                disabled={!!taskActionLoading}
-                togglerElement={
-                    <Button
-                        outlined
-                        text={t("CreateModal.pluginActions")}
-                        loading={!!taskActionLoading}
-                        rightIcon={"toggler-caretdown"}
-                    />
-                }
-            >
-                {pluginActions}
-            </ContextMenu>
-        ) : (
-            pluginActions
-        );
+        pluginActions.length > MAX_SINGLEPLUGINBUTTONS
+            ? [
+                  <ContextMenu
+                      key="menu-pluginactions"
+                      disabled={!!taskActionLoading}
+                      togglerElement={
+                          <Button
+                              outlined
+                              text={t("CreateModal.pluginActions")}
+                              loading={!!taskActionLoading}
+                              rightIcon={"toggler-caretdown"}
+                          />
+                      }
+                  >
+                      {pluginActions}
+                  </ContextMenu>,
+              ]
+            : pluginActions;
 
     const headerOptions: JSX.Element[] = [];
     if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
@@ -1039,6 +1041,7 @@ export function CreateArtefactModal() {
                     ]
                 )
             }
+            actionsProps={{ noWrap: true }}
             notifications={notifications.length > 0 ? notifications : undefined}
         >
             {
