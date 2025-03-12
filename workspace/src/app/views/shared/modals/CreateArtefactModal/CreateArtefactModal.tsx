@@ -27,6 +27,7 @@ import {
     ContextMenu,
     Accordion,
     AccordionItem,
+    Depiction,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -809,6 +810,11 @@ export function CreateArtefactModal() {
                         key={actionKey}
                         onClick={executeAction}
                         htmlTitle={action.description}
+                        icon={
+                            action.icon ? (
+                                <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
+                            ) : undefined
+                        }
                     />
                 ) : (
                     <Button
@@ -821,6 +827,11 @@ export function CreateArtefactModal() {
                         key={actionKey}
                         onClick={executeAction}
                         tooltip={action.description}
+                        icon={
+                            action.icon ? (
+                                <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
+                            ) : undefined
+                        }
                     >
                         {action.label}
                     </Button>
