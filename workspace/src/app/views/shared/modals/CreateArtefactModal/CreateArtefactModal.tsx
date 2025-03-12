@@ -428,6 +428,7 @@ export function CreateArtefactModal() {
         setIsProjectImport(false);
         setToBeAdded(undefined);
         setCurrentProject(undefined);
+        setTaskActionResult(undefined);
         form.reset();
         setFormValueChanges({});
         form.clearError();
