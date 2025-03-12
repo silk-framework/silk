@@ -806,10 +806,10 @@ export function CreateArtefactModal() {
                 return describedActions.length > MAX_SINGLEPLUGINBUTTONS ? (
                     <MenuItem
                         text={action.label}
+                        tooltip={action.description}
                         data-test-id={`${actionKey}-btn`}
                         key={actionKey}
                         onClick={executeAction}
-                        htmlTitle={action.description}
                         icon={
                             action.icon ? (
                                 <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
