@@ -21,7 +21,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import utils, { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
@@ -138,6 +138,8 @@ export const RuleEditorToolbar = () => {
         }
     };
 
+    const numberOfCopiedNodes = modelContext.copiedNodesCount;
+
     return (
         <>
             {ruleEditorContext.editorTitle ? (
@@ -218,6 +220,21 @@ export const RuleEditorToolbar = () => {
                 <ToolbarSection canGrow>
                     <Spacing vertical size={"small"} />
                 </ToolbarSection>
+                {numberOfCopiedNodes ? (
+                    <>
+                        <Icon
+                            name="item-copy"
+                            tooltipText={t("RuleEditor.toolbar.copiedNotificationText", {
+                                numberOfNodes: `${numberOfCopiedNodes} node${numberOfCopiedNodes > 1 ? "s" : ""}`,
+                            })}
+                            tooltipProps={{
+                                isOpen: true,
+                                placement: "left",
+                            }}
+                        />
+                        <Spacing vertical size={"small"} />
+                    </>
+                ) : null}
                 {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                     <ToolbarSection>

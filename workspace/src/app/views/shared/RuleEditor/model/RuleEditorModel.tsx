@@ -50,6 +50,8 @@ import StickyMenuButton from "../view/components/StickyMenuButton";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { PUBLIC_URL } from "../../../../constants/path";
+import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
@@ -121,9 +123,40 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
+    /** when a node is clicked the selected nodes appears here */
+    const [selectedElements, updateSelectedElements] = React.useState<Elements | null>(null);
+    const [copiedNodesCount, setCopiedNodesCount] = React.useState<number>(0);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
+
+    React.useEffect(() => {
+        if (copiedNodesCount) {
+            setTimeout(() => {
+                setCopiedNodesCount(0);
+            }, 3000);
+        }
+    }, [copiedNodesCount]);
+
+    React.useEffect(() => {
+        const handlePaste = async (e) => await pasteNodes(e);
+        const handleCopy = async (e) => {
+            if (selectedElements) {
+                await copyNodes(
+                    selectedElements.map((n) => n.id),
+                    e
+                );
+                e.preventDefault();
+            }
+        };
+        window.addEventListener("paste", handlePaste);
+        window.addEventListener("copy", handleCopy);
+
+        return () => {
+            window.removeEventListener("paste", handlePaste);
+            window.removeEventListener("copy", handleCopy);
+        };
+    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements]);
 
     const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
         if (ruleOperatorNode) {
@@ -484,6 +517,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addOrMergeRuleModelChange = (ruleModelChanges: RuleModelChanges) => {
         const lastChange = asChangeNodeParameter(ruleUndoStack[ruleUndoStack.length - 1]);
         const parameterChange = asChangeNodeParameter(ruleModelChanges);
+
         if (
             parameterChange &&
             lastChange &&
@@ -494,6 +528,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleUndoStack.push(ruleModelChanges);
         } else {
             ruleUndoStack.push(ruleModelChanges);
+            console.log("Rule undo stack ==>", ruleUndoStack);
         }
     };
 
@@ -1222,6 +1257,130 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, true);
     };
 
+    const pasteNodes = async (e: any) => {
+        try {
+            const clipboardData = e.clipboardData?.getData("Text");
+            const pasteInfo = JSON.parse(clipboardData); // Parse JSON
+            if (pasteInfo.task) {
+                changeElementsInternal((els) => {
+                    const nodes = pasteInfo.task.data.nodes ?? [];
+                    const nodeIdMap = new Map<string, string>();
+                    const newNodes: RuleEditorNode[] = [];
+                    nodes.forEach((node) => {
+                        const position = { x: node.position.x + 100, y: node.position.y + 100 };
+                        const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
+                        if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
+                        const newNode = createNodeInternal(
+                            op,
+                            position,
+                            Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                        );
+                        if (newNode) {
+                            nodeIdMap.set(node.id, newNode.id);
+                            newNodes.push({
+                                ...newNode,
+                                data: {
+                                    ...newNode.data,
+                                    introductionTime: {
+                                        run: 1800,
+                                        delay: 300,
+                                    },
+                                },
+                            });
+                        }
+                    });
+                    const newEdges: Edge[] = [];
+                    pasteInfo.task.data.edges.forEach((edge) => {
+                        if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                            const newEdge = utils.createEdge(
+                                nodeIdMap.get(edge.source)!!,
+                                nodeIdMap.get(edge.target)!!,
+                                edge.targetHandle!!,
+                                edge.type ?? "step"
+                            );
+                            newEdges.push(newEdge);
+                        }
+                    });
+                    startChangeTransaction();
+                    const withNodes = addAndExecuteRuleModelChangeInternal(
+                        RuleModelChangesFactory.addNodes(newNodes),
+                        els
+                    );
+                    resetSelectedElements();
+                    setTimeout(() => {
+                        unsetUserSelection();
+                        setSelectedElements([...newNodes, ...newEdges]);
+                    }, 100);
+                    return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
+                });
+            }
+        } catch (err) {
+            //todo handle errors
+            const unExpectedTokenError = /Unexpected token/.exec(err?.message ?? "");
+            if (unExpectedTokenError) {
+                //that is, not the expected json format that contains nodes
+                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err);
+            } else {
+                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err);
+            }
+        }
+    };
+
+    const copyNodes = async (nodeIds: string[], event?: any) => {
+        //Get nodes and related edges
+        const nodeIdMap = new Map<string, string>(nodeIds.map((id) => [id, id]));
+        const edges: Partial<Edge>[] = [];
+
+        const originalNodes = utils.nodesById(elements, nodeIds);
+        const nodes = originalNodes.map((node) => {
+            const ruleOperatorNode = node.data.businessData.originalRuleOperatorNode;
+            return {
+                id: node.id,
+                pluginId: ruleOperatorNode.pluginId,
+                pluginType: ruleOperatorNode.pluginType,
+                position: node.position,
+            };
+        });
+
+        elements.forEach((elem) => {
+            if (utils.isEdge(elem)) {
+                const edge = utils.asEdge(elem)!!;
+                if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                    //edges worthy of copying
+                    edges.push({
+                        source: edge.source,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: edge.type ?? "step",
+                    });
+                }
+            }
+        });
+        //paste to clipboard.
+        const { projectId, editedItemId, editedItem } = ruleEditorContext;
+        const taskType = (editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
+        const data = JSON.stringify({
+            task: {
+                data: {
+                    nodes,
+                    edges,
+                },
+                metaData: {
+                    domain: PUBLIC_URL,
+                    project: projectId,
+                    task: editedItemId,
+                },
+            },
+        });
+        if (event) {
+            event.clipboardData.setData("text/plain", data);
+            event.preventDefault();
+        } else {
+            copyToClipboard(data);
+        }
+        setCopiedNodesCount(nodes.length);
+    };
+
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition = { x: 100, y: 100 }) => {
         changeElementsInternal((els) => {
@@ -1768,6 +1927,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 canvasId,
+                updateSelectedElements,
+                copiedNodesCount,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
@@ -1786,6 +1947,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
+                    copyNodes,
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,

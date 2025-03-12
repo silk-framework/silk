@@ -98,7 +98,7 @@ export const RuleNodeMenu = ({
                     />
                 ) : null}
                 <MenuItem
-                    data-test-id="rule-node-evaluate-btn"
+                    data-test-id="rule-node-reset-size-btn"
                     icon="item-reset"
                     disabled={resizeResetIsDisabled}
                     onClick={() => modelContext.executeModelEditOperation.changeSize(nodeId, undefined)}
