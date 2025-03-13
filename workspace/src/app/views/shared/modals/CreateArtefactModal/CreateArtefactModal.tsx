@@ -1054,7 +1054,16 @@ export function CreateArtefactModal() {
                 )
             }
             actionsProps={{ noWrap: true }}
-            notifications={notifications.length > 0 ? notifications : undefined}
+            notifications={
+                notifications.length > 0
+                    ? notifications.map((notification, idx) => (
+                          <>
+                              {notification}
+                              {idx < notifications.length - 1 && <Spacing size="small" />}
+                          </>
+                      ))
+                    : undefined
+            }
         >
             {
                 <>
