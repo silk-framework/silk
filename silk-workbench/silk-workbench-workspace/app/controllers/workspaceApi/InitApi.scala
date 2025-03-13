@@ -30,6 +30,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
   private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
+  private val apiKey = "com.eccenca.di.assistant.ApiConfig.apiKey"
   private val versionKey = "workbench.version"
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
@@ -48,6 +49,10 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     } else {
       None
     }
+  }
+
+  lazy val assistantSupported: Boolean = {
+    cfg.hasPath(apiKey) && cfg.getString(apiKey) != ""
   }
 
   @Operation(
@@ -71,7 +76,8 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       "initialLanguage" -> initialLanguage(request),
       "hotKeys" -> Json.toJson(hotkeys()),
       "maxFileUploadSize" -> maxUploadSize,
-      "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled
+      "templatingEnabled" -> GlobalTemplateVariablesConfig.isEnabled,
+      "assistantSupported" -> assistantSupported
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
