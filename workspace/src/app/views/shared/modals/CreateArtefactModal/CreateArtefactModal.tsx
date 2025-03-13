@@ -28,6 +28,7 @@ import {
     Accordion,
     AccordionItem,
     Depiction,
+    Spinner,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -823,14 +824,15 @@ export function CreateArtefactModal() {
                         outlined
                         fill
                         ellipsizeText
-                        loading={taskActionLoading == actionKey}
                         disabled={!!taskActionLoading}
                         data-test-id={`${actionKey}-btn`}
                         key={actionKey}
                         onClick={executeAction}
                         tooltip={action.description}
                         icon={
-                            action.icon ? (
+                            taskActionLoading == actionKey ? (
+                                <Spinner size="tiny" />
+                            ) : action.icon ? (
                                 <Depiction image={<img src={action.icon} />} forceInlineSvg ratio="1:1" size="tiny" />
                             ) : undefined
                         }
@@ -851,9 +853,9 @@ export function CreateArtefactModal() {
                       togglerElement={
                           <Button
                               outlined
+                              disabled={!!taskActionLoading}
                               text={t("CreateModal.pluginActions")}
-                              loading={!!taskActionLoading}
-                              rightIcon={"toggler-caretdown"}
+                              rightIcon={taskActionLoading ? <Spinner size="tiny" /> : "toggler-caretdown"}
                           />
                       }
                   >
