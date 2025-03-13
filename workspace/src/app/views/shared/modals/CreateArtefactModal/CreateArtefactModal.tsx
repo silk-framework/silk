@@ -796,6 +796,7 @@ export function CreateArtefactModal() {
                                 },
                             },
                         });
+                        resetModalError();
                         setTaskActionResult({ label: action.label, message: result.data.message });
                     } catch (err) {
                         setTaskActionResult(undefined);
