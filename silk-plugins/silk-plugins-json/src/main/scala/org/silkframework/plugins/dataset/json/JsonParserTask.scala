@@ -44,7 +44,7 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
           )
         )
       case None =>
-        FlexibleSchemaPort
+        FlexibleSchemaPort()
     }
     FixedNumberOfInputs(Seq(inputPort))
   }
@@ -53,6 +53,6 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
     * The output is adapted to the connected operator.
     */
   override def outputPort: Option[Port] = {
-    Some(FlexibleSchemaPort)
+    Some(FlexibleSchemaPort())
   }
 }

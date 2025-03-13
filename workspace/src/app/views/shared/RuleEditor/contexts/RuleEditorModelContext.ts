@@ -28,6 +28,8 @@ export interface RuleEditorModelContextProps {
     saveRule: () => Promise<boolean> | boolean;
     /** If there are unsaved changes. */
     unsavedChanges: boolean;
+    /** Number of selected nodes copied */
+    copiedNodesCount: number;
     /** Executes an operation that will change the model. */
     executeModelEditOperation: IModelActions;
     /** Undo last changes. Return true if changes have been undone. */
@@ -47,6 +49,7 @@ export interface RuleEditorModelContextProps {
     ruleOperatorNodes: () => IRuleOperatorNode[];
     /** The ID of the rule editor canvas element. */
     canvasId: string;
+    updateSelectedElements: (elements: Elements | null) => void;
 }
 
 export interface IModelActions {
@@ -86,6 +89,8 @@ export interface IModelActions {
     deleteEdges: (edgeIds: string[]) => void;
     /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */
     copyAndPasteNodes: (nodeIds: string[], offset?: XYPosition) => void;
+    /** Just copy a selection of nodes. */
+    copyNodes: (nodeIds: string[], offset?: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
     /** changes the size of a node to the given new dimensions */
@@ -129,6 +134,8 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         return false;
     },
     unsavedChanges: false,
+    copiedNodesCount: 0,
+    updateSelectedElements: () => {},
     executeModelEditOperation: {
         startChangeTransaction: NOP,
         addStickyNode: NOP,
@@ -146,6 +153,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         deleteEdges: NOP,
         changeSize: NOP,
         fixNodeInputs: NOP,
+        copyNodes: NOP,
         changeStickyNodeProperties: NOP,
     },
     undo: () => false,

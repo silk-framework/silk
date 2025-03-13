@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{FixedSchemaPort, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution._
@@ -95,10 +95,10 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionRepo
         case Some(transformTask) =>
           val input = loadInput(transformTask.data.selection, transformTask.data.inputSchema, None)
           ExecutorRegistry.execute[TransformSpec, ExecutionType](transformTask, Seq(input),
-            ExecutorOutput(None, Some(entitySchema)), execution)
+            ExecutorOutput(None, Some(FixedSchemaPort(entitySchema))), execution)
         case None =>
           val datasetTask = task.project.task[GenericDatasetSpec](selection.inputId)
-          ExecutorRegistry.execute(datasetTask, Seq.empty, ExecutorOutput(None, Some(updatedEntitySchema)), execution)
+          ExecutorRegistry.execute(datasetTask, Seq.empty, ExecutorOutput(None, Some(FixedSchemaPort(updatedEntitySchema))), execution)
       }
 
     result.getOrElse(throw AbortExecutionException(s"The input task ${selection.inputId} did not generate any result"))

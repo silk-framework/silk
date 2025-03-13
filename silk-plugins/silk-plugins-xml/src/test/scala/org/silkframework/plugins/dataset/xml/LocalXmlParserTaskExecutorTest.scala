@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 
-import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.config.{FixedSchemaPort, PlainTask, Prefixes}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
@@ -43,8 +43,8 @@ class LocalXmlParserTaskExecutorTest extends AnyFlatSpec with Matchers with Exec
   }
 
   it should "return the specified result if an outputSchema was defined" in {
-    val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath)))
-    val result = exec.execute(PlainTask(Identifier("id"), task), inputs = inputs, ExecutorOutput(None, outputSchema), execution = localExecutionContext)
+    val outputPort = FixedSchemaPort(EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath)))
+    val result = exec.execute(PlainTask(Identifier("id"), task), inputs = inputs, ExecutorOutput(None, Some(outputPort)), execution = localExecutionContext)
     result mustBe defined
     val entities = result.get.entities.toSeq
     entities.size mustBe 1
@@ -55,8 +55,8 @@ class LocalXmlParserTaskExecutorTest extends AnyFlatSpec with Matchers with Exec
 
   it should "use the inputPath if defined" in {
     val adaptedTask = task.copy(inputPath = "<http://prop2>")
-    val outputSchema = Some(EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath)))
-    val result = exec.execute(PlainTask(Identifier("id"), adaptedTask), inputs = inputs, ExecutorOutput(None, outputSchema), execution = localExecutionContext)
+    val outputPort = FixedSchemaPort(EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath)))
+    val result = exec.execute(PlainTask(Identifier("id"), adaptedTask), inputs = inputs, ExecutorOutput(None, Some(outputPort)), execution = localExecutionContext)
     result mustBe defined
     val entities = result.get.entities.toSeq
     entities.size mustBe 1
@@ -66,7 +66,7 @@ class LocalXmlParserTaskExecutorTest extends AnyFlatSpec with Matchers with Exec
   it should "support full dataset execution on the parsed XML" in {
     val outputSchema = EntitySchema(Uri(""), IndexedSeq(UntypedPath("a").asStringTypedPath))
     val result = exec.execute(PlainTask(Identifier("id"), task), inputs,
-      output = ExecutorOutput(None, Some(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema)))),
+      output = ExecutorOutput(None, Some(FixedSchemaPort(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema))))),
       execution = LocalExecution(false)
     )
     result mustBe defined

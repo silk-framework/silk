@@ -122,7 +122,8 @@ object CsvDataset {
         SpecialPaths.LINE,
         SpecialPaths.COLUMN
       )),
-      supportsMultipleTables = false
+      supportsMultipleTables = false,
+      explicitSchema = true
     )
   }
 

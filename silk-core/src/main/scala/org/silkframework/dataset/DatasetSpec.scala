@@ -82,12 +82,12 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     } else if(characteristics.supportsMultipleWrites) {
       FlexibleNumberOfInputs()
     } else {
-      FlexibleNumberOfInputs(FlexibleSchemaPort, 0, Some(1))
+      FlexibleNumberOfInputs(FlexibleSchemaPort(), 0, Some(1))
     }
   }
 
   /** Datasets don't have a static EntitySchema. It is defined by the following task. */
-  override def outputPort: Option[Port] = Some(FlexibleSchemaPort)
+  override def outputPort: Option[Port] = Some(FlexibleSchemaPort(explicitSchema = characteristics.explicitSchema))
 
   /** The resources that are referenced by this dataset. */
   override def referencedResources: Seq[Resource] = plugin.referencedResources
