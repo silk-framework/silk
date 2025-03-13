@@ -16,6 +16,8 @@ case class XmlZipWithoutResourcesProjectMarshaling() extends XmlZipProjectMarsha
   def includeResources: Boolean = false
 
   override def isPreferred: Boolean = false
+
+  override def qualifier: Option[String] = Some("no-resources")
 }
 
 object XmlZipWithoutResourcesProjectMarshaling {

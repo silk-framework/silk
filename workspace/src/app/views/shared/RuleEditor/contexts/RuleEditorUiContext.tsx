@@ -1,5 +1,5 @@
 import React from "react";
-import { OnLoadParams } from "react-flow-renderer";
+import { Elements, OnLoadParams } from "react-flow-renderer";
 
 /** Context for all UI related properties. */
 export interface RuleEditorUiContextProps {
@@ -26,6 +26,8 @@ export interface RuleEditorUiContextProps {
     hideMinimap?: boolean;
     /** Defines minimun and maximum of the available zoom levels */
     zoomRange?: [number, number];
+    onSelection: (elements: Elements | null) => void;
+    selectionState: { elements: Elements | null };
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
@@ -41,4 +43,6 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     showRuleOnly: false,
     hideMinimap: false,
     zoomRange: [0.25, 1.5],
+    onSelection: () => {},
+    selectionState: { elements: null },
 });

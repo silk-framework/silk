@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{FixedSchemaPort, PlainTask, Port, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.plugin._
@@ -23,7 +23,7 @@ object ReconfigureTasks {
     }
 
     private def collectConfigProperties(buffer: mutable.Buffer[String], prefix: String = ""): Unit = {
-      for (param <- pluginDesc.parameters if param.visibleInDialog) {
+      for (param <- pluginDesc.parameters) {
         param.parameterType match {
           case _: StringParameterType[_] =>
             buffer.append(prefix + param.name)
@@ -40,6 +40,13 @@ object ReconfigureTasks {
   }
 
   implicit class ReconfigurableTask[T <: TaskSpec](task: Task[T]) {
+
+    /**
+     * Retrieves the config port of this task.
+     */
+    def configPort: Port = {
+      FixedSchemaPort(configSchema)
+    }
 
     /**
      * Retrieves the schema of the config port of this task.
