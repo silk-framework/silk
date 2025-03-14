@@ -45,6 +45,8 @@ interface IProps {
     parentId?: string;
     scrollIntoView: ({ topOffset }) => any;
     onAddNewRule: (callback: () => any) => any;
+    // Called when the edit mode got cancelled
+    onCancelEdit?: () => any;
     scrollElementIntoView: () => any;
     ruleData: object;
     viewActions: IViewActions;
@@ -259,6 +261,7 @@ export const ObjectRuleForm = (props: IProps) => {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
         toggleTabViewDirtyState(false);
+        props.onCancelEdit?.();
     };
 
     const checkUriPattern = async (uriPattern: string) => {

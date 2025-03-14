@@ -95,7 +95,11 @@ interface IProps {
     //
     scrollIntoView: ({ topOffset }) => any;
     parentId?: string;
+    // Called when the rule has been saved
     onAddNewRule?: (call: () => any) => any;
+    // Called when the edit mode got cancelled
+    onCancelEdit?: () => any;
+    // Called when the rule editor for a specific rule should be opened
     openMappingEditor: (ruleId: string) => void;
     viewActions: IViewActions;
 }
@@ -132,14 +136,11 @@ export function ValueRuleForm(props: IProps) {
 
     // Delay a bit so direct user interactions are not disturbed by re-renderings
     const changeValuePathInputHasFocus = React.useCallback(
-        debounce(
-            (hasFocus: boolean) => {
-                setValuePathInputHasFocus(hasFocus)
-            },
-            200
-        ),
+        debounce((hasFocus: boolean) => {
+            setValuePathInputHasFocus(hasFocus);
+        }, 200),
         []
-    )
+    );
 
     const autoCompleteRuleId = id || parentId;
 
@@ -331,6 +332,7 @@ export function ValueRuleForm(props: IProps) {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
         toggleTabViewDirtyState(false);
+        props.onCancelEdit?.();
     };
 
     // Closes the edit form. Reacts to changes in the mapping rules.
@@ -414,7 +416,13 @@ export function ValueRuleForm(props: IProps) {
                         validationErrorText={"The entered value path is invalid."}
                         onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
                         fetchSuggestions={(input, cursorPosition) =>
-                            fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false, mappingEditorContext.taskContext)
+                            fetchValuePathSuggestions(
+                                autoCompleteRuleId,
+                                input,
+                                cursorPosition,
+                                false,
+                                mappingEditorContext.taskContext
+                            )
                         }
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
