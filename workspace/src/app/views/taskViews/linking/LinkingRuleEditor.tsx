@@ -23,7 +23,6 @@ import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings"
 import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import { IStickyNote } from "../shared/task.typings";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 import Loading from "../../shared/Loading";
@@ -33,7 +32,7 @@ import {
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
-import { Notification, highlighterUtils } from "@eccenca/gui-elements";
+import {Notification, highlighterUtils, StickyNote} from "@eccenca/gui-elements";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -187,7 +186,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Save the rule. */
     const saveLinkageRule = async (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[] = []
+        stickyNotes: StickyNote[] = []
     ): Promise<RuleSaveResult> => {
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);

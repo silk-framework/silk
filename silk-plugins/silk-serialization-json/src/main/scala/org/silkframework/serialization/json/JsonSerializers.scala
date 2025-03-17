@@ -76,9 +76,15 @@ object JsonSerializers {
       val id = stringValue(json, ID)
       val content = stringValue(json, CONTENT)
       val color = stringValue(json, COLOR)
-      val position = fromJsonValidated[(Double, Double)](mustBeDefined(json, POSITION))
-      val dimension = fromJsonValidated[(Double, Double)](mustBeDefined(json, DIMENSION))
-      StickyNote(id, content, color, position, dimension)
+      val positionObject = mustBeDefined(json, POSITION)
+      var position = NodePositionJsonFormat.read(positionObject)
+      // For backward compatibility
+      if(positionObject.isInstanceOf[JsArray]) {
+        optionalValue(json, DIMENSION).map(fromJsonValidated[(Double, Double)]).foreach { case (width, height) =>
+          position = position.copy(width = Some(width.toInt), height = Some(height.toInt))
+        }
+      }
+      StickyNote(id, content, color, position)
     }
 
     override def write(stickyNote: StickyNote)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -86,8 +92,7 @@ object JsonSerializers {
         ID -> stickyNote.id,
         CONTENT -> stickyNote.content,
         COLOR -> stickyNote.color,
-        POSITION -> Json.toJson(stickyNote.position),
-        DIMENSION -> Json.toJson(stickyNote.dimension)
+        POSITION -> NodePositionJsonFormat.write(stickyNote.nodePosition)
       )
     }
   }

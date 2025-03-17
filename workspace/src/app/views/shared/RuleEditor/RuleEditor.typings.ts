@@ -1,4 +1,4 @@
-import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
@@ -130,8 +130,6 @@ interface NodePosition {
     x: number;
     y: number;
 }
-
-type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 export interface RuleOperatorNodeParameters {
     [parameterKey: string]: RuleEditorNodeParameterValue;
