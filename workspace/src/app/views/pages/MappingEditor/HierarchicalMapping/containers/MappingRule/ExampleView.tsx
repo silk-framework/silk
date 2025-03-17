@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from "react";
 
-import { Chip } from "gui-elements-deprecated";
 import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
 
 import { childExampleAsync, ruleExampleAsync } from "../../store";
 import { InfoBox } from "../../components/InfoBox";
-import { IconButton, Markdown, Notification, Spinner, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import {
+    IconButton,
+    Markdown,
+    Notification,
+    Spinner,
+    Toolbar,
+    ToolbarSection,
+    Tag,
+    Table,
+    TableContainer,
+    TableBody,
+    TableHeader,
+    TableHead,
+    TableRow,
+    TableCell,
+} from "@eccenca/gui-elements";
 import EventEmitter from "../../utils/EventEmitter";
 import { MESSAGES } from "../../utils/constants";
 import { useTranslation } from "react-i18next";
@@ -152,49 +166,69 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
 
     return (
         <InfoBox>
-            <table
-                data-test-id={"example-preview-table"}
-                className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table"
-            >
-                <thead>
-                    <tr>
-                        <th className="ecc-silk-mapping__rulesviewer__examples-table__path">Value path</th>
-                        <th className="ecc-silk-mapping__rulesviewer__examples-table__value">Value</th>
-                        <th className="ecc-silk-mapping__rulesviewer__examples-table__result">Transformed value</th>
-                    </tr>
-                </thead>
-                {_.map(examples.results, (result, index) => (
-                    <tbody key={`tbody_${index}`}>
-                        {sourcePaths.map((sourcePath, i) => (
-                            <tr key={`${index}_${sourcePath}_${i}`} id={`${index}_${sourcePath}_${i}`}>
-                                <td key="path" className="ecc-silk-mapping__rulesviewer__examples-table__path">
-                                    {sourcePath ? <Chip>&lrm;{sourcePath}&lrm;</Chip> : false}
-                                </td>
-                                <td key="value" className="ecc-silk-mapping__rulesviewer__examples-table__value">
-                                    {_.map(result.sourceValues[i], (value, valueIndex) => (
-                                        <Chip key={`${index}_${sourcePath}_${i}_${valueIndex}`}>{value}</Chip>
-                                    ))}
-                                </td>
-                                {i > 0 ? (
-                                    false
-                                ) : (
-                                    <td
-                                        key="result"
-                                        className="ecc-silk-mapping__rulesviewer__examples-table__result"
-                                        rowSpan={pathsCount}
+            <TableContainer className="ecc-silk-mapping__rulesviewer__examples-table">
+                <Table data-test-id={"example-preview-table"}>
+                    <TableHead>
+                        <TableRow>
+                            <TableHeader className="ecc-silk-mapping__rulesviewer__examples-table__path">
+                                Value path
+                            </TableHeader>
+                            <TableHeader className="ecc-silk-mapping__rulesviewer__examples-table__value">
+                                Value
+                            </TableHeader>
+                            <TableHeader className="ecc-silk-mapping__rulesviewer__examples-table__result">
+                                Transformed value
+                            </TableHeader>
+                        </TableRow>
+                    </TableHead>
+                    {_.map(examples.results, (result, index) => (
+                        <TableBody key={`tbody_${index}`}>
+                            {sourcePaths.map((sourcePath, i) => (
+                                <TableRow key={`${index}_${sourcePath}_${i}`} id={`${index}_${sourcePath}_${i}`}>
+                                    <TableCell
+                                        key="path"
+                                        className="ecc-silk-mapping__rulesviewer__examples-table__path"
                                     >
-                                        {_.map(examples.results[index].transformedValues, (transformedValue, row) => (
-                                            <Chip key={`value_${index}_${i}_${row}`} id={`value_${index}_${i}_${row}`}>
-                                                {transformedValue}
-                                            </Chip>
+                                        {sourcePath ? <Tag round>&lrm;{sourcePath}&lrm;</Tag> : false}
+                                    </TableCell>
+                                    <TableCell
+                                        key="value"
+                                        className="ecc-silk-mapping__rulesviewer__examples-table__value"
+                                    >
+                                        {_.map(result.sourceValues[i], (value, valueIndex) => (
+                                            <Tag round key={`${index}_${sourcePath}_${i}_${valueIndex}`}>
+                                                {value}
+                                            </Tag>
                                         ))}
-                                    </td>
-                                )}
-                            </tr>
-                        ))}
-                    </tbody>
-                ))}
-            </table>
+                                    </TableCell>
+                                    {i > 0 ? (
+                                        false
+                                    ) : (
+                                        <TableCell
+                                            key="result"
+                                            className="ecc-silk-mapping__rulesviewer__examples-table__result"
+                                            rowSpan={pathsCount}
+                                        >
+                                            {_.map(
+                                                examples.results[index].transformedValues,
+                                                (transformedValue, row) => (
+                                                    <Tag
+                                                        round
+                                                        key={`value_${index}_${i}_${row}`}
+                                                        id={`value_${index}_${i}_${row}`}
+                                                    >
+                                                        {transformedValue}
+                                                    </Tag>
+                                                )
+                                            )}
+                                        </TableCell>
+                                    )}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    ))}
+                </Table>
+            </TableContainer>
         </InfoBox>
     );
 };
