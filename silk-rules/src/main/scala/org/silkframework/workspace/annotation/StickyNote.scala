@@ -23,8 +23,8 @@ object StickyNote {
       val id = (xml \ "@id").text
       val color = (xml \ "@color").text
       val content = (xml \ "Content").text
-      val x = (xml \ "Position" \ "@x").text.toInt
-      val y = (xml \ "Position" \ "@y").text.toInt
+      val x = (xml \ "Position" \ "@x").text.toDouble.toInt
+      val y = (xml \ "Position" \ "@y").text.toDouble.toInt
       val widthOption = (xml \ "Dimension" \ "@width").headOption.filter(_.text.trim.nonEmpty).map(_.text.toDouble.toInt)
       val heightOption = (xml \ "Dimension" \ "@height").headOption.filter(_.text.trim.nonEmpty).map(_.text.toDouble.toInt)
       StickyNote(id, content, color, NodePosition(x, y, widthOption, heightOption))
