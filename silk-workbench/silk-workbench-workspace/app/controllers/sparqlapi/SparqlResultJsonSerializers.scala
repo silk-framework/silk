@@ -111,6 +111,7 @@ object SparqlResultJsonSerializers extends JsonFormat[SparqlResults] {
       case SparqlJsonVariableBinding(typ: String, value: String, _: String, _) if typ == "literal" => PlainLiteral(value)
       case SparqlJsonVariableBinding(typ: String, value: String, _: String, _) if typ == "bnode" => BlankNode(value)
       case SparqlJsonVariableBinding(typ: String, value: String, _: String, _) if typ == "uri" => Resource(value)
+      case _ => throw new IllegalArgumentException("Invalid SparqlJsonVariableBinding: " + b)
     }
   }
 }

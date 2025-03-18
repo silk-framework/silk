@@ -47,15 +47,13 @@ public @interface Param {
 
   /**
    * Hint to the UI that it should only allow to set values for the parameter coming from the auto-completion. The hint
-   * is only forwarded to the UI if the a non-default auto-completion provider is set.
-   *
-   * If autoCompleteValueWithLabels is true allowOnlyAutoCompletedValues should also be true, at the moment.
+   * is only forwarded to the UI if the non-default auto-completion provider is set.
    */
   boolean allowOnlyAutoCompletedValues() default false;
 
-  /** Defines that the auto-completed values have labels that must be displayed to the user.
-   *
-   *  If autoCompleteValueWithLabels is true allowOnlyAutoCompletedValues should also be true, at the moment. */
+  /**
+   * Defines that the auto-completed values have labels that must be displayed to the user.
+   */
   boolean autoCompleteValueWithLabels() default false;
 
   /** The plugin parameter values the auto-completion depends on. Without those values given no auto-completion is possible. */

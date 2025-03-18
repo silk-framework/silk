@@ -4,8 +4,6 @@ import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.serialization.json.JsonSerializers
@@ -15,7 +13,6 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.json._
 
-import java.io.File
 import java.util.logging.LogRecord
 import scala.reflect.ClassTag
 
@@ -88,7 +85,7 @@ object JsonSerializer {
       ("id" -> JsString(marshaller.id)) ::
       ("label" -> JsString(marshaller.name)) ::
       ("description" -> JsString(marshaller.pluginSpec.description)) ::
-      ("fileExtension" -> marshaller.suffix.map(JsString).orNull) ::
+      ("fileExtension" -> JsString(marshaller.fileExtension)) ::
       ("mediaType" -> marshaller.mediaType.map(JsString).orNull) :: Nil
     )
   }

@@ -19,7 +19,12 @@ object AkkaUtils {
   def createSource[T](observable: Observable[T], maxFrequency: Option[FiniteDuration] = None)
                      (implicit system: ActorSystem, mat: Materializer): Source[T, _] = {
     // Create new source
-    var actorSource = Source.actorRef(1, OverflowStrategy.dropHead)
+    var actorSource = Source.actorRef(
+      completionMatcher = PartialFunction.empty,
+      failureMatcher = PartialFunction.empty,
+      bufferSize = 1,
+      overflowStrategy = OverflowStrategy.dropHead
+    )
     for(duration <- maxFrequency) {
       actorSource = actorSource.throttle(1, duration)
     }

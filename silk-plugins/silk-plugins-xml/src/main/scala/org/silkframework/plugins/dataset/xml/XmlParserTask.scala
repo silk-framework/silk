@@ -40,7 +40,7 @@ case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
           )
         )
       case None =>
-        FlexibleSchemaPort
+        FlexibleSchemaPort()
     }
     FixedNumberOfInputs(Seq(inputPort))
   }
@@ -49,7 +49,7 @@ case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
     * The schema of the output data.
     * This works like a dataset and can handle arbitrary entity schemata
     */
-  override lazy val outputPort: Option[Port] = Some(FlexibleSchemaPort)
+  override lazy val outputPort: Option[Port] = Some(FlexibleSchemaPort())
 }
 
 object XmlParserTask {

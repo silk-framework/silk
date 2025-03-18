@@ -59,6 +59,8 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     parameters: RuleOperatorNodeParameters;
     /** The position on the canvas. */
     position?: NodePosition;
+    /** The node size */
+    dimension?: NodeDimensions;
     /** The input node IDs. */
     inputs: (string | undefined)[];
     /** Tags that will be displayed inside the node. */
@@ -91,7 +93,7 @@ export interface IParameterSpecification {
     /** some required fields have additional labels to specify what values are acceptable */
     requiredLabel?: string;
     /** The order index of this parameter. The index in the order of the parameter. First parameter starts with 0. */
-    orderIdx: number
+    orderIdx: number;
 }
 
 export interface IParameterValidationResult {
@@ -130,6 +132,8 @@ interface NodePosition {
     x: number;
     y: number;
 }
+
+type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 export interface RuleOperatorNodeParameters {
     [parameterKey: string]: RuleEditorNodeParameterValue;

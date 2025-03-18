@@ -59,7 +59,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.13.15",
+  scalaVersion := "2.13.16",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -118,7 +118,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.13.10"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.4"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -127,8 +127,8 @@ lazy val rules = (project in file("silk-rules"))
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.3",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "5.2.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.2.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "5.3.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.3.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -149,7 +149,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.2.0" % "test",
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.3.0" % "test",
     libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
 )
 
@@ -358,7 +358,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.13.10"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.4"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
