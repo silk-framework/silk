@@ -205,11 +205,10 @@ describe("Rule editor model", () => {
     };
 
     const stickyNoteNodeBootstrap = async (stickyNote = "note") => {
-        const noteNode = {
+        const noteNode: StickyNote = {
             id: modelUtils.freshNodeId("sticky"),
             content: stickyNote,
-            position: {x: 50, y: 120},
-            dimension: {width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT},
+            position: {x: 50, y: 120, width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT},
             color: "#000000",
         };
         await ruleEditorModel(undefined, undefined, undefined, undefined, [noteNode]);
