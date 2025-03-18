@@ -92,7 +92,7 @@ object JsonSerializers {
         ID -> stickyNote.id,
         CONTENT -> stickyNote.content,
         COLOR -> stickyNote.color,
-        POSITION -> NodePositionJsonFormat.write(stickyNote.nodePosition)
+        POSITION -> NodePositionJsonFormat.write(stickyNote.position)
       )
     }
   }

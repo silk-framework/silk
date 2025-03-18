@@ -10,12 +10,12 @@ import scala.xml.{Node, PCData}
   * @param id        The ID of the sticky note.
   * @param content   The text content of the note.
   * @param color     Color of the note.
-  * @param nodePosition The position and dimension of the sticky note.
+  * @param position The position and dimension of the sticky note.
   */
 case class StickyNote(id: String,
                       content: String,
                       color: String,
-                      nodePosition: NodePosition)
+                      position: NodePosition)
 
 object StickyNote {
   implicit object StickyNodeXmlFormat extends XmlFormat[StickyNote] {
@@ -34,8 +34,8 @@ object StickyNote {
       val content = PCData(stickyNote.content)
       <StickyNote id={stickyNote.id} color={stickyNote.color}>
         <Content xml:space="preserve">{content}</Content>
-        <Position x={stickyNote.nodePosition.x.toString} y={stickyNote.nodePosition.y.toString} />
-        <Dimension width={stickyNote.nodePosition.width.map(_.toString).getOrElse("")} height={stickyNote.nodePosition.height.map(_.toString).getOrElse("")} />
+        <Position x={stickyNote.position.x.toString} y={stickyNote.position.y.toString} />
+        <Dimension width={stickyNote.position.width.map(_.toString).getOrElse("")} height={stickyNote.position.height.map(_.toString).getOrElse("")} />
       </StickyNote>
     }
   }
