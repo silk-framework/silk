@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
+import { ScrollingHOC } from "gui-elements-deprecated";
 import {
     Button,
     CodeAutocompleteField,
@@ -9,6 +9,12 @@ import {
     Spinner,
     TextArea,
     TextField,
+    Card,
+    CardActions,
+    CardContent,
+    CardTitle,
+    CardHeader,
+    Divider,
 } from "@eccenca/gui-elements";
 import { AffirmativeButton, DismissiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
@@ -50,6 +56,8 @@ interface IProps {
     scrollElementIntoView: () => any;
     ruleData: object;
     viewActions: IViewActions;
+    /** do not use Card around content */
+    noCardWrapper?: boolean;
 }
 
 // Extracts the pure URI string if it has the form "<...>"
@@ -280,7 +288,15 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const errorMessage = saveObjectError && <ErrorView {...saveObjectError} />;
 
-    const title = !id && <CardTitle>Add object mapping</CardTitle>;
+    // TODO: add translation
+    const title = !id && (
+        <>
+            <CardHeader>
+                <CardTitle>Add object mapping</CardTitle>
+            </CardHeader>
+            <Divider />
+        </>
+    );
 
     let targetPropertyInput: JSX.Element | undefined = undefined;
     let targetCardinality: JSX.Element | undefined = undefined;
@@ -474,96 +490,105 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     }
 
-    return (
-        <div className="ecc-silk-mapping__ruleseditor">
-            <Card shadow={!id ? 1 : 0}>
-                {title}
-                <CardContent>
-                    {errorMessage}
-                    {targetPropertyInput}
-                    {entityRelationInput}
-                    <MultiAutoComplete
-                        placeholder="Target entity type"
-                        className="ecc-silk-mapping__ruleseditor__targetEntityType"
-                        entity="targetEntityType"
-                        isValidNewOption={newValueIsIRI}
-                        ruleId={autoCompleteRuleId}
-                        value={modifiedValues().targetEntityType}
-                        creatable
-                        onChange={(value) => {
-                            handleChangeValue("targetEntityType", value);
+    const editForm = (
+        <>
+            <CardContent className="ecc-silk-mapping__ruleseditor">
+                {errorMessage}
+                {targetPropertyInput}
+                {entityRelationInput}
+                <MultiAutoComplete
+                    placeholder="Target entity type"
+                    className="ecc-silk-mapping__ruleseditor__targetEntityType"
+                    entity="targetEntityType"
+                    isValidNewOption={newValueIsIRI}
+                    ruleId={autoCompleteRuleId}
+                    value={modifiedValues().targetEntityType}
+                    creatable
+                    onChange={(value) => {
+                        handleChangeValue("targetEntityType", value);
+                    }}
+                    taskContext={mappingEditorContext.taskContext}
+                />
+                {targetCardinality}
+                {sourcePropertyInput}
+                {patternInput}
+                {showUriPatternModal && distinctUriPatterns.length > 0 && (
+                    <UriPatternSelectionModal
+                        onClose={() => setShowUriPatternModal(false)}
+                        uriPatterns={distinctUriPatterns}
+                        onSelect={(uriPattern) => {
+                            setInitialUriPattern(uriPattern.value);
+                            handleChangeValue("pattern", uriPattern.value);
                         }}
-                        taskContext={mappingEditorContext.taskContext}
                     />
-                    {targetCardinality}
-                    {sourcePropertyInput}
-                    {patternInput}
-                    {showUriPatternModal && distinctUriPatterns.length > 0 && (
-                        <UriPatternSelectionModal
-                            onClose={() => setShowUriPatternModal(false)}
-                            uriPatterns={distinctUriPatterns}
-                            onSelect={(uriPattern) => {
-                                setInitialUriPattern(uriPattern.value);
-                                handleChangeValue("pattern", uriPattern.value);
-                            }}
-                        />
-                    )}
-                    {
-                        <FieldItem
-                            data-test-id="object-rule-form-example-preview"
-                            labelProps={{ text: "Examples of target data" }}
-                        >
-                            {previewExamples}
-                        </FieldItem>
+                )}
+                {
+                    <FieldItem
+                        data-test-id="object-rule-form-example-preview"
+                        labelProps={{ text: "Examples of target data" }}
+                    >
+                        {previewExamples}
+                    </FieldItem>
+                }
+                <FieldItem labelProps={{ text: "Label" }}>
+                    <TextField
+                        data-test-id={"object-rule-form-label-input"}
+                        className="ecc-silk-mapping__ruleseditor__label"
+                        defaultValue={props.ruleData["label"]}
+                        onChange={(event) => {
+                            const value = event.target.value;
+                            handleChangeValue("label", value);
+                        }}
+                    />
+                </FieldItem>
+                <FieldItem labelProps={{ text: "Description" }}>
+                    <TextArea
+                        data-test-id={"object-rule-form-description-input"}
+                        className="ecc-silk-mapping__ruleseditor__comment"
+                        defaultValue={props.ruleData["comment"]}
+                        onChange={(event) => {
+                            const value = event.target.value;
+                            handleChangeValue("comment", value);
+                        }}
+                    />
+                </FieldItem>
+            </CardContent>
+            <Divider />
+            <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                <AffirmativeButton
+                    className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                    raised
+                    data-test-id={"object-rule-form-confirm-button"}
+                    onClick={handleConfirm}
+                    disabled={
+                        !allowConfirm ||
+                        !changed ||
+                        (!uriPatternIsValid && modifiedValues().pattern) ||
+                        !objectPathValid
                     }
-                    <FieldItem labelProps={{ text: "Label" }}>
-                        <TextField
-                            data-test-id={"object-rule-form-label-input"}
-                            className="ecc-silk-mapping__ruleseditor__label"
-                            defaultValue={props.ruleData["label"]}
-                            onChange={(event) => {
-                                const value = event.target.value;
-                                handleChangeValue("label", value);
-                            }}
-                        />
-                    </FieldItem>
-                    <FieldItem labelProps={{ text: "Description" }}>
-                        <TextArea
-                            data-test-id={"object-rule-form-description-input"}
-                            className="ecc-silk-mapping__ruleseditor__comment"
-                            defaultValue={props.ruleData["comment"]}
-                            onChange={(event) => {
-                                const value = event.target.value;
-                                handleChangeValue("comment", value);
-                            }}
-                        />
-                    </FieldItem>
-                </CardContent>
-                <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
-                    <AffirmativeButton
-                        className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                        raised
-                        data-test-id={"object-rule-form-confirm-button"}
-                        onClick={handleConfirm}
-                        disabled={
-                            !allowConfirm ||
-                            !changed ||
-                            (!uriPatternIsValid && modifiedValues().pattern) ||
-                            !objectPathValid
-                        }
-                    >
-                        Save
-                    </AffirmativeButton>
-                    <DismissiveButton
-                        className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
-                        raised
-                        onClick={handleClose}
-                    >
-                        Cancel
-                    </DismissiveButton>
-                </CardActions>
+                >
+                    Save
+                </AffirmativeButton>
+                <DismissiveButton
+                    className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
+                    raised
+                    onClick={handleClose}
+                >
+                    Cancel
+                </DismissiveButton>
+            </CardActions>
+        </>
+    );
+
+    return !props.noCardWrapper ? (
+        <div className="ecc-silk-mapping__ruleseditor">
+            <Card elevation={!id ? 1 : -1}>
+                {title}
+                {editForm}
             </Card>
         </div>
+    ) : (
+        editForm
     );
 };
 

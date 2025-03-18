@@ -416,6 +416,7 @@ export function ValueRuleForm(props: IProps) {
             return <Spinner />;
         }
         const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
+        // TODO: add translation
         const title = !id ? (
             <>
                 <CardHeader>
@@ -489,7 +490,7 @@ export function ValueRuleForm(props: IProps) {
 
         const editForm = (
             <>
-                <CardContent>
+                <CardContent className="ecc-silk-mapping__ruleseditor">
                     {errorMessage}
                     <AutoComplete
                         placeholder="Target property"
@@ -597,7 +598,7 @@ export function ValueRuleForm(props: IProps) {
 
         return !props.noCardWrapper ? (
             <div className="ecc-silk-mapping__ruleseditor">
-                <Card elevation={!id ? 0 : -1}>
+                <Card elevation={!id ? 1 : -1}>
                     {title}
                     {editForm}
                 </Card>
