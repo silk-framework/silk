@@ -96,6 +96,11 @@ class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
                                  cancelled: => Boolean)
                                 (implicit userContext: UserContext) {
 
+  /**
+   * Only load up to that many entities per query.
+   */
+  private val maxEntitiesPerQuery = 1000
+
   private val sources = task.dataSources
 
   private val linkSpec = task.data
@@ -178,10 +183,12 @@ class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
       Map.empty
     } else {
       implicit val prefixes: Prefixes = task.project.config.prefixes
-      source.retrieveByUri(
-        entitySchema = entityDesc,
-        entities = entityUris map Uri.apply
-      ).use(_.map { e => (e.uri.toString, e) }.toMap)
+      var entities = Map[String, Entity]()
+      for(uris <- entityUris.grouped(maxEntitiesPerQuery)) {
+        val loadedEntities = source.retrieveByUri(entityDesc, uris map Uri.apply)
+        loadedEntities.use(entities ++= _.map { e => (e.uri.toString, e) })
+      }
+      entities
     }
   }
 
