@@ -435,7 +435,8 @@
             "added": "Added",
             "removed": "Removed",
             "paths": "Paths",
-            "unknown": "Unknown"
+            "unknown": "Unknown",
+            "active": "active"
         },
         "tooltips": {
             "dataset": {
