@@ -11,16 +11,19 @@ trait SparqlMockServerTrait extends MockServerTestTrait {
   def sparqlContent(variables: Seq[String],
                     values: Iterable[Seq[String]],
                     contextPath: String = "/sparql"): ServedContent = ServedContent(content =
-      Some(s"""<?xml version="1.0"?>
-             |<sparql xmlns="http://www.w3.org/2005/sparql-results#">
-             |  <head>
-             |    ${variables.map(v => s"""<variable name="$v"/>""").mkString("    \n")}
-             |  </head>
-             |  <results>
-             |    ${values.map(vals => serializeResult(vals, variables)).mkString(s"${" " * 4}\n")}
-             |  </results>
-             |</sparql>""".stripMargin),
-    contentType = "application/sparql-results+xml",
+      Some(s"""{
+        "head": {
+          "vars": [${variables.map(v => s"\"$v\"").mkString(", ")}]
+        },
+        "results": {
+          "bindings": [
+            ${values.map(vals =>
+              "{ " + variables.zip(vals).map { case (varname, value) => s"\"$varname\": {\"type\": \"literal\", \"value\": \"$value\"}" }.mkString(", ") + " }"
+            ).mkString(", ")}
+          ]
+        }
+      }""".stripMargin),
+      contentType = "application/sparql-results+json",
     statusCode = OK)
 
   private def serializeResult(values: Seq[String], variables: Seq[String]): String = {
