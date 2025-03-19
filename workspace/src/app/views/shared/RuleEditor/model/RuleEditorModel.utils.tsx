@@ -14,11 +14,9 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton, NodeContentHandleProps, NodeContentProps } from "@eccenca/gui-elements";
+import { IconButton, NodeContentHandleProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
-
-type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 /** Constants */
 
@@ -75,7 +73,7 @@ export interface IOperatorCreateContext {
     /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
     languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
     /** change node size */
-    changeNodeSize: (nodeId: string, newNodeDimensions: NodeContentProps<any>["nodeDimensions"]) => void;
+    changeNodeSize: (nodeId: string, newNodeDimensions: NodeDimensions) => void;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -166,7 +164,7 @@ function createOperatorNode(
         onNodeResize: (data) => operatorContext.changeNodeSize(node.nodeId, data),
         resizeDirections: { right: true },
         resizeMaxDimensions: { width: 1400 },
-        nodeDimensions: node.dimension ? (node.dimension as NodeContentProps<any>["nodeDimensions"]) : undefined,
+        nodeDimensions: node.dimension ? (node.dimension as NodeDimensions) : undefined,
     };
 
     return {
