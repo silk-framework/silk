@@ -1,7 +1,6 @@
 import React from "react";
-import { Accordion, AccordionItem, TitleSubsection } from "@eccenca/gui-elements";
+import { Accordion, AccordionItem, TitleSubsection, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import { compact } from "lodash";
 
 interface AdvancedOptionsAreaProps {
     children: any;
@@ -18,10 +17,10 @@ export function AdvancedOptionsArea({ children, open = false, compact = false }:
                 fullWidth
                 elevated
                 noBorder={compact}
-                whitespaceSize={"none"}
+                whitespaceSize={"small"}
                 open={open}
             >
-                {children}
+                <WhiteSpaceContainer marginTop="small">{children}</WhiteSpaceContainer>
             </AccordionItem>
         </Accordion>
     );
