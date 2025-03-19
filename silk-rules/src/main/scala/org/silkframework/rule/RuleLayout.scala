@@ -47,3 +47,7 @@ object RuleLayout {
  * @param height An optional used-defined height. If not provided, the width should be determined by the UI.
  */
 case class NodePosition(x: Int, y: Int, width: Option[Int] = None, height: Option[Int] = None)
+
+object NodePosition {
+  def apply(x: Int, y: Int, width: Int, height: Int): NodePosition = NodePosition(x, y, Some(width), Some(height))
+}

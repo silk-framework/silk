@@ -2,10 +2,8 @@ import { Edge, Node } from "react-flow-renderer";
 import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
-import { NodeContentProps } from "@eccenca/gui-elements";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { CSSProperties } from "react";
-
-type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];
@@ -65,8 +63,8 @@ export interface ChangeNodePosition {
 export interface ChangeNodeSize {
     type: "Change node size";
     nodeId: string;
-    from: NodeDimensions;
-    to: NodeDimensions;
+    from: NodeDimensions | undefined;
+    to: NodeDimensions | undefined;
 }
 export interface ChangeStickyNodeProperties {
     type: "Change sticky node style or content";
@@ -130,7 +128,7 @@ export const RuleModelChangesFactory = {
                 edge,
             }))
         ),
-    changeNodeSize: (nodeId: string, from: NodeDimensions, to: NodeDimensions) =>
+    changeNodeSize: (nodeId: string, from: NodeDimensions | undefined, to: NodeDimensions | undefined) =>
         toRuleModelChanges({ type: "Change node size", nodeId, from, to }),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
