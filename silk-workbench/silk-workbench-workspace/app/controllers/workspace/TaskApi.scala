@@ -85,6 +85,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     implicit val readContext: ReadContext = ReadContext.fromProject(project)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
+      accessMonitor.saveProjectTaskAccess(projectName, task.id)
       implicit val writeContext: WriteContext[JsValue] = WriteContext.fromProject[JsValue](project)
       Created(JsonSerializers.GenericTaskJsonFormat.write(task)).
           withHeaders(LOCATION -> routes.TaskApi.getTask(projectName, task.id).path())
@@ -141,6 +142,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
       }
       project.updateAnyTask(task.id, task.data, Some(task.metaData))
+      accessMonitor.saveProjectTaskAccess(projectName, taskName)
       Ok
     }
   }
@@ -211,6 +213,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
     project.updateAnyTask(updatedTask.id, updatedTask.data, Some(updatedTask.metaData))
 
+    accessMonitor.saveProjectTaskAccess(projectName, taskName)
     Ok
   }
 
