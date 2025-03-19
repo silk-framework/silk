@@ -14,6 +14,7 @@ import {
     IRequestAutocompletePayload,
     IResourceListPayload,
     ITaskMetadataResponse,
+    TaskPlugin,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { DatasetCharacteristics } from "../../../views/shared/typings";
@@ -171,13 +172,7 @@ export const requestDatasetCharacteristics = async (
     });
 };
 
-type taskPayloadType = {
-    taskType?: string;
-    type?: string;
-    parameters: Record<string, any>;
-    templates: Record<string, any>;
-};
-
+/** Executes actions for different parameters passed */
 export const performAction = ({
     projectId,
     taskId,
@@ -187,7 +182,7 @@ export const performAction = ({
     projectId: string;
     taskId: string;
     actionKey: string;
-    taskPayload: taskPayloadType;
+    taskPayload: TaskPlugin;
 }) => {
     return fetch({
         url: rootPath(`/workspace/projects/${projectId}/tasks/${taskId}/action/${actionKey}`),

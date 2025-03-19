@@ -786,8 +786,8 @@ export function CreateArtefactModal() {
                             taskId: updateExistingTask?.taskId ?? "task",
                             actionKey,
                             taskPayload: {
-                                taskType:
-                                    updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey),
+                                taskType: (updateExistingTask?.taskPluginDetails.taskType ??
+                                    taskType(selectedArtefactKey)) as TaskType,
                                 type: selectedArtefact.key,
                                 parameters: {
                                     ...parameterData,
