@@ -172,7 +172,7 @@ export const requestDatasetCharacteristics = async (
     });
 };
 
-/** Executes actions for different parameters passed */
+/** Executes custom actions of a task. The task must either already exist in the backend or it can be provided with the request. */
 export const performAction = ({
     projectId,
     taskId,
@@ -182,7 +182,7 @@ export const performAction = ({
     projectId: string;
     taskId: string;
     actionKey: string;
-    taskPayload: TaskPlugin;
+    taskPayload: TaskPlugin | undefined;
 }) => {
     return fetch({
         url: rootPath(`/workspace/projects/${projectId}/tasks/${taskId}/action/${actionKey}`),
