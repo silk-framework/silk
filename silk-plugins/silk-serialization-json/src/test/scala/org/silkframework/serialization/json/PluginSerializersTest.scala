@@ -16,7 +16,7 @@ class PluginSerializersTest extends AnyFlatSpec with Matchers {
   private final val PROPERTIES = "properties"
 
   it should "serialize schema of plugins with object parameters without schema correctly" in {
-    serialize(classOf[Workflow], overviewOnly = true)._1.keys mustBe Set("title", "categories", "description")
+    serialize(classOf[Workflow], overviewOnly = true)._1.keys mustBe Set("title", "categories", "description", "actions")
     val (js, pd) = serialize(classOf[Workflow], taskType = Some("W"))
     stringValue(js, "title") mustBe pd.label
     stringValue(js, "type") mustBe "object"
@@ -31,7 +31,7 @@ class PluginSerializersTest extends AnyFlatSpec with Matchers {
   }
 
   it should "serialize schema of plugins with object parameters with schema correctly" in {
-    serialize(classOf[TransformSpec], overviewOnly = true)._1.keys mustBe Set("title", "categories", "description")
+    serialize(classOf[TransformSpec], overviewOnly = true)._1.keys mustBe Set("title", "categories", "description", "actions")
     val (js, pd) = serialize(classOf[TransformSpec])
     stringValue(js, "title") mustBe pd.label
     stringValue(js, "type") mustBe "object"
