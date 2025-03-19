@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.scalatest.{BeforeAndAfterAll, TestSuite}
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterValues, PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -78,10 +78,10 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     super.afterAll()
   }
 
-  def retrieveOrCreateProject(projectId: Identifier)(implicit userContext: UserContext): Project = {
+  def retrieveOrCreateProject(projectId: Identifier, prefixes: Prefixes = Prefixes.default)(implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace(userContext).findProject(projectId) match{
       case Some(p) => p
-      case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId, metaData = MetaData(Some(projectId))))
+      case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId, metaData = MetaData(Some(projectId)), projectPrefixes = prefixes))
     }
   }
 }

@@ -19,8 +19,8 @@ import utils from "./RuleEditor.utils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
-import {Notification} from "@eccenca/gui-elements"
-import {diErrorMessage} from "@ducks/error/typings";
+import { Notification } from "@eccenca/gui-elements";
+import { diErrorMessage } from "@ducks/error/typings";
 
 /** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
