@@ -2,9 +2,7 @@ import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
-import { NodeContentProps } from "@eccenca/gui-elements";
-
-type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -94,7 +92,7 @@ export interface IModelActions {
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
     /** changes the size of a node to the given new dimensions */
-    changeSize: (nodeId: string, newNodeDimension: NodeDimensions) => void;
+    changeSize: (nodeId: string, newNodeDimension: NodeDimensions | undefined) => void;
     /** changes stickyNode properties such as style and content */
     changeStickyNodeProperties: (nodeId: string, color?: string, content?: string) => void;
     /** Moves nodes by a specific offset. */

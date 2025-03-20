@@ -88,7 +88,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
         nodePositions = Map("compareNames" -> NodePosition(1, 2))
       ),
       uiAnnotations = UiAnnotations(
-        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", (0, 0), (1, 1)))
+        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", NodePosition(0, 0, 1, 1)))
       )
     )
 
@@ -151,7 +151,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                       nodePositions = Map(
                         "lower" -> NodePosition(0, 1),
                         "concat" -> NodePosition(3, 4, Some(250)),
-                        "path" -> NodePosition(5, 6, Some(250), Some(300))
+                        "path" -> NodePosition(5, 6, 250, 300)
                       )
                     ),
                     uiAnnotations = UiAnnotations(
@@ -160,8 +160,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                           id = "stickyId",
                           content = "test",
                           color = "#000",
-                          position = (12,23),
-                          dimension = (32, 32)
+                          NodePosition(12,23, 32, 32)
                         )
                       )
                     )
@@ -241,7 +240,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
             WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
-            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
+            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", NodePosition(0, 0, 1, 1)))
           ),
           replaceableInputs = Seq(DATASET_ID),
           replaceableOutputs = Seq(OUTPUTS_DATASET_ID)

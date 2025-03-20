@@ -19,9 +19,8 @@ import utils from "../../RuleEditor.utils";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
 import { RuleEditorNode } from "../RuleEditorModel.typings";
 import { rangeArray } from "../../../../../utils/basicUtils";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
-import { nodeDefaultUtils } from "@eccenca/gui-elements";
+import { nodeDefaultUtils, StickyNote } from "@eccenca/gui-elements";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -74,7 +73,7 @@ describe("Rule editor model", () => {
             toRuleOperatorNode: RuleEditorValidationNode,
             targetPortIdx: number
         ) => boolean = () => true,
-        stickyNotes: IStickyNote[] = []
+        stickyNotes: StickyNote[] = []
     ) => {
         modelContext = undefined;
         const ruleModel = withMount(
@@ -175,7 +174,7 @@ describe("Rule editor model", () => {
             label: paramId,
             required: false,
             type: "textField",
-            orderIdx: 1
+            orderIdx: 1,
         };
     };
 
@@ -207,11 +206,10 @@ describe("Rule editor model", () => {
     };
 
     const stickyNoteNodeBootstrap = async (stickyNote = "note") => {
-        const noteNode = {
+        const noteNode: StickyNote = {
             id: modelUtils.freshNodeId("sticky"),
             content: stickyNote,
-            position: [50, 120],
-            dimension: [DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT],
+            position: { x: 50, y: 120, width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT },
             color: "#000000",
         };
         await ruleEditorModel(undefined, undefined, undefined, undefined, [noteNode]);
@@ -736,17 +734,17 @@ describe("Rule editor model", () => {
     });
 
     it("should undo and redo complex change chains", async () => {
-        const stateHistory: (IRuleOperatorNode | IStickyNote)[][] = [];
+        const stateHistory: (IRuleOperatorNode | StickyNote)[][] = [];
         const stateHistoryLabel: string[] = [];
         await stickyNoteNodeBootstrap();
         const currentStickyNodes = () =>
             currentContext().elements.reduce((stickyNodes, elem) => {
                 if (modelUtils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                     const node = modelUtils.asNode(elem)!;
-                    stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as IStickyNote);
+                    stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as StickyNote);
                 }
                 return stickyNodes;
-            }, [] as IStickyNote[]);
+            }, [] as StickyNote[]);
         const allNodes = () => [...currentOperatorNodes(), ...currentStickyNodes()];
         const recordCurrentState = (stateLabel: string) => {
             stateHistory.push(allNodes());
