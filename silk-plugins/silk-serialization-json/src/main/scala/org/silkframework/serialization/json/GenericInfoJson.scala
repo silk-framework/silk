@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.rule.vocab.GenericInfo
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.util.Uri
@@ -14,7 +14,7 @@ case class GenericInfoJson(
   label: Option[String] = None,
   @Schema(description = "The description of this schema element")
   description: Option[String] = None,
-  @Schema(description = "Alternative labels of this schema element")
+  @ArraySchema(schema = new Schema(description = "Alternative labels of this schema element", implementation = classOf[String]))
   altLabels: Option[Seq[String]] = None,
   @Schema(description = "The URI of the vocabulary where this element is defined")
   vocabularyUri: Option[String] = None
