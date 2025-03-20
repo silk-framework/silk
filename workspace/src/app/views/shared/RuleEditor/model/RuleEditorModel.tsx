@@ -43,8 +43,14 @@ import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InteractionGate, Markdown, nodeDefaultUtils, NodeContentProps } from "@eccenca/gui-elements";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
+import {
+    InteractionGate,
+    Markdown,
+    nodeDefaultUtils,
+    NodeContentProps,
+    StickyNote,
+    NodeDimensions,
+} from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
@@ -52,8 +58,6 @@ import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
 import { copyToClipboard } from "../../../../utils/copyToClipboard";
-
-type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -805,7 +809,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeSizeInternal = (elementsWithSizeChanges: Map<string, NodeDimensions>, els: Elements) => {
+    const changeNodeSizeInternal = (
+        elementsWithSizeChanges: Map<string, NodeDimensions | undefined>,
+        els: Elements
+    ) => {
         return els.map((elem) => {
             if (utils.isNode(elem) && elementsWithSizeChanges.has(elem.id)) {
                 const node = utils.asNode(elem)!!;
@@ -1800,10 +1807,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
             if (utils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                 const node = utils.asNode(elem)!;
-                stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as IStickyNote);
+                stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as StickyNote);
             }
             return stickyNodes;
-        }, [] as IStickyNote[]);
+        }, [] as StickyNote[]);
 
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), stickyNodes);
         if (saveResult.success) {
@@ -1877,21 +1884,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             })
         );
 
-        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, dimension, id }) =>
-            createStickyNodeInternal(
-                color,
-                content,
-                {
-                    x: position[0],
-                    y: position[1],
-                },
-                {
-                    width: dimension[0],
-                    height: dimension[1],
-                },
-                id
-            )
-        );
+        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) => {
+            const { x, y, width, height } = position;
+            return createStickyNodeInternal(color, content, { x, y }, { width, height }, id);
+        });
 
         let elems: Elements = [...nodes, ...edges, ...stickyNodes];
         if (needsLayout) {

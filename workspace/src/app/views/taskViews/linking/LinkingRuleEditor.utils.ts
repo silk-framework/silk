@@ -24,7 +24,7 @@ import { RuleOperatorType, TaskPlugin } from "@ducks/shared/typings";
 import linkingRuleRequests from "./LinkingRuleEditor.requests";
 import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { IStickyNote } from "../shared/task.typings";
+import { StickyNote } from "@eccenca/gui-elements";
 
 /**
  * Convert to editor model:
@@ -111,7 +111,7 @@ const extractSimilarityOperatorNode = (
 };
 
 /** gets preloaded ui sticky notes */
-const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): IStickyNote[] =>
+const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): StickyNote[] =>
     (linkSpec && optionallyLabelledParameterToValue(linkSpec.parameters.rule).uiAnnotations.stickyNotes) || [];
 
 /** Converts the linking task rule to the internal representation. */
