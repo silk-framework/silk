@@ -64,17 +64,9 @@ export const NodeContent = ({
                 parameterSpecification: paramSpec,
             };
         })
-        // Required parameters to the top, advanced to the bottom, sort alphabetically
+        // Sort by order given in the plugin spec
         .sort((paramA, paramB) => {
-            return paramA.parameterSpecification.required !== paramB.parameterSpecification.required
-                ? paramA.parameterSpecification.required
-                    ? -1
-                    : 1
-                : paramA.parameterSpecification.advanced !== paramB.parameterSpecification.advanced
-                ? paramA.parameterSpecification.advanced
-                    ? 1
-                    : -1
-                : paramA.parameterSpecification.label.toLowerCase() < paramB.parameterSpecification.label.toLowerCase()
+            return paramA.parameterSpecification.orderIdx < paramB.parameterSpecification.orderIdx
                 ? -1
                 : 1;
         });

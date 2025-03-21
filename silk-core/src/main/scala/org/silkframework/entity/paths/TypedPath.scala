@@ -69,6 +69,10 @@ case class TypedPath(
   }
 
   override def toString: String = s"$normalizedSerialization (${valueType.label})"
+
+  override def withOperators(newOperators: List[PathOperator]): TypedPath = {
+    copy(operators = newOperators)
+  }
 }
 
 object TypedPath {

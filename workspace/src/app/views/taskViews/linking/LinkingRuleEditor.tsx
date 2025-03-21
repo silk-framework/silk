@@ -241,6 +241,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         type: "int",
         advanced: true,
         defaultValue: "1",
+        orderIdx: -0.5,
     });
 
     const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
@@ -289,6 +290,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             defaultValue: "0.0",
             customValidation: customValidation(pluginDetails.distanceMeasureRange),
             distanceMeasureRange: pluginDetails.distanceMeasureRange,
+            orderIdx: -1,
         });
     };
 

@@ -1,4 +1,5 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
+import { IViewActions } from "../../views/plugins/PluginRegistry";
 import { TestableComponent } from "@eccenca/gui-elements";
 
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
@@ -107,6 +108,16 @@ export interface BrandingProps {
 export interface ParameterExtensions {
     /** Extends the given parameter definition (or leaves it as it is). */
     extend: (input: IArtefactItemProperty) => IArtefactItemProperty;
+}
+
+/** Props for mapping suggestion. */
+export interface SuggestionNGProps {
+    // Project the transform task is in.
+    projectId: string;
+    // The transform task to create matches for.
+    transformTaskId: string;
+    // Generic actions and callbacks that could be necessary.
+    viewActions?: IViewActions;
 }
 
 /** The preview gets a fixed list of types and their values. */

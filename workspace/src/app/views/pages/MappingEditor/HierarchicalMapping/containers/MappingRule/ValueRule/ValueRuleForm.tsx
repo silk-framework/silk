@@ -1,11 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
+import { ScrollingHOC } from "gui-elements-deprecated";
+import { debounce } from "lodash";
 import {
     AffirmativeButton,
     DismissiveButton,
     TextField as LegacyTextField,
 } from "@eccenca/gui-elements/src/legacy-replacements";
-import { CodeAutocompleteField, FieldItem, IconButton, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
+import {
+    Card,
+    CardActions,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Divider,
+    CodeAutocompleteField,
+    FieldItem,
+    IconButton,
+    Spacing,
+    Spinner,
+    TextField,
+} from "@eccenca/gui-elements";
 import _ from "lodash";
 import ExampleView from "../ExampleView";
 import store, { checkValuePathValidity, fetchValuePathSuggestions } from "../../../store";
@@ -94,9 +108,15 @@ interface IProps {
     //
     scrollIntoView: ({ topOffset }) => any;
     parentId?: string;
+    // Called when the rule has been saved
     onAddNewRule?: (call: () => any) => any;
+    // Called when the edit mode got cancelled
+    onCancelEdit?: () => any;
+    // Called when the rule editor for a specific rule should be opened
     openMappingEditor: (ruleId: string) => void;
     viewActions: IViewActions;
+    /** do not use Card around content */
+    noCardWrapper?: boolean;
 }
 
 /** The edit form of a value mapping rule. */
@@ -128,6 +148,14 @@ export function ValueRuleForm(props: IProps) {
             label: mappingEditorContext.valueTypeLabels.get(valueType.nodeType) ?? valueType.nodeType,
         });
     }, []);
+
+    // Delay a bit so direct user interactions are not disturbed by re-renderings
+    const changeValuePathInputHasFocus = React.useCallback(
+        debounce((hasFocus: boolean) => {
+            setValuePathInputHasFocus(hasFocus);
+        }, 200),
+        []
+    );
 
     const autoCompleteRuleId = id || parentId;
 
@@ -319,6 +347,7 @@ export function ValueRuleForm(props: IProps) {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
         toggleTabViewDirtyState(false);
+        props.onCancelEdit?.();
     };
 
     // Closes the edit form. Reacts to changes in the mapping rules.
@@ -387,7 +416,17 @@ export function ValueRuleForm(props: IProps) {
             return <Spinner />;
         }
         const errorMessage = error ? <ErrorView {...error.response.body} /> : false;
-        const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
+        // TODO: add translation
+        const title = !id ? (
+            <>
+                <CardHeader>
+                    <CardTitle>Add value mapping</CardTitle>
+                </CardHeader>
+                <Divider />
+            </>
+        ) : (
+            <></>
+        );
 
         let sourcePropertyInput: React.ReactElement | undefined = undefined;
 
@@ -402,11 +441,17 @@ export function ValueRuleForm(props: IProps) {
                         validationErrorText={"The entered value path is invalid."}
                         onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
                         fetchSuggestions={(input, cursorPosition) =>
-                            fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false, mappingEditorContext.taskContext)
+                            fetchValuePathSuggestions(
+                                autoCompleteRuleId,
+                                input,
+                                cursorPosition,
+                                false,
+                                mappingEditorContext.taskContext
+                            )
                         }
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
-                        onFocusChange={setValuePathInputHasFocus}
+                        onFocusChange={changeValuePathInputHasFocus}
                         rightElement={<ComplexRuleEditButton />}
                     />
                 </>
@@ -443,114 +488,123 @@ export function ValueRuleForm(props: IProps) {
                 />
             ) : null;
 
-        return (
-            <div className="ecc-silk-mapping__ruleseditor">
-                <Card shadow={!id ? 1 : 0}>
-                    {title}
-                    <CardContent>
-                        {errorMessage}
-                        <AutoComplete
-                            placeholder="Target property"
-                            className="ecc-silk-mapping__ruleseditor__targetProperty"
-                            entity="targetProperty"
-                            newOptionCreator={convertToUri}
-                            isValidNewOption={newValueIsIRI}
-                            creatable
-                            value={targetProperty}
-                            ruleId={autoCompleteRuleId}
-                            onChange={handleChangeSelectBox.bind(null, "targetProperty", setTargetProperty)}
-                            resetQueryToValue={true}
-                            itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
-                            taskContext={mappingEditorContext.taskContext}
-                        />
-                        <AutoComplete
-                            placeholder="Data type"
-                            className="ecc-silk-mapping__ruleseditor__propertyType"
-                            entity="propertyType"
-                            ruleId={autoCompleteRuleId}
-                            value={{ value: valueType.nodeType, label: valueType.label }}
-                            clearable={false}
-                            onChange={handleChangePropertyType}
-                            showValueWhenLabelExists={false}
-                        />
-                        {valueType.nodeType === "CustomValueType" && (
-                            <FieldItem
-                                hasStateDanger={!!customURIErrorMsg}
-                                messageText={customURIErrorMsg}
-                                labelProps={{
-                                    htmlFor: "uri",
-                                    text: "URI",
-                                }}
-                            >
-                                <TextField
-                                    id="uri"
-                                    intent={!!customURIErrorMsg ? "danger" : "none"}
-                                    onChange={handleCustomURITextField}
-                                    value={valueType.uri}
-                                />
-                            </FieldItem>
-                        )}
-                        {valueType.nodeType === "LanguageValueType" && (
-                            <AutoComplete
-                                data-id="lng-select-box"
-                                placeholder="Language Tag"
-                                className="ecc-silk-mapping__ruleseditor__languageTag"
-                                entity="langTag"
-                                ruleId={autoCompleteRuleId}
-                                options={LANGUAGES_LIST}
-                                value={valueType.lang}
-                                onChange={handleChangeLanguageTag}
-                                isValidNewOption={(option) => !_.isNull(option.label.match(/^[a-z]{2}(-[A-Z]{2})?$/))}
-                                creatable={true}
-                                noResultsText="Not a valid language tag"
-                                newOptionText={(newLabel) => `Create language tag: ${newLabel}`}
-                                clearable={false} // hide 'remove all selected values' button
+        const editForm = (
+            <>
+                <CardContent className="ecc-silk-mapping__ruleseditor">
+                    {errorMessage}
+                    <AutoComplete
+                        placeholder="Target property"
+                        className="ecc-silk-mapping__ruleseditor__targetProperty"
+                        entity="targetProperty"
+                        newOptionCreator={convertToUri}
+                        isValidNewOption={newValueIsIRI}
+                        creatable
+                        value={targetProperty}
+                        ruleId={autoCompleteRuleId}
+                        onChange={handleChangeSelectBox.bind(null, "targetProperty", setTargetProperty)}
+                        resetQueryToValue={true}
+                        itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
+                        taskContext={mappingEditorContext.taskContext}
+                    />
+                    <AutoComplete
+                        placeholder="Data type"
+                        className="ecc-silk-mapping__ruleseditor__propertyType"
+                        entity="propertyType"
+                        ruleId={autoCompleteRuleId}
+                        value={{ value: valueType.nodeType, label: valueType.label }}
+                        clearable={false}
+                        onChange={handleChangePropertyType}
+                        showValueWhenLabelExists={false}
+                    />
+                    {valueType.nodeType === "CustomValueType" && (
+                        <FieldItem
+                            hasStateDanger={!!customURIErrorMsg}
+                            messageText={customURIErrorMsg}
+                            labelProps={{
+                                htmlFor: "uri",
+                                text: "URI",
+                            }}
+                        >
+                            <TextField
+                                id="uri"
+                                intent={!!customURIErrorMsg ? "danger" : "none"}
+                                onChange={handleCustomURITextField}
+                                value={valueType.uri}
                             />
-                        )}
-                        <TargetCardinality
-                            className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            isAttribute={isAttribute}
-                            isObjectMapping={false}
-                            onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
+                        </FieldItem>
+                    )}
+                    {valueType.nodeType === "LanguageValueType" && (
+                        <AutoComplete
+                            data-id="lng-select-box"
+                            placeholder="Language Tag"
+                            className="ecc-silk-mapping__ruleseditor__languageTag"
+                            entity="langTag"
+                            ruleId={autoCompleteRuleId}
+                            options={LANGUAGES_LIST}
+                            value={valueType.lang}
+                            onChange={handleChangeLanguageTag}
+                            isValidNewOption={(option) => !_.isNull(option.label.match(/^[a-z]{2}(-[A-Z]{2})?$/))}
+                            creatable={true}
+                            noResultsText="Not a valid language tag"
+                            newOptionText={(newLabel) => `Create language tag: ${newLabel}`}
+                            clearable={false} // hide 'remove all selected values' button
                         />
-                        {sourcePropertyInput}
-                        <Spacing size={"small"} />
-                        {exampleView}
-                        <Spacing size={"small"} />
-                        <LegacyTextField
-                            label="Label"
-                            className="ecc-silk-mapping__ruleseditor__label"
-                            value={label}
-                            onChange={handleChangeTextfield.bind(null, "label", setLabel)}
-                        />
-                        <LegacyTextField
-                            multiline
-                            label="Description"
-                            className="ecc-silk-mapping__ruleseditor__comment"
-                            value={comment}
-                            onChange={handleChangeTextfield.bind(null, "comment", setComment)}
-                        />
-                    </CardContent>
-                    <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
-                        <AffirmativeButton
-                            className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                            raised
-                            onClick={handleConfirm}
-                            disabled={!allowConfirm || (!changed && !!id)}
-                        >
-                            Save
-                        </AffirmativeButton>
-                        <DismissiveButton
-                            data-test-id={"value-rule-form-edit-cancel-btn"}
-                            className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
-                            raised
-                            onClick={handleClose}
-                        >
-                            Cancel
-                        </DismissiveButton>
-                    </CardActions>
+                    )}
+                    <TargetCardinality
+                        className="ecc-silk-mapping__ruleseditor__isAttribute"
+                        isAttribute={isAttribute}
+                        isObjectMapping={false}
+                        onChange={() => handleChangeValue("isAttribute", !isAttribute, setIsAttribute)}
+                    />
+                    {sourcePropertyInput}
+                    <Spacing size={"small"} />
+                    {exampleView}
+                    <Spacing size={"small"} />
+                    <LegacyTextField
+                        label="Label"
+                        className="ecc-silk-mapping__ruleseditor__label"
+                        value={label}
+                        onChange={handleChangeTextfield.bind(null, "label", setLabel)}
+                    />
+                    <LegacyTextField
+                        multiline
+                        label="Description"
+                        className="ecc-silk-mapping__ruleseditor__comment"
+                        value={comment}
+                        onChange={handleChangeTextfield.bind(null, "comment", setComment)}
+                    />
+                </CardContent>
+                <Divider />
+                <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                    <AffirmativeButton
+                        className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                        raised
+                        onClick={handleConfirm}
+                        disabled={!allowConfirm || (!changed && !!id)}
+                    >
+                        Save
+                    </AffirmativeButton>
+                    <DismissiveButton
+                        data-test-id={"value-rule-form-edit-cancel-btn"}
+                        className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
+                        raised
+                        onClick={handleClose}
+                    >
+                        Cancel
+                    </DismissiveButton>
+                </CardActions>
+            </>
+        );
+
+        return !props.noCardWrapper ? (
+            <div className="ecc-silk-mapping__ruleseditor">
+                <Card elevation={!id ? 1 : -1}>
+                    {title}
+                    {editForm}
                 </Card>
             </div>
+        ) : (
+            editForm
         );
     };
     return render();

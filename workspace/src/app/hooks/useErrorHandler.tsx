@@ -18,6 +18,8 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null,
+    /** The notification instance where the error should be displayed. If this is set, the
+     error will NOT be displayed in the global notification widget. */
     errorNotificationInstanceId?: string,
     /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
      * and the return notification element is used. */
@@ -31,7 +33,10 @@ type ErrorHandlerRegisterShortFuncType = (
     cause: DIErrorTypes | null,
     /** The notification instance where the error should be displayed. If this is set, the
      error will NOT be displayed in the global notification widget. */
-    errorNotificationInstanceId?: string
+    errorNotificationInstanceId?: string,
+    /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
+     * and the return notification element is used. */
+    onDismiss?: () => any
 ) => JSX.Element | null;
 
 interface ErrorHandlerDict {
@@ -124,9 +129,10 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
         langKey: string,
         cause: DIErrorTypes | null,
-        errorNotificationInstanceId?: string
+        errorNotificationInstanceId?: string,
+        onDismiss?: () => any
     ) => {
-        return registerError(langKey, t(langKey), cause, errorNotificationInstanceId);
+        return registerError(langKey, t(langKey), cause, errorNotificationInstanceId, onDismiss);
     };
 
     const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {

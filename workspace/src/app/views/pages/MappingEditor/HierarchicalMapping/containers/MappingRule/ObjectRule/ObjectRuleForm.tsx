@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC } from "gui-elements-deprecated";
+import { ScrollingHOC } from "gui-elements-deprecated";
 import {
     Button,
     CodeAutocompleteField,
@@ -9,6 +9,12 @@ import {
     Spinner,
     TextArea,
     TextField,
+    Card,
+    CardActions,
+    CardContent,
+    CardTitle,
+    CardHeader,
+    Divider,
 } from "@eccenca/gui-elements";
 import { AffirmativeButton, DismissiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
 import _ from "lodash";
@@ -45,10 +51,13 @@ interface IProps {
     parentId?: string;
     scrollIntoView: ({ topOffset }) => any;
     onAddNewRule: (callback: () => any) => any;
+    // Called when the edit mode got cancelled
+    onCancelEdit?: () => any;
     scrollElementIntoView: () => any;
     ruleData: object;
-    parent: any;
     viewActions: IViewActions;
+    /** do not use Card around content */
+    noCardWrapper?: boolean;
 }
 
 // Extracts the pure URI string if it has the form "<...>"
@@ -90,7 +99,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const { project, transformTask } = useApiDetails();
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
     const [uriPatternInputHasFocus, setUriPatternInputHasFocus] = useState<boolean>(false);
-    const { id, parentId, parent } = props;
+    const { id, parentId } = props;
 
     const autoCompleteRuleId = id || parentId;
 
@@ -262,6 +271,7 @@ export const ObjectRuleForm = (props: IProps) => {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
         toggleTabViewDirtyState(false);
+        props.onCancelEdit?.();
     };
 
     const checkUriPattern = async (uriPattern: string) => {
@@ -324,7 +334,15 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const errorMessage = saveObjectError && <ErrorView {...saveObjectError} />;
 
-    const title = !id && <CardTitle>Add object mapping</CardTitle>;
+    // TODO: add translation
+    const title = !id && (
+        <>
+            <CardHeader>
+                <CardTitle>Add object mapping</CardTitle>
+            </CardHeader>
+            <Divider />
+        </>
+    );
 
     let targetPropertyInput: JSX.Element | undefined = undefined;
     let targetCardinality: JSX.Element | undefined = undefined;
@@ -481,11 +499,9 @@ export const ObjectRuleForm = (props: IProps) => {
         );
     }
 
-    return (
-        <div className="ecc-silk-mapping__ruleseditor">
-            <Card shadow={!id ? 1 : 0}>
-                {title}
-                <CardContent>
+    const editForm = (
+        <>
+            <CardContent className="ecc-silk-mapping__ruleseditor">
                     {errorMessage}
                     {targetPropertyInput}
                     {entityRelationInput}
@@ -550,31 +566,42 @@ export const ObjectRuleForm = (props: IProps) => {
                         />
                     </FieldItem>
                 </CardContent>
-                <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
-                    <AffirmativeButton
-                        className="ecc-silk-mapping__ruleseditor__actionrow-save"
-                        raised
-                        data-test-id={"object-rule-form-confirm-button"}
-                        onClick={handleConfirm}
-                        disabled={
-                            !allowConfirm ||
-                            !changed ||
-                            (!uriPatternIsValid && modifiedValues().pattern) ||
-                            !objectPathValid
-                        }
-                    >
-                        Save
-                    </AffirmativeButton>
-                    <DismissiveButton
-                        className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
-                        raised
-                        onClick={handleClose}
-                    >
-                        Cancel
-                    </DismissiveButton>
-                </CardActions>
+            <Divider />
+            <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
+                <AffirmativeButton
+                    className="ecc-silk-mapping__ruleseditor__actionrow-save"
+                    raised
+                    data-test-id={"object-rule-form-confirm-button"}
+                    onClick={handleConfirm}
+                    disabled={
+                        !allowConfirm ||
+                        !changed ||
+                        (!uriPatternIsValid && modifiedValues().pattern) ||
+                        !objectPathValid
+                    }
+                >
+                    Save
+                </AffirmativeButton>
+                <DismissiveButton
+                    className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
+                    raised
+                    onClick={handleClose}
+                >
+                    Cancel
+                </DismissiveButton>
+            </CardActions>
+        </>
+    );
+
+    return !props.noCardWrapper ? (
+        <div className="ecc-silk-mapping__ruleseditor">
+            <Card elevation={!id ? 1 : -1}>
+                {title}
+                {editForm}
             </Card>
         </div>
+    ) : (
+        editForm
     );
 };
 

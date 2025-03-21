@@ -22,6 +22,7 @@ import {
 import EventEmitter from "../utils/EventEmitter";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IViewActions } from "../../../../plugins/PluginRegistry";
+import { SuggestionNGProps } from "../../../../plugins/plugin.types";
 import { ParentStructure } from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
 

@@ -34,4 +34,9 @@ class IdentifierGeneratorTest extends AnyFlatSpec with Matchers {
     generator.generate("person") mustBe Identifier("person2")
     generator.generate("person1") mustBe Identifier("person3")
   }
+
+  it should "not remove trailing numbers if not needed for generating a unique id" in {
+    val generator = new IdentifierGenerator()
+    generator.generate("name1") mustBe Identifier("name1")
+  }
 }
