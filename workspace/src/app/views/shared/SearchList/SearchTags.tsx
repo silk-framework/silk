@@ -1,29 +1,34 @@
-import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
-import { SpacingProps } from "@eccenca/gui-elements/src/components/Separation/Spacing";
 import React from "react";
+import { Highlighter, Tag, TagList } from "@eccenca/gui-elements";
+import { ArtefactTag } from "../ArtefactTag";
 
 interface SearchTagsProps {
     searchTags?: string[];
     searchText?: string;
-    // Adds a tiny spacing between the tags
-    withSpacing?: SpacingProps["size"] | "none";
 }
 
+export const searchTagsRenderer = (props: SearchTagsProps): JSX.Element[] => {
+    const { searchTags = [], searchText = "" } = props;
+    return searchTags.map((searchTag) => {
+        const tagContent = <Highlighter label={searchTag} searchValue={searchText} />;
+        const tagProps = {
+            key: searchTag,
+            className: "diapp-searchtags__tag",
+        };
+        return searchTag.includes("Replaceable") ? (
+            <ArtefactTag artefactType="replaceableInput" {...tagProps}>
+                {tagContent}
+            </ArtefactTag>
+        ) : (
+            <Tag emphasis="weaker" {...tagProps}>
+                {tagContent}
+            </Tag>
+        );
+    });
+};
+
 /** Displays search tags. */
-export const SearchTags = ({ searchTags, searchText, withSpacing = "tiny" }: SearchTagsProps) => {
-    if (!searchTags || searchTags.length === 0) {
-        return null;
-    }
-    return (
-        <>
-            {searchTags.map((searchTag) => (
-                <React.Fragment key={searchTag}>
-                    <Tag emphasis="weaker">
-                        <Highlighter label={searchTag} searchValue={searchText}/>
-                    </Tag>
-                    {withSpacing !== "none" ? <Spacing size={withSpacing} vertical /> : null}
-                </React.Fragment>
-            ))}
-        </>
-    );
-}
+export const SearchTags = (props: SearchTagsProps) => {
+    const searchTagsElements = searchTagsRenderer(props);
+    return searchTagsElements.length > 0 ? <TagList className="diapp-searchtags">{searchTagsElements}</TagList> : <></>;
+};

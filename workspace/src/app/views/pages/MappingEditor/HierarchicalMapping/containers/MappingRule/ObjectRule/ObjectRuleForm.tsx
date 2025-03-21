@@ -502,70 +502,70 @@ export const ObjectRuleForm = (props: IProps) => {
     const editForm = (
         <>
             <CardContent className="ecc-silk-mapping__ruleseditor">
-                {errorMessage}
-                {targetPropertyInput}
-                {entityRelationInput}
-                <MultiAutoComplete
-                    placeholder="Target entity type"
-                    className="ecc-silk-mapping__ruleseditor__targetEntityType"
-                    entity="targetEntityType"
-                    isValidNewOption={newValueIsIRI}
-                    ruleId={autoCompleteRuleId}
-                    value={modifiedValues().targetEntityType}
-                    creatable
-                    onChange={(value) => {
-                        handleChangeValue("targetEntityType", value);
-                    }}
-                    taskContext={mappingEditorContext.taskContext}
-                />
-                {targetCardinality}
-                {sourcePropertyInput}
-                {patternInput}
-                {showUriPatternModal && distinctUriPatterns.length > 0 && (
-                    <UriPatternSelectionModal
-                        onClose={() => setShowUriPatternModal(false)}
-                        uriPatterns={distinctUriPatterns}
-                        onSelect={(uriPattern) => {
-                            // Necessary if the URI pattern has been changed and the selected URI pattern is the initial pattern
-                            if (initialUriPattern === uriPattern.value) {
-                                setInitialUriPattern("");
-                            }
-                            setTimeout(() => setInitialUriPattern(uriPattern.value), 0);
-                            handleChangeValue("pattern", uriPattern.value);
+                    {errorMessage}
+                    {targetPropertyInput}
+                    {entityRelationInput}
+                    <MultiAutoComplete
+                        placeholder="Target entity type"
+                        className="ecc-silk-mapping__ruleseditor__targetEntityType"
+                        entity="targetEntityType"
+                        isValidNewOption={newValueIsIRI}
+                        ruleId={autoCompleteRuleId}
+                        value={modifiedValues().targetEntityType}
+                        creatable
+                        onChange={(value) => {
+                            handleChangeValue("targetEntityType", value);
                         }}
+                        taskContext={mappingEditorContext.taskContext}
                     />
-                )}
-                {
-                    <FieldItem
-                        data-test-id="object-rule-form-example-preview"
-                        labelProps={{ text: "Examples of target data" }}
-                    >
-                        {previewExamples}
+                    {targetCardinality}
+                    {sourcePropertyInput}
+                    {patternInput}
+                    {showUriPatternModal && distinctUriPatterns.length > 0 && (
+                        <UriPatternSelectionModal
+                            onClose={() => setShowUriPatternModal(false)}
+                            uriPatterns={distinctUriPatterns}
+                            onSelect={(uriPattern) => {
+                                // Necessary if the URI pattern has been changed and the selected URI pattern is the initial pattern
+                                if (initialUriPattern === uriPattern.value) {
+                                    setInitialUriPattern("");
+                                }
+                                setTimeout(() => setInitialUriPattern(uriPattern.value), 0);
+                                handleChangeValue("pattern", uriPattern.value);
+                            }}
+                        />
+                    )}
+                    {
+                        <FieldItem
+                            data-test-id="object-rule-form-example-preview"
+                            labelProps={{ text: "Examples of target data" }}
+                        >
+                            {previewExamples}
+                        </FieldItem>
+                    }
+                    <FieldItem labelProps={{ text: "Label" }}>
+                        <TextField
+                            data-test-id={"object-rule-form-label-input"}
+                            className="ecc-silk-mapping__ruleseditor__label"
+                            defaultValue={props.ruleData["label"]}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                handleChangeValue("label", value);
+                            }}
+                        />
                     </FieldItem>
-                }
-                <FieldItem labelProps={{ text: "Label" }}>
-                    <TextField
-                        data-test-id={"object-rule-form-label-input"}
-                        className="ecc-silk-mapping__ruleseditor__label"
-                        defaultValue={props.ruleData["label"]}
-                        onChange={(event) => {
-                            const value = event.target.value;
-                            handleChangeValue("label", value);
-                        }}
-                    />
-                </FieldItem>
-                <FieldItem labelProps={{ text: "Description" }}>
-                    <TextArea
-                        data-test-id={"object-rule-form-description-input"}
-                        className="ecc-silk-mapping__ruleseditor__comment"
-                        defaultValue={props.ruleData["comment"]}
-                        onChange={(event) => {
-                            const value = event.target.value;
-                            handleChangeValue("comment", value);
-                        }}
-                    />
-                </FieldItem>
-            </CardContent>
+                    <FieldItem labelProps={{ text: "Description" }}>
+                        <TextArea
+                            data-test-id={"object-rule-form-description-input"}
+                            className="ecc-silk-mapping__ruleseditor__comment"
+                            defaultValue={props.ruleData["comment"]}
+                            onChange={(event) => {
+                                const value = event.target.value;
+                                handleChangeValue("comment", value);
+                            }}
+                        />
+                    </FieldItem>
+                </CardContent>
             <Divider />
             <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                 <AffirmativeButton
