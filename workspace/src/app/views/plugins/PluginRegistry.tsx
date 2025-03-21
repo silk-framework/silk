@@ -1,6 +1,7 @@
 import { BreadcrumbItemProps } from "@eccenca/gui-elements";
 import { registerCorePlugins } from "./RegisteredCoreTaskPlugins";
 import { TaskContext } from "../shared/projectTaskTabView/projectTaskTabView.typing";
+import { IInitFrontend } from "@ducks/common/typings";
 
 /** A view / UI of a project task.
  * Each task can have multiple views.
@@ -52,6 +53,15 @@ export interface IProjectTaskView {
     queryParametersToKeep?: string[];
     /** Specifies the task context support for this view, e.g. that it uses the information given with the task context. */
     supportsTaskContext?: boolean;
+    /**
+     * Used to sort a stack of defined views when ordering is important, e.g. if their tabs are displayed.
+     * If not given then internally `9999`is used.
+     * Views are sorted in ascending order.
+     */
+    sortOrder?: number;
+
+    /** If the task view is available for the given (backend) configuration. If not defined the plugin is available by default. */
+    available?: (config: IInitFrontend) => boolean;
 }
 
 /** A plugin component that can receive arbitrary parameters. */
@@ -140,6 +150,7 @@ export const SUPPORTED_PLUGINS = {
     DI_LANGUAGE_SWITCHER: "di:languageSwitcher",
     DI_BRANDING: "di:branding",
     DI_PARAMETER_EXTENSIONS: "di:parameterExtensions",
+    DI_MATCHING: "di:matchingNG",
 };
 
 registerCorePlugins();

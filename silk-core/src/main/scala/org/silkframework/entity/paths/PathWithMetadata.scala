@@ -33,6 +33,10 @@ class PathWithMetadata (
     */
   def getOriginalName: String = metadata(PathWithMetadata.META_FIELD_ORIGIN_NAME).toString
 
+  override def withOperators(newOperators: List[PathOperator]): PathWithMetadata = {
+    new PathWithMetadata(newOperators, valueType, metadata)
+  }
+
 }
 
 object PathWithMetadata{

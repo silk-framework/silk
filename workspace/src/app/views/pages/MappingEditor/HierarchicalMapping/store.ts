@@ -723,7 +723,7 @@ const getValuePathSuggestion = (
     cursorPosition: number,
     isObjectPath: boolean,
     taskContext?: TaskContext
-): HttpResponsePromise<any> => {
+): HttpResponsePromise<IPartialAutoCompleteResult> => {
     const { transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         project,
