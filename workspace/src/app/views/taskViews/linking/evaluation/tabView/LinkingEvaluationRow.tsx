@@ -359,9 +359,7 @@ export const LinkingEvaluationRow = React.memo(
                             <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
                                 +{(evaluationMap.get(id)?.value || []).length - cutAfter}
                             </Tag>
-                        ) : (
-                            <></>
-                        );
+                        ) : null;
                     let exampleValues: JSX.Element[] = [];
 
                     if (!evaluationMap.get(id)?.value.length) {
