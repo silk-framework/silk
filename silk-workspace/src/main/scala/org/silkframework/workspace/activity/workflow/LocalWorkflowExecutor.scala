@@ -4,7 +4,6 @@ import io.micrometer.core.instrument.Timer
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
 import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
@@ -18,7 +17,6 @@ import org.silkframework.workspace.activity.workflow.ReconfigureTasks.Reconfigur
 import org.silkframework.workspace.resources.CacheUpdaterHelper
 
 import java.util.logging.{Level, Logger}
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -65,7 +63,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           registry.timer(
             s"$prefix.workflow.execution",
             "workflow", workflowTask.id.toString,
-            "status", "Failed"
+            "status", "Failed",
+            "project", workflowTask.project.id.toString
           )
         )
         throw ex
@@ -75,7 +74,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       registry.timer(
         s"$prefix.workflow.execution",
         "workflow", workflowTask.id.toString,
-        "status", "Successful"
+        "status", "Successful",
+        "project", workflowTask.project.id.toString
       )
     )
   }
@@ -208,7 +208,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             registry.timer(
               s"$prefix.workflow.operator.execution",
               "operator", operator.nodeId,
-              "workflow", workflowTask.id.toString
+              "workflow", workflowTask.id.toString,
+              "project", workflowTask.project.id.toString
             )
           )
           result
@@ -350,7 +351,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         registry.timer(
           s"$prefix.workflow.dataset.execution",
           "workflow", workflowTask.id.toString,
-          "dataset", workflowDataset.nodeId
+          "dataset", workflowDataset.nodeId,
+          "project", workflowTask.project.id.toString
         )
       )
 //TODO this will exhaust the entity table iterator
