@@ -349,6 +349,10 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
+    const viewActionsUnsavedChanges = React.useCallback((status: boolean) => {
+        setUnsavedChanges(status);
+    }, []);
+
     const extendedViewActions: IViewActions = {
         ...viewActions,
         switchToView: (viewIdx) => {
@@ -362,7 +366,7 @@ export function ProjectTaskTabView({
                 }
             }
         },
-        unsavedChanges: (status: boolean) => setUnsavedChanges(status),
+        unsavedChanges: viewActionsUnsavedChanges,
     };
 
     let tabNr = 1;

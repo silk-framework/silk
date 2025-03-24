@@ -323,7 +323,10 @@ export function ValueRuleForm(props: IProps) {
         const { initialValues, ...currValues } = state;
         currValues[stateProperty] = value;
 
-        const touched = wasTouched(initialValues, currValues);
+        const touched = wasTouched(
+            { ...initialValues, valueType: initialValues.valueType?.nodeType },
+            { ...currValues, valueType: currValues.valueType?.nodeType }
+        );
         const id = _.get(props, "id", 0);
 
         toggleTabViewDirtyState(Object.keys(initialValues).length ? touched : true);
