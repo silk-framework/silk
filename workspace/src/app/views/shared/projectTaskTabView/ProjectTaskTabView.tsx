@@ -362,7 +362,7 @@ export function ProjectTaskTabView({
                 }
             }
         },
-        savedChanges: (status: boolean) => setUnsavedChanges(status),
+        unsavedChanges: (status: boolean) => setUnsavedChanges(status),
     };
 
     let tabNr = 1;

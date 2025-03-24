@@ -121,7 +121,7 @@ export const ObjectRuleForm = (props: IProps) => {
     }, []);
 
     const toggleTabViewDirtyState = React.useCallback((status: boolean) => {
-        props.viewActions.savedChanges && props.viewActions.savedChanges(status);
+        props.viewActions.unsavedChanges && props.viewActions.unsavedChanges(status);
     }, []);
 
     const uriValue = (uri: string) => {

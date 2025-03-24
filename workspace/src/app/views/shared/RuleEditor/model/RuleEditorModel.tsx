@@ -184,7 +184,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     React.useEffect(() => {
-        const unSavedChangesFunc = ruleEditorContext.viewActions?.savedChanges;
+        const unSavedChangesFunc = ruleEditorContext.viewActions?.unsavedChanges;
         unSavedChangesFunc && unSavedChangesFunc(canUndo);
     }, [canUndo]);
 
