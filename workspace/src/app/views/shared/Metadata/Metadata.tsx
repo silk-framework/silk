@@ -315,7 +315,6 @@ export function Metadata(props: IProps) {
                                     mode="markdown"
                                     id="description"
                                     preventLineNumbers
-                                    hasToolbar
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
                                 />
