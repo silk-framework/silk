@@ -564,14 +564,14 @@ export function ValueRuleForm(props: IProps) {
                     {exampleView}
                     <Spacing size={"small"} />
                     <LegacyTextField
-                        label="Label"
+                        label="Mapping label"
                         className="ecc-silk-mapping__ruleseditor__label"
                         value={label}
                         onChange={handleChangeTextfield.bind(null, "label", setLabel)}
                     />
                     <LegacyTextField
                         multiline
-                        label="Description"
+                        label="Mapping description"
                         className="ecc-silk-mapping__ruleseditor__comment"
                         value={comment}
                         onChange={handleChangeTextfield.bind(null, "comment", setComment)}

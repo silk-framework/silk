@@ -543,7 +543,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         {previewExamples}
                     </FieldItem>
                 }
-                <FieldItem labelProps={{ text: "Label" }}>
+                <FieldItem labelProps={{ text: "Mapping label" }}>
                     <TextField
                         data-test-id={"object-rule-form-label-input"}
                         className="ecc-silk-mapping__ruleseditor__label"
@@ -554,7 +554,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         }}
                     />
                 </FieldItem>
-                <FieldItem labelProps={{ text: "Description" }}>
+                <FieldItem labelProps={{ text: "Mapping description" }}>
                     <TextArea
                         data-test-id={"object-rule-form-description-input"}
                         className="ecc-silk-mapping__ruleseditor__comment"
