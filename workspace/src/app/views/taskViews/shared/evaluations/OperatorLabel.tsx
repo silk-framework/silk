@@ -16,11 +16,10 @@ export const OperatorLabel: React.FC<OperatorLabelProps> = React.memo(
         const [t] = useTranslation();
         const emptyPathLabel = `<${t("common.words.emptyPath")}>`;
         return (
-            <TagList>
+            <TagList className="diapp-linking-evaluation__operatorlabel">
                 <Tag key={operator.id} backgroundColor={tagColor(tagPluginType)}>
                     {getOperatorLabel(operator, operatorPlugins, emptyPathLabel)}
                 </Tag>
-                <Spacing vertical size="tiny" />
                 {children}
             </TagList>
         );
