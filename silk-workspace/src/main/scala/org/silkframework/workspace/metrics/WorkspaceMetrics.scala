@@ -46,10 +46,10 @@ class WorkspaceMetrics(prefix: String,
     def customTasks: Seq[ProjectTask[CustomTask]] = projects.flatMap(_.tasks[CustomTask])
     def workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
 
-    def gauge[TaskType <: TaskSpec](taskProvider: () => Seq[ProjectTask[TaskType]], specification: String): Unit =
-      Gauge.builder(s"$prefix.workspace.task.count", () => taskProvider().size)
+    def gauge[TaskType <: TaskSpec](taskProvider: () => Seq[ProjectTask[TaskType]], taskType: String): Unit =
+      Gauge.builder(s"$prefix.workspace.task.type.count", () => taskProvider().size)
         .description("Workspace task count, per task type")
-        .tags("spec", specification)
+        .tags("type", taskType)
         .register(registry)
 
     gauge(() => transformTasks, "Transform")
