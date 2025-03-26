@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
-
+
+
 import org.silkframework.config.Prefixes
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
@@ -35,5 +36,12 @@ class RdfFileDatasetTest extends AnyFlatSpec with Matchers {
     intercept[ResourceTooLargeException] {
       rdfDataset.source.retrieveTypes()
     }
+  }
+
+  it should "work with N-Triples even if a graph is specified" in {
+    val resource = InMemoryResourceManager().get("temp")
+    resource.writeString("<urn:subj:a> <urn:p:a> <urn:obj:c> .")
+    val rdfDataset = RdfFileDataset(resource, "N-Triples", graph = "urn:graph:some")
+    rdfDataset.source.retrievePaths("") must have size 2
   }
 }
