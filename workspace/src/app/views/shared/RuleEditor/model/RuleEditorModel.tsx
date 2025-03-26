@@ -145,6 +145,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     React.useEffect(() => {
         const handlePaste = async (e) => await pasteNodes(e);
         const handleCopy = async (e) => {
+            const tagName = e.target.tagName
+            const selectedText: Selection | null = document.getSelection()
+            if(tagName === "INPUT" || selectedText && selectedText.toString() !== "") {
+                // User tries to copy text from an input or from selected text somewhere else on the page, do not interfere
+                return
+            }
             if (selectedElements) {
                 await copyNodes(
                     selectedElements.map((n) => n.id),
