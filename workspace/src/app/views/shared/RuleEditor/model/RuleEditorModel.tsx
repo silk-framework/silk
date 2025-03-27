@@ -1076,9 +1076,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 registerError(
                     "RuleEditorModel.requestRuleOperatorPluginDetails",
                     "Could not fetch rule operator plugin details. Human-readable labels for default values might be missing.",
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                );
+                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
             }
         }
         const newNode = createNodeInternal(ruleOperator, position, updatedOverwriteParameterValues);
@@ -1343,9 +1341,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const unExpectedTokenError = /Unexpected token/.exec(err?.message ?? "");
             if (unExpectedTokenError) {
                 //that is, not the expected json format that contains nodes
-                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err, RULE_EDITOR_NOTIFICATION_INSTANCE);
+                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err,
+                    {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning"});
             } else {
-                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err, RULE_EDITOR_NOTIFICATION_INSTANCE);
+                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err,
+                    {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning"});
             }
         }
     };

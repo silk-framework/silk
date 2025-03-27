@@ -6,6 +6,7 @@ import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
 import { ErrorResponse, FetchError } from "../services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
+import {Intent} from "@blueprintjs/core";
 
 /**
  * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.
@@ -18,25 +19,26 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null,
+    options?: ErrorHandlerOptions
+) => JSX.Element | null;
+
+interface ErrorHandlerOptions {
     /** The notification instance where the error should be displayed. If this is set, the
      error will NOT be displayed in the global notification widget. */
-    errorNotificationInstanceId?: string,
+    errorNotificationInstanceId?: string
     /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
      * and the return notification element is used. */
     onDismiss?: () => any
-) => JSX.Element | null;
+    /** The intent of the notification. Default: "danger" */
+    intent?: "danger" | "warning"
+}
 
 type ErrorHandlerRegisterShortFuncType = (
     /** A valid language key from the language files. This key will be used as error ID. */
     langKey: string,
     /** The error cause. */
     cause: DIErrorTypes | null,
-    /** The notification instance where the error should be displayed. If this is set, the
-     error will NOT be displayed in the global notification widget. */
-    errorNotificationInstanceId?: string,
-    /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
-     * and the return notification element is used. */
-    onDismiss?: () => any
+    options?: ErrorHandlerOptions
 ) => JSX.Element | null;
 
 interface ErrorHandlerDict {
@@ -59,14 +61,15 @@ const useErrorHandler = (): ErrorHandlerDict => {
      * @param errorId A globally unique error ID that has to be set by the developer. Convention: "<ComponentName>_<ActionName>", e.g. "WorkflowEditor_LoadWorkflow".
      * @param errorMessage Human readable error message.
      * @param cause Optional Error object explaining the exception.
+     * @param options Additional options.
      */
     const registerError: ErrorHandlerRegisterFuncType = (
         errorId: string,
         errorMessage: string,
         cause: DIErrorTypes | null,
-        errorNotificationInstanceId?: string,
-        onDismiss?: () => any
+        options?: ErrorHandlerOptions
     ) => {
+        const {errorNotificationInstanceId, onDismiss, intent} = options ?? {}
         const error: RegisterErrorType = {
             id: errorId,
             message: errorMessage,
@@ -99,7 +102,10 @@ const useErrorHandler = (): ErrorHandlerDict => {
         } else {
             dispatch(
                 registerNewError({
-                    newError: error,
+                    newError: {
+                        ...error,
+                        alternativeIntent: intent === "warning" ? intent : undefined
+                    },
                     errorNotificationInstanceId,
                 })
             );
@@ -129,10 +135,9 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
         langKey: string,
         cause: DIErrorTypes | null,
-        errorNotificationInstanceId?: string,
-        onDismiss?: () => any
+        options?: ErrorHandlerOptions
     ) => {
-        return registerError(langKey, t(langKey), cause, errorNotificationInstanceId, onDismiss);
+        return registerError(langKey, t(langKey), cause, options);
     };
 
     const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {

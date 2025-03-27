@@ -128,9 +128,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 registerError(
                     "LinkingRuleEditor_fetchLinkingTask",
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
-                    err,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                );
+                    err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
                 setInitError(err);
             }
         }
@@ -176,9 +174,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
-                err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
-            );
+                err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
             setInitError(err);
         }
     };
@@ -319,17 +315,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 registerError(
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                )
+                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE})
             ),
             utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
                 registerError(
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                )
+                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE})
             ),
             ruleUtils.sidebarTabs.transform,
             ruleUtils.sidebarTabs.comparison,
@@ -362,9 +354,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         registerError(
                             "LinkingRuleEditor-fetchDatasetCharacteristics",
                             "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                            ex,
-                            RULE_EDITOR_NOTIFICATION_INSTANCE
-                        );
+                            ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
                     }
                 }
             };

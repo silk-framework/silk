@@ -87,9 +87,7 @@ export const RuleParameterInput = ({
             registerError(
                 "RuleParameterInput.handleFileSearch",
                 "Could not fetch project resource files!",
-                e,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
-            );
+                e, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
             return [];
         }
     };
