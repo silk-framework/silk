@@ -143,7 +143,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     }, [copiedNodesCount]);
 
     React.useEffect(() => {
-        const handlePaste = async (e) => await pasteNodes(e);
+        const handlePaste = async (e) => {
+            const tagName = e.target?.tagName
+            if(tagName === "INPUT" ||
+                // In CodeMirror the target has this structure.
+                (tagName === "BR" && e.target?.parentElement == null) ||
+                e.target?.classList.contains("cm-line")
+            ) {
+                // User tries to paste text into an input field
+                return
+            }
+            await pasteNodes(e);
+        }
         const handleCopy = async (e) => {
             const tagName = e.target.tagName
             const selectedText: Selection | null = document.getSelection()
