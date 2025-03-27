@@ -45,6 +45,7 @@ import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry"
 import { defaultUriPattern } from "./ObjectRule.utils";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 import { EntityRelationshipSelection } from "../../../components/EntityRelationshipSelection";
+import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
 
 interface IProps {
     id?: string;
@@ -313,7 +314,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 }}
                 fetchSuggestions={(input, cursorPosition) =>
                     fetchUriPatternAutoCompletions(
-                        parentId ? parentId : "root",
+                        parentId ? parentId : MAPPING_ROOT_RULE_ID,
                         input,
                         cursorPosition,
                         modifiedValues().sourceProperty
@@ -482,7 +483,7 @@ export const ObjectRuleForm = (props: IProps) => {
             : MAPPING_RULE_TYPE_URI;
         previewExamples = (
             <ExampleView
-                id={parentId || "root"}
+                id={parentId || MAPPING_ROOT_RULE_ID}
                 rawRule={
                     ruleType === MAPPING_RULE_TYPE_URI
                         ? {
