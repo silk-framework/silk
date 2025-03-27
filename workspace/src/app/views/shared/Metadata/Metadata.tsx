@@ -317,6 +317,7 @@ export function Metadata(props: IProps) {
                                     preventLineNumbers
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
+                                    useToolbar
                                 />
                             </FieldItem>
                         </PropertyValue>

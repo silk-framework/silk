@@ -69,6 +69,7 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                 name={DESCRIPTION}
                 mode="markdown"
                 onChange={onValueChange(DESCRIPTION)}
+                useToolbar
             />
         ),
         []
