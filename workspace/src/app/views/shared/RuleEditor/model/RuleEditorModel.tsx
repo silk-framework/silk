@@ -1343,9 +1343,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const unExpectedTokenError = /Unexpected token/.exec(err?.message ?? "");
             if (unExpectedTokenError) {
                 //that is, not the expected json format that contains nodes
-                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err);
+                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err, RULE_EDITOR_NOTIFICATION_INSTANCE);
             } else {
-                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err);
+                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err, RULE_EDITOR_NOTIFICATION_INSTANCE);
             }
         }
     };
