@@ -223,6 +223,7 @@ export const RuleEditorToolbar = () => {
                 {numberOfCopiedNodes ? (
                     <>
                         <Icon
+                            data-test-id={"node-copy-notification"}
                             name="item-copy"
                             tooltipText={t("RuleEditor.toolbar.copiedNotificationText", {
                                 numberOfNodes: `${numberOfCopiedNodes} node${numberOfCopiedNodes > 1 ? "s" : ""}`,
