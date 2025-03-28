@@ -286,7 +286,6 @@ export const RuleEditorToolbar = () => {
                     </Button>
                     <RuleEditorNotifications
                         key={"notifications"}
-                        integratedView={integratedView}
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
