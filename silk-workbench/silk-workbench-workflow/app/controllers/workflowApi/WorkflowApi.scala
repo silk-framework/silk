@@ -28,7 +28,7 @@ import org.silkframework.workspace.activity.dataset.DatasetUtils
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurablePluginDescription
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
 import java.net.HttpURLConnection
@@ -582,6 +582,41 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       byPluginId = taskPlugins
     )
     Ok(Json.toJson(workflowNodesPortConfig))
+  }
+
+  @Operation(
+    summary = "Workflow task dependencies",
+    description = "Returns all dependencies that a task has in a workflow.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(
+              implementation = classOf[DependentTasksInWorkflowResponse]
+            )
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or workflow has not been found."
+      )
+  ))
+  @RequestBody(
+    description = "The dependent tasks of the given task that are part of the workflow.",
+    required = false,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[DependentTasksInWorkflowRequest])
+      )
+    )
+  )
+  def dependentTasksInWorkflow(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[DependentTasksInWorkflowRequest] { request =>
+      Ok(Json.toJson(request()))
+    }
   }
 
   case class WorkflowFailedException(msg: String, ex: Option[Throwable] = None) extends RequestException(msg, ex) {
