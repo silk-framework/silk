@@ -45,12 +45,20 @@ class DependentTasksInWorkflowRequestTest extends AnyFlatSpec with Matchers with
     // Add a workflow that references some tasks
     project.addTask("Workflow", Workflow(Seq(operator("A"), operator("C"), operator("4"))))
 
-    val result = DependentTasksInWorkflowRequest(projectName, "1", "Workflow")()
-    result.tasks.map(_.taskId) should contain theSameElementsAs Seq("A")
+    // Test
+    dependentTasks("1", "Workflow") shouldBe Set("A")
+    dependentTasks("2", "Workflow") shouldBe Set()
+    dependentTasks("3", "Workflow") shouldBe Set("C")
+    dependentTasks("4", "Workflow") shouldBe Set()
   }
 
   private def operator(task: String): WorkflowOperator = {
     WorkflowOperator(inputs = Seq.empty, task = task, outputs = Seq.empty, Seq(), (0, 0), task, None, Seq.empty, Seq.empty)
+  }
+
+  private def dependentTasks(taskId: String, workflowId: String): Set[String] = {
+    val result = DependentTasksInWorkflowRequest(projectName, taskId, workflowId)()
+    result.tasks.map(_.taskId).toSet
   }
 
 }
