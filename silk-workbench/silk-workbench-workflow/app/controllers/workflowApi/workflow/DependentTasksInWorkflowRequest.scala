@@ -18,7 +18,7 @@ case class DependentTasksInWorkflowRequest(projectId: String,
     val dependentTasks =
       for {
         id <- findDependencies(project, workflow, taskId)
-        if id != taskId && id != workflowId
+        if (id != taskId || workflow.referencedTasks.contains(Identifier(taskId))) && id != workflowId
       } yield {
         val task = project.anyTask(id)
         TaskIdAndLabel(task.id.toString, task.fullLabel)

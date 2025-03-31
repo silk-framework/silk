@@ -590,6 +590,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Workflow task dependencies",
         content = Array(
           new Content(
             mediaType = "application/json",

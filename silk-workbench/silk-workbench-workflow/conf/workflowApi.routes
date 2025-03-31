@@ -8,4 +8,4 @@ GET   /info                                     controllers.workflowApi.Workflow
 GET   /info/:projectId/:workflowId              controllers.workflowApi.WorkflowApi.workflowInfo(projectId: String, workflowId: String)
 GET   /config/:projectId/:workflowId/ports      controllers.workflowApi.WorkflowApi.workflowNodesConfig(projectId: String, workflowId: String)
 
-GET   /dependentTasksInWorkflow                 controllers.workflowApi.WorkflowApi.dependentTasksInWorkflow()
+POST   /dependentTasksInWorkflow                 controllers.workflowApi.WorkflowApi.dependentTasksInWorkflow()
