@@ -144,8 +144,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                         "VariableWidgetError",
                         err.body.title,
                         err,
-                        "VariablesWidget",
-                        () => setErrorNotification(null)
+                        {
+                            errorNotificationInstanceId: "VariablesWidget",
+                            onDismiss: () => setErrorNotification(null)
+                        }
                     );
                     setErrorNotification(errorNotification);
                 }

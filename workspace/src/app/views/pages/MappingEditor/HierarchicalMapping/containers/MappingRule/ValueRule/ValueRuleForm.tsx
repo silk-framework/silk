@@ -34,6 +34,7 @@ import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
+import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
 
 const LANGUAGES_LIST = [
     "en",
@@ -480,7 +481,7 @@ export function ValueRuleForm(props: IProps) {
             (!_.isEmpty(sourceProperty.current) && valuePathValid && !valuePathInputHasFocus) ||
             (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
                 <ExampleView
-                    id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || "root"}
+                    id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || MAPPING_ROOT_RULE_ID}
                     key={
                         typeof sourceProperty.current === "string"
                             ? sourceProperty.current
