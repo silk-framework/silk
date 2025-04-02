@@ -72,6 +72,13 @@ object PluginRegistry {
   }
 
   /**
+   * Returns the plugin description of a specific plugin.
+   */
+  def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
+    pluginType[T].pluginById[T](id)
+  }
+
+  /**
    * Creates a new instance of a specific plugin.
    *
    * @param id The id of the plugin.
@@ -321,6 +328,15 @@ object PluginRegistry {
     def availablePlugins: Seq[PluginDescription[_]] = plugins.values.toSeq
 
     /**
+     * Returns the plugin description of a specific plugin.
+     */
+    def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
+      val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
+      plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
+             .asInstanceOf[PluginDescription[T]]
+    }
+
+    /**
      * Creates a new instance of a specific plugin.
      *
      * @param id The id of the plugin.
@@ -330,9 +346,7 @@ object PluginRegistry {
      */
     def create[T: ClassTag](id: String, params: ParameterValues)
                            (implicit context: PluginContext): T = {
-      val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
-      val pluginDesc = plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
-      pluginDesc(params).asInstanceOf[T]
+      pluginById[T](id).apply(params)
     }
 
     /**

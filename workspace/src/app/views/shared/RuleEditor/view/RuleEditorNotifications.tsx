@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { RuleEditorEvaluationNotification } from "../contexts/RuleEditorEvaluationContext";
 
 interface RuleEditorNotificationsProps {
-    integratedView?: boolean;
     queueEditorNotifications?: string[];
     queueNodeNotifications?: RuleSaveNodeError[];
     nodeJumpToHandler: any; // TODO
@@ -17,7 +16,6 @@ interface RuleEditorNotificationsProps {
 }
 
 export const RuleEditorNotifications = ({
-    integratedView = false,
     queueEditorNotifications = [] as string[],
     queueNodeNotifications = [] as RuleSaveNodeError[],
     nodeJumpToHandler,
@@ -27,11 +25,11 @@ export const RuleEditorNotifications = ({
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const { messages, notifications } = useNotificationsQueue(RULE_EDITOR_NOTIFICATION_INSTANCE);
     const [t] = useTranslation();
-    const diErrorMessages = messages.filter((diError) => diError.timestamp > generalNotificationMinDateTime);
+    const ruleEditorErrorMessages = messages.filter((diError) => diError.timestamp > generalNotificationMinDateTime);
 
     useEffect(() => {
-        setIsOpen(!!integratedView);
-    }, [diErrorMessages.length > 0 ? diErrorMessages[0] : undefined]);
+        setIsOpen(true);
+    }, [ruleEditorErrorMessages.length > 0 ? ruleEditorErrorMessages[0] : undefined]);
 
     useEffect(() => {
         setIsOpen(true);
@@ -51,7 +49,7 @@ export const RuleEditorNotifications = ({
 
     return queueEditorNotifications.length > 0 ||
         queueNodeNotifications.length > 0 ||
-        (integratedView && diErrorMessages.length > 0) ||
+        ruleEditorErrorMessages.length > 0 ||
         (evaluationNotifications && evaluationNotifications.length) ? (
         <>
             <Spacing vertical size="tiny" />
@@ -64,7 +62,7 @@ export const RuleEditorNotifications = ({
                         data-test-id={"ruleEditorToolbar-saveError-Btn"}
                         style={{ maxWidth: "39vw", padding: "0.5rem" }}
                     >
-                        {integratedView && diErrorMessages.length > 0 ? notifications : null}
+                        {ruleEditorErrorMessages.length > 0 ? notifications : null}
                         {queueEditorNotifications.map((editorNotification) => (
                             <Notification danger={true} key={"errorMessage"} icon={<Icon name="state-warning" />}>
                                 {editorNotification}

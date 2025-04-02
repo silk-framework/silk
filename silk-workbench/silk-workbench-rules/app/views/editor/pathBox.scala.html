@@ -1,6 +1,7 @@
 @import org.silkframework.workspace.Project
-
 @import org.silkframework.runtime.activity.UserContext
+@import scala.collection.immutable.ListMap
+
 @(id: String,
   isSource: Boolean,
   path: String,
@@ -12,7 +13,7 @@
 @operatorBox(
   opType = if(isSource) "Source" else "Target",
   id = id,
-  plugin = new ClassPluginDescription(id, Seq.empty, "Path", "Path", "", Seq.empty, null, Seq.empty, None),
+  plugin = new ClassPluginDescription(id, Seq.empty, "Path", "Path", "", Seq.empty, null, Seq.empty, None, ListMap.empty),
   parameterValues = Seq.empty,
   x = x,
   y = y,

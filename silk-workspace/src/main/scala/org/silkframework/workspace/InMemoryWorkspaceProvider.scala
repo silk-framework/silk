@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
@@ -237,5 +237,5 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Returns None, because the projects are not held as RDF.
     */
-  override def sparqlEndpoint: Option[SparqlEndpoint] = None
+  override def sparqlEndpoint: Option[SparqlEndpoint with GraphStoreTrait] = None
 }

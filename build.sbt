@@ -107,7 +107,7 @@ lazy val core = (project in file("silk-core"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.4.3", // Should always use the same version as the Play Framework dependency
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
@@ -118,7 +118,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.4"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -127,8 +127,8 @@ lazy val rules = (project in file("silk-rules"))
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.3",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "5.0.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.0.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "5.3.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.3.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -149,7 +149,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.0.0" % "test",
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.3.0" % "test",
     libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
 )
 
@@ -207,7 +207,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.23"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.27"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -215,7 +215,7 @@ lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-cach
   .settings(commonSettings: _*)
   .settings(
     name := "Persistent caching",
-    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.9.0"
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.9.1"
   )
 
 // Aggregate all plugins
@@ -358,7 +358,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.4"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -396,9 +396,9 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.5" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.22",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.78",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.17.14"
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.24",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.4",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.18.2"
   )
 
 lazy val workbench = (project in file("silk-workbench"))
@@ -427,7 +427,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk SingleMachine",
-    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.5"
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.16"
   )
 
 //lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))

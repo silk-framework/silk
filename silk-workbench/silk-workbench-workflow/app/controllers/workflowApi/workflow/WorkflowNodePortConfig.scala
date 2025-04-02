@@ -63,8 +63,8 @@ object WorkflowNodePortConfig {
           Some(typeUri),
           paths
         ))
-      case FlexibleSchemaPort(_) =>
-        FlexiblePortDefinition
+      case FlexibleSchemaPort(explicitSchema) =>
+        FlexiblePortDefinition(explicitSchema)
       case UnknownSchemaPort =>
         UnknownTypePortDefinition
     }
@@ -134,7 +134,7 @@ case class FixedSchemaPortDefinition(schema: PortSchema) extends PortDefinition 
 }
 
 /** A flexible port can take or output various kinds of schemata.  */
-case object FlexiblePortDefinition extends PortDefinition {
+case class FlexiblePortDefinition(explicitSchema: Boolean = false) extends PortDefinition {
   override def portsType: String = "flexibleType"
 }
 
@@ -157,7 +157,8 @@ object WorkflowNodesPortConfig {
               FixedSchemaPortDefinition(schema)
             })
         case "flexibleType" =>
-          JsSuccess(FlexiblePortDefinition)
+          val explicitSchema = (json \ "explicitSchema").asOpt[Boolean].getOrElse(false)
+          JsSuccess(FlexiblePortDefinition(explicitSchema))
         case "unknownType" =>
           JsSuccess(UnknownTypePortDefinition)
       }
@@ -168,6 +169,8 @@ object WorkflowNodesPortConfig {
       o match {
         case FixedSchemaPortDefinition(schema) =>
           baseObject + ("schema" -> Json.toJson(schema))
+        case FlexiblePortDefinition(explicitSchema) =>
+          baseObject + ("explicitSchema" -> JsBoolean(explicitSchema))
         case _ =>
           baseObject
       }

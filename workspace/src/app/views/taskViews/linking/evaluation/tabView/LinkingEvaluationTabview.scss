@@ -1,6 +1,6 @@
 /**
   CSS OVERWRITES
-  contains different component overwrites that couldn't have been done
+  contains different style overwrites that couldn't have been done directly by component usage
 **/
 
 // Tree
@@ -33,24 +33,41 @@
             display: inline-flex;
             max-width: 100%;
         }
-        .#{$eccgui}-tag__list-item {
-            flex-shrink: 0.5;
+        .#{$eccgui}-tag__list-item:has(.diapp-linking-evaluation__valuetaglist) {
             min-width: 0;
-
-            &:nth-child(n + 1) {
-                flex-shrink: 0;
-            }
-            &:nth-child(n + 2) {
-                flex-shrink: 0.7;
-            }
-            &:nth-child(n + 3) {
-                flex-shrink: 0.8;
-            }
-            &:nth-child(n + 4) {
-                flex-shrink: 0.9;
-            }
-            &:nth-child(n + 5) {
+            flex-shrink: 1;
+        }
+        &:has(.diapp-linking-evaluation__valuetaglist, .tree-nodeData-label) {
+            display: inline-flex;
+            flex-direction: row;
+            .diapp-linking-evaluation__valuetaglist {
                 flex-shrink: 1;
+                min-width: 0;
+            }
+        }
+        .diapp-linking-evaluation__valuetaglist {
+            .#{$eccgui}-tag__list-item {
+                flex-shrink: 1;
+                min-width: 0;
+
+                &:nth-child(n + 1) {
+                    flex-shrink: 0.2;
+                }
+                &:nth-child(n + 2) {
+                    flex-shrink: 0.4;
+                }
+                &:nth-child(n + 3) {
+                    flex-shrink: 0.6;
+                }
+                &:nth-child(n + 4) {
+                    flex-shrink: 0.8;
+                }
+                &:nth-child(n + 5) {
+                    flex-shrink: 1;
+                }
+            }
+            .#{$eccgui}-tag__list-item:has(.diapp-linking-evaluation__cutinfo) {
+                flex-shrink: 0;
             }
         }
     }

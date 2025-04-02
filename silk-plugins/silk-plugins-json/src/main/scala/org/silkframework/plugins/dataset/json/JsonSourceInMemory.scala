@@ -37,9 +37,12 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
       val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node)
       val selectedElements = jsonTraverser.select(basePathParts)
       val subPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
-      val subPathElements = if(subPath.operators.nonEmpty) {
-        selectedElements.flatMap(_.select(subPath.operators))
-      } else { selectedElements }
+      val subPathElements =
+        if(subPath.operators.nonEmpty) {
+          selectedElements.flatMap(_.select(subPath.operators))
+        } else {
+          selectedElements
+        }
       retrieveEntities(subPathElements, entitySchema, Set.empty)
     }
     GenericEntityTable(entities, entitySchema, underlyingTask)

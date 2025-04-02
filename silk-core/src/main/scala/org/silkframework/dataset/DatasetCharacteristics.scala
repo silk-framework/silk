@@ -13,7 +13,8 @@ import org.silkframework.entity.paths.UntypedPath
   *                                If false, this dataset will be overwritten on each write (e.g., JSON).
   * @param typedEntities          If true, each entity needs a type property value (e.g. RDF).
   *                               If false, the type is already given and not needed on a per-entity basis (e.g. relational databases where each table only contains entities of one type).
-  * @param explicitSchema          Indicates whether a dataset has an explicitly defined and quickly retrievable schema (like CSV).
+  * @param explicitSchema          Indicates whether a dataset has an explicitly defined and quickly retrievable schema (like CSV). It is expected that this schema can be retrieved by requesting
+  *                                all properties (depth 1) of the first type of the dataset.
   */
 case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions(),
                                   supportsMultipleTables: Boolean = true,

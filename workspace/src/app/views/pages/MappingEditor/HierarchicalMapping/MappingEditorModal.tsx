@@ -50,7 +50,7 @@ const MappingEditorModal = ({
     ``;
 
     const updateViewActionUnsavedChanges = (status: boolean) => {
-        viewActions?.savedChanges && viewActions.savedChanges(status);
+        viewActions?.unsavedChanges && viewActions.unsavedChanges(status);
     };
 
     /** Warning prompt that shows up when the user decides to close the modal with unsaved changes */
@@ -92,6 +92,9 @@ const MappingEditorModal = ({
             size="fullscreen"
             preventSimpleClosing={unsavedChanges}
             onClose={onClose}
+            wrapperDivProps={{
+                onMouseUp: () => {},
+            }}
             headerOptions={
                 <IconButton
                     name="navigation-close"
@@ -111,7 +114,7 @@ const MappingEditorModal = ({
                         instanceId={"transform-rule-editor-modal-instance"}
                         transformTaskId={transformTaskId}
                         viewActions={{
-                            savedChanges: (status) => {
+                            unsavedChanges: (status) => {
                                 setUnsavedChanges(status); // trigger the internal prompt
                                 updateViewActionUnsavedChanges(status); //notify the views controller
                             },

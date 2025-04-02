@@ -567,19 +567,14 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       val parameters = pluginDescription.configProperties.map(PortSchemaProperty)
       pluginId.toString -> PluginPortConfig(ConfigPortConfig(PortSchema(None, parameters)))
     }).toMap
-    val flexiblePortConfig = WorkflowNodePortConfig(1, None,
-      inputPortsDefinition = MultipleSameTypePortsDefinition(FlexiblePortDefinition),
-      outputPortsDefinition = SinglePortPortsDefinition(FlexiblePortDefinition)
-    )
-    val noOutputPortConfig = WorkflowNodePortConfig(1, None,
-      inputPortsDefinition = MultipleSameTypePortsDefinition(FlexiblePortDefinition),
+    val workflowTypePortConfig = WorkflowNodePortConfig(1, None,
+      inputPortsDefinition = MultipleSameTypePortsDefinition(FlexiblePortDefinition(false)),
       outputPortsDefinition = ZeroPortsDefinition
     )
     val workflowNodesPortConfig = WorkflowNodesPortConfig(
       byItemType = Map(
-        // Datasets and workflows always have the same ports config
-        ItemType.dataset.id -> flexiblePortConfig,
-        ItemType.workflow.id -> noOutputPortConfig
+        // Workflows always have the same ports config
+        ItemType.workflow.id -> workflowTypePortConfig
       ),
       byTaskId = byTaskId.toMap,
       // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI

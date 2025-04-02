@@ -25,7 +25,7 @@ trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] extends AnyPlugi
   * The output parameters of an execution.
   * @param task                  Optional output task. Not defined if no output task to write to exists or
   *                              the output task is not available for other reasons.
-  * @param connectedPort         The connected output port. None if the output is not connected.
+  * @param connectedPort         The input port that is connected to the output. None if the output is not connected.
   */
 case class ExecutorOutput(task: Option[Task[_ <: TaskSpec]], connectedPort: Option[Port]) {
 

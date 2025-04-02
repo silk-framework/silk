@@ -118,11 +118,9 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
-                registerErrorI18N(
-                    "taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg",
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                );
+                registerErrorI18N("taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg", ex, {
+                    errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+                });
             } else {
                 throw ex;
             }
@@ -180,7 +178,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                     "TransformRuleEvaluation.startEvaluation",
                     t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 );
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
@@ -189,7 +187,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                     "LinkingRuleEvaluation.beforeStartEvaluation",
                     t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 );
             }
         } finally {

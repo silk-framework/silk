@@ -14,7 +14,7 @@ class TransformRuleXmlSerializationTest extends AnyFlatSpec with Matchers {
   behavior of "TransformRule.XmlFormat"
 
   it should "serialize direct mappings" in {
-    testSerialzation(DirectMapping("directMapping", UntypedPath("inputPath"), MappingTarget("outputProperty", ValueType.STRING)))
+    testSerialzation(DirectMapping("directMapping", UntypedPath("inputPath"), MappingTarget("outputProperty", ValueType.STRING), inputId = Some("inputPath")))
   }
 
   it should "serialize object mappings" in {
@@ -24,7 +24,7 @@ class TransformRuleXmlSerializationTest extends AnyFlatSpec with Matchers {
         sourcePath = UntypedPath("relativePath"),
         target = Some(MappingTarget("targetProperty")),
         rules = MappingRules(
-          DirectMapping("directMapping", UntypedPath("inputPath"), MappingTarget("outputProperty", ValueType.STRING))
+          DirectMapping("directMapping", UntypedPath("inputPath"), MappingTarget("outputProperty", ValueType.STRING), inputId = Some("inputPath"))
         )
       )
     )

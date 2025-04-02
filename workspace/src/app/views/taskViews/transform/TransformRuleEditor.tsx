@@ -15,7 +15,6 @@ import {
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
-import { IStickyNote } from "../shared/task.typings";
 import { optionallyLabelledParameterToValue } from "../linking/linking.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { inputPathTab } from "./transformEditor.utils";
@@ -24,6 +23,7 @@ import TransformRuleEvaluation from "./evaluation/TransformRuleEvaluation";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics, requestTaskData } from "@ducks/shared/requests";
 import { GlobalMappingEditorContext } from "../../pages/MappingEditor/contexts/GlobalMappingEditorContext";
+import { StickyNote } from "@eccenca/gui-elements";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -72,7 +72,7 @@ export const TransformRuleEditor = ({
                 "transformRuleEditor_fetchTransformRule",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
         }
     };
@@ -86,7 +86,7 @@ export const TransformRuleEditor = ({
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRuleOperatorDetails.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
         }
     };
@@ -94,7 +94,7 @@ export const TransformRuleEditor = ({
     /** Save the rule. */
     const saveTransformRule = async (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[],
+        stickyNotes: StickyNote[],
         originalRule: IComplexMappingRule
     ): Promise<RuleSaveResult> => {
         try {
@@ -161,15 +161,20 @@ export const TransformRuleEditor = ({
             const pos = nodePositions[node.nodeId];
             if (pos) {
                 node.position = {
-                    x: pos[0],
-                    y: pos[1],
+                    x: pos.x,
+                    y: pos.y,
+                };
+                node.dimension = {
+                    ...node.dimension,
+                    width: pos.width ?? undefined,
+                    height: pos.height ?? undefined,
                 };
             }
         });
         return operatorNodes;
     };
 
-    const getStickyNotes = (mapping: IComplexMappingRule): IStickyNote[] =>
+    const getStickyNotes = (mapping: IComplexMappingRule): StickyNote[] =>
         (mapping && optionallyLabelledParameterToValue(mapping.uiAnnotations.stickyNotes)) || [];
 
     const inputPathAutoCompletion = async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
@@ -194,7 +199,7 @@ export const TransformRuleEditor = ({
                 "LinkingRuleEditor_inputPathAutoCompletion",
                 t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
             return [];
         }
@@ -223,7 +228,7 @@ export const TransformRuleEditor = ({
                     "TransformRuleEditor-fetchDatasetCharacteristics",
                     "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 );
             }
         }
@@ -243,7 +248,7 @@ export const TransformRuleEditor = ({
                         "linking-rule-editor-fetch-source-paths",
                         t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                         ex,
-                        RULE_EDITOR_NOTIFICATION_INSTANCE
+                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                     ),
                 mappingEditorContext.taskContext
             ),

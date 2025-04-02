@@ -33,10 +33,6 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   /**
     * Writes all inputs into dataset first and then reads from it if an output schema is defined.
     *
-    * @param task
-    * @param inputs
-    * @param execution
-    * @return
     */
   final override def execute(
     task: Task[DatasetSpec[DatasetType]],
@@ -54,8 +50,10 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     val outputSchema = {
       output.connectedPort match {
         case Some(FixedSchemaPort(schema)) =>
+          // Fixed schema is requested
           Some(schema)
         case Some(FlexibleSchemaPort(_)) if task.data.characteristics.explicitSchema =>
+          // Explicit (default) schema is requested
           Some(retrieveSchema(task, execution))
         case _ =>
           None
@@ -70,7 +68,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   /**
     * Retrieves the schema of the dataset if no output schema has been provided.
     */
-  protected def retrieveSchema(dataset: Task[DatasetSpec[DatasetType]], execution: ExecType)(implicit pluginContext: PluginContext): EntitySchema = {
+  private def retrieveSchema(dataset: Task[DatasetSpec[DatasetType]], execution: ExecType)(implicit pluginContext: PluginContext): EntitySchema = {
     implicit val prefixes: Prefixes = pluginContext.prefixes
     implicit val user: UserContext = pluginContext.user
 

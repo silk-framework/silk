@@ -23,7 +23,7 @@ object ReconfigureTasks {
     }
 
     private def collectConfigProperties(buffer: mutable.Buffer[String], prefix: String = ""): Unit = {
-      for (param <- pluginDesc.parameters if param.visibleInDialog) {
+      for (param <- pluginDesc.parameters) {
         param.parameterType match {
           case _: StringParameterType[_] =>
             buffer.append(prefix + param.name)

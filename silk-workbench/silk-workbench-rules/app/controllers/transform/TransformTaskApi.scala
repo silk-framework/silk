@@ -21,6 +21,7 @@ import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationError, ValidationException}
 import org.silkframework.serialization.json.JsonParseException
 import org.silkframework.serialization.json.JsonSerializers._
@@ -967,6 +968,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
+    implicit val variables: TemplateVariablesReader = task.project.combinedTemplateVariables
     val inputTask = task.project.anyTask (task.selection.inputId)
     val transform = new ExecuteTransform(task, (_) => inputTask, (_) => dataSource, (_) => entitySink, (_) => errorEntitySinkOpt)
     Activity(transform).startBlocking()
