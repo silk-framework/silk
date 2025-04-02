@@ -5,12 +5,14 @@ import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{InvalidPluginParameterValueException, PluginContext}
+import org.silkframework.runtime.templating.exceptions.{TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariableName, TemplateVariableScopes, TemplateVariables}
-import org.silkframework.runtime.templating.exceptions.{CannotDeleteUsedVariableException, TemplateVariableEvaluationException, TemplateVariablesEvaluationException, UnboundVariablesException}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{Json, OFormat}
+
+import scala.collection.mutable
 
 /**
   * Request to copy a project or a task to another project.
@@ -119,8 +121,9 @@ object CopyTasksRequest {
             if (overwrittenTasks.nonEmpty && !overwriteConfirmed) {
               throw BadUserInputException("Please confirm that you intend to overwrite tasks in the target project.")
             }
+            val copiedVariables = mutable.Set[TemplateVariableName]()
             for (task <- tasksToCopy) {
-              copyTask(task)
+              copyTask(task, copiedVariables)
             }
           }
 
@@ -158,9 +161,11 @@ object CopyTasksRequest {
       }
     }
 
-    private def copyTask(task: ProjectTask[_ <: TaskSpec]): Unit = {
+    private def copyTask(task: ProjectTask[_ <: TaskSpec], copiedVariables: mutable.Set[TemplateVariableName]): Unit = {
       val taskParameters = task.data.parameters(PluginContext.fromProject(sourceProject).copy(prefixes = Prefixes.empty))
-      val clonedTaskSpec = copyMissingVariables(task.data) { task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject)) }
+      val clonedTaskSpec = copyMissingVariables(task.data, copiedVariables) {
+        task.data.withParameters(taskParameters, dropExistingValues = true)(PluginContext.fromProject(targetProject))
+      }
       targetProject.updateAnyTask(taskRenameMap.getOrElse(task.id, task.id), clonedTaskSpec, Some(task.metaData))
       // Copy resources
       if (copyResources) {
@@ -173,11 +178,12 @@ object CopyTasksRequest {
     /**
      * Executes a function and copies all missing variables if an UnboundVariablesException is raised.
      */
-    private def copyMissingVariables[T](task: TaskSpec)(f: => T): T = {
+    private def copyMissingVariables[T](task: TaskSpec, copiedVariables: mutable.Set[TemplateVariableName])(f: => T): T = {
       // Copy all variables that are known to be referenced by a task
-      for(variableName <- task.referencedVariables if variableName.scope == TemplateVariableScopes.project) {
+      for(variableName <- task.referencedVariables if variableName.scope == TemplateVariableScopes.project && !copiedVariables.contains(variableName)) {
         val sourceVariable = sourceProject.templateVariables.get(variableName.name)
         targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
+        copiedVariables += variableName
       }
       // The referenced variables are not necessarily complete, so we need to add variables that are found by an UnboundVariablesException
       try {
