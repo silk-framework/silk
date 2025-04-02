@@ -11,10 +11,9 @@ import {
     Spacing,
     TagList,
     Tooltip,
-    //Spacing,
+    Tag,
 } from "@eccenca/gui-elements";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
-import Tag from "@eccenca/gui-elements/src/components/Tag/Tag";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import React from "react";
 import { IRelatedItem } from "@ducks/shared/typings";
@@ -22,8 +21,9 @@ import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
-import ProjectTags from "../ProjectTags/ProjectTags";
-import { SearchTags } from "../SearchList/SearchTags";
+import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
+import { searchTagsRenderer } from "../SearchList/SearchTags";
+import { ArtefactTag } from "../ArtefactTag";
 
 interface IProps {
     // The related item to be shown
@@ -75,7 +75,26 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
     ));
 
     const contextMenuItems = [otherMenuItems[0], ...menuItems, ...otherMenuItems.slice(1)];
-
+    const itemTags = [] as JSX.Element[];
+    if (relatedItem.type === "Dataset") {
+        itemTags.push(
+            <ArtefactTag key={"dataset"} artefactType="datasetNode">
+                <Highlighter label={relatedItem.type} searchValue={textQuery} />
+            </ArtefactTag>
+        );
+    }
+    if (relatedItem.readOnly) {
+        itemTags.push(
+            <Tag key={"readOnlyTag"}>
+                <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
+            </Tag>
+        );
+    }
+    itemTags.push(
+        <ArtefactTag key={relatedItem.pluginLabel} artefactType={`${relatedItem.pluginLabel.toLowerCase()}Node`}>
+            <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
+        </ArtefactTag>
+    );
     return (
         <OverviewItem key={relatedItem.id}>
             <OverviewItemDescription>
@@ -90,28 +109,17 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ResourceLink>
                 </OverviewItemLine>
                 <OverviewItemLine small>
-                    <Tag>
-                        <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
-                    </Tag>
-                    {relatedItem.type === "Dataset" && (
-                        <>
-                            <Spacing vertical size="tiny" />
-                            <Tag>
-                                <Highlighter label={relatedItem.type} searchValue={textQuery} />
-                            </Tag>
-                            {relatedItem.readOnly && (
-                                <>
-                                    <Spacing vertical size="tiny" />
-                                    <Tag>
-                                        <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
-                                    </Tag>
-                                </>
-                            )}
-                        </>
-                    )}
-                    <Spacing vertical size="tiny" />
-                    <ProjectTags tags={relatedItem.tags} query={textQuery} />
-                    <SearchTags searchTags={relatedItem.searchTags} searchText={textQuery} />
+                    <TagList>
+                        {itemTags}
+                        {projectTagsRenderer({
+                            tags: relatedItem.tags,
+                            query: textQuery,
+                        })}
+                        {searchTagsRenderer({
+                            searchTags: relatedItem.searchTags,
+                            searchText: textQuery,
+                        })}
+                    </TagList>
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>

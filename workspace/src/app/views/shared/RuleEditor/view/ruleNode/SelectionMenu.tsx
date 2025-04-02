@@ -1,7 +1,6 @@
 import React from "react";
-import { EdgeTools } from "@eccenca/gui-elements/src/extensions/react-flow";
 import { XYPosition } from "react-flow-renderer/dist/types";
-import { Button } from "@eccenca/gui-elements";
+import { ContextMenu, MenuItem, MenuDivider } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface SelectionMenuProps {
@@ -13,50 +12,68 @@ interface SelectionMenuProps {
     removeSelection: () => any;
     /** Clone selection. */
     cloneSelection: () => any;
+    /** Clone selection. */
+    copySelection: () => any;
 }
 
-/** Rule edge menu. */
-export const SelectionMenu = ({ position, onClose, removeSelection, cloneSelection }: SelectionMenuProps) => {
+export const SelectionMenu = ({
+    position,
+    onClose,
+    removeSelection,
+    cloneSelection,
+    copySelection,
+}: SelectionMenuProps) => {
     const [t] = useTranslation();
     return (
-        // FIXME: CMEM-3742: Use a generic "tools" component or rename EdgeTools
-        <EdgeTools posOffset={{ left: position.x, top: position.y }} onClose={onClose}>
-            <Button
-                minimal
-                icon="item-remove"
-                data-test-id={"selection-menu-remove-btn"}
-                tooltip={t("RuleEditor.selection.menu.delete.tooltip")}
-                tooltipProps={{
-                    autoFocus: false,
-                    enforceFocus: false,
-                    openOnTargetFocus: false,
+        <div
+            style={{
+                position: "fixed",
+                left: position.x,
+                top: position.y,
+            }}
+        >
+            <ContextMenu
+                contextOverlayProps={{
+                    onClose,
+                    defaultIsOpen: true,
+                    autoFocus: true,
+                    interactionKind: "hover",
                 }}
-                small
-                onClick={() => {
-                    onClose();
-                    removeSelection();
-                }}
+                togglerElement={<div />}
             >
-                {t("RuleEditor.selection.menu.delete.label")}
-            </Button>
-            <Button
-                minimal
-                icon="item-clone"
-                data-test-id={"selection-menu-clone-btn"}
-                tooltip={t("RuleEditor.selection.menu.clone.tooltip")}
-                tooltipProps={{
-                    autoFocus: false,
-                    enforceFocus: false,
-                    openOnTargetFocus: false,
-                }}
-                small
-                onClick={() => {
-                    onClose();
-                    cloneSelection();
-                }}
-            >
-                {t("RuleEditor.selection.menu.clone.label")}
-            </Button>
-        </EdgeTools>
+                <MenuItem
+                    text={t("RuleEditor.selection.menu.copy.label")}
+                    icon="item-copy"
+                    data-test-id={"selection-menu-copy-btn"}
+                    htmlTitle={t("RuleEditor.selection.menu.copy.tooltip")}
+                    onClick={() => {
+                        onClose();
+                        copySelection();
+                    }}
+                />
+                <MenuItem
+                    text={t("RuleEditor.selection.menu.clone.label")}
+                    icon="item-clone"
+                    data-test-id={"selection-menu-clone-btn"}
+                    htmlTitle={t("RuleEditor.selection.menu.clone.tooltip")}
+                    onClick={() => {
+                        onClose();
+                        cloneSelection();
+                    }}
+                />
+                <MenuDivider />
+                <MenuItem
+                    icon="item-remove"
+                    data-test-id={"selection-menu-remove-btn"}
+                    htmlTitle={t("RuleEditor.selection.menu.delete.tooltip")}
+                    onClick={() => {
+                        onClose();
+                        removeSelection();
+                    }}
+                    intent="danger"
+                    text={t("RuleEditor.selection.menu.delete.label")}
+                />
+            </ContextMenu>
+        </div>
     );
 };

@@ -23,7 +23,6 @@ import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings"
 import { FetchError, FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import { IStickyNote } from "../shared/task.typings";
 import { DatasetCharacteristics } from "../../shared/typings";
 import { requestDatasetCharacteristics } from "@ducks/shared/requests";
 import Loading from "../../shared/Loading";
@@ -33,7 +32,7 @@ import {
 } from "../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
 import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNode/ruleNode.utils";
 import { diErrorMessage } from "@ducks/error/typings";
-import { Notification, highlighterUtils } from "@eccenca/gui-elements";
+import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -129,9 +128,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 registerError(
                     "LinkingRuleEditor_fetchLinkingTask",
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
-                    err,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                );
+                    err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
                 setInitError(err);
             }
         }
@@ -177,9 +174,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
-                err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
-            );
+                err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
             setInitError(err);
         }
     };
@@ -187,7 +182,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     /** Save the rule. */
     const saveLinkageRule = async (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[] = []
+        stickyNotes: StickyNote[] = []
     ): Promise<RuleSaveResult> => {
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
@@ -242,6 +237,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         type: "int",
         advanced: true,
         defaultValue: "1",
+        orderIdx: -0.5,
     });
 
     const thresholdParameterSpec = (pluginDetails: IPluginDetails) => {
@@ -290,6 +286,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             defaultValue: "0.0",
             customValidation: customValidation(pluginDetails.distanceMeasureRange),
             distanceMeasureRange: pluginDetails.distanceMeasureRange,
+            orderIdx: -1,
         });
     };
 
@@ -318,17 +315,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 registerError(
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                )
+                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE})
             ),
             utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
                 registerError(
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                )
+                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE})
             ),
             ruleUtils.sidebarTabs.transform,
             ruleUtils.sidebarTabs.comparison,
@@ -361,9 +354,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                         registerError(
                             "LinkingRuleEditor-fetchDatasetCharacteristics",
                             "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                            ex,
-                            RULE_EDITOR_NOTIFICATION_INSTANCE
-                        );
+                            ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
                     }
                 }
             };

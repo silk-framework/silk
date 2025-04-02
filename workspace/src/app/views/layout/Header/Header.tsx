@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -17,11 +17,11 @@ import {
     Menu,
     MenuDivider,
     MenuItem,
+    Tag,
     TitleSubsection,
     Toolbar,
     ToolbarSection,
     WorkspaceHeader,
-    Tag,
 } from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
@@ -36,6 +36,7 @@ import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry"
 import { UserMenuFooterProps } from "../../plugins/plugin.types";
 import { ExampleProjectImportMenu } from "./ExampleProjectImportMenu";
 import { useKeyboardHeaderShortcuts } from "./useKeyBoardHeaderShortcuts";
+import { getFullRoutePath } from "../../../utils/routerUtils";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -80,7 +81,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         <>
             <ApplicationHeader aria-label={`${APPLICATION_NAME()}${brandingSuffix}`}>
                 <ApplicationTitle
-                    href={SERVE_PATH}
+                    href={getFullRoutePath("?itemType=project&page=1&limit=10")}
                     prefix={""}
                     isNotDisplayed={!isApplicationSidebarExpanded}
                     isApplicationSidebarExpanded={isApplicationSidebarExpanded}

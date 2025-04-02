@@ -226,7 +226,9 @@ class ObjectRule extends React.Component {
                         ) : null}
                     </CardContent>
                     <Divider />
-                    <CardActions className="ecc-silk-mapping__rulesviewer__actionrow">
+                    <CardActions
+                        data-test-id={"mapping-rule-card-actions"}
+                        className="ecc-silk-mapping__rulesviewer__actionrow">
                         <EditButton onEdit={this.handleEdit} />
                         {isCopiableRule(ruleType) && <CopyButton onCopy={this.handleCopy} />}
                         {isClonableRule(ruleType) && <CloneButton onClone={this.handleClone} />}

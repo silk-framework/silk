@@ -26,6 +26,7 @@ import { DataPreviewProps } from "../../../plugins/plugin.types";
 import { ExecutionReportResponse, OutputEntitiesSample, TypeRuleData } from "./report-typings";
 import { useTranslation } from "react-i18next";
 import { MAPPING_RULE_TYPE_OBJECT } from "../HierarchicalMapping/utils/constants";
+import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping/HierarchicalMapping";
 
 interface ExecutionReportProps {
     /** The execution report to render. */
@@ -220,7 +221,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
                 <GridRow>
                     <GridColumn medium>
                         <MappingsTree
-                            currentRuleId={currentRuleId ?? "root"}
+                            currentRuleId={currentRuleId ?? MAPPING_ROOT_RULE_ID}
                             ruleTree={mappingRule}
                             showValueMappings={true}
                             handleRuleNavigation={onRuleNavigation}
@@ -310,7 +311,7 @@ export const ExecutionReport = ({ executionReport, executionMetaData, trackRuleI
     };
 
     const renderRuleReport = (ruleValidation: Record<string, "ok" | "warning">) => {
-        const ruleId = currentRuleId ?? "root";
+        const ruleId = currentRuleId ?? MAPPING_ROOT_RULE_ID;
         const mappingRule = executionReport?.task.data.parameters.mappingRule;
         const typeRulesPerContainerRule = typeRules(mappingRule);
         const ruleResults = executionReport?.ruleResults?.[ruleId];

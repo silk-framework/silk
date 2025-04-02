@@ -117,6 +117,15 @@ export interface IPluginOverview {
     markdownDocumentation?: string;
     /** Plugin icon in Data URL format. */
     pluginIcon?: string;
+    pluginId?: string;
+    actions?: Record<
+        string,
+        {
+            description: string;
+            icon: string | null;
+            label: string;
+        }
+    >;
 }
 
 export type AlternativeTaskUpdateFunction = (
@@ -287,6 +296,9 @@ export interface IInitFrontend {
 
     /** If templating in some input fields is enabled. */
     templatingEnabled: boolean;
+
+    /** If the assistant feature is enabled. */
+    assistantSupported: boolean;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

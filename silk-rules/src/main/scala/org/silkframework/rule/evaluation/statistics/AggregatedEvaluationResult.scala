@@ -21,7 +21,7 @@ import org.silkframework.rule.evaluation.EvaluationResult
 /**
  * The aggregated result of multiple evaluations.
  */
-case class AggregatedEvaluationResult(fMeasure: VariableStatistic, mcc: VariableStatistic, score: VariableStatistic)
+case class AggregatedEvaluationResult(fMeasure: AggregatedMetric, mcc: AggregatedMetric, score: AggregatedMetric)
 
 /**
  * Aggregates multiple evaluation results.
@@ -29,9 +29,9 @@ case class AggregatedEvaluationResult(fMeasure: VariableStatistic, mcc: Variable
 object AggregatedEvaluationResult {
   def apply(results: Iterable[EvaluationResult]): AggregatedEvaluationResult = {
     AggregatedEvaluationResult(
-      fMeasure = VariableStatistic(results.map(_.fMeasure)),
-      mcc = VariableStatistic(results.map(_.mcc)),
-      score = VariableStatistic(results.map(_.score))
+      fMeasure = AggregatedMetric(results.map(_.fMeasure)),
+      mcc = AggregatedMetric(results.map(_.mcc)),
+      score = AggregatedMetric(results.map(_.score))
     )
   }
 }

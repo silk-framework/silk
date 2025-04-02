@@ -63,7 +63,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
                     @Param(label = "Link Limit", value = "The maximum number of links that should be generated. The execution will stop once this limit is reached.",
                       advanced = true)
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
-                    @Param(label = "Matching timeout", value = "The timeout for the matching phase. If the matching takes longer the execution will be stopped.",
+                    @Param(label = "Matching timeout (s)", value = "The timeout in seconds for the matching phase. If the matching takes longer, the execution will be stopped.",
                       advanced = true)
                     matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends LinkGenerator with AnyPlugin {
 

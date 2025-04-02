@@ -1,8 +1,8 @@
-import { IInputSource, IStickyNote } from "../shared/task.typings";
+import { IInputSource } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
-import { ILinkingRule, IResourceLink, OptionallyLabelledParameter } from "../linking/linking.types";
 import { Stacktrace } from "../../shared/SampleError/SampleError";
+import { StickyNote } from "@eccenca/gui-elements";
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -31,7 +31,7 @@ export interface IComplexMappingRule extends ITransformRule {
     /** Rule operator layout information. */
     layout: RuleLayout;
     uiAnnotations: {
-        stickyNotes: IStickyNote[];
+        stickyNotes: StickyNote[];
     };
 }
 

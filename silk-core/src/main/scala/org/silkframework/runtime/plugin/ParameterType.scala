@@ -5,11 +5,10 @@ import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.plugin.annotations.PluginType
 import org.silkframework.runtime.plugin.types._
-import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, WritableResource}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
-import java.io.File
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.spec.InvalidKeySpecException

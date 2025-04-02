@@ -6,12 +6,6 @@ $diapp-entitybox-cell-background-even: $eccgui-color-tablerow-background-even !d
 $diapp-entitybox-cell-background-hovered: $eccgui-color-tablerow-hover !default;
 $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
 
-.diapp-linking-learningdata__container {
-}
-
-.diapp-linking-learningdata__row {
-}
-
 .diapp-linking-learningdata__header.fullwidth,
 .diapp-linking-learningdata__cell.fullwidth {
     max-width: 100%;
@@ -23,11 +17,11 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     border-color: $diapp-entitybox-cell-border;
     border-width: 2px;
     border-style: solid solid none solid;
-    padding: 0.75rem 7px;
+    padding: $eccgui-size-block-whitespace * 0.75 $eccgui-size-block-whitespace * 0.5;
     font-weight: 500;
     color: #000;
     vertical-align: middle;
-    font-size: 0.875rem;
+    font-size: $eccgui-size-typo-caption;
 }
 
 .diapp-linking-learningdata__cell.shrink {
@@ -42,7 +36,8 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     background-color: $diapp-entitybox-cell-background-even;
     border-width: 2px;
     border-style: none solid;
-    padding: 7px 7px 3.5px 7px;
+    padding: $eccgui-size-block-whitespace * 0.5;
+    padding-bottom: $eccgui-size-block-whitespace * 0.25;
     transition: 300ms;
     visibility: visible;
     opacity: 1;
@@ -117,13 +112,13 @@ div.diapp-linking-connectionenabled__arrow-right {
         background: currentColor;
         width: 100%;
         clip-path: polygon(
-            0 7px,
-            calc(100% - 7px) 7px,
-            calc(100% - 7px) 0,
+            0 #{$eccgui-size-block-whitespace * 0.5},
+            calc(100% - #{$eccgui-size-block-whitespace * 0.5}) #{$eccgui-size-block-whitespace * 0.5},
+            calc(100% - #{$eccgui-size-block-whitespace * 0.5}) 0,
             100% 50%,
-            calc(100% - 7px) 100%,
-            calc(100% - 7px) calc(100% - 7px),
-            0 9px
+            calc(100% - #{$eccgui-size-block-whitespace * 0.5}) 100%,
+            calc(100% - #{$eccgui-size-block-whitespace * 0.5}) calc(100% - #{$eccgui-size-block-whitespace * 0.5}),
+            0 #{$eccgui-size-block-whitespace * 0.61}
         );
     }
 }
@@ -135,7 +130,15 @@ div.diapp-linking-connectionenabled__arrow-left {
         content: "";
         background: currentColor;
         width: 100%;
-        clip-path: polygon(0 50%, 7px 100%, 7px calc(100% - 7px), 100% calc(100% - 7px), 100% 7px, 7px 7px, 7px 0%);
+        clip-path: polygon(
+            0 50%,
+            #{$eccgui-size-block-whitespace * 0.5} 100%,
+            #{$eccgui-size-block-whitespace * 0.5} calc(100% - #{$eccgui-size-block-whitespace * 0.5}),
+            100% calc(100% - #{$eccgui-size-block-whitespace * 0.5}),
+            100% #{$eccgui-size-block-whitespace * 0.5},
+            #{$eccgui-size-block-whitespace * 0.5} #{$eccgui-size-block-whitespace * 0.5},
+            #{$eccgui-size-block-whitespace * 0.5} 0%
+        );
     }
 }
 

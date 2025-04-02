@@ -85,10 +85,10 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       inverseLinkType = Some("http://www.w3.org/2002/07/owl#sameAsInv"),
       excludeSelfReferences = true,
       layout = RuleLayout(
-        nodePositions = Map("compareNames" -> (1, 2))
+        nodePositions = Map("compareNames" -> NodePosition(1, 2))
       ),
       uiAnnotations = UiAnnotations(
-        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", (0, 0), (1, 1)))
+        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", NodePosition(0, 0, 1, 1)))
       )
     )
 
@@ -132,7 +132,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                   DirectMapping(
                     id = TRANSFORM_ID,
                     sourcePath = UntypedPath("prop1"),
-                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description"))
+                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description")),
+                    inputId = Some("prop1")
                   ),
                   ComplexMapping(
                     id = "complexId",
@@ -148,9 +149,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     target = Some(MappingTarget(Uri("urn:complex:target"))),
                     layout = RuleLayout(
                       nodePositions = Map(
-                        "lower" -> (0, 1),
-                        "concat" -> (3, 4),
-                        "path" -> (5, 6)
+                        "lower" -> NodePosition(0, 1),
+                        "concat" -> NodePosition(3, 4, Some(250)),
+                        "path" -> NodePosition(5, 6, 250, 300)
                       )
                     ),
                     uiAnnotations = UiAnnotations(
@@ -159,8 +160,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                           id = "stickyId",
                           content = "test",
                           color = "#000",
-                          position = (12,23),
-                          dimension = (32, 32)
+                          NodePosition(12,23, 32, 32)
                         )
                       )
                     )
@@ -182,7 +182,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               MappingRules(DirectMapping(
                 id = TRANSFORM_ID + 2,
                 sourcePath = UntypedPath("prop5"),
-                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description"))
+                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description")),
+                inputId = Some("prop5")
               )),
             mappingTarget = transformTask.data.mappingRule.mappingTarget.copy(isAttribute = true),
             metaData = MetaData(Some("Root Rule New Label"), Some("Root Rule New Description"))
@@ -203,7 +204,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData(Some("type")))),
               propertyRules = Seq(
-                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name"))),
+                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name")), Some("name")),
                 ObjectMapping(
                   sourcePath = UntypedPath.empty,
                   target = Some(MappingTarget("address")),
@@ -211,8 +212,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData(Some("uri")))),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
-                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city"))),
-                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")))
+                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city")), Some("city")),
+                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")), Some("city"))
                     )
                   ),
                   metaData = MetaData(Some("object"))
@@ -239,7 +240,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
             WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
-            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
+            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", NodePosition(0, 0, 1, 1)))
           ),
           replaceableInputs = Seq(DATASET_ID),
           replaceableOutputs = Seq(OUTPUTS_DATASET_ID)

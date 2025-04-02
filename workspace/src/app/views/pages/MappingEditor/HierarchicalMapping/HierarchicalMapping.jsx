@@ -18,6 +18,8 @@ import PromptModal from "../../../../views/shared/projectTaskTabView/PromptModal
 import { requestValueTypes } from "./HierarchicalMapping.requests";
 import { GlobalMappingEditorContext } from "../contexts/GlobalMappingEditorContext";
 
+export const MAPPING_ROOT_RULE_ID = "root"
+
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {
@@ -67,12 +69,18 @@ class HierarchicalMapping extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        const currentSearchQuery = this.props.history.location.search
+        if(this.state.currentRuleId !== MAPPING_ROOT_RULE_ID && !currentSearchQuery.includes("ruleId=")) {
+            this.setState({
+                currentRuleId: MAPPING_ROOT_RULE_ID
+            })
+        }
         if (prevState.currentRuleId !== this.state.currentRuleId && !_.isEmpty(this.state.currentRuleId)) {
             const history = getHistory();
             const ruleId = this.state.currentRuleId;
             if (!this.props.startFullScreen) {
                 history.replace({
-                    search: `?${new URLSearchParams({ ruleId })}`,
+                    search: ruleId !== "root" ? `?${new URLSearchParams({ ruleId })}` : "",
                 });
             }
         }
@@ -240,7 +248,8 @@ class HierarchicalMapping extends React.Component {
                 value={{
                     valueTypeLabels: this.state.valueTypeLabels,
                     taskContext: this.props.viewActions.taskContext?.context,
-                    transformTask: this.props.transformTask,
+                    projectId: this.props.project,
+                    transformTaskId: this.props.transformTask,
                 }}
             >
                 <section className="ecc-silk-mapping" data-test-id={"hierarchical-mappings"}>
@@ -248,7 +257,7 @@ class HierarchicalMapping extends React.Component {
                         <MappingEditorModal
                             projectId={this.props.project}
                             transformTaskId={this.props.transformTask}
-                            containerRuleId={this.state.containerRuleId ?? "root"}
+                            containerRuleId={this.state.containerRuleId ?? MAPPING_ROOT_RULE_ID}
                             ruleId={this.state.mappingEditorRuleId}
                             viewActions={this.props.viewActions}
                             isOpen={showMappingEditor}

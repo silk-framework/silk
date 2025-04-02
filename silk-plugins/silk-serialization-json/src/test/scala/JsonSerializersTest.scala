@@ -2,7 +2,7 @@
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
 import org.silkframework.rule.vocab._
-import org.silkframework.rule.{MappingTarget, RuleLayout}
+import org.silkframework.rule.{MappingTarget, NodePosition, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, TestReadContext, TestWriteContext, WriteContext}
@@ -63,9 +63,10 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
   "RuleLayout" should "be serializable to and from JSON" in {
     val layout = RuleLayout(
       Map(
-        "nodeA" -> (1, 2),
-        "nodeB" -> (3, 4),
-        "nodeC" -> (5, 6)
+        "nodeA" -> NodePosition(1, 2),
+        "nodeB" -> NodePosition(3, 4, Some(10), None),
+        "nodeC" -> NodePosition(5, 6, None, Some(10)),
+        "nodeD" -> NodePosition(7, 8, Some(100), Some(200))
       )
     )
     testSerialization(layout)
@@ -75,8 +76,7 @@ class JsonSerializersTest  extends AnyFlatSpec with Matchers {
     "sticky ID",
     "content with\nnew\n\nlines",
     "#fff",
-    (3.5, 6.7),
-    (20.1, 24.9)
+    NodePosition(3, 6, 20, 24)
   )
 
   "StickyNote" should "serialize to and from JSON" in {

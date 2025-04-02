@@ -1,10 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
 import org.apache.jena.query.{QueryFactory, Syntax}
+import org.apache.jena.riot.Lang
+import org.apache.jena.riot.resultset.ResultSetLang
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicInteger
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.endpoint.PagingSparqlTraversable.QueryExecutor
 
@@ -26,6 +28,9 @@ class PagingSparqlTraversableTest extends AnyFlatSpec with Matchers {
   private final val EMPTY_LITERAL = "emptyLiteral"
 
   private def sparqlResults(nrResults: Int) = new QueryExecutor {
+
+    override protected val resultLang: Lang = ResultSetLang.RS_XML
+
     override def execute(query: String): InputStream = {
       val result = <sparql xmlns="http://www.w3.org/2005/sparql-results#">
         <head>
@@ -80,6 +85,7 @@ class PagingSparqlTraversableTest extends AnyFlatSpec with Matchers {
   it should "handle graph parameter" in {
     val queries = ArrayBuffer[String]()
     val queryCollector = new QueryExecutor {
+      override protected val resultLang: Lang = ResultSetLang.RS_XML
       def execute(query: String): InputStream = {
         queries.append(query)
         sparqlResults(1).execute(query) // just a dummy
@@ -100,6 +106,7 @@ class PagingSparqlTraversableTest extends AnyFlatSpec with Matchers {
   it should "not set limit and offset if already in query" in {
     val queries = ArrayBuffer[String]()
     val queryCollector = new QueryExecutor {
+      override protected val resultLang: Lang = ResultSetLang.RS_XML
       def execute(query: String): InputStream = {
         queries.append(query)
         sparqlResults(1).execute(query) // just a dummy
@@ -118,6 +125,7 @@ class PagingSparqlTraversableTest extends AnyFlatSpec with Matchers {
     val lowLimit = 42
     val queries = ArrayBuffer[String]()
     val queryCollector = new QueryExecutor {
+      override protected val resultLang: Lang = ResultSetLang.RS_XML
       def execute(query: String): InputStream = {
         queries.append(query)
         sparqlResults(1).execute(query) // just a dummy
@@ -159,6 +167,7 @@ class PagingSparqlTraversableTest extends AnyFlatSpec with Matchers {
     @volatile var inInputStream = false
     @volatile var interruptedInStream = false
     val blockingExecutor = new QueryExecutor {
+      override protected val resultLang: Lang = ResultSetLang.RS_XML
       override def execute(query: String): InputStream = {
         if(count.get() <= 2) {
           sparqlResults(1).execute(query)

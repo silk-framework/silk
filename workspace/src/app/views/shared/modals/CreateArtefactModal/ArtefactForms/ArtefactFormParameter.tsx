@@ -365,7 +365,7 @@ export const TemplateInputComponent = memo(
                             ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })
                             : undefined
                     );
-                    return processValidationError(validationResponse);
+                    return validationResponse;
                 } catch (error) {
                     handleTemplateErrors
                         ? handleTemplateErrors(error)

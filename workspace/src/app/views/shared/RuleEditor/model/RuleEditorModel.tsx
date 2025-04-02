@@ -43,15 +43,21 @@ import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { InteractionGate, Markdown, nodeDefaultUtils, NodeContentProps } from "@eccenca/gui-elements";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
+import {
+    InteractionGate,
+    Markdown,
+    nodeDefaultUtils,
+    NodeContentProps,
+    StickyNote,
+    NodeDimensions,
+} from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
 import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-
-type NodeDimensions = NodeContentProps<any>["nodeDimensions"];
+import { PUBLIC_URL } from "../../../../constants/path";
+import { copyToClipboard } from "../../../../utils/copyToClipboard";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -68,7 +74,6 @@ interface RuleTreeNode {
     output: string | undefined;
     node: IRuleOperatorNode;
 }
-
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here.
  *  It contains the main (core) rule editor logic. */
@@ -122,9 +127,57 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
+    /** when a node is clicked the selected nodes appears here */
+    const [selectedElements, updateSelectedElements] = React.useState<Elements | null>(null);
+    const [copiedNodesCount, setCopiedNodesCount] = React.useState<number>(0);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
+
+    React.useEffect(() => {
+        if (copiedNodesCount) {
+            setTimeout(() => {
+                setCopiedNodesCount(0);
+            }, 3000);
+        }
+    }, [copiedNodesCount]);
+
+    React.useEffect(() => {
+        const handlePaste = async (e) => {
+            const tagName = e.target?.tagName
+            if(tagName === "INPUT" ||
+                // In CodeMirror the target has this structure.
+                (tagName === "BR" && e.target?.parentElement == null) ||
+                e.target?.classList.contains("cm-line")
+            ) {
+                // User tries to paste text into an input field
+                return
+            }
+            await pasteNodes(e);
+        }
+        const handleCopy = async (e) => {
+            const tagName = e.target.tagName
+            const selectedText: Selection | null = document.getSelection()
+            if(tagName === "INPUT" || selectedText && selectedText.toString() !== "") {
+                // User tries to copy text from an input or from selected text somewhere else on the page, do not interfere
+                return
+            }
+            if (selectedElements) {
+                await copyNodes(
+                    selectedElements.map((n) => n.id),
+                    e
+                );
+                e.preventDefault();
+            }
+        };
+        window.addEventListener("paste", handlePaste);
+        window.addEventListener("copy", handleCopy);
+
+        return () => {
+            window.removeEventListener("paste", handlePaste);
+            window.removeEventListener("copy", handleCopy);
+        };
+    }, [nodeParameters, ruleEditorContext.operatorList, selectedElements]);
 
     const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
         if (ruleOperatorNode) {
@@ -148,7 +201,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     React.useEffect(() => {
-        const unSavedChangesFunc = ruleEditorContext.viewActions?.savedChanges;
+        const unSavedChangesFunc = ruleEditorContext.viewActions?.unsavedChanges;
         unSavedChangesFunc && unSavedChangesFunc(canUndo);
     }, [canUndo]);
 
@@ -485,6 +538,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addOrMergeRuleModelChange = (ruleModelChanges: RuleModelChanges) => {
         const lastChange = asChangeNodeParameter(ruleUndoStack[ruleUndoStack.length - 1]);
         const parameterChange = asChangeNodeParameter(ruleModelChanges);
+
         if (
             parameterChange &&
             lastChange &&
@@ -495,6 +549,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             ruleUndoStack.push(ruleModelChanges);
         } else {
             ruleUndoStack.push(ruleModelChanges);
+            console.log("Rule undo stack ==>", ruleUndoStack);
         }
     };
 
@@ -771,7 +826,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeSizeInternal = (elementsWithSizeChanges: Map<string, NodeDimensions>, els: Elements) => {
+    const changeNodeSizeInternal = (
+        elementsWithSizeChanges: Map<string, NodeDimensions | undefined>,
+        els: Elements
+    ) => {
         return els.map((elem) => {
             if (utils.isNode(elem) && elementsWithSizeChanges.has(elem.id)) {
                 const node = utils.asNode(elem)!!;
@@ -881,7 +939,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (node) {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions!, newNodeDimensions),
+                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions, newNodeDimensions),
                     els
                 );
             } else {
@@ -933,6 +991,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 handles: [],
                 nodeDimensions: dimension,
                 onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
+                resizeDirections: {
+                    bottom: true,
+                    right: true,
+                },
                 menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,
                 style,
@@ -1014,9 +1076,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 registerError(
                     "RuleEditorModel.requestRuleOperatorPluginDetails",
                     "Could not fetch rule operator plugin details. Human-readable labels for default values might be missing.",
-                    ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
-                );
+                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
             }
         }
         const newNode = createNodeInternal(ruleOperator, position, updatedOverwriteParameterValues);
@@ -1217,6 +1277,132 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return els;
             }
         }, true);
+    };
+
+    const pasteNodes = async (e: any) => {
+        try {
+            const clipboardData = e.clipboardData?.getData("Text");
+            const pasteInfo = JSON.parse(clipboardData); // Parse JSON
+            if (pasteInfo.task) {
+                changeElementsInternal((els) => {
+                    const nodes = pasteInfo.task.data.nodes ?? [];
+                    const nodeIdMap = new Map<string, string>();
+                    const newNodes: RuleEditorNode[] = [];
+                    nodes.forEach((node) => {
+                        const position = { x: node.position.x + 100, y: node.position.y + 100 };
+                        const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
+                        if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
+                        const newNode = createNodeInternal(
+                            op,
+                            position,
+                            Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                        );
+                        if (newNode) {
+                            nodeIdMap.set(node.id, newNode.id);
+                            newNodes.push({
+                                ...newNode,
+                                data: {
+                                    ...newNode.data,
+                                    introductionTime: {
+                                        run: 1800,
+                                        delay: 300,
+                                    },
+                                },
+                            });
+                        }
+                    });
+                    const newEdges: Edge[] = [];
+                    pasteInfo.task.data.edges.forEach((edge) => {
+                        if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                            const newEdge = utils.createEdge(
+                                nodeIdMap.get(edge.source)!!,
+                                nodeIdMap.get(edge.target)!!,
+                                edge.targetHandle!!,
+                                edge.type ?? "step"
+                            );
+                            newEdges.push(newEdge);
+                        }
+                    });
+                    startChangeTransaction();
+                    const withNodes = addAndExecuteRuleModelChangeInternal(
+                        RuleModelChangesFactory.addNodes(newNodes),
+                        els
+                    );
+                    resetSelectedElements();
+                    setTimeout(() => {
+                        unsetUserSelection();
+                        setSelectedElements([...newNodes, ...newEdges]);
+                    }, 100);
+                    return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
+                });
+            }
+        } catch (err) {
+            //todo handle errors
+            const unExpectedTokenError = /Unexpected token/.exec(err?.message ?? "");
+            if (unExpectedTokenError) {
+                //that is, not the expected json format that contains nodes
+                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err,
+                    {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning"});
+            } else {
+                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err,
+                    {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning"});
+            }
+        }
+    };
+
+    const copyNodes = async (nodeIds: string[], event?: any) => {
+        //Get nodes and related edges
+        const nodeIdMap = new Map<string, string>(nodeIds.map((id) => [id, id]));
+        const edges: Partial<Edge>[] = [];
+
+        const originalNodes = utils.nodesById(elements, nodeIds);
+        const nodes = originalNodes.map((node) => {
+            const ruleOperatorNode = node.data.businessData.originalRuleOperatorNode;
+            return {
+                id: node.id,
+                pluginId: ruleOperatorNode.pluginId,
+                pluginType: ruleOperatorNode.pluginType,
+                position: node.position,
+            };
+        });
+
+        elements.forEach((elem) => {
+            if (utils.isEdge(elem)) {
+                const edge = utils.asEdge(elem)!!;
+                if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                    //edges worthy of copying
+                    edges.push({
+                        source: edge.source,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: edge.type ?? "step",
+                    });
+                }
+            }
+        });
+        //paste to clipboard.
+        const { projectId, editedItemId, editedItem } = ruleEditorContext;
+        const taskType = (editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
+        const data = JSON.stringify({
+            task: {
+                data: {
+                    nodes,
+                    edges,
+                },
+                metaData: {
+                    domain: PUBLIC_URL,
+                    project: projectId,
+                    task: editedItemId,
+                },
+            },
+        });
+        if (event) {
+            event.clipboardData.setData("text/plain", data);
+            event.preventDefault();
+        } else {
+            copyToClipboard(data);
+        }
+        setCopiedNodesCount(nodes.length);
     };
 
     /** Copy and paste nodes with a given offset. */
@@ -1545,6 +1731,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
         languageFilterEnabled,
+        changeNodeSize: changeSize,
     });
 
     /** Auto-layout the rule nodes.
@@ -1624,21 +1811,23 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
+                dimension: node.data.nodeDimensions,
                 description: originalNode.description,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
         });
     };
 
+    //node.data?.nodeDimensions
     /** Save the current rule. */
     const saveRule = async () => {
         const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
             if (utils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                 const node = utils.asNode(elem)!;
-                stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as IStickyNote);
+                stickyNodes.push(nodeDefaultUtils.transformNodeToStickyNode(node) as StickyNote);
             }
             return stickyNodes;
-        }, [] as IStickyNote[]);
+        }, [] as StickyNote[]);
 
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), stickyNodes);
         if (saveResult.success) {
@@ -1712,21 +1901,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             })
         );
 
-        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, dimension, id }) =>
-            createStickyNodeInternal(
-                color,
-                content,
-                {
-                    x: position[0],
-                    y: position[1],
-                },
-                {
-                    width: dimension[0],
-                    height: dimension[1],
-                },
-                id
-            )
-        );
+        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) => {
+            const { x, y, width, height } = position;
+            return createStickyNodeInternal(color, content, { x, y }, { width, height }, id);
+        });
 
         let elems: Elements = [...nodes, ...edges, ...stickyNodes];
         if (needsLayout) {
@@ -1762,6 +1940,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 canvasId,
+                updateSelectedElements,
+                copiedNodesCount,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
@@ -1780,6 +1960,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
+                    copyNodes,
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,
