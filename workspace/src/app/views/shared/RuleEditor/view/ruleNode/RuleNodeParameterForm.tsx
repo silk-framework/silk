@@ -44,10 +44,8 @@ export const RuleNodeParameterForm = ({
     );
 
     const shownParameters = [...normalParameters];
-    if (ruleEditorUiContext.advancedParameterModeEnabled && !hasAdvancedSection) {
-        shownParameters.push(...advancedParameters);
-    }
-    const advancedSectionParameters = hasAdvancedSection ? advancedParameters : [];
+    const advancedSectionParameters =
+        hasAdvancedSection || ruleEditorUiContext.advancedParameterModeEnabled ? advancedParameters : [];
     const renderFormParameter = (param: IRuleNodeParameter) => {
         return (
             <RuleNodeFormParameter
@@ -68,7 +66,10 @@ export const RuleNodeParameterForm = ({
         <div key={"ruleNodeParameters"}>
             {shownParameters.map(renderFormParameter)}
             {advancedSectionParameters.length > 0 ? (
-                <AdvancedOptionsArea open={ruleEditorUiContext.advancedParameterModeEnabled}>
+                <AdvancedOptionsArea
+                    open={ruleEditorUiContext.advancedParameterModeEnabled}
+                    compact={!hasAdvancedSection}
+                >
                     {advancedSectionParameters.map(renderFormParameter)}
                 </AdvancedOptionsArea>
             ) : null}

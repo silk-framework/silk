@@ -143,8 +143,26 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     }, [copiedNodesCount]);
 
     React.useEffect(() => {
-        const handlePaste = async (e) => await pasteNodes(e);
+        const handlePaste = async (e) => {
+            const tagName = e.target?.tagName;
+            if (
+                tagName === "INPUT" ||
+                // In CodeMirror the target has this structure.
+                (tagName === "BR" && e.target?.parentElement == null) ||
+                e.target?.classList.contains("cm-line")
+            ) {
+                // User tries to paste text into an input field
+                return;
+            }
+            await pasteNodes(e);
+        };
         const handleCopy = async (e) => {
+            const tagName = e.target.tagName;
+            const selectedText: Selection | null = document.getSelection();
+            if (tagName === "INPUT" || (selectedText && selectedText.toString() !== "")) {
+                // User tries to copy text from an input or from selected text somewhere else on the page, do not interfere
+                return;
+            }
             if (selectedElements) {
                 await copyNodes(
                     selectedElements.map((n) => n.id),
@@ -184,7 +202,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     React.useEffect(() => {
-        const unSavedChangesFunc = ruleEditorContext.viewActions?.savedChanges;
+        const unSavedChangesFunc = ruleEditorContext.viewActions?.unsavedChanges;
         unSavedChangesFunc && unSavedChangesFunc(canUndo);
     }, [canUndo]);
 
@@ -1060,7 +1078,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     "RuleEditorModel.requestRuleOperatorPluginDetails",
                     "Could not fetch rule operator plugin details. Human-readable labels for default values might be missing.",
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 );
             }
         }
@@ -1326,9 +1344,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const unExpectedTokenError = /Unexpected token/.exec(err?.message ?? "");
             if (unExpectedTokenError) {
                 //that is, not the expected json format that contains nodes
-                registerError("RuleEditorModel.pasteCopiedNodes", "No operator has been found in the pasted data", err);
+                registerError(
+                    "RuleEditorModel.pasteCopiedNodes",
+                    "No operator has been found in the pasted data",
+                    err,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning" }
+                );
             } else {
-                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err);
+                registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err, {
+                    errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+                    intent: "warning",
+                });
             }
         }
     };

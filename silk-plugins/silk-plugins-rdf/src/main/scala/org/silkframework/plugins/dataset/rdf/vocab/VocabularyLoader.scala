@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.UserContext
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 
-class VocabularyLoader(endpoint: SparqlEndpoint) {
+class VocabularyLoader(endpoint: SparqlEndpoint with GraphStoreTrait) {
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
@@ -16,8 +16,9 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
     Some(Vocabulary(
       info = vocabGenericInfo,
-      classes = classes.toSeq,
-      properties = retrieveProperties(uri, classes.toSeq)
+      classes = classes,
+      properties = retrieveProperties(uri, classes),
+      endpoint = Some(endpoint)
     ))
   }
 
@@ -44,7 +45,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       vocabularyGraphUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
       label = label,
       description = description,
-      altLabels = altLabels
+      altLabels = altLabels,
+      vocabularyUri = Some(vocabularyGraphUri)
     )
   }
 
@@ -82,14 +84,14 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       |PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
       |""".stripMargin
 
-  def retrieveClasses(uri: String)
+  def retrieveClasses(vocabularyGraphUri: String)
                      (implicit userContext: UserContext): Seq[VocabularyClass] = {
     val classQuery =
       s"""
          | $prefixes
          |
          | SELECT * WHERE {
-         |   GRAPH <$uri> {
+         |   GRAPH <$vocabularyGraphUri> {
          |     { ?c a owl:Class }
          |     UNION
          |     { ?c a rdfs:Class }
@@ -116,7 +118,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
             uri = classUri,
             label = label,
             description = description,
-            altLabels = altLabels
+            altLabels = altLabels,
+            vocabularyUri = Some(vocabularyGraphUri)
           ),
         parentClasses = parents
       )
@@ -224,9 +227,9 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     OWL2.ObjectProperty.getURI
   )
 
-  def retrieveProperties(uri: String, classes: Iterable[VocabularyClass])
+  def retrieveProperties(vocabularyUri: String, classes: Iterable[VocabularyClass])
                         (implicit userContext: UserContext): Iterable[VocabularyProperty] = {
-    val propertyQuery = propertiesOfClassQuery(uri)
+    val propertyQuery = propertiesOfClassQuery(vocabularyUri)
 
     val classMap = classes.map(c => (c.info.uri, c)).toMap
     def getClass(uri: String) = classMap.getOrElse(uri, VocabularyClass(GenericInfo(uri, altLabels = Seq.empty), Seq()))
@@ -241,7 +244,8 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
           uri = propertyResource.value,
           label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption,
           description = description,
-          altLabels = altLabels
+          altLabels = altLabels,
+          vocabularyUri = Some(vocabularyUri)
         )
       val classes = bindings.flatMap(_.get("class"))
       val propertyType = classes.toSeq.

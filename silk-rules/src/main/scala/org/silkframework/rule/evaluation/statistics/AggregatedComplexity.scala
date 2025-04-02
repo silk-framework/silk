@@ -23,7 +23,7 @@ package org.silkframework.rule.evaluation.statistics
  * @param comparisonCount The number of comparisons in the condition.
  * @param transformationCount The number of transformations in the condition.
  */
-case class AggregatedComplexity(comparisonCount: VariableStatistic, transformationCount: VariableStatistic)
+case class AggregatedComplexity(comparisonCount: AggregatedMetric, transformationCount: AggregatedMetric)
 
 /**
  * Aggregates the complexity of multiple linkage rules.
@@ -31,8 +31,8 @@ case class AggregatedComplexity(comparisonCount: VariableStatistic, transformati
 object AggregatedComplexity {
   def apply(complexities: Iterable[LinkageRuleComplexity]): AggregatedComplexity = {
     AggregatedComplexity(
-      comparisonCount = VariableStatistic(complexities.map(_.comparisonCount.toDouble)),
-      transformationCount = VariableStatistic(complexities.map(_.transformationCount.toDouble))
+      comparisonCount = AggregatedMetric(complexities.map(_.comparisonCount.toDouble)),
+      transformationCount = AggregatedMetric(complexities.map(_.transformationCount.toDouble))
     )
   }
 }

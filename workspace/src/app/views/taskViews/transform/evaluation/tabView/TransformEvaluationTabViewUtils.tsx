@@ -42,12 +42,10 @@ export const NodeTagValues: React.FC<NodeTagValuesProps> = React.memo(
                 <Tag className="diapp-linking-evaluation__cutinfo" round intent="info">
                     +{values.length - cutAfter}
                 </Tag>
-            ) : (
-                <></>
-            );
+            ) : null;
 
         return (
-            <TagList>
+            <TagList className="diapp-linking-evaluation__valuetaglist">
                 {!values.length && !error && (
                     <Tag
                         htmlTitle={error || t("common.messages.noValuesAvailable")}

@@ -5,7 +5,6 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow.taskIds
 import org.silkframework.workspace.activity.workflow.WorkflowNode.{convertOptionToString, convertStringToOption}
 
-import scala.Seq
 import scala.xml.{Node, Text}
 
 /**

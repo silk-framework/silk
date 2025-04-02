@@ -63,6 +63,8 @@ object Identifier {
     (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c == '_') || (c == '-')
   }
 
+  def filterAllowedChars(str: String): String = str.filter(Identifier.isAllowed)
+
   /**
     * Creates a new Identifier only from the allowed characters in a given string.
     *
@@ -71,7 +73,7 @@ object Identifier {
     */
   def fromAllowed(str: String, alternative: Option[String] = None): Identifier = {
     try {
-      new Identifier(str.filter(Identifier.isAllowed))
+      new Identifier(filterAllowedChars(str))
     }  catch {
       case _: IllegalArgumentException if alternative.isDefined =>
         Identifier(alternative.get)

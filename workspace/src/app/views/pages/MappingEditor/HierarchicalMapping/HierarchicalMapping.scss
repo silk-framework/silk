@@ -672,54 +672,18 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__rulesviewer__examples-table {
-    table-layout: unset !important;
-    width: 100%;
+    background-color: transparent !important;
 
     th,
     td {
         white-space: normal;
         height: auto;
-        border-bottom-color: rgba(to_color($data-table-divider-color), 0.06); //#ddd;
-
-        &:first-of-type,
-        &:last-of-type {
-            padding: inherit;
-        }
 
         &.ecc-silk-mapping__rulesviewer__examples-table__path {
-            padding: $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace $ecc-size-block-whitespace * 0.5 0;
-
-            .mdl-chip {
+            .eccgui-tag__item {
                 direction: rtl;
             }
         }
-        &.ecc-silk-mapping__rulesviewer__examples-table__value {
-            padding: $ecc-size-block-whitespace * 0.5 0;
-
-            .mdl-chip {
-                // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
-            }
-        }
-        &.ecc-silk-mapping__rulesviewer__examples-table__result {
-            padding: $ecc-size-block-whitespace * 0.5 0em $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace;
-
-            .mdl-chip {
-                // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
-            }
-        }
-    }
-
-    tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
-    tr:last-of-type td {
-        border-bottom-color: to_color($data-table-divider-color);
-    }
-
-    thead {
-        border: 0;
-    }
-
-    .mdl-chip {
-        box-sizing: border-box;
     }
 
     tbody {
@@ -740,7 +704,7 @@ ul.ecc-hierarchical-mapping-error-list {
                 opacity: 0.39;
             }
 
-            .mdl-chip {
+            .eccgui-tag__item {
                 display: none;
 
                 &:nth-child(-n + 7) {

@@ -4,9 +4,9 @@ import ExampleView from "../../../../../src/app/views/pages/MappingEditor/Hierar
 import * as Store from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/store";
 import EventEmitter from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/utils/EventEmitter";
 import { ValueRuleForm } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRuleForm";
-import { clickElement, findAll, logPageHtml, logWrapperHtml, withMount } from "../../../utils/TestHelpers";
+import { clickElement, findAll, withMount } from "../../../utils/TestHelpers";
 import { waitFor } from "@testing-library/react";
-import { Spinner } from "@eccenca/gui-elements";
+import { CardTitle, Spinner } from "@eccenca/gui-elements";
 
 const props = {
     id: "1",
@@ -83,7 +83,7 @@ describe("ValueMappingRuleForm Component", () => {
                 ...props,
                 id: false,
             });
-            expect(findAll(wrapper, ".mdl-card__title")).toHaveLength(1);
+            expect(wrapper.find(CardTitle)).toHaveLength(1);
         });
 
         xit("should render Source property Autocomplete box, when rule type equal to `direct` ", () => {

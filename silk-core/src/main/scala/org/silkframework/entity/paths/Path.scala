@@ -13,6 +13,10 @@ trait Path extends Serializable {
     */
   def operators: List[PathOperator]
 
+  /**
+   * Returns a copy with updated operators.
+   */
+  def withOperators(newOperators: List[PathOperator]): Path
 
   /**
     * The normalized serialization using the Silk RDF path language.

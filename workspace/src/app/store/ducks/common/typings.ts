@@ -296,6 +296,9 @@ export interface IInitFrontend {
 
     /** If templating in some input fields is enabled. */
     templatingEnabled: boolean;
+
+    /** If the assistant feature is enabled. */
+    assistantSupported: boolean;
 }
 
 type HotKeyIds = "quickSearch" | "overview";

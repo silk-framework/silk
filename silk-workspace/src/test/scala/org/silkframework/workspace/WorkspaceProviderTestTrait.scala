@@ -132,7 +132,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                   DirectMapping(
                     id = TRANSFORM_ID,
                     sourcePath = UntypedPath("prop1"),
-                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description"))
+                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description")),
+                    inputId = Some("prop1")
                   ),
                   ComplexMapping(
                     id = "complexId",
@@ -181,7 +182,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               MappingRules(DirectMapping(
                 id = TRANSFORM_ID + 2,
                 sourcePath = UntypedPath("prop5"),
-                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description"))
+                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description")),
+                inputId = Some("prop5")
               )),
             mappingTarget = transformTask.data.mappingRule.mappingTarget.copy(isAttribute = true),
             metaData = MetaData(Some("Root Rule New Label"), Some("Root Rule New Description"))
@@ -202,7 +204,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData(Some("type")))),
               propertyRules = Seq(
-                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name"))),
+                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name")), Some("name")),
                 ObjectMapping(
                   sourcePath = UntypedPath.empty,
                   target = Some(MappingTarget("address")),
@@ -210,8 +212,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData(Some("uri")))),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
-                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city"))),
-                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")))
+                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city")), Some("city")),
+                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")), Some("city"))
                     )
                   ),
                   metaData = MetaData(Some("object"))
