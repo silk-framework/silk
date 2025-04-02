@@ -143,7 +143,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   private def validateAndGetReplaceableDatasetsOfCurrentWorkflow(): AllReplaceableDatasets = {
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
-    val workflowDatasetInputs = operators.flatMap(_.inputs.flatten.flatMap(datasetNodeMap.get)).distinct.toSet
+    val workflowDatasetInputs = nodes.flatMap(_.allInputs.flatMap(datasetNodeMap.get)).distinct.toSet
     val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
     if (replaceableInputUsedAsOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
