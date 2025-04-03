@@ -185,7 +185,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     }
     project.addTask[Workflow](WORKFLOW, Workflow())
     project.addTask[TransformSpec](TRANSFORM_2, TransformSpec(DatasetSelection(DS_A)))
-    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B, DS_A)
   }
 }
 
