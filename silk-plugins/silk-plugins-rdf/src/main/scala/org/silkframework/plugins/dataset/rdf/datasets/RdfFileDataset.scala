@@ -80,7 +80,7 @@ case class RdfFileDataset(
 
   override def mimeType: Option[String] = Some(lang.getContentType.getContentTypeStr)
 
-  override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
+  override def graphOpt: Option[String] = if (graph.trim.isEmpty || ignoreGraph()) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
     createSparqlEndpoint(retrieveResources())
@@ -104,7 +104,7 @@ case class RdfFileDataset(
 
     // Retrieve model
     val model =
-      if (!graph.trim.isEmpty) {
+      if (!graph.trim.isEmpty && !ignoreGraph()) {
         dataset.getNamedModel(graph)
       }
       else {
@@ -112,6 +112,11 @@ case class RdfFileDataset(
       }
 
     new JenaModelEndpoint(model)
+  }
+
+  private def ignoreGraph(): Boolean = {
+    // Some languages that do not specify graphs
+    Set(Lang.NTRIPLES, Lang.TURTLE, Lang.NT, Lang.TTL).contains(lang)
   }
 
   override def mergeSchemata: Boolean = true

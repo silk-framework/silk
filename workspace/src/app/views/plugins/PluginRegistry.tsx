@@ -13,8 +13,8 @@ export interface IViewActions {
     /** If true then the task view is integrated into another view and not on the task details page. Things like the
      * error notifications need to be inside the editor then. */
     integratedView?: boolean;
-    /** callback executed to notify external dependencies if there are unsaved changes or not */
-    savedChanges?: (status: boolean) => void;
+    /** Callback executed to notify external dependencies if there are unsaved changes or not. Parameter 'status' should be set to true if there are. */
+    unsavedChanges?: (status: boolean) => void;
     /** Switches to another view of the same task, e.g. in a tab view. */
     switchToView?: (viewIdx: number) => any;
     /** Optional task context. Contains additional information on how a task is (actually) used, e.g. in workflows. */

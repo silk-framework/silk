@@ -34,6 +34,7 @@ import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
 import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
+import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
 
 const LANGUAGES_LIST = [
     "en",
@@ -224,7 +225,7 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const toggleTabViewDirtyState = React.useCallback((status: boolean) => {
-        props.viewActions.savedChanges && props.viewActions.savedChanges(status);
+        props.viewActions.unsavedChanges && props.viewActions.unsavedChanges(status);
     }, []);
 
     const handleConfirm = (event) => {
@@ -323,7 +324,10 @@ export function ValueRuleForm(props: IProps) {
         const { initialValues, ...currValues } = state;
         currValues[stateProperty] = value;
 
-        const touched = wasTouched(initialValues, currValues);
+        const touched = wasTouched(
+            { ...initialValues, valueType: initialValues.valueType?.nodeType },
+            { ...currValues, valueType: currValues.valueType?.nodeType }
+        );
         const id = _.get(props, "id", 0);
 
         toggleTabViewDirtyState(Object.keys(initialValues).length ? touched : true);
@@ -477,7 +481,7 @@ export function ValueRuleForm(props: IProps) {
             (!_.isEmpty(sourceProperty.current) && valuePathValid && !valuePathInputHasFocus) ||
             (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
                 <ExampleView
-                    id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || "root"}
+                    id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || MAPPING_ROOT_RULE_ID}
                     key={
                         typeof sourceProperty.current === "string"
                             ? sourceProperty.current
@@ -561,14 +565,14 @@ export function ValueRuleForm(props: IProps) {
                     {exampleView}
                     <Spacing size={"small"} />
                     <LegacyTextField
-                        label="Label"
+                        label="Mapping label"
                         className="ecc-silk-mapping__ruleseditor__label"
                         value={label}
                         onChange={handleChangeTextfield.bind(null, "label", setLabel)}
                     />
                     <LegacyTextField
                         multiline
-                        label="Description"
+                        label="Mapping description"
                         className="ecc-silk-mapping__ruleseditor__comment"
                         value={comment}
                         onChange={handleChangeTextfield.bind(null, "comment", setComment)}

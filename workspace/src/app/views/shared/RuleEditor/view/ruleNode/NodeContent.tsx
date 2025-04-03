@@ -66,9 +66,7 @@ export const NodeContent = ({
         })
         // Sort by order given in the plugin spec
         .sort((paramA, paramB) => {
-            return paramA.parameterSpecification.orderIdx < paramB.parameterSpecification.orderIdx
-                ? -1
-                : 1;
+            return paramA.parameterSpecification.orderIdx < paramB.parameterSpecification.orderIdx ? -1 : 1;
         });
     const dependentValue = (paramId: string): string | undefined => {
         const value = operatorContext.currentValue(nodeId, paramId);

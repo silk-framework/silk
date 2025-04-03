@@ -72,7 +72,7 @@ export const TransformRuleEditor = ({
                 "transformRuleEditor_fetchTransformRule",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
         }
     };
@@ -86,7 +86,7 @@ export const TransformRuleEditor = ({
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRuleOperatorDetails.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
         }
     };
@@ -199,7 +199,7 @@ export const TransformRuleEditor = ({
                 "LinkingRuleEditor_inputPathAutoCompletion",
                 t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
             return [];
         }
@@ -228,7 +228,7 @@ export const TransformRuleEditor = ({
                     "TransformRuleEditor-fetchDatasetCharacteristics",
                     "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 );
             }
         }
@@ -248,7 +248,7 @@ export const TransformRuleEditor = ({
                         "linking-rule-editor-fetch-source-paths",
                         t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                         ex,
-                        RULE_EDITOR_NOTIFICATION_INSTANCE
+                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                     ),
                 mappingEditorContext.taskContext
             ),

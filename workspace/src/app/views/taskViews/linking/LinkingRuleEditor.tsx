@@ -129,7 +129,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     "LinkingRuleEditor_fetchLinkingTask",
                     t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
                     err,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 );
                 setInitError(err);
             }
@@ -177,7 +177,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
                 t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
                 err,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
             setInitError(err);
         }
@@ -320,7 +320,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 )
             ),
             utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
@@ -328,7 +328,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                     "linking-rule-editor-fetch-source-paths",
                     t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
                     ex,
-                    RULE_EDITOR_NOTIFICATION_INSTANCE
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                 )
             ),
             ruleUtils.sidebarTabs.transform,
@@ -363,7 +363,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                             "LinkingRuleEditor-fetchDatasetCharacteristics",
                             "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
                             ex,
-                            RULE_EDITOR_NOTIFICATION_INSTANCE
+                            { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
                         );
                     }
                 }

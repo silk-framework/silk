@@ -1,9 +1,9 @@
 import React from "react";
 
 interface ProjectTaskTabViewContextProps {
-    fullScreen: boolean
+    fullScreen: boolean;
 }
 
 export const ProjectTaskTabViewContext = React.createContext<ProjectTaskTabViewContextProps>({
-    fullScreen: false
-})
+    fullScreen: false,
+});

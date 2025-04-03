@@ -5,6 +5,7 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import java.util.logging.Logger
 import org.silkframework.rule.vocab.GenericInfo.GenericInfoFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.Uri
 
 import scala.xml.{Node, Null}
 
@@ -143,6 +144,14 @@ case class GenericInfo(uri: String, label: Option[String] = None, description: O
 }
 
 object GenericInfo {
+
+  /**
+   * Create a GenericInfo object from only a URI.
+   * Generates the label from the local name of the URI.
+   */
+  def fromUri(uri: Uri): GenericInfo = {
+    GenericInfo(uri.uri, uri.localName)
+  }
 
   implicit object GenericInfoFormat extends XmlFormat[GenericInfo] {
 
