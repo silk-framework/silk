@@ -6,7 +6,7 @@ import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
 import { ErrorResponse, FetchError } from "../services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
-import {Intent} from "@blueprintjs/core";
+import { Intent } from "@blueprintjs/core";
 
 /**
  * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.
@@ -25,12 +25,12 @@ export type ErrorHandlerRegisterFuncType = (
 interface ErrorHandlerOptions {
     /** The notification instance where the error should be displayed. If this is set, the
      error will NOT be displayed in the global notification widget. */
-    errorNotificationInstanceId?: string
+    errorNotificationInstanceId?: string;
     /** Optional function that is called when a notification will be dismissed. Usually needed when an error notification instance ID is supplied
      * and the return notification element is used. */
-    onDismiss?: () => any
+    onDismiss?: () => any;
     /** The intent of the notification. Default: "danger" */
-    intent?: "danger" | "warning"
+    intent?: "danger" | "warning";
 }
 
 type ErrorHandlerRegisterShortFuncType = (
@@ -69,7 +69,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
         cause: DIErrorTypes | null,
         options?: ErrorHandlerOptions
     ) => {
-        const {errorNotificationInstanceId, onDismiss, intent} = options ?? {}
+        const { errorNotificationInstanceId, onDismiss, intent } = options ?? {};
         const error: RegisterErrorType = {
             id: errorId,
             message: errorMessage,
@@ -104,7 +104,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                 registerNewError({
                     newError: {
                         ...error,
-                        alternativeIntent: intent === "warning" ? intent : undefined
+                        alternativeIntent: intent === "warning" ? intent : undefined,
                     },
                     errorNotificationInstanceId,
                 })

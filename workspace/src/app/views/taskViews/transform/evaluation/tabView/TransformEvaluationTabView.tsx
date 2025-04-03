@@ -23,7 +23,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 import MappingsTree from "../../../../pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { IViewActions } from "../../../../../views/plugins/PluginRegistry";
-import {MAPPING_ROOT_RULE_ID} from "../../../../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
+import { MAPPING_ROOT_RULE_ID } from "../../../../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;

@@ -146,7 +146,9 @@ export const LinkingRuleEvaluation = ({
                 registerError(
                     "LinkingRuleEvaluation.fetchReferenceLinksEvaluation",
                     "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation.",
-                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                    ex,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                );
             } else {
                 throw ex;
             }
@@ -222,7 +224,9 @@ export const LinkingRuleEvaluation = ({
                     registerError(
                         "LinkingRuleEvaluation.startEvaluation",
                         t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
-                        ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                        ex,
+                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    );
                 }
             } else if (ex.isRuleValidationError) {
                 setRuleValidationError(ex);
@@ -230,7 +234,9 @@ export const LinkingRuleEvaluation = ({
                 registerError(
                     "LinkingRuleEvaluation.beforeStartEvaluation",
                     t("taskViews.linkRulesEditor.errors.beforeStartEvaluation.msg"),
-                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                    ex,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                );
             }
         } finally {
             setEvaluationRunning(false);

@@ -113,7 +113,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                 "LinkageRuleConfig-save-config",
                 t("widget.LinkingRuleConfigWidget.saveError"),
                 ex,
-                {errorNotificationInstanceId: "_none_"}
+                { errorNotificationInstanceId: "_none_" }
             );
             setRequestError(errorWidget || undefined);
         }

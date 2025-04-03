@@ -49,7 +49,7 @@ export const RuleEditorNotifications = ({
 
     return queueEditorNotifications.length > 0 ||
         queueNodeNotifications.length > 0 ||
-        (ruleEditorErrorMessages.length > 0) ||
+        ruleEditorErrorMessages.length > 0 ||
         (evaluationNotifications && evaluationNotifications.length) ? (
         <>
             <Spacing vertical size="tiny" />

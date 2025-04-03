@@ -25,7 +25,7 @@ import { IViewActions } from "../../../../plugins/PluginRegistry";
 import { SuggestionNGProps } from "../../../../plugins/plugin.types";
 import { ParentStructure } from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
-import {MAPPING_ROOT_RULE_ID} from "../HierarchicalMapping";
+import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping";
 
 interface MappingsWorkviewProps {
     onRuleIdChange: (param: any) => any;

@@ -14,9 +14,7 @@ import DeleteButton from "../../../../../src/app/views/pages/MappingEditor/Hiera
 import MetadataLabel from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataLabel";
 import MetadataDesc from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/Metadata/MetadataDesc";
 import ExampleTarget from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/components/ExampleTarget";
-import {
-    MAPPING_ROOT_RULE_ID
-} from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
+import { MAPPING_ROOT_RULE_ID } from "../../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();

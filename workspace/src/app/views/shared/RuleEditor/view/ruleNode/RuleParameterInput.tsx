@@ -84,10 +84,9 @@ export const RuleParameterInput = ({
                 })
             ).data;
         } catch (e) {
-            registerError(
-                "RuleParameterInput.handleFileSearch",
-                "Could not fetch project resource files!",
-                e, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e, {
+                errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+            });
             return [];
         }
     };

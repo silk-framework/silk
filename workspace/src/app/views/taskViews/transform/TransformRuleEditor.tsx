@@ -71,7 +71,9 @@ export const TransformRuleEditor = ({
             registerError(
                 "transformRuleEditor_fetchTransformRule",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRule.msg"),
-                err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                err,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+            );
         }
     };
     /** Fetches the list of operators that can be used in a transform task. */
@@ -83,7 +85,9 @@ export const TransformRuleEditor = ({
             registerError(
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",
                 t("taskViews.transformRulesEditor.errors.fetchTransformRuleOperatorDetails.msg"),
-                err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                err,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+            );
         }
     };
 
@@ -194,7 +198,9 @@ export const TransformRuleEditor = ({
             registerError(
                 "LinkingRuleEditor_inputPathAutoCompletion",
                 t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
-                err, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                err,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+            );
             return [];
         }
     };
@@ -221,7 +227,9 @@ export const TransformRuleEditor = ({
                 registerError(
                     "TransformRuleEditor-fetchDatasetCharacteristics",
                     "Dataset characteristics could not be fetched. UI-support for language filters will not be available.",
-                    ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                    ex,
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                );
             }
         }
         return result;
@@ -239,7 +247,9 @@ export const TransformRuleEditor = ({
                     registerError(
                         "linking-rule-editor-fetch-source-paths",
                         t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE}),
+                        ex,
+                        { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    ),
                 mappingEditorContext.taskContext
             ),
             ruleUtils.sidebarTabs.transform,

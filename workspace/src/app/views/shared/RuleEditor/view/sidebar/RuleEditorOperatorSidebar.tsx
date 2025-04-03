@@ -203,7 +203,9 @@ export const RuleEditorOperatorSidebar = () => {
                 t("taskViews.ruleEditor.errors.loadExternalOperators", {
                     tabName: configs.map((c) => c.label).join(", "),
                 }),
-                ex, {errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE});
+                ex,
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+            );
         } finally {
             setPreConfiguredOperatorListLoading(false);
         }

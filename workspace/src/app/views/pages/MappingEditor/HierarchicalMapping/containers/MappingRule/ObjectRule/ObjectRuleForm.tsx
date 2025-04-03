@@ -45,7 +45,7 @@ import { IViewActions } from "../../../../../../../views/plugins/PluginRegistry"
 import { defaultUriPattern } from "./ObjectRule.utils";
 import { GlobalMappingEditorContext } from "../../../../contexts/GlobalMappingEditorContext";
 import { EntityRelationshipSelection } from "../../../components/EntityRelationshipSelection";
-import {MAPPING_ROOT_RULE_ID} from "../../../HierarchicalMapping";
+import { MAPPING_ROOT_RULE_ID } from "../../../HierarchicalMapping";
 
 interface IProps {
     id?: string;

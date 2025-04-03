@@ -317,6 +317,11 @@ export function Metadata(props: IProps) {
                                     preventLineNumbers
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
+                                    useToolbar
+                                    translate={(key) => {
+                                        const translationKey = `Editor.markdown.toolbar.${key}`;
+                                        return t(translationKey) as string;
+                                    }}
                                 />
                             </FieldItem>
                         </PropertyValue>

@@ -21,7 +21,7 @@ import {
     IValidationResult,
 } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { CONTEXT_PATH } from "../../../../constants/path";
-import {TaskContext} from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
+import { TaskContext } from "../../../shared/projectTaskTabView/projectTaskTabView.typing";
 
 export const silkStore = rxmq.channel("silk.api");
 export const errorChannel = rxmq.channel("errors");
@@ -604,10 +604,10 @@ export const getRuleAsync = (id, isObjectMapping = false) => {
 };
 
 interface AutoCompleteParams {
-    entity?: string
-    input: string
-    ruleId?: string
-    taskContext?: TaskContext
+    entity?: string;
+    input: string;
+    ruleId?: string;
+    taskContext?: TaskContext;
 }
 
 export const autocompleteAsync = (data: AutoCompleteParams) => {

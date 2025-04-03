@@ -18,7 +18,7 @@ import PromptModal from "../../../../views/shared/projectTaskTabView/PromptModal
 import { requestValueTypes } from "./HierarchicalMapping.requests";
 import { GlobalMappingEditorContext } from "../contexts/GlobalMappingEditorContext";
 
-export const MAPPING_ROOT_RULE_ID = "root"
+export const MAPPING_ROOT_RULE_ID = "root";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -69,11 +69,11 @@ class HierarchicalMapping extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const currentSearchQuery = this.props.history.location.search
-        if(this.state.currentRuleId !== MAPPING_ROOT_RULE_ID && !currentSearchQuery.includes("ruleId=")) {
+        const currentSearchQuery = this.props.history.location.search;
+        if (this.state.currentRuleId !== MAPPING_ROOT_RULE_ID && !currentSearchQuery.includes("ruleId=")) {
             this.setState({
-                currentRuleId: MAPPING_ROOT_RULE_ID
-            })
+                currentRuleId: MAPPING_ROOT_RULE_ID,
+            });
         }
         if (prevState.currentRuleId !== this.state.currentRuleId && !_.isEmpty(this.state.currentRuleId)) {
             const history = getHistory();
