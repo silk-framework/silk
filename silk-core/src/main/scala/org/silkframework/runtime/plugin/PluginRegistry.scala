@@ -75,7 +75,17 @@ object PluginRegistry {
    * Returns the plugin description of a specific plugin.
    */
   def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
-    pluginType[T].pluginById[T](id)
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
+    pluginType[T].pluginByIdOpt[T](id)
+      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
+      .asInstanceOf[PluginDescription[T]]
+  }
+
+  /**
+   * Returns the (optional) plugin description of a specific plugin.
+   */
+  def pluginByIdOpt[T: ClassTag](id: String): Option[PluginDescription[_]] = {
+    pluginType[T].pluginByIdOpt[T](id)
   }
 
   /**
@@ -330,10 +340,8 @@ object PluginRegistry {
     /**
      * Returns the plugin description of a specific plugin.
      */
-    def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
-      val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
-      plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
-             .asInstanceOf[PluginDescription[T]]
+    def pluginByIdOpt[T: ClassTag](id: String): Option[PluginDescription[T]] = {
+      plugins.get(id).asInstanceOf[Option[PluginDescription[T]]]
     }
 
     /**
