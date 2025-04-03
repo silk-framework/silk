@@ -248,12 +248,12 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
       configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
     }
-    val operatorsWithDataOutput: Set[Identifier] = operators
+    val operatorsWithDataOutput: Set[Identifier] = nodes
       .map(op => op.task).distinct
-      .filter(taskId => project.anyTaskOption(taskId).map(_.outputPort.isDefined).getOrElse(false))
+      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined))
       .toSet
     // Filter out datasets that have no real data input
-    val datasetNodesWithRealInputs = operators.flatMap(op => {
+    val datasetNodesWithRealInputs = nodes.flatMap(op => {
       if(!operatorsWithDataOutput.contains(op.task)) {
         // The operator node that goes into the dataset must have real data output
         Seq.empty
