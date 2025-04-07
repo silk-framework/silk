@@ -128,8 +128,23 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
     /** when a node is clicked the selected nodes appears here */
-    const [selectedElements, updateSelectedElements] = React.useState<Elements | null>(null);
+    const [selectedElements, _setSelectedElements] = React.useState<Elements | null>(null);
     const [copiedNodesCount, setCopiedNodesCount] = React.useState<number>(0);
+
+    const clearTextSelection = React.useCallback(() => {
+        if (document.getSelection) {
+            if (document.getSelection()?.empty) {  // Chrome
+                document.getSelection()!.empty();
+            } else if (document.getSelection()?.removeAllRanges) {  // Firefox
+                document.getSelection()!.removeAllRanges();
+            }
+        }
+    }, [])
+
+    const updateSelectedElements = React.useCallback((newSelectedElements: Elements | null) => {
+        clearTextSelection()
+        _setSelectedElements(newSelectedElements)
+    }, [])
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -1334,6 +1349,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     resetSelectedElements();
                     setTimeout(() => {
                         unsetUserSelection();
+                        clearTextSelection()
                         setSelectedElements([...newNodes, ...newEdges]);
                     }, 100);
                     return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
@@ -1455,6 +1471,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             resetSelectedElements();
             setTimeout(() => {
                 unsetUserSelection();
+                clearTextSelection()
                 setSelectedElements([...newNodes, ...newEdges]);
             }, 100);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
