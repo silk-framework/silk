@@ -17,6 +17,7 @@ import java.util.logging.{Level, Logger}
 import javax.crypto.SecretKey
 import scala.language.existentials
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /** Represents a plugin parameter type and provides serialization. */
@@ -662,7 +663,7 @@ object StringParameterType {
   }
 
   object PasswordParameterType extends StringParameterType[PasswordParameter] {
-    // This preamble should be added to all serializations to mark the string as a encrypted password, else it will be interpreted as plain
+    // This preamble should be added to all serializations to mark the string as an encrypted password, else it will be interpreted as plain
     final val PREAMBLE = "PASSWORD_PARAMETER:"
     final val CONFIG_KEY = "plugin.parameters.password.crypt.key"
 
@@ -697,7 +698,10 @@ object StringParameterType {
       val encryptedPassword = if (str == null || str == "") {
         str // Handle empty string as empty password and vice versa
       } else if (str.startsWith(PREAMBLE)) {
-        str.stripPrefix(PREAMBLE)
+        val encryptedPassword = str.stripPrefix(PREAMBLE)
+        // Test that it can be decrypted
+        PasswordParameter.decrypt(encryptedPassword)
+        encryptedPassword
       } else {
         AesCrypto.encrypt(key, str)
       }
