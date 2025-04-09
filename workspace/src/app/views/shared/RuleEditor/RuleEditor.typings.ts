@@ -128,7 +128,7 @@ export type RuleParameterType =
     | "pathInput"
     | SupportedRuleParameterCodeModes;
 
-interface NodePosition {
+export interface NodePosition {
     x: number;
     y: number;
 }

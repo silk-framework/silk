@@ -36,7 +36,7 @@ import {
     RuleEditorNodeParameterValue,
     RuleModelChanges,
     RuleModelChangesFactory,
-    RuleModelChangeType,
+    RuleModelChangeType, RuleNodeCopySerialization,
     StickyNodePropType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
@@ -1303,7 +1303,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const pasteInfo = JSON.parse(clipboardData); // Parse JSON
             if (pasteInfo.task) {
                 changeElementsInternal((els) => {
-                    const nodes = pasteInfo.task.data.nodes ?? [];
+                    const nodes: RuleNodeCopySerialization[] = pasteInfo.task.data.nodes ?? [];
                     const nodeIdMap = new Map<string, string>();
                     const newNodes: RuleEditorNode[] = [];
                     nodes.forEach((node) => {
@@ -1313,10 +1313,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         const newNode = createNodeInternal(
                             op,
                             position,
-                            Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                            node.parameters
                         );
                         if (newNode) {
-                            nodeIdMap.set(node.id, newNode.id);
+                            newNode.data.nodeDimensions = node.dimension
+                            nodeIdMap.set(node.nodeId, newNode.id);
                             newNodes.push({
                                 ...newNode,
                                 data: {
@@ -1380,14 +1381,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         const nodeIdMap = new Map<string, string>(nodeIds.map((id) => [id, id]));
         const edges: Partial<Edge>[] = [];
 
-        const originalNodes = utils.nodesById(elements, nodeIds);
-        const nodes = originalNodes.map((node) => {
+        const originalNodes = utils.nodesById(current.elements, nodeIds);
+        const nodes: RuleNodeCopySerialization[] = originalNodes.map((node) => {
             const ruleOperatorNode = node.data.businessData.originalRuleOperatorNode;
             return {
-                id: node.id,
+                nodeId: node.id,
                 pluginId: ruleOperatorNode.pluginId,
                 pluginType: ruleOperatorNode.pluginType,
                 position: node.position,
+                dimension: node.data.nodeDimensions,
+                parameters: Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
             };
         });
 
@@ -1406,8 +1409,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
         });
         //paste to clipboard.
-        const { projectId, editedItemId, editedItem } = ruleEditorContext;
-        const taskType = (editedItem as { type: string })?.type === "linking" ? "linking" : "transform";
+        const { projectId, editedItemId } = ruleEditorContext;
         const data = JSON.stringify({
             task: {
                 data: {

@@ -1,5 +1,11 @@
 import { Edge, Node } from "react-flow-renderer";
-import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
+import {
+    IRuleNodeData,
+    IRuleOperatorNode,
+    NodeContentPropsWithBusinessData,
+    NodePosition,
+    RuleOperatorNodeParameters
+} from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
 import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
@@ -143,3 +149,8 @@ export const RuleModelChangesFactory = {
         return toRuleModelChanges({ type: "Change node parameter", nodeId, parameterId, from, to });
     },
 };
+
+export interface RuleNodeCopySerialization extends Pick<IRuleOperatorNode, "nodeId" | "pluginId" | "pluginType" | "dimension"> {
+    position: NodePosition,
+    parameters?: RuleOperatorNodeParameters
+}
