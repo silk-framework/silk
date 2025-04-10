@@ -58,6 +58,11 @@ trait DistanceMeasure extends AnyPlugin {
       None
     }
   }
+
+  /**
+   * True, if this distance measure is normalized, i.e., it returns a value between 0 and 1.
+   */
+  def isNormalized: Boolean = false
 }
 
 object DistanceMeasure extends PluginFactory[DistanceMeasure]
