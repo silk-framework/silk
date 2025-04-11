@@ -77,7 +77,7 @@ object PluginRegistry {
   def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
     val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
     pluginType[T].pluginByIdOpt[T](id)
-      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
+      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${pluginType[T].availablePlugins.map(_.id).mkString(", ")}"))
       .asInstanceOf[PluginDescription[T]]
   }
 
