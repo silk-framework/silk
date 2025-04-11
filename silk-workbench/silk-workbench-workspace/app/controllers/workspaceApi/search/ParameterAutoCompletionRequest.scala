@@ -2,7 +2,7 @@ package controllers.workspaceApi.search
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, SimpleParameterValue}
-import play.api.libs.json.{JsError, JsObject, JsResult, JsString, JsSuccess, JsValue, Json, Reads}
+import play.api.libs.json._
 
 import scala.language.implicitConversions
 
@@ -37,7 +37,7 @@ case class ParameterAutoCompletionRequest(pluginId: String,
 object ParameterAutoCompletionRequest {
   final val DEFAULT_OFFSET = 0
   final val DEFAULT_LIMIT = 10
-  implicit val parameterAutoCompletionRequestJsonFormat: Reads[ParameterAutoCompletionRequest] = Json.reads[ParameterAutoCompletionRequest]
+  implicit val parameterAutoCompletionRequestJsonFormat: Format[ParameterAutoCompletionRequest] = Json.format[ParameterAutoCompletionRequest]
 }
 
 @Schema(description = "The parameter value for auto-completion.")
@@ -61,20 +61,24 @@ object ParameterValueJson {
   }
 
   /**
-   * Reads a JSON value into a ParameterValueJson object.
+   * Reads and writes a JSON value into/from a ParameterValueJson object.
    * Also supports legacy clients that just send a string instead of a JSON object.
    */
-  implicit val parameterValueJsonFormat: Reads[ParameterValueJson] = new Reads[ParameterValueJson] {
+  implicit val parameterValueJsonFormat: Format[ParameterValueJson] = new Format[ParameterValueJson] {
 
-    private val objectReads = Json.reads[ParameterValueJson]
+    private val objectFormat = Json.format[ParameterValueJson]
 
-    def reads(json: JsValue): JsResult[ParameterValueJson] = json match {
+    override def reads(json: JsValue): JsResult[ParameterValueJson] = json match {
       case JsString(s) =>
         JsSuccess(ParameterValueJson(s, isTemplate = false))
       case obj: JsObject =>
-        objectReads.reads(obj)
+        objectFormat.reads(obj)
       case _ =>
         JsError("Expected string or object")
+    }
+
+    override def writes(o: ParameterValueJson): JsValue = {
+      objectFormat.writes(o)
     }
   }
 }
