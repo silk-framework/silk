@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, HtmlContentBlock, IconButton, SimpleDialog } from "@eccenca/gui-elements";
+import { Button, HtmlContentBlock, IconButton, AlertDialog, SimpleDialog } from "@eccenca/gui-elements";
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../../../views/plugins/PluginRegistry";
@@ -55,12 +55,12 @@ const MappingEditorModal = ({
 
     /** Warning prompt that shows up when the user decides to close the modal with unsaved changes */
     const WarningModal = React.memo(() => (
-        <SimpleDialog
-            intent="warning"
+        <AlertDialog
+            warning
             data-test-id="mapping-editor-warning-modal"
             isOpen={showWarningModal}
-            title="Unsaved changes"
-            size="small"
+            title={t("taskViews.transformRulesEditor.warning.modal.title")}
+            size="tiny"
             onClose={() => setShowWarningModal(false)}
             actions={[
                 <Button
@@ -71,17 +71,17 @@ const MappingEditorModal = ({
                         updateViewActionUnsavedChanges(false);
                     }}
                 >
-                    {t("taskViews.transformRulesEditor.warning.modal.close-btn")}
+                    {t("taskViews.transformRulesEditor.warning.modal.discard")}
                 </Button>,
                 <Button key={"back"} onClick={() => setShowWarningModal(false)}>
-                    {t("taskViews.transformRulesEditor.warning.modal.back-btn")}
+                    {t("common.action.cancel")}
                 </Button>,
             ]}
         >
             <HtmlContentBlock>
                 <p>{t("taskViews.transformRulesEditor.warning.modal.body")}</p>
             </HtmlContentBlock>
-        </SimpleDialog>
+        </AlertDialog>
     ));
 
     return (

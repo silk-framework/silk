@@ -761,10 +761,9 @@
             },
             "warning": {
                 "modal": {
-                    "title": "Editor Warning",
-                    "body": "There are still unsaved changes. Are you sure you want to close the editor?",
-                    "close-btn": "Yes, close",
-                    "back-btn": "No, go back"
+                    "title": "Discard unsaved changes?",
+                    "body": "There are still unsaved changes. Do you want to discard them?",
+                    "discard": "Discard changes"
                 }
             },
             "errors": {
