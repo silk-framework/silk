@@ -1316,6 +1316,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             node.parameters
                         );
                         if (newNode) {
+                            const existingInputHandleIds = new Set(utils.inputHandles(newNode).map(h => h.id))
+                            const missingInputHandleIds = node.inputHandleIds.filter(id => !existingInputHandleIds.has(id) && Number.isInteger(Number.parseInt(id)))
+                            if(missingInputHandleIds.length > 0) {
+                                const missingInputHandles = missingInputHandleIds.map(id => utils.createInputHandle(Number.parseInt(id)));
+                                newNode.data.handles?.push(...missingInputHandles)
+                            }
                             newNode.data.nodeDimensions = node.dimension
                             nodeIdMap.set(node.nodeId, newNode.id);
                             newNodes.push({
@@ -1378,8 +1384,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const copyNodes = async (nodeIds: string[], event?: any) => {
         //Get nodes and related edges
-        const nodeIdMap = new Map<string, string>(nodeIds.map((id) => [id, id]));
+        const nodeId2InputHandleMap = new Map<string, Set<string>>(nodeIds.map((id) => [id, new Set()]));
         const edges: Partial<Edge>[] = [];
+
+        elements.forEach((elem) => {
+            if (utils.isEdge(elem)) {
+                const edge = utils.asEdge(elem)!!;
+                if (nodeId2InputHandleMap.has(edge.source) && nodeId2InputHandleMap.has(edge.target)) {
+                    //edges worthy of copying
+                    edges.push({
+                        source: edge.source,
+                        target: edge.target,
+                        targetHandle: edge.targetHandle,
+                        type: edge.type ?? "step",
+                    });
+                    typeof edge.targetHandle === "string" && nodeId2InputHandleMap.get(edge.target)!.add(edge.targetHandle)
+                }
+            }
+        });
 
         const originalNodes = utils.nodesById(current.elements, nodeIds);
         const nodes: RuleNodeCopySerialization[] = originalNodes.map((node) => {
@@ -1390,24 +1412,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: ruleOperatorNode.pluginType,
                 position: node.position,
                 dimension: node.data.nodeDimensions,
-                parameters: Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                parameters: Object.fromEntries(nodeParameters.get(node.id) ?? new Map()),
+                inputHandleIds: [...nodeId2InputHandleMap.get(node.id)!]
             };
         });
 
-        elements.forEach((elem) => {
-            if (utils.isEdge(elem)) {
-                const edge = utils.asEdge(elem)!!;
-                if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
-                    //edges worthy of copying
-                    edges.push({
-                        source: edge.source,
-                        target: edge.target,
-                        targetHandle: edge.targetHandle,
-                        type: edge.type ?? "step",
-                    });
-                }
-            }
-        });
         //paste to clipboard.
         const { projectId, editedItemId } = ruleEditorContext;
         const data = JSON.stringify({

@@ -153,4 +153,5 @@ export const RuleModelChangesFactory = {
 export interface RuleNodeCopySerialization extends Pick<IRuleOperatorNode, "nodeId" | "pluginId" | "pluginType" | "dimension"> {
     position: NodePosition,
     parameters?: RuleOperatorNodeParameters
+    inputHandleIds: string[]
 }
