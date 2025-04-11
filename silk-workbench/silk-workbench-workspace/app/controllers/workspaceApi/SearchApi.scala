@@ -237,8 +237,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
     try {
       val project = getProject(request.projectId)
       implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
-      val dependOnParameterValues = ParamValue.createAll(request.dependsOnParameterValues.getOrElse(Seq.empty),
-                                                         autoCompletion.autoCompletionDependsOnParameters, pluginDescription)
+      val dependOnParameterValues = ParamValue.createAll(request.dependsOnParameterValues.getOrElse(Seq.empty).map(_.toParameterValue),
+                                                                  autoCompletion.autoCompletionDependsOnParameters, pluginDescription)
       val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
                                                                       dependOnParameterValues,
                                                                       limit = request.workingLimit,

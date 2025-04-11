@@ -2,7 +2,7 @@ package controllers.workspace.taskApi
 
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParamValue, ParameterAutoCompletion, PluginContext, PluginDescription, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.workspace.{ProjectTask, Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsString, JsValue}
@@ -70,11 +70,11 @@ object TaskApiUtils {
   }
 
   private def fetchDependsOnValues(autoComplete: ParameterAutoCompletion,
-                                   parameterValues: collection.Map[String, JsValue]): Seq[String] = {
+                                   parameterValues: collection.Map[String, JsValue]): Seq[SimpleParameterValue] = {
     autoComplete.autoCompletionDependsOnParameters.map { param =>
       parameterValues.getOrElse(param,
         throw new RuntimeException(s"No value found for plugin parameter '$param'. Could not retrieve label!")).asOpt[String] match {
-        case Some(value) => value
+        case Some(value) => ParameterStringValue(value)
         case None => throw new RuntimeException(s"Value of dependsOn parameter '${param}' is not a String based parameter.")
       }
     }
