@@ -3,7 +3,6 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.templating.TemplateVariables
 
-import scala.annotation.tailrec
 import scala.xml.Node
 
 /**
@@ -12,9 +11,41 @@ import scala.xml.Node
 sealed trait ParameterValue
 
 /**
+  * A simple parameter value that can be represented as a string.
+  */
+trait SimpleParameterValue extends ParameterValue {
+
+  /**
+    * Returns the string representation of this parameter value.
+    */
+  def strValue(implicit pluginContext: PluginContext): String
+}
+
+/**
   * A string parameter value.
   */
-case class ParameterStringValue(value: String) extends ParameterValue
+case class ParameterStringValue(value: String) extends SimpleParameterValue {
+
+  override def strValue(implicit pluginContext: PluginContext): String = {
+    value
+  }
+}
+
+/**
+ * A template parameter value.
+ */
+case class ParameterTemplateValue(template: String) extends SimpleParameterValue {
+
+  def evaluate(templateVariables: TemplateVariables): String = {
+    templateVariables.resolveTemplateValue(template)
+  }
+
+  override def strValue(implicit pluginContext: PluginContext): String = {
+    evaluate(pluginContext.templateVariables.all)
+  }
+
+}
+
 
 /**
   * An object parameter value.
@@ -54,16 +85,6 @@ object ParameterObjectValue {
   }
 }
 
-/**
-  * A template parameter value.
-  */
-case class ParameterTemplateValue(template: String) extends ParameterValue {
-
-  def evaluate(templateVariables: TemplateVariables): String = {
-    templateVariables.resolveTemplateValue(template)
-  }
-
-}
 
 /**
   * Holds nested parameter values.

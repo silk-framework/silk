@@ -16,7 +16,7 @@ import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { dependentValueIsSet, ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import {dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion} from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
@@ -74,7 +74,7 @@ interface IProps {
         [key: string]: any;
     };
     // Values that the auto-completion of other parameters depends on
-    dependentValues: React.MutableRefObject<Record<string, any>>;
+    dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>>;
     parameterCallbacks: ExtendedParameterCallbacks;
 }
 
