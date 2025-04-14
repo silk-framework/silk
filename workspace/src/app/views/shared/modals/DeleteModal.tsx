@@ -31,6 +31,7 @@ export interface IDeleteModalOptions extends TestableComponent {
     //optional prop to disable the delete button
     deleteDisabled?: boolean;
     alternativeCancelButtonLabel?: string;
+    notifications?: React.ReactNode | React.ReactNode[];
 }
 
 export default function DeleteModal({
@@ -67,7 +68,6 @@ export default function DeleteModal({
     }, [submitOnEnter, isConfirmed, confirmationRequired, onConfirm]);
 
     useHotKey({ hotkey: "enter", handler: enterHandler, enabled: submitOnEnter });
-
     return (
         <AlertDialog
             danger
@@ -96,6 +96,7 @@ export default function DeleteModal({
                     ]
                 )
             }
+            {...otherProps}
         >
             {otherContent && (
                 <>
