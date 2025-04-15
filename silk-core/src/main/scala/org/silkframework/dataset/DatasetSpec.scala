@@ -177,9 +177,12 @@ object DatasetSpec {
       if(entities.isEmpty) {
         GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
       } else {
-        val adaptedSchema = adaptSchema(entitySchema)
-        val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
-        adaptUris(retrievedEntities)
+        if(datasetSpec.uriAttribute.isDefined) {
+          val uriSet = entities.toSet
+          retrieve(entitySchema).filter(e => uriSet.contains(e.uri))
+        } else {
+          source.retrieveByUri(entitySchema, entities)
+        }
       }
     }
 

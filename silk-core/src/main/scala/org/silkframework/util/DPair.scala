@@ -23,15 +23,30 @@ import scala.xml.Node
  * Represents a pair of source and target values.
  */
 case class DPair[+T](source: T, target: T) {
-  def map[U](f: (T) => U) = DPair(f(source), f(target))
 
-  def select(selectSource: Boolean) = if (selectSource) source else target
+  def map[U](f: (T) => U): DPair[U] = {
+    DPair(f(source), f(target))
+  }
 
-  def zip[U](pair: DPair[U]) = DPair((source, pair.source), (target, pair.target))
+  def select(selectSource: Boolean): T = {
+    if (selectSource) source else target
+  }
 
-  def forall(predicate: T => Boolean) = predicate(source) && predicate(target)
+  def zip[U](pair: DPair[U]): DPair[(T, U)] = {
+    DPair((source, pair.source), (target, pair.target))
+  }
 
-  def reverse = DPair(target, source)
+  def forall(predicate: T => Boolean): Boolean = {
+    predicate(source) && predicate(target)
+  }
+
+  def reverse: DPair[T] = {
+    DPair(target, source)
+  }
+
+  def combine[U, W](other: DPair[U], func: (T, U) => W): DPair[W] = {
+    DPair(func(source, other.source), func(target, other.target))
+  }
 }
 
 /**
