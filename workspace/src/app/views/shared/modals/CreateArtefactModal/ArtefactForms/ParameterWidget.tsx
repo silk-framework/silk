@@ -336,13 +336,13 @@ export const ParameterWidget = (props: IProps) => {
 /** Returns an array of parameter IDs of missing dependent values. */
 export const missingDependentParameters = (
     propertyDetails: IArtefactItemProperty,
-    dependentValues: Record<string, any>,
+    dependentValues: Record<string, DependsOnParameterValueAny | undefined>,
     parameterPrefix: string,
     hasDefaultValue: (paramId: string) => boolean
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
     return dependsOnParameters.filter(
         (paramId) =>
-            !dependentValueIsSet(dependentValues[parameterPrefix + paramId], hasDefaultValue(parameterPrefix + paramId))
+            !dependentValueIsSet(dependentValues[parameterPrefix + paramId]?.value, hasDefaultValue(parameterPrefix + paramId))
     );
 };
