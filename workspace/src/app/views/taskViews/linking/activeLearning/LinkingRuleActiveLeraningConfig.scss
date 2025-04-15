@@ -69,16 +69,27 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     }
 
     .diapp-linking-learningdata__examples {
-        width: 100%;
+        display: inline-flex;
+        max-width: 100%;
 
-        &.diapp-linking-learningdata__examples--count-2 .eccgui-tag__list-item {
-            max-width: 70%;
-        }
-        &.diapp-linking-learningdata__examples--count-3 .eccgui-tag__list-item {
-            max-width: 40%;
-        }
-        &.diapp-linking-learningdata__examples--count-more .eccgui-tag__list-item {
-            max-width: 30%;
+        .#{$eccgui}-tag__list-item {
+            flex-shrink: 1.6;
+            min-width: 2rem;
+
+            &:nth-child(n + 1) {
+                flex-shrink: 1;
+            }
+            &:nth-child(n + 2) {
+                flex-shrink: 1.2;
+            }
+            &:nth-child(n + 3) {
+                flex-shrink: 1.4;
+            }
+
+            &:has(.diapp-linking-learningdata__examples__cutinfo) {
+                flex-shrink: 0;
+                min-width: 0;
+            }
         }
     }
 }
@@ -92,9 +103,6 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
         flex-direction: row-reverse;
         text-align: right;
     }
-}
-
-.diapp-linking-learningdata__target {
 }
 
 .diapp-linking-learningdata__pathselection {
