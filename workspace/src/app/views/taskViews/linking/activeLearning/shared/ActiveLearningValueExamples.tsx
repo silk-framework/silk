@@ -10,6 +10,7 @@ interface Props extends Pick<TagProps, "interactive"> {
     onHover?: (val: string) => void;
     /** Search query that should be highlighted in the example values. */
     searchQuery?: string;
+    maxLength?: number;
 }
 
 export const highlightedTagColor = "#745a85";
@@ -18,21 +19,32 @@ export const highlightedTagColor = "#745a85";
 export const ActiveLearningValueExamples = ({
     exampleValues,
     valuesToHighlight,
-    highlightColor = "#745a85",
+    highlightColor = highlightedTagColor,
     onHover,
     searchQuery,
+    maxLength = 3,
     ...otherTagProps
 }: Props) => {
-    const exampleTitle = exampleValues.join(" | ");
+    const remainingExamples =
+        maxLength && exampleValues.length > maxLength ? (
+            <Tag
+                className="diapp-linking-learningdata__examples__cutinfo"
+                round
+                intent="info"
+                htmlTitle={exampleValues.slice(maxLength).join(" | ")}
+            >
+                +{exampleValues.length - maxLength}
+            </Tag>
+        ) : null;
 
     return (
         <TagList
             className={
                 "diapp-linking-learningdata__examples diapp-linking-learningdata__examples--count-" +
-                (exampleValues.length > 3 ? "more" : exampleValues.length)
+                (exampleValues.length > (maxLength ?? 3) ? "more" : exampleValues.length)
             }
         >
-            {exampleValues.map((example, idx) => {
+            {exampleValues.slice(0, maxLength).map((example, idx) => {
                 const interactiveHoverProps = onHover
                     ? {
                           onMouseEnter: () => onHover(example),
@@ -44,7 +56,7 @@ export const ActiveLearningValueExamples = ({
                     <Tag
                         key={example + idx}
                         round={true}
-                        htmlTitle={exampleTitle}
+                        htmlTitle={example}
                         emphasis="stronger"
                         backgroundColor={highlightValue ? highlightColor : undefined}
                         {...interactiveHoverProps}
@@ -54,6 +66,7 @@ export const ActiveLearningValueExamples = ({
                     </Tag>
                 );
             })}
+            {remainingExamples}
         </TagList>
     );
 };
