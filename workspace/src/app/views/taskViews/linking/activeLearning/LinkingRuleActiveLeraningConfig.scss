@@ -64,37 +64,50 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
 }
 
 .diapp-linking-learningdata__propertybox {
-    .eccgui-overviewitem__line {
+    .#{$eccgui}-overviewitem__line {
         max-width: 100%;
     }
+}
 
-    .diapp-linking-learningdata__examples {
-        width: 100%;
+.diapp-linking-learningdata__examples {
+    display: inline-flex;
+    max-width: 100%;
 
-        &.diapp-linking-learningdata__examples--count-2 .eccgui-tag__list-item {
-            max-width: 70%;
+    .#{$eccgui}-tag__list-item {
+        flex-shrink: 1.6;
+        min-width: 2rem;
+
+        &:nth-child(n + 1) {
+            flex-shrink: 1;
         }
-        &.diapp-linking-learningdata__examples--count-3 .eccgui-tag__list-item {
-            max-width: 40%;
+        &:nth-child(n + 2) {
+            flex-shrink: 1.2;
         }
-        &.diapp-linking-learningdata__examples--count-more .eccgui-tag__list-item {
-            max-width: 30%;
+        &:nth-child(n + 3) {
+            flex-shrink: 1.4;
+        }
+
+        &:has(.diapp-linking-learningdata__examples__cutinfo) {
+            flex-shrink: 0;
+            min-width: 0;
         }
     }
 }
 
 .diapp-linking-learningdata__source {
-    .eccgui-overviewitem__item {
+    .#{$eccgui}-overviewitem__item {
         flex-direction: row-reverse;
     }
 
-    .eccgui-overviewitem__line {
+    .#{$eccgui}-overviewitem__actions:not(:first-child) {
+        margin-left: 0;
+        margin-right: $eccgui-size-block-whitespace * 0.5;
+    }
+
+    .#{$eccgui}-overviewitem__line {
         flex-direction: row-reverse;
         text-align: right;
     }
-}
-
-.diapp-linking-learningdata__target {
 }
 
 .diapp-linking-learningdata__pathselection {
