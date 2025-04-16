@@ -67,29 +67,29 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
     .eccgui-overviewitem__line {
         max-width: 100%;
     }
+}
 
-    .diapp-linking-learningdata__examples {
-        display: inline-flex;
-        max-width: 100%;
+.diapp-linking-learningdata__examples {
+    display: inline-flex;
+    max-width: 100%;
 
-        .#{$eccgui}-tag__list-item {
-            flex-shrink: 1.6;
-            min-width: 2rem;
+    .#{$eccgui}-tag__list-item {
+        flex-shrink: 1.6;
+        min-width: 2rem;
 
-            &:nth-child(n + 1) {
-                flex-shrink: 1;
-            }
-            &:nth-child(n + 2) {
-                flex-shrink: 1.2;
-            }
-            &:nth-child(n + 3) {
-                flex-shrink: 1.4;
-            }
+        &:nth-child(n + 1) {
+            flex-shrink: 1;
+        }
+        &:nth-child(n + 2) {
+            flex-shrink: 1.2;
+        }
+        &:nth-child(n + 3) {
+            flex-shrink: 1.4;
+        }
 
-            &:has(.diapp-linking-learningdata__examples__cutinfo) {
-                flex-shrink: 0;
-                min-width: 0;
-            }
+        &:has(.diapp-linking-learningdata__examples__cutinfo) {
+            flex-shrink: 0;
+            min-width: 0;
         }
     }
 }
