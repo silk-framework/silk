@@ -14,6 +14,7 @@ import CloneModal from "../modals/CloneModal";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
+import {SERVE_PATH} from "../../../constants/path";
 
 interface IProps {
     projectId: string;
@@ -80,6 +81,7 @@ export function ArtefactManagementOptions({
         } else {
             // Deleted project, workspace state may have changed
             dispatch(commonOp.fetchCommonSettingsAsync());
+            afterPage = SERVE_PATH + "?itemType=project&page=1&limit=10"
         }
         dispatch(routerOp.goToPage(afterPage));
     };
