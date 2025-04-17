@@ -19,6 +19,7 @@ import scala.language.existentials
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import scala.collection.immutable.ArraySeq
 
 /** Represents a plugin parameter type and provides serialization. */
 sealed abstract class ParameterType[T: ClassTag] {
@@ -595,7 +596,7 @@ object StringParameterType {
   case class EnumerationType(enumType: Class[_]) extends StringParameterType[Enum[_]] {
     require(enumType.isEnum)
 
-    private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
+    private val enumConstants = ArraySeq.unsafeWrapArray(enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants)
 
     private val valueList = enumerationValues.mkString(", ")
 

@@ -28,6 +28,7 @@ import java.util.Base64
 import scala.collection.immutable.{ListMap, SeqMap, TreeMap}
 import scala.io.{Codec, Source}
 import scala.language.existentials
+import scala.collection.immutable.ArraySeq
 
 /**
   * Describes a plugin that is based on a Scala class.
@@ -205,7 +206,7 @@ object ClassPluginDescription {
     }
     val source = Source.fromInputStream(inputStream)(Codec.UTF8)
     try {
-      source.getLines.mkString("\n")
+      source.getLines().mkString("\n")
     } finally {
       source.close()
     }
@@ -328,7 +329,7 @@ object ClassPluginDescription {
     val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(pluginParam.autoCompletionProvider())
     val allowOnlyAutoCompletedValues = pluginParam.allowOnlyAutoCompletedValues()
     val autoCompleteValueWithLabels = pluginParam.autoCompleteValueWithLabels()
-    val autoCompletionDependsOnParameters = pluginParam.autoCompletionDependsOnParameters()
+    val autoCompletionDependsOnParameters = ArraySeq.unsafeWrapArray(pluginParam.autoCompletionDependsOnParameters())
     ParameterAutoCompletion(
       autoCompletionProvider = autoCompletionProvider,
       allowOnlyAutoCompletedValues = allowOnlyAutoCompletedValues,
