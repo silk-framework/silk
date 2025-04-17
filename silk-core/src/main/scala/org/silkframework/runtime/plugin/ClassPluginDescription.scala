@@ -146,7 +146,7 @@ object ClassPluginDescription {
     new ClassPluginDescription(
       id = annotation.id,
       label = annotation.label,
-      categories = annotation.categories,
+      categories = ArraySeq.unsafeWrapArray(annotation.categories),
       description = annotation.description.stripMargin,
       documentation = docBuilder.toString,
       parameters = getParameters(pluginClass),
@@ -219,11 +219,11 @@ object ClassPluginDescription {
     }
   }
 
-  private def getParameters[T](pluginClass: Class[T]): Array[ClassPluginParameter] = {
+  private def getParameters[T](pluginClass: Class[T]): Seq[ClassPluginParameter] = {
     val constructor = getConstructor(pluginClass)
-    val paramAnnotations = constructor.getParameterAnnotations.map(_.collect{ case p: Param => p })
-    val parameterNames = constructor.getParameters.map(_.getName)
-    val parameterTypes = constructor.getGenericParameterTypes
+    val paramAnnotations = ArraySeq.unsafeWrapArray(constructor.getParameterAnnotations.map(_.collect{ case p: Param => p }))
+    val parameterNames = ArraySeq.unsafeWrapArray(constructor.getParameters.map(_.getName))
+    val parameterTypes = ArraySeq.unsafeWrapArray(constructor.getGenericParameterTypes)
     val defaultValues = getDefaultValues(pluginClass, parameterNames.length)
 
     for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
@@ -250,7 +250,7 @@ object ClassPluginDescription {
 
   private def getActions[T](pluginClass: Class[T]): ListMap[String, ClassPluginAction] = {
     val actionsAnnotations = {
-      pluginClass.getMethods
+      ArraySeq.unsafeWrapArray(pluginClass.getMethods)
         .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method.getName, a)) }
         .sortBy(_._2.index())
     }
@@ -342,8 +342,8 @@ object ClassPluginDescription {
     assert(enumClass.isEnum, "Trying to create enum plugin parameter auto completion provider with non-enum class: " + enumClass.getCanonicalName)
     lazy val enumValues: Seq[AutoCompletionResult] = {
       val method = enumClass.getDeclaredMethod("values")
-      val enumArray = method.invoke(null).asInstanceOf[Array[Enum[_]]]
-      enumArray.map {
+      val enumSeq = ArraySeq.unsafeWrapArray(method.invoke(null).asInstanceOf[Array[Enum[_]]])
+      enumSeq.map {
         case enumerationParameter: EnumerationParameterType => AutoCompletionResult(enumerationParameter.id, Some(enumerationParameter.displayName))
         case enumValue: Enum[_] => AutoCompletionResult(enumValue.name(), None)
       }
@@ -363,18 +363,18 @@ object ClassPluginDescription {
     }
   }
 
-  private def getDefaultValues[T](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
+  private def getDefaultValues[T](pluginClass: Class[T], count: Int): Seq[Option[AnyRef]] = {
     try {
       val clazz = Class.forName(pluginClass.getName + "$", true, pluginClass.getClassLoader)
       val module = clazz.getField("MODULE$").get(null)
       val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
 
-      for (i <- Array.range(1, count + 1)) yield {
+      for (i <- 1 to count) yield {
         methods.get("$lessinit$greater$default$" + i).map(_.invoke(module))
       }
     }
     catch {
-      case _: ClassNotFoundException => Array.fill(count)(None)
+      case _: ClassNotFoundException => Seq.fill(count)(None)
     }
   }
 }
