@@ -34,9 +34,9 @@ val buildReactExternally = {
 
 // Additional compiler (javac, scalac) parameters
 val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 17) {
-  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
+  (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 } else {
-  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
+  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
@@ -83,8 +83,8 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.4",
 
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
@@ -118,7 +118,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.4"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.6"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -175,7 +175,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.14.2",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.15.4",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6"
   )
 
@@ -207,7 +207,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.27"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.30"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -358,7 +358,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.4"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.6"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -396,9 +396,9 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.5" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.24",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.4",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.18.2"
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.26",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.6",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.20.7"
   )
 
 lazy val workbench = (project in file("silk-workbench"))
@@ -427,7 +427,7 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk SingleMachine",
-    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.16"
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.17"
   )
 
 //lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
