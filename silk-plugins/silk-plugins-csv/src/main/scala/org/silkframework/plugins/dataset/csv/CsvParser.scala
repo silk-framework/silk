@@ -54,7 +54,7 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
     }
   }
 
-  def parseLine(line: String): Seq[String] = {
+  def parseLine(line: String): Array[String] = {
     parser.parseLine(line)
   }
 

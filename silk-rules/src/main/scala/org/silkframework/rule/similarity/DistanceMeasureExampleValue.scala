@@ -3,6 +3,7 @@ package org.silkframework.rule.similarity
 import org.silkframework.rule.OperatorExampleValue
 import org.silkframework.rule.annotations.DistanceMeasureExample
 import org.silkframework.util.DPair
+import scala.collection.immutable.ArraySeq
 
 case class DistanceMeasureExampleValue(description: Option[String],
                                        parameters: Map[String, String],
@@ -31,12 +32,12 @@ case class DistanceMeasureExampleValue(description: Option[String],
 object DistanceMeasureExampleValue {
 
   def retrieve(distanceMeasureClass: Class[_]): Seq[DistanceMeasureExampleValue] = {
-    val distanceMeasureExamples = distanceMeasureClass.getAnnotationsByType(classOf[DistanceMeasureExample])
+    val distanceMeasureExamples = ArraySeq.unsafeWrapArray(distanceMeasureClass.getAnnotationsByType(classOf[DistanceMeasureExample]))
     for(example <- distanceMeasureExamples) yield {
       DistanceMeasureExampleValue(
         description = Option(example.description()).filter(_.nonEmpty),
         parameters = retrieveParameters(example),
-        inputs = DPair(example.input1(), example.input2()),
+        inputs = DPair(ArraySeq.unsafeWrapArray(example.input1()), ArraySeq.unsafeWrapArray(example.input2())),
         output = example.output(),
         throwsException = Option(example.throwsException()).filterNot(_ == classOf[Object])
       )

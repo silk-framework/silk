@@ -102,7 +102,7 @@ class ExecuteTransform(task: Task[TransformSpec],
         }
         count += 1
         if (cancelled || limit.exists(_ <= count)) {
-          break
+          break()
         }
       }
     }

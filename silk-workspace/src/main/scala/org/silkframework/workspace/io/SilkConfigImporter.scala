@@ -23,7 +23,7 @@ import org.silkframework.workspace.Project
  */
 object SilkConfigImporter {
   def apply(config: LinkingConfig, project: Project)
-           (implicit userContext: UserContext){
+           (implicit userContext: UserContext): Unit = {
     //Add all prefixes
     project.config = project.config.copy(projectPrefixes = project.config.prefixes ++ config.prefixes)
 
