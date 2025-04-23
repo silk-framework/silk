@@ -2,7 +2,7 @@ package org.silkframework.runtime.resource
 
 import java.nio.file.{Files, Path}
 import java.util.concurrent.ConcurrentHashMap
-import scala.collection.JavaConverters
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 /** Resource manager with a fixed map of files. */
@@ -59,13 +59,13 @@ case class FileMapResourceManager(baseDir: Path,
     */
   override def basePath: String = baseDir.toString
 
-  override def list: List[String] = JavaConverters.asScalaIterator(fileMap.keys().asIterator()).toList.sorted
+  override def list: List[String] = fileMap.keys().asIterator().asScala.toList.sorted
 
   override def listChildren: List[String] = List.empty
 
   override def finalAction(): Unit = {
     if(removeFilesOnGc) {
-      JavaConverters.asScalaIterator(fileMap.values().iterator()).foreach { file =>
+      fileMap.values().iterator().asScala.foreach { file =>
         Try(file.delete())
       }
       Try(Files.deleteIfExists(baseDir))

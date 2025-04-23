@@ -221,7 +221,7 @@ object Silk {
   /**
    * Main method to allow Silk to be started from the command line.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     configMgr()
     val logs = CollectLogs() {
       execute()

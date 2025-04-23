@@ -154,7 +154,7 @@ object Status {
 
     private def formattedTime = {
       if (runtime < 1000) {
-        runtime + "ms"
+        s"${runtime}ms"
       } else {
         "%.3fs".format(runtime.toDouble / 1000)
       }

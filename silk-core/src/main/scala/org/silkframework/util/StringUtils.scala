@@ -192,6 +192,6 @@ class StringUtils(str: String) {
     * @return
     */
   def uncapitalize: String = {
-    str.head.toLower + str.tail
+    s"${str.head.toLower}${str.tail}"
   }
 }

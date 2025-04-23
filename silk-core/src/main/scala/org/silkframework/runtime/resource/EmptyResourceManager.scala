@@ -26,7 +26,7 @@ object EmptyResourceManager {
       }
     }
 
-    override def delete(name: String) {
+    override def delete(name: String): Unit = {
       throw new UnsupportedOperationException("Cannot delete resource.")
     }
 

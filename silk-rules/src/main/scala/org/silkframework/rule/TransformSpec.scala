@@ -25,6 +25,7 @@ import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.xml.{Node, Null}
+import scala.collection.immutable.ArraySeq
 
 /**
   * This class contains all the required parameters to execute a transform task.
@@ -577,7 +578,7 @@ object TransformSpec {
   }
 
   case class TargetVocabularyAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-    private val potentialResults: Seq[AutoCompletionResult] = TargetVocabularyParameterEnum.values().map { value =>
+    private val potentialResults: Seq[AutoCompletionResult] = ArraySeq.unsafeWrapArray(TargetVocabularyParameterEnum.values()).map { value =>
       AutoCompletionResult(value.id(), Some(value.displayName()))
     }
     override def autoComplete(searchQuery: String,

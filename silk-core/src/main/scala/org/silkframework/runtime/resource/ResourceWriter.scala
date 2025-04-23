@@ -20,5 +20,5 @@ trait ResourceWriter {
     *
     * @param name The name of the resource or child resource manager.
     */
-  def delete(name: String)
+  def delete(name: String): Unit
 }

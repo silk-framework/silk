@@ -67,7 +67,7 @@ object GenerateLinksTest {
     Test("MultiBlock", MultiBlock()) ::
     Nil
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     val results = for(test <- tests) yield test.run
 
     println("Results:")

@@ -136,7 +136,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
       readPartitionFromFile(partitionIndex)
     }
 
-    def write(entity: Entity, index: BitsetIndex) {
+    def write(entity: Entity, index: BitsetIndex): Unit = {
       checkInit()
 
       currentEntities(count) = entity

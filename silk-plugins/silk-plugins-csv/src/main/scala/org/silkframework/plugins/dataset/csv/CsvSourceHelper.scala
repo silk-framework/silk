@@ -25,9 +25,9 @@ object CsvSourceHelper {
     }.mkString(",")
   }
 
-  def parse(str: String): Seq[String] = {
+  def parse(str: String): IndexedSeq[String] = {
     standardCsvParser.synchronized {
-      standardCsvParser.parseLine(str).map(attribute => Option(attribute).getOrElse(""))
+      immutable.ArraySeq.unsafeWrapArray(standardCsvParser.parseLine(str)).map(attribute => Option(attribute).getOrElse(""))
     }
   }
 
