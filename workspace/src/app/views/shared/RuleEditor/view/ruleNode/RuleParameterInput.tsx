@@ -10,6 +10,7 @@ import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import {
+    DependsOnParameterValueAny,
     ParameterAutoCompletion,
     ParameterAutoCompletionProps,
 } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
@@ -107,7 +108,7 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: dependentValue,
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({value: dependentValue(paramId), isTemplate: false}),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,

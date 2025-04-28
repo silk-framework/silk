@@ -212,7 +212,10 @@ case class LoadedTask[T <: TaskSpec : ClassTag](taskOrError: Either[TaskLoadingE
     * Retrieves the task if it could be loaded or throws an exception containing the tasks loading error.
     */
   def task: Task[T] = {
-    taskOrError.getOrElse(throw taskOrError.left.get.throwable)
+    taskOrError match {
+      case Right(task) => task
+      case Left(error) => throw error.throwable
+    }
   }
 
   /**

@@ -1,6 +1,7 @@
 package org.silkframework.runtime.plugin.types
 
 import org.silkframework.runtime.resource.Resource
+import scala.language.implicitConversions
 
 case class ResourceOption(resource: Option[Resource])
 

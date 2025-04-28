@@ -12,24 +12,9 @@
  * limitations under the License.
  */
 
-package org.silkframework.testutil
+package org.silkframework.rule.plugins.aggregator
 
-import org.scalatest.matchers.{BeMatcher, MatchResult}
+import org.silkframework.rule.plugins.aggegrator.FirstNonEmptyAggregator
+import org.silkframework.rule.test.AggregatorTest
 
-/**
- * Matcher to test if 2 values are approximately equal.
- */
-case class approximatelyEqualTo(r: Double) extends BeMatcher[Double] {
-  val epsilon = 0.001
-
-  def apply(l: Double) =
-    MatchResult(
-      compare(l, r),
-      l.toString + " is not approximately equal to " + r,
-      l.toString + " is approximately equal to " + r
-    )
-
-  private def compare(l: Double, r: Double): Boolean = {
-    math.abs(l - r) < epsilon
-  }
-}
+class FirstNonEmptyAggregatorTest extends AggregatorTest[FirstNonEmptyAggregator]

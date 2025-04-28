@@ -77,7 +77,7 @@ object PluginRegistry {
   def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
     val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
     pluginType[T].pluginByIdOpt[T](id)
-      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
+      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${pluginType[T].availablePlugins.map(_.id).mkString(", ")}"))
       .asInstanceOf[PluginDescription[T]]
   }
 
@@ -236,7 +236,7 @@ object PluginRegistry {
    * Registers all plugins from a directory of jar files.
    * Also registers all plugins on the classpath.
    */
-  def registerJars(jarDir: File) {
+  def registerJars(jarDir: File): Unit = {
     //Collect all jar file in the specified directory
     val jarFiles = Option(jarDir.listFiles())
       .getOrElse(Array.empty)

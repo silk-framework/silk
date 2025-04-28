@@ -2,6 +2,7 @@ package org.silkframework.rule.similarity
 
 import org.silkframework.rule.OperatorExampleValue
 import org.silkframework.rule.annotations.AggregatorExample
+import scala.collection.immutable.ArraySeq
 
 case class AggregatorExampleValue(description: Option[String],
                                   parameters: Map[String, String],
@@ -50,13 +51,13 @@ case class AggregatorExampleValue(description: Option[String],
 object AggregatorExampleValue {
 
   def retrieve(transformer: Class[_]): Seq[AggregatorExampleValue] = {
-    val aggregatorExamples = transformer.getAnnotationsByType(classOf[AggregatorExample])
+    val aggregatorExamples = ArraySeq.unsafeWrapArray(transformer.getAnnotationsByType(classOf[AggregatorExample]))
     for(example <- aggregatorExamples) yield {
       AggregatorExampleValue(
         description = Option(example.description()).filter(_.nonEmpty),
         parameters = retrieveParameters(example),
-        inputs = example.inputs.map(convertScore),
-        weights = example.weights(),
+        inputs = ArraySeq.unsafeWrapArray(example.inputs.map(convertScore)),
+        weights = ArraySeq.unsafeWrapArray(example.weights()),
         output = convertScore(example.output()),
         throwsException = example.throwsException()
       )

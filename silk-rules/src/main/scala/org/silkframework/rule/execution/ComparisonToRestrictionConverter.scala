@@ -204,7 +204,7 @@ case class DataSourceEqualityRestriction(path: Path, value: String) extends Data
     val (pathSparql, valueVar) = convertPath(subjectVar, path, generatedVarPrefix)
     SparqlFilterRestriction(
       sparqlPattern = pathSparql,
-      filterExpression = s"STR(?$valueVar) = ${JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteral(value))}"
+      filterExpression = s"STR(?$valueVar) = ${JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteralString(value))}"
     )
   }
 
@@ -217,7 +217,7 @@ case class DataSourceInequalityRestriction(path: Path, value: String) extends Da
     val (pathSparql, valueVar) = convertPath(subjectVar, path, generatedVarPrefix)
     SparqlFilterRestriction(
       sparqlPattern = pathSparql,
-      filterExpression = s"STR(?$valueVar) != ${JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteral(value))}"
+      filterExpression = s"STR(?$valueVar) != ${JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteralString(value))}"
     )
   }
 

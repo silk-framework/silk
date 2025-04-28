@@ -58,9 +58,9 @@ class SparqlSink(params: SparqlParams,
     }
   }
 
-  override def closeTable()(implicit userContext: UserContext) {}
+  override def closeTable()(implicit userContext: UserContext): Unit = {}
 
-  override def close()(implicit userContext: UserContext) {
+  override def close()(implicit userContext: UserContext): Unit = {
     if(body.nonEmpty) {
       endSparql()
     }
@@ -99,7 +99,7 @@ class SparqlSink(params: SparqlParams,
   /**
    * Begins a new SPARQL/Update request.
    */
-  private def beginSparul() {
+  private def beginSparul(): Unit = {
     body.clear()
     params.graph match {
       case None =>
@@ -113,7 +113,7 @@ class SparqlSink(params: SparqlParams,
   /**
    * Ends the current SPARQL/Update request.
    */
-  private def endSparql()(implicit userContext: UserContext) {
+  private def endSparql()(implicit userContext: UserContext): Unit = {
     params.graph match {
       case None => body.append("}")
       case Some(g) => body.append("} }")

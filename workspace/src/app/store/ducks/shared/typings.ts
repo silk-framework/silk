@@ -5,10 +5,15 @@ export interface IRequestAutocompletePayload {
     pluginId: string;
     parameterId: string;
     projectId: string;
-    dependsOnParameterValues: string[];
+    dependsOnParameterValues: DependsOnParameterValue[];
     textQuery: string;
-    limit: number;
-    offset: number;
+    limit?: number;
+    offset?: number;
+}
+
+export interface DependsOnParameterValue {
+    value: string;
+    isTemplate: boolean;
 }
 
 export interface ITaskLink {

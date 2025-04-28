@@ -216,7 +216,7 @@ class Workspace(val provider: WorkspaceProvider,
                     file: File,
                     marshaller: ProjectMarshallingTrait,
                     overwrite: Boolean = false)
-                   (implicit userContext: UserContext) {
+                   (implicit userContext: UserContext): Unit = {
     loadUserProjects()
     synchronized {
       findProject(name) match {

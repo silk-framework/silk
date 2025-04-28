@@ -125,7 +125,7 @@ case class DateMetric(
     try {
       val date = dataTypeFactory.newXMLGregorianCalendar(str)
       val days = date.toGregorianCalendar.getTimeInMillis / millisPerDay
-      Index.continuous(days, minDays, maxDays, limit)
+      Index.continuous(days.toDouble, minDays, maxDays, limit)
     } catch {
       case ex: IllegalArgumentException => emptyIndex(limit)
     }

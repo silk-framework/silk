@@ -33,7 +33,7 @@ object PrefixRegistry {
     try {
       val prefixStream = getClass.getClassLoader.getResourceAsStream("org/silkframework/workspace/prefixes.csv")
       val prefixSource = Source.fromInputStream(prefixStream)(Codec.ISO8859)
-      val prefixLines = prefixSource.getLines
+      val prefixLines = prefixSource.getLines()
 
       val prefixMap = prefixLines.map(_.split(',')).map {
         case Array(id, namespace) => (id, namespace.drop(1).dropRight(1))

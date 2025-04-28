@@ -15,7 +15,7 @@ object HttpURLConnectionUtils {
     def errorMessage(prefix: String = ""): Option[String] = {
       val errorStreamOpt = Option(connection.getErrorStream)
       errorStreamOpt map { errorStream =>
-        prefix + Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
+        prefix + Source.fromInputStream(errorStream)(Codec.UTF8).getLines().mkString("\n")
       }
     }
 
@@ -32,7 +32,7 @@ object HttpURLConnectionUtils {
     def getResponseBody: String = {
       val inputStream = connection.getInputStream
       try {
-        Source.fromInputStream(inputStream, "UTF8").getLines.mkString("\n")
+        Source.fromInputStream(inputStream, "UTF8").getLines().mkString("\n")
       } finally {
         inputStream.close()
       }

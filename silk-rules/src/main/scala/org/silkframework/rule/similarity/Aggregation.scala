@@ -97,7 +97,7 @@ object Aggregation {
       Aggregation(
         id = Operator.readId(node),
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-        operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]).toArray[SimilarityOperator],
+        operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]).toSeq,
         aggregator = aggregator
       )
     }

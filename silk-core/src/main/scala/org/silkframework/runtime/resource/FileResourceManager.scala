@@ -65,7 +65,7 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
       if (file.exists && !file.delete())
         throw new IOException("Could not delete file " + file)
     }
-    deleteRecursive(new File(baseDir + "/" + name))
+    deleteRecursive(new File(baseDir, name))
   }
 
   override def listChildren: List[String] = {
@@ -77,7 +77,7 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def child(name: String): ResourceManager = {
-    FileResourceManager(new File(baseDir + "/" + name))
+    FileResourceManager(new File(baseDir, name))
   }
 
   override def parent: Option[ResourceManager] = {

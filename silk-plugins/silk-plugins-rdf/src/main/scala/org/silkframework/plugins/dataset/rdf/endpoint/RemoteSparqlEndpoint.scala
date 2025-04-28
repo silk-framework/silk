@@ -65,7 +65,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
         if (errorStream != null) {
-          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
+          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines().mkString("\n")
           throw new IOException(errorMessage, ex)
         } else {
           throw ex
@@ -110,7 +110,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
         if (errorStream != null) {
-          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
+          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines().mkString("\n")
           throw new IOException(errorMessage, ex)
         } else {
           throw ex

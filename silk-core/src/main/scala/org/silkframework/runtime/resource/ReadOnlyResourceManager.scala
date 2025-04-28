@@ -14,7 +14,7 @@ case class ReadOnlyResourceManager(loader: ResourceLoader) extends ResourceManag
 
   override def parent: Option[ResourceManager] = for(parent <- loader.parent) yield ReadOnlyResourceManager(parent)
 
-  override def delete(name: String) {
+  override def delete(name: String): Unit = {
     throw new UnsupportedOperationException("ReadOnlyResourceManager does not support deleting resources.")
   }
 }

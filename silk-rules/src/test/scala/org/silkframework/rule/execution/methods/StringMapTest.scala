@@ -14,7 +14,8 @@
 
 package org.silkframework.rule.execution.methods
 
-import org.scalatest.matchers.{BeMatcher, MatchResult}
+import org.scalatest.matchers.{BeMatcher, MatchResult}
+
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.test.TestTags.CoverageIncompatibleTest
 
@@ -71,7 +72,7 @@ class StringMapTest extends AnyFlatSpec with Matchers {
 
   private def loadSource(name: String): Array[Seq[String]] = {
     val source = Source.fromURL(getClass.getClassLoader.getResource(name))
-    val data = source.getLines.map(Seq(_)).toArray
+    val data = source.getLines().map(Seq(_)).toArray
     source.close()
     data
   }
