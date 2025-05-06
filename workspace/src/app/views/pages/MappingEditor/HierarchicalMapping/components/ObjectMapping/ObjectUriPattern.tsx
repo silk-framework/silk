@@ -9,7 +9,7 @@ import { useGetRuleOperatorPlugins } from "../../../../../../hooks/useGetOperato
 
 interface ObjectUriPatternProps {
     uriRule: any;
-    onRemoveUriRule: () => boolean;
+    onRemoveUriRule: () => void;
     openMappingEditor: () => void;
     showLabel?: boolean
 }

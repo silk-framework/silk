@@ -85,3 +85,15 @@ export const appendTransformRule = async (
         body: newRule,
     });
 };
+
+/** Appends a transform rule as a child of a container rule. */
+export const removeTransformRule = async (
+    projectId: string,
+    transformId: string,
+    ruleId: string
+): Promise<FetchResponse<ITransformRule>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformId}/rule/${ruleId}`),
+        method: "DELETE"
+    });
+};
