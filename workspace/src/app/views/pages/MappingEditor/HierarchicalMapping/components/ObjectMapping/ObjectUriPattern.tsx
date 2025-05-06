@@ -10,10 +10,11 @@ import { useGetRuleOperatorPlugins } from "../../../../../../hooks/useGetOperato
 interface ObjectUriPatternProps {
     uriRule: any;
     onRemoveUriRule: () => boolean;
-    openMappingEditor: () => boolean;
+    openMappingEditor: () => void;
+    showLabel?: boolean
 }
 
-const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor }: ObjectUriPatternProps) => {
+const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor, showLabel = true }: ObjectUriPatternProps) => {
     const { getPluginDetailLabel } = useGetRuleOperatorPlugins();
     const { type, pattern } = uriRule;
 
@@ -50,7 +51,10 @@ const ObjectUriPattern = ({ uriRule, onRemoveUriRule, openMappingEditor }: Objec
         <div className="ecc-silk-mapping__rulesviewer__idpattern">
             <div className="ecc-silk-mapping__rulesviewer__comment">
                 <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt>
+                    {showLabel ?
+                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt> :
+                        null
+                    }
                     <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                         {uriPattern}
                         <IconButton
