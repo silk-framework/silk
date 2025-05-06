@@ -25,6 +25,8 @@
     "prettier": "^2.0.5"
   },
   "resolutions": {
+    "**/react": "^16.13.1",
+    "**/react-dom": "^16.13.1",
     "**/minimist": "1.2.8",
     "**/url-parse": "1.5.9",
     "**/cookiejar": "2.1.4",
@@ -33,6 +35,10 @@
     "**/moment": "2.29.4",
     "**/semver-regex": "3.1.4",
     "**/nanoid": "3.3.4",
-    "**/follow-redirects": "1.14.9"
+    "**/follow-redirects": "1.14.9",
+    "**/browserslist": "4.22.1",
+    "**/@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "**/@types/react": "^17.0.0",
+    "**/@types/codemirror": "^5.60.5"
   }
 }
