@@ -44,6 +44,7 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
         throw new IllegalArgumentException(s"Project file already exists: ${file.name}")
       }
     }
+    executionReport.executionDone()
   }
 
   /**
