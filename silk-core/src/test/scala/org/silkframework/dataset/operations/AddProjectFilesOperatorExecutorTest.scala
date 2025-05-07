@@ -27,7 +27,7 @@ class AddProjectFilesOperatorExecutorTest extends AnyFlatSpec with Matchers with
   }
 
   it should "fail if the file already exists and overwrite strategy is set to fail" in {
-    val op = AddProjectFilesOperator("file.csv", OverwriteStrategyEnum.fail)
+    val op = AddProjectFilesOperator("file.csv", "", OverwriteStrategyEnum.fail)
     val newFiles = Seq("file.csv")
     val existingFiles = Seq("file.csv")
     val expectedWrittenFiles = Seq.empty[String]
@@ -38,10 +38,19 @@ class AddProjectFilesOperatorExecutorTest extends AnyFlatSpec with Matchers with
   }
 
   it should "overwrite existing files if the overwrite strategy is set to overwrite" in {
-    val op = AddProjectFilesOperator("file.csv", OverwriteStrategyEnum.overwrite)
+    val op = AddProjectFilesOperator("file.csv", "", OverwriteStrategyEnum.overwrite)
     val newFiles = Seq("file.csv")
     val existingFiles = Seq("file.csv")
     val expectedWrittenFiles = Seq("file.csv")
+
+    execute(op, newFiles, existingFiles, expectedWrittenFiles)
+  }
+
+  it should "ignore existing files if the overwrite strategy is set to ignoreExisting" in {
+    val op = AddProjectFilesOperator("file.csv", "", OverwriteStrategyEnum.ignoreExisting)
+    val newFiles = Seq("file1.csv", "file2.csv")
+    val existingFiles = Seq("file.csv", "other.csv")
+    val expectedWrittenFiles = Seq("file-1.csv")
 
     execute(op, newFiles, existingFiles, expectedWrittenFiles)
   }

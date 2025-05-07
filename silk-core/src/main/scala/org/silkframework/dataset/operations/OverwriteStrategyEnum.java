@@ -5,7 +5,9 @@ import org.silkframework.runtime.plugin.types.EnumerationParameterType;
 public enum OverwriteStrategyEnum implements EnumerationParameterType {
 
     overwrite("overwrite", "Overwrite existing files"),
-    fail("fail", "Fail if a file already exists with the same name.");
+    overwriteWithWarning("overwriteWithWarning", "Overwrite existing files with warning"),
+    ignoreExisting("ignoreExisting", "Ignore existing files"),
+    fail("fail", "Fail if a file already exists");
 
     private final String id;
     private final String displayName;

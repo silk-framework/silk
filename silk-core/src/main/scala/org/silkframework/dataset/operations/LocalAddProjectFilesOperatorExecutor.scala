@@ -22,7 +22,8 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
     val input = inputs.head
     input match {
       case FileEntitySchema(files) =>
-        addFiles(files, pluginContext.resources, task, context)
+        val executionReport = AddProjectFilesOperatorExecutionReportUpdater(task, context)
+        addFiles(files, task.data.getDirectory(pluginContext.resources), task.data, executionReport)
       case _ =>
         throw new IllegalArgumentException("Input must be of type FileEntitySchema. Got: " + input.entitySchema)
     }
@@ -30,20 +31,42 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
   }
 
   private def addFiles(files: TypedEntities[FileEntity, _], targetDirectory: ResourceManager,
-                       task: Task[AddProjectFilesOperator], context: ActivityContext[ExecutionReport]): Unit = {
-    val executionReport = AddProjectFilesOperatorExecutionReportUpdater(task, context)
-    val fileNameGenerator = new FileNameGenerator(task.data.fileName)
+                       operator: AddProjectFilesOperator, executionReport: AddProjectFilesOperatorExecutionReportUpdater): Unit = {
+    val fileNameGenerator = new FileNameGenerator(operator.fileName)
+
     for (fileEntity <- files.typedEntities) {
       val file = fileEntity.file
       val newFileName = fileNameGenerator(file.name)
-      if (task.data.overwriteStrategy == OverwriteStrategyEnum.overwrite || !targetDirectory.exists(newFileName)) {
+      val fileExists = targetDirectory.exists(newFileName)
+
+      val writeFile = operator.overwriteStrategy match {
+        case OverwriteStrategyEnum.overwrite =>
+          // Always write the file
+          true
+        case OverwriteStrategyEnum.overwriteWithWarning =>
+          // Write the file and add a warning to the report
+          if (fileExists) {
+            executionReport.addWarning(s"File $newFileName was overwritten.")
+          }
+          true
+        case OverwriteStrategyEnum.ignoreExisting if fileExists =>
+          // Ignore the file if it already exists
+          false
+        case _ if fileExists =>
+          // For any other strategy, throw an error if the file exists
+          throw new IllegalArgumentException(s"Project file already exists: ${file.name}")
+        case _ =>
+          // File doesn't exist, write it
+          true
+      }
+
+      if (writeFile) {
         targetDirectory.get(newFileName).writeResource(file)
         executionReport.addFile(file.name)
         executionReport.increaseEntityCounter()
-      } else {
-        throw new IllegalArgumentException(s"Project file already exists: ${file.name}")
       }
     }
+
     executionReport.executionDone()
   }
 
