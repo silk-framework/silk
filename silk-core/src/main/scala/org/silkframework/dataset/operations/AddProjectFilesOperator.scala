@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.ResourceManager
   id = "addProjectFiles",
   label = "Add project files",
   description =
-    """Add file resources to the project."""
+    """Adds file resources to the project that are piped into the input port."""
 )
 case class AddProjectFilesOperator(
   @Param("File name of the uploaded file(s). If multiple files are uploaded, an index will be appended to the file name. If left empty, the existing file names will be used.")
