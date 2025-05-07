@@ -8,6 +8,8 @@ import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 
+import scala.collection.mutable
+
 /** Executes the delete files operator. */
 case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProjectFilesOperator] {
 
@@ -33,6 +35,7 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
   private def addFiles(files: TypedEntities[FileEntity, _], targetDirectory: ResourceManager,
                        operator: AddProjectFilesOperator, executionReport: AddProjectFilesOperatorExecutionReportUpdater): Unit = {
     val fileNameGenerator = new FileNameGenerator(operator.fileName)
+    val warningFiles = mutable.Buffer[String]()
 
     for (fileEntity <- files.typedEntities) {
       val file = fileEntity.file
@@ -46,7 +49,7 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
         case OverwriteStrategyEnum.overwriteWithWarning =>
           // Write the file and add a warning to the report
           if (fileExists) {
-            executionReport.addWarning(s"File $newFileName was overwritten.")
+            warningFiles.append(newFileName)
           }
           true
         case OverwriteStrategyEnum.ignoreExisting if fileExists =>
@@ -67,6 +70,9 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
       }
     }
 
+    if(warningFiles.nonEmpty) {
+      executionReport.addWarning(s"The following file(s) already existed and were overwritten: ${warningFiles.mkString(", ")}")
+    }
     executionReport.executionDone()
   }
 
