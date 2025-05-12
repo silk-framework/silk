@@ -36,6 +36,11 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
     parameters = Array("regex", "^([a-z]{2,4})123([a-z]+)"),
     input1 = Array("abcd123xyz"),
     output = Array("abcd")
+  ),
+  new TransformExample(
+    parameters = Array("regex", "\"bedeutungen\"\\s*:\\s*\\[\\s*(?:\"([^\"]*)\"(?:\\s*,\\s*\"([^\"]*)\")*)*\\s*\\]"),
+    input1 = Array("\"bedeutungen\" : [ ]"),
+    output = Array()
   )
 ))
 case class RegexExtractionTransformer(
@@ -51,11 +56,11 @@ case class RegexExtractionTransformer(
   }
 
   private def matchValue(value: String): Seq[String] = {
-    val matched = r.findAllIn(value).matchData.map { m =>
+    val matched = r.findAllIn(value).matchData.flatMap { m =>
       if(m.groupCount <1) {
-        m.matched
+        Option(m.matched)
       } else {
-        m.group(1)
+        Option(m.group(1))
       }
     }
     if(extractAll) {
