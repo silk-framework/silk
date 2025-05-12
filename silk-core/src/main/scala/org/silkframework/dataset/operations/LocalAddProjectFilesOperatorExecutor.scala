@@ -25,55 +25,69 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
     input match {
       case FileEntitySchema(files) =>
         val executionReport = AddProjectFilesOperatorExecutionReportUpdater(task, context)
-        addFiles(files, task.data.getDirectory(pluginContext.resources), task.data, executionReport)
+        new FileWriter(task.data.getDirectory(pluginContext.resources), task.data, executionReport).write(files)
       case _ =>
         throw new IllegalArgumentException("Input must be of type FileEntitySchema. Got: " + input.entitySchema)
     }
     None
   }
 
-  private def addFiles(files: TypedEntities[FileEntity, _], targetDirectory: ResourceManager,
-                       operator: AddProjectFilesOperator, executionReport: AddProjectFilesOperatorExecutionReportUpdater): Unit = {
-    val fileNameGenerator = new FileNameGenerator(operator.fileName)
-    val warningFiles = mutable.Buffer[String]()
+  private class FileWriter(targetDirectory: ResourceManager,
+                           operator: AddProjectFilesOperator,
+                           executionReport: AddProjectFilesOperatorExecutionReportUpdater) {
 
-    for (fileEntity <- files.typedEntities) {
-      val file = fileEntity.file
-      val newFileName = fileNameGenerator(file.name)
-      val fileExists = targetDirectory.exists(newFileName)
+    private val fileNameGenerator = new FileNameGenerator(operator.fileName)
+    private val warningFiles = mutable.Buffer[String]()
 
-      val writeFile = operator.overwriteStrategy match {
+    def write(files: TypedEntities[FileEntity, _]): Unit = {
+      for (fileEntity <- files.typedEntities) {
+        val file = fileEntity.file
+        val newFileName = fileNameGenerator(file.name)
+        val fileExists = targetDirectory.exists(newFileName)
+        if (addFile(newFileName, fileExists)) {
+          targetDirectory.get(newFileName).writeResource(file)
+          executionReport.increaseEntityCounter()
+        }
+      }
+
+      if(warningFiles.nonEmpty) {
+        executionReport.addWarning(s"The following file(s) already existed and were overwritten: ${warningFiles.mkString(", ")}")
+      }
+      executionReport.executionDone()
+    }
+
+    private def addFile(fileName: String, fileExists: Boolean): Boolean = {
+      operator.overwriteStrategy match {
         case OverwriteStrategyEnum.overwrite =>
           // Always write the file
+          if (fileExists) {
+            executionReport.addOverwrittenFile(operator.targetDirectory + fileName)
+          } else {
+            executionReport.addNewFile(operator.targetDirectory + fileName)
+          }
           true
         case OverwriteStrategyEnum.overwriteWithWarning =>
           // Write the file and add a warning to the report
           if (fileExists) {
-            warningFiles.append(newFileName)
+            executionReport.addOverwrittenFile(operator.targetDirectory + fileName)
+            warningFiles.append(operator.targetDirectory + fileName)
+          } else {
+            executionReport.addNewFile(operator.targetDirectory + fileName)
           }
           true
         case OverwriteStrategyEnum.ignoreExisting if fileExists =>
           // Ignore the file if it already exists
+          executionReport.addIgnoredFile(operator.targetDirectory + fileName)
           false
         case _ if fileExists =>
           // For any other strategy, throw an error if the file exists
-          throw new IllegalArgumentException(s"Project file already exists: ${file.name}")
+          throw new IllegalArgumentException(s"Project file already exists: ${operator.targetDirectory}${fileName}")
         case _ =>
           // File doesn't exist, write it
+          executionReport.addNewFile(operator.targetDirectory + fileName)
           true
       }
-
-      if (writeFile) {
-        targetDirectory.get(newFileName).writeResource(file)
-        executionReport.addFile(file.name)
-        executionReport.increaseEntityCounter()
-      }
     }
-
-    if(warningFiles.nonEmpty) {
-      executionReport.addWarning(s"The following file(s) already existed and were overwritten: ${warningFiles.mkString(", ")}")
-    }
-    executionReport.executionDone()
   }
 
   /**
@@ -103,7 +117,11 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
 
 case class AddProjectFilesOperatorExecutionReportUpdater(task: Task[TaskSpec],
                                                          context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
-  private var files = Vector.empty[String]
+  private val newFiles = mutable.Buffer[String]()
+
+  private val overwrittenFiles = mutable.Buffer[String]()
+
+  private val ignoredFiles = mutable.Buffer[String]()
 
   override def operationLabel: Option[String] = Some("add files")
 
@@ -115,15 +133,28 @@ case class AddProjectFilesOperatorExecutionReportUpdater(task: Task[TaskSpec],
 
   override def minEntitiesBetweenUpdates: Int = 1
 
-  def addFile(file: String): Unit = {
-    files = files appended file
+  def addNewFile(file: String): Unit = {
+    newFiles.append(file)
+  }
+
+  def addOverwrittenFile(file: String): Unit = {
+    overwrittenFiles.append(file)
+  }
+
+  def addIgnoredFile(file: String): Unit = {
+    ignoredFiles.append(file)
   }
 
   override def additionalFields(): Seq[(String, String)] = {
-    // files is still null when this method is called in the constructor of ExecutionReportUpdater
-    val addedFiles = if(files != null) files.mkString(", ") else ""
     Seq(
-      "Added files" -> addedFiles
+      "New files" -> format(newFiles),
+      "Overwritten files" -> format(overwrittenFiles),
+      "Ignored files" -> format(ignoredFiles)
     )
+  }
+
+  def format(files: mutable.Buffer[String]): String = {
+    // files is still null when this method is called in the constructor of ExecutionReportUpdater
+    if(files != null) files.mkString(", ") else ""
   }
 }

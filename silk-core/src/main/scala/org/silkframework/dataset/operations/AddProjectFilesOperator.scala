@@ -8,6 +8,7 @@ import org.silkframework.runtime.resource.ResourceManager
 @Plugin(
   id = "addProjectFiles",
   label = "Add project files",
+  iconFile = "AddProjectFilesOperator.svg",
   description =
     """Adds file resources to the project that are piped into the input port."""
 )
@@ -18,6 +19,14 @@ case class AddProjectFilesOperator(
   directory: String = "",
   @Param("The strategy to use if a file with the same name already exists.")
   overwriteStrategy: OverwriteStrategyEnum = OverwriteStrategyEnum.fail) extends CustomTask {
+
+  /**
+   * The clean target directory name without superfluous slashes, but with a trailing slash.
+   */
+  val targetDirectory: String = {
+    val dir = directory.split('/').filter(_.nonEmpty).mkString("/")
+    if(dir.isEmpty) "" else dir + '/'
+  }
 
   /**
     * The input ports and their schemata.
