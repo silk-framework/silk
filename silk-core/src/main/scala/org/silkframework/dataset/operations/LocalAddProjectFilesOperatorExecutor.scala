@@ -10,7 +10,7 @@ import org.silkframework.runtime.resource.ResourceManager
 
 import scala.collection.mutable
 
-/** Executes the delete files operator. */
+/** Executes the add project files operator. */
 case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProjectFilesOperator] {
 
   override def execute(task: Task[AddProjectFilesOperator],
