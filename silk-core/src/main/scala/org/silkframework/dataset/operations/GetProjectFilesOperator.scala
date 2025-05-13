@@ -22,6 +22,8 @@ case class GetProjectFilesOperator(
   @Param("Optional regular expression for retrieving files. The regex needs to match the full path (i.e. from beginning to end, including sub-directories).")
   filesRegex: String = "") extends CustomTask {
 
+  assert(fileName.isEmpty && filesRegex.isEmpty, "Either the file name or the file regex must be set")
+
   private val regex = filesRegex.trim.r
 
   /**
