@@ -11,7 +11,7 @@ import org.silkframework.workspace.WorkspaceReadTrait
 @Plugin(
   id = "getProjectFiles",
   label = "Get project files",
-//TODO  iconFile = "AddProjectFilesOperator.svg",
+  iconFile = "GetProjectFilesOperator.svg",
   description =
     """Get file resources from the project."""
 )
