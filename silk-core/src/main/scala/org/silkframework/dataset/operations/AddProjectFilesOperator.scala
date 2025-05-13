@@ -15,7 +15,7 @@ import org.silkframework.runtime.resource.ResourceManager
 case class AddProjectFilesOperator(
   @Param("File name of the uploaded file(s). If multiple files are uploaded, an index will be appended to the file name. If left empty, the existing file names will be used.")
   fileName: String = "",
-  @Param("Directory to which the files should be written. If left empty, the files will be uploaded to the project root directory.")
+  @Param("Directory to which the files should be written. If left empty, the files will be uploaded to the project root directory. Note that all files will be written to this directory even if they have been read from a different project directory initially.")
   directory: String = "",
   @Param("The strategy to use if a file with the same name already exists.")
   overwriteStrategy: OverwriteStrategyEnum = OverwriteStrategyEnum.fail) extends CustomTask {
