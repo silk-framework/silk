@@ -18,11 +18,14 @@ object QuadEntitySchema extends TypedEntitySchema[Quad, TaskSpec] {
     EntitySchema(
       typeUri = schemaType("Quad"),
       typedPaths = IndexedSeq(
-        TypedPath(schemaPath("quadSubject"), ValueType.URI, isAttribute = false),
-        TypedPath(schemaPath("quadPredicate"), ValueType.URI, isAttribute = false),
-        TypedPath(schemaPath("quadObject"), ValueType.STRING, isAttribute = false),
-        TypedPath(schemaPath("quadObjectValueType"), ValueType.STRING, isAttribute = false),
-        TypedPath(schemaPath("quadContext"), ValueType.STRING, isAttribute = false)
+        TypedPath(schemaPath("quad/subject"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quad/subjectType"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quad/predicate"), ValueType.URI, isAttribute = false),
+        TypedPath(schemaPath("quad/object"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quad/objectType"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quad/objectLanguage"), ValueType.STRING, isAttribute = false),
+        TypedPath(schemaPath("quad/objectDataType"), ValueType.URI, isAttribute = false),
+        TypedPath(schemaPath("quad/graph"), ValueType.STRING, isAttribute = false)
       )
     )
   }
@@ -31,15 +34,43 @@ object QuadEntitySchema extends TypedEntitySchema[Quad, TaskSpec] {
    * Creates a generic entity from a typed entity.
    */
   override def toEntity(quad: Quad)(implicit pluginContext: PluginContext): Entity = {
-    val (value, typ) = convertToEncodedType(quad.objectVal)
+    val subjectType = quad.subject match {
+      case _: Resource => Types.URI
+      case _: BlankNode => Types.BlankNode
+    }
+
+    val objectType = quad.objectVal match {
+      case _: Resource => Types.URI
+      case _: BlankNode => Types.BlankNode
+      case _: PlainLiteral => Types.Literal
+      case _: LanguageLiteral => Types.LangLiteral
+      case _: DataTypeLiteral => Types.TypedLiteral
+    }
+
+    val objectLanguage = quad.objectVal match {
+      case LanguageLiteral(_, l) => Seq(l)
+      case _ => Seq.empty
+    }
+
+    val objectDataType = quad.objectVal match {
+      case DataTypeLiteral(_, dt) => Seq(dt)
+      case _ => Seq.empty
+    }
+
+    val uri = Uri.uuid(quad.subject.value + quad.predicate.value + quad.objectVal.value + objectLanguage.mkString + objectDataType.mkString + quad.context.map(_.value).mkString)
+
     val values = IndexedSeq(
       Seq(quad.subject.value),
+      Seq(subjectType),
       Seq(quad.predicate.value),
-      Seq(value),
-      Seq(typ),
+      Seq(quad.objectVal.value),
+      Seq(objectType),
+      objectLanguage,
+      objectDataType,
       quad.context.map(_.value).toSeq
     )
-    Entity(Uri.uuid(quad.subject.value + quad.predicate.value + value + quad.context.map(_.value).getOrElse("")), values, schema)
+
+    Entity(uri, values, schema)
   }
 
   /**
@@ -47,8 +78,40 @@ object QuadEntitySchema extends TypedEntitySchema[Quad, TaskSpec] {
    * Implementations may assume that the incoming schema matches the schema expected by this typed schema, i.e., schema validation is not required.
    */
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): Quad = {
-    val Seq(Some(s), Some(p), Some(o), Some(encodedType), context) = entity.values.map(_.headOption)
-    Quad(Resource(s), Resource(p), convertToRdfNode(o, encodedType), context.map(Resource))
+    // Indices for the values in the entity
+    val subjectIndex = 0
+    val subjectTypeIndex = 1
+    val predicateIndex = 2
+    val objectIndex = 3
+    val objectTypeIndex = 4
+    val objectLanguageIndex = 5
+    val objectDataTypeIndex = 6
+    val graphIndex = 7
+
+    // Extracting values from the entity
+    val values = entity.values
+
+    val subject = values(subjectTypeIndex) match {
+      case Seq(Types.URI) => Resource(values(subjectIndex).head)
+      case Seq(Types.BlankNode) => BlankNode(values(subjectIndex).head)
+      case _ => throw new IllegalArgumentException("Invalid subject type. Expected URI or BlankNode.")
+    }
+
+    val predicate = Resource(values(predicateIndex).head)
+
+    val objectValue = values(objectTypeIndex) match {
+      case Seq(Types.URI) => Resource(values(objectIndex).head)
+      case Seq(Types.BlankNode) => BlankNode(values(objectIndex).head)
+      case Seq(Types.Literal) => PlainLiteral(values(objectIndex).head)
+      case Seq(Types.LangLiteral) => LanguageLiteral(values(objectIndex).head, values(objectLanguageIndex).head)
+      case Seq(Types.TypedLiteral) => DataTypeLiteral(values(objectIndex).head, values(objectDataTypeIndex).head)
+      case _ => throw new IllegalArgumentException("Invalid object type. Expected URI, BlankNode, Literal, LangLiteral or TypedLiteral.")
+    }
+
+    val context = values(graphIndex).headOption.map(Resource)
+
+    // Build the Quad object
+    Quad(subject, predicate, objectValue, context)
   }
 
   def getValueType(node: RdfNode): ValueType = {
@@ -66,38 +129,11 @@ object QuadEntitySchema extends TypedEntitySchema[Quad, TaskSpec] {
     }
   }
 
-  private final val LANGUAGE_ENC_PREFIX = "lg"
-  private final val DATA_TYPE_ENC_PREFIX = "dt"
-  private final val URI_ENC_PREFIX = "ur"
-  private final val BLANK_NODE_ENC_PREFIX = "bn"
-
-  private def convertToEncodedType(valueType: RdfNode): (String, String) = {
-    valueType match {
-      case PlainLiteral(v) =>
-        (v, "")
-      case LanguageLiteral(v, l) =>
-        (v, s"$LANGUAGE_ENC_PREFIX=$l")
-      case DataTypeLiteral(v, dt) =>
-        (v, s"$DATA_TYPE_ENC_PREFIX=$dt")
-      case BlankNode(bn) =>
-        (bn, s"$BLANK_NODE_ENC_PREFIX")
-      case Resource(uri) =>
-        (uri, s"$URI_ENC_PREFIX")
-    }
-  }
-
-  private def convertToRdfNode(value: String, encodedType: String): RdfNode = {
-    encodedType.take(2) match {
-      case DATA_TYPE_ENC_PREFIX =>
-        Resource(value)
-      case LANGUAGE_ENC_PREFIX =>
-        LanguageLiteral(value, encodedType.drop(3))
-      case URI_ENC_PREFIX =>
-        Resource(value)
-      case BLANK_NODE_ENC_PREFIX =>
-        BlankNode(value)
-      case _ =>
-        Resource(value)
-    }
+  object Types {
+    val URI: String = "URI"
+    val BlankNode: String = "BlankNode"
+    val Literal: String = "Literal"
+    val LangLiteral: String = "LangLiteral"
+    val TypedLiteral: String = "TypedLiteral"
   }
 }
