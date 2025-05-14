@@ -53,12 +53,8 @@ case class GetProjectFilesOperatorExecutionReportUpdater(task: Task[TaskSpec],
 
   override def additionalFields(): Seq[(String, String)] = {
     Seq(
-      "Retrieved files" -> format(files),
+      "Number of retrieved files" -> (if(files != null) files.size.toString else "0"),
+      "Retrieved files" -> (if(files != null) files.mkString(", ") else ""),
     )
-  }
-
-  def format(files: mutable.Buffer[String]): String = {
-    // files is still null when this method is called in the constructor of ExecutionReportUpdater
-    if(files != null) files.mkString(", ") else ""
   }
 }

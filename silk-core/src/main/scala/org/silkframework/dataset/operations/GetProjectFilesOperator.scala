@@ -23,6 +23,7 @@ case class GetProjectFilesOperator(
   filesRegex: String = "") extends CustomTask {
 
   assert(fileName.nonEmpty || filesRegex.nonEmpty, "Either the file name or the file regex must be set")
+  assert(!(fileName.nonEmpty && filesRegex.nonEmpty), "Only one of the file name or the file regex must be set")
 
   private val regex = filesRegex.trim.r
 
