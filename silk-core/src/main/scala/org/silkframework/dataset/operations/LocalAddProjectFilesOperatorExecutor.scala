@@ -147,14 +147,21 @@ case class AddProjectFilesOperatorExecutionReportUpdater(task: Task[TaskSpec],
 
   override def additionalFields(): Seq[(String, String)] = {
     Seq(
-      "New files" -> format(newFiles),
-      "Overwritten files" -> format(overwrittenFiles),
-      "Ignored files" -> format(ignoredFiles)
+      "Number of new files" -> count(newFiles),
+      "Number of overwritten files" -> count(overwrittenFiles),
+      "Number of ignored files" -> count(ignoredFiles),
+      "New files" -> list(newFiles),
+      "Overwritten files" -> list(overwrittenFiles),
+      "Ignored files" -> list(ignoredFiles),
     )
   }
 
-  def format(files: mutable.Buffer[String]): String = {
+  def list(files: mutable.Buffer[String]): String = {
     // files is still null when this method is called in the constructor of ExecutionReportUpdater
     if(files != null) files.mkString(", ") else ""
+  }
+
+  def count(files: mutable.Buffer[String]): String = {
+    if(files != null) files.size.toString else "0"
   }
 }
