@@ -23,7 +23,7 @@ import org.silkframework.dataset.operations.{DeleteFilesOperator, LocalDeleteFil
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
 import org.silkframework.execution.local.LocalExecutionManager
-import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.plugins.dataset.{BinaryFileDataset, InternalDataset}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
 import scala.language.existentials
@@ -38,12 +38,13 @@ class CorePlugins extends PluginModule {
   private def datasets: Seq[Class[_ <: AnyPlugin]] =
     classOf[InternalDataset] ::
     classOf[VariableDataset] ::
+    classOf[BinaryFileDataset] ::
     Nil
 
   private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {
     classOf[DeleteFilesOperator] ::
-      classOf[LocalDeleteFilesOperatorExecutor] ::
-      Nil
+    classOf[LocalDeleteFilesOperatorExecutor] ::
+    Nil
   }
 
   private def serializers: Seq[Class[_ <: AnyPlugin]] =
