@@ -19,7 +19,7 @@ import org.silkframework.config.Task.GenericTaskFormat
 import org.silkframework.config.TaskSpec.TaskSpecXmlFormat
 import org.silkframework.dataset.DatasetSpec.{DatasetSpecFormat, DatasetTaskXmlFormat}
 import org.silkframework.dataset.VariableDataset
-import org.silkframework.dataset.operations.{DeleteFilesOperator, LocalDeleteFilesOperatorExecutor}
+import org.silkframework.dataset.operations.{AddProjectFilesOperator, DeleteFilesOperator, GetProjectFilesOperator, LocalAddProjectFilesOperatorExecutor, LocalDeleteFilesOperatorExecutor, LocalGetProjectFilesOperatorExecutor}
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
 import org.silkframework.execution.local.LocalExecutionManager
@@ -42,8 +42,12 @@ class CorePlugins extends PluginModule {
     Nil
 
   private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {
+    classOf[AddProjectFilesOperator] ::
+    classOf[LocalAddProjectFilesOperatorExecutor] ::
     classOf[DeleteFilesOperator] ::
     classOf[LocalDeleteFilesOperatorExecutor] ::
+    classOf[GetProjectFilesOperator] ::
+    classOf[LocalGetProjectFilesOperatorExecutor] ::
     Nil
   }
 
