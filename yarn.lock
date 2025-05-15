@@ -6067,11 +6067,6 @@
   dependencies:
     "@types/unist" "*"
 
-"@types/mdurl@^1.0.0":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/@types/mdurl/-/mdurl-1.0.2.tgz#e2ce9d83a613bacf284c7be7d491945e39e1f8e9"
-  integrity sha1-4s6dg6YTus8oTHvn1JGUXjnh+Ok=
-
 "@types/mdx@^2.0.0":
   version "2.0.13"
   resolved "https://registry.yarnpkg.com/@types/mdx/-/mdx-2.0.13.tgz#68f6877043d377092890ff5b298152b0a21671bd"
@@ -17747,21 +17742,6 @@ mdast-util-phrasing@^3.0.0:
     "@types/mdast" "^3.0.0"
     unist-util-is "^5.0.0"
 
-mdast-util-to-hast@^11.0.0:
-  version "11.3.0"
-  resolved "https://registry.npmjs.org/mdast-util-to-hast/-/mdast-util-to-hast-11.3.0.tgz#ea9220617a710e80aa5cc3ac7cc9d4bb0440ae7a"
-  integrity sha1-6pIgYXpxDoCqXMOsfMnUuwRArno=
-  dependencies:
-    "@types/hast" "^2.0.0"
-    "@types/mdast" "^3.0.0"
-    "@types/mdurl" "^1.0.0"
-    mdast-util-definitions "^5.0.0"
-    mdurl "^1.0.0"
-    unist-builder "^3.0.0"
-    unist-util-generated "^2.0.0"
-    unist-util-position "^4.0.0"
-    unist-util-visit "^4.0.0"
-
 mdast-util-to-hast@^12.0.0, mdast-util-to-hast@^12.1.0:
   version "12.3.0"
   resolved "https://registry.yarnpkg.com/mdast-util-to-hast/-/mdast-util-to-hast-12.3.0.tgz#045d2825fb04374e59970f5b3f279b5700f6fb49"
@@ -17834,11 +17814,6 @@ mdn-data@^2.21.0:
   version "2.21.0"
   resolved "https://registry.yarnpkg.com/mdn-data/-/mdn-data-2.21.0.tgz#f3a495e8b1e60cb4fbeaf9136aefba2f987a56e1"
   integrity sha512-+ZKPQezM5vYJIkCxaC+4DTnRrVZR1CgsKLu5zsQERQx6Tea8Y+wMx5A24rq8A8NepCeatIQufVAekKNgiBMsGQ==
-
-mdurl@^1.0.0:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/mdurl/-/mdurl-1.0.1.tgz#fe85b2ec75a59037f2adfec100fd6c601761152e"
-  integrity sha1-/oWy7HWlkDfyrf7BAP1sYBdhFS4=
 
 media-typer@0.3.0:
   version "0.3.0"
@@ -20938,7 +20913,7 @@ react-is@^16.13.1, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1, react-i
   resolved "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz#789729a4dc36de2999dc156dd6c1d9c18cea56a4"
   integrity sha1-eJcppNw23imZ3BVt1sHZwYzqVqQ=
 
-react-is@^17.0.0, react-is@^17.0.1, react-is@^17.0.2:
+react-is@^17.0.1, react-is@^17.0.2:
   version "17.0.2"
   resolved "https://registry.npmjs.org/react-is/-/react-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha1-5pHUqOnHiTZWVVOas3J2Kw77VPA=
@@ -20947,26 +20922,6 @@ react-lorem-ipsum@^1.4.9:
   version "1.4.9"
   resolved "https://registry.npmjs.org/react-lorem-ipsum/-/react-lorem-ipsum-1.4.9.tgz#be92bd5a595cad79493f972a44b28c8a7abf6352"
   integrity sha1-vpK9WllcrXlJP5cqRLKMinq/Y1I=
-
-react-markdown@^7.0.1:
-  version "7.1.1"
-  resolved "https://registry.npmjs.org/react-markdown/-/react-markdown-7.1.1.tgz#cb4d2c2fa3bc1292c889b068a5bf064ae4be1c60"
-  integrity sha1-y00sL6O8EpLIibBopb8GSuS+HGA=
-  dependencies:
-    "@types/hast" "^2.0.0"
-    "@types/unist" "^2.0.0"
-    comma-separated-tokens "^2.0.0"
-    hast-util-whitespace "^2.0.0"
-    prop-types "^15.0.0"
-    property-information "^6.0.0"
-    react-is "^17.0.0"
-    remark-parse "^10.0.0"
-    remark-rehype "^9.0.0"
-    space-separated-tokens "^2.0.0"
-    style-to-object "^0.3.0"
-    unified "^10.0.0"
-    unist-util-visit "^4.0.0"
-    vfile "^5.0.0"
 
 react-markdown@^8.0.7:
   version "8.0.7"
@@ -21605,16 +21560,6 @@ remark-rehype@^10.0.0:
     "@types/hast" "^2.0.0"
     "@types/mdast" "^3.0.0"
     mdast-util-to-hast "^12.1.0"
-    unified "^10.0.0"
-
-remark-rehype@^9.0.0:
-  version "9.1.0"
-  resolved "https://registry.npmjs.org/remark-rehype/-/remark-rehype-9.1.0.tgz#e4b5b6e19c125b3780343eb66c3e9b99b0f06a81"
-  integrity sha1-5LW24ZwSWzeAND62bD6bmbDwaoE=
-  dependencies:
-    "@types/hast" "^2.0.0"
-    "@types/mdast" "^3.0.0"
-    mdast-util-to-hast "^11.0.0"
     unified "^10.0.0"
 
 remove-bom-buffer@^3.0.0:
@@ -24388,7 +24333,7 @@ unicorn-magic@^0.3.0:
   resolved "https://registry.yarnpkg.com/unicorn-magic/-/unicorn-magic-0.3.0.tgz#4efd45c85a69e0dd576d25532fbfa22aa5c8a104"
   integrity sha512-+QBBXBCvifc56fsbuxZQ6Sic3wqqc3WWaqxs58gvJrcOuN83HGTCwz3oS5phzU9LthRNE9VrJCFCLUgHeeFnfA==
 
-unified@^10.0.0, unified@^10.1.1:
+unified@^10.0.0:
   version "10.1.1"
   resolved "https://registry.npmjs.org/unified/-/unified-10.1.1.tgz#345e349e3ab353ab612878338eb9d57b4dea1d46"
   integrity sha1-NF40njqzU6thKHgzjrnVe03qHUY=
