@@ -19,12 +19,9 @@ case class LocalDeleteFilesOperatorExecutor() extends LocalExecutor[DeleteFilesO
                        context: ActivityContext[ExecutionReport])
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
     val executionReport = DeleteFilesOperatorExecutionReportUpdater(task, context)
-    val regex = task.data.filesRegex.trim.r
-    val resourceManager = pluginContext.resources
-    val filesToDelete = resourceManager.listRecursive
-      .filter(f => regex.matches(f))
+    val filesToDelete = task.data.getFilesToDelete()
     for(file <- filesToDelete) {
-      resourceManager.delete(file)
+      pluginContext.resources.delete(file)
       executionReport.addFile(file)
       executionReport.addSampleEntity(EntitySample(file))
       executionReport.increaseEntityCounter()

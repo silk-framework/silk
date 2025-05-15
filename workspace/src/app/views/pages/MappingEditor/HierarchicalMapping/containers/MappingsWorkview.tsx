@@ -22,8 +22,10 @@ import {
 import EventEmitter from "../utils/EventEmitter";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IViewActions } from "../../../../plugins/PluginRegistry";
+import { SuggestionNGProps } from "../../../../plugins/plugin.types";
 import { ParentStructure } from "../components/ParentStructure";
 import RuleTitle from "../elements/RuleTitle";
+import { MAPPING_ROOT_RULE_ID } from "../HierarchicalMapping";
 
 interface MappingsWorkviewProps {
     onRuleIdChange: (param: any) => any;
@@ -287,7 +289,7 @@ const MappingsWorkview = ({
 
     React.useEffect(() => {
         if (viewActions.addLocalBreadcrumbs && ruleData && loading === false) {
-            const breadcrumbs = (ruleData.breadcrumbs ?? []).filter((b) => b.id !== "root");
+            const breadcrumbs = (ruleData.breadcrumbs ?? []).filter((b) => b.id !== MAPPING_ROOT_RULE_ID);
             const localBreadcrumbs = breadcrumbs.map((breadcrumb, idx) => {
                 return {
                     text: <ParentStructure parent={breadcrumb} />,
@@ -316,7 +318,7 @@ const MappingsWorkview = ({
     // !createRuleForm && showSuggestions &&_.has(ruleData, 'rules.typeRules') &&
     const listSuggestions = !createRuleForm && showSuggestions && _.has(ruleData, "rules.typeRules") && (
         <SuggestionsListContainer
-            ruleId={_.get(ruleData, "id", "root")}
+            ruleId={_.get(ruleData, "id", MAPPING_ROOT_RULE_ID)}
             onClose={handleCloseSuggestions}
             targetClassUris={types}
             onAskDiscardChanges={onAskDiscardChanges}
@@ -327,7 +329,7 @@ const MappingsWorkview = ({
     const listMappings =
         !createRuleForm && !listSuggestions ? (
             <MappingsList
-                currentRuleId={currentRuleId ?? "root"}
+                currentRuleId={currentRuleId ?? MAPPING_ROOT_RULE_ID}
                 rules={_.get(rules, "propertyRules", [])}
                 parentRuleId={id}
                 handleCopy={handleCopy}

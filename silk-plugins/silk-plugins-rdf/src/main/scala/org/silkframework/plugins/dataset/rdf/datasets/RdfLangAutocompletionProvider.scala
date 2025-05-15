@@ -7,6 +7,7 @@ import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceReadTrait
 
 import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.collection.immutable.ArraySeq
 
 
 /**
@@ -17,7 +18,7 @@ case class RdfLangAutocompletionProvider() extends PluginParameterAutoCompletion
   override def autoComplete(searchQuery: String, dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
-    val multiSearchWords = extractSearchTerms(searchQuery)
+    val multiSearchWords = ArraySeq.unsafeWrapArray(extractSearchTerms(searchQuery))
     supportedLanguages
       .filter(_.matches(multiSearchWords))
       .map(_.toResult)

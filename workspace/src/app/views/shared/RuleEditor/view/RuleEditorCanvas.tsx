@@ -436,6 +436,9 @@ export const RuleEditorCanvas = () => {
                 cloneSelection={() => {
                     cloneNodes(nodeIds);
                 }}
+                copySelection={() => {
+                    modelContext.executeModelEditOperation.copyNodes(nodeIds);
+                }}
             />
         );
     };
@@ -451,6 +454,8 @@ export const RuleEditorCanvas = () => {
     // Track current selection
     const onSelectionChange = (elements: Elements | null) => {
         selectionState.elements = elements;
+        ruleEditorUiContext.onSelection(elements);
+        modelContext.updateSelectedElements(elements);
     };
 
     // Triggered after the react-flow instance has been loaded

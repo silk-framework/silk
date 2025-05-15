@@ -72,8 +72,8 @@ export function SearchBar({
     }, [onEnterRefreshSearch, onEnter]);
 
     return (
-        <Toolbar>
-            <ToolbarSection canGrow>
+        <Toolbar className="diapp-searchbar">
+            <ToolbarSection canGrow canShrink>
                 {modalElement}
                 {iconButton}
                 <SearchInput

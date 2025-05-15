@@ -24,6 +24,7 @@ import org.silkframework.util.Identifier
 
 import scala.util.control.NonFatal
 import scala.xml.Node
+import scala.collection.immutable.ArraySeq
 
 /**
   * A TransformInput applies a transform to input values.
@@ -49,7 +50,7 @@ case class TransformInput(id: Identifier = Operator.generateId, transformer: Tra
 
     // Evaluate transform
     try {
-      Value(transformer(inputValues), errors)
+      Value(transformer(ArraySeq.unsafeWrapArray(inputValues)), errors)
     } catch {
       case ex: ExecutionException if ex.abortExecution =>
         throw ex

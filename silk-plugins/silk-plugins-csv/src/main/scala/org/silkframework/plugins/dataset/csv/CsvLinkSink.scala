@@ -21,7 +21,7 @@ class CsvLinkSink(file: WritableResource, settings: CsvSettings) extends CsvSink
   }
 
   override def writeLink(link: Link, predicateUri: String, inversePredicateUri: Option[String])
-                        (implicit userContext: UserContext, prefixes: Prefixes){
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     write(Seq(link.source, link.target))
   }
 

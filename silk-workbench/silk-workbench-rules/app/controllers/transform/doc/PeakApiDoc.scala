@@ -20,7 +20,7 @@ object PeakApiDoc {
               "Ralf"
             ],
             [
-              "M\u00fcller",
+              "Müller",
               "Schmidt"
             ]
           ],

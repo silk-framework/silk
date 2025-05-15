@@ -1,6 +1,6 @@
 package org.silkframework.runtime.templating
 
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParamValue, PluginContext, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.workspace.WorkspaceReadTrait
 
 class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletionProvider {
@@ -12,6 +12,8 @@ class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletion
                            (implicit context: PluginContext): Iterable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
     TemplateEngines.availableEngines
+      .filter(_ != DisabledTemplateEngine.id) // Disabled template engine should not be suggested to the user
+      .filter(_ != UnresolvedTemplateEngine.id) // Unresolved template engine should not be suggested to the user
       .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))
       .map(r => AutoCompletionResult(r, None))
   }
@@ -26,6 +28,6 @@ class TemplateEngineAutocompletionProvider extends PluginParameterAutoCompletion
                             dependOnParameterValues: Seq[ParamValue],
                             workspace: WorkspaceReadTrait)
                            (implicit context: PluginContext): Option[String] = {
-    None
+    PluginRegistry.pluginByIdOpt[TemplateEngine](value).map(_.label)
   }
 }

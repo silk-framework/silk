@@ -146,7 +146,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
    * Writes the updated project configuration.
    */
-  def config_=(project : ProjectConfig)(implicit userContext: UserContext) {
+  def config_=(project : ProjectConfig)(implicit userContext: UserContext): Unit = {
     provider.putProject(project)
     logger.info(s"Project meta data updated for ${project.labelAndId()}.")
     cachedConfig = project
@@ -158,7 +158,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     *
     * @param workspacePrefixes The prefixes that should be added to the project config.
     */
-  def setWorkspacePrefixes(workspacePrefixes: Prefixes) {
+  def setWorkspacePrefixes(workspacePrefixes: Prefixes): Unit = {
     cachedConfig = cachedConfig.copy(projectPrefixes = cachedConfig.projectPrefixes, workspacePrefixes = workspacePrefixes)
   }
 
@@ -391,4 +391,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   override def tags()(implicit userContext: UserContext): Set[Tag] = {
     config.metaData.tags.map(uri => tagManager.getTag(uri))
   }
+
+  override def toString: String = s"Project ${config.labelAndId(config.prefixes)}"
 }

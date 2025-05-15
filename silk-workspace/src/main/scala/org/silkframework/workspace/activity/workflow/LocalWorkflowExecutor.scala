@@ -4,9 +4,8 @@ import io.micrometer.core.instrument.Timer
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
-import org.silkframework.execution.{EntityHolder, ExecutorOutput}
+import org.silkframework.execution.{DatasetExecutor, EntityHolder, ExecutorOutput}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -18,7 +17,6 @@ import org.silkframework.workspace.activity.workflow.ReconfigureTasks.Reconfigur
 import org.silkframework.workspace.resources.CacheUpdaterHelper
 
 import java.util.logging.{Level, Logger}
-import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 /**
@@ -65,7 +63,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           registry.timer(
             s"$prefix.workflow.execution",
             "workflow", workflowTask.id.toString,
-            "status", "Failed"
+            "status", "Failed",
+            "project", workflowTask.project.id.toString
           )
         )
         throw ex
@@ -75,7 +74,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       registry.timer(
         s"$prefix.workflow.execution",
         "workflow", workflowTask.id.toString,
-        "status", "Successful"
+        "status", "Successful",
+        "project", workflowTask.project.id.toString
       )
     )
   }
@@ -208,7 +208,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
             registry.timer(
               s"$prefix.workflow.operator.execution",
               "operator", operator.nodeId,
-              "workflow", workflowTask.id.toString
+              "workflow", workflowTask.id.toString,
+              "project", workflowTask.project.id.toString
             )
           )
           result
@@ -240,11 +241,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), Some(input._2)), operatorTask) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), input._2.schemaOpt), operatorTask) { result =>
+          executeWorkflowOperatorInput(input._1, ExecutorOutput(Some(operatorTask), Some(input._2)), operatorTask) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -263,7 +264,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         executeOnInputs(useInputs.zip(ports))(process)
       case FlexibleNumberOfInputs(_, _, _) =>
         // FIXME: Throw error when input ports are not in range? This might break existing workflows.
-        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort)))(process)
+        executeOnInputs(inputs.map(input => (input, FlexibleSchemaPort())))(process)
     }
   }
 
@@ -303,11 +304,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         case Seq() =>
           processAll(Seq.empty)
         case Seq(input) =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort()))) { result =>
             processAll(Seq(result))
           }
         case input +: tail =>
-          executeWorkflowNode(input, ExecutorOutput(Some(task), None)) { result =>
+          executeWorkflowNode(input, ExecutorOutput(Some(task), Some(FlexibleSchemaPort()))) { result =>
             executeOnInputs(tail) { tailInputs =>
               processAll(result +: tailInputs)
             }
@@ -327,13 +328,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
     }
     // Read from the dataset
-    (output.task, output.requestedSchema) match {
-      case (Some(outputTask), Some(entitySchema)) =>
-        readFromDataset(datasetNode, entitySchema, outputTask) { result =>
-          process(Some(result))
-        }
-      case _ =>
-        process(None)
+    if(DatasetExecutor.canRead(task.data.plugin, output)) {
+      readFromDataset(datasetNode, output) { result =>
+        process(Some(result))
+      }
+    } else {
+      process(None)
     }
   }
 
@@ -351,7 +351,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         registry.timer(
           s"$prefix.workflow.dataset.execution",
           "workflow", workflowTask.id.toString,
-          "dataset", workflowDataset.nodeId
+          "dataset", workflowDataset.nodeId,
+          "project", workflowTask.project.id.toString
         )
       )
 //TODO this will exhaust the entity table iterator
@@ -400,12 +401,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   def readFromDataset[T](workflowDataset: WorkflowDependencyNode,
-                         entitySchema: EntitySchema,
-                         outputTask: Task[_ <: TaskSpec])
+                         output: ExecutorOutput)
                         (process: LocalEntities => T)
                         (implicit workflowRunContext: WorkflowRunContext): T = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceDataSources)
-    executeAndClose("Reading", workflowDataset.nodeId, resolvedDataset, Seq.empty, ExecutorOutput(Some(outputTask), Some(entitySchema))) {
+    executeAndClose("Reading", workflowDataset.nodeId, resolvedDataset, Seq.empty, output) {
       case Some(entityTable) =>
         process(entityTable)
       case None =>
@@ -480,6 +480,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                                  outputTask: Task[_ <: TaskSpec])
                                                 (process: Option[EntityHolder] => T)
                                                 (implicit workflowRunContext: WorkflowRunContext): T = {
-    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), Some(outputTask.configSchema)))(process)
+    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), Some(outputTask.configPort)))(process)
   }
 }

@@ -1,3 +1,4 @@
 ->         /workspace                   workspace.Routes
 ->         /core                        core.Routes
+->         /api/core                    coreApi.Routes
 ->         /api/workspace               workspaceApi.Routes

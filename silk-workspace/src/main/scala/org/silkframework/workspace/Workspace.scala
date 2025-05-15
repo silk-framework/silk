@@ -216,7 +216,7 @@ class Workspace(val provider: WorkspaceProvider,
                     file: File,
                     marshaller: ProjectMarshallingTrait,
                     overwrite: Boolean = false)
-                   (implicit userContext: UserContext) {
+                   (implicit userContext: UserContext): Unit = {
     loadUserProjects()
     synchronized {
       findProject(name) match {
@@ -247,6 +247,10 @@ class Workspace(val provider: WorkspaceProvider,
     for(workspaceActivity <- activities) {
       workspaceActivity.control.cancel()
     }
+    for(workspaceActivity <- activities) {
+      Try(workspaceActivity.control.waitUntilFinished())
+    }
+
     // Refresh workspace provider
     provider.refresh(repository)
 

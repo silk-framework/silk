@@ -143,7 +143,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   private def validateAndGetReplaceableDatasetsOfCurrentWorkflow(): AllReplaceableDatasets = {
     val datasetNodeMap = datasets.map(d => d.nodeId -> d.task.toString).toMap
     val workflowDatasetOutputs = operators.flatMap(_.outputs.flatMap(datasetNodeMap.get)).distinct.toSet
-    val workflowDatasetInputs = operators.flatMap(_.inputs.flatten.flatMap(datasetNodeMap.get)).distinct.toSet
+    val workflowDatasetInputs = nodes.flatMap(_.allInputs.flatMap(datasetNodeMap.get)).distinct.toSet
     val replaceableInputUsedAsOutput = workflowDatasetOutputs.intersect(replaceableInputs.taskIds.toSet)
     if (replaceableInputUsedAsOutput.nonEmpty) {
       throw new IllegalArgumentException("Datasets marked as replaceable input must not be used as output dataset! Affected dataset: " + replaceableInputUsedAsOutput.mkString(", "))
@@ -248,12 +248,12 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     for (reConfiguredDataset <- datasets.filter(_.configInputs.nonEmpty)) {
       configInputs.put(reConfiguredDataset.nodeId, reConfiguredDataset.configInputs.head)
     }
-    val operatorsWithDataOutput: Set[Identifier] = operators
+    val operatorsWithDataOutput: Set[Identifier] = nodes
       .map(op => op.task).distinct
-      .filter(taskId => project.anyTaskOption(taskId).map(_.outputPort.isDefined).getOrElse(false))
+      .filter(taskId => project.anyTaskOption(taskId).exists(_.outputPort.isDefined))
       .toSet
     // Filter out datasets that have no real data input
-    val datasetNodesWithRealInputs = operators.flatMap(op => {
+    val datasetNodesWithRealInputs = nodes.flatMap(op => {
       if(!operatorsWithDataOutput.contains(op.task)) {
         // The operator node that goes into the dataset must have real data output
         Seq.empty

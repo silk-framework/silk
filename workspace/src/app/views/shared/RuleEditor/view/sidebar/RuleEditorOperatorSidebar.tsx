@@ -204,7 +204,7 @@ export const RuleEditorOperatorSidebar = () => {
                     tabName: configs.map((c) => c.label).join(", "),
                 }),
                 ex,
-                RULE_EDITOR_NOTIFICATION_INSTANCE
+                { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
             );
         } finally {
             setPreConfiguredOperatorListLoading(false);

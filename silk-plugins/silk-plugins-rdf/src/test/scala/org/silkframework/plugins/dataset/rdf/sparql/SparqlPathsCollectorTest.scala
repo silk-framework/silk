@@ -129,13 +129,13 @@ object SparqlPathsCollectorBenchmark {
     ) :: Nil
   }
 
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     for(test <- tests) test.execute()
   }
 
   private case class Test(name: String, uri: String, restriction: String) {
 
-    def execute() {
+    def execute(): Unit = {
       logger.info("Executing " + name + " test")
 
       val endpoint = RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))

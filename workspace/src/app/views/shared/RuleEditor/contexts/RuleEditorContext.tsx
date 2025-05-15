@@ -9,8 +9,8 @@ import {
     RuleEditorValidationNode,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../../typings";
+import { StickyNote } from "@eccenca/gui-elements";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -41,7 +41,7 @@ export interface RuleEditorContextProps {
     /** Save the rule. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes?: IStickyNote[]
+        stickyNotes?: StickyNote[]
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
@@ -62,7 +62,7 @@ export interface RuleEditorContextProps {
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */
-    stickyNotes: IStickyNote[];
+    stickyNotes: StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */

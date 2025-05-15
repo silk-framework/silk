@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.config.{Tag, Task, TaskSpec}
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
@@ -27,7 +27,7 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
 
   private val log = Logger.getLogger(getClass.getName)
 
-  override def sparqlEndpoint: Option[SparqlEndpoint] = primaryWorkspace.sparqlEndpoint.orElse(secondaryWorkspace.sparqlEndpoint)
+  override def sparqlEndpoint: Option[SparqlEndpoint with GraphStoreTrait] = primaryWorkspace.sparqlEndpoint.orElse(secondaryWorkspace.sparqlEndpoint)
 
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.

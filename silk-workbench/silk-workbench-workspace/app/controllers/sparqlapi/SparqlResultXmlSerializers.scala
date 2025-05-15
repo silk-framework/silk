@@ -108,6 +108,7 @@ object SparqlResultXmlSerializers extends XmlFormat[SparqlResults] {
       case SparqlXmlVariableBinding("literal", label, datatype, _) if datatype.nonEmpty => <literal datatype={datatype}>{label}</literal>
       case SparqlXmlVariableBinding("literal", label, _, lang) if lang.nonEmpty => <literal xml:lang={lang}>{label}</literal>
       case SparqlXmlVariableBinding("literal", label, _, _) => <literal>{label}</literal>
+      case _ => throw new IllegalArgumentException("Unknown variable binding type: " + value)
     }
 
     def fromRdfNode(node: RdfNode): SparqlXmlVariableBinding ={
@@ -126,6 +127,7 @@ object SparqlResultXmlSerializers extends XmlFormat[SparqlResults] {
       case SparqlXmlVariableBinding(typ: String, value: String, _: String, _) if typ == "literal" => PlainLiteral(value)
       case SparqlXmlVariableBinding(typ: String, value: String, _: String, _) if typ == "bnode" => BlankNode(value)
       case SparqlXmlVariableBinding(typ: String, value: String, _: String, _) if typ == "uri" => Resource(value)
+      case _ => throw new IllegalArgumentException("Unknown variable binding: " + b)
     }
   }
 }

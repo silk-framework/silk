@@ -16,7 +16,7 @@ import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { dependentValueIsSet, ParameterAutoCompletion } from "./ParameterAutoCompletion";
+import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
@@ -74,7 +74,7 @@ interface IProps {
         [key: string]: any;
     };
     // Values that the auto-completion of other parameters depends on
-    dependentValues: React.MutableRefObject<Record<string, any>>;
+    dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>>;
     parameterCallbacks: ExtendedParameterCallbacks;
 }
 
@@ -336,13 +336,16 @@ export const ParameterWidget = (props: IProps) => {
 /** Returns an array of parameter IDs of missing dependent values. */
 export const missingDependentParameters = (
     propertyDetails: IArtefactItemProperty,
-    dependentValues: Record<string, any>,
+    dependentValues: Record<string, DependsOnParameterValueAny | undefined>,
     parameterPrefix: string,
     hasDefaultValue: (paramId: string) => boolean
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
     return dependsOnParameters.filter(
         (paramId) =>
-            !dependentValueIsSet(dependentValues[parameterPrefix + paramId], hasDefaultValue(parameterPrefix + paramId))
+            !dependentValueIsSet(
+                dependentValues[parameterPrefix + paramId]?.value,
+                hasDefaultValue(parameterPrefix + paramId)
+            )
     );
 };

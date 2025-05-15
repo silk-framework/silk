@@ -14,19 +14,21 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin, PluginType}
+import org.silkframework.runtime.plugin.annotations.{Action, Param, Plugin}
 import org.silkframework.runtime.plugin.types.EnumerationParameterType
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
 
-import java.lang.reflect.{Constructor, InvocationTargetException, ParameterizedType, Type}
+import java.lang.reflect.{Constructor, InvocationTargetException, Method, ParameterizedType, Type}
 import java.net.URLConnection
 import java.nio.charset.StandardCharsets
 import java.util.Base64
+import scala.collection.immutable.{ListMap, SeqMap, TreeMap}
 import scala.io.{Codec, Source}
 import scala.language.existentials
+import scala.collection.immutable.ArraySeq
 
 /**
   * Describes a plugin that is based on a Scala class.
@@ -50,7 +52,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               val parameters: Seq[ClassPluginParameter],
                                               constructor: Constructor[T],
                                               val pluginTypes: Seq[PluginTypeDescription],
-                                              val icon: Option[String]) extends PluginDescription[T] {
+                                              val icon: Option[String],
+                                              val actions: SeqMap[String, PluginAction]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -143,13 +146,14 @@ object ClassPluginDescription {
     new ClassPluginDescription(
       id = annotation.id,
       label = annotation.label,
-      categories = annotation.categories,
+      categories = ArraySeq.unsafeWrapArray(annotation.categories),
       description = annotation.description.stripMargin,
       documentation = docBuilder.toString,
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass),
       pluginTypes = pluginTypes,
-      icon = loadIcon(pluginClass, annotation.iconFile())
+      icon = loadIcon(pluginClass, annotation.iconFile()),
+      actions = getActions(pluginClass)
     )
   }
 
@@ -164,7 +168,8 @@ object ClassPluginDescription {
         parameters = getParameters(pluginClass),
         constructor = getConstructor(pluginClass),
         pluginTypes = getPluginTypes(pluginClass),
-        icon = None
+        icon = None,
+        actions = SeqMap.empty
       )
     } catch {
       case ex: InvalidPluginException =>
@@ -201,7 +206,7 @@ object ClassPluginDescription {
     }
     val source = Source.fromInputStream(inputStream)(Codec.UTF8)
     try {
-      source.getLines.mkString("\n")
+      source.getLines().mkString("\n")
     } finally {
       source.close()
     }
@@ -214,11 +219,11 @@ object ClassPluginDescription {
     }
   }
 
-  private def getParameters[T](pluginClass: Class[T]): Array[ClassPluginParameter] = {
+  private def getParameters[T](pluginClass: Class[T]): Seq[ClassPluginParameter] = {
     val constructor = getConstructor(pluginClass)
-    val paramAnnotations = constructor.getParameterAnnotations.map(_.collect{ case p: Param => p })
-    val parameterNames = constructor.getParameters.map(_.getName)
-    val parameterTypes = constructor.getGenericParameterTypes
+    val paramAnnotations = ArraySeq.unsafeWrapArray(constructor.getParameterAnnotations.map(_.collect{ case p: Param => p }))
+    val parameterNames = ArraySeq.unsafeWrapArray(constructor.getParameters.map(_.getName))
+    val parameterTypes = ArraySeq.unsafeWrapArray(constructor.getGenericParameterTypes)
     val defaultValues = getDefaultValues(pluginClass, parameterNames.length)
 
     for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
@@ -241,6 +246,30 @@ object ClassPluginDescription {
 
       ClassPluginParameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion)
     }
+  }
+
+  private def getActions[T](pluginClass: Class[T]): ListMap[String, ClassPluginAction] = {
+    val actionsAnnotations = {
+      ArraySeq.unsafeWrapArray(pluginClass.getMethods)
+        .flatMap { method => method.getAnnotations.collect { case a: Action => a }.map(a => (method.getName, a)) }
+        .sortBy(_._2.index())
+    }
+
+    val actions = actionsAnnotations.map { case (name, action) =>
+      val method = pluginClass.getMethods.find(_.getAnnotations.contains(action)).get
+      val provideContext = method.getParameters match {
+        case Array() =>
+          false
+        case Array(param) if classOf[PluginContext].isAssignableFrom(param.getType) =>
+          true
+        case _ =>
+          throw new InvalidPluginException(s"Action method ${method.getName} in class ${pluginClass.getName} has an invalid signature. " +
+            s"Only methods with no parameters or a single PluginContext parameter are allowed.")
+      }
+      (name, ClassPluginAction(method, provideContext, action.label(), action.description(), loadIcon(pluginClass, action.iconFile())))
+    }
+
+    ListMap(actions: _*)
   }
 
   private def getPluginTypes(pluginClass: Class[_]): Seq[PluginTypeDescription] = {
@@ -300,7 +329,7 @@ object ClassPluginDescription {
     val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(pluginParam.autoCompletionProvider())
     val allowOnlyAutoCompletedValues = pluginParam.allowOnlyAutoCompletedValues()
     val autoCompleteValueWithLabels = pluginParam.autoCompleteValueWithLabels()
-    val autoCompletionDependsOnParameters = pluginParam.autoCompletionDependsOnParameters()
+    val autoCompletionDependsOnParameters = ArraySeq.unsafeWrapArray(pluginParam.autoCompletionDependsOnParameters())
     ParameterAutoCompletion(
       autoCompletionProvider = autoCompletionProvider,
       allowOnlyAutoCompletedValues = allowOnlyAutoCompletedValues,
@@ -313,8 +342,8 @@ object ClassPluginDescription {
     assert(enumClass.isEnum, "Trying to create enum plugin parameter auto completion provider with non-enum class: " + enumClass.getCanonicalName)
     lazy val enumValues: Seq[AutoCompletionResult] = {
       val method = enumClass.getDeclaredMethod("values")
-      val enumArray = method.invoke(null).asInstanceOf[Array[Enum[_]]]
-      enumArray.map {
+      val enumSeq = ArraySeq.unsafeWrapArray(method.invoke(null).asInstanceOf[Array[Enum[_]]])
+      enumSeq.map {
         case enumerationParameter: EnumerationParameterType => AutoCompletionResult(enumerationParameter.id, Some(enumerationParameter.displayName))
         case enumValue: Enum[_] => AutoCompletionResult(enumValue.name(), None)
       }
@@ -334,18 +363,41 @@ object ClassPluginDescription {
     }
   }
 
-  private def getDefaultValues[T](pluginClass: Class[T], count: Int): Array[Option[AnyRef]] = {
+  private def getDefaultValues[T](pluginClass: Class[T], count: Int): Seq[Option[AnyRef]] = {
     try {
       val clazz = Class.forName(pluginClass.getName + "$", true, pluginClass.getClassLoader)
       val module = clazz.getField("MODULE$").get(null)
       val methods = clazz.getMethods.map(method => (method.getName, method)).toMap
 
-      for (i <- Array.range(1, count + 1)) yield {
+      for (i <- 1 to count) yield {
         methods.get("$lessinit$greater$default$" + i).map(_.invoke(module))
       }
     }
     catch {
-      case _: ClassNotFoundException => Array.fill(count)(None)
+      case _: ClassNotFoundException => Seq.fill(count)(None)
+    }
+  }
+}
+
+case class ClassPluginAction(method: Method, provideContext: Boolean, label: String, description: String, icon: Option[String]) extends PluginAction {
+
+  override def apply(plugin: AnyRef)(implicit context: PluginContext): Option[String] = {
+    val result = {
+      try {
+        if (provideContext) {
+          method.invoke(plugin, context)
+        } else {
+          method.invoke(plugin)
+        }
+      } catch {
+        case ex: InvocationTargetException if ex.getCause != null =>
+          throw ex.getCause
+      }
+    }
+    result match {
+      case Some(value) => Some(value.toString)
+      case None | null => None
+      case _ => Some(result.toString)
     }
   }
 }

@@ -14,6 +14,7 @@ import play.api.libs.json.{JsArray, JsNumber, JsValue, Json}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 
 /**
   * Tests if transformations check the isAttribute/singleEntity flag.
@@ -83,6 +84,7 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
     */
   private def executeTransform(inputJson: JsValue, rule: RootMappingRule, expectFailure: Boolean): Unit = {
     implicit val prefixes: Prefixes = Prefixes.empty
+    implicit val variables: TemplateVariablesReader = GlobalTemplateVariables
     val resources = InMemoryResourceManager()
 
     // Input dataset

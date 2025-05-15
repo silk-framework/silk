@@ -17,6 +17,7 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -181,8 +182,8 @@ object SearchApiModel {
       matchesSearchTerm(lowerCaseSearchTerms, id, label, description, "project")
     }
 
-    protected def extractSearchTerms(term: String): Array[String] = {
-      TextSearchUtils.extractSearchTerms(term)
+    protected def extractSearchTerms(term: String): Seq[String] = {
+      ArraySeq.unsafeWrapArray(TextSearchUtils.extractSearchTerms(term))
     }
 
     protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String], searchIn: String*): Boolean = {

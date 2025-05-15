@@ -49,7 +49,7 @@ class CsvSource(file: Resource,
   val propertyList: IndexedSeq[String] = {
     if (properties.trim.nonEmpty) {
       // Parse the properties parameter and split it into valid properties
-      for(property <- CsvSourceHelper.parse(properties).toIndexedSeq) yield {
+      for(property <- CsvSourceHelper.parse(properties)) yield {
         // Encode properties that are not already absolute URIs or already a valid URL encoded string
         Try(new URI(property)) match {
           case Success(uri) if uri.isAbsolute || noPathSeparatorCharacter.findFirstIn(property).isEmpty =>
@@ -284,14 +284,14 @@ class CsvSource(file: Resource,
       }
     }
 
-    private def splitArrayValue[U](values: IndexedSeq[String]): IndexedSeq[Seq[String]] = {
+    private def splitArrayValue[U](values: Array[String]): IndexedSeq[Seq[String]] = {
       val entityValues = csvSettings.arraySeparator match {
         case None =>
           values.map(v => if (v != null) Seq(v) else Seq.empty[String])
         case Some(c) =>
           values.map(v => if (v != null) ArraySeq.unsafeWrapArray(v.split(c)) else Seq.empty[String])
       }
-      entityValues
+      ArraySeq.unsafeWrapArray(entityValues)
     }
   }
 
