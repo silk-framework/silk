@@ -8,6 +8,7 @@ import {
     OverviewItemLine,
     Spinner,
     SuggestField,
+    SuggestFieldProps,
     SuggestFieldItemRendererModifierProps,
     suggestFieldUtils,
 } from "@eccenca/gui-elements";
@@ -15,12 +16,10 @@ import {IPropertyAutocomplete} from "@ducks/common/typings";
 import {sharedOp} from "@ducks/shared";
 import {useTranslation} from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import {Intent} from "@blueprintjs/core";
+import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import {parseErrorCauseMsg} from "../../../ApplicationNotifications/NotificationsMenu";
 import {CLASSPREFIX as eccguiprefix} from "@eccenca/gui-elements/src/configuration/constants";
 import {RegisterForExternalChangesFn} from "./InputMapper";
-import {InputGroupProps as BlueprintInputGroupProps} from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
-import {HTMLInputProps as BlueprintHTMLInputProps} from "@blueprintjs/core/lib/esm/common/props";
 import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
 
 export interface ParameterAutoCompletionProps {
@@ -55,11 +54,9 @@ export interface ParameterAutoCompletionProps {
     /** Register for getting external updates for values. */
     registerForExternalChanges?: RegisterForExternalChangesFn;
     /**
-     * Props to spread to the underlying input field. This is BlueprintJs specific. To control this input, use
-     * `onChange` instead of `inputProps.onChange`. The properties name, id, intent and readonly should not be overwritten, because they
-     * are maintained by this component.
+     * Props to spread to the underlying input field. This is BlueprintJs specific.
      */
-    inputProps?: BlueprintInputGroupProps & BlueprintHTMLInputProps;
+    inputProps?: Omit<SuggestFieldProps<StringOrReifiedValue, IAutocompleteDefaultResponse>["inputProps"], "onChange" | "name" | "id" | "intent" | "readonly" >;
 }
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
