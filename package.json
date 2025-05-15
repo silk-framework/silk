@@ -1,4 +1,3 @@
-
 {
   "name": "silk",
   "description": "We use Yarn workspaces in order to use the gui-elements as dependency.",
@@ -8,11 +7,10 @@
     "workspace",
     "libs/gui-elements"
   ],
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
@@ -38,7 +36,7 @@
     "**/follow-redirects": "1.14.9",
     "**/browserslist": "4.22.1",
     "**/@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "**/@types/react": "^17.0.0",
+    "**/@types/react": "^17.0.85",
     "**/@types/codemirror": "^5.60.5"
   }
 }
