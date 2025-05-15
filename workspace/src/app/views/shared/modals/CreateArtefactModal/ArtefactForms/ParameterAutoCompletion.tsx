@@ -1,5 +1,5 @@
-import {DependsOnParameterValue, IAutocompleteDefaultResponse} from "@ducks/shared/typings";
-import React, {useEffect} from "react";
+import { DependsOnParameterValue, IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import React, { useEffect } from "react";
 import {
     Highlighter,
     OverflowText,
@@ -11,17 +11,17 @@ import {
     SuggestFieldItemRendererModifierProps,
     suggestFieldUtils,
 } from "@eccenca/gui-elements";
-import {IPropertyAutocomplete} from "@ducks/common/typings";
-import {sharedOp} from "@ducks/shared";
-import {useTranslation} from "react-i18next";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
+import { sharedOp } from "@ducks/shared";
+import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import {Intent} from "@blueprintjs/core";
-import {parseErrorCauseMsg} from "../../../ApplicationNotifications/NotificationsMenu";
-import {CLASSPREFIX as eccguiprefix} from "@eccenca/gui-elements/src/configuration/constants";
-import {RegisterForExternalChangesFn} from "./InputMapper";
-import {InputGroupProps as BlueprintInputGroupProps} from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
-import {HTMLInputProps as BlueprintHTMLInputProps} from "@blueprintjs/core/lib/esm/common/props";
-import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { Intent } from "@blueprintjs/core";
+import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
+import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
+import { RegisterForExternalChangesFn } from "./InputMapper";
+import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
+import { HTMLInputProps as BlueprintHTMLInputProps } from "@blueprintjs/core/lib/esm/common/props";
+import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -131,7 +131,7 @@ export const ParameterAutoCompletion = ({
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
             if (dependentValueIsSet(value?.value, defaultValue(parameterPrefix + paramId) != null)) {
-                return [{value: `${value!.value}`, isTemplate: value!.isTemplate}];
+                return [{ value: `${value!.value}`, isTemplate: value!.isTemplate }];
             } else {
                 return [];
             }

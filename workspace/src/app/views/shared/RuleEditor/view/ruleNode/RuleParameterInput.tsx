@@ -108,7 +108,10 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({value: dependentValue(paramId), isTemplate: false}),
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({
+            value: dependentValue(paramId),
+            isTemplate: false,
+        }),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,

@@ -36,7 +36,8 @@ import {
     RuleEditorNodeParameterValue,
     RuleModelChanges,
     RuleModelChangesFactory,
-    RuleModelChangeType, RuleNodeCopySerialization,
+    RuleModelChangeType,
+    RuleNodeCopySerialization,
     StickyNodePropType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
@@ -133,18 +134,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const clearTextSelection = React.useCallback(() => {
         if (document.getSelection) {
-            if (document.getSelection()?.empty) {  // Chrome
+            if (document.getSelection()?.empty) {
+                // Chrome
                 document.getSelection()!.empty();
-            } else if (document.getSelection()?.removeAllRanges) {  // Firefox
+            } else if (document.getSelection()?.removeAllRanges) {
+                // Firefox
                 document.getSelection()!.removeAllRanges();
             }
         }
-    }, [])
+    }, []);
 
     const updateSelectedElements = React.useCallback((newSelectedElements: Elements | null) => {
-        clearTextSelection()
-        _setSelectedElements(newSelectedElements)
-    }, [])
+        clearTextSelection();
+        _setSelectedElements(newSelectedElements);
+    }, []);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -1038,7 +1041,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
             changeElementsInternal((elements) => {
                 deselectNodes(elements);
-                selectNodes(stickyNoteNode);
+                selectNodes([stickyNoteNode]);
                 const updatedElements = [...elements, stickyNoteNode];
                 startChangeTransaction();
                 addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode), elements);
@@ -1310,19 +1313,19 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         const position = { x: node.position.x + 100, y: node.position.y + 100 };
                         const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
                         if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
-                        const newNode = createNodeInternal(
-                            op,
-                            position,
-                            node.parameters
-                        );
+                        const newNode = createNodeInternal(op, position, node.parameters);
                         if (newNode) {
-                            const existingInputHandleIds = new Set(utils.inputHandles(newNode).map(h => h.id))
-                            const missingInputHandleIds = node.inputHandleIds.filter(id => !existingInputHandleIds.has(id) && Number.isInteger(Number.parseInt(id)))
-                            if(missingInputHandleIds.length > 0) {
-                                const missingInputHandles = missingInputHandleIds.map(id => utils.createInputHandle(Number.parseInt(id)));
-                                newNode.data.handles?.push(...missingInputHandles)
+                            const existingInputHandleIds = new Set(utils.inputHandles(newNode).map((h) => h.id));
+                            const missingInputHandleIds = node.inputHandleIds.filter(
+                                (id) => !existingInputHandleIds.has(id) && Number.isInteger(Number.parseInt(id))
+                            );
+                            if (missingInputHandleIds.length > 0) {
+                                const missingInputHandles = missingInputHandleIds.map((id) =>
+                                    utils.createInputHandle(Number.parseInt(id))
+                                );
+                                newNode.data.handles?.push(...missingInputHandles);
                             }
-                            newNode.data.nodeDimensions = node.dimension
+                            newNode.data.nodeDimensions = node.dimension;
                             nodeIdMap.set(node.nodeId, newNode.id);
                             newNodes.push({
                                 ...newNode,
@@ -1356,7 +1359,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     resetSelectedElements();
                     setTimeout(() => {
                         unsetUserSelection();
-                        clearTextSelection()
+                        clearTextSelection();
                         setSelectedElements([...newNodes, ...newEdges]);
                     }, 100);
                     return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
@@ -1398,7 +1401,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         targetHandle: edge.targetHandle,
                         type: edge.type ?? "step",
                     });
-                    typeof edge.targetHandle === "string" && nodeId2InputHandleMap.get(edge.target)!.add(edge.targetHandle)
+                    typeof edge.targetHandle === "string" &&
+                        nodeId2InputHandleMap.get(edge.target)!.add(edge.targetHandle);
                 }
             }
         });
@@ -1413,7 +1417,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 position: node.position,
                 dimension: node.data.nodeDimensions,
                 parameters: Object.fromEntries(nodeParameters.get(node.id) ?? new Map()),
-                inputHandleIds: [...nodeId2InputHandleMap.get(node.id)!]
+                inputHandleIds: [...nodeId2InputHandleMap.get(node.id)!],
             };
         });
 
@@ -1482,7 +1486,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             resetSelectedElements();
             setTimeout(() => {
                 unsetUserSelection();
-                clearTextSelection()
+                clearTextSelection();
                 setSelectedElements([...newNodes, ...newEdges]);
             }, 100);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
@@ -1632,8 +1636,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * Adds highlighting for all matching nodes in the canvas and optionally removed existing highlighting.
      */
     type HighlightState = {
-        intent?: NodeContentProps<any, any>["intent"];
-        highlightColor?: NodeContentProps<any, any>["highlightColor"];
+        intent?: NodeContentProps<any>["intent"];
+        highlightColor?: NodeContentProps<any>["highlightColor"];
     };
     const highlightNodes = (nodeIds: string[], highlightState: HighlightState, removeExistingHighlighting: boolean) => {
         const currentHighlighting = (node: RuleEditorNode): HighlightState => {
