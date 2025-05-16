@@ -2,93 +2,115 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.util.Identifier
 
+import scala.collection.mutable
+
+
 /**
  * Utility object for building common workflow types.
  */
 object WorkflowBuilder {
 
   /**
-   * Creates a workflow that transforms an input to an output.
+   * Creates a new workflow builder.
    */
-  def transform(inputId: Identifier, taskId: Identifier, outputId: Identifier): Workflow = {
-    val inputOp =
-      WorkflowOperator(
-        inputs = Seq.empty,
-        task = inputId,
-        outputs = Seq(taskId),
-        errorOutputs = Seq.empty,
-        position = (0, 0),
-        nodeId = inputId,
-        outputPriority = None,
-        configInputs = Seq.empty,
-        dependencyInputs = Seq.empty
-      )
-
-    // Add workflow operator
-    val workflowOp =
-      WorkflowOperator(
-        inputs = Seq(Some(inputId)),
-        task = taskId,
-        outputs = Seq(outputId),
-        errorOutputs = Seq.empty,
-        position = (0, 0),
-        nodeId = taskId,
-        outputPriority = None,
-        configInputs = Seq.empty,
-        dependencyInputs = Seq.empty
-      )
-
-    // Add output operator
-    val outputOp =
-      WorkflowOperator(
-        inputs = Seq(Some(taskId)),
-        task = outputId,
-        outputs = Seq.empty,
-        errorOutputs = Seq.empty,
-        position = (0, 0),
-        nodeId = outputId,
-        outputPriority = None,
-        configInputs = Seq.empty,
-        dependencyInputs = Seq.empty
-      )
-
-    // Create the workflow
-    Workflow(WorkflowOperatorsParameter(Seq(inputOp, workflowOp, outputOp)))
+  def create(): WorkflowBuilder = {
+    new WorkflowBuilder()
   }
 
   /**
-   * Creates a workflow that takes an input and produces an output.
+   * Creates a workflow that transforms an input to an output.
    */
-  def inputOutput(inputId: Identifier, outputId: Identifier): Workflow = {
-    val inputOp =
-      WorkflowOperator(
-        inputs = Seq.empty,
-        task = inputId,
-        outputs = Seq(outputId),
-        errorOutputs = Seq.empty,
+  def transform(inputId: Identifier, taskId: Identifier, outputId: Identifier): Workflow = {
+    create().dataset(inputId).operator(taskId).dataset(outputId).build()
+  }
+}
+
+/**
+ * A builder for creating workflows.
+ */
+class WorkflowBuilder {
+
+  private var currentNode: Option[WorkflowNode] = None
+  private val datasets = mutable.Buffer[WorkflowDataset]()
+  private val operators = mutable.Buffer[WorkflowOperator]()
+  private var replaceableInputs: Seq[String] = Seq.empty
+  private var replaceableOutputs: Seq[String] = Seq.empty
+
+  /**
+   * Adds a new dataset and connects it to the previous node.
+   */
+  def dataset(id: Identifier): WorkflowBuilder = {
+    val newDataset =
+      WorkflowDataset(
+        inputs = Seq(currentNode.map(_.nodeId)),
+        task = id,
+        outputs = Seq.empty,
         position = (0, 0),
-        nodeId = inputId,
+        nodeId = id,
         outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )
+    connect(newDataset)
+    this
+  }
 
-    // Add workflow operator
-    val outputOp =
+  /**
+   * Adds a new operator and connects it to the previous node.
+   */
+  def operator(id: Identifier): WorkflowBuilder = {
+    val newOperator =
       WorkflowOperator(
-        inputs = Seq(Some(inputId)),
-        task = outputId,
+        inputs = Seq(currentNode.map(_.nodeId)),
+        task = id,
         outputs = Seq.empty,
         errorOutputs = Seq.empty,
         position = (0, 0),
-        nodeId = outputId,
+        nodeId = id,
         outputPriority = None,
         configInputs = Seq.empty,
         dependencyInputs = Seq.empty
       )
+    connect(newOperator)
+    this
+  }
 
-    // Create the workflow
-    Workflow(WorkflowOperatorsParameter(Seq(inputOp, outputOp)))
+  def replaceableInputs(ids: Seq[String]): WorkflowBuilder = {
+    replaceableInputs = ids
+    this
+  }
+
+  def replaceableOutputs(ids: Seq[String]): WorkflowBuilder = {
+    replaceableOutputs = ids
+    this
+  }
+
+  def build(): Workflow = {
+    addCurrentNode()
+    Workflow(
+      operators = WorkflowOperatorsParameter(operators.toSeq),
+      datasets = WorkflowDatasetsParameter(datasets.toSeq),
+      replaceableInputs = replaceableInputs,
+      replaceableOutputs = replaceableOutputs
+    )
+  }
+
+  private def connect(node: WorkflowNode): Unit = {
+    for(op <- currentNode) {
+      currentNode = Some(op.copyNode(outputs = op.outputs :+ node.nodeId))
+    }
+    addCurrentNode()
+    currentNode = Some(node)
+  }
+
+  private def addCurrentNode(): Unit = {
+    currentNode match {
+      case Some(node: WorkflowOperator) =>
+        operators.append(node)
+      case Some(node: WorkflowDataset) =>
+        datasets.append(node)
+      case None =>
+    }
   }
 
 }
