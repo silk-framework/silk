@@ -6,6 +6,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
 /**
@@ -24,12 +25,12 @@ object EmptySource extends DataSource {
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder= {
+                            (implicit context: PluginContext): EntityHolder= {
     GenericEntityTable(CloseableIterator.empty, entitySchema, underlyingTask)
   }
 

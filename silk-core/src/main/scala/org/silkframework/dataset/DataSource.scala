@@ -20,6 +20,7 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
 import scala.util.Random
@@ -72,7 +73,7 @@ trait DataSource {
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder
+              (implicit context: PluginContext): EntityHolder
 
   /**
    * Retrieves a list of entities from this source.
@@ -83,7 +84,7 @@ trait DataSource {
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                   (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder
+                   (implicit context: PluginContext): EntityHolder
 
   /**
    * Samples a fixed size set of entities from the whole dataset.
@@ -95,7 +96,7 @@ trait DataSource {
   def sampleEntities(entityDesc: EntitySchema,
                      size: Int,
                      filterOpt: Option[Entity => Boolean] = None)
-                    (implicit userContext: UserContext, prefixes: Prefixes, random: Random): Seq[Entity] = {
+                    (implicit context: PluginContext, random: Random): Seq[Entity] = {
     retrieve(entityDesc).entities.use { entities =>
       SampleUtil.sample(entities, size, filterOpt)
     }

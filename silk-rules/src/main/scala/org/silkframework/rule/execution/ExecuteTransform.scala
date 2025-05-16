@@ -9,8 +9,7 @@ import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.EmptyResourceManager
-import org.silkframework.runtime.templating.{TemplateVariables, TemplateVariablesReader}
-import org.silkframework.workspace.ProjectTrait
+import org.silkframework.runtime.templating.TemplateVariablesReader
 
 import scala.util.control.Breaks._
 import scala.util.control.NonFatal
@@ -54,7 +53,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     val errorEntitySink = errorOutput(userContext)
     val report = new TransformReportBuilder(task, context)
     report.setExecutionContext(TransformReportExecutionContext(entitySink))
-    val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext, templateVariables = templateVariables)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes, EmptyResourceManager(), userContext, templateVariables = templateVariables)
     val taskContext = TaskContext(Seq(inputTask(userContext)), pluginContext)
 
     // Clear outputs before writing
@@ -80,7 +79,10 @@ class ExecuteTransform(task: Task[TransformSpec],
                                 errorEntitySink: Option[EntitySink],
                                 reportBuilder: TransformReportBuilder,
                                 context: ActivityContext[TransformReport])
-                               (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+                               (implicit pluginContext: PluginContext): Unit = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
     val singleEntity = rule.transformRule.target.exists(_.isAttribute)
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get), singleEntity)
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))

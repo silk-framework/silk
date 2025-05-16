@@ -30,7 +30,7 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())(any(), any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
     when(dataSourceMock.underlyingTask).thenReturn(PlainTask("inputTaskDummy", DatasetSpec(InternalDataset())))
     val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(

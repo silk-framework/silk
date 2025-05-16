@@ -70,8 +70,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport])= {
+                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport])= {
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
+    implicit val prefixes: Prefixes = pluginContext.prefixes
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
       entities = ReportingIterator(table.entities),

@@ -1,11 +1,10 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 
 import java.util.logging.Logger
 
@@ -24,7 +23,7 @@ class EvaluateTransform(source: DataSource,
   @volatile
   private var cachedValues = Seq[DetailedEntity]()
 
-  def execute()(implicit userContext: UserContext, prefixes: Prefixes): Seq[DetailedEntity] = {
+  def execute()(implicit context: PluginContext): Seq[DetailedEntity] = {
     // Retrieve entities
     source.retrieve(entitySchema, Some(maxEntities)).entities.use { entities =>
       // Read all entities

@@ -11,7 +11,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.RdfDataset
@@ -99,6 +99,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       val transformSpec = task.data
       val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
       val inputTaskId = transformSpec.selection.inputId
+      implicit val context: PluginContext = PluginContext.fromProject(project)
 
       peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
   }
@@ -188,8 +189,9 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
   }
 
   private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
-                      (implicit userContext: UserContext): Result = {
+                      (implicit context: PluginContext): Result = {
     implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val user: UserContext = context.user
 
     val inputTask = project.anyTask(inputTaskId)
     val inputTaskLabel = inputTask.label()
@@ -228,8 +230,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
                                        limit: Int,
                                        maxTryEntities: Int,
                                        sparqlSelectTask: SparqlSelectCustomTask)
-                                      (implicit prefixes: Prefixes,
-                                       userContext: UserContext): Result = {
+                                      (implicit userContext: UserContext, prefixes: Prefixes): Result = {
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
     if (sparqlDataset == "") {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task '$inputTaskLabel' of type ${sparqlSelectTask.pluginSpec.label} " +
