@@ -49,7 +49,7 @@ object BinaryFileDataset {
   final val mimeType = "application/octet-stream"
 }
 
-class FileSource(file: WritableResource) extends DataSource {
+class FileSource(file: WritableResource) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
     Seq((FileEntitySchema.schema.typeUri, 1.0))
