@@ -15,7 +15,7 @@ import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
   id = BinaryFileDataset.id,
-  label = "Binary File",
+  label = "Binary file",
   description= "Reads and writes binary files.",
   documentationFile = "BinaryFileDataset.md"
 )
