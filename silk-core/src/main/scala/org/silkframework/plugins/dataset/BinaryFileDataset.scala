@@ -1,12 +1,17 @@
 package org.silkframework.plugins.dataset
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.execution.local.{LocalDatasetExecutor, LocalExecution}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.EmptyEntityTable
+import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
   id = BinaryFileDataset.id,
@@ -21,8 +26,7 @@ case class BinaryFileDataset(
   /**
    * Creates a new data source for reading entities from the data set.
    */
-  // TODO
-  override def source(implicit userContext: UserContext): DataSource = ???
+  override def source(implicit userContext: UserContext): DataSource = new FileSource(file)
 
   /**
    * Returns a link sink for writing entity links to the data set.
@@ -36,7 +40,6 @@ case class BinaryFileDataset(
    */
   override def entitySink(implicit userContext: UserContext): EntitySink = new FileSink(file)
 
-  //TODO
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(explicitSchema = true)
 }
 
@@ -46,33 +49,31 @@ object BinaryFileDataset {
   final val mimeType = "application/octet-stream"
 }
 
-class LocalBinaryDatasetExecutor extends LocalDatasetExecutor[BinaryFileDataset] {
+class FileSource(file: WritableResource) extends DataSource {
 
-  override def access(task: Task[DatasetSpec[BinaryFileDataset]], execution: LocalExecution): DatasetAccess = {
-    new BinaryFileDatasetAccess(task.data.plugin.file)
-  }
-}
-
-
-class BinaryFileDatasetAccess(file: WritableResource) extends DatasetAccess {
-
-  /**
-   * Creates a new data source for reading entities from the data set.
-   */
-  // TODO
-  override def source(implicit userContext: UserContext): DataSource = ???
-
-  /**
-   * Returns a link sink for writing entity links to the data set.
-   */
-  override def linkSink(implicit userContext: UserContext): LinkSink = {
-    throw new RuntimeException("Only file entities can be written to this dataset. Links are not supported")
+  override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
+    Seq((FileEntitySchema.schema.typeUri, 1.0))
   }
 
-  /**
-   * Returns an entity sink for writing entities to the data set.
-   */
-  override def entitySink(implicit userContext: UserContext): EntitySink = new FileSink(file)
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
+    FileEntitySchema.schema.typedPaths
+  }
+
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit pluginContext: PluginContext): EntityHolder = {
+    val fileEntity = FileEntity(file, FileType.Project, Some(BinaryFileDataset.mimeType))
+    FileEntitySchema.create(Iterable(fileEntity), underlyingTask)
+  }
+
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit pluginContext: PluginContext): EntityHolder = {
+    if(entities.isEmpty) {
+      EmptyEntityTable(underlyingTask)
+    } else {
+      val uriSet = entities.map(_.uri).toSet
+      retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri.toString))
+    }
+  }
+
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))
 }
 
 class FileSink(file: WritableResource) extends EntitySink {
