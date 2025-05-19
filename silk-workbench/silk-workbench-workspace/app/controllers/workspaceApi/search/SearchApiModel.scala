@@ -169,7 +169,7 @@ object SearchApiModel {
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
-      val searchTags = task.searchTags(pluginContext.prefixes)
+      val searchTags = task.searchTags(pluginContext)
       val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
       matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
     }
@@ -526,7 +526,7 @@ object SearchApiModel {
           PLUGIN_ID -> JsString(pd.id),
           PLUGIN_LABEL -> JsString(pd.label),
           TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
-          SEARCH_TAGS -> Json.toJson(task.searchTags(task.project.config.prefixes))
+          SEARCH_TAGS -> Json.toJson(task.searchTags(PluginContext.fromProject(task.project)))
         )
           ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
           ++ parameters

@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 
 /**
@@ -25,7 +26,7 @@ trait ResourceBasedDataset { this: Dataset =>
 
   override def isFileResourceBased: Boolean = true
 
-  override def searchTags(prefixes: Prefixes): Seq[String] = {
-    Seq(file.name)
+  override def searchTags(pluginContext: PluginContext): Seq[String] = {
+    Seq(file.relativePath(pluginContext.resources))
   }
 }
