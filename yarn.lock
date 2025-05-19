@@ -5549,14 +5549,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/carbon-components-react@7.55.2":
-  version "7.55.2"
-  resolved "https://registry.yarnpkg.com/@types/carbon-components-react/-/carbon-components-react-7.55.2.tgz#d5cab229cee78a25c58c3d0ab2e34e64b69116b0"
-  integrity sha512-4ikLLTykxeGYlvTRjnSbLNTLhlVaRyPhTnBlHFeRKMFHuGQB4N9qdG8xWMqaC+d+3ewSjQnOwYzzwJaLTLCfug==
-  dependencies:
-    "@types/react" "*"
-    flatpickr "4.6.9"
-
 "@types/cheerio@*":
   version "0.22.30"
   resolved "https://registry.npmjs.org/@types/cheerio/-/cheerio-0.22.30.tgz#6c1ded70d20d890337f0f5144be2c5e9ce0936e6"
@@ -5604,11 +5596,6 @@
   integrity sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==
   dependencies:
     "@types/node" "*"
-
-"@types/core-js@^2.5.3":
-  version "2.5.5"
-  resolved "https://registry.npmjs.org/@types/core-js/-/core-js-2.5.5.tgz#dc5a013ee0b23bd5ac126403854fadabb4f24f75"
-  integrity sha1-3FoBPuCyO9WsEmQDhU+tq7TyT3U=
 
 "@types/cross-spawn@^6.0.2":
   version "6.0.6"
@@ -6128,11 +6115,6 @@
   version "17.0.0"
   resolved "https://registry.npmjs.org/@types/node/-/node-17.0.0.tgz#62797cee3b8b497f6547503b2312254d4fe3c2bb"
   integrity sha1-Ynl87juLSX9lR1A7IxIlTU/jwrs=
-
-"@types/node@11.13.2":
-  version "11.13.2"
-  resolved "https://registry.npmjs.org/@types/node/-/node-11.13.2.tgz#dc85dde46aa8740bb4aed54b8104250f8f849503"
-  integrity sha1-3IXd5GqodAu0rtVLgQQlD4+ElQM=
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.1"
@@ -12897,11 +12879,6 @@ flatpickr@4.6.13:
   version "4.6.13"
   resolved "https://registry.yarnpkg.com/flatpickr/-/flatpickr-4.6.13.tgz#8a029548187fd6e0d670908471e43abe9ad18d94"
   integrity sha512-97PMG/aywoYpB4IvbvUJi0RQi8vearvU0oov1WW3k0WZPBMrTQVqekSX5CjSG/M4Q3i6A/0FKXC7RyAoAUUSPw==
-
-flatpickr@4.6.9:
-  version "4.6.9"
-  resolved "https://registry.yarnpkg.com/flatpickr/-/flatpickr-4.6.9.tgz#9a13383e8a6814bda5d232eae3fcdccb97dc1499"
-  integrity sha512-F0azNNi8foVWKSF+8X+ZJzz8r9sE1G4hl06RyceIaLvyltKvDl6vqk9Lm/6AUUCi5HWaIjiUbk7UpeE/fOXOpw==
 
 flatted@^3.1.0:
   version "3.2.4"
