@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset.DatasetCharacteristics.{SpecialPaths, SupportedPathExpressions}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -49,7 +49,7 @@ case class CsvDataset (
          value = "If set to true this will clear the specified file before executing a workflow that writes to it.",
          advanced = true)
   clearBeforeExecution: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
-                                         with CsvDatasetTrait with TextBulkResourceBasedDataset with WritableResourceDataset {
+                                         with CsvDatasetTrait with TextBulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
@@ -89,10 +89,6 @@ case class CsvDataset (
         "linesToSkip" -> ParameterStringValue(autoConfig.linesToSkip.getOrElse(linesToSkip).toString)
       )))
     }
-  }
-
-  override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
-    this.copy(file = writableResource)
   }
 
   def resolveCsvQuote: String = {
