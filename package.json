@@ -18,8 +18,8 @@
     "@babel/preset-env": "^7.10.4"
   },
   "resolutions": {
-    "**/react": "^16.13.1",
-    "**/react-dom": "^16.13.1",
+    "**/react": "^17.0.2",
+    "**/react-dom": "^17.0.2",
     "**/minimist": "1.2.8",
     "**/url-parse": "1.5.9",
     "**/cookiejar": "2.1.4",
