@@ -16,9 +16,11 @@ import org.silkframework.util.{Identifier, Uri}
 @Plugin(
   id = BinaryFileDataset.id,
   label = "Binary File",
-  description= "Reads and writes binary files.")
+  description= "Reads and writes binary files.",
+  documentationFile = "BinaryFileDataset.md"
+)
 case class BinaryFileDataset(
-    @Param("The plain text file. May also be a zip archive containing multiple text files.")
+    @Param("The file to read or write.")
     file: WritableResource) extends Dataset with ResourceBasedDataset {
 
   override def mimeType: Option[String] = Some(BinaryFileDataset.mimeType)
