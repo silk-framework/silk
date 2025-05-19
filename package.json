@@ -19,8 +19,7 @@
     "babel-jest": "^26.1.0",
     "cross-env": "^5.2.0",
     "del-cli": "^3.0.1",
-    "jest": "^26.1.0",
-    "prettier": "^2.0.5"
+    "jest": "^26.1.0"
   },
   "resolutions": {
     "**/react": "^16.13.1",
