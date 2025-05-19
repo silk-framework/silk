@@ -17,8 +17,6 @@
     "@babel/core": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
     "babel-jest": "^26.1.0",
-    "cross-env": "^5.2.0",
-    "del-cli": "^3.0.1",
     "jest": "^26.1.0"
   },
   "resolutions": {
