@@ -5850,10 +5850,10 @@
   resolved "https://registry.npmjs.org/@types/stack-utils/-/stack-utils-2.0.1.tgz#20f18294f797f2209b5f65c8e3b5c8e8261d127c"
   integrity sha1-IPGClPeX8iCbX2XI47XI6CYdEnw=
 
-"@types/store@^2.0.1":
-  version "2.0.2"
-  resolved "https://registry.npmjs.org/@types/store/-/store-2.0.2.tgz#6263d4f1aab225032ea55b17d94f3b725a21c943"
-  integrity sha1-YmPU8aqyJQMupVsX2U87clohyUM=
+"@types/store@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@types/store/-/store-2.0.5.tgz#451b8ce723b287c34525df79065b4cdd17b43abf"
+  integrity sha512-5NmTKe3GWdOaykzq7no+Ahf6mafJu0oLc9JNhJ3E26+0oFvd6GnksnZQpMXcH526mfG4xDYjFiKzyDL51PzeWQ==
 
 "@types/tapable@^1", "@types/tapable@^1.0.5":
   version "1.0.8"
@@ -20180,8 +20180,8 @@ statuses@2.0.1:
 
 store@^2.0.12:
   version "2.0.12"
-  resolved "https://registry.npmjs.org/store/-/store-2.0.12.tgz#8c534e2a0b831f72b75fc5f1119857c44ef5d593"
-  integrity sha1-jFNOKguDH3K3X8XxEZhXxE711ZM=
+  resolved "https://registry.yarnpkg.com/store/-/store-2.0.12.tgz#8c534e2a0b831f72b75fc5f1119857c44ef5d593"
+  integrity sha512-eO9xlzDpXLiMr9W1nQ3Nfp9EzZieIQc10zPPMP5jsVV7bLOziSFFBP0XoDXACEIFtdI+rIz0NwWVA/QVJ8zJtw==
 
 storybook@8.6.12, storybook@^8.6.12:
   version "8.6.12"
