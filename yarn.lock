@@ -22164,11 +22164,6 @@ web-namespaces@^2.0.0:
   resolved "https://registry.npmjs.org/web-namespaces/-/web-namespaces-2.0.1.tgz#1010ff7c650eccb2592cebeeaf9a1b253fd40692"
   integrity sha1-EBD/fGUOzLJZLOvur5obJT/UBpI=
 
-web-worker@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.npmjs.org/web-worker/-/web-worker-1.2.0.tgz#5d85a04a7fbc1e7db58f66595d7a3ac7c9c180da"
-  integrity sha1-XYWgSn+8Hn21j2ZZXXo6x8nBgNo=
-
 webidl-conversions@^5.0.0:
   version "5.0.0"
   resolved "https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-5.0.0.tgz#ae59c8a00b121543a2acc65c0434f57b0fc11aff"

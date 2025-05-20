@@ -247,7 +247,6 @@
         "ts-pnp": "1.1.6",
         "typescript": "5.5.3",
         "url-loader": "^4.1.1",
-        "web-worker": "^1.2.0",
         "webpack": "^4.46.0",
         "webpack-bundle-analyzer": "^4.5.0",
         "webpack-cli": "^3.3.12",
