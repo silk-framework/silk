@@ -5126,10 +5126,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/cheerio@*":
-  version "0.22.30"
-  resolved "https://registry.npmjs.org/@types/cheerio/-/cheerio-0.22.30.tgz#6c1ded70d20d890337f0f5144be2c5e9ce0936e6"
-  integrity sha1-bB3tcNINiQM38PUUS+LF6c4JNuY=
+"@types/cheerio@<1":
+  version "0.22.35"
+  resolved "https://registry.yarnpkg.com/@types/cheerio/-/cheerio-0.22.35.tgz#0d16dc1f24d426231c181b9c31847f673867595f"
+  integrity sha512-yD57BchKRvTV+JD53UZ6PD8KWY5g5rvvMLRnZR3EQBCZXiDT/HR+pKpMzFGlWNhFrXlo7VPZXtKvIEwZkAWOIA==
   dependencies:
     "@types/node" "*"
 
@@ -5403,13 +5403,13 @@
   resolved "https://registry.yarnpkg.com/@types/doctrine/-/doctrine-0.0.9.tgz#d86a5f452a15e3e3113b99e39616a9baa0f9863f"
   integrity sha512-eOIHzCUSH7SMfonMG1LsC2f8vxBFtho6NGBznK41R84YzPuvSBzrhEps33IsQiOW9+VL6NQ9DbjQJznk/S4uRA==
 
-"@types/enzyme@^3.9.1":
-  version "3.10.10"
-  resolved "https://registry.npmjs.org/@types/enzyme/-/enzyme-3.10.10.tgz#3a44cc66571432ab9e1773a831af3742beb39275"
-  integrity sha1-OkTMZlcUMqueF3OoMa83Qr6zknU=
+"@types/enzyme@^3.10.19":
+  version "3.10.19"
+  resolved "https://registry.yarnpkg.com/@types/enzyme/-/enzyme-3.10.19.tgz#a4ae751c13e0428171d53cdc0d3d9f9aca7f7689"
+  integrity sha512-kIfCo6/DdpgCHgmrLgPTugjzbZ46BUK8S2IP0kYo8+62LD2l1k8mSVsc+zQYNTdjDRoh2E9Spxu6F1NnEiW38Q==
   dependencies:
-    "@types/cheerio" "*"
-    "@types/react" "*"
+    "@types/cheerio" "<1"
+    "@types/react" "^16"
 
 "@types/eslint-scope@^3.7.7":
   version "3.7.7"
@@ -5770,7 +5770,7 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*", "@types/react@^17.0.85":
+"@types/react@*", "@types/react@^16", "@types/react@^17.0.85":
   version "17.0.85"
   resolved "https://registry.yarnpkg.com/@types/react/-/react-17.0.85.tgz#1f1abf89083e731d82469a3a59ec57ea93cc476b"
   integrity sha512-5oBDUsRDsrYq4DdyHaL99gE1AJCfuDhyxqF6/55fvvOIRkp1PpKuwJ+aMiGJR+GJt7YqMNclPROTHF20vY2cXA==
@@ -10156,10 +10156,10 @@ enzyme-shallow-equal@^1.0.1:
     has "^1.0.3"
     object-is "^1.1.2"
 
-enzyme@^3.9.0:
+enzyme@^3.11.0:
   version "3.11.0"
-  resolved "https://registry.npmjs.org/enzyme/-/enzyme-3.11.0.tgz#71d680c580fe9349f6f5ac6c775bc3e6b7a79c28"
-  integrity sha1-cdaAxYD+k0n29axsd1vD5rennCg=
+  resolved "https://registry.yarnpkg.com/enzyme/-/enzyme-3.11.0.tgz#71d680c580fe9349f6f5ac6c775bc3e6b7a79c28"
+  integrity sha512-Dw8/Gs4vRjxY6/6i9wU0V+utmQO9kvh9XLnz3LIudviOnVYDEe2ec+0k+NQoMamn1VrjKgCUOWj5jG/5M5M0Qw==
   dependencies:
     array.prototype.flat "^1.2.3"
     cheerio "^1.0.0-rc.3"
