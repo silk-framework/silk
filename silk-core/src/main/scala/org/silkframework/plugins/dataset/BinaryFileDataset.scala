@@ -51,6 +51,9 @@ object BinaryFileDataset {
   final val mimeType = "application/octet-stream"
 }
 
+/**
+ * A data source for reading files.
+ */
 class FileSource(file: WritableResource) extends DataSource with PeakDataSource {
 
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = {
@@ -78,6 +81,13 @@ class FileSource(file: WritableResource) extends DataSource with PeakDataSource 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))
 }
 
+/**
+ * The [[BinaryFileDataset]] does not support writing files using the generic sink interface.
+ * Files can only be written using the [[org.silkframework.execution.local.LocalDatasetExecutor]].
+ * This sink will throw an exception if the user tries to write to it.
+ * It does support clearing the file, though.
+ *
+ */
 class FileSink(file: WritableResource) extends EntitySink {
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean)
