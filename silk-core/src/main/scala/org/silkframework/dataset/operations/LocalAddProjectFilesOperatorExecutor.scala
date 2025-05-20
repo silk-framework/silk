@@ -19,16 +19,17 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
                       (implicit pluginContext: PluginContext): Option[LocalEntities] = {
-
-    assert(inputs.size == 1, "Add project files operator expects exactly one input")
-    val input = inputs.head
-    input match {
-      case FileEntitySchema(files) =>
-        val executionReport = AddProjectFilesOperatorExecutionReportUpdater(task, context)
-        new FileWriter(task.data.getDirectory(pluginContext.resources), task.data, executionReport).write(files)
-      case _ =>
-        throw new IllegalArgumentException("Input must be of type FileEntitySchema. Got: " + input.entitySchema)
+    val executionReport = AddProjectFilesOperatorExecutionReportUpdater(task, context)
+    val fileWriter = new FileWriter(task.data.getDirectory(pluginContext.resources), task.data, executionReport)
+    for(input <- inputs) {
+      input match {
+        case FileEntitySchema(files) =>
+          fileWriter.write(files)
+        case _ =>
+          throw new IllegalArgumentException("Input must be of type FileEntitySchema. Got: " + input.entitySchema)
+      }
     }
+    fileWriter.close()
     None
   }
 
@@ -49,7 +50,9 @@ case class LocalAddProjectFilesOperatorExecutor() extends LocalExecutor[AddProje
           executionReport.increaseEntityCounter()
         }
       }
+    }
 
+    def close(): Unit = {
       if(warningFiles.nonEmpty) {
         executionReport.addWarning(s"The following file(s) already existed and were overwritten: ${warningFiles.mkString(", ")}")
       }

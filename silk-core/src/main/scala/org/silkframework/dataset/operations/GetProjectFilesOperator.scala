@@ -43,14 +43,14 @@ case class GetProjectFilesOperator(
    */
   def getFiles()(implicit pluginContext: PluginContext): Seq[String] = {
     val resourceManager = pluginContext.resources
-    val regexMatches = resourceManager.listRecursive.filter(f => regex.matches(f))
     if(fileName.nonEmpty && !resourceManager.getInPath(fileName).exists) {
       throw new ValidationException(s"File $fileName does not exist.")
     }
     if(fileName.isEmpty) {
-      regexMatches
+      resourceManager.listRecursive.filter(f => regex.matches(f))
     } else {
-      (fileName +: regexMatches).distinct
+      // File name and regex are mutually exclusive, so we can just return the file name.
+      Seq(fileName)
     }
   }
 

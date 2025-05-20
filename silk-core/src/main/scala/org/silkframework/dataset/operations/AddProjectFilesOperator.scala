@@ -31,7 +31,7 @@ case class AddProjectFilesOperator(
   /**
     * The input ports and their schemata.
     */
-  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq(FixedSchemaPort(FileEntitySchema.schema)))
+  override def inputPorts: InputPorts = FlexibleNumberOfInputs(FixedSchemaPort(FileEntitySchema.schema))
 
   /**
     * The output port and it's schema.

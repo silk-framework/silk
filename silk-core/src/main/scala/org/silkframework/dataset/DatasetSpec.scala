@@ -108,8 +108,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     }
   }
 
-  override def searchTags(prefixes: Prefixes): Seq[String] = {
-    plugin.searchTags(prefixes)
+  override def searchTags(pluginContext: PluginContext): Seq[String] = {
+    plugin.searchTags(pluginContext)
   }
 }
 
