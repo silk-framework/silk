@@ -14,18 +14,17 @@
   },
   "devDependencies": {},
   "resolutions": {
+    "**/cookiejar": "2.1.4",
+    "**/decode-uri-component": "0.2.2",
+    "**/express": "4.18.2",
+    "**/follow-redirects": "1.14.9",
+    "**/minimist": "1.2.8",
+    "**/moment": "2.29.4",
+    "**/nanoid": "3.3.4",
     "**/react": "^17.0.2",
     "**/react-dom": "^17.0.2",
-    "**/minimist": "1.2.8",
-    "**/url-parse": "1.5.9",
-    "**/cookiejar": "2.1.4",
-    "**/express": "4.18.2",
-    "**/decode-uri-component": "0.2.2",
-    "**/moment": "2.29.4",
     "**/semver-regex": "3.1.4",
-    "**/nanoid": "3.3.4",
-    "**/follow-redirects": "1.14.9",
     "**/@types/react": "^17.0.85",
-    "**/@types/codemirror": "^5.60.5"
+    "**/url-parse": "1.5.9"
   }
 }
