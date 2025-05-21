@@ -21,7 +21,8 @@
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
         "trace-resolution": "tsc --traceResolution",
-        "babel": "cross-env NODE_ENV=production babel --no-babelrc --presets=@babel/preset-env,@babel/preset-react"
+        "babel": "cross-env NODE_ENV=production babel --no-babelrc --presets=@babel/preset-env,@babel/preset-react",
+        "lint:js": "eslint --ignore-path .gitignore '{src,test}/**/*.{js,jsx,ts,tsx}'"
     },
     "dependencies": {
         "@eccenca/gui-elements": "^24.1.0-rc.5",
@@ -182,8 +183,8 @@
         "@types/react-router": "^5.1.20",
         "@types/react-router-dom": "^5.3.3",
         "@types/store": "^2.0.5",
-        "@typescript-eslint/eslint-plugin": "^4.33.0",
-        "@typescript-eslint/parser": "^4.33.0",
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^6.21.0",
         "@welldone-software/why-did-you-render": "^4.0.5",
         "@wojtekmaj/enzyme-adapter-react-17": "^0.8.0",
         "babel-eslint": "10.1.0",
