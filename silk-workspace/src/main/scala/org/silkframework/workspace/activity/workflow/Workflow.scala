@@ -5,7 +5,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginObjectParameterNoSchema}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginObjectParameterNoSchema}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -363,7 +363,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
 
   override def mainActivities: Seq[String] = Seq("ExecuteDefaultWorkflow")
 
-  override def searchTags(prefixes: Prefixes): Seq[String] = {
+  override def searchTags(pluginContext: PluginContext): Seq[String] = {
     var l = Vector.empty[String]
     if(replaceableInputs.nonEmpty) {
       l = l :+ "Replaceable input"
