@@ -1,6 +1,6 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { CodeEditor, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, CodeEditor, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";
@@ -21,6 +21,7 @@ import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/Text
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
+import { requestAutoCompleteTemplateString } from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -108,7 +109,10 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({value: dependentValue(paramId), isTemplate: false}),
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({
+            value: dependentValue(paramId),
+            isTemplate: false,
+        }),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
@@ -119,25 +123,47 @@ export const RuleParameterInput = ({
         ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")
     ) {
-        const sizeParameters = large ? undefined : { height: "100px" };
+        const sizeParameters = large ? undefined : { height: "100px", multiline: true };
         if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
             return (
-                <CodeEditor
+                <CodeAutocompleteField
                     mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
-                    outerDivAttributes={{
-                        ...preventEventsFromBubblingToReactFlow,
-                    }}
-                    {...inputAttributes}
+                    label={inputAttributes.name}
+                    initialValue={inputAttributes.defaultValue ?? ""}
+                    onChange={inputAttributes.onChange}
+                    fetchSuggestions={async (inputString, cursorPosition) =>
+                        (
+                            await requestAutoCompleteTemplateString(
+                                inputString,
+                                cursorPosition,
+                                ruleEditorContext.projectId
+                            )
+                        ).data
+                    }
+                    readOnly={inputAttributes.readOnly}
+                    autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
                     {...sizeParameters}
                 />
             );
         } else {
             return (
-                <CodeEditor
-                    outerDivAttributes={{
-                        ...preventEventsFromBubblingToReactFlow,
-                    }}
-                    {...inputAttributes}
+                <CodeAutocompleteField
+                    label={inputAttributes.name}
+                    initialValue={inputAttributes.defaultValue ?? ""}
+                    onChange={inputAttributes.onChange}
+                    fetchSuggestions={async (inputString, cursorPosition) =>
+                        (
+                            await requestAutoCompleteTemplateString(
+                                inputString,
+                                cursorPosition,
+                                ruleEditorContext.projectId
+                            )
+                        ).data
+                    }
+                    readOnly={inputAttributes.readOnly}
+                    autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
                     {...sizeParameters}
                 />
             );
