@@ -1193,7 +1193,7 @@ export function CreateArtefactModal() {
                 registerModalError: registerError,
             }}
         >
-            {createDialog}
+            {isOpen ? createDialog : null}
         </CreateArtefactModalContext.Provider>
     );
 }
