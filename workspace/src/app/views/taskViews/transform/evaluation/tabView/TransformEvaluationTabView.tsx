@@ -12,8 +12,8 @@ import {
     Spinner,
     Notification,
     Spacing,
+    DataTableRenderProps,
 } from "@eccenca/gui-elements";
-import { DataTableCustomRenderProps } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
@@ -122,7 +122,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                     </GridColumn>
                     <GridColumn className="diapp-linking-evaluation">
                         <TableContainer rows={rows} headers={headers}>
-                            {({ getTableProps }: DataTableCustomRenderProps) => (
+                            {({ getTableProps }: DataTableRenderProps<any, any>) => (
                                 <Table {...getTableProps()} size={"medium"}>
                                     <TableHead>
                                         <TableRow>

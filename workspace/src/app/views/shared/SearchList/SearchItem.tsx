@@ -7,6 +7,7 @@ import {
     Icon,
     IconButton,
     Markdown,
+    MarkdownProps,
     MenuDivider,
     MenuItem,
     OverflowText,
@@ -20,7 +21,6 @@ import {
     TagList,
     markdownUtils,
 } from "@eccenca/gui-elements";
-import { PluggableList } from "unified";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
@@ -162,7 +162,7 @@ export default function SearchItem({
                                             searchValue
                                                 ? ([
                                                       markdownUtils.highlightSearchWordsPluginFactory(searchValue),
-                                                  ] as PluggableList)
+                                                  ] as MarkdownProps["reHypePlugins"])
                                                 : undefined
                                         }
                                     >
@@ -175,7 +175,7 @@ export default function SearchItem({
                                             searchValue
                                                 ? ([
                                                       markdownUtils.highlightSearchWordsPluginFactory(searchValue),
-                                                  ] as PluggableList)
+                                                  ] as MarkdownProps["reHypePlugins"])
                                                 : undefined
                                         }
                                     >

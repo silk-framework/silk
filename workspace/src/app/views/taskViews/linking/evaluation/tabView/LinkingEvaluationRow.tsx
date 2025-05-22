@@ -1,5 +1,5 @@
 import React from "react";
-import { TreeNodeInfo } from "@blueprintjs/core";
+import { TreeNodeInfo } from "@eccenca/gui-elements";
 import { EvaluationLinkInputValue, HoveredValuedType, LinkingEvaluationResult, ReferenceLinkType } from "./typings";
 import { useTranslation } from "react-i18next";
 import { getParentNodes } from "./LinkingEvaluationViewUtils";
