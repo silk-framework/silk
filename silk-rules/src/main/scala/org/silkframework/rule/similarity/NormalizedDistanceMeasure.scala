@@ -1,7 +1,7 @@
 package org.silkframework.rule.similarity
 
 /**
-  * This distance measure is not normalized, i.e., all distances start at 0 (exact match) and increase the more different the values are.
+  * Normalized distance measures always return values between 0 and 1.
   */
 trait NormalizedDistanceMeasure extends DistanceMeasure {
 
@@ -14,5 +14,7 @@ trait NormalizedDistanceMeasure extends DistanceMeasure {
       }
     }
   }
+
+  override def isNormalized: Boolean = true
 
 }

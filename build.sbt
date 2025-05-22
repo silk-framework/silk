@@ -33,10 +33,10 @@ val buildReactExternally = {
 }
 
 // Additional compiler (javac, scalac) parameters
-val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 17) {
-  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt >= 21) {
+  (Seq("--release", "21", "-Xlint"), Seq("-release", "21"))
 } else {
-  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
+  (Seq("--release", "17", "-Xlint"), Seq("-release", "17"))
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
@@ -59,7 +59,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.13.12",
+  scalaVersion := "2.13.16",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -83,8 +83,8 @@ lazy val commonSettings = Seq(
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.14.2",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.14.2",
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.4",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.4",
 
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
@@ -104,10 +104,10 @@ lazy val commonSettings = Seq(
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val core = (project in file("silk-core"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.4.3", // Should always use the same version as the Play Framework dependency
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
@@ -118,23 +118,23 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
     libraryDependencies += "xalan" % "serializer" % "2.7.3",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.6"
   )
 
 lazy val rules = (project in file("silk-rules"))
   .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsJson % "test->compile")
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.3",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "5.0.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.0.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "5.3.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.3.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
   .dependsOn(rules, core % "test->test", pluginsJson % "test->compile;test->test", pluginsCsv % "test->compile")
   .aggregate(rules)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Workspace",
     libraryDependencies += ws
@@ -146,16 +146,16 @@ lazy val workspace = (project in file("silk-workspace"))
 
 lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .dependsOn(rules, workspace % "test->test;compile->compile", core % "test->test;compile->compile", pluginsCsv % "test->compile")
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.0.0" % "test",
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.3.0" % "test",
     libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
 )
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .dependsOn(core % "test->test;compile->compile")
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Plugins CSV",
     libraryDependencies += "com.univocity" % "univocity-parsers" % "2.9.1",
@@ -164,7 +164,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile", persistentCaching)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Plugins XML",
     libraryDependencies += "net.sf.saxon" % "Saxon-HE" % "11.5"
@@ -172,10 +172,10 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .dependsOn(core % "compile->compile;test->test", persistentCaching)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.14.2",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.15.4",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6"
   )
 
@@ -196,33 +196,33 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   .dependsOn(rules)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Plugins Asian"
   )
 
 lazy val serializationJson = (project in file("silk-plugins/silk-serialization-json"))
   .dependsOn(core, rules, workspace % "compile -> compile;test -> test")
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Serialization JSON",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.23"
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.2.27"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
   .dependsOn(core % "compile -> compile;test -> test")
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Persistent caching",
-    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.9.0"
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.9.1"
   )
 
 // Aggregate all plugins
 lazy val plugins = (project in file("silk-plugins"))
   .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
   .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Plugins"
   )
@@ -250,7 +250,7 @@ val yarnInstall = taskKey[Unit]("Runs yarn install.")
 val generateLanguageFiles = taskKey[Unit]("Generate i18n language files.")
 
 lazy val reactUI = (project in file("workspace"))
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Workspace React UI",
     //////////////////////////////////////////////////////////////////////////////
@@ -352,20 +352,20 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, pluginsXml % "test->compile", pluginsRdf % "test->compile", reactUI)
   .aggregate(workspace, reactUI)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "6.0.1" % "test",
-    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.12.3"
+    libraryDependencies += "io.micrometer" % "micrometer-registry-prometheus" % "1.14.6"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
   .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
   .aggregate(workbenchCore)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Workbench Workspace",
     libraryDependencies += ws % "test"
@@ -375,7 +375,7 @@ lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"
   .enablePlugins(PlayScala)
   .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
   .aggregate(workbenchWorkspace)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Workbench Rules"
   )
@@ -384,7 +384,7 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
   .enablePlugins(PlayScala)
   .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, serializationJson)
   .aggregate(workbenchWorkspace)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Workbench Workflow"
   )
@@ -392,20 +392,20 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
 lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
   .enablePlugins(PlayScala)
   .dependsOn(workbenchCore)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.5" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
-    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.22",
-    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.0.78",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.17.14"
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.24",
+    libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.4",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.18.2"
   )
 
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
     .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
-    .settings(commonSettings: _*)
+    .settings(commonSettings *)
     .settings(
       name := "Silk Workbench",
       libraryDependencies += guice,
@@ -424,10 +424,10 @@ lazy val workbench = (project in file("silk-workbench"))
 lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
   .dependsOn(rules, workspace, plugins, core % "test->test")
   .aggregate(rules, workspace, plugins)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)
   .settings(
     name := "Silk SingleMachine",
-    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.5"
+    libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "2.0.17"
   )
 
 //lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
@@ -444,4 +444,4 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
 
 lazy val root = (project in file("."))
   .aggregate(core, plugins, singlemachine, workspace, workbench)
-  .settings(commonSettings: _*)
+  .settings(commonSettings *)

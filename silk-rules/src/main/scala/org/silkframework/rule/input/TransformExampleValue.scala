@@ -2,6 +2,7 @@ package org.silkframework.rule.input
 
 import org.silkframework.rule.OperatorExampleValue
 import org.silkframework.rule.annotations.TransformExample
+import scala.collection.immutable.ArraySeq
 
 case class TransformExampleValue(description: Option[String],
                                  parameters: Map[String, String],
@@ -37,7 +38,7 @@ case class TransformExampleValue(description: Option[String],
 object TransformExampleValue {
 
   def retrieve(transformer: Class[_]): Seq[TransformExampleValue] = {
-    val transformExamples = transformer.getAnnotationsByType(classOf[TransformExample])
+    val transformExamples = ArraySeq.unsafeWrapArray(transformer.getAnnotationsByType(classOf[TransformExample]))
     for(example <- transformExamples) yield {
       TransformExampleValue(
         description = Option(example.description()).filter(_.nonEmpty),

@@ -217,10 +217,10 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
   private def ruleSchemaById(task: ProjectTask[TransformSpec], ruleId: String)
                             (implicit pluginContext: PluginContext): TransformSpec.RuleSchemata = {
     val objectMappingId = task.data.objectMappingIdOfRule(ruleId).getOrElse(ruleId)
-    task.data.ruleSchemataWithoutEmptyObjectRules
+    task.data.ruleSchemata
       .find(_.transformRule.id.toString == objectMappingId)
-      .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is either an empty object rule, i.e. it has at most a URI rule,  or is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
-        s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
+      .getOrElse(throw new NotFoundException(s"Mapping rule '$ruleId' is not part of task '${task.fullLabel}' in project '${task.project.fullLabel}'. " +
+        s"Available rules: ${task.data.ruleSchemata.map(_.transformRule.id).mkString(", ")}"))
       .withContext(task.taskContext)
   }
 

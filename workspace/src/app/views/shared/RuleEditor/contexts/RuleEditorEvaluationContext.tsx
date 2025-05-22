@@ -2,7 +2,7 @@ import React from "react";
 import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
-import {Intent} from "@blueprintjs/core";
+import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 
 export interface RuleEditorEvaluationContextProps {
     /** If evaluation is supported. */
@@ -44,7 +44,7 @@ export interface RuleEditorEvaluationContextProps {
     clearRuleValidationError: () => any;
 
     /** A notification from the evaluation that will be shown in the notification menu of the rule editor. */
-    notifications?: RuleEditorEvaluationNotification[]
+    notifications?: RuleEditorEvaluationNotification[];
 
     /** Called by the rule editor to give the function to trigger an evaluation to the evaluation component. */
     fetchTriggerEvaluationFunction: (triggerFunction: () => any) => any;
@@ -57,12 +57,14 @@ export interface RuleEditorEvaluationContextProps {
 
     /** Checks if the sub-tree at the given node type can be evaluated. */
     canBeEvaluated: (nodeType: string | undefined) => boolean;
+
+    ruleType?: "transform" | "linking";
 }
 
 export interface RuleEditorEvaluationNotification {
-    message: string
-    intent: Intent
-    onDiscard?: () => any
+    message: string;
+    intent: Intent;
+    onDiscard?: () => any;
 }
 
 const NOP = () => {};

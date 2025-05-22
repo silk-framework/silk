@@ -342,7 +342,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     val importExecution = withProjectImportQueue(_.get(projectImportId) match {
       case Some(projectImport) if projectImport.importExecution.isDefined =>
         projectImport.importExecution.get
-      case None =>
+      case _ =>
         throw new NotFoundException(s"No started project import found with ID $projectImportId!")
     })
     var responseObj = Json.obj(

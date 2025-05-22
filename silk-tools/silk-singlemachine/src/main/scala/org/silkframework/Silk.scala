@@ -21,6 +21,7 @@ import org.silkframework.rule.{LinkSpec, LinkingConfig, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
@@ -181,9 +182,11 @@ object Silk {
    * @param transform The transform specification.
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
-    val input = config.source(transform.selection.inputId).source
+    val inputTask =  config.source(transform.selection.inputId)
+    val inputSource = inputTask.source
     implicit val prefixes: Prefixes = config.prefixes
-    Activity(new ExecuteTransform(transform, (_) => input, (_) =>
+    implicit val variables: TemplateVariablesReader = GlobalTemplateVariables
+    Activity(new ExecuteTransform(transform, (_) => inputTask, (_) => inputSource, (_) =>
       new CombinedEntitySink(config.output.map(_.entitySink).toSeq))).startBlocking() // TODO: Allow to set error output
   }
 
@@ -218,7 +221,7 @@ object Silk {
   /**
    * Main method to allow Silk to be started from the command line.
    */
-  def main(args: Array[String]) {
+  def main(args: Array[String]): Unit = {
     configMgr()
     val logs = CollectLogs() {
       execute()

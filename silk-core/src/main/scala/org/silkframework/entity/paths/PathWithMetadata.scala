@@ -33,6 +33,10 @@ class PathWithMetadata (
     */
   def getOriginalName: String = metadata(PathWithMetadata.META_FIELD_ORIGIN_NAME).toString
 
+  override def withOperators(newOperators: List[PathOperator]): PathWithMetadata = {
+    new PathWithMetadata(newOperators, valueType, metadata)
+  }
+
 }
 
 object PathWithMetadata{
@@ -90,7 +94,7 @@ object PathWithMetadata{
       META_FIELD_ORIGIN_NAME -> metadata.getOrElse(META_FIELD_ORIGIN_NAME, path.trim),
       META_FIELD_VALUE_TYPE -> metadata.getOrElse(META_FIELD_VALUE_TYPE, PlainValueTypeSerialization.write(valueType)(vtwc))
     )
-    val oldM = metadata.filterKeys(k => ! requiredMetadataKeys.contains(k))
+    val oldM = metadata.view.filterKeys(k => ! requiredMetadataKeys.contains(k)).toMap
     apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, m ++ oldM)
   }
 
@@ -100,7 +104,7 @@ object PathWithMetadata{
       META_FIELD_ORIGIN_NAME -> metadata.getOrElse(META_FIELD_ORIGIN_NAME, path.normalizedSerialization),
       META_FIELD_VALUE_TYPE -> metadata.getOrElse(META_FIELD_VALUE_TYPE, PlainValueTypeSerialization.write(path.valueType)(vtwc))
     )
-    val oldM = metadata.filterKeys(k => ! requiredMetadataKeys.contains(k))
+    val oldM = metadata.view.filterKeys(k => ! requiredMetadataKeys.contains(k)).toMap
     apply(path.operators, path.valueType, m ++ oldM)
   }
 

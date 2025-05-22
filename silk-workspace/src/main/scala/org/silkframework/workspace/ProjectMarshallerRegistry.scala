@@ -46,8 +46,8 @@ object ProjectMarshallerRegistry {
   }
 
   private def marshallingPluginsByFileHandler(): Map[String, ProjectMarshallingTrait] = {
-    marshallingPlugins.sortBy(_.isPreferred).flatMap { mp =>
-      mp.suffix.map(s => (s, mp))
+    marshallingPlugins.sortBy(_.isPreferred).map { mp =>
+      (mp.fileExtension, mp)
     }.toMap
   }
 

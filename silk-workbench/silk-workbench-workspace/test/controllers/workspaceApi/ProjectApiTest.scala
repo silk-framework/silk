@@ -78,15 +78,25 @@ class ProjectApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers
 
   it should "Update project prefixes" in {
     retrieveOrCreateProject(prefixProjectId)
-    val prefixes = fetchPrefixes
-    val prefixName = prefixes.get.head._1
+
+    // Add project prefix
+    val prefixName = "new"
+    val prefixUri = "http://uri"
+    val responseJsonPut1 = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").put(Json.toJson(prefixUri))).json
+    (responseJsonPut1 \\ prefixName).headOption.map(_.as[String]) mustBe Some(prefixUri)
+    retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) mustBe Some(prefixUri)
+
+    // Update project prefix
+    val newPrefixUri = "http://newUri"
+    val responseJsonPut2 = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").put(Json.toJson(newPrefixUri))).json
+    (responseJsonPut2 \\ prefixName).headOption.map(_.as[String]) mustBe Some(newPrefixUri)
+    retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) mustBe Some(newPrefixUri)
+
+    // Delete project prefix
     val responseJsonDelete = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").delete()).json
     (responseJsonDelete \\ prefixName).headOption must not be defined
     retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) must not be defined
-    val newPrefixUri = "http://newUri"
-    val responseJsonPut = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").put(Json.toJson(newPrefixUri))).json
-    (responseJsonPut \\ prefixName).headOption.map(_.as[String]) mustBe Some(newPrefixUri)
-    retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) mustBe Some(newPrefixUri)
+
     // Invalid prefix value should 400
     checkResponseExactStatusCode(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, "prefixName")}").put(Json.toJson("urn:with space")), BAD_REQUEST)
   }

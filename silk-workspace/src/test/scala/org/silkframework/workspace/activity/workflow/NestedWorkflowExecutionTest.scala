@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.workflow
-
+
+
 import org.silkframework.workspace.{ProjectTask, SingleProjectWorkspaceProviderTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,7 +14,7 @@ abstract class NestedWorkflowExecutionTest extends AnyFlatSpec with Matchers wit
   override def projectId: String = "nestedWorkflowsTest"
 
   // Needs to be overwritten in sub classes
-  protected def executeWorkflow(workflow: ProjectTask[Workflow])
+  protected def executeWorkflow(workflow: ProjectTask[Workflow]): Unit
 
   it should "execute nested workflows" in {
     val proj = project

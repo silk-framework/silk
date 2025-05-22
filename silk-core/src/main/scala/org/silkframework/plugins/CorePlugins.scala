@@ -19,6 +19,7 @@ import org.silkframework.config.Task.GenericTaskFormat
 import org.silkframework.config.TaskSpec.TaskSpecXmlFormat
 import org.silkframework.dataset.DatasetSpec.{DatasetSpecFormat, DatasetTaskXmlFormat}
 import org.silkframework.dataset.VariableDataset
+import org.silkframework.dataset.operations.{AddProjectFilesOperator, DeleteFilesOperator, GetProjectFilesOperator, LocalAddProjectFilesOperatorExecutor, LocalDeleteFilesOperatorExecutor, LocalGetProjectFilesOperatorExecutor}
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
 import org.silkframework.execution.local.LocalExecutionManager
@@ -32,12 +33,22 @@ import scala.language.existentials
   */
 class CorePlugins extends PluginModule {
 
-  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = datasets ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
+  override def pluginClasses: Seq[Class[_ <: AnyPlugin]] = datasets ++ datasetOperations ++ serializers ++ valueTypes :+ classOf[LocalExecutionManager]
 
   private def datasets: Seq[Class[_ <: AnyPlugin]] =
     classOf[InternalDataset] ::
     classOf[VariableDataset] ::
     Nil
+
+  private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {
+    classOf[AddProjectFilesOperator] ::
+    classOf[LocalAddProjectFilesOperatorExecutor] ::
+    classOf[DeleteFilesOperator] ::
+    classOf[LocalDeleteFilesOperatorExecutor] ::
+    classOf[GetProjectFilesOperator] ::
+    classOf[LocalGetProjectFilesOperatorExecutor] ::
+    Nil
+  }
 
   private def serializers: Seq[Class[_ <: AnyPlugin]] =
     TaskSpecXmlFormat.getClass ::

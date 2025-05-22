@@ -24,7 +24,7 @@ import { RuleOperatorType, TaskPlugin } from "@ducks/shared/typings";
 import linkingRuleRequests from "./LinkingRuleEditor.requests";
 import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
-import { IStickyNote } from "../shared/task.typings";
+import { StickyNote } from "@eccenca/gui-elements";
 
 /**
  * Convert to editor model:
@@ -111,7 +111,7 @@ const extractSimilarityOperatorNode = (
 };
 
 /** gets preloaded ui sticky notes */
-const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): IStickyNote[] =>
+const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): StickyNote[] =>
     (linkSpec && optionallyLabelledParameterToValue(linkSpec.parameters.rule).uiAnnotations.stickyNotes) || [];
 
 /** Converts the linking task rule to the internal representation. */
@@ -132,8 +132,11 @@ const convertLinkingRuleToRuleOperatorNodes = (
     extractSimilarityOperatorNode(linkRule.operator, operatorNodes, ruleOperator);
     const nodePositions = linkRule.layout.nodePositions;
     operatorNodes.forEach((node) => {
-        const [x, y] = nodePositions[node.nodeId] ?? [null, null];
-        node.position = x !== null ? { x, y } : undefined;
+        const { x, y, width } = nodePositions[node.nodeId] ?? { x: null, y: null };
+        if (x !== null) {
+            node.position = { x, y };
+            node.dimension = { width: width ?? undefined };
+        }
     });
     return operatorNodes;
 };

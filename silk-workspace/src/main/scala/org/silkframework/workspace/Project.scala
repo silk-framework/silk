@@ -146,19 +146,20 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
    * Writes the updated project configuration.
    */
-  def config_=(project : ProjectConfig)(implicit userContext: UserContext) {
+  def config_=(project : ProjectConfig)(implicit userContext: UserContext): Unit = {
     provider.putProject(project)
     logger.info(s"Project meta data updated for ${project.labelAndId()}.")
     cachedConfig = project
   }
 
   /**
-    * Adds additional prefixes that are not persisted with the project. The additional prefixes will overwrite
-    * existing prefixes with the same prefix name.
-    * @param additionalPrefixes The prefixes that should be added to the project config.
+    * Adds additional prefixes that are defined for the whole workspace and are not persisted with the project.
+    * Project prefixes overwrite workspace prefixes.
+    *
+    * @param workspacePrefixes The prefixes that should be added to the project config.
     */
-  def setAdditionalPrefixes(additionalPrefixes: Prefixes) {
-    cachedConfig = cachedConfig.copy(prefixes = cachedConfig.prefixes ++ additionalPrefixes)
+  def setWorkspacePrefixes(workspacePrefixes: Prefixes): Unit = {
+    cachedConfig = cachedConfig.copy(projectPrefixes = cachedConfig.projectPrefixes, workspacePrefixes = workspacePrefixes)
   }
 
   /** Update the meta data of a project. */
@@ -390,4 +391,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   override def tags()(implicit userContext: UserContext): Set[Tag] = {
     config.metaData.tags.map(uri => tagManager.getTag(uri))
   }
+
+  override def toString: String = s"Project ${config.labelAndId(config.prefixes)}"
 }

@@ -54,9 +54,9 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
     }
   }
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(file, maxDepth = maxDepth))
+  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(bulkWritableResource, maxDepth = maxDepth))
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, jsonTemplate, maxDepth)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(bulkWritableResource, jsonTemplate, maxDepth)
 
   override def characteristics: DatasetCharacteristics = JsonDataset.characteristics
 }

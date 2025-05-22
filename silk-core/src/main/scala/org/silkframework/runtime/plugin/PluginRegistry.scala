@@ -72,6 +72,23 @@ object PluginRegistry {
   }
 
   /**
+   * Returns the plugin description of a specific plugin.
+   */
+  def pluginById[T: ClassTag](id: String): PluginDescription[T] = {
+    val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
+    pluginType[T].pluginByIdOpt[T](id)
+      .getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${pluginType[T].availablePlugins.map(_.id).mkString(", ")}"))
+      .asInstanceOf[PluginDescription[T]]
+  }
+
+  /**
+   * Returns the (optional) plugin description of a specific plugin.
+   */
+  def pluginByIdOpt[T: ClassTag](id: String): Option[PluginDescription[_]] = {
+    pluginType[T].pluginByIdOpt[T](id)
+  }
+
+  /**
    * Creates a new instance of a specific plugin.
    *
    * @param id The id of the plugin.
@@ -219,7 +236,7 @@ object PluginRegistry {
    * Registers all plugins from a directory of jar files.
    * Also registers all plugins on the classpath.
    */
-  def registerJars(jarDir: File) {
+  def registerJars(jarDir: File): Unit = {
     //Collect all jar file in the specified directory
     val jarFiles = Option(jarDir.listFiles())
       .getOrElse(Array.empty)
@@ -321,6 +338,13 @@ object PluginRegistry {
     def availablePlugins: Seq[PluginDescription[_]] = plugins.values.toSeq
 
     /**
+     * Returns the plugin description of a specific plugin.
+     */
+    def pluginByIdOpt[T: ClassTag](id: String): Option[PluginDescription[T]] = {
+      plugins.get(id).asInstanceOf[Option[PluginDescription[T]]]
+    }
+
+    /**
      * Creates a new instance of a specific plugin.
      *
      * @param id The id of the plugin.
@@ -330,9 +354,7 @@ object PluginRegistry {
      */
     def create[T: ClassTag](id: String, params: ParameterValues)
                            (implicit context: PluginContext): T = {
-      val pluginClass = implicitly[ClassTag[T]].runtimeClass.getName
-      val pluginDesc = plugins.getOrElse(id, throw new NoSuchElementException(s"No plugin '$id' found for class $pluginClass. Available plugins: ${plugins.keys.mkString(",")}"))
-      pluginDesc(params).asInstanceOf[T]
+      pluginById[T](id).apply(params)
     }
 
     /**

@@ -7,3 +7,5 @@ GET   /executionResult/:projectId/:workflowId   controllers.workflowApi.Workflow
 GET   /info                                     controllers.workflowApi.WorkflowApi.workflowInfoList()
 GET   /info/:projectId/:workflowId              controllers.workflowApi.WorkflowApi.workflowInfo(projectId: String, workflowId: String)
 GET   /config/:projectId/:workflowId/ports      controllers.workflowApi.WorkflowApi.workflowNodesConfig(projectId: String, workflowId: String)
+
+POST   /dependentTasksInWorkflow                 controllers.workflowApi.WorkflowApi.dependentTasksInWorkflow()

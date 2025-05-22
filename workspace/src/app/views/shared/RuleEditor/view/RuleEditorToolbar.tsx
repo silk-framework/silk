@@ -21,7 +21,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
-import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import utils, { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
 
@@ -38,6 +38,7 @@ export const RuleEditorToolbar = () => {
     const [t] = useTranslation();
     const integratedView = !!ruleEditorContext.viewActions?.integratedView;
     const { hotKeysDisabled } = React.useContext(ReactFlowHotkeyContext);
+    const [generalNotificationMinDateTime, setGeneralNotificationMinDateTime] = React.useState(Date.now());
 
     useHotKey({
         hotkey: "mod+z",
@@ -83,7 +84,9 @@ export const RuleEditorToolbar = () => {
         ruleEvaluationContext.fetchTriggerEvaluationFunction?.(startEvaluation);
     }, [ruleEvaluationContext.startEvaluation, ruleEvaluationContext.toggleEvaluationResults]);
 
-    const saveLinkingRule = async (e) => {
+    const saveRule = async (e) => {
+        // After every save, reset error notification queue
+        setGeneralNotificationMinDateTime(Date.now() - 1);
         e.preventDefault();
         setSavingWorkflow(true);
         await modelContext.saveRule();
@@ -134,6 +137,8 @@ export const RuleEditorToolbar = () => {
             console.warn("No react-flow objects loaded!");
         }
     };
+
+    const numberOfCopiedNodes = modelContext.copiedNodesCount;
 
     return (
         <>
@@ -215,6 +220,22 @@ export const RuleEditorToolbar = () => {
                 <ToolbarSection canGrow>
                     <Spacing vertical size={"small"} />
                 </ToolbarSection>
+                {numberOfCopiedNodes ? (
+                    <>
+                        <Icon
+                            data-test-id={"node-copy-notification"}
+                            name="item-copy"
+                            tooltipText={t("RuleEditor.toolbar.copiedNotificationText", {
+                                numberOfNodes: `${numberOfCopiedNodes} node${numberOfCopiedNodes > 1 ? "s" : ""}`,
+                            })}
+                            tooltipProps={{
+                                isOpen: true,
+                                placement: "left",
+                            }}
+                        />
+                        <Spacing vertical size={"small"} />
+                    </>
+                ) : null}
                 {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
                 {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                     <ToolbarSection>
@@ -239,6 +260,7 @@ export const RuleEditorToolbar = () => {
                                 tooltip: t("RuleEditor.toolbar.startEvaluation"),
                                 action: startEvaluation,
                             }}
+                            ruleType={ruleEvaluationContext.ruleType}
                         />
                         <Spacing vertical size="small" />
                     </ToolbarSection>
@@ -252,7 +274,7 @@ export const RuleEditorToolbar = () => {
                             modelContext.isReadOnly() ? t("RuleEditor.toolbar.readOnly") : t("RuleEditor.toolbar.save")
                         }
                         tooltipProps={{ hoverCloseDelay: 0 }}
-                        onClick={saveLinkingRule}
+                        onClick={saveRule}
                         disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
                         href={modelContext.isReadOnly() || !modelContext.unsavedChanges ? "#" : undefined}
                         loading={savingWorkflow}
@@ -265,7 +287,6 @@ export const RuleEditorToolbar = () => {
                     </Button>
                     <RuleEditorNotifications
                         key={"notifications"}
-                        integratedView={integratedView}
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
@@ -274,6 +295,7 @@ export const RuleEditorToolbar = () => {
                         )}
                         nodeJumpToHandler={modelContext.centerNode}
                         evaluationNotifications={ruleEvaluationContext.notifications}
+                        generalNotificationMinDateTime={generalNotificationMinDateTime}
                     />
                 </ToolbarSection>
             </Toolbar>

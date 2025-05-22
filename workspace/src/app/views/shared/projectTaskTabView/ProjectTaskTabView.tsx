@@ -29,6 +29,7 @@ import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import PromptModal from "./PromptModal";
 import ErrorBoundary from "../../../ErrorBoundary";
+import { ProjectTaskTabViewContext } from "./ProjectTaskTabViewContext";
 
 const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
@@ -93,6 +94,7 @@ export function ProjectTaskTabView({
     viewActions,
     ...otherProps
 }: IProjectTaskTabView) {
+    const initialSettings = useSelector(commonSel.initialSettingsSelector);
     const globalProjectId = useSelector(commonSel.currentProjectIdSelector);
     const globalTaskId = useSelector(commonSel.currentTaskIdSelector);
     const projectId = taskViewConfig?.projectId ?? globalProjectId;
@@ -144,12 +146,18 @@ export function ProjectTaskTabView({
     React.useEffect(() => {
         if (projectId && taskId) {
             if (taskViewConfig?.pluginId) {
-                setTaskViews(pluginRegistry.taskViews(taskViewConfig.pluginId));
+                const taskViewPlugins = pluginRegistry
+                    .taskViews(taskViewConfig.pluginId)
+                    .filter((plugin) => !plugin.available || plugin.available(initialSettings))
+                    .sort((a, b) => {
+                        return (a.sortOrder ?? 9999) - (b.sortOrder ?? 9999);
+                    });
+                setTaskViews(taskViewPlugins);
             } else {
                 setTaskViews([]);
             }
         }
-    }, [projectId, taskId, taskViewConfig?.pluginId]);
+    }, [projectId, taskId, taskViewConfig?.pluginId, initialSettings]);
 
     React.useEffect(() => {
         fetchTaskNotifications();
@@ -341,6 +349,10 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
+    const viewActionsUnsavedChanges = React.useCallback((status: boolean) => {
+        setUnsavedChanges(status);
+    }, []);
+
     const extendedViewActions: IViewActions = {
         ...viewActions,
         switchToView: (viewIdx) => {
@@ -354,7 +366,7 @@ export function ProjectTaskTabView({
                 }
             }
         },
-        savedChanges: (status: boolean) => setUnsavedChanges(status),
+        unsavedChanges: viewActionsUnsavedChanges,
     };
 
     let tabNr = 1;
@@ -365,95 +377,102 @@ export function ProjectTaskTabView({
                 ? viewActions.taskContext.taskViewSuffix?.(viewActions.taskContext.context)
                 : undefined;
         return (
-            <Card
-                className="diapp-iframewindow__content"
-                isOnlyLayout={true}
-                elevation={displayFullscreen ? 4 : 1}
-                scrollinOnFocus={displayFullscreen ? undefined : "center"}
+            <ProjectTaskTabViewContext.Provider
+                value={{
+                    fullScreen: displayFullscreen,
+                }}
             >
-                <CardHeader>
-                    <CardTitle>
-                        <h2>
-                            {tLabel(activeTab?.label ?? "")} {suffix}
-                        </h2>
-                    </CardTitle>
-                    <CardOptions>
-                        {viewsAndItemLink.length > 1 &&
-                            viewsAndItemLink.map((tabItem, idx) => {
-                                const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
-                                return (
-                                    <Button
-                                        data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
-                                        key={tabItem.id ?? tabItem.path}
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            changeTab(tabItem.id ?? (tabItem as IItemLink));
-                                        }}
-                                        href={calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)}
-                                        minimal={true}
-                                        disabled={
-                                            !!selectedTab &&
-                                            (tabItem.path ?? tabItem.id) === ((selectedTab as any)?.path ?? selectedTab)
-                                        }
-                                    >
-                                        {tLabel(tabItem.label as string)}
-                                    </Button>
-                                );
-                            })}
-                        {!!handlerRemoveModal ? (
-                            <IconButton
-                                data-test-id={"close-project-tab-view"}
-                                name="navigation-close"
-                                onClick={() => handlerRemoveModalWrapper()}
-                            />
-                        ) : (
-                            <IconButton
-                                name={displayFullscreen ? "toggler-minimize" : "toggler-maximize"}
-                                onClick={toggleFullscreen}
-                            />
-                        )}
-                    </CardOptions>
-                </CardHeader>
-                <Divider />
-                <CardContent
-                    className={
-                        !!selectedTab && itemLinkActive
-                            ? "diapp-iframewindow--iframecontent"
-                            : "diapp-iframewindow--jscontent"
-                    }
+                <Card
+                    className="diapp-iframewindow__content"
+                    isOnlyLayout={true}
+                    elevation={displayFullscreen ? 4 : 1}
+                    scrollinOnFocus={displayFullscreen ? undefined : "center"}
                 >
-                    {!!selectedTab ? (
-                        itemLinkActive ? (
-                            <iframe
-                                ref={iframeRef}
-                                name={iFrameName}
-                                data-test-id={iFrameName}
-                                src={createIframeUrl((selectedTab as IItemLink)?.path ?? "")}
-                                title={tLabel((selectedTab as IItemLink)?.label)}
-                                style={{
-                                    position: "absolute",
-                                    width: "100%",
-                                    height: "100%",
-                                }}
-                            />
+                    <CardHeader>
+                        <CardTitle>
+                            <h2>
+                                {tLabel(activeTab?.label ?? "")} {suffix}
+                            </h2>
+                        </CardTitle>
+                        <CardOptions>
+                            {viewsAndItemLink.length > 1 &&
+                                viewsAndItemLink.map((tabItem, idx) => {
+                                    const tabRoute = getTabRoute(tabItem.id ?? (tabItem as IItemLink));
+                                    return (
+                                        <Button
+                                            data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
+                                            key={tabItem.id ?? tabItem.path}
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                changeTab(tabItem.id ?? (tabItem as IItemLink));
+                                            }}
+                                            href={calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)}
+                                            minimal={true}
+                                            disabled={
+                                                !!selectedTab &&
+                                                (tabItem.path ?? tabItem.id) ===
+                                                    ((selectedTab as any)?.path ?? selectedTab)
+                                            }
+                                        >
+                                            {tLabel(tabItem.label as string)}
+                                        </Button>
+                                    );
+                                })}
+                            {!!handlerRemoveModal ? (
+                                <IconButton
+                                    data-test-id={"close-project-tab-view"}
+                                    name="navigation-close"
+                                    onClick={() => handlerRemoveModalWrapper()}
+                                />
+                            ) : (
+                                <IconButton
+                                    name={displayFullscreen ? "toggler-minimize" : "toggler-maximize"}
+                                    onClick={toggleFullscreen}
+                                />
+                            )}
+                        </CardOptions>
+                    </CardHeader>
+                    <Divider />
+                    <CardContent
+                        className={
+                            !!selectedTab && itemLinkActive
+                                ? "diapp-iframewindow--iframecontent"
+                                : "diapp-iframewindow--jscontent"
+                        }
+                    >
+                        {!!selectedTab ? (
+                            itemLinkActive ? (
+                                <iframe
+                                    ref={iframeRef}
+                                    name={iFrameName}
+                                    data-test-id={iFrameName}
+                                    src={createIframeUrl((selectedTab as IItemLink)?.path ?? "")}
+                                    title={tLabel((selectedTab as IItemLink)?.label)}
+                                    style={{
+                                        position: "absolute",
+                                        width: "100%",
+                                        height: "100%",
+                                    }}
+                                />
+                            ) : (
+                                projectId &&
+                                taskId &&
+                                (taskViews ?? [])
+                                    .find((v) => v.id === selectedTab)
+                                    ?.render(projectId, taskId, extendedViewActions, startFullscreen)
+                            )
+                        ) : isFetchingLinks ? (
+                            <Loading />
                         ) : (
-                            projectId &&
-                            taskId &&
-                            (taskViews ?? [])
-                                .find((v) => v.id === selectedTab)
-                                ?.render(projectId, taskId, extendedViewActions, startFullscreen)
-                        )
-                    ) : isFetchingLinks ? (
-                        <Loading />
-                    ) : (
-                        <>
-                            <Spacing />
-                            <div style={{ textAlign: "center" }}>No tab available/selected.</div>
-                        </>
-                    )}
-                </CardContent>
-                {warnings && <CardContentWarnings warnings={warnings} />}
-            </Card>
+                            <>
+                                <Spacing />
+                                <div style={{ textAlign: "center" }}>No tab available/selected.</div>
+                            </>
+                        )}
+                    </CardContent>
+                    {warnings && <CardContentWarnings warnings={warnings} />}
+                </Card>
+            </ProjectTaskTabViewContext.Provider>
         );
     };
 

@@ -1,10 +1,11 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{FixedSchemaPort, FlexibleSchemaPort, Prefixes, Task}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Writes and/or reads a data set.
@@ -24,18 +25,14 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   }
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
-                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): ExecType#DataType
+                    (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): ExecType#DataType
 
   protected def write(data: ExecType#DataType, task: Task[DatasetSpec[DatasetType]], execution: ExecType)
-                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit
+                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): Unit
 
   /**
     * Writes all inputs into dataset first and then reads from it if an output schema is defined.
     *
-    * @param task
-    * @param inputs
-    * @param execution
-    * @return
     */
   final override def execute(
     task: Task[DatasetSpec[DatasetType]],
@@ -44,14 +41,63 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     execution: ExecType,
     context: ActivityContext[ExecutionReport]
   )(implicit pluginContext: PluginContext): Option[ExecType#DataType] = {
-    implicit val c = context
-    implicit val prefixes: Prefixes = pluginContext.prefixes
-    implicit val user: UserContext = pluginContext.user
+    implicit val c: ActivityContext[ExecutionReport] = context
+    // Write all inputs into the dataset
     for (input <- inputs) {
       write(input, task, execution)
     }
-    output.requestedSchema.map {
-      read(task, _, execution)
+    // Determine output schema
+    val outputSchema = {
+      output.connectedPort match {
+        case Some(FixedSchemaPort(schema)) =>
+          // Fixed schema is requested
+          Some(schema)
+        case Some(FlexibleSchemaPort(_)) if task.data.characteristics.explicitSchema =>
+          // Explicit (default) schema is requested
+          Some(retrieveSchema(task, execution))
+        case _ =>
+          None
+      }
+    }
+    // Read from dataset
+    for(schema <- outputSchema) yield {
+      read(task, schema, execution)
     }
   }
+
+  /**
+    * Retrieves the schema of the dataset if no output schema has been provided.
+    */
+  private def retrieveSchema(dataset: Task[DatasetSpec[DatasetType]], execution: ExecType)(implicit pluginContext: PluginContext): EntitySchema = {
+    implicit val prefixes: Prefixes = pluginContext.prefixes
+    implicit val user: UserContext = pluginContext.user
+
+    val source = access(dataset, execution).source(pluginContext.user)
+    val types = source.retrieveTypes()
+
+    if(types.isEmpty) {
+      throw new ValidationException(s"No types found in dataset ${dataset.labelAndId()}")
+    } else {
+      val typeUri = types.head._1
+      EntitySchema(typeUri, source.retrievePaths(typeUri))
+    }
+  }
+}
+
+object DatasetExecutor {
+
+  /**
+   * Checks if a dataset can read data for a given output port.
+   */
+  def canRead(dataset: Dataset, output: ExecutorOutput): Boolean = {
+    output.connectedPort match {
+      case Some(FixedSchemaPort(_)) =>
+        true
+      case Some(FlexibleSchemaPort(_)) if dataset.characteristics.explicitSchema =>
+        true
+      case _ =>
+        false
+    }
+  }
+
 }

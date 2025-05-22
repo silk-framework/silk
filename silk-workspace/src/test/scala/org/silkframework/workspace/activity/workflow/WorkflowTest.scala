@@ -157,6 +157,10 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
       replaceableInputs = Seq(DS_A1),
       replaceableOutputs = Seq(OUTPUT)
     ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A1), Seq(OUTPUT))
+    workflowWithConfigOnlyInput.copy(
+      replaceableInputs = Seq(DS_A),
+      replaceableOutputs = Seq()
+    ).markedReplaceableDatasets(project) mustBe AllReplaceableDatasets(Seq(DS_A), Seq())
   }
 
   it should "not return a re-configured input dataset as output dataset" in {
@@ -181,7 +185,7 @@ class WorkflowTest extends AnyFlatSpec with MockitoSugar with Matchers with Test
     }
     project.addTask[Workflow](WORKFLOW, Workflow())
     project.addTask[TransformSpec](TRANSFORM_2, TransformSpec(DatasetSelection(DS_A)))
-    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B)
+    noSchemaInputDatasetWorkflow.outputDatasets(project).map(_.id.toString) mustBe Seq(DS_B, DS_A)
   }
 }
 
@@ -322,6 +326,19 @@ object WorkflowTest {
         dataset(DS_A, DS_A, inputs = Seq(WORKFLOW, DS_B2), outputs = Seq(TRANSFORM_2)),
         dataset(DS_B, DS_B, inputs = Seq(TRANSFORM_2), outputs = Seq()),
         dataset(DS_B2, DS_B2, inputs = Seq(), outputs = Seq(DS_A))
+      )
+    )
+  }
+
+  // Workflow with a dataset that is re-configured by another dataset that should be recognized as replaceable input.
+  val workflowWithConfigOnlyInput: Workflow = {
+    Workflow(
+      operators = Seq(
+        operator(task = TRANSFORM_1, inputs = Seq(DS_B), outputs = Seq(), TRANSFORM_1),
+      ),
+      datasets = Seq(
+        dataset(DS_A, DS_A, inputs = Seq(), outputs = Seq(DS_B)),
+        dataset(DS_B, DS_B, inputs = Seq(), configInputs = Seq(DS_A), outputs = Seq()),
       )
     )
   }

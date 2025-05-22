@@ -4,7 +4,7 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.{BulkResourceBasedDataset, TextBulkResourceBasedDataset}
+import org.silkframework.dataset.bulk.TextBulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
@@ -31,14 +31,15 @@ import scala.io.Codec
   categories = Array(DatasetCategories.file),
   description =
 """Dataset which retrieves and writes all entities from/to an RDF file.
-The dataset is loaded in-memory and thus the size is restricted by the available memory.
+For reading, the dataset is loaded in-memory and thus the size is restricted by the available memory.
 Large datasets should be loaded into an external RDF store and retrieved using the SPARQL dataset instead.""")
 case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
   @Param(
     value = """Optional RDF format. If left empty, it will be auto-detected based on the file extension. N-Triples is the only format that can be written, while other formats can only be read.""",
-    autoCompletionProvider = classOf[RdfLangAutocompletionProvider]
+    autoCompletionProvider = classOf[RdfLangAutocompletionProvider],
+    autoCompleteValueWithLabels = true
   )
   format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
@@ -79,7 +80,7 @@ case class RdfFileDataset(
 
   override def mimeType: Option[String] = Some(lang.getContentType.getContentTypeStr)
 
-  override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
+  override def graphOpt: Option[String] = if (graph.trim.isEmpty || ignoreGraph()) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
     createSparqlEndpoint(retrieveResources())
@@ -103,7 +104,7 @@ case class RdfFileDataset(
 
     // Retrieve model
     val model =
-      if (!graph.trim.isEmpty) {
+      if (!graph.trim.isEmpty && !ignoreGraph()) {
         dataset.getNamedModel(graph)
       }
       else {
@@ -113,13 +114,18 @@ case class RdfFileDataset(
     new JenaModelEndpoint(model)
   }
 
+  private def ignoreGraph(): Boolean = {
+    // Some languages that do not specify graphs
+    Set(Lang.NTRIPLES, Lang.TURTLE, Lang.NT, Lang.TTL).contains(lang)
+  }
+
   override def mergeSchemata: Boolean = true
 
   override def createSource(resource: Resource): DataSource = new FileSource(resource)
 
-  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
+  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkWritableResource, formatter)
 
-  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(file, formatter)
+  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkWritableResource, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))

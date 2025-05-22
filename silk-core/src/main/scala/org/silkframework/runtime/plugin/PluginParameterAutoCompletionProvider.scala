@@ -2,7 +2,6 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.annotations.PluginType
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.{Identifier, StringUtils}
 import org.silkframework.workspace.WorkspaceReadTrait
@@ -75,7 +74,7 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
     * Else it will throw a [[AutoCompletionProjectDependencyException]].
     */
   protected def getProject(dependOnParameterValues: Seq[ParamValue])(implicit context: PluginContext): Identifier = {
-    dependOnParameterValues.headOption.map(v => Identifier(v.strValue))
+    dependOnParameterValues.headOption.map(v => Identifier(v.value.strValue))
       .orElse(context.projectId)
       .getOrElse(throw AutoCompletionProjectDependencyException("Project not provided"))
   }
@@ -85,27 +84,31 @@ trait PluginParameterAutoCompletionProvider extends AnyPlugin {
 case class AutoCompletionProjectDependencyException(msg: String) extends RuntimeException(msg)
 
 /**
-  * Represents a parameter value.
+  * Represents a (simple) parameter value together with its type.
   *
-  * @param strValue The string value.
+  * @param value The parameter value.
   * @param paramType The parameter type.
   */
-case class ParamValue(strValue: String, paramType: ParameterType[_])
+case class ParamValue(value: SimpleParameterValue, paramType: ParameterType[_]) {
+  def strValue(implicit pluginContext: PluginContext): String = {
+    value.strValue
+  }
+}
 
 object ParamValue {
 
-  def create(strValue: String, paramName: String, pluginDescription: PluginDescription[_]): ParamValue = {
-    ParamValue(strValue, pluginDescription.findParameter(paramName).parameterType)
+  def create(value: SimpleParameterValue, paramName: String, pluginDescription: PluginDescription[_]): ParamValue = {
+    ParamValue(value, pluginDescription.findParameter(paramName).parameterType)
   }
 
-  def createAll(strValues: Seq[String], paramNames: Seq[String], pluginDescription: PluginDescription[_]): Seq[ParamValue] = {
-    if(paramNames.nonEmpty && strValues.size != paramNames.size) {
+  def createAll(values: Seq[SimpleParameterValue], paramNames: Seq[String], pluginDescription: PluginDescription[_]): Seq[ParamValue] = {
+    if(paramNames.nonEmpty && values.size != paramNames.size) {
       throw BadUserInputException("No values for depends-on parameters supplied. Values are expected for " +
         s"following parameters: ${paramNames.mkString(", ")}.")
     }
 
-    for((strValue, paramName) <- strValues zip paramNames) yield {
-      create(strValue, paramName, pluginDescription)
+    for((value, paramName) <- values zip paramNames) yield {
+      create(value, paramName, pluginDescription)
     }
   }
 

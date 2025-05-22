@@ -1,27 +1,26 @@
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import React, { useEffect } from "react";
+import {DependsOnParameterValue, IAutocompleteDefaultResponse} from "@ducks/shared/typings";
+import React, {useEffect} from "react";
 import {
-    SuggestField,
-    suggestFieldUtils,
     Highlighter,
     OverflowText,
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
     Spinner,
+    SuggestField,
+    SuggestFieldProps,
     SuggestFieldItemRendererModifierProps,
+    suggestFieldUtils,
 } from "@eccenca/gui-elements";
-import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { sharedOp } from "@ducks/shared";
-import { useTranslation } from "react-i18next";
+import {IPropertyAutocomplete} from "@ducks/common/typings";
+import {sharedOp} from "@ducks/shared";
+import {useTranslation} from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { Intent } from "@blueprintjs/core";
-import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
-import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
-import { RegisterForExternalChangesFn } from "./InputMapper";
-import { InputGroupProps as BlueprintInputGroupProps } from "@blueprintjs/core/lib/esm/components/forms/inputGroup";
-import { HTMLInputProps as BlueprintHTMLInputProps } from "@blueprintjs/core/lib/esm/common/props";
-import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
+import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
+import {parseErrorCauseMsg} from "../../../ApplicationNotifications/NotificationsMenu";
+import {CLASSPREFIX as eccguiprefix} from "@eccenca/gui-elements/src/configuration/constants";
+import {RegisterForExternalChangesFn} from "./InputMapper";
+import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ParameterAutoCompletionProps {
@@ -37,7 +36,9 @@ export interface ParameterAutoCompletionProps {
     /** The initial value */
     initialValue?: IAutocompleteDefaultResponse;
     /** Get parameter values this auto-completion might depend on. */
-    dependentValue: (paramId: string) => string | undefined;
+    dependentValue: (paramId: string) => DependsOnParameterValueAny | undefined;
+    /** The default value as defined in the parameter spec. */
+    defaultValue: (paramId: string) => string | null | undefined;
     /** If a value is required. If true, a reset won't be possible. */
     required: boolean;
     onChange: (value: IAutocompleteDefaultResponse) => any;
@@ -54,11 +55,9 @@ export interface ParameterAutoCompletionProps {
     /** Register for getting external updates for values. */
     registerForExternalChanges?: RegisterForExternalChangesFn;
     /**
-     * Props to spread to the underlying input field. This is BlueprintJs specific. To control this input, use
-     * `onChange` instead of `inputProps.onChange`. The properties name, id, intent and readonly should not be overwritten, because they
-     * are maintained by this component.
+     * Props to spread to the underlying input field. This is BlueprintJs specific.
      */
-    inputProps?: BlueprintInputGroupProps & BlueprintHTMLInputProps;
+    inputProps?: Omit<SuggestFieldProps<StringOrReifiedValue, IAutocompleteDefaultResponse>["inputProps"], "onChange" | "name" | "id" | "intent" | "readonly" >;
     /**
      * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
      * without replacing the complete path.
@@ -82,6 +81,7 @@ export const ParameterAutoCompletion = ({
     autoCompletion,
     initialValue,
     dependentValue,
+    defaultValue,
     required,
     onChange,
     showErrorsInline = false,
@@ -130,11 +130,13 @@ export const ParameterAutoCompletion = ({
         }
     }, [externalValue]);
 
-    const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
+    const selectDependentValues = (autoCompletion: IPropertyAutocomplete): DependsOnParameterValue[] => {
+        const prefixIdx = formParamId.lastIndexOf(".");
+        const parameterPrefix = prefixIdx >= 0 ? formParamId.substring(0, prefixIdx + 1) : "";
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
-            if (dependentValueIsSet(value)) {
-                return [`${value}`];
+            if (dependentValueIsSet(value?.value, defaultValue(parameterPrefix + paramId) != null)) {
+                return [{value: `${value!.value}`, isTemplate: value!.isTemplate}];
             } else {
                 return [];
             }
@@ -305,4 +307,10 @@ export const labelAndOrValueItemRenderer = (
 };
 
 /** At the moment a dependent value must be non-empty, else it is not considered to be set. */
-export const dependentValueIsSet = (value: any): boolean => value != null && `${value}` !== "";
+export const dependentValueIsSet = (value: any, hasDefaultValue: boolean): boolean =>
+    value != null && (value !== "" || hasDefaultValue); //TODO CMEM-5379 && `${value}` !== "";
+
+export interface DependsOnParameterValueAny {
+    value: any;
+    isTemplate: boolean;
+}

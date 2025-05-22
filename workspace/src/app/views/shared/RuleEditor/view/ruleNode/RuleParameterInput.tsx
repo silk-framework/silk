@@ -2,7 +2,7 @@ import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
 import { CodeEditor, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
-import { Intent } from "@blueprintjs/core";
+import { DefinitionsBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { RuleEditorNodeParameterValue, ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
@@ -10,6 +10,7 @@ import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import {
+    DependsOnParameterValueAny,
     ParameterAutoCompletion,
     ParameterAutoCompletionProps,
 } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
@@ -19,7 +20,7 @@ import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/Tex
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
-import { supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
+import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -38,6 +39,8 @@ interface RuleParameterInputProps {
     insideModal: boolean;
     /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
     languageFilter?: LanguageFilterProps;
+    /** The default value as defined in the parameter spec. */
+    parameterDefaultValue: (paramId: string) => string | undefined;
 }
 
 /** An input widget for a parameter value. */
@@ -50,6 +53,7 @@ export const RuleParameterInput = ({
     large,
     insideModal,
     languageFilter,
+    parameterDefaultValue,
 }: RuleParameterInputProps) => {
     const _onChange = ruleParameter.update;
     const onChangeRef = React.useRef(_onChange);
@@ -81,7 +85,9 @@ export const RuleParameterInput = ({
                 })
             ).data;
         } catch (e) {
-            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e);
+            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e, {
+                errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+            });
             return [];
         }
     };
@@ -103,10 +109,11 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: dependentValue,
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({value: dependentValue(paramId), isTemplate: false}),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
+        defaultValue: parameterDefaultValue,
         partialAutoCompletion: ruleEditorContext.partialAutoCompletion,
     });
 

@@ -10,7 +10,7 @@ import org.silkframework.runtime.resource.WritableResource
 class CsvEntitySink(file: WritableResource, settings: CsvSettings) extends CsvSink(file, settings) with EntitySink {
 
   override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
-                          (implicit userContext: UserContext) {
+                          (implicit userContext: UserContext): Unit = {
     // Concatenate multiple values per column (for performance reasons only if needed)
     val concatenatedValues =
       for(value <- values) yield {

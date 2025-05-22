@@ -128,7 +128,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                 PLUGIN_ID -> JsString(pd.id),
                 PLUGIN_LABEL -> JsString(pd.label),
                 TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
-                SEARCH_TAGS -> Json.toJson(task.searchTags(task.project.config.prefixes))
+                SEARCH_TAGS -> Json.toJson(task.searchTags(PluginContext.fromProject(task.project)))
               )
             task.data match {
               case ds: GenericDatasetSpec =>
@@ -237,8 +237,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
     try {
       val project = getProject(request.projectId)
       implicit val pluginContext: PluginContext = PluginContext.fromProject(project)
-      val dependOnParameterValues = ParamValue.createAll(request.dependsOnParameterValues.getOrElse(Seq.empty),
-                                                         autoCompletion.autoCompletionDependsOnParameters, pluginDescription)
+      val dependOnParameterValues = ParamValue.createAll(request.dependsOnParameterValues.getOrElse(Seq.empty).map(_.toParameterValue),
+                                                                  autoCompletion.autoCompletionDependsOnParameters, pluginDescription)
       val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
                                                                       dependOnParameterValues,
                                                                       limit = request.workingLimit,

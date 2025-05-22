@@ -34,13 +34,20 @@ case class DeleteVariableModification(project: Project, variableName: String) ex
     * Retrieves the tasks that would become invalid by this modification.
     */
   def invalidTasks()(implicit user: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
+    // Compute current and new project variables
     val currentVariables = project.templateVariables.all
     val newVariables = TemplateVariables(currentVariables.variables.filter(_.name != variableName))
+
+    // Compute all variables including the global variables
+    val allCurrentVariables = GlobalTemplateVariables.all merge currentVariables
+    val allNewVariables = GlobalTemplateVariables.all merge newVariables
+
+    // Check if the update variables break a task
     val currentContext: PluginContext = PluginContext.fromProject(project)
     val updatedTasks = mutable.Buffer[ProjectTask[_ <: TaskSpec]]()
     for (task <- project.allTasks) yield {
       try {
-        hasUpdatedTemplateValues(task.parameters(currentContext), currentVariables, newVariables)
+        hasUpdatedTemplateValues(task.parameters(currentContext), allCurrentVariables, allNewVariables)
       } catch {
         case _: TemplateEvaluationException =>
           // Task update would fail with the modified variables.

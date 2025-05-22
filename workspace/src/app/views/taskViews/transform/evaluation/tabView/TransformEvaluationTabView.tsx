@@ -12,8 +12,8 @@ import {
     Spinner,
     Notification,
     Spacing,
+    DataTableRenderProps,
 } from "@eccenca/gui-elements";
-import { DataTableCustomRenderProps } from "carbon-components-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { getEvaluatedEntities } from "./TransformEvaluationTabViewUtils";
@@ -23,6 +23,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import TransformEvaluationTabRow from "./TransformEvaluationTabRow";
 import MappingsTree from "../../../../pages/MappingEditor/HierarchicalMapping/containers/MappingsTree";
 import { IViewActions } from "../../../../../views/plugins/PluginRegistry";
+import { MAPPING_ROOT_RULE_ID } from "../../../../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 
 interface TransformEvaluationTabViewProps {
     projectId: string;
@@ -42,7 +43,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
     const [loading, setLoading] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>(() => {
         const ruleId = new URLSearchParams(window.location.search).get("ruleId");
-        return ruleId ?? "root";
+        return ruleId ?? MAPPING_ROOT_RULE_ID;
     });
     const operatorPlugins = React.useRef<Array<IPluginDetails>>([]);
     const [error, setError] = React.useState<string>("");
@@ -121,7 +122,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                     </GridColumn>
                     <GridColumn className="diapp-linking-evaluation">
                         <TableContainer rows={rows} headers={headers}>
-                            {({ getTableProps }: DataTableCustomRenderProps) => (
+                            {({ getTableProps }: DataTableRenderProps<any, any>) => (
                                 <Table {...getTableProps()} size={"medium"}>
                                     <TableHead>
                                         <TableRow>

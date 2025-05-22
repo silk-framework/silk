@@ -25,14 +25,14 @@ import {
     PropertyValuePair,
     TextField,
     ElapsedDateTimeDisplayUnits,
-    MultiSelectSelectionProps,
+    MultiSuggestFieldSelectionProps,
+    StringPreviewContentBlobToggler,
 } from "@eccenca/gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { StringPreviewContentBlobToggler } from "@eccenca/gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
@@ -243,7 +243,7 @@ export function Metadata(props: IProps) {
         }
     };
 
-    const handleTagSelectionChange = React.useCallback((params: MultiSelectSelectionProps<Keyword>) => {
+    const handleTagSelectionChange = React.useCallback((params: MultiSuggestFieldSelectionProps<Keyword>) => {
         setCreatedTags(params.createdItems);
         setSelectedTags((oldSelectedTags) => {
             return params.selectedItems;
@@ -317,6 +317,11 @@ export function Metadata(props: IProps) {
                                     preventLineNumbers
                                     defaultValue={formEditData?.description}
                                     onChange={onDescriptionChange}
+                                    useToolbar
+                                    translate={(key) => {
+                                        const translationKey = `Editor.markdown.toolbar.${key}`;
+                                        return t(translationKey) as string;
+                                    }}
                                 />
                             </FieldItem>
                         </PropertyValue>
@@ -352,7 +357,11 @@ export function Metadata(props: IProps) {
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
                                     content={description}
-                                    fullviewContent={<Markdown>{description}</Markdown>}
+                                    fullviewContent={
+                                        <Markdown htmlContentBlockProps={{ linebreakForced: true }}>
+                                            {description}
+                                        </Markdown>
+                                    }
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
                                     firstNonEmptyLineOnly={true}

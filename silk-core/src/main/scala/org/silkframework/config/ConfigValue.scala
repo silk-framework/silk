@@ -48,13 +48,13 @@ abstract class ConfigValue[T]() {
   * @tparam CLASS The class that holds the configuration.
   * @tparam T The configuration value type.
   */
-abstract class ClassConfigValue[CLASS: ClassTag, T]() extends ConfigValue[T] {
+abstract class ClassConfigValue[T: ClassTag]() extends ConfigValue[T] {
 
   /**
     * Retrieves the configuration for the given class.
     */
   protected override def config: TypesafeConfig = {
-    DefaultConfig.instance.forClass(implicitly[ClassTag[CLASS]].runtimeClass)
+    DefaultConfig.instance.forClass(implicitly[ClassTag[T]].runtimeClass)
   }
 
 }

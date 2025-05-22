@@ -30,6 +30,7 @@ import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 import play.api.libs.json._
 
+import scala.collection.IndexedSeq
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -75,9 +76,15 @@ object JsonSerializers {
       val id = stringValue(json, ID)
       val content = stringValue(json, CONTENT)
       val color = stringValue(json, COLOR)
-      val position = fromJsonValidated[(Double, Double)](mustBeDefined(json, POSITION))
-      val dimension = fromJsonValidated[(Double, Double)](mustBeDefined(json, DIMENSION))
-      StickyNote(id, content, color, position, dimension)
+      val positionObject = mustBeDefined(json, POSITION)
+      var position = NodePositionJsonFormat.read(positionObject)
+      // For backward compatibility
+      if(positionObject.isInstanceOf[JsArray]) {
+        optionalValue(json, DIMENSION).map(fromJsonValidated[(Double, Double)]).foreach { case (width, height) =>
+          position = position.copy(width = Some(width.toInt), height = Some(height.toInt))
+        }
+      }
+      StickyNote(id, content, color, position)
     }
 
     override def write(stickyNote: StickyNote)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -85,8 +92,7 @@ object JsonSerializers {
         ID -> stickyNote.id,
         CONTENT -> stickyNote.content,
         COLOR -> stickyNote.color,
-        POSITION -> Json.toJson(stickyNote.position),
-        DIMENSION -> Json.toJson(stickyNote.dimension)
+        POSITION -> NodePositionJsonFormat.write(stickyNote.position)
       )
     }
   }
@@ -458,18 +464,46 @@ object JsonSerializers {
     }
   }
 
+  implicit object NodePositionJsonFormat extends JsonFormat[NodePosition] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): NodePosition = {
+      value match {
+        case node: JsObject =>
+          NodePosition(
+            x = numberValue(node , "x").toInt,
+            y = numberValue(node, "y").toInt,
+            width = numberValueOption(node, "width").map(_.toInt),
+            height = numberValueOption(node, "height").map(_.toInt)
+          )
+        case JsArray(IndexedSeq(JsNumber(x), JsNumber(y)))  =>
+          NodePosition(x.toInt, y.toInt)
+        case _ =>
+          throw JsonParseException("Invalid node position (must either be an array with two integers or an object): " + value)
+      }
+    }
+
+    override def write(value: NodePosition)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        "x" -> value.x,
+        "y" -> value.y,
+        "width" -> value.width,
+        "height" -> value.height
+      )
+    }
+  }
+
   /** Rule layout */
   implicit object RuleLayoutJsonFormat extends JsonFormat[RuleLayout] {
     final val NODE_POSITIONS = "nodePositions"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): RuleLayout = {
-      val nodePositions = JsonHelpers.fromJsonValidated[Map[String, (Int, Int)]](mustBeDefined(value, NODE_POSITIONS))
+      val nodePositions = objectValue(value, NODE_POSITIONS).value.view.mapValues(NodePositionJsonFormat.read).toMap
       RuleLayout(nodePositions)
     }
 
     override def write(value: RuleLayout)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        NODE_POSITIONS -> Json.toJson(value.nodePositions)
+        NODE_POSITIONS -> JsObject(value.nodePositions.view.mapValues(NodePositionJsonFormat.write).toSeq)
       )
     }
   }

@@ -17,6 +17,7 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
+import scala.collection.immutable.ArraySeq
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
@@ -168,7 +169,7 @@ object SearchApiModel {
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
       val tagLabels = task.tags().map(_.label)
-      val searchTags = task.searchTags(pluginContext.prefixes)
+      val searchTags = task.searchTags(pluginContext)
       val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels ++ searchTags
       matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
     }
@@ -181,8 +182,8 @@ object SearchApiModel {
       matchesSearchTerm(lowerCaseSearchTerms, id, label, description, "project")
     }
 
-    protected def extractSearchTerms(term: String): Array[String] = {
-      TextSearchUtils.extractSearchTerms(term)
+    protected def extractSearchTerms(term: String): Seq[String] = {
+      ArraySeq.unsafeWrapArray(TextSearchUtils.extractSearchTerms(term))
     }
 
     protected def matchesSearchTerm(lowerCaseSearchTerms: Iterable[String], searchIn: String*): Boolean = {
@@ -525,7 +526,7 @@ object SearchApiModel {
           PLUGIN_ID -> JsString(pd.id),
           PLUGIN_LABEL -> JsString(pd.label),
           TAGS -> Json.toJson(task.tags().map(FullTag.fromTag)),
-          SEARCH_TAGS -> Json.toJson(task.searchTags(task.project.config.prefixes))
+          SEARCH_TAGS -> Json.toJson(task.searchTags(PluginContext.fromProject(task.project)))
         )
           ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
           ++ parameters

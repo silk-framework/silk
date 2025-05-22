@@ -7,6 +7,7 @@ import {
     Icon,
     IconButton,
     Markdown,
+    MarkdownProps,
     MenuDivider,
     MenuItem,
     OverflowText,
@@ -17,10 +18,9 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
-    Tooltip,
+    TagList,
     markdownUtils,
 } from "@eccenca/gui-elements";
-import { PluggableList } from "unified";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
@@ -34,8 +34,9 @@ import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTaskTabsView } from "../projectTaskTabView/projectTaskTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import ProjectTags from "../ProjectTags/ProjectTags";
-import { SearchTags } from "./SearchTags";
+import { projectTagsRenderer } from "../ProjectTags/ProjectTags";
+import { searchTagsRenderer } from "./SearchTags";
+import { ArtefactTag } from "../ArtefactTag";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -134,7 +135,7 @@ export default function SearchItem({
 
     const projectOrDataset = item.type === "dataset" || item.type === "project";
     return (
-        <Card isOnlyLayout>
+        <Card isOnlyLayout className="diapp-searchitem">
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
@@ -161,7 +162,7 @@ export default function SearchItem({
                                             searchValue
                                                 ? ([
                                                       markdownUtils.highlightSearchWordsPluginFactory(searchValue),
-                                                  ] as PluggableList)
+                                                  ] as MarkdownProps["reHypePlugins"])
                                                 : undefined
                                         }
                                     >
@@ -174,7 +175,7 @@ export default function SearchItem({
                                             searchValue
                                                 ? ([
                                                       markdownUtils.highlightSearchWordsPluginFactory(searchValue),
-                                                  ] as PluggableList)
+                                                  ] as MarkdownProps["reHypePlugins"])
                                                 : undefined
                                         }
                                     >
@@ -184,17 +185,9 @@ export default function SearchItem({
                         </OverflowText>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        {item.pluginLabel && (
-                            <>
-                                <Tag>
-                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
-                                </Tag>
-                                {projectOrDataset && <Spacing vertical size="tiny" />}
-                            </>
-                        )}
-                        {projectOrDataset && (
-                            <>
-                                <Tag>
+                        <TagList>
+                            {projectOrDataset && (
+                                <ArtefactTag artefactType={`${item.type}Node`}>
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
@@ -202,31 +195,29 @@ export default function SearchItem({
                                         )}
                                         searchValue={searchValue}
                                     />
-                                </Tag>
-                            </>
-                        )}
-                        {item.type === DATA_TYPES.DATASET && item.readOnly && (
-                            <>
-                                <Spacing vertical size="tiny" />
+                                </ArtefactTag>
+                            )}
+                            {item.type === DATA_TYPES.DATASET && item.readOnly && (
                                 <Tag>
                                     <Icon name="state-locked" tooltipText={t("common.tooltips.dataset.readOnly")} />
                                 </Tag>
-                            </>
-                        )}
-                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                            <>
-                                <Spacing vertical size="tiny" />
+                            )}
+                            {item.pluginLabel && (
+                                <ArtefactTag artefactType={`${item.pluginLabel.toLowerCase()}Node`}>
+                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
+                                </ArtefactTag>
+                            )}
+                            {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                 <Tag emphasis="weak">
                                     <Highlighter
                                         label={item.projectLabel ? item.projectLabel : item.projectId}
                                         searchValue={searchValue}
                                     />
                                 </Tag>
-                            </>
-                        )}
-                        <Spacing vertical size="tiny" />
-                        <ProjectTags tags={item.tags} query={searchValue} />
-                        <SearchTags searchTags={item.searchTags} searchText={searchValue} />
+                            )}
+                            {projectTagsRenderer({ tags: item.tags, query: searchValue })}
+                            {searchTagsRenderer({ searchTags: item.searchTags, searchText: searchValue })}
+                        </TagList>
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>

@@ -16,10 +16,9 @@ import {
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { DatasetCharacteristics } from "../typings";
 import { ReactFlowHotkeyContext } from "@eccenca/gui-elements/src/cmem/react-flow/extensions/ReactFlowHotkeyContext";
-import { Notification } from "@eccenca/gui-elements";
+import { Notification, StickyNote } from "@eccenca/gui-elements";
 import { diErrorMessage } from "@ducks/error/typings";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
@@ -43,7 +42,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Save rule. If true is returned saving was successful, else it failed. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[],
+        stickyNotes: StickyNote[],
         originalRuleData: RULE_TYPE
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Fetch available rule operators. */
@@ -74,7 +73,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** parent configuration to extract stickyNote from taskData*/
-    getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
+    getStickyNotes?: (taskData: RULE_TYPE | undefined) => StickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly: boolean;
     /** When enabled the mini map is not displayed. */
@@ -226,7 +225,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
 
     const saveRuleOperatorNodes = async (
         ruleNodeOperators: IRuleOperatorNode[],
-        stickyNotes: IStickyNote[] = []
+        stickyNotes: StickyNote[] = []
     ): Promise<RuleSaveResult> => {
         if (taskData) {
             const result = await saveRule(ruleNodeOperators, stickyNotes, taskData);

@@ -51,7 +51,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
-    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
+    httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+json")
     setConnectionTimeouts(httpConnection)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
@@ -65,7 +65,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
         if (errorStream != null) {
-          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
+          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines().mkString("\n")
           throw new IOException(errorMessage, ex)
         } else {
           throw ex
@@ -110,7 +110,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
         if (errorStream != null) {
-          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
+          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines().mkString("\n")
           throw new IOException(errorMessage, ex)
         } else {
           throw ex

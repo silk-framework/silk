@@ -69,6 +69,11 @@ export function ProjectForm({ form, goBackOnEscape = () => {} }: IProps) {
                 name={DESCRIPTION}
                 mode="markdown"
                 onChange={onValueChange(DESCRIPTION)}
+                useToolbar
+                translate={(key) => {
+                    const translationKey = `Editor.markdown.toolbar.${key}`;
+                    return t(translationKey) as string;
+                }}
             />
         ),
         []

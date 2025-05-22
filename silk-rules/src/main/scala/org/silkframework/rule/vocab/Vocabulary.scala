@@ -1,13 +1,18 @@
 package org.silkframework.rule.vocab
 
-import java.util.logging.Logger
+import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint}
 
+import java.util.logging.Logger
 import org.silkframework.rule.vocab.GenericInfo.GenericInfoFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.Uri
 
 import scala.xml.{Node, Null}
 
-case class Vocabulary(info: GenericInfo, classes: Iterable[VocabularyClass], properties: Iterable[VocabularyProperty]) {
+case class Vocabulary(info: GenericInfo,
+                      classes: Iterable[VocabularyClass],
+                      properties: Iterable[VocabularyProperty],
+                      endpoint: Option[SparqlEndpoint with GraphStoreTrait] = None) {
 
   def getClass(uri: String): Option[VocabularyClass] = {
     classes.find(_.info.uri == uri)
@@ -32,7 +37,8 @@ object Vocabulary {
       Vocabulary(
         info = GenericInfoFormat.read((node \ INFO).head),
         classes = classes,
-        properties = properties
+        properties = properties,
+        endpoint = None
       )
     }
 
@@ -131,13 +137,21 @@ object PropertyType {
 
 case class VocabularyProperty(info: GenericInfo, propertyType: PropertyType, domain: Option[VocabularyClass], range: Option[VocabularyClass])
 
-case class GenericInfo(uri: String, label: Option[String] = None, description: Option[String] = None, altLabels: Seq[String] = Seq.empty) {
+case class GenericInfo(uri: String, label: Option[String] = None, description: Option[String] = None, altLabels: Seq[String] = Seq.empty, vocabularyUri: Option[String] = None) {
   def labelValue: String = {
     label.orElse(altLabels.headOption).getOrElse(uri)
   }
 }
 
 object GenericInfo {
+
+  /**
+   * Create a GenericInfo object from only a URI.
+   * Generates the label from the local name of the URI.
+   */
+  def fromUri(uri: Uri): GenericInfo = {
+    GenericInfo(uri.uri, uri.localName)
+  }
 
   implicit object GenericInfoFormat extends XmlFormat[GenericInfo] {
 

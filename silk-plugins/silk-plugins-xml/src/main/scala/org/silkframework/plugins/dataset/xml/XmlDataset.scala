@@ -69,9 +69,9 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
     }
   }
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new XmlSink(file, parsedOutputTemplate, maxDepth))
+  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new XmlSink(bulkWritableResource, parsedOutputTemplate, maxDepth))
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(file, parsedOutputTemplate, maxDepth)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(bulkWritableResource, parsedOutputTemplate, maxDepth)
 
   override def characteristics: DatasetCharacteristics = XmlDataset.characteristics
 }

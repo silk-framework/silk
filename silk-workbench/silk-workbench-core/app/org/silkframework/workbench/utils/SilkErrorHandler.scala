@@ -139,12 +139,6 @@ class SilkErrorHandler (env: Environment,
 
   private def handleError(requestPath: String, ex: Throwable): Result = {
     ex match {
-      case ex: NotAuthorizedException =>
-        ErrorResult(UNAUTHORIZED, "Unauthorized", ex.msg)
-      case ex: ForbiddenException =>
-        ErrorResult(FORBIDDEN, "Forbidden", ex.msg)
-      case ex: BadUserInputException =>
-        ErrorResult(BAD_REQUEST, "Bad request", ex.msg)
       case _: ExceptionSource if Option(ex.getCause).isDefined =>
         handleError(requestPath, ex.getCause)
       case executionException: ExecutionException =>

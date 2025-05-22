@@ -53,11 +53,12 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   PluginRegistry.registerPlugin(classOf[TestCustomTask])
   PluginRegistry.registerPlugin(classOf[FailingCustomTask])
 
-  def createWorkspaceProvider(): WorkspaceProvider
+  def createWorkspaceProvider(workspacePrefixes: Prefixes): WorkspaceProvider
 
   private def refreshTest(ex: => Unit)(implicit userContext: UserContext): Unit = withRefresh(PROJECT_NAME)(ex)
 
-  val workspaceProvider: WorkspaceProvider = createWorkspaceProvider()
+  private val workspacePrefix = "initialWorkspacePrefix"
+  val workspaceProvider: WorkspaceProvider = createWorkspaceProvider(Prefixes(Map(workspacePrefix -> "urn:initialPrefix:")))
 
   private val repository = InMemoryResourceRepository()
 
@@ -84,10 +85,10 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
       inverseLinkType = Some("http://www.w3.org/2002/07/owl#sameAsInv"),
       excludeSelfReferences = true,
       layout = RuleLayout(
-        nodePositions = Map("compareNames" -> (1, 2))
+        nodePositions = Map("compareNames" -> NodePosition(1, 2))
       ),
       uiAnnotations = UiAnnotations(
-        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", (0, 0), (1, 1)))
+        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", NodePosition(0, 0, 1, 1)))
       )
     )
 
@@ -131,7 +132,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                   DirectMapping(
                     id = TRANSFORM_ID,
                     sourcePath = UntypedPath("prop1"),
-                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description"))
+                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description")),
+                    inputId = Some("prop1")
                   ),
                   ComplexMapping(
                     id = "complexId",
@@ -147,9 +149,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     target = Some(MappingTarget(Uri("urn:complex:target"))),
                     layout = RuleLayout(
                       nodePositions = Map(
-                        "lower" -> (0, 1),
-                        "concat" -> (3, 4),
-                        "path" -> (5, 6)
+                        "lower" -> NodePosition(0, 1),
+                        "concat" -> NodePosition(3, 4, Some(250)),
+                        "path" -> NodePosition(5, 6, 250, 300)
                       )
                     ),
                     uiAnnotations = UiAnnotations(
@@ -158,8 +160,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                           id = "stickyId",
                           content = "test",
                           color = "#000",
-                          position = (12,23),
-                          dimension = (32, 32)
+                          NodePosition(12,23, 32, 32)
                         )
                       )
                     )
@@ -181,7 +182,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               MappingRules(DirectMapping(
                 id = TRANSFORM_ID + 2,
                 sourcePath = UntypedPath("prop5"),
-                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description"))
+                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description")),
+                inputId = Some("prop5")
               )),
             mappingTarget = transformTask.data.mappingRule.mappingTarget.copy(isAttribute = true),
             metaData = MetaData(Some("Root Rule New Label"), Some("Root Rule New Description"))
@@ -202,7 +204,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData(Some("type")))),
               propertyRules = Seq(
-                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name"))),
+                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name")), Some("name")),
                 ObjectMapping(
                   sourcePath = UntypedPath.empty,
                   target = Some(MappingTarget("address")),
@@ -210,8 +212,8 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
                     uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData(Some("uri")))),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
-                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city"))),
-                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")))
+                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city")), Some("city")),
+                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")), Some("city"))
                     )
                   ),
                   metaData = MetaData(Some("object"))
@@ -238,7 +240,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
             WorkflowDataset(Seq(None, Some(TRANSFORM_ID)), OUTPUTS_DATASET_ID, Seq(), (4,5), OUTPUTS_DATASET_ID, Some(0.5), Seq.empty , dependencyInputs = Seq.empty)
           ),
           uiAnnotations = UiAnnotations(
-            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
+            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", NodePosition(0, 0, 1, 1)))
           ),
           replaceableInputs = Seq(DATASET_ID),
           replaceableOutputs = Seq(OUTPUTS_DATASET_ID)
@@ -306,6 +308,39 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     checkCreationMetaData(project2.metaData, projectConfig2.copy(projectResourceUriOpt = Some(projectConfig2.generateDefaultUri)).metaData, emptyUserContext)
   }
 
+  it should "only persist project prefixes" in {
+    val projectWithPrefixes = "projectWithPrefixes"
+    val projectPrefix = "projectPrefix"
+    val externalPrefix = "externalPrefix"
+    val projectConfig = ProjectConfig(
+      projectWithPrefixes,
+      projectPrefixes = Prefixes(Map(
+        projectPrefix -> "urn:ofProject:"
+      )),
+      // Usually not done this way, should only be added by the workspace provider
+      workspacePrefixes = Prefixes(Map(
+        externalPrefix -> "urn:external:"
+      ))
+    )
+    projectConfig.prefixes.get(projectPrefix) shouldBe defined
+    projectConfig.prefixes.get(externalPrefix) shouldBe defined
+    // Only added when added to the workspace
+    projectConfig.prefixes.get(workspacePrefix) should not be defined
+    val project = workspace.createProject(projectConfig)(emptyUserContext)
+    project.config.prefixes.get(projectPrefix) shouldBe defined
+    project.config.prefixes.get(externalPrefix) should not be defined
+    project.config.prefixes.get(workspacePrefix) shouldBe defined
+    project.config.projectPrefixes.get(workspacePrefix) should not be defined
+    workspaceProvider.putProject(project.config)(emptyUserContext)
+    refreshProject(projectWithPrefixes)(emptyUserContext)
+    val projectAfterRefresh = workspace.project(projectWithPrefixes)(emptyUserContext)
+    projectAfterRefresh.config.prefixes.get(projectPrefix) shouldBe defined
+    projectAfterRefresh.config.prefixes.get(externalPrefix) should not be defined
+    projectAfterRefresh.config.prefixes.get(workspacePrefix) shouldBe defined
+    // workspace prefixes should never make it into the project serialization and thus into the project prefixes
+    projectAfterRefresh.config.projectPrefixes.get(workspacePrefix) should not be defined
+  }
+
   it should "read and write project meta data" in {
     implicit val us: UserContext = specificUserContext2
     Thread.sleep(2) // Wait shortly, so modified time is different than creation time
@@ -314,7 +349,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     val newMetaData = MetaData(projectLabel, description = projectDescription)
     val originalMetaData = project.config.metaData
     project.updateMetaData(newMetaData)
+    println(project.config.metaData)
     refreshTest {
+      println(project.config.metaData)
       checkUpdateMetaData(project.config.metaData, originalMetaData.copy(label = projectLabel, description = projectDescription), specificUserContext, specificUserContext2)
     }
   }
@@ -513,19 +550,19 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
   it should "delete projects" in {
     implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
-    workspaceProvider.readProjects().size shouldBe 2
+    workspaceProvider.readProjects().size shouldBe 3
     workspace.removeProject(PROJECT_NAME)
 //    workspaceProvider.deleteProject(PROJECT_NAME)
     refreshTest {
-      workspaceProvider.readProjects().size shouldBe 1
+      workspaceProvider.readProjects().size shouldBe 2
     }
   }
 
   it should "manage project resources separately and correctly" in {
     implicit val us: UserContext = emptyUserContext
-    workspaceProvider.readProjects().size shouldBe 1
-    createProject(PROJECT_NAME)
     workspaceProvider.readProjects().size shouldBe 2
+    createProject(PROJECT_NAME)
+    workspaceProvider.readProjects().size shouldBe 3
     val res1 = repository.get(PROJECT_NAME)
     val res2 = repository.get(PROJECT_NAME_OTHER)
     res1 should not be theSameInstanceAs (res2)
@@ -547,13 +584,13 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     val project = projectOpt.get
     project.prefixes.prefixMap.get(NEW_PREFIX) should not be defined
     // Add new prefix
-    workspaceProvider.putProject(project.copy(prefixes = project.prefixes ++ Map(NEW_PREFIX -> "http://new_prefix")))
+    workspaceProvider.putProject(project.copy(projectPrefixes = project.projectPrefixes ++ Map(NEW_PREFIX -> "http://new_prefix")))
     val updatedProjectOpt = getProject(PROJECT_NAME)
     updatedProjectOpt shouldBe defined
     val updatedProject = updatedProjectOpt.get
     updatedProject.prefixes.prefixMap.get(NEW_PREFIX) shouldBe Some("http://new_prefix")
     // Change existing prefix
-    workspaceProvider.putProject(project.copy(prefixes = project.prefixes ++ Map(NEW_PREFIX -> "http://new_prefix_updated")))
+    workspaceProvider.putProject(project.copy(projectPrefixes = project.projectPrefixes ++ Map(NEW_PREFIX -> "http://new_prefix_updated")))
     val updatedProjectOpt2 = getProject(PROJECT_NAME)
     updatedProjectOpt2 shouldBe defined
     val updatedProject2 = updatedProjectOpt2.get
@@ -621,7 +658,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     val templateVariables1 = TemplateVariables(Seq(
       TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project"),
       TemplateVariable("myVar2", "myValue2", None, Some("test description"), isSensitive = true, "project"),
-      TemplateVariable("myVar3", "myValue3", None, None, isSensitive = true, "project")
+      TemplateVariable("myVar3", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, "project")
     ))
     variables.putVariables(templateVariables1)
     refreshTest {
@@ -631,7 +668,7 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     // Modify variables and read again
     val templateVariables2 = TemplateVariables(Seq(
       TemplateVariable("myVar2", "myValue2", None, Some("test description 2"), isSensitive = true, "project"),
-      TemplateVariable("myVar4", "myValue4", None, None, isSensitive = true, "project"),
+      TemplateVariable("myVar4", "myValue2b", Some("{{project.myVar2}}b"), None, isSensitive = true, "project"),
       TemplateVariable("myVar1", "myValue1", None, None, isSensitive = false, "project")
     ))
     variables.putVariables(templateVariables2)
@@ -711,6 +748,9 @@ trait WorkspaceProviderTestTrait extends AnyFlatSpec with Matchers with MockitoS
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
   private def refreshProject(projectName: String)(implicit userContext: UserContext): Unit = {
     workspaceProvider.refreshProject(projectName, repository.get(projectName))
+    if(workspace.findProject(projectName).isDefined) {
+      workspace.reloadProject(projectName)
+    }
   }
 }
 

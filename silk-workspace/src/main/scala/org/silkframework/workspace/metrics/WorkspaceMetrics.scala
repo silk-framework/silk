@@ -26,14 +26,14 @@ class WorkspaceMetrics(prefix: String,
   }
 
   private def workspaceProjectSize(registry: MeterRegistry): Unit = {
-    Gauge.builder(s"$prefix.workspace.project.size", () => Try(projectProvider().size).getOrElse(0).toDouble)
-      .description("Workspace project size")
+    Gauge.builder(s"$prefix.workspace.project.count", () => Try(projectProvider().size).getOrElse(0).toDouble)
+      .description("Workspace project count")
       .register(registry)
   }
 
   private def workspaceTaskSize(registry: MeterRegistry): Unit = {
-    Gauge.builder(s"$prefix.workspace.task.size", () => Try(tasksProvider().size).getOrElse(0).toDouble)
-      .description("Workspace task size")
+    Gauge.builder(s"$prefix.workspace.task.count", () => Try(tasksProvider().size).getOrElse(0).toDouble)
+      .description("Workspace task count")
       .register(registry)
   }
 
@@ -46,12 +46,11 @@ class WorkspaceMetrics(prefix: String,
     def customTasks: Seq[ProjectTask[CustomTask]] = projects.flatMap(_.tasks[CustomTask])
     def workflowTasks: Seq[ProjectTask[Workflow]] = projects.flatMap(_.tasks[Workflow])
 
-    def gauge[TaskType <: TaskSpec](taskProvider: () => Seq[ProjectTask[TaskType]], specification: String): Unit = {
-      Gauge.builder(s"$prefix.workspace.task.spec.size", () => taskProvider().size)
-        .description("Workspace task size, per task specification")
-        .tags("spec", specification)
+    def gauge[TaskType <: TaskSpec](taskProvider: () => Seq[ProjectTask[TaskType]], taskType: String): Unit =
+      Gauge.builder(s"$prefix.workspace.task.type.count", () => taskProvider().size)
+        .description("Workspace task count, per task type")
+        .tags("type", taskType)
         .register(registry)
-    }
 
     gauge(() => transformTasks, "Transform")
     gauge(() => datasetTasks, "Dataset")

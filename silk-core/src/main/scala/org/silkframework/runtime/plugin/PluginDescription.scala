@@ -2,6 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 
@@ -40,6 +41,9 @@ trait PluginDescription[+T] {
 
   /** The plugin icon as Data URL string. If the string is empty, a generic icon is used. */
   val icon: Option[String]
+
+  /** The actions that can be performed on this plugin. */
+  val actions: Map[String, PluginAction]
 
   /** Custom plugin descriptions */
   lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescription.generate(pluginClass))
@@ -135,7 +139,15 @@ trait PluginDescription[+T] {
             throw new InvalidPluginParameterValueException(s"Got '$strValue', but expected: ${stringParam.description.stripSuffix(".")}. Details: ${ex.getMessage}", ex)
         }
       case template: ParameterTemplateValue =>
-        val evaluatedValue = template.evaluate(context.templateVariables.all)
+        // Only password parameters are allowed to resolve sensitive variables
+        val templateVariables =
+          if(stringParam.name == PasswordParameterType.name) {
+            context.templateVariables.all
+          } else {
+            context.templateVariables.all.withoutSensitiveVariables()
+          }
+        // Evaluate template
+        val evaluatedValue = template.evaluate(templateVariables)
         try {
           stringParam.fromString(evaluatedValue).asInstanceOf[AnyRef]
         } catch {
@@ -172,8 +184,8 @@ trait PluginDescription[+T] {
 object PluginDescription {
 
   /** Returns a plugin description for a given task. */
-  def forTask(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
-    task.data match {
+  def forTask(task: TaskSpec): PluginDescription[_] = {
+    task match {
       case plugin: AnyPlugin => plugin.pluginSpec
       case DatasetSpec(plugin, _, _) => plugin.pluginSpec
       case _ => throw new IllegalArgumentException(s"Provided task $task is not a plugin.")

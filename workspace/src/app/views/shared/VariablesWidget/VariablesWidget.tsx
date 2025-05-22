@@ -140,13 +140,10 @@ const VariablesWidget: React.FC<VariableWidgetProps> = ({ projectId, taskId }) =
                 }
             } catch (err) {
                 if (err && (err as FetchError).isFetchError) {
-                    const errorNotification = registerError(
-                        "VariableWidgetError",
-                        err.body.title,
-                        err,
-                        "VariablesWidget",
-                        () => setErrorNotification(null)
-                    );
+                    const errorNotification = registerError("VariableWidgetError", err.body.title, err, {
+                        errorNotificationInstanceId: "VariablesWidget",
+                        onDismiss: () => setErrorNotification(null),
+                    });
                     setErrorNotification(errorNotification);
                 }
             } finally {

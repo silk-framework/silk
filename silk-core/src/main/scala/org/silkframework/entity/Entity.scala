@@ -211,8 +211,8 @@ case class Entity(
   }
 
   override def toString: String = failure match{
-    case Some(f) => uri + " failed with: " + f.getMessage
-    case None => uri + "{\n  " + values + "\n}"
+    case Some(f) => s"$uri failed with: ${f.getMessage}"
+    case None => s"$uri {\n${values.mkString(", ")}\n}"
   }
 
 
@@ -289,7 +289,7 @@ object Entity {
     */
   object EntitySerializer {
 
-    def serialize(entity: Entity, stream: DataOutput) {
+    def serialize(entity: Entity, stream: DataOutput): Unit = {
       writeString(stream, entity.uri)
       for (valueSet <- entity.values) {
         stream.writeInt(valueSet.size)
