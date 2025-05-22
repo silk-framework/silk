@@ -96,6 +96,7 @@ export const RuleParameterInput = ({
         autoComplete
     ) => ({
         projectId: ruleEditorContext.projectId,
+        taskId: ruleEditorContext.editedItemId!,
         paramId: ruleParameter.parameterId,
         pluginId: pluginId,
         onChange: inputAttributes.onChange,
@@ -113,6 +114,7 @@ export const RuleParameterInput = ({
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
         defaultValue: parameterDefaultValue,
+        partialAutoCompletion: ruleEditorContext.partialAutoCompletion,
     });
 
     if (

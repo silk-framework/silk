@@ -4,8 +4,9 @@ import {
 } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { Button, IconButton, MenuItem, Select } from "@eccenca/gui-elements";
+import { Button, CodeAutocompleteField, IconButton, MenuItem, Select } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
 
 /** Language filter related properties. */
 export interface LanguageFilterProps {
@@ -194,7 +195,29 @@ export const PathInputOperator = ({
         setActiveProps(newProps);
     }
 
-    return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
+    const autoCompletionInput = React.useMemo(() => {
+        const inputType = activeProps.pluginId.replace("PathInput", "") as "source" | "target";
+        const fetchSuggestion =
+            (activeProps.partialAutoCompletion && activeProps.partialAutoCompletion(inputType)) ||
+            (async () => undefined);
+        return (
+            <CodeAutocompleteField
+                {...overwrittenProps.inputProps}
+                initialValue={activeProps.initialValue?.value ?? ""}
+                onChange={(value) => activeProps.onChange({ value })}
+                fetchSuggestions={fetchSuggestion}
+                placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
+                checkInput={(value) => checkValuePathValidity(value, activeProps.projectId)}
+                validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
+                autoCompletionRequestDelay={500}
+                validationRequestDelay={250}
+            />
+        );
+    }, [activeProps, languageFilter, showLanguageFilterButton]);
+
+    return autoCompletionInput;
+
+    // return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
 };
 
 const languageFilterExpression = (lang: string | undefined) => {

@@ -21,6 +21,7 @@ import {parseErrorCauseMsg} from "../../../ApplicationNotifications/Notification
 import {CLASSPREFIX as eccguiprefix} from "@eccenca/gui-elements/src/configuration/constants";
 import {RegisterForExternalChangesFn} from "./InputMapper";
 import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -57,6 +58,13 @@ export interface ParameterAutoCompletionProps {
      * Props to spread to the underlying input field. This is BlueprintJs specific.
      */
     inputProps?: Omit<SuggestFieldProps<StringOrReifiedValue, IAutocompleteDefaultResponse>["inputProps"], "onChange" | "name" | "id" | "intent" | "readonly" >;
+    /**
+     * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
+     * without replacing the complete path.
+     */
+    partialAutoCompletion?: (
+        inputType: "source" | "target"
+    ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
 type StringOrReifiedValue = IAutocompleteDefaultResponse | string;
