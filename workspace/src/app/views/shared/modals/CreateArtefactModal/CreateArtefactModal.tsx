@@ -146,7 +146,7 @@ export function CreateArtefactModal() {
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const externalParameterUpdateMap = React.useRef(
-        new Map<string, (value: { value: string; label?: string }) => any>()
+        new Map<string, (value: { value: string; label?: string }) => any>(),
     );
     const templateParameters = React.useRef(new Set<string>());
 
@@ -211,7 +211,7 @@ export function CreateArtefactModal() {
                     registerError(
                         "CreateArtefactModal-fetch-project-meta-data",
                         "Could not fetch project information",
-                        e
+                        e,
                     );
                 }
             })();
@@ -236,7 +236,7 @@ export function CreateArtefactModal() {
                 dispatch(
                     commonOp.fetchArtefactsListAsync({
                         textQuery: searchValue,
-                    })
+                    }),
                 );
             });
         } else {
@@ -260,7 +260,7 @@ export function CreateArtefactModal() {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery,
-                })
+                }),
             );
         }
     };
@@ -310,12 +310,12 @@ export function CreateArtefactModal() {
             if (selectedArtefact) {
                 const artefactDocumentation: ArtefactDocumentation = pluginOverviewToArtefactDocumentation(
                     selectedArtefact,
-                    PARAMETER_DOC_PREFIX + parameterId
+                    PARAMETER_DOC_PREFIX + parameterId,
                 );
                 showEnhancedDescription(artefactDocumentation);
             }
         },
-        [selectedArtefact]
+        [selectedArtefact],
     );
 
     const handleEnter = (e) => {
@@ -339,7 +339,7 @@ export function CreateArtefactModal() {
                 return (cachedArtefactProperties[artefactId] as IPluginDetails).taskType;
             }
         },
-        [cachedArtefactProperties]
+        [cachedArtefactProperties],
     );
 
     const handleCreate = React.useCallback(
@@ -369,8 +369,8 @@ export function CreateArtefactModal() {
                                 formValues,
                                 dataParameters,
                                 templateParameters.current,
-                                updateExistingTask?.alternativeUpdateFunction
-                            )
+                                updateExistingTask?.alternativeUpdateFunction,
+                            ),
                         );
                         updateExistingTask.successHandler?.({
                             projectId: updateExistingTask.projectId,
@@ -384,8 +384,8 @@ export function CreateArtefactModal() {
                                 type,
                                 dataParameters,
                                 templateParameters.current,
-                                newTaskPreConfiguration?.alternativeCallback
-                            )
+                                newTaskPreConfiguration?.alternativeCallback,
+                            ),
                         );
                         setSearchValue("");
                     }
@@ -403,13 +403,13 @@ export function CreateArtefactModal() {
                 registerError(
                     "CreateArtefactModal.handleCreate",
                     `Could not ${updateExistingTask ? "update" : "create"} task.`,
-                    error
+                    error,
                 );
             } finally {
                 setActionLoading(false);
             }
         },
-        [form, updateExistingTask, taskType]
+        [form, updateExistingTask, taskType],
     );
 
     const closeModal = () => {
@@ -525,7 +525,7 @@ export function CreateArtefactModal() {
                                     name="item-edit"
                                     text={t(
                                         "CreateModal.projectContext.changeProjectButton",
-                                        "Select a different project"
+                                        "Select a different project",
                                     )}
                                     onClick={() => setShowProjectSelection(true)}
                                 />
@@ -561,7 +561,7 @@ export function CreateArtefactModal() {
         (paramId: string, handleUpdates: (value: { value: string; label?: string }) => any) => {
             externalParameterUpdateMap.current.set(paramId, handleUpdates);
         },
-        []
+        [],
     );
 
     const propagateExternallyChangedParameterValue = React.useCallback((fullParamId: string, value: string) => {
@@ -630,7 +630,7 @@ export function CreateArtefactModal() {
                             goBackOnEscape={handleBack}
                             newTaskPreConfiguration={updatedNewTaskPreConfiguration}
                             propagateExternallyChangedParameterValue={propagateExternallyChangedParameterValue}
-                        />
+                        />,
                     );
                 }
             }
@@ -648,7 +648,7 @@ export function CreateArtefactModal() {
         .filter(
             (artefact) =>
                 selectedDType === "all" ||
-                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
+                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType),
         )
         .sort((a, b) => a.title!.localeCompare(b.title!));
     const removeProjectCategoryAndItem = newTaskPreConfiguration && !newTaskPreConfiguration.showProjectItem;
@@ -659,7 +659,7 @@ export function CreateArtefactModal() {
                 title: uppercaseFirstChar(t("common.dataTypes.project")),
                 description: t(
                     "common.dataTypes.projectDesc",
-                    "Projects let you group related items. All items that depend on each other need to be in the same project."
+                    "Projects let you group related items. All items that depend on each other need to be in the same project.",
                 ),
             },
             ...artefactListWithProject,
@@ -700,7 +700,7 @@ export function CreateArtefactModal() {
             resetModalError();
             const { parameters, variableTemplateParameters } = commonOp.splitParameterAndVariableTemplateParameters(
                 form.getValues(),
-                templateParameters.current
+                templateParameters.current,
             );
             const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
             const variableTemplateData = commonOp.buildNestedTaskParameterObject(variableTemplateParameters);
@@ -752,13 +752,13 @@ export function CreateArtefactModal() {
                 onClick={() =>
                     handleAutoConfigure(
                         projectId ?? currentProject!.id,
-                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId
+                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId,
                     )
                 }
                 loading={autoConfigPending}
             >
                 {t("CreateModal.autoConfigButton")}
-            </Button>
+            </Button>,
         );
     }
 
@@ -776,7 +776,7 @@ export function CreateArtefactModal() {
                         const { parameters, variableTemplateParameters } =
                             commonOp.splitParameterAndVariableTemplateParameters(
                                 formValues,
-                                templateParameters.current
+                                templateParameters.current,
                             );
                         const parameterData = commonOp.buildNestedTaskParameterObject(parameters);
                         const variableTemplateData =
@@ -840,7 +840,7 @@ export function CreateArtefactModal() {
                         {action.label}
                     </Button>
                 );
-            })
+            }),
         );
     }
 
@@ -873,10 +873,10 @@ export function CreateArtefactModal() {
                 onClick={(e) =>
                     handleShowEnhancedDescriptionClickHandler(
                         e,
-                        pluginOverviewToArtefactDocumentation(selectedArtefact)
+                        pluginOverviewToArtefactDocumentation(selectedArtefact),
                     )
                 }
-            />
+            />,
         );
     }
 
@@ -904,7 +904,7 @@ export function CreateArtefactModal() {
                 onDismiss={resetModalError}
                 message={taskLoadingError || error.errorMessage || actionFailed()}
                 danger
-            />
+            />,
         );
     }
 
@@ -930,7 +930,7 @@ export function CreateArtefactModal() {
                         {t("ProjectImportModal.restoreStarter", "Import project file")}
                     </Button>,
                 ]}
-            />
+            />,
         );
     }
     const submitEnabled = !!isCreationUpdateDialog && !isErrorPresented();
@@ -972,7 +972,7 @@ export function CreateArtefactModal() {
                         }}
                     />,
                 ]}
-            />
+            />,
         );
     }
 
@@ -991,8 +991,8 @@ export function CreateArtefactModal() {
                               })`,
                           })
                     : selectedArtefactTitle
-                    ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
-                    : t("CreateModal.createTitleGeneric")
+                      ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
+                      : t("CreateModal.createTitleGeneric")
             }
             headerOptions={headerOptions}
             onClose={closeModal}
@@ -1154,8 +1154,8 @@ export function CreateArtefactModal() {
                                                                             handleShowEnhancedDescriptionClickHandler(
                                                                                 e,
                                                                                 pluginOverviewToArtefactDocumentation(
-                                                                                    artefact
-                                                                                )
+                                                                                    artefact,
+                                                                                ),
                                                                             );
                                                                         }}
                                                                     />
@@ -1200,7 +1200,7 @@ export function CreateArtefactModal() {
 
 const pluginOverviewToArtefactDocumentation = (
     pluginOverview: IPluginOverview,
-    namedAnchor?: string
+    namedAnchor?: string,
 ): ArtefactDocumentation => {
     return {
         key: pluginOverview.key,

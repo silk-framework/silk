@@ -34,7 +34,7 @@ export const handleCustomIdValidation = debounce(
         form: any,
         registerError: ErrorHandlerRegisterFuncType,
         customId: string,
-        projectId?: string
+        projectId?: string,
     ) => {
         if (!customId) return form.clearError(IDENTIFIER);
         try {
@@ -54,7 +54,7 @@ export const handleCustomIdValidation = debounce(
             }
         }
     },
-    200
+    200,
 );
 
 const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProps) => {

@@ -135,7 +135,12 @@
         "moduleNameMapper": {
             "^react-native$": "react-native-web",
             "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-            "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
+            "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1",
+            "^devlop$": "devlop/lib/default.js",
+            "^unist-util-visit-parents/do-not-use-color$": "unist-util-visit-parents/lib/color.js",
+            "^vfile/do-not-use-conditional-minpath$": "vfile/lib/minpath.browser.js",
+            "^vfile/do-not-use-conditional-minproc$": "vfile/lib/minproc.browser.js",
+            "^vfile/do-not-use-conditional-minurl$": "vfile/lib/minurl.browser.js"
         },
         "moduleFileExtensions": [
             "web.js",
