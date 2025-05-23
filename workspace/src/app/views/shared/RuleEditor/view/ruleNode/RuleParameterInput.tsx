@@ -123,12 +123,11 @@ export const RuleParameterInput = ({
         ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")
     ) {
-        const sizeParameters = large ? undefined : { height: "100px", multiline: true };
+        const sizeParameters = large ? undefined : { height: "100px" };
         if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
             return (
                 <CodeAutocompleteField
                     mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
-                    label={inputAttributes.name}
                     initialValue={inputAttributes.defaultValue ?? ""}
                     onChange={inputAttributes.onChange}
                     fetchSuggestions={async (inputString, cursorPosition) =>
@@ -143,6 +142,7 @@ export const RuleParameterInput = ({
                     readOnly={inputAttributes.readOnly}
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}
+                    multiline
                     {...sizeParameters}
                 />
             );
@@ -163,8 +163,8 @@ export const RuleParameterInput = ({
                     }
                     readOnly={inputAttributes.readOnly}
                     autoCompletionRequestDelay={500}
+                    multiline
                     validationRequestDelay={250}
-                    {...sizeParameters}
                 />
             );
         }
