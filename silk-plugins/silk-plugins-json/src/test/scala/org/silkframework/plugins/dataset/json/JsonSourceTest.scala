@@ -3,20 +3,16 @@ package org.silkframework.plugins.dataset.json
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity._
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource._
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
 
-abstract class JsonSourceTest extends AnyFlatSpec with Matchers {
-
-  implicit val userContext: UserContext = UserContext.Empty
-  implicit val prefixes: Prefixes = Prefixes.empty
+abstract class JsonSourceTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
 
   protected val resources: ResourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
 

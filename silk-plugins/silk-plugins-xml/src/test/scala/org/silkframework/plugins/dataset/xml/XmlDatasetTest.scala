@@ -3,11 +3,9 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.types.MultilineStringParameter
+import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.ValidationException
 
@@ -15,11 +13,9 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, Output
 import java.time.Instant
 import scala.util.Try
 
-class XmlDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
+class XmlDatasetTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
 
   behavior of "XML dataset"
-
-  implicit private val prefixes: Prefixes = Prefixes.empty
 
   it should "only accept valid output templates" in {
     // Should not throw exception

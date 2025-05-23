@@ -1,13 +1,12 @@
 package org.silkframework.plugins.dataset.json
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonParser}
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
@@ -31,7 +30,7 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     val entities = nodes().flatMap { node =>
       logger.log(Level.FINE, "Retrieving data from JSON.")
       val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node)
@@ -49,7 +48,7 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if (entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {

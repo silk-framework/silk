@@ -8,6 +8,7 @@ import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.execution.{EntityHolder, ExecutionException}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.{CloseableIterator, RepeatedIterator}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
@@ -86,12 +87,12 @@ class BulkDataSource(bulkContainerName: String,
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     GenericEntityTable(new BulkEntitiesIterator(entitySchema, limit), entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     val sourceIterator =
       sources().map { dataSource =>
         handleSourceError(dataSource) { source =>
@@ -109,7 +110,7 @@ class BulkDataSource(bulkContainerName: String,
     * Iterates through all entities of all sources.
     */
   private class BulkEntitiesIterator(entitySchema: EntitySchema, limit: Option[Int])
-                                    (implicit userContext: UserContext, prefixes: Prefixes) extends CloseableIterator[Entity] {
+                                    (implicit context: PluginContext) extends CloseableIterator[Entity] {
 
     private val sourceIterator = sources()
 

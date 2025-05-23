@@ -7,6 +7,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -15,7 +16,7 @@ import org.silkframework.util.Uri
   */
 case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: CloseableIterator[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
   override def retrieve(requestSchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     if(requestSchema.typeUri != entitySchema.typeUri) {
       throw new ValidationException("Type URI '" + requestSchema.typeUri.toString + "' not available!")
     } else {
@@ -42,7 +43,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder= {
+                            (implicit context: PluginContext): EntityHolder= {
     throw new RuntimeException("Retrieve by URI is not supported!")
   }
 

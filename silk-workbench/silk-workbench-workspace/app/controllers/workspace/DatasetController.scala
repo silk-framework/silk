@@ -58,7 +58,8 @@ class DatasetController @Inject() (implicit workspaceReact: WorkspaceReact) exte
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val source = context.task.data.source
-    implicit val prefixes: Prefixes = context.project.config.prefixes
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(context.project)
+    implicit val prefixes: Prefixes = pluginContext.prefixes
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq

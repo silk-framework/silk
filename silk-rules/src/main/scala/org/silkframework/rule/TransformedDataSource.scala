@@ -9,6 +9,7 @@ import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
 /**
@@ -50,7 +51,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
+    implicit val prefixes: Prefixes = context.prefixes
     val sourceEntities = source.retrieve(inputSchema, limit).entities
     val taskContext = new ActivityMonitor[TransformReport](task.id, None)
     val reportBuilder = new TransformReportBuilder(task, taskContext)
@@ -67,7 +69,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {

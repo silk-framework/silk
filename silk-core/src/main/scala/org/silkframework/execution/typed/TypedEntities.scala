@@ -52,4 +52,15 @@ class TypedEntities[EntityType, TaskType <: TaskSpec](val typedEntities: Closeab
       new GenericEntityTable(newEntities, newSchema, task)
     }
   }
+
+  /**
+   * Returns a copy of this collection that contains user-provided typed entities.
+   */
+  def updateTypedEntities(newEntities: CloseableIterator[EntityType]): LocalEntities = {
+    new TypedEntities[EntityType, TaskType](
+      typedEntities = newEntities,
+      typedEntitySchema = typedEntitySchema,
+      task = task
+    )
+  }
 }

@@ -29,8 +29,9 @@ case class ExecuteTransformFactory(@Param("Limits the maximum number of entities
         (userContext: UserContext) => task.dataSource(userContext),
         (userContext: UserContext) => new CombinedEntitySink(task.entitySink(userContext).toSeq),
         (userContext: UserContext) => task.errorEntitySink(userContext),
+        (userContext: UserContext) => PluginContext.fromProject(task.project)(userContext),
         limit
-      )(task.project.config.prefixes, task.project.combinedTemplateVariables)
+      )
     }
   }
 }

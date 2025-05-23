@@ -1,12 +1,12 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
@@ -182,7 +182,7 @@ class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
     if (entityUris.isEmpty) {
       Map.empty
     } else {
-      implicit val prefixes: Prefixes = task.project.config.prefixes
+      implicit val context: PluginContext = PluginContext.fromProject(task.project)
       var entities = Map[String, Entity]()
       for(uris <- entityUris.grouped(maxEntitiesPerQuery)) {
         val loadedEntities = source.retrieveByUri(entityDesc, uris map Uri.apply)

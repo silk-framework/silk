@@ -8,6 +8,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.BufferingIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -91,7 +92,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }

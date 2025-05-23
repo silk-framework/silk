@@ -1,20 +1,19 @@
 package org.silkframework.dataset
 
 
-import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.config.PlainTask
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.util.Uri
 
 class EntityDatasourceTest extends AnyFlatSpec with Matchers {
   behavior of "Entity Data Source"
 
-  implicit val userContext: UserContext = UserContext.Empty
-  implicit val prefixes: Prefixes = Prefixes.empty
+  implicit val pluginContext: PluginContext = TestPluginContext()
 
   val alibiTask = PlainTask("alibi", DatasetSpec(EmptyDataset))
   val typeUri = Uri("http://entity.com/type1")

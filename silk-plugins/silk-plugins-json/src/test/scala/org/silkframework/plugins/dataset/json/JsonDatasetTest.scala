@@ -6,11 +6,11 @@ import org.scalatest.matchers.should.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, Resource, ResourceLoader, ResourceTooLargeException}
 import org.silkframework.util.{ConfigTestTrait, Uri}
 
-class JsonDatasetTest extends AnyFlatSpec with Matchers with TestUserContextTrait {
+class JsonDatasetTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
 
   behavior of "JSON dataset"
 

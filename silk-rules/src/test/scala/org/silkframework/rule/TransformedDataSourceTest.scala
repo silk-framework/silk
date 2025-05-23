@@ -1,20 +1,18 @@
 package org.silkframework.rule
-
+
+
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.csv.CsvDataset
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{TestPluginContextTrait, UserContext}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
 import org.silkframework.util.Uri
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
 
-class TransformedDataSourceTest extends AnyFlatSpec with Matchers {
+class TransformedDataSourceTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
   behavior of "Transformed Data Source"
-
-  implicit val userContext: UserContext = UserContext.Empty
-  implicit val prefixes: Prefixes = Prefixes.empty
 
   val inMemoryResource: WritableResource = {
     val manager = InMemoryResourceManager()

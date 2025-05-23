@@ -1,20 +1,20 @@
 package org.silkframework.rule
 
 
-import org.silkframework.config.{PlainTask, Prefixes}
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.PlainTask
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.execution.local.MultipleValuesException
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Uri
 import play.api.libs.json.{JsArray, JsNumber, JsValue, Json}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.should.Matchers
-import org.silkframework.dataset.DatasetSpec
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
 
 /**
   * Tests if transformations check the isAttribute/singleEntity flag.
@@ -83,8 +83,6 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
     * Executes a rule and makes sure that the output equals the provided input.
     */
   private def executeTransform(inputJson: JsValue, rule: RootMappingRule, expectFailure: Boolean): Unit = {
-    implicit val prefixes: Prefixes = Prefixes.empty
-    implicit val variables: TemplateVariablesReader = GlobalTemplateVariables
     val resources = InMemoryResourceManager()
 
     // Input dataset
@@ -99,7 +97,13 @@ class TransformSingleEntityFlagTest extends AnyFlatSpec with Matchers {
 
     // Execute transform
     val transformTask = PlainTask("transformTask", TransformSpec(selection = DatasetSelection(inputId = "test"), mappingRule = rule))
-    val execute = new ExecuteTransform(transformTask, user => inputTask, user => inputDataset.source(user), user => outputDataset.entitySink(user))
+    val execute = new ExecuteTransform(
+      task = transformTask,
+      inputTask = _ => inputTask,
+      input = user => inputDataset.source(user),
+      output = user => outputDataset.entitySink(user),
+      pluginContext = _ => PluginContext.empty
+    )
 
     try {
       Activity(execute).startBlocking()(UserContext.Empty)

@@ -1,23 +1,21 @@
 package org.silkframework.plugins.dataset.xml
-
+
+
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.CoveragePathInput
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.TestPluginContextTrait
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 
 /**
   * Tests for XmlSource
   */
-class XmlSourceCoverageTest extends AnyFlatSpec with Matchers {
+class XmlSourceCoverageTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
   behavior of "XML Source"
-
-  implicit val userContext: UserContext = UserContext.Empty
-  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "return 0% mapping coverage if there is no mapping" in {
     val source = xmlSource

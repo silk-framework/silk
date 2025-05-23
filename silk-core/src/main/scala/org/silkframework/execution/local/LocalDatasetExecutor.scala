@@ -53,13 +53,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): TypedEntities[FileEntity, TaskSpec] = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])
+                                               (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
+            implicit val executionReport: ExecutionReportUpdater = ReadFilesReportUpdater(dataset, context)
+            implicit val prefixes: Prefixes = pluginContext.prefixes
             val fileEntity = FileEntity(ReadOnlyResource(dsr.file), FileType.Project, dsr.mimeType)
-            FileEntitySchema.create(CloseableIterator.single(fileEntity), dataset)
+            val fileEntities = FileEntitySchema.create(CloseableIterator.single(fileEntity), dataset)
+            ReportingIterator.addReporter(fileEntities)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -70,8 +74,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport])= {
+                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport])= {
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
+    implicit val prefixes: Prefixes = pluginContext.prefixes
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
       entities = ReportingIterator(table.entities),
@@ -413,6 +418,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def operationLabel: Option[String] = Some("read")
+    override def entityProcessVerb: String = "read"
+  }
+
+  private case class ReadFilesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+    override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }
