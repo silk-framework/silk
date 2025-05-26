@@ -117,6 +117,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setInteractive = useStoreActions((a) => a.setInteractive);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
+    // Stores the language filter config for each node, so the config object can be used in dependency lists.
+    const languageFilterConfig = React.useRef<Map<string, LanguageFilterProps>>(new Map())
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
     const ruleEvaluationContext: RuleEditorEvaluationContextProps =
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
@@ -1742,14 +1744,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
         const node = nodeMap.get(nodeId);
         if (node) {
-            const enabled =
-                node.node.pluginType === "PathInputOperator" &&
-                !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
-                    .languageFilter;
-            return {
-                enabled,
-                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
-            };
+            const existingConfig = languageFilterConfig.current.get(nodeId)
+            if(existingConfig) {
+                return existingConfig
+            } else {
+                const enabled =
+                    node.node.pluginType === "PathInputOperator" &&
+                    !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
+                        .languageFilter;
+                const newConfig: LanguageFilterProps = {
+                    enabled,
+                    pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
+                };
+                languageFilterConfig.current.set(nodeId, newConfig)
+                return newConfig
+            }
         }
     };
 
