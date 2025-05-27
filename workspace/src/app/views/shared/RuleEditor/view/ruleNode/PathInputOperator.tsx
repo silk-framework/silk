@@ -1,12 +1,9 @@
-import {
-    ParameterAutoCompletion,
-    ParameterAutoCompletionProps,
-} from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
+import {ParameterAutoCompletionProps,} from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { Button, CodeAutocompleteField, IconButton, MenuItem, Select } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
-import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
+import {IAutocompleteDefaultResponse} from "@ducks/shared/typings";
+import {Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing} from "@eccenca/gui-elements";
+import {useTranslation} from "react-i18next";
+import {checkValuePathValidity} from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
 
 /** Language filter related properties. */
 export interface LanguageFilterProps {
@@ -147,11 +144,18 @@ export const PathInputOperator = ({
         );
     }, [fetchSuggestion, initialValue, onChange, checkInput, overwrittenProps]);
 
+    const currentLabel = internalState.current.currentValue?.label
     return <LanguageSwitcherContext.Provider value={{
         readOnly: parameterAutoCompletionProps.readOnly,
         showLanguageFilterButton
     }}>
         {autoCompletionInput}
+        {currentLabel ? <>
+            <Spacing size={"tiny"} />
+            <code>{currentLabel}</code>
+            </> :
+            null
+        }
     </LanguageSwitcherContext.Provider>
 
     // return <ParameterAutoCompletion {...activeProps} {...overwrittenProps} showErrorsInline={true} />;
