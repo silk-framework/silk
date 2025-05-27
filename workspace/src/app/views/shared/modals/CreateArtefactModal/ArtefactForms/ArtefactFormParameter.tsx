@@ -185,7 +185,7 @@ export const ArtefactFormParameter = ({
     const multiline =
         parameterType &&
         (parameterType.startsWith("code-") ||
-            [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
+            [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.TEMPLATE].includes(parameterType));
     return (
         <FieldItem
             key={parameterId}

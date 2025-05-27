@@ -22,4 +22,5 @@ export const INPUT_TYPES = {
     TARGET_VOCABULARY: "targetVocabularies",
     IDENTIFIER: "identifier",
     GRAPH_URI: "graph uri",
+    TEMPLATE: "template",
 };
