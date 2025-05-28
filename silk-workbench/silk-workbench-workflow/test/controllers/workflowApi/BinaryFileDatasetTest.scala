@@ -9,12 +9,17 @@ import org.silkframework.dataset.operations.{AddProjectFilesOperator, GetProject
 import org.silkframework.plugins.dataset.BinaryFileDataset
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowBuilder}
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.routing.Router
 
+import java.io.{BufferedOutputStream, FileOutputStream}
 import java.nio.file.Files
+import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
+import scala.util.Using
 
 class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with IntegrationTestTrait with ApiClient {
 
@@ -92,6 +97,56 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     val request = client.url(s"$baseUrl$path").addHttpHeaders(ACCEPT -> BinaryFileDataset.mimeType)
     val response = checkResponse(request.get())
     response.body shouldBe newContent
+  }
+
+  it should "support writing multiple file entities into a zip" in {
+    val project = retrieveOrCreateProject("BinaryFileDatasetTest3")
+
+    // Get files operator
+    val getFileTaskId = "getFile"
+    val filePrefix = "file"
+    for(i <- 0 until 2) {
+      val fileName = s"$filePrefix$i"
+      val inputFile = project.resources.get(fileName)
+      inputFile.writeString(fileName)
+    }
+    project.addTask(getFileTaskId, GetProjectFilesOperator(filesRegex = s"$filePrefix.+"))
+
+    // Create output dataset
+    val outputDatasetId = "outputDataset"
+    val outputFile = project.resources.get("test.zip")
+    outputFile.writeString("initial content")
+    project.addTask(outputDatasetId, DatasetSpec(BinaryFileDataset(outputFile)))
+
+    // Build and execute workflow
+    val workflow = WorkflowBuilder.create().operator(getFileTaskId).dataset(outputDatasetId).replaceableOutputs(Seq(outputDatasetId)).build()
+    val workflowTask = project.addTask[Workflow]("workflow", workflow)
+    workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
+
+    // Check result
+    outputFile.read { inputStream =>
+      Using.resource(new ZipInputStream(inputStream)) { zipStream =>
+        for(i <- 0 until 2) {
+          val zipEntry = zipStream.getNextEntry
+          zipEntry.getName shouldBe s"$filePrefix$i"
+          // Read the next entry into a string
+          val content = scala.io.Source.fromInputStream(zipStream).mkString
+          content shouldBe s"$filePrefix$i"
+        }
+      }
+    }
+  }
+
+  private def createZip(resource: WritableResource): Unit = {
+    resource.write() { outputStream =>
+      Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
+        for(i <- 0 until 2) {
+          val entryName = s"text$i"
+          val entryResource = ZipOutputStreamResource(entryName, entryName, zipOutput)
+          entryResource.writeString(entryName)
+        }
+      }
+    }
   }
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkflowApi.Routes])

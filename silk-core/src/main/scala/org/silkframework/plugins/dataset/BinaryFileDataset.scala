@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
@@ -10,7 +11,7 @@ import org.silkframework.execution.typed.{FileEntity, FileEntitySchema, FileType
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{ReadOnlyResource, Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
@@ -22,14 +23,21 @@ import org.silkframework.util.{Identifier, Uri}
 )
 case class BinaryFileDataset(
     @Param("The file to read or write.")
-    file: WritableResource) extends Dataset with ResourceBasedDataset {
+    file: WritableResource) extends Dataset with BulkResourceBasedDataset {
 
   override def mimeType: Option[String] = Some(BinaryFileDataset.mimeType)
 
   /**
-   * Creates a new data source for reading entities from the data set.
+   * Determines if the schemata of the underlying data sources should be merged.
+   * If true, the types and paths of the underlying data sources are merged.
+   * If false, the types and paths of the first data source are used.
    */
-  override def source(implicit userContext: UserContext): DataSource = new FileSource(file)
+  override def mergeSchemata: Boolean = false
+
+  /**
+   * Creates a data source for a particular resource inside the bulk file.
+   */
+  override def createSource(resource: Resource): DataSource = new FileSource(ReadOnlyResource(resource))
 
   /**
    * Returns a link sink for writing entity links to the data set.

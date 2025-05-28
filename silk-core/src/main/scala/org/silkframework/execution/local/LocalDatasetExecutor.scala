@@ -12,12 +12,15 @@ import org.silkframework.execution.typed._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}
+import java.util.zip.ZipOutputStream
+import scala.util.Using
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -304,22 +307,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(outputResource) =>
-                var resourceWritten = false
-                for(inputResource <- fileEntities.typedEntities) {
-                  // Either of both files could be a zip
-                  (BulkResourceBasedDataset.isZip(inputResource.file), BulkResourceBasedDataset.isZip(outputResource)) match {
-                    case (false, false) | (true, true) =>
-                      outputResource.writeResource(inputResource.file)
-                      resourceWritten = true
-                    case (false, true) =>
-                      ZipWritableResource(outputResource).writeResource(inputResource.file)
-                      resourceWritten = true
-                    case (true, false) =>
-                      throw new ValidationException("Cannot write a zip file to a dataset that's not based on a zip file.")
-                  }
-                  reportUpdater.increaseEntityCounter()
-                }
-                if(resourceWritten) {
+                if(writeResources(fileEntities.typedEntities, outputResource, reportUpdater)) {
                   onUpdate(outputResource)
                 }
               case None =>
@@ -334,6 +322,35 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         throw new ValidationException("No dataset spec found!")
     }
     reportUpdater.executionDone()
+  }
+
+  private def writeResources(fileEntities: Iterator[FileEntity], outputResource: WritableResource, reportUpdater: ExecutionReportUpdater): Boolean = {
+    var resourceWritten = false
+    if(!BulkResourceBasedDataset.isZip(outputResource)) {
+      for(inputResource <- fileEntities) {
+        if(BulkResourceBasedDataset.isZip(inputResource.file)) {
+          throw new ValidationException(s"Cannot write a zip file (${inputResource.file.name}) to a dataset that's not based on a zip file.")
+        }
+        if(resourceWritten) {
+          throw new ValidationException(s"Cannot write multiple files to a dataset that is not based on a zip file: ${outputResource.name}")
+        }
+        outputResource.writeResource(inputResource.file)
+        resourceWritten = true
+        reportUpdater.increaseEntityCounter()
+      }
+    } else {
+      outputResource.write() { outputStream =>
+        Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
+        for(inputResource <- fileEntities) {
+            val entryResource = ZipOutputStreamResource(inputResource.file.name, inputResource.file.name, zipOutput)
+            entryResource.writeResource(inputResource.file)
+            resourceWritten = true
+            reportUpdater.increaseEntityCounter()
+          }
+        }
+      }
+    }
+    resourceWritten
   }
 
   private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
