@@ -26,6 +26,10 @@ import {
     ToolbarSection,
     WhiteSpaceContainer,
     highlighterUtils,
+    TableDataContainerProps,
+    DataTableRenderProps,
+    TabProps,
+    usePagination,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -47,12 +51,9 @@ import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { useFirstRender } from "../../../../../hooks/useFirstRender";
-import { DataTableCustomRenderProps, DataTableHeader } from "carbon-components-react";
 import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
-import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
@@ -282,7 +283,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
         }
     }, [linksToValueMap.current]);
 
-    const headerData: DataTableHeader[] = [
+    const headerData: TableDataContainerProps["headers"] = [
         {
             key: "source",
             header: (
@@ -691,7 +692,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )}
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
-                {({ headers, getHeaderProps, getTableProps, getRowProps }: DataTableCustomRenderProps) => (
+                {({ headers, getHeaderProps, getTableProps }: DataTableRenderProps<any, any>) => (
                     <Table
                         {...getTableProps()}
                         size="medium"

@@ -10,7 +10,7 @@ import {
     AxiosMockRequestCriteria,
     AxiosMockType,
     HttpResponse,
-} from "jest-mock-axios/dist/lib/mock-axios-types";
+} from "jest-mock-axios";
 import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";

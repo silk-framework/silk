@@ -4,8 +4,7 @@ import { errorMessage } from "./ParameterWidget";
 import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import useCopyButton from "../../../../../hooks/useCopyButton";
-import { useTranslation } from "react-i18next";
-import { TFunction } from "i18next";
+import { useTranslation, TFunction } from "react-i18next";
 import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 
