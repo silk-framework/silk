@@ -22,6 +22,7 @@ import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
 import { requestAutoCompleteTemplateString } from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -119,6 +120,25 @@ export const RuleParameterInput = ({
         defaultValue: parameterDefaultValue,
     });
 
+    const fetchSuggestions = React.useCallback(
+        async (
+            inputString: string,
+            cursorPosition: number
+        ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult> => {
+            try {
+                return (
+                    await requestAutoCompleteTemplateString(inputString, cursorPosition, ruleEditorContext.projectId)
+                ).data;
+            } catch (e) {
+                registerError("RuleParameterInput.fetchSuggestions", "Could not fetch auto-complete suggestions!", e, {
+                    errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+                });
+                return {} as CodeAutocompleteFieldPartialAutoCompleteResult;
+            }
+        },
+        []
+    );
+
     if (
         ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")
@@ -130,15 +150,7 @@ export const RuleParameterInput = ({
                     mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
                     initialValue={inputAttributes.defaultValue ?? ""}
                     onChange={inputAttributes.onChange}
-                    fetchSuggestions={async (inputString, cursorPosition) =>
-                        (
-                            await requestAutoCompleteTemplateString(
-                                inputString,
-                                cursorPosition,
-                                ruleEditorContext.projectId
-                            )
-                        ).data
-                    }
+                    fetchSuggestions={fetchSuggestions}
                     readOnly={inputAttributes.readOnly}
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}
@@ -152,15 +164,7 @@ export const RuleParameterInput = ({
                     label={inputAttributes.name}
                     initialValue={inputAttributes.defaultValue ?? ""}
                     onChange={inputAttributes.onChange}
-                    fetchSuggestions={async (inputString, cursorPosition) =>
-                        (
-                            await requestAutoCompleteTemplateString(
-                                inputString,
-                                cursorPosition,
-                                ruleEditorContext.projectId
-                            )
-                        ).data
-                    }
+                    fetchSuggestions={fetchSuggestions}
                     readOnly={inputAttributes.readOnly}
                     autoCompletionRequestDelay={500}
                     multiline
