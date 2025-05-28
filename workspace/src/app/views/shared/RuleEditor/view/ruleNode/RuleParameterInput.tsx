@@ -93,7 +93,7 @@ export const RuleParameterInput = ({
     };
 
     const autoCompleteProps: (autoComplete: IPropertyAutocomplete) => ParameterAutoCompletionProps = (
-        autoComplete
+        autoComplete,
     ) => ({
         projectId: ruleEditorContext.projectId,
         paramId: ruleParameter.parameterId,
@@ -108,7 +108,10 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({value: dependentValue(paramId), isTemplate: false}),
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({
+            value: dependentValue(paramId),
+            isTemplate: false,
+        }),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
@@ -212,7 +215,7 @@ export const RuleParameterInput = ({
                     return (
                         <PathInputOperator
                             parameterAutoCompletionProps={autoCompleteProps(
-                                ruleParameter.parameterSpecification.autoCompletion
+                                ruleParameter.parameterSpecification.autoCompletion,
                             )}
                             languageFilterSupport={languageFilter}
                         />
