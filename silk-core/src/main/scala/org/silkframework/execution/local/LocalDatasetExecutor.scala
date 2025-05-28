@@ -327,6 +327,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   private def writeResources(fileEntities: Iterator[FileEntity], outputResource: WritableResource, reportUpdater: ExecutionReportUpdater): Boolean = {
     var resourceWritten = false
     if(!BulkResourceBasedDataset.isZip(outputResource)) {
+      // We are writing to a non-zip resource, so we can only write one file
       for(inputResource <- fileEntities) {
         if(BulkResourceBasedDataset.isZip(inputResource.file)) {
           throw new ValidationException(s"Cannot write a zip file (${inputResource.file.name}) to a dataset that's not based on a zip file.")
@@ -339,15 +340,25 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         reportUpdater.increaseEntityCounter()
       }
     } else {
-      outputResource.write() { outputStream =>
-        Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
-        for(inputResource <- fileEntities) {
-            val entryResource = ZipOutputStreamResource(inputResource.file.name, inputResource.file.name, zipOutput)
-            entryResource.writeResource(inputResource.file)
-            resourceWritten = true
-            reportUpdater.increaseEntityCounter()
+      // We are writing to a zip resource
+      fileEntities.nextOption() match {
+        case None =>
+          // No files to write, nothing to do
+        case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
+          // If there is only one file and it is a zip file, we can write it directly
+          outputResource.writeResource(firstEntity.file)
+        case Some(firstEntity) =>
+          // Otherwise we package all files into a zip file
+          outputResource.write() { outputStream =>
+            Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
+              for (inputResource <- Iterator(firstEntity) ++ fileEntities) {
+                val entryResource = ZipOutputStreamResource(inputResource.file.name, inputResource.file.name, zipOutput)
+                entryResource.writeResource(inputResource.file)
+                resourceWritten = true
+                reportUpdater.increaseEntityCounter()
+              }
+            }
           }
-        }
       }
     }
     resourceWritten
