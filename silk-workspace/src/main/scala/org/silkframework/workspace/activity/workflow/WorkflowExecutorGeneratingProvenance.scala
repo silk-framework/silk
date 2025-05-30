@@ -46,8 +46,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
       case ex: Throwable =>
         executionException = Some(ex)
         throw ex
-    }
-    finally {
+    } finally {
       try {
         control.lastResult match {
           case Some(lastResult) =>
