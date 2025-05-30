@@ -4,3 +4,5 @@ It can be used with the `replacable input` flag to replace the configured file i
 Same for the `replacable output` flag, which will return the file content as a result of a workflow execution request.
 
 If an operator reads from this dataset that does not support files directly (such as transformation or linking tasks), it will only receive the file metadata, which includes the file path.
+
+The generic MIME type for files of this dataset is `application/octet-stream`.

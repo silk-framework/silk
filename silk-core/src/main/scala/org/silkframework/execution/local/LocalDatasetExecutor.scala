@@ -65,7 +65,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             implicit val executionReport: ExecutionReportUpdater = ReadFilesReportUpdater(dataset, context)
             implicit val prefixes: Prefixes = pluginContext.prefixes
             val fileEntities =
-              for(resource <- BulkResourceBasedDataset.resources(dsr)) yield {
+              for(resource <- BulkResourceBasedDataset.resources(dsr) if resource.exists) yield {
                 FileEntity(ReadOnlyResource(resource), FileType.Project, dsr.mimeType)
               }
             ReportingIterator.addReporter(FileEntitySchema.create(fileEntities, dataset))
