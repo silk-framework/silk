@@ -58,6 +58,12 @@ trait CloseableIterator[+T] extends Iterator[T] with Closeable {
   override def filter(p: T => Boolean): CloseableIterator[T] = wrap(super.filter(p))
 
   /**
+   * Filter this iterator.
+   * The returned iterator will also close the original iterator.
+   */
+  override def withFilter(p: T => Boolean): CloseableIterator[T] = wrap(super.withFilter(p))
+
+  /**
     * Map this iterator.
     * The returned iterator will also close the original iterator.
     */
