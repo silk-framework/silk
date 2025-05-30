@@ -125,6 +125,19 @@ object BulkResourceBasedDataset {
   def isZip(resource: Resource): Boolean = resource.name.endsWith(".zip")
 
   /**
+   * Retrieves all resources of a resource based dataset.
+   * If it is based on a bulk resource, all sub resources are returned.
+   */
+  def resources(dataset: ResourceBasedDataset): CloseableIterator[Resource] = {
+    dataset match {
+      case bulkDataset: BulkResourceBasedDataset =>
+        bulkDataset.retrieveResources()
+      case _ =>
+        CloseableIterator.single(dataset.file)
+    }
+  }
+
+  /**
     * Returns all sub resources inside a bulk resource.
     *
     * Filters the name of the resource via the given filter regex.

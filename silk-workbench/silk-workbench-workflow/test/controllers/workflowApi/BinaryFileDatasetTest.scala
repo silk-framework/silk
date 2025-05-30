@@ -100,13 +100,39 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     response.body shouldBe newContent
   }
 
-  it should "support writing multiple file entities into a zip" in {
+  it should "support reading multiple file entities into a zip" in {
     val project = retrieveOrCreateProject("BinaryFileDatasetTest3")
+
+    // Create input dataset
+    val inputDatasetId = "inputDataset"
+    val inputFile = project.resources.get("test.zip")
+    val entryNames = createZip(inputFile, numFiles = 3)
+    project.addTask(inputDatasetId, DatasetSpec(BinaryFileDataset(inputFile)))
+
+    // Add to project operator
+    val addTaskId = "addTask"
+    val newFileName = "writtenFile.txt"
+    project.addTask(addTaskId, AddProjectFilesOperator(fileName = newFileName, overwriteStrategy = OverwriteStrategyEnum.overwrite))
+
+    // Build and execute workflow
+    val workflow = WorkflowBuilder.create().dataset(inputDatasetId).operator(addTaskId).replaceableInputs(Seq(inputDatasetId)).build()
+    val workflowTask = project.addTask[Workflow]("workflow", workflow)
+    workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
+
+    // Check result
+    for((entryName, index) <- entryNames.zipWithIndex) {
+      val fileName = "writtenFile" + (if (index > 0) s"-$index" else "") + ".txt"
+      project.resources.get(fileName).loadAsString() shouldBe entryName
+    }
+  }
+
+  it should "support writing multiple file entities into a zip" in {
+    val project = retrieveOrCreateProject("BinaryFileDatasetTest4")
 
     // Get files operator
     val getFileTaskId = "getFile"
     val filePrefix = "file"
-    val fileNames = for(i <- 0 until 2) yield s"$filePrefix$i"
+    val fileNames = for(i <- 0 until 3) yield s"$filePrefix$i"
     for(fileName <- fileNames) {
       val inputFile = project.resources.get(fileName)
       inputFile.writeString(fileName)
@@ -138,13 +164,14 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     }
   }
 
-  private def createZip(resource: WritableResource): Unit = {
+  private def createZip(resource: WritableResource, numFiles: Int): Seq[String] = {
     resource.write() { outputStream =>
       Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
-        for(i <- 0 until 2) {
+        for(i <- 0 until numFiles) yield {
           val entryName = s"text$i"
           val entryResource = ZipOutputStreamResource(entryName, entryName, zipOutput)
           entryResource.writeString(entryName)
+          entryName
         }
       }
     }

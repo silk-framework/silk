@@ -64,9 +64,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           case dsr: ResourceBasedDataset =>
             implicit val executionReport: ExecutionReportUpdater = ReadFilesReportUpdater(dataset, context)
             implicit val prefixes: Prefixes = pluginContext.prefixes
-            val fileEntity = FileEntity(ReadOnlyResource(dsr.file), FileType.Project, dsr.mimeType)
-            val fileEntities = FileEntitySchema.create(CloseableIterator.single(fileEntity), dataset)
-            ReportingIterator.addReporter(fileEntities)
+            val fileEntities =
+              for(resource <- BulkResourceBasedDataset.resources(dsr)) yield {
+                FileEntity(ReadOnlyResource(resource), FileType.Project, dsr.mimeType)
+              }
+            ReportingIterator.addReporter(FileEntitySchema.create(fileEntities, dataset))
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
