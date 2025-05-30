@@ -19,6 +19,7 @@ import play.api.routing.Router
 import java.io.{BufferedOutputStream, FileOutputStream}
 import java.nio.file.Files
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
+import scala.collection.mutable
 import scala.util.Using
 
 class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait with IntegrationTestTrait with ApiClient {
@@ -105,8 +106,8 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     // Get files operator
     val getFileTaskId = "getFile"
     val filePrefix = "file"
-    for(i <- 0 until 2) {
-      val fileName = s"$filePrefix$i"
+    val fileNames = for(i <- 0 until 2) yield s"$filePrefix$i"
+    for(fileName <- fileNames) {
       val inputFile = project.resources.get(fileName)
       inputFile.writeString(fileName)
     }
@@ -126,13 +127,13 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     // Check result
     outputFile.read { inputStream =>
       Using.resource(new ZipInputStream(inputStream)) { zipStream =>
-        for(i <- 0 until 2) {
-          val zipEntry = zipStream.getNextEntry
-          zipEntry.getName shouldBe s"$filePrefix$i"
-          // Read the next entry into a string
-          val content = scala.io.Source.fromInputStream(zipStream).mkString
-          content shouldBe s"$filePrefix$i"
-        }
+        val foundEntries = Iterator.continually(zipStream.getNextEntry).takeWhile(_ != null).map { zipEntry =>
+          // The zipped file should contain the file name
+          scala.io.Source.fromInputStream(zipStream).mkString shouldBe zipEntry.getName
+          // Collect all file names
+          zipEntry.getName
+        }.toSeq
+        foundEntries should contain theSameElementsAs fileNames
       }
     }
   }
