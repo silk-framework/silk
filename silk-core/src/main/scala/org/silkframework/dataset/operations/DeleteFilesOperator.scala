@@ -24,7 +24,7 @@ case class DeleteFilesOperator(@Param(label = "File matching regex",
   @Action(
     label = "Dry run",
     description = "Performs a dry run and returns the files that would be deleted.",
-    iconFile = "DeleteFilesOperator.svg"
+    iconFile = "DryRun.svg"
   )
   def dryRun(implicit pluginContext: PluginContext): DryRunResult = {
     new DryRunResult(getFilesToDelete())

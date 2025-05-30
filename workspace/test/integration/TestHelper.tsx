@@ -5,12 +5,7 @@ import { Provider } from "react-redux";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
-import {
-    AxiosMockQueueItem,
-    AxiosMockRequestCriteria,
-    AxiosMockType,
-    HttpResponse,
-} from "jest-mock-axios/dist/lib/mock-axios-types";
+import { AxiosMockQueueItem, AxiosMockRequestCriteria, AxiosMockType, HttpResponse } from "jest-mock-axios";
 import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";

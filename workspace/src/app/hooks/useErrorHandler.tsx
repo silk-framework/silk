@@ -6,7 +6,6 @@ import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
 import { ErrorResponse, FetchError } from "../services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
-import { Intent } from "@blueprintjs/core";
 
 /**
  * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.

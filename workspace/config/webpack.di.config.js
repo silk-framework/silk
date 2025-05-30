@@ -240,8 +240,16 @@ module.exports = function (webpackEnv, isWatch) {
                 // Support React Native Web
                 // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
                 "react-native": "react-native-web",
-                "@gui-elements": paths.guiElements,
                 "@ducks": paths.ducksFolder,
+                // FIXME: webpack4 does not use the `exports` field from `package.json`
+                // this was added in webpack5, see https://github.com/webpack/webpack/issues/9509
+                // a few packages use only `exports` (and not `modue` or `main`)
+                // we replace it here as polyfill until we upgrade the bundler
+                devlop: "devlop/lib/default.js",
+                "unist-util-visit-parents/do-not-use-color": "unist-util-visit-parents/lib/color.js",
+                "vfile/do-not-use-conditional-minpath": "vfile/lib/minpath.browser.js",
+                "vfile/do-not-use-conditional-minproc": "vfile/lib/minproc.browser.js",
+                "vfile/do-not-use-conditional-minurl": "vfile/lib/minurl.browser.js",
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding

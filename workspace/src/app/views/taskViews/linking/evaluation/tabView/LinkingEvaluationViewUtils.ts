@@ -11,7 +11,7 @@ import {
 import { IAggregationOperator, IComparisonOperator, ISimilarityOperator } from "../../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IPathInput, ITransformOperator } from "views/taskViews/shared/rules/rule.typings";
-import { TreeNodeInfo } from "@blueprintjs/core";
+import { TreeNodeInfo } from "@eccenca/gui-elements";
 
 /**
  * Get evaluated links.
