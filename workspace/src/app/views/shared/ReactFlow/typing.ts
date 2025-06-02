@@ -1,4 +1,4 @@
-import {Node, Edge} from "react-flow-renderer-lts"
+import { Node, Edge } from "@xyflow/react";
 
 /** Short-cut for either Node or Edge. */
-export type ReactFlowElement = Node | Edge
+export type ReactFlowElement = Node | Edge;
