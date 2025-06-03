@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.dataset.bulk.{BulkDataSource, BulkResourceBasedDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
@@ -23,7 +23,9 @@ import org.silkframework.util.{Identifier, Uri}
 )
 case class BinaryFileDataset(
     @Param("The file to read or write.")
-    file: WritableResource) extends Dataset with BulkResourceBasedDataset {
+    file: WritableResource,
+    @Param(label = "ZIP file regex", value = "If the file is a ZIP file, read files are filtered via this regex. If empty, the zip itself will be returned to readers.", advanced = true)
+    override val zipFileRegex: String = ".*") extends Dataset with BulkResourceBasedDataset {
 
   override def mimeType: Option[String] = Some(BinaryFileDataset.mimeType)
 
@@ -37,7 +39,17 @@ case class BinaryFileDataset(
   /**
    * Creates a data source for a particular resource inside the bulk file.
    */
-  override def createSource(resource: Resource): DataSource = new FileSource(ReadOnlyResource(resource))
+  override def createSource(resource: Resource): DataSource = {
+    new FileSource(ReadOnlyResource(resource))
+  }
+
+  /**
+   * Returns a data source for reading entities from the data set.
+   */
+  override final def source(implicit userContext: UserContext): DataSource = {
+    // It's not possible to address file within zip files, so we can only return the zip file itself
+    createSource(file)
+  }
 
   /**
    * Returns a link sink for writing entity links to the data set.

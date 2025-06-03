@@ -63,7 +63,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override final def source(implicit userContext: UserContext): DataSource = {
+  override def source(implicit userContext: UserContext): DataSource = {
     if(BulkResourceBasedDataset.isBulkResource(file)) {
       new BulkDataSource(file.name, () => retrieveResources().map(createSourceWithName), mergeSchemata)
     } else {
@@ -130,7 +130,7 @@ object BulkResourceBasedDataset {
    */
   def resources(dataset: ResourceBasedDataset): CloseableIterator[Resource] = {
     dataset match {
-      case bulkDataset: BulkResourceBasedDataset =>
+      case bulkDataset: BulkResourceBasedDataset if bulkDataset.zipFileRegex.nonEmpty =>
         bulkDataset.retrieveResources()
       case _ =>
         CloseableIterator.single(dataset.file)
