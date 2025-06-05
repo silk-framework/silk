@@ -9,7 +9,7 @@ interface ReactFlowElements<T extends Record<string, unknown>> {
 
 const isNode = (element: ReactFlowElement & { source?: string }): boolean => !element.source;
 
-/** Remove elements from another list of elements. All edges of removed nodes are also removed. */
+/** Remove elements from another set of elements. All edges of removed nodes are also removed. */
 const removeElements = <T extends Record<string, unknown>>(
     elementsToRemove: ReactFlowElement[],
     elements: ReactFlowElements<T>,
@@ -27,7 +27,7 @@ const removeElements = <T extends Record<string, unknown>>(
     if (nodesToRemove.size) {
         newElements.nodes = elements.nodes.filter((node) => !nodesToRemove.has(node.id));
     }
-    if (edgesToRemove.size) {
+    if (edgesToRemove.size || nodesToRemove.size) {
         newElements.edges = elements.edges.filter(
             (edge) => !edgesToRemove.has(edge.id) && !nodesToRemove.has(edge.source) && !nodesToRemove.has(edge.target),
         );
