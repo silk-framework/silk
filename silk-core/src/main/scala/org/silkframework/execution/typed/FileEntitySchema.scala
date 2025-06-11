@@ -1,15 +1,15 @@
 package org.silkframework.execution.typed
 
-import org.silkframework.config.{SilkVocab, Task, TaskSpec}
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.typed.FileType.FileType
 import org.silkframework.execution.typed.TypedEntitiesVocab.{schemaPath, schemaType}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.zip.ZipResource
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Uri
 
 import java.io.File
 
@@ -29,6 +29,7 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
         TypedPath(schemaPath("filePath"), ValueType.STRING, isAttribute = true),
         TypedPath(schemaPath("fileType"), ValueType.STRING, isAttribute = true),
         TypedPath(schemaPath("mimeType"), ValueType.STRING, isAttribute = true),
+        TypedPath(schemaPath("entryPath"), ValueType.STRING, isAttribute = true),
       )
     )
   }
@@ -43,7 +44,7 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
       case FileType.Local =>
         entity.file.path
     }
-    new Entity(new File(entity.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(entity.fileType.toString), entity.mimeType.toSeq), schema)
+    new Entity(new File(entity.file.path).toURI.toString, IndexedSeq(Seq(path), Seq(entity.fileType.toString), entity.mimeType.toSeq, entity.file.entryPath.toSeq), schema)
   }
 
   /**
@@ -52,7 +53,8 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
    */
   override def fromEntity(entity: Entity)(implicit pluginContext: PluginContext): FileEntity = {
     val fileType = entity.values(1).headOption.map(FileType.withName).getOrElse(FileType.Local)
-    val contentType = entity.values(2).headOption.filter(_.nonEmpty)
+    val mimeType = entity.values(2).headOption.filter(_.nonEmpty)
+    val entryPath = entity.values(3).headOption.filter(_.nonEmpty)
 
     val file = entity.values(0).headOption match {
       case Some(value) =>
@@ -66,7 +68,14 @@ object FileEntitySchema extends TypedEntitySchema[FileEntity, TaskSpec] {
         throw new ValidationException("No resource path provided")
     }
 
-    FileEntity(file, fileType, contentType)
+    val entryFile = entryPath match {
+      case Some(path) =>
+        new ZipResource(file, path)
+      case None =>
+        file
+    }
+
+    FileEntity(entryFile, fileType, mimeType)
   }
 
   /**

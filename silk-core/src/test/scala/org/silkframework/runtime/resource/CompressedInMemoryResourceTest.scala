@@ -20,5 +20,5 @@ class CompressedInMemoryResourceTest extends WritableResourceTestBase {
     resource.loadAsString() mustBe ""
   }
 
-  override def freshResource(): WritableResource = CompressedInMemoryResource(resourceName, resourceName, IndexedSeq.empty)
+  override def freshResource(): WritableResource = CompressedInMemoryResource(resourceName, "", Some(resourceName), IndexedSeq.empty)
 }

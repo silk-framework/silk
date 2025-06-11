@@ -1,10 +1,10 @@
 package org.silkframework.runtime.resource.zip
 
+import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
+
 import java.io.{File, InputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipFile}
-import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
-
 import scala.jdk.CollectionConverters.EnumerationHasAsScala
 
 /**

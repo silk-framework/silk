@@ -4,11 +4,15 @@ import akka.stream.scaladsl.{FileIO, Source}
 import helper.{ApiClient, IntegrationTestTrait}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.config.{CustomTask, FixedNumberOfInputs, FixedSchemaPort, InputPorts, Port, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.operations.{AddProjectFilesOperator, GetProjectFilesOperator, OverwriteStrategyEnum}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.typed.FileEntitySchema
 import org.silkframework.plugins.dataset.BinaryFileDataset
-import org.silkframework.runtime.activity.TestUserContextTrait
-import org.silkframework.runtime.plugin.{PluginContext, TestPluginContext}
+import org.silkframework.runtime.activity.{ActivityContext, TestUserContextTrait}
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry, TestPluginContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 import org.silkframework.workspace.TestWorkspaceProviderTestTrait
@@ -77,6 +81,10 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     inputFile.writeString(content)
     project.addTask(getFileTaskId, GetProjectFilesOperator(fileName = fileName))
 
+    // Conversion operator
+    val conversionTaskId = "conversionTask"
+    project.addTask(conversionTaskId, ConversionTask())
+
     // Create output dataset
     val outputDatasetId = "outputDataset"
     val outputFile = project.resources.get("test.csv")
@@ -84,7 +92,7 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     project.addTask(outputDatasetId, DatasetSpec(BinaryFileDataset(outputFile)))
 
     // Build and execute workflow
-    val workflow = WorkflowBuilder.create().operator(getFileTaskId).dataset(outputDatasetId).replaceableOutputs(Seq(outputDatasetId)).build()
+    val workflow = WorkflowBuilder.create().operator(getFileTaskId).operator(conversionTaskId).dataset(outputDatasetId).replaceableOutputs(Seq(outputDatasetId)).build()
     val workflowTask = project.addTask[Workflow]("workflow", workflow)
     workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
@@ -109,13 +117,17 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
     val entryNames = createZip(inputFile, numFiles = 3)
     project.addTask(inputDatasetId, DatasetSpec(BinaryFileDataset(inputFile)))
 
+    // Conversion operator
+    val conversionTaskId = "conversionTask"
+    project.addTask(conversionTaskId, ConversionTask())
+
     // Add to project operator
     val addTaskId = "addTask"
     val newFileName = "writtenFile.txt"
     project.addTask(addTaskId, AddProjectFilesOperator(fileName = newFileName, overwriteStrategy = OverwriteStrategyEnum.overwrite))
 
     // Build and execute workflow
-    val workflow = WorkflowBuilder.create().dataset(inputDatasetId).operator(addTaskId).replaceableInputs(Seq(inputDatasetId)).build()
+    val workflow = WorkflowBuilder.create().dataset(inputDatasetId).operator(conversionTaskId).operator(addTaskId).replaceableInputs(Seq(inputDatasetId)).build()
     val workflowTask = project.addTask[Workflow]("workflow", workflow)
     workflowTask.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
@@ -180,4 +192,36 @@ class BinaryFileDatasetTest extends AnyFlatSpec with Matchers with TestWorkspace
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkflowApi.Routes])
 
   override def workspaceProviderId: String = "inMemory"
+
+  override def beforeAll(): Unit = {
+    PluginRegistry.registerPlugin(classOf[ConversionTask])
+    PluginRegistry.registerPlugin(classOf[ConversionTaskExecutor])
+    super.beforeAll()
+  }
 }
+
+/**
+ * A custom task that converts file entities to a generic entity table and back.
+ * This is used to test the conversion of file entities in workflows.
+ */
+case class ConversionTask() extends CustomTask {
+  override def inputPorts: InputPorts = FixedNumberOfInputs(Seq(FixedSchemaPort(FileEntitySchema.schema)))
+  override def outputPort: Option[Port] = Some(FixedSchemaPort(FileEntitySchema.schema))
+}
+
+case class ConversionTaskExecutor() extends LocalExecutor[ConversionTask] {
+
+  override def execute(task: Task[ConversionTask],
+                       inputs: Seq[LocalEntities],
+                       output: ExecutorOutput,
+                       execution: LocalExecution,
+                       context: ActivityContext[ExecutionReport])
+                      (implicit pluginContext: PluginContext): Option[LocalEntities] = {
+    // We convert the file entities to a generic entity table, which is then converted back to file entities.
+    val e = inputs.head.entities.toSeq
+    val genericEntities = GenericEntityTable(e, FileEntitySchema.schema, task)
+    val fileEntities = FileEntitySchema.unapply(genericEntities).getOrElse(throw new IllegalArgumentException("Expected FileEntitySchema input"))
+    Some(fileEntities)
+  }
+}
+
