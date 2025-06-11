@@ -14,11 +14,11 @@ import {
     TitleSubsection,
     Markdown,
     StringPreviewContentBlobToggler,
+    Uppy,
+    UppyFile,
 } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
-import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
-import XHR from "@uppy/xhr-upload";
 import {
     requestDeleteProjectImport,
     requestProjectImportDetails,
@@ -43,7 +43,7 @@ interface IProps {
 
 export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
-    const [uppy] = useState(Uppy());
+    const [uppy, setUppy] = useState<Uppy>();
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
@@ -57,25 +57,6 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
         [string, boolean, boolean] | null
     >(null);
-
-    useEffect(() => {
-        uppy.use(XHR, {
-            method: "POST",
-            fieldName: "file",
-            metaFields: [],
-        });
-        uppy.getPlugin("XHRUpload").setOptions({
-            endpoint: workspaceApi(`/projectImport`),
-        });
-
-        if (maxFileUploadSizeBytes) {
-            uppy.setOptions({
-                restrictions: {
-                    maxFileSize: maxFileUploadSizeBytes,
-                },
-            });
-        }
-    }, []);
 
     useEffect(() => {
         if (projectImportId) {
@@ -122,7 +103,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
 
     const handleFileAdded = async () => {
         setUploadError(null);
-        await uppy.upload();
+        await uppy?.upload();
     };
 
     const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
@@ -189,27 +170,48 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
                 file: fileData.name,
                 details: details,
-            })
+            }),
         );
-        uppy.reset();
+        uppy?.reset();
     };
+
     const onUploadSuccess = (file: UppyFile, response) => {
-        const projectImportId = response?.body?.projectImportId;
+        const projectImportId =
+            typeof response?.body === "string"
+                ? JSON.parse(response.body)?.projectImportId
+                : response?.body?.projectImportId;
+
         if (projectImportId) {
             setProjectImportId(projectImportId);
         } else {
             setUploadError(
                 t(
                     "ProjectImportModal.responseInvalid",
-                    "Invalid response received from project upload. Project import cannot proceed."
-                )
+                    "Invalid response received from project upload. Project import cannot proceed.",
+                ),
             );
-            uppy.reset();
+            uppy?.reset();
         }
     };
+
+    const restrictions = {
+        restrictions: maxFileUploadSizeBytes
+            ? {
+                  maxFileSize: maxFileUploadSizeBytes,
+              }
+            : {},
+    };
+
     const uploader = (
         <UploadNewFile
-            uppy={uppy}
+            getUppyInstance={setUppy}
+            xhrUploadOptions={{
+                method: "POST",
+                fieldName: "file",
+                metaFields: [],
+                endpoint: workspaceApi(`/projectImport`),
+            }}
+            {...restrictions}
             allowMultiple={false}
             onAdded={handleFileAdded}
             onUploadSuccess={onUploadSuccess}
@@ -230,7 +232,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     disabled={false}
                 >
                     {t("ProjectImportModal.importBtn")}
-                </Button>
+                </Button>,
             );
         } else if (projectImportDetails.projectAlreadyExists) {
             approveReplacement
@@ -243,7 +245,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           disabled={false}
                       >
                           {t("ProjectImportModal.replaceImportBtn")}
-                      </Button>
+                      </Button>,
                   )
                 : actions.push(
                       <Button
@@ -254,7 +256,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           disabled={false}
                       >
                           {t("ProjectImportModal.importUnderFreshIdBtn")}
-                      </Button>
+                      </Button>,
                   );
         }
     }
@@ -262,7 +264,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     actions.push(
         <Button key="cancel" onClick={closeDialog}>
             {t("common.action.cancel")}
-        </Button>
+        </Button>,
     );
     // Add 'Back' button
     actions.push(
@@ -272,7 +274,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     {t("common.words.back", "Back")}
                 </Button>
             )}
-        </CardActionsAux>
+        </CardActionsAux>,
     );
 
     const uploaderElement = (
@@ -342,7 +344,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         <p>
                             {t(
                                 "ProjectImportModal.warningExistingProject",
-                                "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+                                "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID.",
                             )}
                         </p>
                         <Spacing />
@@ -393,11 +395,11 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     ) : projectDetailsError !== null ? (
         errorRetryElement(
             "Failed to retrieve project import details. " + projectDetailsError,
-            () => projectImportId && loadProjectImportDetails(projectImportId)
+            () => projectImportId && loadProjectImportDetails(projectImportId),
         )
     ) : startProjectImportExecutionError ? (
         errorRetryElement(`${t("common.messages.anErrorHasOccurred")} ${startProjectImportExecutionError[0]}`, () =>
-            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
+            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2]),
         )
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)

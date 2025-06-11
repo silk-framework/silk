@@ -3,7 +3,7 @@ import { INPUT_TYPES } from "../../../../../constants";
 import { CodeEditor, Spinner, Switch, TextField } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { IntentTypes as Intent } from "@eccenca/gui-elements/src/common/Intent";
-import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
+import { FileSelectionMenu } from "../../../FileUploader/FileSelectionMenu";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
 import { useSelector } from "react-redux";
@@ -33,7 +33,7 @@ interface IProps {
 
 export type RegisterForExternalChangesFn = (
     paramId: string,
-    handleUpdates: (value: { value: string; label?: string }) => any
+    handleUpdates: (value: { value: string; label?: string }) => any,
 ) => any;
 
 /** The attributes for the GUI components. */
@@ -157,6 +157,7 @@ export function InputMapper({
             return (
                 <FileSelectionMenu
                     projectId={projectId}
+                    t={t}
                     advanced={{
                         autocomplete: {
                             onSearch: handleFileSearch,
@@ -164,6 +165,7 @@ export function InputMapper({
                             itemValueRenderer: resourceNameFn,
                             itemValueSelector: resourceNameFn,
                             noResultText: t("common.messages.noResults", "No results."),
+                            itemValueString: () => "",
                         },
                     }}
                     allowMultiple={false}
