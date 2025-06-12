@@ -124,7 +124,7 @@ export const RuleParameterInput = ({
         async (
             inputString: string,
             cursorPosition: number,
-        ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult> => {
+        ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
             try {
                 return (
                     await requestAutoCompleteTemplateString(inputString, cursorPosition, ruleEditorContext.projectId)
@@ -133,7 +133,6 @@ export const RuleParameterInput = ({
                 registerError("RuleParameterInput.fetchSuggestions", "Could not fetch auto-complete suggestions!", e, {
                     errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
                 });
-                return {} as CodeAutocompleteFieldPartialAutoCompleteResult;
             }
         },
         [],
