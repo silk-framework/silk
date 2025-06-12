@@ -1,7 +1,5 @@
 import React from "react";
-import "@uppy/core/dist/style.css";
-import "@uppy/drag-drop/dist/style.css";
-import "@uppy/progress-bar/dist/style.css";
+
 
 import { Button, Divider, FieldItem, Icon, TextField, Uppy, UppyFile } from "@eccenca/gui-elements";
 import { IAutoCompleteFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
