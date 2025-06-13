@@ -146,6 +146,7 @@ export const RuleParameterInput = ({
         if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
             return (
                 <CodeAutocompleteField
+                    id={inputAttributes.id}
                     mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
                     initialValue={inputAttributes.defaultValue ?? ""}
                     onChange={inputAttributes.onChange}
@@ -160,6 +161,7 @@ export const RuleParameterInput = ({
         } else {
             return (
                 <CodeAutocompleteField
+                    id={inputAttributes.id}
                     initialValue={inputAttributes.defaultValue ?? ""}
                     onChange={inputAttributes.onChange}
                     fetchSuggestions={fetchSuggestions}
