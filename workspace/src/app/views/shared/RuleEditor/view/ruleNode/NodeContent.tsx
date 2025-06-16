@@ -7,6 +7,7 @@ import utils from "./ruleNode.utils";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 import { RuleNodeFormParameterModal } from "./RuleNodeFormParameterModal";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { InputPathFunctions } from "./PathInputOperator";
 
 export interface RuleNodeContentProps {
     nodeId: string;
@@ -85,8 +86,14 @@ export const NodeContent = ({
                 return undefined;
             }
         },
-        [operatorContext.operatorParameterSpecification]
+        [operatorContext.operatorParameterSpecification],
     );
+
+    const inputPathFunctions: InputPathFunctions = React.useMemo(
+        () => operatorContext.inputPathFunctions(nodeId),
+        [operatorContext.inputPathFunctions, nodeId],
+    );
+
     return rerender ? null : (
         <>
             {parameters.length ? (
@@ -99,7 +106,7 @@ export const NodeContent = ({
                     parameterDefaultValue={parameterDefaultValue}
                     large={false}
                     insideModal={false}
-                    languageFilter={operatorContext.languageFilterEnabled(nodeId)}
+                    inputPathFunctions={inputPathFunctions}
                 />
             ) : null}
             {tags ? utils.createOperatorTags(tags) : null}
@@ -117,7 +124,7 @@ export const NodeContent = ({
                         onCloseEditModal();
                     }}
                     updateNodeParameters={operatorContext.updateNodeParameters}
-                    languageFilter={operatorContext.languageFilterEnabled(nodeId)}
+                    inputPathFunctions={inputPathFunctions}
                 />
             ) : null}
         </>

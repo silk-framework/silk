@@ -19,7 +19,7 @@ import { fileValue, IProjectResource } from "@ducks/shared/typings";
 import { TextFieldWithCharacterWarnings } from "../../../extendedGuiElements/TextFieldWithCharacterWarnings";
 import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/TextAreaWithCharacterWarnings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { LanguageFilterProps, PathInputOperator } from "./PathInputOperator";
+import { InputPathFunctions, PathInputOperator } from "./PathInputOperator";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
 
 interface RuleParameterInputProps {
@@ -37,8 +37,8 @@ interface RuleParameterInputProps {
     large: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
-    /** If for this parameter there is a language filter supported. Currently only path parameters are affected by this option. */
-    languageFilter?: LanguageFilterProps;
+    /** Functions that are specific to input path rule operators. */
+    inputPathFunctions: InputPathFunctions;
     /** The default value as defined in the parameter spec. */
     parameterDefaultValue: (paramId: string) => string | undefined;
 }
@@ -52,7 +52,7 @@ export const RuleParameterInput = ({
     dependentValue,
     large,
     insideModal,
-    languageFilter,
+    inputPathFunctions,
     parameterDefaultValue,
 }: RuleParameterInputProps) => {
     const _onChange = ruleParameter.update;
@@ -93,7 +93,7 @@ export const RuleParameterInput = ({
     };
 
     const autoCompleteProps: (autoComplete: IPropertyAutocomplete) => ParameterAutoCompletionProps = (
-        autoComplete
+        autoComplete,
     ) => ({
         projectId: ruleEditorContext.projectId,
         taskId: ruleEditorContext.editedItemId!,
@@ -109,7 +109,10 @@ export const RuleParameterInput = ({
         autoCompletion: autoComplete,
         intent: hasValidationError ? Intent.DANGER : Intent.NONE,
         formParamId: uniqueId,
-        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({value: dependentValue(paramId), isTemplate: false}),
+        dependentValue: (paramId: string): DependsOnParameterValueAny | undefined => ({
+            value: dependentValue(paramId),
+            isTemplate: false,
+        }),
         required: ruleParameter.parameterSpecification.required,
         readOnly: inputAttributes.readOnly,
         hasBackDrop: !insideModal,
@@ -214,9 +217,9 @@ export const RuleParameterInput = ({
                     return (
                         <PathInputOperator
                             parameterAutoCompletionProps={autoCompleteProps(
-                                ruleParameter.parameterSpecification.autoCompletion
+                                ruleParameter.parameterSpecification.autoCompletion,
                             )}
-                            languageFilterSupport={languageFilter}
+                            inputPathFunctions={inputPathFunctions}
                         />
                     );
                 }

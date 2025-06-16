@@ -7,6 +7,7 @@ import {
     IRuleSideBarFilterTabConfig,
     RuleSaveResult,
     RuleEditorValidationNode,
+    PathMetaDataFunctions,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
 import { DatasetCharacteristics } from "../../typings";
@@ -42,7 +43,7 @@ export interface RuleEditorContextProps {
     /** Save the rule. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
-        stickyNotes?: StickyNote[]
+        stickyNotes?: StickyNote[],
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
@@ -50,7 +51,7 @@ export interface RuleEditorContextProps {
     validateConnection: (
         fromRuleOperatorNode: RuleEditorValidationNode,
         toRuleOperatorNode: RuleEditorValidationNode,
-        targetPortIdx: number
+        targetPortIdx: number,
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
@@ -76,14 +77,14 @@ export interface RuleEditorContextProps {
     instanceId: string;
     /** Dataset characteristics, e.g. used for the 'PathInputOperator' type. The key is the corresponding plugin ID. */
     datasetCharacteristics: Map<string, DatasetCharacteristics>;
-    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
-    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** Optional functions to get more information about specific properties/paths. */
+    pathMetaData?: PathMetaDataFunctions;
     /**
      * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
      * without replacing the complete path.
      */
     partialAutoCompletion: (
-        inputType: "source" | "target"
+        inputType: "source" | "target",
     ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 
@@ -106,6 +107,9 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     initialFitToViewZoomLevel: 0.75,
     instanceId: "uniqueId",
     datasetCharacteristics: new Map(),
-    inputPathPluginPathType: () => undefined,
+    pathMetaData: {
+        inputPathPluginPathType: () => undefined,
+        inputPathLabel: () => undefined,
+    },
     partialAutoCompletion: () => async () => undefined,
 });

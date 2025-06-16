@@ -36,7 +36,8 @@ import {
     RuleEditorNodeParameterValue,
     RuleModelChanges,
     RuleModelChangesFactory,
-    RuleModelChangeType, RuleNodeCopySerialization,
+    RuleModelChangeType,
+    RuleNodeCopySerialization,
     StickyNodePropType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
@@ -53,7 +54,7 @@ import {
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
@@ -118,7 +119,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
     // Stores the language filter config for each node, so the config object can be used in dependency lists.
-    const languageFilterConfig = React.useRef<Map<string, LanguageFilterProps>>(new Map())
+    const inputPathFunctionsConfigs = React.useRef<Map<string, InputPathFunctions>>(new Map());
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
     const ruleEvaluationContext: RuleEditorEvaluationContextProps =
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
@@ -135,18 +136,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const clearTextSelection = React.useCallback(() => {
         if (document.getSelection) {
-            if (document.getSelection()?.empty) {  // Chrome
+            if (document.getSelection()?.empty) {
+                // Chrome
                 document.getSelection()!.empty();
-            } else if (document.getSelection()?.removeAllRanges) {  // Firefox
+            } else if (document.getSelection()?.removeAllRanges) {
+                // Firefox
                 document.getSelection()!.removeAllRanges();
             }
         }
-    }, [])
+    }, []);
 
     const updateSelectedElements = React.useCallback((newSelectedElements: Elements | null) => {
-        clearTextSelection()
-        _setSelectedElements(newSelectedElements)
-    }, [])
+        clearTextSelection();
+        _setSelectedElements(newSelectedElements);
+    }, []);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -183,7 +186,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (selectedElements) {
                 await copyNodes(
                     selectedElements.map((n) => n.id),
-                    e
+                    e,
                 );
                 e.preventDefault();
             }
@@ -297,7 +300,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (evaluateQuickly) {
             const timeout = setTimeout(
                 () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
-                500
+                500,
             );
             return () => clearTimeout(timeout);
         }
@@ -609,7 +612,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleModelChange: RuleModelChanges,
         currentElements: Elements,
         isUndoOrRedo: boolean = false,
-        ignoreReadOnlyState: boolean = false
+        ignoreReadOnlyState: boolean = false,
     ): Elements => {
         if (readOnlyState.enabled && !ignoreReadOnlyState) {
             return currentElements;
@@ -621,27 +624,27 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 case "Add node":
                     changedElements = addElementsInternal(
                         groupedChange.map((change) => (change as AddNode).node),
-                        changedElements
+                        changedElements,
                     );
                     break;
                 case "Add edge":
                     changedElements = addElementsInternal(
                         groupedChange.map((change) => (change as AddEdge).edge),
-                        changedElements
+                        changedElements,
                     );
                     triggerQuickEvaluation();
                     break;
                 case "Delete node":
                     changedElements = deleteElementsInternal(
                         groupedChange.map((change) => (change as DeleteNode).node),
-                        changedElements
+                        changedElements,
                     );
                     triggerQuickEvaluation();
                     break;
                 case "Delete edge":
                     changedElements = deleteElementsInternal(
                         groupedChange.map((change) => (change as DeleteEdge).edge),
-                        changedElements
+                        changedElements,
                     );
                     triggerQuickEvaluation();
                     break;
@@ -651,9 +654,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             groupedChange.map((change) => {
                                 const nodeChange = change as ChangeNodePosition;
                                 return [nodeChange.nodeId, nodeChange.to];
-                            })
+                            }),
                         ),
-                        changedElements
+                        changedElements,
                     );
                     break;
                 case "Change node size":
@@ -662,9 +665,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             groupedChange.map((change) => {
                                 const nodeChange = change as ChangeNodeSize;
                                 return [nodeChange.nodeId, nodeChange.to];
-                            })
+                            }),
                         ),
-                        changedElements
+                        changedElements,
                     );
                     break;
                 case "Change sticky node style or content":
@@ -673,9 +676,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             groupedChange.map((change) => {
                                 const nodeChange = change as ChangeStickyNodeProperties;
                                 return [nodeChange.nodeId, nodeChange.to];
-                            })
+                            }),
                         ),
-                        changedElements
+                        changedElements,
                     );
                     break;
                 case "Change number of input handles":
@@ -738,7 +741,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                 tags={op.tags}
                                                 operatorContext={operatorNodeCreateContextInternal(
                                                     op.pluginId,
-                                                    ruleEditorContext.operatorSpec!!
+                                                    ruleEditorContext.operatorSpec!!,
                                                 )}
                                                 nodeParameters={{
                                                     ...op.parameters,
@@ -766,7 +769,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Adds a rule model change action to the undo stack and executes the change on the model. */
     const addAndExecuteRuleModelChangeInternal = (
         ruleModelChange: RuleModelChanges,
-        currentElements: Elements
+        currentElements: Elements,
     ): Elements => {
         addRuleModelChange(ruleModelChange, true);
         return executeRuleModelChangeInternal(ruleModelChange, currentElements);
@@ -846,7 +849,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const changeNodeSizeInternal = (
         elementsWithSizeChanges: Map<string, NodeDimensions | undefined>,
-        els: Elements
+        els: Elements,
     ) => {
         return els.map((elem) => {
             if (utils.isNode(elem) && elementsWithSizeChanges.has(elem.id)) {
@@ -865,7 +868,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const changeStickyNodePropertiesInternal = (
         stickyNodesWithChanges: Map<string, StickyNodePropType>,
-        els: Elements
+        els: Elements,
     ) => {
         return els.map((elem) => {
             if (utils.isNode(elem) && stickyNodesWithChanges.has(elem.id)) {
@@ -903,7 +906,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     // Changes the node parameters
     const changeNodeParametersInternal = (
-        nodeParametersToChange: Map<string, Map<string, RuleEditorNodeParameterValue>>
+        nodeParametersToChange: Map<string, Map<string, RuleEditorNodeParameterValue>>,
     ): void => {
         nodeParametersToChange.forEach((parameterChanges, nodeId) => {
             const parameterDiff = nodeParameters.get(nodeId) ?? new Map();
@@ -921,7 +924,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const createNodeInternal = (
         ruleOperator: IRuleOperator,
         position: XYPosition,
-        overwriteParameterValues?: RuleOperatorNodeParameters
+        overwriteParameterValues?: RuleOperatorNodeParameters,
     ): RuleEditorNode | undefined => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
@@ -930,7 +933,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const newNode = utils.createNewOperatorNode(
                 ruleNode,
                 operatorNodeOperationsInternal,
-                operatorNodeCreateContextInternal(ruleOperator.pluginId, ruleEditorContext.operatorSpec!!)
+                operatorNodeCreateContextInternal(ruleOperator.pluginId, ruleEditorContext.operatorSpec!!),
             );
             nodeMap.set(newNode.id, {
                 node: { ...ruleNode, nodeId: newNode.id },
@@ -941,7 +944,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         } else {
             console.warn(
                 "Could not create node since React flow and rule operator specifications are not initialized yet!",
-                ruleOperator
+                ruleOperator,
             );
         }
     };
@@ -958,7 +961,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions, newNodeDimensions),
-                    els
+                    els,
                 );
             } else {
                 return els;
@@ -984,7 +987,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.changeStickyNodeProperties(nodeId, oldStickyProps, newStickyProps),
-                    els
+                    els,
                 );
             }
             return els;
@@ -996,7 +999,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         stickyNote: string,
         position: XYPosition,
         dimension?: NodeDimensions,
-        id?: string
+        id?: string,
     ): Node => {
         const style = nodeDefaultUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
@@ -1049,7 +1052,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         } else {
             console.warn(
                 "Could not create sticky note node since React flow and rule operator specifications are not initialized yet!",
-                stickyNote
+                stickyNote,
             );
         }
     };
@@ -1065,7 +1068,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addNode = async (
         ruleOperator: IRuleOperator,
         position: XYPosition,
-        overwriteParameterValues?: RuleOperatorNodeParameters
+        overwriteParameterValues?: RuleOperatorNodeParameters,
     ) => {
         const parametersNeedingALabel = Object.entries(ruleOperator.parameterSpecification).filter(
             ([paramId, paramSpec]) => {
@@ -1074,7 +1077,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     !overwriteParameterValues?.[paramId] &&
                     paramSpec.defaultValue
                 );
-            }
+            },
         );
         const updatedOverwriteParameterValues = Object.create(null);
         Object.entries(overwriteParameterValues ?? {}).forEach(([p, v]) => (updatedOverwriteParameterValues[p] = v));
@@ -1095,7 +1098,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     "RuleEditorModel.requestRuleOperatorPluginDetails",
                     "Could not fetch rule operator plugin details. Human-readable labels for default values might be missing.",
                     ex,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE },
                 );
             }
         }
@@ -1111,7 +1114,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const fetchRuleOperatorByPluginId = (pluginId: string, pluginType: string): IRuleOperator | undefined => {
         const op = (ruleEditorContext.operatorList ?? []).find(
-            (op) => op.pluginType === pluginType && op.pluginId === pluginId
+            (op) => op.pluginType === pluginType && op.pluginId === pluginId,
         );
         if (op) {
             return op;
@@ -1133,7 +1136,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         pluginId: string,
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters,
-        isCanvasPosition: boolean = false
+        isCanvasPosition: boolean = false,
     ) => {
         // FIXME: Move position calculation into view code
         const realPosition = isCanvasPosition && reactFlowInstance ? reactFlowInstance.project(position) : position;
@@ -1160,7 +1163,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 const edges = findEdgesOfNodes(new Set([node.id]), els);
                 const withoutEdges = addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.deleteEdges(edges),
-                    els
+                    els,
                 );
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node), withoutEdges);
             } else {
@@ -1178,7 +1181,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 const edges = findEdgesOfNodes(new Set(nodeIds), els);
                 const withoutEdges = addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.deleteEdges(edges),
-                    els
+                    els,
                 );
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), withoutEdges);
             } else {
@@ -1199,7 +1202,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         sourceNodeId: string,
         targetNodeId: string,
         targetHandleId: string | undefined,
-        previousTargetHandle?: string
+        previousTargetHandle?: string,
     ) => {
         if (targetHandleId && !isValidEdge(sourceNodeId, targetNodeId, targetHandleId)) {
             return;
@@ -1214,17 +1217,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     return currentElements;
                 }
                 const inputHandles = (node!!.data.handles ?? []).filter(
-                    (handle) => handle.type === "target" && !handle.category
+                    (handle) => handle.type === "target" && !handle.category,
                 );
                 const existingConnections = utils.findEdges({ elements: currentElements, target: targetNodeId });
                 const occupiedHandles = new Set<string | null | undefined>(
-                    existingConnections.map((edge) => edge.targetHandle)
+                    existingConnections.map((edge) => edge.targetHandle),
                 );
                 const freeHandle = inputHandles.find(
                     (handle) =>
                         handle.id &&
                         !occupiedHandles.has(handle.id) &&
-                        isValidEdge(sourceNodeId, targetNodeId, handle.id)
+                        isValidEdge(sourceNodeId, targetNodeId, handle.id),
                 );
                 if (freeHandle) {
                     // Connect to free handle
@@ -1252,7 +1255,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (existingEdges.length > 0) {
                 currentElements = addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.deleteEdges(existingEdges),
-                    currentElements
+                    currentElements,
                 );
             }
             // Swap existing edge if it was connected to the same target handle
@@ -1262,14 +1265,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         ...existingEdgesToSameNodeHandle[0],
                         targetHandle: previousTargetHandle,
                     }),
-                    currentElements
+                    currentElements,
                 );
             }
             const edge = utils.createEdge(
                 sourceNodeId,
                 targetNodeId,
                 toTargetHandleId!!,
-                edgeType(nodeMap.get(sourceNodeId)?.node)
+                edgeType(nodeMap.get(sourceNodeId)?.node),
             );
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), currentElements);
         }, true);
@@ -1312,19 +1315,19 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         const position = { x: node.position.x + 100, y: node.position.y + 100 };
                         const op = fetchRuleOperatorByPluginId(node.pluginId, node.pluginType);
                         if (!op) throw new Error(`Missing plugins for operator plugin ${node.pluginId}`);
-                        const newNode = createNodeInternal(
-                            op,
-                            position,
-                            node.parameters
-                        );
+                        const newNode = createNodeInternal(op, position, node.parameters);
                         if (newNode) {
-                            const existingInputHandleIds = new Set(utils.inputHandles(newNode).map(h => h.id))
-                            const missingInputHandleIds = node.inputHandleIds.filter(id => !existingInputHandleIds.has(id) && Number.isInteger(Number.parseInt(id)))
-                            if(missingInputHandleIds.length > 0) {
-                                const missingInputHandles = missingInputHandleIds.map(id => utils.createInputHandle(Number.parseInt(id)));
-                                newNode.data.handles?.push(...missingInputHandles)
+                            const existingInputHandleIds = new Set(utils.inputHandles(newNode).map((h) => h.id));
+                            const missingInputHandleIds = node.inputHandleIds.filter(
+                                (id) => !existingInputHandleIds.has(id) && Number.isInteger(Number.parseInt(id)),
+                            );
+                            if (missingInputHandleIds.length > 0) {
+                                const missingInputHandles = missingInputHandleIds.map((id) =>
+                                    utils.createInputHandle(Number.parseInt(id)),
+                                );
+                                newNode.data.handles?.push(...missingInputHandles);
                             }
-                            newNode.data.nodeDimensions = node.dimension
+                            newNode.data.nodeDimensions = node.dimension;
                             nodeIdMap.set(node.nodeId, newNode.id);
                             newNodes.push({
                                 ...newNode,
@@ -1345,7 +1348,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                 nodeIdMap.get(edge.source)!!,
                                 nodeIdMap.get(edge.target)!!,
                                 edge.targetHandle!!,
-                                edge.type ?? "step"
+                                edge.type ?? "step",
                             );
                             newEdges.push(newEdge);
                         }
@@ -1353,12 +1356,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     startChangeTransaction();
                     const withNodes = addAndExecuteRuleModelChangeInternal(
                         RuleModelChangesFactory.addNodes(newNodes),
-                        els
+                        els,
                     );
                     resetSelectedElements();
                     setTimeout(() => {
                         unsetUserSelection();
-                        clearTextSelection()
+                        clearTextSelection();
                         setSelectedElements([...newNodes, ...newEdges]);
                     }, 100);
                     return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
@@ -1373,7 +1376,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     "RuleEditorModel.pasteCopiedNodes",
                     "No operator has been found in the pasted data",
                     err,
-                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning" }
+                    { errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE, intent: "warning" },
                 );
             } else {
                 registerError("RuleEditorModel.pasteCopiedNodes", err?.message, err, {
@@ -1400,7 +1403,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         targetHandle: edge.targetHandle,
                         type: edge.type ?? "step",
                     });
-                    typeof edge.targetHandle === "string" && nodeId2InputHandleMap.get(edge.target)!.add(edge.targetHandle)
+                    typeof edge.targetHandle === "string" &&
+                        nodeId2InputHandleMap.get(edge.target)!.add(edge.targetHandle);
                 }
             }
         });
@@ -1415,7 +1419,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 position: node.position,
                 dimension: node.data.nodeDimensions,
                 parameters: Object.fromEntries(nodeParameters.get(node.id) ?? new Map()),
-                inputHandleIds: [...nodeId2InputHandleMap.get(node.id)!]
+                inputHandleIds: [...nodeId2InputHandleMap.get(node.id)!],
             };
         });
 
@@ -1457,7 +1461,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     const newNode = createNodeInternal(
                         op,
                         position,
-                        Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                        Object.fromEntries(nodeParameters.get(node.id) ?? new Map()),
                     );
                     if (newNode) {
                         nodeIdMap.set(node.id, newNode.id);
@@ -1474,7 +1478,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             nodeIdMap.get(edge.source)!!,
                             nodeIdMap.get(edge.target)!!,
                             edge.targetHandle!!,
-                            edge.type ?? "step"
+                            edge.type ?? "step",
                         );
                         newEdges.push(newEdge);
                     }
@@ -1484,7 +1488,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             resetSelectedElements();
             setTimeout(() => {
                 unsetUserSelection();
-                clearTextSelection()
+                clearTextSelection();
                 setSelectedElements([...newNodes, ...newEdges]);
             }, 100);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
@@ -1545,13 +1549,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         nodeId: string,
         parameterId: string,
         newValue: RuleEditorNodeParameterValue,
-        autoStartTransaction: boolean = true
+        autoStartTransaction: boolean = true,
     ) => {
         const changeValue = (from: RuleEditorNodeParameterValue, to: RuleEditorNodeParameterValue) => {
             // This does not change the actual elements, so we provide dummy elements
             addAndExecuteRuleModelChangeInternal(
                 RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, to),
-                []
+                [],
             );
         };
         // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
@@ -1581,7 +1585,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (node) {
                 return addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.changeNodePosition(nodeId, node.position, newPosition),
-                    els
+                    els,
                 );
             } else {
                 return els;
@@ -1655,10 +1659,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             ...node.data,
                             intent: removeExistingHighlighting
                                 ? highlightState.intent
-                                : highlightState.intent ?? currentHighlightingState.intent,
+                                : (highlightState.intent ?? currentHighlightingState.intent),
                             highlightColor: removeExistingHighlighting
                                 ? highlightState.highlightColor
-                                : highlightState.highlightColor ?? currentHighlightingState.highlightColor,
+                                : (highlightState.highlightColor ?? currentHighlightingState.highlightColor),
                         };
                     } else if (removeExistingHighlighting) {
                         node.data = {
@@ -1669,7 +1673,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     }
                 }
                 return el;
-            })
+            }),
         );
     };
 
@@ -1685,7 +1689,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     };
                 }
                 return el;
-            })
+            }),
         );
     };
 
@@ -1699,7 +1703,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const autoLayoutInternal = async (
         elements: Elements,
         addChangeHistory: boolean,
-        startTransaction: boolean
+        startTransaction: boolean,
     ): Promise<Elements> => {
         const newLayout = utils.autoLayout(elements, zoom, canvasId);
         const changeNodePositionOperations: ChangeNodePosition[] = [];
@@ -1741,31 +1745,42 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
 
-    const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
+    const inputPathFunctions = (nodeId: string): InputPathFunctions => {
         const node = nodeMap.get(nodeId);
         if (node) {
-            const existingConfig = languageFilterConfig.current.get(nodeId)
-            if(existingConfig) {
-                return existingConfig
+            const existingLanguageFilterConfig = inputPathFunctionsConfigs.current.get(nodeId);
+            if (existingLanguageFilterConfig) {
+                return existingLanguageFilterConfig;
             } else {
+                const { pluginId, pluginType } = node.node;
                 const enabled =
                     node.node.pluginType === "PathInputOperator" &&
-                    !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
-                        .languageFilter;
-                const newConfig: LanguageFilterProps = {
-                    enabled,
-                    pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
+                    !!ruleEditorContext.datasetCharacteristics.get(pluginId)?.supportedPathExpressions.languageFilter;
+                const inputPathLabel =
+                    pluginType === "PathInputOperator"
+                        ? (path: string) => {
+                              return ruleEditorContext.pathMetaData?.inputPathLabel?.(pluginId, path);
+                          }
+                        : undefined;
+                const newConfig: InputPathFunctions = {
+                    languageFilter: {
+                        enabled,
+                        pathType: (path: string) =>
+                            ruleEditorContext.pathMetaData?.inputPathPluginPathType?.(pluginId, path),
+                    },
+                    inputPathLabel,
                 };
-                languageFilterConfig.current.set(nodeId, newConfig)
-                return newConfig
+                inputPathFunctionsConfigs.current.set(nodeId, newConfig);
+                return newConfig;
             }
         }
+        return {};
     };
 
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
-        operatorSpec: Map<string, Map<string, IParameterSpecification>>
+        operatorSpec: Map<string, Map<string, IParameterSpecification>>,
     ): IOperatorCreateContext => ({
         operatorParameterSpecification: operatorSpec.get(operatorPluginId) ?? new Map(),
         t,
@@ -1776,7 +1791,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
-        languageFilterEnabled,
+        inputPathFunctions,
         changeNodeSize: changeSize,
     });
 
@@ -1850,7 +1865,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                       ? parameterDiff.get(parameterId)
                                       : parameterValue;
                               return [parameterId, typeof value === "string" ? value : value ? value.value : undefined];
-                          })
+                          }),
                       )
                     : originalNode.parameters,
                 pluginId: originalNode.pluginId,
@@ -1889,7 +1904,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 highlightNodes(
                     saveResult.nodeErrors!!.map((err) => err.nodeId),
                     { intent: "danger" },
-                    true
+                    true,
                 );
             }
         } else {
@@ -1915,12 +1930,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return utils.createOperatorNode(
                 operatorNode,
                 { ...operatorNodeOperationsInternal, handleDeleteNode },
-                operatorNodeCreateContextInternal(operatorNode.pluginId, ruleEditorContext.operatorSpec!!)
+                operatorNodeCreateContextInternal(operatorNode.pluginId, ruleEditorContext.operatorSpec!!),
             );
         });
         // Init node map for edgeType, set inputs and output further below
         operatorsNodes!!.forEach((opNode) =>
-            nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined })
+            nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined }),
         );
         // Create edges
         const edges: Edge[] = [];
@@ -1931,7 +1946,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 if (inputNodeId) {
                     // Edge IDs do not currently matter
                     edges.push(
-                        utils.createEdge(inputNodeId, node.nodeId, `${idx}`, edgeType(nodeMap.get(inputNodeId)?.node))
+                        utils.createEdge(inputNodeId, node.nodeId, `${idx}`, edgeType(nodeMap.get(inputNodeId)?.node)),
                     );
                     targetNode.set(inputNodeId, node.nodeId);
                 }
@@ -1944,7 +1959,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 node: opNode,
                 inputs: opNode.inputs,
                 output: targetNode.get(opNode.nodeId),
-            })
+            }),
         );
 
         const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) => {
