@@ -142,7 +142,7 @@ object BulkResourceBasedDataset {
     *
     * Filters the name of the resource via the given filter regex.
     */
-  private def retrieveSubResources(resource: Resource, filterRegex: Regex): CloseableIterator[Resource] = {
+  def retrieveSubResources(resource: Resource, filterRegex: Regex = new Regex(".*")): CloseableIterator[Resource] = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log fine s"Zip file Resource found: ${resource.name}"
       try {
