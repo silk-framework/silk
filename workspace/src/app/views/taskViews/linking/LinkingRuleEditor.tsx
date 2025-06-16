@@ -38,6 +38,7 @@ import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNo
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { languageFilterRegex } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -114,16 +115,25 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 true,
                 prefLang,
             );
+            const createLabelMap = (paths: PathWithMetaData[]): Map<string, string> => {
+                const valueToPaths: [string, string][] = paths
+                    .filter((p) => p.label)
+                    .map((p) => {
+                        let value = p.value;
+                        // We want to have the actual property without language filter
+                        if (languageFilterRegex.test(value)) {
+                            value = value.replace(languageFilterRegex, "");
+                        }
+                        return [value, p.label!];
+                    });
+                return new Map(valueToPaths);
+            };
             if (sourceOrTarget === "source") {
                 sourcePathMetaData.current = paths.data as PathWithMetaData[];
-                sourcePathLabels.current = new Map(
-                    sourcePathMetaData.current.filter((p) => p.label).map((p) => [p.value, p.label!]),
-                );
+                sourcePathLabels.current = createLabelMap(sourcePathMetaData.current);
             } else {
                 targetPathMetaData.current = paths.data as PathWithMetaData[];
-                targetPathLabels.current = new Map(
-                    targetPathMetaData.current.filter((p) => p.label).map((p) => [p.value, p.label!]),
-                );
+                targetPathLabels.current = createLabelMap(targetPathMetaData.current);
             }
         } finally {
             reducePendingRequestCount();

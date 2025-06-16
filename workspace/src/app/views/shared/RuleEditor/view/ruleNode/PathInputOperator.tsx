@@ -26,7 +26,7 @@ interface Props {
 }
 
 /** Extracts the language part from a language filter operator string. */
-const languageFilterRegex = /\[@lang\s*=\s*'([a-zA-Z0-9-]+)']$/;
+export const languageFilterRegex = /\[@lang\s*=\s*'([a-zA-Z0-9-]+)']$/;
 
 const languageTagRegex = /^[a-zA-Z]+(?:-[a-zA-Z0-9]+)*$/;
 const NO_LANG = "-";
@@ -50,7 +50,6 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
     }>({ initialized: false, currentValue: parameterAutoCompletionProps.initialValue });
     const [showLanguageFilterButton, setShowLanguageFilterButton] = React.useState(false);
     const languageFilterSupport = inputPathFunctions.languageFilter ?? DEFAULT_LANGUAGE_FILTER_SUPPORT;
-    const inputPathLabel = inputPathFunctions.inputPathLabel ?? DEFAULT_INPUT_PATH_LABEL;
 
     const checkPathToShowFilterButton = React.useCallback((path?: string) => {
         const pathType = path ? languageFilterSupport.pathType(path) : "URI";
@@ -76,7 +75,8 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         let value = v;
         if (!value.label && inputPathFunctions.inputPathLabel) {
             // try to get label
-            const label = inputPathFunctions.inputPathLabel?.(value.value);
+            const property = extractProperty(value.value);
+            const label = inputPathFunctions.inputPathLabel?.(property ?? value.value);
             value = { ...v, label };
         }
         internalState.current.currentValue = value;
@@ -289,4 +289,41 @@ const LanguageSwitcher = ({ onLanguageChange, initialLanguage }: LanguageSwitche
             )}
         </Select>
     );
+};
+
+/** Extract the last property of the path that is not in a filter. */
+export const extractProperty = (path: string): string | undefined => {
+    // Remove last part if not a property
+    let currentSubPath = path.trimEnd();
+    let lastChar = currentSubPath[currentSubPath.length - 1];
+    while (lastChar === "]") {
+        const lastQuoteIndex = currentSubPath.lastIndexOf('"');
+        let lastOpenBracketIndex = currentSubPath.lastIndexOf("[");
+        if (lastQuoteIndex > lastOpenBracketIndex) {
+            // Remove value
+            currentSubPath = currentSubPath.substring(0, lastQuoteIndex);
+            const secondToLastQuoteIndex = currentSubPath.lastIndexOf('"');
+            currentSubPath = currentSubPath.substring(0, secondToLastQuoteIndex);
+            lastOpenBracketIndex = currentSubPath.lastIndexOf("[");
+        }
+        currentSubPath = currentSubPath.substring(0, lastOpenBracketIndex).trimEnd();
+        lastChar = currentSubPath[currentSubPath.length - 1];
+    }
+    if (currentSubPath.length) {
+        if (lastChar === ">") {
+            const openingUriIdx = currentSubPath.lastIndexOf("<");
+            if (openingUriIdx >= 0) {
+                return currentSubPath.substring(openingUriIdx);
+            }
+        } else {
+            const propertyStart =
+                Math.max(
+                    currentSubPath.lastIndexOf("/"),
+                    currentSubPath.lastIndexOf("\\"),
+                    currentSubPath.lastIndexOf("]"),
+                    -1,
+                ) + 1;
+            return currentSubPath.substring(propertyStart).trim();
+        }
+    }
 };
