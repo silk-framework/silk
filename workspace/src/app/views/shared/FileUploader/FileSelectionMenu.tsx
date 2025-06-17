@@ -1,10 +1,6 @@
 import React from "react";
-import Uppy, { UppyFile } from "@uppy/core";
-import "@uppy/core/dist/style.css";
-import "@uppy/drag-drop/dist/style.css";
-import "@uppy/progress-bar/dist/style.css";
 
-import { Button, Divider, FieldItem, Icon, TextField } from "@eccenca/gui-elements";
+import { Button, Divider, FieldItem, Icon, TextField, Uppy, UppyFile } from "@eccenca/gui-elements";
 import { IAutoCompleteFieldProps } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
@@ -13,8 +9,6 @@ import { CreateNewFile } from "./cases/CreateNewFile";
 import i18next from "../../../../language";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { withTranslation } from "react-i18next";
-import XHR from "@uppy/xhr-upload";
 
 interface IUploaderInstance {
     /**
@@ -41,7 +35,7 @@ export interface IUploaderOptions {
     defaultValue?: string;
 
     /** Indicator that there needs to be a value set/selected, else the file selection (from existing files) can e.g. be reset. */
-    required: boolean;
+    required?: boolean;
 
     /**
      * return uploader API
@@ -96,33 +90,15 @@ export interface IUploaderOptions {
     t(key: string, options?: object | string): string;
 
     /** When used inside a modal, the behavior of some components will be optimized. */
-    insideModal: boolean;
+    insideModal?: boolean;
 
     /** Callback that is called when the state of all uploads being successfully done has changed.
      * Reasons for non-success are: uploads are in progress, user interaction is needed, errors have occurred.*/
     allFilesSuccessfullyUploadedHandler?: (allSuccessful: boolean) => any;
 
-    listenToUploadedFiles: (files: UppyFile[]) => void 
-}
+    listenToUploadedFiles?: (files: UppyFile[]) => void;
 
-interface IState {
-    // Selected File menu item
-    selectedFileMenu: FileMenuItems;
-
-    //Show upload process
-    isUploading: boolean;
-
-    //Update default value in case that file is already given
-    showActionsMenu: boolean;
-
-    //Filename which shows in input for update action
-    inputFilename: string;
-
-    //Toggle File delete dialog, contains filename or empty string
-    visibleFileDelete: string;
-
-    // The ID of the file selection menu
-    id: string;
+    id?: string;
 }
 
 const noop = () => {
@@ -134,212 +110,164 @@ const noop = () => {
  * with advanced = true, provides full FileUploader with 2 extra options
  * otherwise provides simple drag and drop uploader
  */
-class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
-    private uppy = Uppy({
-        // @ts-ignore
-        logger: Uppy.debugLogger,
-    });
+export const FileSelectionMenu: React.FC<IUploaderOptions> = (props) => {
+    const [inputFileName, setInputFileName] = React.useState<string>("");
+    const [selectedFileMenu, setSelectedFileMenu] = React.useState<FileMenuItems>(props.advanced ? "SELECT" : "NEW");
+    const [showActionsMenu, setShowActionMenu] = React.useState<boolean>(false);
+    const [uppy, setUppy] = React.useState<Uppy>();
 
-    /**
-     * @see Uppy.upload
-     */
-    public upload = this.uppy.upload;
+    const upload = React.useCallback(() => uppy?.upload, [uppy]);
+    const reset = React.useCallback(() => uppy?.reset, [uppy]);
+    const cancelAll = React.useCallback(() => uppy?.cancelAll, [uppy]);
 
-    /**
-     * @see Uppy.reset
-     */
-    public reset = this.uppy.reset;
-
-    /**
-     * @see Uppy.cancelAll
-     */
-    public cancelAll = this.uppy.cancelAll;
-
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            selectedFileMenu: props.advanced ? "SELECT" : "NEW",
-            isUploading: false,
-            showActionsMenu: false,
-            inputFilename: props.defaultValue || "",
-            visibleFileDelete: "",
-            id: props.id,
-        };
-
-        if (props.maxFileUploadSizeBytes) {
-            this.uppy.setOptions({
-                restrictions: {
-                    maxFileSize: props.maxFileUploadSizeBytes,
-                    // Restrict to 1 file if allowMultiple == false
-                    maxNumberOfFiles: props.allowMultiple ? undefined : 1,
-                },
+    React.useEffect(() => {
+        props.getInstance &&
+            props.getInstance({
+                reset: reset,
+                upload: upload,
+                cancelAll: cancelAll,
             });
-        }
-        this.uppy.use(XHR, {
-            method: "PUT",
-            fieldName: "file",
-            allowMultipleUploads: props.allowMultiple,
-            // Only upload one file at the same time
-            limit: 1,
-        });
-    }
+    }, []);
 
-    componentDidMount(): void {
-        if (this.props.getInstance) {
-            this.props.getInstance({
-                reset: this.reset,
-                upload: this.upload,
-                cancelAll: this.cancelAll,
-            });
-        }
-    }
+    const handleUploadSuccess = React.useCallback(
+        (file: any) => {
+            props.onUploadSuccess && props.onUploadSuccess(file);
+            setInputFileName(file.name);
+            toggleFileResourceChange();
+        },
+        [props.onUploadSuccess],
+    );
 
-    handleUploadSuccess = (file: any) => {
-        if (this.props.onUploadSuccess) {
-            this.props.onUploadSuccess(file);
-        }
-        this.setState({
-            inputFilename: file.name,
-        });
-        this.toggleFileResourceChange();
-    };
-
-    handleFileMenuChange = (value: FileMenuItems) => {
-        this.setState({
-            selectedFileMenu: value,
-        });
-        this.reset();
-    };
+    const handleFileMenuChange = React.useCallback((value: FileMenuItems) => {
+        setSelectedFileMenu(value);
+        reset();
+    }, []);
 
     /**
      * "Abort and Keep File" Handler
      * revert value back
      */
-    handleDiscardChanges = () => {
-        const isVisible = !this.state.showActionsMenu;
-        if (!isVisible) {
-            this.handleFileNameChange(this.state.inputFilename);
-        } else {
-            // just open
-            this.toggleFileResourceChange();
-        }
-    };
+    const handleDiscardChanges = React.useCallback(() => {
+        !showActionsMenu ? handleFileNameChange(inputFileName) : toggleFileResourceChange();
+    }, [showActionsMenu, inputFileName]);
 
     /**
      * Open/close file uploader options
      */
-    toggleFileResourceChange = () => {
-        this.setState({
-            showActionsMenu: !this.state.showActionsMenu,
-        });
-    };
+    const toggleFileResourceChange = React.useCallback(() => setShowActionMenu((s) => !s), []);
 
     /**
      * Change readonly input value
      * @param value
      */
-    handleFileNameChange = (value: string) => {
-        this.setState({
-            inputFilename: value,
-        });
-        this.props.onChange(value);
-        this.toggleFileResourceChange();
-    };
+    const handleFileNameChange = React.useCallback(
+        (value: string) => {
+            setInputFileName(value);
+            props.onChange(value);
+            toggleFileResourceChange();
+        },
+        [props.onChange],
+    );
 
-    validateBeforeFileAdded = async (fileName: string): Promise<boolean> => {
-        return await requestIfResourceExists(this.props.projectId, fileName);
-    };
+    const validateBeforeFileAdded = React.useCallback(
+        async (fileName: string): Promise<boolean> => {
+            return await requestIfResourceExists(props.projectId, fileName);
+        },
+        [props.projectId],
+    );
 
-    render() {
-        const { selectedFileMenu, showActionsMenu, inputFilename } = this.state;
-        const { allowMultiple, advanced, defaultValue, onProgress, projectId, onChange } = this.props;
+    const { allowMultiple, advanced, defaultValue, onProgress, projectId, onChange } = props;
 
-        return (
-            <div id={this.state.id}>
-                {defaultValue && !showActionsMenu && (
-                    <FieldItem>
-                        <TextField
-                            readOnly
-                            value={inputFilename}
-                            onChange={noop}
-                            rightElement={
-                                <Button
-                                    data-test-id="file-selection-change-file-btn"
-                                    minimal
-                                    text={i18next.t("FileUploader.changeFile", "Change file")}
-                                    icon={<Icon name="item-edit" />}
-                                    onClick={this.toggleFileResourceChange}
-                                />
-                            }
-                        />
-                    </FieldItem>
-                )}
-                {defaultValue && showActionsMenu && (
-                    <>
-                        <Button
-                            outlined
-                            small
-                            text={i18next.t("FileUploader.abort", "Abort and keep file")}
-                            icon={<Icon name="operation-undo" />}
-                            onClick={this.handleDiscardChanges}
-                        />
-                        <Divider addSpacing="large" />
-                    </>
-                )}
-                {(!defaultValue || showActionsMenu) && (
-                    <>
-                        {advanced && (
-                            <FileSelectionOptions
-                                onChange={this.handleFileMenuChange}
-                                selectedFileMenu={selectedFileMenu}
+    const fileRestrictions = props.maxFileUploadSizeBytes
+        ? {
+              restriction: {
+                  maxFileSize: props.maxFileUploadSizeBytes,
+                  // Restrict to 1 file if allowMultiple == false
+                  maxNumberOfFiles: props.allowMultiple ? undefined : 1,
+              },
+          }
+        : {};
+
+    return (
+        <div id={props.id}>
+            {defaultValue && !showActionsMenu && (
+                <FieldItem>
+                    <TextField
+                        readOnly
+                        value={inputFileName}
+                        onChange={noop}
+                        rightElement={
+                            <Button
+                                data-test-id="file-selection-change-file-btn"
+                                minimal
+                                text={i18next.t("FileUploader.changeFile", "Change file")}
+                                icon={<Icon name="item-edit" />}
+                                onClick={toggleFileResourceChange}
+                            />
+                        }
+                    />
+                </FieldItem>
+            )}
+            {defaultValue && showActionsMenu && (
+                <>
+                    <Button
+                        outlined
+                        small
+                        text={i18next.t("FileUploader.abort", "Abort and keep file")}
+                        icon={<Icon name="operation-undo" />}
+                        onClick={handleDiscardChanges}
+                    />
+                    <Divider addSpacing="large" />
+                </>
+            )}
+            {(!defaultValue || showActionsMenu) && (
+                <>
+                    {advanced && (
+                        <FileSelectionOptions onChange={handleFileMenuChange} selectedFileMenu={selectedFileMenu} />
+                    )}
+
+                    <div>
+                        {advanced && selectedFileMenu === "SELECT" && (
+                            <SelectFileFromExisting
+                                autocomplete={advanced.autocomplete}
+                                onChange={handleFileNameChange}
+                                labelAttributes={{
+                                    text: props.t("FileUploader.selectFromProject", "Select file from projects"),
+                                    info: props.t("common.words.required"),
+                                    htmlFor: "autocompleteInput",
+                                }}
+                                required={!!props.required}
+                                insideModal={!!props.insideModal}
                             />
                         )}
-
-                        <div>
-                            {advanced && selectedFileMenu === "SELECT" && (
-                                <SelectFileFromExisting
-                                    autocomplete={advanced.autocomplete}
-                                    onChange={this.handleFileNameChange}
-                                    labelAttributes={{
-                                        text: this.props.t(
-                                            "FileUploader.selectFromProject",
-                                            "Select file from projects"
-                                        ),
-                                        info: this.props.t("common.words.required"),
-                                        htmlFor: "autocompleteInput",
-                                    }}
-                                    required={this.props.required}
-                                    insideModal={this.props.insideModal}
-                                />
-                            )}
-                            {selectedFileMenu === "NEW" && (
-                                <>
-                                    <UploadNewFile
-                                        uppy={this.uppy}
-                                        projectId={projectId}
-                                        allowMultiple={allowMultiple}
-                                        onProgress={onProgress}
-                                        onUploadSuccess={this.handleUploadSuccess}
-                                        validateBeforeAdd={this.validateBeforeFileAdded}
-                                        uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/files`)}`}
-                                        attachFileNameToEndpoint={true}
-                                        listenToUploadedFiles={this.props.listenToUploadedFiles}
-                                        allFilesSuccessfullyUploadedHandler={
-                                            this.props.allFilesSuccessfullyUploadedHandler
-                                        }
-                                    />
-                                </>
-                            )}
-                            {advanced && selectedFileMenu === "EMPTY" && (
-                                <CreateNewFile onChange={onChange} confirmationButton={!!defaultValue} />
-                            )}
-                        </div>
-                    </>
-                )}
-            </div>
-        );
-    }
-}
-
-export default withTranslation()(FileSelectionMenu);
+                        {selectedFileMenu === "NEW" && (
+                            <UploadNewFile
+                                xhrUploadOptions={{
+                                    method: "PUT",
+                                    fieldName: "file",
+                                    // Only upload one file at the same time
+                                    limit: 1,
+                                    endpoint: `${legacyApiEndpoint(`/projects/${projectId}/files`)}`,
+                                }}
+                                {...fileRestrictions}
+                                getUppyInstance={setUppy}
+                                projectId={projectId}
+                                allowMultiple={allowMultiple}
+                                onProgress={onProgress}
+                                onUploadSuccess={handleUploadSuccess}
+                                validateBeforeAdd={validateBeforeFileAdded}
+                                uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/files`)}`}
+                                attachFileNameToEndpoint={true}
+                                listenToUploadedFiles={props.listenToUploadedFiles}
+                                allFilesSuccessfullyUploadedHandler={props.allFilesSuccessfullyUploadedHandler}
+                            />
+                        )}
+                        {advanced && selectedFileMenu === "EMPTY" && (
+                            <CreateNewFile onChange={onChange} confirmationButton={!!defaultValue} />
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
