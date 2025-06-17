@@ -470,7 +470,7 @@ export const RuleEditorCanvas = () => {
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
         const appName = e.dataTransfer.getData("application/x-reactflow-app");
-        if(appName !== "ruleEditor") {
+        if(appName && appName !== "ruleEditor") {
             // Only handle drag events that originate from the workflow editor
             return
         }
