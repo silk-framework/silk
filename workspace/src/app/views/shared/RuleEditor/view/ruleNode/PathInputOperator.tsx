@@ -1,7 +1,7 @@
 import { ParameterAutoCompletionProps } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing } from "@eccenca/gui-elements";
+import {Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
 
@@ -174,7 +174,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
             {currentLabel ? (
                 <>
                     <Spacing size={"tiny"} />
-                    <code>{currentLabel}</code>
+                    <Tag round={true} htmlTitle={currentLabel}>{currentLabel}</Tag>
                 </>
             ) : null}
         </LanguageSwitcherContext.Provider>
