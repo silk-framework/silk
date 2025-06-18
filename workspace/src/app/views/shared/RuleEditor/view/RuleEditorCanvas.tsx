@@ -170,7 +170,7 @@ export const RuleEditorCanvas = () => {
                 newConnection.source,
                 newConnection.target,
                 newConnection.targetHandle,
-                oldEdge.targetHandle && oldEdge.target === newConnection.target ? oldEdge.targetHandle : undefined
+                oldEdge.targetHandle && oldEdge.target === newConnection.target ? oldEdge.targetHandle : undefined,
             );
         }
         resetEdgeConnectState();
@@ -186,7 +186,7 @@ export const RuleEditorCanvas = () => {
     const initEdgeConnectState = (
         sourceNodeId: string | undefined,
         targetNodeId: string | undefined,
-        targetHandleId: string | undefined
+        targetHandleId: string | undefined,
     ) => {
         edgeConnectState.edgeConnectOperationActive = true;
         edgeConnectState.sourceNodeId = sourceNodeId;
@@ -205,7 +205,7 @@ export const RuleEditorCanvas = () => {
         initEdgeConnectState(
             params.handleType === SOURCE_HANDLE_TYPE && params.nodeId ? params.nodeId : undefined,
             params.handleType === TARGET_HANDLE_TYPE && params.nodeId ? params.nodeId : undefined,
-            params.handleId && params.handleType === TARGET_HANDLE_TYPE ? params.handleId : undefined
+            params.handleId && params.handleType === TARGET_HANDLE_TYPE ? params.handleId : undefined,
         );
     }, []);
 
@@ -222,7 +222,7 @@ export const RuleEditorCanvas = () => {
             modelContext.executeModelEditOperation.addEdge(
                 newConnection.source,
                 newConnection.target,
-                newConnection.targetHandle
+                newConnection.targetHandle,
             );
         }
     }, []);
@@ -240,7 +240,7 @@ export const RuleEditorCanvas = () => {
             modelContext.executeModelEditOperation.addEdge(
                 connectState.connectParams.nodeId,
                 edgeConnectState.overNode.id,
-                undefined
+                undefined,
             );
         }
         resetEdgeConnectState();
@@ -249,17 +249,17 @@ export const RuleEditorCanvas = () => {
     // Iterate over the input handles of a node
     const iterateInputHandles = (
         ruleEditorNode: RuleEditorNode,
-        handleAction: (handle: HandleProps, handleDom: Element) => void
+        handleAction: (handle: HandleProps, handleDom: Element) => void,
     ) => {
         const handles = modelUtils.inputHandles(ruleEditorNode);
         const ruleDomNode = document.querySelector(`#${modelContext.canvasId} div[data-id="${ruleEditorNode.id}"]`);
         ruleDomNode &&
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(
-                    `div[data-handlepos = "left"][data-handleid="${handle.id}"]`
+                    `div[data-handlepos = "left"][data-handleid="${handle.id}"]`,
                 );
                 if (handleDom) {
-                    handleAction(handle, handleDom);
+                    handleAction(handle as HandleProps, handleDom);
                 }
             });
     };
@@ -267,7 +267,7 @@ export const RuleEditorCanvas = () => {
     // Iterate over the output handles of a node
     const iterateOutputHandles = (
         ruleEditorNode: RuleEditorNode,
-        handleAction: (handle: HandleProps, handleDom: Element) => void
+        handleAction: (handle: HandleProps, handleDom: Element) => void,
     ) => {
         const handles = modelUtils.outputHandles(ruleEditorNode);
         const ruleDomNode = document.querySelector(`#${modelContext.canvasId} div[data-id="${ruleEditorNode.id}"]`);
@@ -275,7 +275,7 @@ export const RuleEditorCanvas = () => {
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(`div[data-handlepos = "right"]`);
                 if (handleDom) {
-                    handleAction(handle, handleDom);
+                    handleAction(handle as HandleProps, handleDom);
                 }
             });
     };
@@ -305,7 +305,7 @@ export const RuleEditorCanvas = () => {
                             modelContext.isValidEdge(
                                 ruleEditorNode.id,
                                 edgeConnectState.targetNodeId,
-                                edgeConnectState.targetHandleId
+                                edgeConnectState.targetHandleId,
                             )
                         ) {
                             setValidEdge(handleDom);
@@ -406,7 +406,7 @@ export const RuleEditorCanvas = () => {
                     modelContext.executeModelEditOperation.startChangeTransaction();
                     modelContext.executeModelEditOperation.deleteEdge(edgeId);
                 }}
-            />
+            />,
         );
     };
 
@@ -442,7 +442,7 @@ export const RuleEditorCanvas = () => {
                 copySelection={() => {
                     modelContext.executeModelEditOperation.copyNodes(nodeIds);
                 }}
-            />
+            />,
         );
     };
 
@@ -487,12 +487,12 @@ export const RuleEditorCanvas = () => {
                         pluginId,
                         reactFlowPosition,
                         parameterValues,
-                        true
+                        true,
                     );
                 } else {
                     console.warn(
                         "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
-                            pluginData
+                            pluginData,
                     );
                 }
             } catch (e) {

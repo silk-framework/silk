@@ -1,5 +1,5 @@
 import React, { KeyboardEventHandler, useEffect, useState } from "react";
-import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, IconButton, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
@@ -9,6 +9,7 @@ import { IModalItem } from "@ducks/shared/typings";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import { debounce } from "lodash";
+import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -29,6 +30,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     // Label of the project or task that should be cloned
     const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
+    const [showDocumentation, setShowDocumentation] = React.useState<boolean>(false);
 
     useEffect(() => {
         prepareCloning();
@@ -75,9 +77,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }
                 }
             },
-            [item]
+            [item],
         ),
-        1000
+        1000,
     );
 
     const handleCustomIdChange = React.useCallback(
@@ -86,7 +88,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             setCustomId(newCustomId);
             verifyCustomId(newCustomId);
         },
-        [item]
+        [item],
     );
 
     const handleCloning = async () => {
@@ -123,7 +125,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 handleCloning();
             }
         },
-        [item, description, newLabel, customId]
+        [item, description, newLabel, customId],
     );
 
     return loading ? (
@@ -143,6 +145,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             }
             isOpen={true}
             onClose={onDiscard}
+            headerOptions={
+                <IconButton
+                    key={"show-enhanced-description-btn"}
+                    name="item-question"
+                    onClick={() => setShowDocumentation(true)}
+                />
+            }
             actions={[
                 <Button
                     key="clone"
@@ -193,6 +202,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     <Spacing />
                     <Notification message={error.asString()} danger />
                 </>
+            )}
+            {showDocumentation && (
+                <TaskDocumentationModal
+                    documentationToShow={{ key: "", namedAnchor: "", description: t("cloneModal.info") }}
+                    onClose={() => setShowDocumentation(false)}
+                    size="tiny"
+                />
             )}
         </SimpleDialog>
     );
