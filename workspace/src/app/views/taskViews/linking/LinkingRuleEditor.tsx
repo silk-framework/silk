@@ -38,7 +38,7 @@ import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNo
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { languageFilterRegex } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
+import {languageFilterRegex, PathInputOperatorContext} from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -80,6 +80,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const sourcePathLabels = React.useRef<Map<string, string>>(new Map());
     const targetPathMetaData = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<Map<string, string>>(new Map());
+    // In which language the path labels are available
+    const [pathLabelsAvailableForLang, setPathLabelsAvailableForLang] = React.useState<string | undefined>()
     const [loading, setLoading] = React.useState(true);
     const [initError, setInitError] = React.useState<any | undefined>(undefined);
     const pendingRequests = React.useRef(2);
@@ -90,8 +92,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const optionalContext = React.useContext(LinkingRuleEditorOptionalContext);
 
     React.useEffect(() => {
-        fetchPaths("source");
-        fetchPaths("target");
+        fetchAllPaths()
     }, [projectId, linkingTaskId, prefLang]);
 
     const reducePendingRequestCount = () => {
@@ -139,6 +140,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             reducePendingRequestCount();
         }
     };
+
+    const fetchAllPaths = async () => {
+        await fetchPaths("source");
+        await fetchPaths("target");
+        setPathLabelsAvailableForLang(prefLang)
+    }
+
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
         if (optionalContext.linkingRule) {
@@ -438,7 +446,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return <Loading />;
     }
 
-    return (
+    return <PathInputOperatorContext.Provider value={{
+        pathLabelsAvailableForLang
+    }}>
         <LinkingRuleEvaluation
             projectId={projectId}
             linkingTaskId={linkingTaskId}
@@ -488,5 +498,5 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
                 }}
             />
         </LinkingRuleEvaluation>
-    );
+    </PathInputOperatorContext.Provider>;
 };

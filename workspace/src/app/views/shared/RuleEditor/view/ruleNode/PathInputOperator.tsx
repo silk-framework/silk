@@ -4,6 +4,9 @@ import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import {Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import {useSelector} from "react-redux";
+import {commonSel} from "@ducks/common";
 
 /** Language filter related properties. */
 export interface LanguageFilterProps {
@@ -32,7 +35,6 @@ const languageTagRegex = /^[a-zA-Z]+(?:-[a-zA-Z0-9]+)*$/;
 const NO_LANG = "-";
 
 const DEFAULT_LANGUAGE_FILTER_SUPPORT = { enabled: true, pathType: () => undefined };
-const DEFAULT_INPUT_PATH_LABEL = () => undefined;
 
 /** Rule operator that takes input paths. */
 export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunctions }: Props) => {
@@ -47,14 +49,37 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         currentLanguageFilter?: string;
         // This onChange handler uses the up-to-date language filter
         activeOnChangeHandler?: (value: IAutocompleteDefaultResponse) => any;
-    }>({ initialized: false, currentValue: parameterAutoCompletionProps.initialValue });
+        // Current label language
+        currentPathLabelLanguage: string | undefined
+    }>({ initialized: false, currentValue: parameterAutoCompletionProps.initialValue, currentPathLabelLanguage: undefined });
     const [showLanguageFilterButton, setShowLanguageFilterButton] = React.useState(false);
     const languageFilterSupport = inputPathFunctions.languageFilter ?? DEFAULT_LANGUAGE_FILTER_SUPPORT;
+    const context = React.useContext(PathInputOperatorContext)
 
     const checkPathToShowFilterButton = React.useCallback((path?: string) => {
         const pathType = path ? languageFilterSupport.pathType(path) : "URI";
         setShowLanguageFilterButton(!pathType || pathType === "String");
     }, []);
+
+    const fetchLabel = (value: string) => {
+        const property = extractProperty(value);
+        return inputPathFunctions.inputPathLabel?.(property ?? value);
+    }
+
+    // Update label on the fly if user new path labels are available because of user language change
+    if(context.pathLabelsAvailableForLang !== internalState.current.currentPathLabelLanguage) {
+        const value = internalState.current.currentValue ?? parameterAutoCompletionProps.initialValue
+        if(value) {
+            const label = fetchLabel(value.value)
+            if(label) {
+                internalState.current.currentValue = {
+                    ...value,
+                    label
+                }
+            }
+        }
+        internalState.current.currentPathLabelLanguage = context.pathLabelsAvailableForLang
+    }
 
     React.useEffect(() => {
         const initialValue = parameterAutoCompletionProps.initialValue;
@@ -75,8 +100,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         let value = v;
         if (!value.label && inputPathFunctions.inputPathLabel) {
             // try to get label
-            const property = extractProperty(value.value);
-            const label = inputPathFunctions.inputPathLabel?.(property ?? value.value);
+            const label = fetchLabel(v.value)
             value = { ...v, label };
         }
         internalState.current.currentValue = value;
@@ -137,10 +161,37 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
     const onChange = React.useMemo(() => (value: string) => activeProps.onChange({ value }), [activeProps.onChange]);
     const fetchSuggestion = React.useMemo(() => {
         const inputType = activeProps.pluginId.replace("PathInput", "") as "source" | "target";
-        return (
+        const fetchFunctionToUse = (
             (activeProps.partialAutoCompletion && activeProps.partialAutoCompletion(inputType)) ||
             (async () => undefined)
         );
+        // Add label resolution to the fetch function
+        return async (inputString: string, cursorPosition: number): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
+            const result = await fetchFunctionToUse(inputString, cursorPosition);
+            if(result) {
+                return {
+                    ...result,
+                    replacementResults: result.replacementResults.map(replacementResult => {
+                        return {
+                            ...replacementResult,
+                            replacements: replacementResult.replacements.map(replacement => {
+                                if(replacement.label) {
+                                    return replacement
+                                } else {
+                                    // try to add label
+                                    const property = extractProperty(replacement.value);
+                                    const label = inputPathFunctions.inputPathLabel?.(property ?? replacement.value);
+                                    return {
+                                        ...replacement,
+                                        label
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+            }
+        }
     }, [activeProps.partialAutoCompletion, activeProps.pluginId]);
     const checkInput = React.useMemo(() => {
         return (value) => checkValuePathValidity(value, activeProps.projectId);
@@ -327,3 +378,12 @@ export const extractProperty = (path: string): string | undefined => {
         }
     }
 };
+
+interface PathInputOperatorContextProps {
+    /** The language for which path labels are available for. */
+    pathLabelsAvailableForLang: string | undefined
+}
+
+export const PathInputOperatorContext = React.createContext<PathInputOperatorContextProps>({
+    pathLabelsAvailableForLang: undefined
+})
