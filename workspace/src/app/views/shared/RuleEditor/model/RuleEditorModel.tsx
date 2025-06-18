@@ -1209,7 +1209,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
         changeElementsInternal((els) => {
             let currentElements = els;
-            let toTargetHandleId: string | undefined = targetHandleId;
+            let toTargetHandleId: string | undefined | null = targetHandleId;
             if (!targetHandleId) {
                 // If the target handle is not defined, connect to the first empty handle
                 const node = utils.nodeById(els, targetNodeId);

@@ -1,10 +1,18 @@
 import React from "react";
 
-import { Button, HtmlContentBlock, Markdown, SimpleDialog, CLASSPREFIX as eccgui } from "@eccenca/gui-elements";
+import {
+    Button,
+    HtmlContentBlock,
+    Markdown,
+    SimpleDialog,
+    SimpleDialogProps,
+    CLASSPREFIX as eccgui,
+} from "@eccenca/gui-elements";
 import { ArtefactDocumentation } from "./CreateArtefactModal";
 
 interface TaskDocumentationModalProps {
     documentationToShow: ArtefactDocumentation;
+    size?: SimpleDialogProps["size"];
     onClose: () => any;
 }
 
@@ -33,7 +41,11 @@ const findHeadingBefore = (element: Element): Element | undefined => {
 };
 
 /** Modal that shows the detailed task documentation, e.g. the Markdown. */
-export const TaskDocumentationModal = ({ documentationToShow, onClose }: TaskDocumentationModalProps) => {
+export const TaskDocumentationModal = ({
+    documentationToShow,
+    onClose,
+    size = "large",
+}: TaskDocumentationModalProps) => {
     const [initialized, setInitialized] = React.useState(false);
 
     React.useEffect(() => {
@@ -49,7 +61,7 @@ export const TaskDocumentationModal = ({ documentationToShow, onClose }: TaskDoc
             // Highlight named anchor
             if (documentationToShow.namedAnchor) {
                 const element = document.querySelector(
-                    `[data-test-id="${testId}"] a[id="${documentationToShow.namedAnchor}"]`
+                    `[data-test-id="${testId}"] a[id="${documentationToShow.namedAnchor}"]`,
                 );
                 if (element) {
                     element.classList.add(`${eccgui}-typography--spothighlight`);
@@ -65,7 +77,7 @@ export const TaskDocumentationModal = ({ documentationToShow, onClose }: TaskDoc
                                     behavior: "smooth",
                                 });
                             },
-                            1
+                            1,
                         );
                     } else {
                         setTimeout(function () {
@@ -86,7 +98,7 @@ export const TaskDocumentationModal = ({ documentationToShow, onClose }: TaskDoc
             onClose={onClose}
             title={documentationToShow.title ?? "Documentation"}
             actions={<Button text="Close" onClick={onClose} />}
-            size="large"
+            size={size}
         >
             <HtmlContentBlock>
                 <span ref={() => setInitialized(true)} />

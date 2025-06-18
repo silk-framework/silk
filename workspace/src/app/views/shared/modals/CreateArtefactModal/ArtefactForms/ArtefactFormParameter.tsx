@@ -41,7 +41,7 @@ interface Props {
     inputElementFactory: (
         initialValueReplace?: string,
         onChange?: (value: string) => any,
-        showRareActions?: (show: boolean) => any
+        showRareActions?: (show: boolean) => any,
     ) => JSX.Element;
     // If the parameter is disabled
     disabled?: boolean;
@@ -101,9 +101,9 @@ export const ArtefactFormParameter = ({
             ? // The auto-completion values should be kept as is
               supportVariableTemplateElement?.defaultValue
             : supportVariableTemplateElement?.defaultValue != null
-            ? // Other defaults should be converted to string
-              `${supportVariableTemplateElement?.defaultValue}`
-            : undefined;
+              ? // Other defaults should be converted to string
+                `${supportVariableTemplateElement?.defaultValue}`
+              : undefined;
     const valueState = React.useRef<{
         // The most recent value of the input component
         currentInputValue?: string;
@@ -130,9 +130,9 @@ export const ArtefactFormParameter = ({
                         !toggledTemplateSwitchBefore
                             ? t(
                                   "ArtefactFormParameter.passwordCleared",
-                                  "Password was removed because it would be visible in clear text"
+                                  "Password was removed because it would be visible in clear text",
                               )
-                            : undefined
+                            : undefined,
                     );
                 valueState.current.inputValueBeforeSwitch = valueState.current.currentInputValue;
             } else {
@@ -145,7 +145,7 @@ export const ArtefactFormParameter = ({
             supportVariableTemplateElement!.onChange(
                 becomesTemplate
                     ? valueState.current.currentTemplateValue
-                    : optionallyLabelledParameterToValue(valueState.current.currentInputValue) ?? ""
+                    : (optionallyLabelledParameterToValue(valueState.current.currentInputValue) ?? ""),
             );
             return becomesTemplate;
         });
@@ -157,7 +157,7 @@ export const ArtefactFormParameter = ({
             valueState.current.currentTemplateValue = value;
             supportVariableTemplateElement!.onChange(value);
         },
-        [supportVariableTemplateElement?.onChange]
+        [supportVariableTemplateElement?.onChange],
     );
 
     const onElementValueChange = React.useCallback(
@@ -166,7 +166,7 @@ export const ArtefactFormParameter = ({
             valueState.current.currentInputValue = value;
             supportVariableTemplateElement?.onChange && supportVariableTemplateElement.onChange(value);
         },
-        [supportVariableTemplateElement?.onChange]
+        [supportVariableTemplateElement?.onChange],
     );
     const onMouseOver: MouseEventHandler<HTMLDivElement> = React.useCallback(() => {
         if (showRareElementState.current.timeout != null) {
@@ -182,10 +182,12 @@ export const ArtefactFormParameter = ({
     }, []);
 
     const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
+    const isTemplateInputType = parameterType === INPUT_TYPES.TEMPLATE;
     const multiline =
-        parameterType &&
-        (parameterType.startsWith("code-") ||
-            [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType));
+        (parameterType &&
+            (parameterType.startsWith("code-") ||
+                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING].includes(parameterType))) ||
+        isTemplateInputType;
     return (
         <FieldItem
             key={parameterId}
@@ -213,7 +215,7 @@ export const ArtefactFormParameter = ({
                         maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
                     }}
                 >
-                    {supportVariableTemplateElement && showVariableTemplateInput ? (
+                    {(supportVariableTemplateElement && showVariableTemplateInput) || isTemplateInputType ? (
                         <TemplateInputComponent
                             projectId={projectId}
                             parameterId={parameterId}
@@ -228,7 +230,7 @@ export const ArtefactFormParameter = ({
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
-                                supportVariableTemplateElement.showTemplatePreview ? setTemplateInfoMessage : undefined
+                                supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                             allowSensitiveVariables={isPasswordInput}
                         />
@@ -335,7 +337,7 @@ export const TemplateInputComponent = memo(
                         cursorPosition,
                         projectId,
                         variableName,
-                        allowSensitiveVariables
+                        allowSensitiveVariables,
                     )
                 ).data;
             } catch (error) {
@@ -344,7 +346,7 @@ export const TemplateInputComponent = memo(
                     : registerError(
                           "ArtefactFormParameter.autoComplete",
                           "Auto-completing the template has failed.",
-                          error
+                          error,
                       );
             }
         }, []);
@@ -357,13 +359,13 @@ export const TemplateInputComponent = memo(
                             inputString,
                             projectId,
                             variableName,
-                            allowSensitiveVariables
+                            allowSensitiveVariables,
                         )
                     ).data;
                     evaluatedValueMessage?.(
                         validationResponse.evaluatedTemplate
                             ? t("ArtefactFormParameter.evaluatedValue", { value: validationResponse.evaluatedTemplate })
-                            : undefined
+                            : undefined,
                     );
                     return validationResponse;
                 } catch (error) {
@@ -372,12 +374,12 @@ export const TemplateInputComponent = memo(
                         : registerError(
                               "ArtefactFormParameter.checkTemplate",
                               "Validating template has failed.",
-                              error
+                              error,
                           );
                     evaluatedValueMessage?.(undefined);
                 }
             },
-            [processValidationError]
+            [processValidationError],
         );
 
         return (
@@ -391,5 +393,5 @@ export const TemplateInputComponent = memo(
                 multiline={multiline}
             />
         );
-    }
+    },
 );

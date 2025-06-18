@@ -1,6 +1,6 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { CodeEditor, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
+import { CodeAutocompleteField, CodeEditorProps, Switch, TextField } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { DefinitionsBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 import { useTranslation } from "react-i18next";
@@ -21,6 +21,8 @@ import { TextAreaWithCharacterWarnings } from "../../../extendedGuiElements/Text
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { InputPathFunctions, PathInputOperator } from "./PathInputOperator";
 import { RULE_EDITOR_NOTIFICATION_INSTANCE, supportedCodeRuleParameterTypes } from "../../RuleEditor.typings";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { requestAutoCompleteTemplateString } from "../../../../../views/shared/modals/CreateArtefactModal/CreateArtefactModal.requests";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -120,6 +122,24 @@ export const RuleParameterInput = ({
         partialAutoCompletion: ruleEditorContext.partialAutoCompletion,
     });
 
+    const fetchSuggestions = React.useCallback(
+        async (
+            inputString: string,
+            cursorPosition: number,
+        ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
+            try {
+                return (
+                    await requestAutoCompleteTemplateString(inputString, cursorPosition, ruleEditorContext.projectId)
+                ).data;
+            } catch (e) {
+                registerError("RuleParameterInput.fetchSuggestions", "Could not fetch auto-complete suggestions!", e, {
+                    errorNotificationInstanceId: RULE_EDITOR_NOTIFICATION_INSTANCE,
+                });
+            }
+        },
+        [],
+    );
+
     if (
         ruleParameter.parameterSpecification.type === "code" ||
         ruleParameter.parameterSpecification.type.startsWith("code-")
@@ -127,22 +147,30 @@ export const RuleParameterInput = ({
         const sizeParameters = large ? undefined : { height: "100px" };
         if (supportedCodeRuleParameterTypes.find((m) => m === ruleParameter.parameterSpecification.type)) {
             return (
-                <CodeEditor
+                <CodeAutocompleteField
+                    id={inputAttributes.id}
                     mode={ruleParameter.parameterSpecification.type.substring(5) as CodeEditorProps["mode"]}
-                    outerDivAttributes={{
-                        ...preventEventsFromBubblingToReactFlow,
-                    }}
-                    {...inputAttributes}
+                    initialValue={inputAttributes.defaultValue ?? ""}
+                    onChange={inputAttributes.onChange}
+                    fetchSuggestions={fetchSuggestions}
+                    readOnly={inputAttributes.readOnly}
+                    autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
+                    multiline
                     {...sizeParameters}
                 />
             );
         } else {
             return (
-                <CodeEditor
-                    outerDivAttributes={{
-                        ...preventEventsFromBubblingToReactFlow,
-                    }}
-                    {...inputAttributes}
+                <CodeAutocompleteField
+                    id={inputAttributes.id}
+                    initialValue={inputAttributes.defaultValue ?? ""}
+                    onChange={inputAttributes.onChange}
+                    fetchSuggestions={fetchSuggestions}
+                    readOnly={inputAttributes.readOnly}
+                    autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
+                    multiline
                     {...sizeParameters}
                 />
             );

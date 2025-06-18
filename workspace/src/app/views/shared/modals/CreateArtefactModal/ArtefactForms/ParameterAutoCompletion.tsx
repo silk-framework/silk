@@ -1,5 +1,5 @@
-import {DependsOnParameterValue, IAutocompleteDefaultResponse} from "@ducks/shared/typings";
-import React, {useEffect} from "react";
+import { DependsOnParameterValue, IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import React, { useEffect } from "react";
 import {
     Highlighter,
     OverflowText,
@@ -12,15 +12,15 @@ import {
     SuggestFieldItemRendererModifierProps,
     suggestFieldUtils,
 } from "@eccenca/gui-elements";
-import {IPropertyAutocomplete} from "@ducks/common/typings";
-import {sharedOp} from "@ducks/shared";
-import {useTranslation} from "react-i18next";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
+import { sharedOp } from "@ducks/shared";
+import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
-import {parseErrorCauseMsg} from "../../../ApplicationNotifications/NotificationsMenu";
-import {CLASSPREFIX as eccguiprefix} from "@eccenca/gui-elements/src/configuration/constants";
-import {RegisterForExternalChangesFn} from "./InputMapper";
-import {CreateArtefactModalContext} from "../CreateArtefactModalContext";
+import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
+import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
+import { RegisterForExternalChangesFn } from "./InputMapper";
+import { CreateArtefactModalContext } from "../CreateArtefactModalContext";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 export interface ParameterAutoCompletionProps {
@@ -57,7 +57,10 @@ export interface ParameterAutoCompletionProps {
     /**
      * Props to spread to the underlying input field. This is BlueprintJs specific.
      */
-    inputProps?: Omit<SuggestFieldProps<StringOrReifiedValue, IAutocompleteDefaultResponse>["inputProps"], "onChange" | "name" | "id" | "intent" | "readonly" >;
+    inputProps?: Omit<
+        SuggestFieldProps<StringOrReifiedValue, IAutocompleteDefaultResponse>["inputProps"],
+        "onChange" | "name" | "id" | "intent" | "readonly"
+    >;
     /**
      * Fetches partial auto-completion results for the transforms task input paths, i.e. any part of a path could be auto-completed
      * without replacing the complete path.
@@ -136,7 +139,7 @@ export const ParameterAutoCompletion = ({
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const value = dependentValue(paramId);
             if (dependentValueIsSet(value?.value, defaultValue(parameterPrefix + paramId) != null)) {
-                return [{value: `${value!.value}`, isTemplate: value!.isTemplate}];
+                return [{ value: `${value!.value}`, isTemplate: value!.isTemplate }];
             } else {
                 return [];
             }
@@ -148,7 +151,7 @@ export const ParameterAutoCompletion = ({
     const handleAutoCompleteInput = async (
         input: string,
         autoCompletion: IPropertyAutocomplete,
-        limit = AUTOCOMPLETION_LIMIT
+        limit = AUTOCOMPLETION_LIMIT,
     ): Promise<IAutocompleteDefaultResponse[]> => {
         try {
             if (autoCompletion.customAutoCompletionRequest) {
@@ -241,7 +244,7 @@ export const ParameterAutoCompletion = ({
                           itemFromQuery: (query) => ({ value: query }),
                           itemRenderer: suggestFieldUtils.createNewItemRendererFactory(
                               (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
-                              "item-add-artefact"
+                              "item-add-artefact",
                           ),
                       }
             }
@@ -273,7 +276,7 @@ export const labelAndOrValueItemRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
-    handleSelectClick: () => any
+    handleSelectClick: () => any,
 ): JSX.Element | string => {
     const labelValueKindOfSame =
         (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase();
