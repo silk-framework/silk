@@ -97,7 +97,7 @@ case class FileEntity(file: WritableResource, fileType: FileType, mimeType: Opti
 object FileEntity {
 
   /**
-   * Creates a temporary file entity.
+   * Creates a local temporary file entity.
    * File will be deleted on garbage collection of the returned entity and latest on exit.
    */
   def createTemp(prefix: String, suffix: String = ".tmp"): FileEntity = {
