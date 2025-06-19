@@ -1,12 +1,13 @@
-import { ParameterAutoCompletionProps } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
+import {ParameterAutoCompletionProps} from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import {IAutocompleteDefaultResponse} from "@ducks/shared/typings";
 import {Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag} from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
-import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
-import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import {useSelector} from "react-redux";
-import {commonSel} from "@ducks/common";
+import {useTranslation} from "react-i18next";
+import {checkValuePathValidity} from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
+import {
+    CodeAutocompleteFieldPartialAutoCompleteResult
+} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { RuleEditorEvaluationCallbackContext } from "../../contexts/RuleEditorEvaluationContext";
 
 /** Language filter related properties. */
 export interface LanguageFilterProps {
@@ -55,6 +56,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
     const [showLanguageFilterButton, setShowLanguageFilterButton] = React.useState(false);
     const languageFilterSupport = inputPathFunctions.languageFilter ?? DEFAULT_LANGUAGE_FILTER_SUPPORT;
     const context = React.useContext(PathInputOperatorContext)
+    const evaluationCallbackContext = React.useContext(RuleEditorEvaluationCallbackContext)
 
     const checkPathToShowFilterButton = React.useCallback((path?: string) => {
         const pathType = path ? languageFilterSupport.pathType(path) : "URI";
@@ -197,6 +199,10 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         return (value) => checkValuePathValidity(value, activeProps.projectId);
     }, [activeProps.projectId]);
 
+    const onFocusChange = React.useCallback((hasFocus: boolean) => {
+        evaluationCallbackContext.enableErrorModal(!hasFocus);
+    }, [evaluationCallbackContext.enableErrorModal])
+
     const autoCompletionInput = React.useMemo(() => {
         return (
             <CodeAutocompleteField
@@ -209,6 +215,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
                 validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
                 autoCompletionRequestDelay={500}
                 validationRequestDelay={250}
+                onFocusChange={onFocusChange}
             />
         );
     }, [fetchSuggestion, initialValue, onChange, checkInput, overwrittenProps]);

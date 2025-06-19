@@ -272,12 +272,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // FIXME: Add i18n to parameter specs
     const weightParameterSpec = ruleUtils.parameterSpecification({
         label: t("RuleEditor.sidebar.parameter.weightLabel", "Weight"),
-        description: t(
-            "RuleEditor.sidebar.parameter.weightDesc",
-            "The weight parameter can be used by the parent aggregation when combining " +
-                "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-                "aggregation, quadraticMean and geometricMean.",
-        ),
+        description: t("RuleEditor.sidebar.parameter.weightDesc"),
         type: "int",
         advanced: true,
         defaultValue: "1",
