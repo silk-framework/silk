@@ -33,7 +33,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
   /**
     * Removes a specific task.
     */
-  def removeTask(name: Identifier, resources: ResourceManager)
+  def removeTask(name: Identifier, resources: ResourceManager): Unit
 
   /**
     * Writes an updated task.
@@ -41,7 +41,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
     * @param resources The resource manager where the task will be written to.
     * @param projectResourceManager The resource manager to serialize project file resources correctly.
     */
-  def writeTask(task: Task[TaskType], resources: ResourceManager, projectResourceManager: ResourceManager)
+  def writeTask(task: Task[TaskType], resources: ResourceManager, projectResourceManager: ResourceManager): Unit
 
   /**
     * Loads a file resource as XML.

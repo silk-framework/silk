@@ -27,7 +27,7 @@ trait Dataset extends AnyPlugin with DatasetAccess {
   def characteristics: DatasetCharacteristics
 
   /** Additional tags that will be displayed in the UI for this task. These tags are covered by the workspace search. */
-  def searchTags(prefixes: Prefixes): Seq[String] = Seq.empty
+  def searchTags(pluginContext: PluginContext): Seq[String] = Seq.empty
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {

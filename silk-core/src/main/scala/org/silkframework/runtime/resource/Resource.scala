@@ -72,7 +72,7 @@ trait Resource {
     checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
-      source.getLines.mkString("\n")
+      source.getLines().mkString("\n")
     } finally {
       source.close()
     }
@@ -85,7 +85,7 @@ trait Resource {
     checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
-      source.getLines.toList
+      source.getLines().toList
     } finally {
       source.close()
     }

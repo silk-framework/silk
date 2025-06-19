@@ -2,6 +2,7 @@ package org.silkframework.util
 
 import scala.reflect.ClassTag
 import scala.util.Random
+import scala.collection.immutable.ArraySeq
 
 /**
  * Created by andreas on 1/12/16.
@@ -32,7 +33,7 @@ object SampleUtil {
     }
     val sample = new Array[T](size)
 
-    var valueCount = 0l
+    var valueCount = 0L
     // Init first round
     var step = 1
     var nextSampleProbability = 1.0 / step
@@ -57,6 +58,6 @@ object SampleUtil {
       }
     }
     // Allow to return samples smaller than size
-    sample.take(math.min(size, valueCount).toInt)
+    ArraySeq.unsafeWrapArray(sample).take(math.min(size, valueCount).toInt)
   }
 }

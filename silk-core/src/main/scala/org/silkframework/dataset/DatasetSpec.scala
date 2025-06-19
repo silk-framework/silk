@@ -108,8 +108,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType,
     }
   }
 
-  override def searchTags(prefixes: Prefixes): Seq[String] = {
-    plugin.searchTags(prefixes)
+  override def searchTags(pluginContext: PluginContext): Seq[String] = {
+    plugin.searchTags(pluginContext)
   }
 }
 
@@ -348,7 +348,7 @@ object DatasetSpec {
     /**
       * Closes this writer.
       */
-    override def close()(implicit userContext: UserContext) {
+    override def close()(implicit userContext: UserContext): Unit = {
       if (linkSink != null) linkSink.close()
       isOpen = false
       log.info(s"Wrote $linkCount links.")

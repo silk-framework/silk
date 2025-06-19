@@ -36,7 +36,7 @@ class XMLUtils(xml: NodeSeq) {
     stringWriter.toString
   }
 
-  def write(file: File) {
+  def write(file: File): Unit = {
     val fileWriter = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
     try {
       write(fileWriter)
@@ -46,7 +46,7 @@ class XMLUtils(xml: NodeSeq) {
     }
   }
 
-  def write(writer: Writer) {
+  def write(writer: Writer): Unit = {
     val printer = new PrettyPrinter(Int.MaxValue, 2)
 
     writer.write(printer.formatNodes(xml))
@@ -54,7 +54,7 @@ class XMLUtils(xml: NodeSeq) {
     writer.flush()
   }
 
-  def write(outputStream: OutputStream) {
+  def write(outputStream: OutputStream): Unit = {
     write(new OutputStreamWriter(outputStream, "UTF-8"))
   }
 }

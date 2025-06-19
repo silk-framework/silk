@@ -56,7 +56,7 @@ abstract class SerializationFormat[T: ClassTag, U: ClassTag] extends AnyPlugin w
   def parse(value: String, mimeType: String): U
 
   // register the new serializer
-  SerializationFormat.registerSerializationFormat(this)
+  SerializationFormat.registerSerializationFormat(this)()
 }
 
 object SerializationFormat{

@@ -51,7 +51,7 @@ trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with 
         logger.info("Ignoring page load timeout")
         None
     } finally {
-      webDriver.manage().timeouts().pageLoadTimeout(-1, TimeUnit.MILLISECONDS)
+      webDriver.manage().timeouts().pageLoadTimeout(Duration.ofMillis(-1))
     }
   }
 

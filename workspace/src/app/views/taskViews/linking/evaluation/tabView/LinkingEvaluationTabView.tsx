@@ -26,6 +26,10 @@ import {
     ToolbarSection,
     WhiteSpaceContainer,
     highlighterUtils,
+    TableDataContainerProps,
+    DataTableRenderProps,
+    TabProps,
+    usePagination,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -47,12 +51,9 @@ import { requestRuleOperatorPluginsDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { workspaceSel } from "@ducks/workspace";
 import { useSelector } from "react-redux";
-import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { useFirstRender } from "../../../../../hooks/useFirstRender";
-import { DataTableCustomRenderProps, DataTableHeader } from "carbon-components-react";
 import { LinkingEvaluationRow } from "./LinkingEvaluationRow";
 import { tagColor } from "../../../../shared/RuleEditor/view/sidebar/RuleOperator";
-import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import { ReferenceLinksRemoveModal } from "./modals/ReferenceLinksRemoveModal";
 import { ImportReferenceLinksModal } from "./modals/ImportReferenceLinksModal";
 import { AddReferenceLinkModal } from "./modals/AddReferenceLinkModal";
@@ -117,14 +118,14 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const manualLinkChange = React.useRef<boolean>(false);
 
     const [tableSortDirection, setTableSortDirection] = React.useState<
-        Map<typeof headerData[number]["key"], keyof typeof sortDirectionMapping>
+        Map<(typeof headerData)[number]["key"], keyof typeof sortDirectionMapping>
     >(
         () =>
             new Map([
                 ["source", "NONE"],
                 ["target", "NONE"],
                 ["confidence", "NONE"],
-            ])
+            ]),
     );
     const linkType = showReferenceLinks ? "Reference" : "Evaluation";
 
@@ -138,7 +139,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const registerError = React.useCallback(
         (errorId: string, err: any, data = {}) =>
             errorHandler.registerError(errorId, t(`linkingEvaluationTabView.errors.${errorId}`, data), err),
-        []
+        [],
     );
 
     React.useEffect(() => {
@@ -162,7 +163,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                         filters,
                         linkSortBy,
                         showReferenceLinks,
-                        !showReferenceLinks
+                        !showReferenceLinks,
                     )
                 )?.data;
                 evaluationResults.current = results;
@@ -173,7 +174,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 setLoading(false);
             }
         },
-        []
+        [],
     );
 
     const debouncedSearch = React.useCallback((query: string) => {
@@ -192,7 +193,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
                 linkSortBy,
-                showReferenceLinks
+                showReferenceLinks,
             );
         }
     }, [searchQuery]);
@@ -208,7 +209,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
                 linkSortBy,
-                showReferenceLinks
+                showReferenceLinks,
             );
         }
         return () => {
@@ -256,7 +257,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
 
                             return acc;
                         },
-                        { source: {}, target: {} } as EvaluationLinkInputValue<string>
+                        { source: {}, target: {} } as EvaluationLinkInputValue<string>,
                     );
                 };
 
@@ -274,15 +275,15 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                 });
                                 return matchingInputValue;
                             },
-                            { source: {}, target: {} } as EvaluationLinkInputValue
-                        )
-                    )
+                            { source: {}, target: {} } as EvaluationLinkInputValue,
+                        ),
+                    ),
                 );
             }
         }
     }, [linksToValueMap.current]);
 
-    const headerData: DataTableHeader[] = [
+    const headerData: TableDataContainerProps["headers"] = [
         {
             key: "source",
             header: (
@@ -329,7 +330,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             linkType: ReferenceLinkType,
             source: string,
             target: string,
-            index: number
+            index: number,
         ): Promise<boolean> => {
             if (currentLinkType === linkType) return false;
 
@@ -347,7 +348,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 return false;
             }
         },
-        []
+        [],
     );
     const { nrSourceEntities, nrTargetEntities, nrLinks } = evaluationResults.current?.evaluationActivityStats ?? {
         nrSourceEntities: 0,
@@ -358,11 +359,11 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
     const handleLinkFilterStateChange = React.useCallback(
         (linkState: keyof typeof LinkEvaluationFilters) =>
             setLinkStateFilter((prev) => (prev === linkState ? undefined : linkState)),
-        []
+        [],
     );
 
     const handleRowSorting = React.useCallback(
-        (key: typeof headerData[number]["key"]) => {
+        (key: (typeof headerData)[number]["key"]) => {
             const sortDirection = tableSortDirection.get(key)!;
             const sortBy =
                 sortDirectionMapping[sortDirection] === "NONE"
@@ -375,7 +376,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 return newMap;
             });
         },
-        [tableSortDirection]
+        [tableSortDirection],
     );
 
     const createUserNotification = React.useCallback(() => {
@@ -457,7 +458,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                 searchQuery,
                 linkStateFilter ? [linkStateFilter] : [],
                 linkSortBy,
-                showReferenceLinks
+                showReferenceLinks,
             );
         }
     };
@@ -500,13 +501,13 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             start: resetManualLinkStateFlag,
             restart: resetManualLinkStateFlag,
         }),
-        []
+        [],
     );
 
     // To check if only the row body matches
     const multiWordSearchRegex = highlighterUtils.createMultiWordRegex(
         highlighterUtils.extractSearchWords(searchQuery, true),
-        false
+        false,
     );
 
     return (
@@ -606,9 +607,9 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
                                     </strong>
                                 }
                                 statusMessage={`${nrSourceEntities.toLocaleString(
-                                    commonSel.locale
+                                    commonSel.locale,
                                 )} / ${nrTargetEntities.toLocaleString(commonSel.locale)} / ${nrLinks.toLocaleString(
-                                    commonSel.locale
+                                    commonSel.locale,
                                 )}`}
                                 activityActions={[
                                     {
@@ -691,7 +692,7 @@ const LinkingEvaluationTabView: React.FC<LinkingEvaluationTabViewProps> = ({ pro
             )}
             <Spacing size="small" />
             <TableContainer rows={rowData} headers={headerData}>
-                {({ headers, getHeaderProps, getTableProps, getRowProps }: DataTableCustomRenderProps) => (
+                {({ headers, getHeaderProps, getTableProps }: DataTableRenderProps<any, any>) => (
                     <Table
                         {...getTableProps()}
                         size="medium"

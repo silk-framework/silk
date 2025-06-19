@@ -1,5 +1,4 @@
-import { TreeNodeInfo } from "@blueprintjs/core";
-import { Divider, IconButton, Table, TableBody, TableCell, TableRow, Tree } from "@eccenca/gui-elements";
+import { Divider, IconButton, Table, TableBody, TableCell, TableRow, Tree, TreeNodeInfo } from "@eccenca/gui-elements";
 import React from "react";
 
 interface TableTreeProps {
@@ -41,7 +40,7 @@ const TableTree: React.FC<TableTreeProps> = React.memo(
                 </TableBody>
             </Table>
         );
-    }
+    },
 );
 
 export default TableTree;

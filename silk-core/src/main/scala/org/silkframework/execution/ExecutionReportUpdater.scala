@@ -36,6 +36,7 @@ trait ExecutionReportUpdater {
   private var lastUpdate = 0L
   private var entitiesEmitted = context.value.get.map(_.entityCount).getOrElse(0)
   private var numberOfExecutions = 0
+  private var warnings: Seq[String] = Seq.empty
   private var error: Option[String] = None
 
   // Sample entities
@@ -102,6 +103,10 @@ trait ExecutionReportUpdater {
     }
   }
 
+  def addWarning(warning: String): Unit = {
+    warnings = warnings :+ warning
+  }
+
   def setExecutionError(error: Option[String] = None): Unit = {
     this.error = error
   }
@@ -149,7 +154,7 @@ trait ExecutionReportUpdater {
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       val statusMessage = s"${if(entitiesEmitted == 1) entityLabelSingle.toLowerCase else entityLabelPlural.toLowerCase} $entityProcessVerb"
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities()))
+      context.value.update(SimpleExecutionReport(task, stats, warnings, error, addEndTime, entitiesEmitted, operationLabel, statusMessage, allSampleOutputEntities()))
       lastUpdate = System.currentTimeMillis()
     }
   }

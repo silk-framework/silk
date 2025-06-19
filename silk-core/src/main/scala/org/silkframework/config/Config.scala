@@ -66,7 +66,7 @@ class DefaultConfig private() extends Config {
       eldsHomeDir match {
         case Some(eldsHome) =>
           val dataintegrationConfigPath = DATAINTEGRATION_PATH + DATAINTEGRATION_CONF
-          val configFile = new File(eldsHome + dataintegrationConfigPath)
+          val configFile = new File(eldsHome, dataintegrationConfigPath)
           if (!configFile.exists) {
             val msg = new StringBuilder
             msg ++= s"Configuration file not found at: ${configFile.getAbsolutePath}.\n"

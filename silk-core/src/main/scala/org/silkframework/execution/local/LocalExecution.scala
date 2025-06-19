@@ -1,10 +1,9 @@
 package org.silkframework.execution.local
 
 import org.silkframework.dataset.Dataset
-import org.silkframework.dataset.DirtyTrackingFileDataSink.{log, updatedFiles}
 import org.silkframework.execution.ExecutionType
-import org.silkframework.execution.local.LocalExecution.LocalInternalDataset
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Identifier
 
@@ -102,9 +101,14 @@ object LocalExecution {
   def apply(): LocalExecution = {
     instance
   }
+}
 
-  class LocalInternalDataset extends InternalDatasetTrait {
-    override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
-  }
-
+@Plugin(
+  id = "LocalInternalDataset",
+  label = "Internal dataset (single graph)",
+  description =
+    """Dataset for storing entities between workflow steps. This variant does use the same graph for all internal datasets in a workflow. The underlying dataset type can be configured using the `dataset.internal.*` configuration parameters."""
+)
+case class LocalInternalDataset() extends InternalDatasetTrait {
+  override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
 }

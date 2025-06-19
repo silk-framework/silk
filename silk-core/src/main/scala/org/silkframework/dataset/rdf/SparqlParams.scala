@@ -1,5 +1,7 @@
 package org.silkframework.dataset.rdf
 
+import scala.collection.immutable.ArraySeq
+
 /**
  * Sparql parameters.
  *
@@ -55,7 +57,7 @@ object SparqlParams {
     if(entityList == null || trimmedEntityList == "") {
       Seq()
     } else {
-      trimmedEntityList.split("\\s+")
+      ArraySeq.unsafeWrapArray(trimmedEntityList.split("\\s+"))
     }
   }
 }
