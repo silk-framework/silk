@@ -353,6 +353,18 @@ export function ProjectTaskTabView({
         setUnsavedChanges(status);
     }, []);
 
+    const customModalPreventEvents = React.useMemo(() => {
+        const eventHandlers = {
+            ...modalPreventEvents
+        }
+        const pluginId = taskViewConfig?.pluginId
+        if(pluginId === "linking" || pluginId === "workflow" || pluginId === "transform") {
+            // Workaround for mouseup event being swallowed before its handled when connecting edges in the react-flow editors
+            eventHandlers.onMouseUp = () => {}
+        }
+        return eventHandlers
+    }, [taskViewConfig?.pluginId])
+
     const extendedViewActions: IViewActions = {
         ...viewActions,
         switchToView: (viewIdx) => {
@@ -493,7 +505,7 @@ export function ProjectTaskTabView({
                     size="fullscreen"
                     isOpen={true}
                     onClose={() => handlerRemoveModalWrapper()}
-                    wrapperDivProps={modalPreventEvents}
+                    wrapperDivProps={customModalPreventEvents}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
