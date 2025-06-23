@@ -11,6 +11,7 @@ import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
 
 import java.io.{File, InputStream}
+import java.util.Base64
 import javax.inject.Inject
 import scala.io.{Codec, Source}
 import scala.util.{Failure, Success, Try}
@@ -200,7 +201,7 @@ object WorkbenchConfig {
       title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
       version = version,
       logo = resourceLoader.get(config.getOptional[String]("workbench.logo").getOrElse("logo.png")),
-      logoSmall = resourceLoader.get(config.getOptional[String]("workbench.logoSmall").getOrElse("logo.png")),
+      logoSmall = loadIcon(resourceLoader, config.getOptional[String]("workbench.logoSmall").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getOptional[String]("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getOptional[String]("workbench.about").getOrElse("about.html")),
       mdlStyle = config.getOptional[String]("workbench.mdlStyle").map(r=>resourceLoader.get(r)),
@@ -218,6 +219,24 @@ object WorkbenchConfig {
   }
 
   def apply(): WorkbenchConfig = get
+
+  /**
+   * Loads an icon resource, which can either be a file path or a data URL.
+   */
+  private def loadIcon(resourceLoader: ResourceLoader, name: String): Resource = {
+    if(name.startsWith("data:")) {
+      // Parse the data URL to extract the Base64 encoded data
+      val commaIndex = name.indexOf(',')
+      if (commaIndex == -1) throw new IllegalArgumentException("Invalid data URL: does not contain a comma.")
+      val base64Data = name.substring(commaIndex + 1)
+      // Decode the Base64 string into a byte array
+      val decodedBytes = Base64.getDecoder.decode(base64Data)
+      // Create an InMemoryResource with the decoded bytes
+      new InMemoryResource(name, name, decodedBytes)
+    } else {
+      resourceLoader.get(name)
+    }
+  }
 
   def getResourceLoader: ResourceLoader = {
     DefaultConfig.instance.eldsHomeDir match {
