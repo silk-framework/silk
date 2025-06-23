@@ -6,7 +6,6 @@ import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
 import { ErrorResponse, FetchError } from "../services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
-import { Intent } from "@blueprintjs/core";
 
 /**
  * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.
@@ -19,7 +18,7 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null,
-    options?: ErrorHandlerOptions
+    options?: ErrorHandlerOptions,
 ) => JSX.Element | null;
 
 interface ErrorHandlerOptions {
@@ -38,7 +37,7 @@ type ErrorHandlerRegisterShortFuncType = (
     langKey: string,
     /** The error cause. */
     cause: DIErrorTypes | null,
-    options?: ErrorHandlerOptions
+    options?: ErrorHandlerOptions,
 ) => JSX.Element | null;
 
 interface ErrorHandlerDict {
@@ -67,7 +66,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
         errorId: string,
         errorMessage: string,
         cause: DIErrorTypes | null,
-        options?: ErrorHandlerOptions
+        options?: ErrorHandlerOptions,
     ) => {
         const { errorNotificationInstanceId, onDismiss, intent } = options ?? {};
         const error: RegisterErrorType = {
@@ -92,7 +91,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: "warning",
                     },
                     errorNotificationInstanceId,
-                })
+                }),
             );
             return <Notification message={tempUnavailableMessage} />;
         } else if (isNotFoundError(cause)) {
@@ -107,7 +106,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: intent === "warning" ? intent : undefined,
                     },
                     errorNotificationInstanceId,
-                })
+                }),
             );
             const detailMessage = diErrorMessage(cause);
             return (
@@ -135,7 +134,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
         langKey: string,
         cause: DIErrorTypes | null,
-        options?: ErrorHandlerOptions
+        options?: ErrorHandlerOptions,
     ) => {
         return registerError(langKey, t(langKey), cause, options);
     };

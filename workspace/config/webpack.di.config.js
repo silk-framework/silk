@@ -92,7 +92,7 @@ module.exports = function (webpackEnv, isWatch) {
                         sassOptions: sassRenderSyncOptions,
                         sourceMap: false,
                     },
-                }
+                },
             );
         }
         return loaders;
@@ -225,7 +225,7 @@ module.exports = function (webpackEnv, isWatch) {
             // https://github.com/facebook/create-react-app/issues/253
             modules: ["node_modules"].concat(
                 // It is guaranteed to exist because we tweak it in `env.js`
-                process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
+                process.env.NODE_PATH.split(path.delimiter).filter(Boolean),
             ),
             // These are the reasonable defaults supported by the Node ecosystem.
             // We also include JSX as a common component filename extension to support
@@ -240,8 +240,16 @@ module.exports = function (webpackEnv, isWatch) {
                 // Support React Native Web
                 // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
                 "react-native": "react-native-web",
-                "@gui-elements": paths.guiElements,
                 "@ducks": paths.ducksFolder,
+                // FIXME: webpack4 does not use the `exports` field from `package.json`
+                // this was added in webpack5, see https://github.com/webpack/webpack/issues/9509
+                // a few packages use only `exports` (and not `modue` or `main`)
+                // we replace it here as polyfill until we upgrade the bundler
+                devlop: "devlop/lib/default.js",
+                "unist-util-visit-parents/do-not-use-color": "unist-util-visit-parents/lib/color.js",
+                "vfile/do-not-use-conditional-minpath": "vfile/lib/minpath.browser.js",
+                "vfile/do-not-use-conditional-minproc": "vfile/lib/minproc.browser.js",
+                "vfile/do-not-use-conditional-minurl": "vfile/lib/minurl.browser.js",
             },
             plugins: [
                 // Adds support for installing with Plug'n'Play, leading to faster installs and adding
@@ -376,7 +384,7 @@ module.exports = function (webpackEnv, isWatch) {
                                     importLoaders: 3,
                                     sourceMap: false,
                                 },
-                                "sass-loader"
+                                "sass-loader",
                             ),
                             // Don't consider CSS imports dead code even if the
                             // containing package claims to have no side effects.
@@ -396,7 +404,7 @@ module.exports = function (webpackEnv, isWatch) {
                                         getLocalIdent: getCSSModuleLocalIdent,
                                     },
                                 },
-                                "sass-loader"
+                                "sass-loader",
                             ),
                         },
                         {
@@ -458,8 +466,8 @@ module.exports = function (webpackEnv, isWatch) {
                                   minifyURLs: true,
                               },
                           }
-                        : undefined
-                )
+                        : undefined,
+                ),
             ),
             // Inlines the webpack runtime script. This script is too small to warrant
             // a network request.

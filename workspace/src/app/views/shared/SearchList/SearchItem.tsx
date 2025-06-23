@@ -7,6 +7,7 @@ import {
     Icon,
     IconButton,
     Markdown,
+    MarkdownProps,
     MenuDivider,
     MenuItem,
     OverflowText,
@@ -20,7 +21,6 @@ import {
     TagList,
     markdownUtils,
 } from "@eccenca/gui-elements";
-import { PluggableList } from "unified";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
@@ -109,7 +109,7 @@ export default function SearchItem({
                         text={<OverflowText inline>{type.label}</OverflowText>}
                     />
                 ))}
-            </MenuItem>
+            </MenuItem>,
         );
     }
 
@@ -162,7 +162,7 @@ export default function SearchItem({
                                             searchValue
                                                 ? ([
                                                       markdownUtils.highlightSearchWordsPluginFactory(searchValue),
-                                                  ] as PluggableList)
+                                                  ] as MarkdownProps["reHypePlugins"])
                                                 : undefined
                                         }
                                     >
@@ -175,12 +175,12 @@ export default function SearchItem({
                                             searchValue
                                                 ? ([
                                                       markdownUtils.highlightSearchWordsPluginFactory(searchValue),
-                                                  ] as PluggableList)
+                                                  ] as MarkdownProps["reHypePlugins"])
                                                 : undefined
                                         }
                                     >
                                         {item.description}
-                                    </Markdown>
+                                    </Markdown>,
                                 )}
                         </OverflowText>
                     </OverviewItemLine>
@@ -191,7 +191,7 @@ export default function SearchItem({
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
-                                            item.type[0].toUpperCase() + item.type.substr(1)
+                                            item.type[0].toUpperCase() + item.type.substr(1),
                                         )}
                                         searchValue={searchValue}
                                     />
@@ -283,8 +283,8 @@ export default function SearchItem({
                                     e.stopPropagation();
                                     dispatch(
                                         routerOp.goToPage(
-                                            `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`
-                                        )
+                                            `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`,
+                                        ),
                                     );
                                 }}
                             />

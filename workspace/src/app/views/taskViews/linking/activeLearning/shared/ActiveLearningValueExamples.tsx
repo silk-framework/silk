@@ -1,7 +1,6 @@
 import React from "react";
-import { Highlighter, Tag, TagList } from "@eccenca/gui-elements";
+import { Highlighter, Tag, TagList, TagProps } from "@eccenca/gui-elements";
 import { colorValue } from "@eccenca/gui-elements/src/common/utils/colorDecideContrastvalue";
-import { TagProps } from "@blueprintjs/core";
 
 interface Props extends Pick<TagProps, "interactive"> {
     exampleValues: string[];
