@@ -44,14 +44,6 @@ case class BinaryFileDataset(
   }
 
   /**
-   * Returns a data source for reading entities from the data set.
-   */
-  override final def source(implicit userContext: UserContext): DataSource = {
-    // It's not possible to address file within zip files, so we can only return the zip file itself
-    createSource(file)
-  }
-
-  /**
    * Returns a link sink for writing entity links to the data set.
    */
   override def linkSink(implicit userContext: UserContext): LinkSink = {

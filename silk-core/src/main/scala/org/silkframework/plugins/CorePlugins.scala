@@ -22,8 +22,7 @@ import org.silkframework.dataset.VariableDataset
 import org.silkframework.dataset.operations.{AddProjectFilesOperator, DeleteFilesOperator, GetProjectFilesOperator, LocalAddProjectFilesOperatorExecutor, LocalDeleteFilesOperatorExecutor, LocalGetProjectFilesOperatorExecutor}
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
-import org.silkframework.execution.local.LocalExecution.LocalInternalDataset
-import org.silkframework.execution.local.LocalExecutionManager
+import org.silkframework.execution.local.{LocalExecutionManager, LocalInternalDataset}
 import org.silkframework.plugins.dataset.{BinaryFileDataset, InternalDataset}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
