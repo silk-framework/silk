@@ -22,6 +22,7 @@ import { MultiSelectSelectionProps } from "@eccenca/gui-elements/src/components/
 import { READ_ONLY_PARAMETER } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/TaskForm";
 import { fillCustomPluginStore } from "../../../views/shared/ItemDepiction/ItemDepiction";
 import { TaskParameters } from "../../../views/plugins/plugin.types";
+import { setDefaultProjectPageSuffix } from "../../../utils/routerUtils";
 
 const {
     setError,
@@ -52,6 +53,7 @@ const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
             const data = await requestInitFrontend();
+            data.defaultProjectPageSuffix && setDefaultProjectPageSuffix(data.defaultProjectPageSuffix);
             dispatch(setInitialSettings(data));
 
             const overviewItems = await requestArtefactList({});
@@ -105,7 +107,7 @@ const fetchAvailableDTypesAsync = (id?: string) => {
                     updateAvailableDTypes({
                         fieldName: "type",
                         modifier: validModifier,
-                    })
+                    }),
                 );
             });
         } catch (error) {
@@ -214,7 +216,7 @@ const createArtefactAsync = (
     // Parameters that are flagged to have variable template value
     variableTemplateParameterSet: Set<string>,
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
-    alternativeCallback?: (newTask: IProjectTask) => any
+    alternativeCallback?: (newTask: IProjectTask) => any,
 ) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
@@ -233,8 +235,8 @@ const createArtefactAsync = (
                                 taskType as TaskType,
                                 dataParameters,
                                 variableTemplateParameterSet,
-                                alternativeCallback
-                            )
+                                alternativeCallback,
+                            ),
                         ));
                 } else {
                     console.error("selectedArtefact not set! Cannot create item.");
@@ -256,7 +258,7 @@ const createTagsAndAddToMetadata = async (payload: {
     const tags = await utils.getSelectedTagsAndCreateNew(
         payload.tags?.createdItems,
         payload.projectId,
-        payload.tags?.selectedItems
+        payload.tags?.selectedItems,
     );
 
     await utils.updateMetaData(
@@ -266,7 +268,7 @@ const createTagsAndAddToMetadata = async (payload: {
             tags: tags ?? [],
         },
         payload.projectId,
-        payload.taskId
+        payload.taskId,
     );
 };
 
@@ -286,14 +288,14 @@ const fetchCreateTaskAsync = (
     // Parameters that are flagged to have variable template value
     variableTemplateParameterSet: Set<string>,
     /** If this is set, then instead of redirecting to the newly created task, this function is called. */
-    alternativeCallback?: (newTask: IProjectTask) => any
+    alternativeCallback?: (newTask: IProjectTask) => any,
 ) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, id, tags, ...restFormData } = formData;
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
             restFormData,
-            variableTemplateParameterSet
+            variableTemplateParameterSet,
         );
         const parameterData = buildNestedTaskParameterObject(parameters);
         const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
@@ -341,7 +343,7 @@ const fetchCreateTaskAsync = (
                               type: taskType,
                               projectId: currentProjectId,
                               label,
-                          })
+                          }),
                       );
             });
         } catch (e) {
@@ -361,12 +363,12 @@ const fetchUpdateTaskAsync = (
     // Parameters that are flagged to have variable template value
     variableTemplateParameterSet: Set<string>,
     /** Function that is called instead of the task PATCH endpoint. */
-    alternativeUpdateFunction?: AlternativeTaskUpdateFunction
+    alternativeUpdateFunction?: AlternativeTaskUpdateFunction,
 ) => {
     return async (dispatch) => {
         const { parameters, variableTemplateParameters } = splitParameterAndVariableTemplateParameters(
             formData,
-            variableTemplateParameterSet
+            variableTemplateParameterSet,
         );
         const parameterData = buildNestedTaskParameterObject(parameters);
         const variableTemplateData = buildNestedTaskParameterObject(variableTemplateParameters);
