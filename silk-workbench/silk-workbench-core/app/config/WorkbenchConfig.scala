@@ -2,7 +2,7 @@ package config
 
 import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.resource._
@@ -220,18 +220,15 @@ object WorkbenchConfig {
   def apply(): WorkbenchConfig = get
 
   def getResourceLoader: ResourceLoader = {
-    //Depending on the distribution method, the configuration resources may be located at different locations.
-    //We identify the configuration location by searching for the application configuration.
-    if(new File("conf/application.conf").exists() || new File("conf/reference.conf").exists())
-      FileResourceManager(new File("conf/"))
-    else if(new File("silk-workbench/conf/application.conf").exists() || new File("silk-workbench/conf/reference.conf").exists())
-      FileResourceManager(new File("silk-workbench/conf/"))
-    else if(new File("../conf/application.conf").exists() || new File("../conf/reference.conf").exists())
-      FileResourceManager(new File("../conf/"))
-    else if(getClass.getClassLoader.getResourceAsStream("reference.conf") != null || getClass.getClassLoader.getResourceAsStream("application.conf") != null)
-      ClasspathResourceLoader("")
-    else
-      throw new ResourceNotFoundException("Could not locate configuration. Current directory is: " + new File(".").getAbsolutePath)
+    DefaultConfig.instance.eldsHomeDir match {
+      case None =>
+        // If no eLDs home directory is set, use the classpath resource loader only.
+        ClasspathResourceLoader("")
+      case Some(eldsHome) =>
+        // If an eLDs home directory is set, use the file resource manager for the config directory.
+        val configDir = new File(eldsHome, Config.DATAINTEGRATION_CONFIG_DIR)
+        FallbackResourceManager(ReadOnlyResourceManager(ClasspathResourceLoader("")), FileResourceManager(configDir), writeIntoFallbackLoader = false)
+    }
   }
 
   /**
