@@ -17,7 +17,7 @@ import org.silkframework.util.Uri
 )
 case class AlignmentDataset(
   @Param("The alignment file.")
-  file: WritableResource) extends Dataset with WritableResourceDataset with ResourceBasedDataset {
+  file: WritableResource) extends Dataset with ResourceBasedDataset {
 
   override def mimeType: Option[String] = None
 
@@ -36,10 +36,6 @@ case class AlignmentDataset(
    */
   override def entitySink(implicit userContext: UserContext): EntitySink = {
     new AlignmentEntitySink()
-  }
-
-  override def replaceWritableResource(writableResource: WritableResource): WritableResourceDataset = {
-    this.copy(file = writableResource)
   }
 
   override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()

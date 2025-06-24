@@ -2,7 +2,7 @@ import React from "react";
 import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
-import { Intent } from "@blueprintjs/core";
+import { IntentBlueprint as Intent } from "@eccenca/gui-elements/src/common/Intent";
 
 export interface RuleEditorEvaluationContextProps {
     /** If evaluation is supported. */

@@ -790,6 +790,9 @@
             "copyFailure": "Failed to copy"
         }
     },
+    "cloneModal": {
+        "info": "Cloning a task means creating a copy of the task configuration in the same project. The related (used) tasks of this cloned task are not copied or changed (e.g., a cloned workflow processes the same workflow tasks as the original and not copies of them)."
+    }, 
     "widget": {
         "ActivityInfoWidget": {
             "title": "Activities",
