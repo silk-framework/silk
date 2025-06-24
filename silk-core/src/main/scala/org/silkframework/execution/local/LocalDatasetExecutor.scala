@@ -12,12 +12,15 @@ import org.silkframework.execution.typed._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.iterator.{CloseableIterator, TraversableIterator}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.zip.ZipOutputStreamResource
 import org.silkframework.runtime.resource.{FileResource, ReadOnlyResource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}
+import java.util.zip.ZipOutputStream
+import scala.util.Using
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -53,13 +56,19 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])(implicit pluginContext: PluginContext): TypedEntities[FileEntity, TaskSpec] = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]])
+                                               (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            val fileEntity = FileEntity(ReadOnlyResource(dsr.file), FileType.Project, dsr.mimeType)
-            FileEntitySchema.create(CloseableIterator.single(fileEntity), dataset)
+            implicit val executionReport: ExecutionReportUpdater = ReadFilesReportUpdater(dataset, context)
+            implicit val prefixes: Prefixes = pluginContext.prefixes
+            val fileEntities =
+              for(resource <- BulkResourceBasedDataset.resources(dsr) if resource.exists) yield {
+                FileEntity(ReadOnlyResource(resource), FileType.Project, dsr.mimeType)
+              }
+            ReportingIterator.addReporter(FileEntitySchema.create(fileEntities, dataset))
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -70,8 +79,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport])= {
+                                     (implicit pluginContext: PluginContext, context: ActivityContext[ExecutionReport])= {
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
+    implicit val prefixes: Prefixes = pluginContext.prefixes
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
       entities = ReportingIterator(table.entities),
@@ -299,22 +309,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           case dsr: ResourceBasedDataset =>
             dsr.writableResource match {
               case Some(outputResource) =>
-                var resourceWritten = false
-                for(inputResource <- fileEntities.typedEntities) {
-                  // Either of both files could be a zip
-                  (BulkResourceBasedDataset.isZip(inputResource.file), BulkResourceBasedDataset.isZip(outputResource)) match {
-                    case (false, false) | (true, true) =>
-                      outputResource.writeResource(inputResource.file)
-                      resourceWritten = true
-                    case (false, true) =>
-                      ZipWritableResource(outputResource).writeResource(inputResource.file)
-                      resourceWritten = true
-                    case (true, false) =>
-                      throw new ValidationException("Cannot write a zip file to a dataset that's not based on a zip file.")
-                  }
-                  reportUpdater.increaseEntityCounter()
-                }
-                if(resourceWritten) {
+                if(writeResources(fileEntities.typedEntities, outputResource, reportUpdater)) {
                   onUpdate(outputResource)
                 }
               case None =>
@@ -329,6 +324,46 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         throw new ValidationException("No dataset spec found!")
     }
     reportUpdater.executionDone()
+  }
+
+  private def writeResources(fileEntities: Iterator[FileEntity], outputResource: WritableResource, reportUpdater: ExecutionReportUpdater): Boolean = {
+    var resourceWritten = false
+    if(!BulkResourceBasedDataset.isZip(outputResource)) {
+      // We are writing to a non-zip resource, so we can only write one file
+      for(inputResource <- fileEntities) {
+        if(BulkResourceBasedDataset.isZip(inputResource.file)) {
+          throw new ValidationException(s"Cannot write a zip file (${inputResource.file.name}) to a dataset that's not based on a zip file.")
+        }
+        if(resourceWritten) {
+          throw new ValidationException(s"Cannot write multiple files to a dataset that is not based on a zip file: ${outputResource.name}")
+        }
+        outputResource.writeResource(inputResource.file)
+        resourceWritten = true
+        reportUpdater.increaseEntityCounter()
+      }
+    } else {
+      // We are writing to a zip resource
+      fileEntities.nextOption() match {
+        case None =>
+          // No files to write, nothing to do
+        case Some(firstEntity) if BulkResourceBasedDataset.isZip(firstEntity.file) && !fileEntities.hasNext =>
+          // If there is only one file and it is a zip file, we can write it directly
+          outputResource.writeResource(firstEntity.file)
+        case Some(firstEntity) =>
+          // Otherwise we package all files into a zip file
+          outputResource.write() { outputStream =>
+            Using.resource(new ZipOutputStream(outputStream)) { zipOutput =>
+              for (inputResource <- Iterator(firstEntity) ++ fileEntities) {
+                val entryResource = ZipOutputStreamResource(inputResource.file.name, inputResource.file.name, zipOutput)
+                entryResource.writeResource(inputResource.file)
+                resourceWritten = true
+                reportUpdater.increaseEntityCounter()
+              }
+            }
+          }
+      }
+    }
+    resourceWritten
   }
 
   private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
@@ -413,6 +448,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def operationLabel: Option[String] = Some("read")
+    override def entityProcessVerb: String = "read"
+  }
+
+  private case class ReadFilesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "File"
+    override def entityLabelPlural: String = "Files"
     override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }

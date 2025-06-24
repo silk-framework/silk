@@ -1,14 +1,14 @@
 package org.silkframework.plugins.dataset.text
-
-import org.silkframework.config.Prefixes
-import org.silkframework.dataset.TypedProperty
-import org.silkframework.entity.{EntitySchema, ValueType}
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.InMemoryResourceManager
+
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.silkframework.dataset.TypedProperty
+import org.silkframework.entity.{EntitySchema, ValueType}
+import org.silkframework.runtime.activity.TestPluginContextTrait
+import org.silkframework.runtime.resource.InMemoryResourceManager
 
-class TextFileDatasetTest extends AnyFlatSpec with Matchers {
+class TextFileDatasetTest extends AnyFlatSpec with Matchers with TestPluginContextTrait {
 
   behavior of "TextFileDataset"
 
@@ -17,10 +17,6 @@ class TextFileDatasetTest extends AnyFlatSpec with Matchers {
   private val resource = resources.get("resource")
 
   private val dataset = TextFileDataset(resource)
-
-  private implicit def userContext: UserContext = UserContext.Empty
-
-  private implicit val prefixes: Prefixes = Prefixes.empty
 
   private val testValue = "value"
 
