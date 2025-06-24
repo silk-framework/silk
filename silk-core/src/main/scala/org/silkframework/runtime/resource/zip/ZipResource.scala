@@ -6,6 +6,12 @@ import java.io.{InputStream, OutputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipInputStream, ZipOutputStream}
 
+/**
+ * A resource representing an entry inside a zip file.
+ *
+ * @param zipFile The zip file.
+ * @param zipEntry The entry path inside the zip file.
+ */
 class ZipResource(zipFile: WritableResource, zipEntry: String) extends WritableResource {
 
   override val entryPath: Option[String] = Some(zipEntry)
@@ -62,7 +68,7 @@ class ZipResource(zipFile: WritableResource, zipEntry: String) extends WritableR
   }
 
   /**
-   * Creates an input stream for reading the resource.
+   * Creates an input stream for reading the zip entry.
    */
   override def inputStream: InputStream = {
     val zipInputStream = new ZipInputStream(zipFile.inputStream)
@@ -81,7 +87,7 @@ class ZipResource(zipFile: WritableResource, zipEntry: String) extends WritableR
   }
 
   /**
-   * Creates an output stream for writing to this resource.
+   * Creates an output stream for writing to the zip entry.
    */
   override def createOutputStream(append: Boolean): OutputStream = {
     if (append) {
