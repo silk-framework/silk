@@ -1,20 +1,17 @@
 package org.silkframework.plugins.dataset.json
-
-import org.silkframework.config.Prefixes
-import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{ClasspathResource, ResourceTooLargeException}
-import org.silkframework.util.{ConfigTestTrait, Uri}
+
+
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.runtime.activity.TestPluginContextTrait
+import org.silkframework.runtime.resource.{ClasspathResource, ResourceTooLargeException}
+import org.silkframework.util.{ConfigTestTrait, Uri}
 
-class JsonSourceStreamingMaxMemoryTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
+class JsonSourceStreamingMaxMemoryTest extends AnyFlatSpec with Matchers with ConfigTestTrait with TestPluginContextTrait {
 
   behavior of "JsonSourceStreaming"
-
-  implicit val userContext: UserContext = UserContext.Empty
-  implicit val prefixes: Prefixes = Prefixes.empty
 
   private val memoryTestJson = ClasspathResource("org/silkframework/plugins/dataset/json/memoryTest.json")
 
