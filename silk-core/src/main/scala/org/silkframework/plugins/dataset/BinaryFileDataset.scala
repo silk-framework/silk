@@ -121,6 +121,7 @@ class FileSink(file: WritableResource) extends EntitySink {
   }
 
   private def throwException: Nothing = {
-    throw new RuntimeException("Only file entities can be written to this dataset.")
+    throw new RuntimeException("Cannot write generic entities to this dataset. Only file entities can be written. " +
+                               "File entities are produced by some operators, such as the 'Get project files' task.")
   }
 }
