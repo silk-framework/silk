@@ -15,7 +15,7 @@ class Branding @Inject() () extends InjectedController {
 
   def logoSmall = Action {
     val bytes = WorkbenchConfig.get.logoSmall.loadAsBytes
-    Ok(bytes).as("image/png")
+    Ok(bytes).as("image/png").withHeaders("Cache-Control" -> "public, max-age=86400")
   }
 
   def aboutDialog = Action {
