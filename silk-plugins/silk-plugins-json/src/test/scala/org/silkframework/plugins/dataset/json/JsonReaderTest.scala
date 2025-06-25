@@ -78,6 +78,7 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     // As navigating into arrays is disabled, we do not get the individual items, but rather the whole array
     val array = example.select("data" :: Nil)
     evaluate(array, "#text") should equal (Seq("[\"A\",\"B\"]")) // The whole array as a string
+    evaluate(array, "#array/#text") should equal (Seq("\"A\"", "\"B\""))
 
     val rootItems = Seq(example)
     evaluate(rootItems, "data/#text") should equal (Seq("[\"A\",\"B\"]"))
