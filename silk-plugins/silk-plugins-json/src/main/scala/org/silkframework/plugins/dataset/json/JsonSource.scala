@@ -112,7 +112,7 @@ abstract class JsonSource(taskId: Identifier, protected val basePath: String, pr
 
 object JsonSource {
 
-  def apply(file: Resource, basePath: String, uriPattern: String, navigateIntoArrays: Boolean): JsonSource = {
+  def apply(file: Resource, basePath: String, uriPattern: String, navigateIntoArrays: Boolean = false): JsonSource = {
     new JsonSourceStreaming(Identifier.fromAllowed(file.name), file, basePath, uriPattern, navigateIntoArrays)
   }
 
