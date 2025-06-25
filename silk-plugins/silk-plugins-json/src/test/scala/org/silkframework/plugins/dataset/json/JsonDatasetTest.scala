@@ -38,7 +38,7 @@ class JsonDatasetTest extends AnyFlatSpec with Matchers with TestPluginContextTr
   private def loadEntities(maxInMemorySize: String): Unit = {
     ConfigTestTrait.withConfig(Resource.maxInMemorySizeParameterName -> Some(maxInMemorySize)) {
       implicit val prefixes: Prefixes = Prefixes.empty
-      val source = JsonSourceInMemory(resources.get("exampleLines.jsonl"), "", "")
+      val source = JsonSourceInMemory.fromResource(resources.get("exampleLines.jsonl"), "", "")
       source.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("name").asStringTypedPath))).entities.toSeq
     }
   }

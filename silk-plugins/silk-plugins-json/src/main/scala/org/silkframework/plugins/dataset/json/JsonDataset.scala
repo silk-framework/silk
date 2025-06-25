@@ -24,6 +24,8 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
                        file: WritableResource,
                        @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
                        template: JsonCodeParameter = JsonCodeParameter(s"${JsonTemplate.placeholder}"),
+                       @Param("Navigate into arrays automatically. If set to false, the `#array` path operator must be used to navigate into arrays.")
+                       navigateIntoArrays: Boolean = true,
                        @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
                        basePath: String = "",
                        @deprecated("This will be removed in the next release.", "")
@@ -46,11 +48,11 @@ case class JsonDataset(@Param("JSON file. This may also be a zip archive of mult
 
   override def createSource(resource: Resource): DataSource = {
     if (streaming) {
-      new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern)
+      new JsonSourceStreaming(Identifier.fromAllowed(resource.name), resource, basePath, uriPattern, navigateIntoArrays)
     }
     else {
       // The maxInMemorySize limit will be checked by the JsonReader class
-      JsonSourceInMemory(resource, basePath, uriPattern)
+      JsonSourceInMemory.fromResource(resource, basePath, uriPattern, navigateIntoArrays)
     }
   }
 
@@ -69,6 +71,7 @@ object JsonDataset {
     final val TEXT = "#text"
     final val ID = "#id"
     final val KEY = "#key"
+    final val ARRAY = "#array"
     final val ALL_CHILDREN = "*"
     final val BACKWARD_PATH = "\\.."
   }
@@ -83,6 +86,7 @@ object JsonDataset {
         SpecialPathInfo(specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.KEY, Some("The name of the current object key"), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(specialPaths.ARRAY, Some("Navigate into an array. If 'navigate into arrays' is set, this path is not needed.")),
         SpecialPaths.LINE,
         SpecialPaths.COLUMN,
         SpecialPathInfo(specialPaths.ALL_CHILDREN, Some("Selects all direct children of the entity.")),

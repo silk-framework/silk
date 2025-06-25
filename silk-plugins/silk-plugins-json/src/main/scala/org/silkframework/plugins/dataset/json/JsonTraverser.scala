@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets
   * @param parentOpt - the parent traverser for backward traversal
   * @param value     - the current json object
   */
-case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], parentName: Option[String] = None, value: JsonNode) {
+case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], parentName: Option[String] = None, value: JsonNode, navigateIntoArrays: Boolean) {
 
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
@@ -30,7 +30,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
       case obj: JsonObject =>
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
         obj.values.get(decodedProp).toSeq.flatMap(resolveArray).map(value => asNewParent(prop, value))
-      case array: JsonArray if array.value.nonEmpty =>
+      case array: JsonArray if array.value.nonEmpty && (navigateIntoArrays && prop.uri == JsonDataset.specialPaths.ARRAY) =>
         array.value.flatMap(v => keepParent(v).children(prop)).toSeq
       case _ =>
         Nil
@@ -206,19 +206,19 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   def asNewParent(prop: Uri, value: JsonNode, parentName: Option[String] = None): JsonTraverser = {
-    JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), parentName = parentName, value)
+    JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), parentName = parentName, value, navigateIntoArrays)
   }
 
-  def keepParent(value: JsonNode): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, parentName = parentName, value)
+  def keepParent(value: JsonNode): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, parentName = parentName, value, navigateIntoArrays)
 }
 
 object JsonTraverser {
-  def fromResource(taskId: Identifier, resource: Resource): JsonTraverser = {
-    JsonTraverser(taskId, None, None, resource.read(JsonNodeSerializer.parse))
+  def fromResource(taskId: Identifier, resource: Resource, navigateIntoArrays: Boolean = true): JsonTraverser = {
+    JsonTraverser(taskId, None, None, resource.read(JsonNodeSerializer.parse), navigateIntoArrays)
   }
 
-  def fromNode(taskId: Identifier, json: JsonNode, parentName: Option[String] = None): JsonTraverser = {
-    JsonTraverser(taskId, None, parentName, json)
+  def fromNode(taskId: Identifier, json: JsonNode, navigateIntoArrays: Boolean, parentName: Option[String] = None): JsonTraverser = {
+    JsonTraverser(taskId, None, parentName, json, navigateIntoArrays)
   }
 
   /**
