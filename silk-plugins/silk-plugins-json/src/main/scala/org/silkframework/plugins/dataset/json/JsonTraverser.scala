@@ -76,17 +76,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     */
   def select(path: Seq[String]): Seq[JsonTraverser] = {
     value match {
-      case _: JsonObject if path.nonEmpty =>
+      case _: JsonObject | _: JsonArray if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
-      case array: JsonArray if array.value.nonEmpty && (navigateIntoArrays || (path.nonEmpty && path.head == JsonDataset.specialPaths.ARRAY)) =>
-        val remainingPath = {
-          if (path.headOption.contains(JsonDataset.specialPaths.ARRAY)) {
-            path.tail
-          } else {
-            path
-          }
-        }
-        array.value.flatMap(value => keepParent(value).select(remainingPath)).toSeq
       case _: JsonNode if path.isEmpty =>
         Seq(this)
       case _: JsonNode =>
@@ -96,11 +87,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
   def select(path: List[PathOperator]): Seq[JsonTraverser] = {
     value match {
-      case _: JsonObject if path.nonEmpty =>
+      case _: JsonObject | _: JsonArray if path.nonEmpty =>
         selectOnObject(path)
-      case array: JsonArray if array.value.nonEmpty =>
-        val t = array.value.map(value => keepParent(value).select(path))
-        t.flatten.toSeq
       case _: JsonNull =>
         Seq() // JsNull is a JsValue, so it has to be handled before JsValue
       case _: JsonNode if path.isEmpty =>
@@ -110,7 +98,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     }
   }
 
-  private def selectOnObject(path: List[PathOperator]) = {
+  private def selectOnObject(path: List[PathOperator]): Seq[JsonTraverser] = {
     val values = path.head match {
       case ForwardOperator(prop) =>
         children(prop)
