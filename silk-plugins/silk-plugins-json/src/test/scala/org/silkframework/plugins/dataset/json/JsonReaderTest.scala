@@ -61,7 +61,7 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     evaluate(valuesWithSpaces, "space+value") should equal (Seq("Berlin", "Hamburg"))
   }
 
-  it should "allow retrieving ids and texts from array values" in {
+  it should "allow retrieving ids and texts from array values (if navigateToArrays is true)" in {
     val example = json("exampleArrays.json")
 
     val arrayItems = example.select("data" :: Nil)
@@ -70,6 +70,18 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
 
     val rootItems = Seq(example)
     evaluate(rootItems, "data/#text") should equal (Seq("\"A\"", "\"B\""))
+  }
+
+  it should "allow retrieving ids and texts from array values (if navigateToArrays is false)" in {
+    val example = json("exampleArrays.json", navigateIntoArrays = false)
+
+    // As navigating into arrays is disabled, we do not get the individual items, but rather the whole array
+    val array = example.select("data" :: Nil)
+    evaluate(array, "#text") should equal (Seq("[\"A\",\"B\"]")) // The whole array as a string
+
+    val rootItems = Seq(example)
+    evaluate(rootItems, "data/#text") should equal (Seq("[\"A\",\"B\"]"))
+    evaluate(rootItems, "data/#array/#text") should equal (Seq("\"A\"", "\"B\""))
   }
 
   it should "allow retrieving a JSON object as string" in {
@@ -96,8 +108,8 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     values.flatMap(value => value.evaluate(UntypedPath.parse(path).asStringTypedPath))
   }
 
-  private def json(fileName: String) = {
+  private def json(fileName: String, navigateIntoArrays: Boolean = true): JsonTraverser = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
-    JsonTraverser.fromResource("alibi_task_id", resources.get(fileName))
+    JsonTraverser.fromResource("alibi_task_id", resources.get(fileName), navigateIntoArrays)
   }
 }
