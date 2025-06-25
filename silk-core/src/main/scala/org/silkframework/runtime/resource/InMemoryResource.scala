@@ -3,6 +3,9 @@ package org.silkframework.runtime.resource
 import java.io.{ByteArrayInputStream, InputStream}
 import java.time.Instant
 
+/**
+ * A resource that is stored in memory.
+ */
 class InMemoryResource(override val name: String, override val path: String, bytes: Array[Byte]) extends Resource {
 
   /**
