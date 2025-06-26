@@ -27,7 +27,7 @@ class LinkingAutoCompletionApiTest extends AnyFlatSpec with SingleProjectWorkspa
   private val rdfAllOperatorCompletions = Seq("/", "\\", "[", "[@lang = 'en']")
   private val backwardOp = Seq("\\")
   private val jsonSourcePaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number", "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId")
-  private val jsonSpecialPaths = Seq("#id", "#text", "#key", "#line", "#column", "*")
+  private val jsonSpecialPaths = Seq("#id", "#text", "#key", "#array", "#line", "#column", "*")
   private val jsonAllOperatorCompletions = Seq("/", "\\", "[")
   private val jsonOperatorCompletions = Seq("\\..", "\\")
 

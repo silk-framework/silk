@@ -79,7 +79,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
       case _: JsonObject | _: JsonArray if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
       case _: JsonNode if path.isEmpty =>
-        Seq(this)
+        resolveArray(value).map(v => keepParent(v))
       case _: JsonNode =>
         Seq()
     }
