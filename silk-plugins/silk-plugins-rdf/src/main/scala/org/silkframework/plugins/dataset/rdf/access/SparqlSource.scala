@@ -11,6 +11,7 @@ import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.{Level, Logger}
@@ -31,19 +32,19 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   private val entityUris: Seq[String] = params.entityRestriction
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
-    val entities = entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
+    val entities = entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)(context.user)
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
       val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
-      val retrievedEntities = entityRetriever.retrieve(entitySchema, entities, None)
+      val retrievedEntities = entityRetriever.retrieve(entitySchema, entities, None)(context.user)
       GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
   }
