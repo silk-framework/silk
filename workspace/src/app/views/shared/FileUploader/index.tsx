@@ -1,3 +1,3 @@
-import FileSelectionMenu from "./FileSelectionMenu";
+import { FileSelectionMenu } from "./FileSelectionMenu";
 
 export default FileSelectionMenu;
