@@ -10,6 +10,7 @@ import play.api.libs.json._
 
 import java.net.{URLDecoder, URLEncoder}
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
   * Data structure to traverse JSON files.
@@ -122,6 +123,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         prop.uri match {
           case JsonDataset.specialPaths.ID =>
             Seq(nodeId(value))
+          case JsonDataset.specialPaths.UUID =>
+            Seq(nodeUuid(value))
           case JsonDataset.specialPaths.TEXT =>
             Seq(value.toString())
           case JsonDataset.specialPaths.KEY =>
@@ -188,6 +191,13 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
   def nodeId(value: JsonNode): String = {
     nodeToString(value).hashCode.toString
+  }
+
+  /**
+   * Generates a UUID for the given JSON node based on its string representation.
+   */
+  private def nodeUuid(value: JsonNode): String = {
+    UUID.nameUUIDFromBytes(nodeToString(value).getBytes(StandardCharsets.UTF_8)).toString
   }
 
   def evaluate(path: TypedPath): Seq[String] = evaluate(path.operators, path.valueType == ValueType.URI)

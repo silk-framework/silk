@@ -70,6 +70,7 @@ object JsonDataset {
   object specialPaths {
     final val TEXT = "#text"
     final val ID = "#id"
+    final val UUID = "#uuid"
     final val KEY = "#key"
     final val ARRAY = "#array"
     final val ALL_CHILDREN = "*"
@@ -83,6 +84,7 @@ object JsonDataset {
       propertyFilter = true,
       specialPaths = Seq(
         SpecialPathInfo(specialPaths.ID, Some("Hash value of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(specialPaths.UUID, Some("Generates a type 3 (name based) UUID from the string representation of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.KEY, Some("The name of the current object key"), SuggestedForEnum.ValuePathOnly),
