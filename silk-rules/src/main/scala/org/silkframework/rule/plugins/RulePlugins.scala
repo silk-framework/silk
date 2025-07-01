@@ -69,6 +69,7 @@ class RulePlugins extends PluginModule {
         classOf[LowerCaseTransformer] ::
         classOf[UpperCaseTransformer] ::
         classOf[CapitalizeTransformer] ::
+        classOf[CamelCaseTransformer] ::
         classOf[UrlEncodeTransformer] ::
         classOf[StemmerTransformer] ::
         classOf[StripPrefixTransformer] ::
