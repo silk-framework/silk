@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.annotations.{TransformExample, TransformExamples}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.StringUtils.toStringUtils
 
 @Plugin(
@@ -68,7 +68,8 @@ import org.silkframework.util.StringUtils.toStringUtils
  *
  * @param isDromedary Parameter for choosing between upper camel case and lower camel case aka. dromedary case.
  */
-case class CamelCaseTransformer(isDromedary: Boolean = false) extends SimpleTransformer {
+case class CamelCaseTransformer(@Param(label = "Dromedary case", value = "If true, lower camel case (aka. dromedary case) is used, otherwise upper camel case is used.")
+                                isDromedary: Boolean = false) extends SimpleTransformer {
   override def evaluate(value: String): String =
     if (isDromedary) value.lowerCamelCase
     else value.upperCamelCase
