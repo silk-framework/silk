@@ -46,6 +46,10 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     */
   private def createCsvWriter() = {
     val writerSettings = new CsvWriterSettings
+
+    // Allow the processing of non-printable characters.
+    writerSettings.trimValues(false)
+
     writerSettings.getFormat.setLineSeparator("\n")
     if(properties.nonEmpty) {
       writerSettings.setHeaders(properties.map(_.propertyUri.uri): _*)
