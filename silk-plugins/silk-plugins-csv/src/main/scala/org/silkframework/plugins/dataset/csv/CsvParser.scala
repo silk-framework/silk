@@ -12,6 +12,10 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   private val parserSettings = new CsvParserSettings()
   private val log: Logger = Logger.getLogger(classOf[CsvParser].getName)
   import settings._
+
+  // Allow the processing of non-printable characters.
+  parserSettings.trimValues(false)
+
   parserSettings.getFormat.setDelimiter(separator)
   parserSettings.setLineSeparatorDetectionEnabled(true)
 
