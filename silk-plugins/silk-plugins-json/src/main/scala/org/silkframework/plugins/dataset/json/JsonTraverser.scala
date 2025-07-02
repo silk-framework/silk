@@ -104,7 +104,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
       case ForwardOperator(prop) =>
         children(prop)
       case BackwardOperator(_) =>
-        parentOpt.toSeq.map(_.traverser)
+        navigateBack().toSeq.map(_.traverser)
       case _ =>
         Seq.empty
     }
