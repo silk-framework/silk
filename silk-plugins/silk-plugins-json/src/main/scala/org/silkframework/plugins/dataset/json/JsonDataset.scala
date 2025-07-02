@@ -69,6 +69,7 @@ object JsonDataset {
 
   object specialPaths {
     final val TEXT = "#text"
+    final val ARRAY_TEXT = "#arrayText"
     final val ID = "#id"
     final val UUID = "#uuid"
     final val KEY = "#key"

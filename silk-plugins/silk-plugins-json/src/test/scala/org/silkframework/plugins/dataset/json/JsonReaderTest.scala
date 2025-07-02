@@ -67,9 +67,11 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     val arrayItems = example.select("data" :: Nil)
     evaluate(arrayItems, "#id") should equal (Seq("65", "66"))
     evaluate(arrayItems, "#text") should equal (Seq("\"A\"", "\"B\""))
+    evaluate(arrayItems, "#arrayText") should equal (Seq("[\"A\",\"B\"]"))
 
     val rootItems = Seq(example)
     evaluate(rootItems, "data/#text") should equal (Seq("\"A\"", "\"B\""))
+    evaluate(rootItems, "data/#arrayText") should equal (Seq("[\"A\",\"B\"]"))
   }
 
   it should "allow retrieving ids and texts from array values (if navigateToArrays is false)" in {
