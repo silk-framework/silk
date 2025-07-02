@@ -14,7 +14,7 @@ class CompressedFileResourceTest extends WritableResourceTestBase {
     assert(resource.size.get > 0 && resource.size.get < inputString.length)
     resource.name mustBe resourceName
     resource.exists mustBe true
-    resource.path mustBe resourceName
+    resource.entryPath mustBe Some(resourceName)
     resource.delete()
     resource.size mustBe Some(0)
     resource.exists mustBe false
@@ -24,6 +24,6 @@ class CompressedFileResourceTest extends WritableResourceTestBase {
   override def freshResource(): WritableResource = {
     val file = File.createTempFile("CompressedFileResourceTest", "lz4")
     file.deleteOnExit()
-    CompressedFileResource(file, resourceName, resourceName, IndexedSeq.empty, deleteOnGC = false)
+    CompressedFileResource(file, resourceName, "", Some(resourceName), IndexedSeq.empty, deleteOnGC = false)
   }
 }

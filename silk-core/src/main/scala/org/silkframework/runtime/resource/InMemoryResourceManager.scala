@@ -31,8 +31,8 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
     val path = basePath + "/" + name
 
     resources.get(name) match {
-      case Some(data) => new InMemoryResource(name, path)
-      case None if !mustExist => new InMemoryResource(name, path)
+      case Some(data) => new InMemoryWritableResource(name, path)
+      case None if !mustExist => new InMemoryWritableResource(name, path)
       case None => throw new ResourceNotFoundException(s"Resource $name not found in path $basePath")
     }
   }
@@ -73,7 +73,7 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
   /**
     * A resource that is held in memory.
     */
-  private class InMemoryResource(val name: String, val path: String) extends WritableResource {
+  private class InMemoryWritableResource(val name: String, val path: String) extends WritableResource {
 
     override def exists: Boolean = resources.contains(name)
 

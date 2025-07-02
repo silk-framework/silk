@@ -162,7 +162,7 @@ export const RuleEditorCanvas = () => {
                 newConnection.source,
                 newConnection.target,
                 newConnection.targetHandle,
-                oldEdge.targetHandle && oldEdge.target === newConnection.target ? oldEdge.targetHandle : undefined,
+                oldEdge.targetHandle && oldEdge.target === newConnection.target ? oldEdge.targetHandle : undefined
             );
         }
         resetEdgeConnectState();
@@ -197,7 +197,7 @@ export const RuleEditorCanvas = () => {
         initEdgeConnectState(
             params.handleType === SOURCE_HANDLE_TYPE && params.nodeId ? params.nodeId : undefined,
             params.handleType === TARGET_HANDLE_TYPE && params.nodeId ? params.nodeId : undefined,
-            params.handleId && params.handleType === TARGET_HANDLE_TYPE ? params.handleId : undefined,
+            params.handleId && params.handleType === TARGET_HANDLE_TYPE ? params.handleId : undefined
         );
     }, []);
 
@@ -214,7 +214,7 @@ export const RuleEditorCanvas = () => {
             modelContext.executeModelEditOperation.addEdge(
                 newConnection.source,
                 newConnection.target,
-                newConnection.targetHandle,
+                newConnection.targetHandle
             );
         }
     }, []);
@@ -232,7 +232,7 @@ export const RuleEditorCanvas = () => {
             modelContext.executeModelEditOperation.addEdge(
                 connectState.connectParams.nodeId,
                 edgeConnectState.overNode.id,
-                undefined,
+                undefined
             );
         }
         resetEdgeConnectState();
@@ -248,7 +248,7 @@ export const RuleEditorCanvas = () => {
         ruleDomNode &&
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(
-                    `div[data-handlepos = "left"][data-handleid="${handle.id}"]`,
+                    `div[data-handlepos = "left"][data-handleid="${handle.id}"]`
                 );
                 if (handleDom) {
                     handleAction(handle, handleDom);
@@ -297,7 +297,7 @@ export const RuleEditorCanvas = () => {
                             modelContext.isValidEdge(
                                 ruleEditorNode.id,
                                 edgeConnectState.targetNodeId,
-                                edgeConnectState.targetHandleId,
+                                edgeConnectState.targetHandleId
                             )
                         ) {
                             setValidEdge(handleDom);
@@ -398,7 +398,7 @@ export const RuleEditorCanvas = () => {
                     modelContext.executeModelEditOperation.startChangeTransaction();
                     modelContext.executeModelEditOperation.deleteEdge(edgeId);
                 }}
-            />,
+            />
         );
     };
 
@@ -434,7 +434,7 @@ export const RuleEditorCanvas = () => {
                 copySelection={() => {
                     modelContext.executeModelEditOperation.copyNodes(nodeIds);
                 }}
-            />,
+            />
         );
     };
 
@@ -461,6 +461,11 @@ export const RuleEditorCanvas = () => {
 
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        const appName = e.dataTransfer.getData("application/x-reactflow-app");
+        if(appName && appName !== "ruleEditor") {
+            // Only handle drag events that originate from the workflow editor
+            return
+        }
         e.preventDefault();
         const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
         const pluginData = e.dataTransfer.getData("application/reactflow");
@@ -479,12 +484,12 @@ export const RuleEditorCanvas = () => {
                         pluginId,
                         reactFlowPosition,
                         parameterValues,
-                        true,
+                        true
                     );
                 } else {
                     console.warn(
                         "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
-                            pluginData,
+                            pluginData
                     );
                 }
             } catch (e) {

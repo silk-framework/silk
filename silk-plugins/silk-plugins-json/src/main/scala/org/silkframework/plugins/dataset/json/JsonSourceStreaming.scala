@@ -1,15 +1,14 @@
 package org.silkframework.plugins.dataset.json
 
 import com.fasterxml.jackson.core.{JsonFactoryBuilder, JsonParser, JsonToken, StreamReadFeature}
-import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths._
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.plugins.dataset.json.JsonDataset.specialPaths.ALL_CHILDREN
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.BufferingIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
@@ -24,13 +23,13 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     factory.createParser(resource.inputStream)
   }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit context: PluginContext): EntityHolder = {
     val entities = new Entities(entitySchema, limit = limit)
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, allowedUris: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     val entities = new Entities(entitySchema, allowedUris = allowedUris.toSet)
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }

@@ -7,7 +7,7 @@ import java.time.Instant
 /**
   * A resource that's held in-memory and is being compressed.
   */
-case class CompressedInMemoryResource(name: String, path: String, knownTypes: IndexedSeq[String]) extends WritableResource with ResourceWithKnownTypes {
+case class CompressedInMemoryResource(name: String, path: String, override val entryPath: Option[String], knownTypes: IndexedSeq[String]) extends WritableResource with ResourceWithKnownTypes {
 
   @volatile
   private var byteArrays: Vector[Array[Byte]] = Vector.empty
@@ -86,6 +86,7 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
   * @param file               The file that holds the compressed resource data.
   * @param name               The name of the resource.
   * @param path               The path of the resource.
+  * @param entryPath            The path within the resource pointing to the compressed data.
   * @param knownTypes         Known types that should be returned, leave empty if types should be automatically determined.
   * @param deleteOnGC         Deletes the given file when the resource object is garbage collected.
   *                           This should be used when the file has no use after the resource gets garbage collected and
@@ -94,6 +95,7 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
 case class CompressedFileResource(file: File,
                                   name: String,
                                   path: String,
+                                  override val entryPath: Option[String],
                                   knownTypes: IndexedSeq[String],
                                   deleteOnGC: Boolean)
     extends WritableResource

@@ -53,7 +53,8 @@ class ClassPluginDescription[+T <: AnyPlugin](val id: Identifier,
                                               constructor: Constructor[T],
                                               val pluginTypes: Seq[PluginTypeDescription],
                                               val icon: Option[String],
-                                              val actions: SeqMap[String, PluginAction]) extends PluginDescription[T] {
+                                              val actions: SeqMap[String, PluginAction],
+                                              val deprecation: Option[String]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -153,7 +154,8 @@ object ClassPluginDescription {
       constructor = getConstructor(pluginClass),
       pluginTypes = pluginTypes,
       icon = loadIcon(pluginClass, annotation.iconFile()),
-      actions = getActions(pluginClass)
+      actions = getActions(pluginClass),
+      deprecation = Option(annotation.deprecation).filter(_.trim.nonEmpty)
     )
   }
 
@@ -169,7 +171,8 @@ object ClassPluginDescription {
         constructor = getConstructor(pluginClass),
         pluginTypes = getPluginTypes(pluginClass),
         icon = None,
-        actions = SeqMap.empty
+        actions = SeqMap.empty,
+        deprecation = None
       )
     } catch {
       case ex: InvalidPluginException =>

@@ -24,6 +24,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.CloseableIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Uri
 
@@ -42,14 +43,14 @@ case class CacheDataset(dir: String) extends Dataset {
 
   object CacheSource extends DataSource {
     override def retrieve(entityDesc: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                         (implicit context: PluginContext): EntityHolder = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
       val entities = entityCache.readAll.iterator
       GenericEntityTable(CloseableIterator(entities), entityDesc, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = EmptyEntityTable(underlyingTask)
+                              (implicit context: PluginContext): EntityHolder = EmptyEntityTable(underlyingTask)
 
     override def retrieveTypes(limit: Option[Int])
                               (implicit userContext: UserContext, prefixes: Prefixes): Iterable[(String, Double)] = Iterable.empty
