@@ -45,6 +45,12 @@ trait PluginDescription[+T] {
   /** The actions that can be performed on this plugin. */
   val actions: Map[String, PluginAction]
 
+  /**
+   * Optional deprecation message.
+   * If set, the plugin will be marked as deprecated in the UI.
+   */
+  val deprecation: Option[String]
+
   /** Custom plugin descriptions */
   lazy val customDescriptions: Seq[CustomPluginDescription] = pluginTypes.flatMap(_.customDescription.generate(pluginClass))
 

@@ -22,8 +22,8 @@ import org.silkframework.dataset.VariableDataset
 import org.silkframework.dataset.operations.{AddProjectFilesOperator, DeleteFilesOperator, GetProjectFilesOperator, LocalAddProjectFilesOperatorExecutor, LocalDeleteFilesOperatorExecutor, LocalGetProjectFilesOperatorExecutor}
 import org.silkframework.entity.EntitySchema.EntitySchemaFormat
 import org.silkframework.entity.ValueType
-import org.silkframework.execution.local.LocalExecutionManager
-import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.execution.local.{LocalExecutionManager, LocalInternalDataset}
+import org.silkframework.plugins.dataset.{BinaryFileDataset, InternalDataset}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 
 import scala.language.existentials
@@ -37,7 +37,9 @@ class CorePlugins extends PluginModule {
 
   private def datasets: Seq[Class[_ <: AnyPlugin]] =
     classOf[InternalDataset] ::
+    classOf[LocalInternalDataset] ::
     classOf[VariableDataset] ::
+    classOf[BinaryFileDataset] ::
     Nil
 
   private def datasetOperations: Seq[Class[_ <: AnyPlugin]] = {

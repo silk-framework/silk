@@ -1,6 +1,6 @@
 package org.silkframework.execution.typed
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{FixedSchemaPort, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.LocalEntities
 import org.silkframework.runtime.iterator.CloseableIterator

@@ -254,7 +254,7 @@ export const RuleEditorCanvas = () => {
                     `div[data-handlepos = "left"][data-handleid="${handle.id}"]`,
                 );
                 if (handleDom) {
-                    handleAction(handle, handleDom);
+                    handleAction(handle as HandleProps, handleDom);
                 }
             });
     };
@@ -270,7 +270,7 @@ export const RuleEditorCanvas = () => {
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(`div[data-handlepos = "right"]`);
                 if (handleDom) {
-                    handleAction(handle, handleDom);
+                    handleAction(handle as HandleProps, handleDom);
                 }
             });
     };
@@ -464,6 +464,11 @@ export const RuleEditorCanvas = () => {
 
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        const appName = e.dataTransfer.getData("application/x-reactflow-app");
+        if (appName && appName !== "ruleEditor") {
+            // Only handle drag events that originate from the workflow editor
+            return;
+        }
         e.preventDefault();
         const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
         const pluginData = e.dataTransfer.getData("application/reactflow");

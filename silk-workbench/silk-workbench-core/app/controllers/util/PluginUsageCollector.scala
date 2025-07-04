@@ -1,47 +1,55 @@
 package controllers.util
 
 import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkSpec, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 import org.silkframework.util.Identifier
 
 object PluginUsageCollector {
 
-  def pluginUsages(taskSpec: TaskSpec)(implicit userContext: UserContext): Set[Identifier] = {
+  def pluginUsages(taskSpec: TaskSpec): Map[Identifier, PluginDescription[AnyPlugin]] = {
     taskSpec match {
       case transformSpec: TransformSpec =>
-        transformSpec.rules.allRules.flatMap(pluginUsagesInTransform).toSet
+        transformSpec.rules.allRules.flatMap(pluginUsagesInTransform).toMap
       case linkSpec: LinkSpec =>
-        linkSpec.rule.operator.toSeq.flatMap(pluginUsagesInSimilarityOperator).toSet
+        linkSpec.rule.operator.toSeq.flatMap(pluginUsagesInSimilarityOperator).toMap
       case customTask: CustomTask =>
-        Set(customTask.pluginSpec.id)
+        Map(spec(customTask))
+      case dataset: DatasetSpec[_] =>
+        Map(spec(dataset.plugin))
       case _ =>
-        Set.empty
+        Map.empty
     }
   }
 
-  private def pluginUsagesInTransform(transformRule: TransformRule): Set[Identifier] =  {
-    transformRule.rules.allRules.flatMap(pluginUsagesInTransform).toSet ++ pluginUsagesInInputOperator(transformRule.operator)
+  private def pluginUsagesInTransform(transformRule: TransformRule): Map[Identifier, PluginDescription[AnyPlugin]] =  {
+    transformRule.rules.allRules.flatMap(pluginUsagesInTransform).toMap ++ pluginUsagesInInputOperator(transformRule.operator)
   }
 
-  private def pluginUsagesInSimilarityOperator(op: SimilarityOperator): Set[Identifier] = {
+  private def pluginUsagesInSimilarityOperator(op: SimilarityOperator): Map[Identifier, PluginDescription[AnyPlugin]] = {
     op match {
       case comparison: Comparison =>
-        comparison.inputs.flatMap(pluginUsagesInInputOperator).toSet + comparison.metric.pluginSpec.id
+        comparison.inputs.flatMap(pluginUsagesInInputOperator).toMap + spec(comparison.metric)
       case aggregation: Aggregation =>
-        aggregation.operators.flatMap(pluginUsagesInSimilarityOperator).toSet + aggregation.aggregator.pluginSpec.id
+        aggregation.operators.flatMap(pluginUsagesInSimilarityOperator).toMap + spec(aggregation.aggregator)
     }
   }
 
-  private def pluginUsagesInInputOperator(op: Input): Set[Identifier] = {
+  private def pluginUsagesInInputOperator(op: Input): Map[Identifier, PluginDescription[AnyPlugin]] = {
     op match {
       case transform: TransformInput =>
-        transform.inputs.flatMap(pluginUsagesInInputOperator).toSet + transform.transformer.pluginSpec.id
+        transform.inputs.flatMap(pluginUsagesInInputOperator).toMap + spec(transform.transformer)
       case _: PathInput =>
-        Set.empty
+        Map.empty
     }
+  }
+
+  private def spec(plugin: AnyPlugin): (Identifier, PluginDescription[AnyPlugin]) = {
+    plugin.pluginSpec.id -> plugin.pluginSpec
   }
 
 }

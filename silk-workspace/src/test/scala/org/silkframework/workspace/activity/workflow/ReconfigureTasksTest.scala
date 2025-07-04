@@ -6,17 +6,12 @@ import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.plugins.dataset.text.TextFileDataset
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.plugin.{ParameterStringValue, ParameterTemplateValue, ParameterValues, PluginContext, PluginRegistry}
-import org.silkframework.runtime.plugin.types.{IdentifierOptionParameter, TemplateParameter}
+import org.silkframework.runtime.plugin.types.IdentifierOptionParameter
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.resource.InMemoryResourceManager
-import org.silkframework.runtime.templating.{CompiledTemplate, TemplateEngine, TemplateVariableValue}
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.workflow.ReconfigureTasks.ReconfigurableTask
-
-import java.io.Writer
 
 class ReconfigureTasksTest extends AnyFlatSpec with Matchers with ConfigTestTrait {
 
