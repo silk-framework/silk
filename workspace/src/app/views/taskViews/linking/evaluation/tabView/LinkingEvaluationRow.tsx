@@ -41,7 +41,7 @@ interface ExpandedEvaluationRowProps {
         linkType: ReferenceLinkType,
         source: string,
         target: string,
-        index: number,
+        index: number
     ) => Promise<boolean>;
     searchQuery: string;
     linkRuleOperatorTree?: ISimilarityOperator;
@@ -90,12 +90,12 @@ export const LinkingEvaluationRow = React.memo(
             precinct: boolean;
         }>({ expanded: operatorTreeExpandedByDefault, precinct: false });
         const [nodeParentHighlightedIds, setNodeParentHighlightedIds] = React.useState<Map<number, string[]>>(
-            new Map(),
+            new Map()
         );
         const [updateOperationPending, setUpdateOperationPending] = React.useState(false);
         // Keeps track of the current link type when it gets updated via the state buttons
         const [currentLinkType, setCurrentLinkType] = React.useState<ReferenceLinkType>(
-            linkingEvaluationResult?.decision ?? "unlabeled",
+            linkingEvaluationResult?.decision ?? "unlabeled"
         );
         const [rowIsExpanded, setRowIsExpanded] = React.useState<boolean>(rowIsExpandedByParent);
         const [t] = useTranslation();
@@ -147,7 +147,7 @@ export const LinkingEvaluationRow = React.memo(
                     ));
                 }
             },
-            [evaluationMap, nodeParentHighlightedIds],
+            [evaluationMap, nodeParentHighlightedIds]
         );
 
         // Returns an icon element that warns the user that the entity has no values at all
@@ -161,7 +161,7 @@ export const LinkingEvaluationRow = React.memo(
                 return null;
             }
             const allEmpty = entries.every(
-                ([_prop, propertyValues]) => !Array.isArray(propertyValues) || propertyValues.length === 0,
+                ([_prop, propertyValues]) => !Array.isArray(propertyValues) || propertyValues.length === 0
             );
             return allEmpty ? (
                 <>
@@ -254,7 +254,7 @@ export const LinkingEvaluationRow = React.memo(
                                     rowIdx,
                                     inputPathCategory[inputPath],
                                     treeInfo,
-                                    isSourceEntity,
+                                    isSourceEntity
                                 );
                             });
                         }
@@ -294,7 +294,7 @@ export const LinkingEvaluationRow = React.memo(
             index: number,
             tagInputTag: "Source path" | "Target path",
             parentTree: TreeNodeInfo,
-            isSourceEntity = false,
+            isSourceEntity = false
         ): TreeNodeInfo => {
             if (!input.inputs?.length) {
                 const newChild = {
@@ -389,8 +389,8 @@ export const LinkingEvaluationRow = React.memo(
                                         isHighlightMatch(val)
                                             ? "#746a85" // TODO: get color from CSS config
                                             : nodeParentHighlightedIds.get(index)?.includes(id)
-                                              ? "#0097a7" // TODO: get color from CSS config
-                                              : undefined
+                                            ? "#0097a7" // TODO: get color from CSS config
+                                            : undefined
                                     }
                                     onMouseEnter={() => {
                                         handleValueHover({
@@ -410,7 +410,7 @@ export const LinkingEvaluationRow = React.memo(
                     return [exampleValues, [otherCount]];
                 }
             },
-            [evaluationMap, valueToHighlight, nodeParentHighlightedIds, searchQuery],
+            [evaluationMap, valueToHighlight, nodeParentHighlightedIds, searchQuery]
         );
 
         const handleParentNodeHighlights = React.useCallback((tree, id: string, index: number, reset = false) => {
@@ -434,7 +434,7 @@ export const LinkingEvaluationRow = React.memo(
                 currentPath === valueToHighlight.path
                     ? new Set([valueToHighlight.value])
                     : undefined,
-            [valueToHighlight],
+            [valueToHighlight]
         );
         const onLinkStateUpdate = async (linkType: ReferenceLinkType) => {
             if (linkingEvaluationResult) {
@@ -444,7 +444,7 @@ export const LinkingEvaluationRow = React.memo(
                     linkType,
                     linkingEvaluationResult.source,
                     linkingEvaluationResult.target,
-                    rowIdx,
+                    rowIdx
                 );
                 if (success) {
                     setCurrentLinkType(linkType);
@@ -567,7 +567,7 @@ export const LinkingEvaluationRow = React.memo(
                                                                     interactive
                                                                     valuesToHighlight={highlightSourceTableValue(
                                                                         key,
-                                                                        true,
+                                                                        true
                                                                     )}
                                                                     onHover={(val) =>
                                                                         handleValueHover({
@@ -602,7 +602,7 @@ export const LinkingEvaluationRow = React.memo(
                                                                     interactive
                                                                     valuesToHighlight={highlightSourceTableValue(
                                                                         key,
-                                                                        false,
+                                                                        false
                                                                     )}
                                                                     onHover={(val) =>
                                                                         handleValueHover({
@@ -634,5 +634,5 @@ export const LinkingEvaluationRow = React.memo(
                 )}
             </React.Fragment>
         );
-    },
+    }
 );

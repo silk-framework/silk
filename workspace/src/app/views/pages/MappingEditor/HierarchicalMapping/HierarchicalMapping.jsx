@@ -70,9 +70,13 @@ class HierarchicalMapping extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const currentSearchQuery = this.props.history.location.search;
-        const inTabViewModal = this.props.startFullScreen
+        const inTabViewModal = this.props.startFullScreen;
         // Handle the user clicking on the transform task in the breadcrumb navigation. This should navigate to the root rule.
-        if (this.state.currentRuleId !== MAPPING_ROOT_RULE_ID && !currentSearchQuery.includes("ruleId=") && !inTabViewModal) {
+        if (
+            this.state.currentRuleId !== MAPPING_ROOT_RULE_ID &&
+            !currentSearchQuery.includes("ruleId=") &&
+            !inTabViewModal
+        ) {
             this.setState({
                 currentRuleId: MAPPING_ROOT_RULE_ID,
             });

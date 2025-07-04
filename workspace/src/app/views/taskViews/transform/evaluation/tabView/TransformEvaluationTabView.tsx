@@ -89,7 +89,7 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                 uri: entity.uris[0],
                 id: `id_${i}`,
             })) ?? [],
-        [evaluatedEntityResults.current],
+        [evaluatedEntityResults.current]
     );
 
     const expandAllRows = React.useCallback(() => {
@@ -134,8 +134,8 @@ const TransformEvaluationTabView: React.FC<TransformEvaluationTabViewProps> = ({
                                                     allRowsExpanded && expandRowTrees
                                                         ? t("linkingEvaluationTabView.table.header.collapseRows")
                                                         : allRowsExpanded && !expandRowTrees
-                                                          ? t("linkingEvaluationTabView.table.header.expandTrees")
-                                                          : t("linkingEvaluationTabView.table.header.expandRows")
+                                                        ? t("linkingEvaluationTabView.table.header.expandTrees")
+                                                        : t("linkingEvaluationTabView.table.header.expandRows")
                                                 }
                                                 toggleIcon={
                                                     allRowsExpanded && !expandRowTrees ? "toggler-rowexpand" : undefined

@@ -40,7 +40,7 @@ const TableTree: React.FC<TableTreeProps> = React.memo(
                 </TableBody>
             </Table>
         );
-    },
+    }
 );
 
 export default TableTree;

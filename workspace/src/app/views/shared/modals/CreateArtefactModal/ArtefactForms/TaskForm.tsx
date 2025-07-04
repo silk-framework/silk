@@ -1,29 +1,29 @@
-import React, {useCallback, useEffect, useMemo, useState} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
     IArtefactItemProperty,
     IPluginDetails,
     IPropertyAutocomplete,
     TaskPreConfiguration,
 } from "@ducks/common/typings";
-import {DATA_TYPES, INPUT_TYPES} from "../../../../../constants";
-import {CodeEditor, FieldItem, MultiSelectSelectionProps, Spacing, Switch, TextField} from "@eccenca/gui-elements";
-import {AdvancedOptionsArea} from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import {errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget} from "./ParameterWidget";
-import {defaultValueAsJs, existingTaskValuesToFlatParameters} from "../../../../../utils/transformers";
-import {useTranslation} from "react-i18next";
-import CustomIdentifierInput, {handleCustomIdValidation} from "./CustomIdentifierInput";
+import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
+import { CodeEditor, FieldItem, MultiSelectSelectionProps, Spacing, Switch, TextField } from "@eccenca/gui-elements";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import { errorMessage, ExtendedParameterCallbacks, ParameterCallbacks, ParameterWidget } from "./ParameterWidget";
+import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
+import { useTranslation } from "react-i18next";
+import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../../../plugins/PluginRegistry";
-import {DataPreviewProps, IDatasetConfigPreview, TaskParameters} from "../../../../plugins/plugin.types";
-import {URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput} from "./UriAttributeParameterInput";
-import {Keyword} from "@ducks/workspace/typings";
-import {ArtefactFormParameter} from "./ArtefactFormParameter";
-import {MultiTagSelect} from "../../../MultiTagSelect";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
+import { DataPreviewProps, IDatasetConfigPreview, TaskParameters } from "../../../../plugins/plugin.types";
+import { URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput } from "./UriAttributeParameterInput";
+import { Keyword } from "@ducks/workspace/typings";
+import { ArtefactFormParameter } from "./ArtefactFormParameter";
+import { MultiTagSelect } from "../../../MultiTagSelect";
 import useHotKey from "../../../HotKeyHandler/HotKeyHandler";
 import utils from "@eccenca/gui-elements/src/cmem/markdown/markdown.utils";
-import {commonOp} from "@ducks/common";
-import {DependsOnParameterValueAny} from "./ParameterAutoCompletion";
+import { commonOp } from "@ducks/common";
+import { DependsOnParameterValueAny } from "./ParameterAutoCompletion";
 
 export const READ_ONLY_PARAMETER = "readOnly";
 
@@ -126,7 +126,8 @@ export function TaskForm({
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
-    const dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>> = React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
+    const dependentValues: React.MutableRefObject<Record<string, DependsOnParameterValueAny | undefined>> =
+        React.useRef<Record<string, DependsOnParameterValueAny | undefined>>({});
     const dependentParameters = React.useRef<Map<string, Set<string>>>(new Map());
     const [doChange, setDoChange] = useState<boolean>(false);
     const { registerError } = useErrorHandler();
@@ -310,7 +311,7 @@ export function TaskForm({
                     if (dependsOnParameters.includes(paramId)) {
                         dependentValues.current[fullParameterId] = {
                             value: currentValue,
-                            isTemplate: parameterCallbacks.templateFlag(fullParameterId)
+                            isTemplate: parameterCallbacks.templateFlag(fullParameterId),
                         };
                     }
                     // Add dependent parameters
@@ -376,7 +377,7 @@ export function TaskForm({
                 // We need to update the state with a new object to trigger re-render.
                 dependentValues.current[key] = {
                     value: value,
-                    isTemplate: parameterCallbacks.templateFlag(key)
+                    isTemplate: parameterCallbacks.templateFlag(key),
                 };
             }
             const oldValue = getValues()[key];

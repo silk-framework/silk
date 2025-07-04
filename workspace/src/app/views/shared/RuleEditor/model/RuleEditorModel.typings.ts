@@ -4,7 +4,7 @@ import {
     IRuleOperatorNode,
     NodeContentPropsWithBusinessData,
     NodePosition,
-    RuleOperatorNodeParameters
+    RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
@@ -150,8 +150,9 @@ export const RuleModelChangesFactory = {
     },
 };
 
-export interface RuleNodeCopySerialization extends Pick<IRuleOperatorNode, "nodeId" | "pluginId" | "pluginType" | "dimension"> {
-    position: NodePosition,
-    parameters?: RuleOperatorNodeParameters
-    inputHandleIds: string[]
+export interface RuleNodeCopySerialization
+    extends Pick<IRuleOperatorNode, "nodeId" | "pluginId" | "pluginType" | "dimension"> {
+    position: NodePosition;
+    parameters?: RuleOperatorNodeParameters;
+    inputHandleIds: string[];
 }

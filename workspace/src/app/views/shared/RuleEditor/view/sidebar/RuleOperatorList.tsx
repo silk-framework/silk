@@ -73,7 +73,7 @@ export function RuleOperatorList<T>({
             e.dataTransfer.setDragImage(
                 draggedElement,
                 draggedElement.clientWidth / 2,
-                draggedElement.clientHeight / 2
+                draggedElement.clientHeight / 2,
             );
         };
 
@@ -87,7 +87,7 @@ export function RuleOperatorList<T>({
                 onDragStart={onDragStartByPluginId(
                     ruleOperator.pluginType,
                     ruleOperator.pluginId,
-                    (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites
+                    (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites,
                 )}
                 style={{ cursor: "grab" }}
             >
@@ -164,7 +164,7 @@ function mergePreConfiguredOperators<T>(preConfiguredOperators: IPreConfiguredOp
 /** Merges the list of "normal" and pre-configured operators. */
 function mergeOperators<T>(
     ruleOperatorList: IRuleOperator[],
-    preConfiguredOperators?: IPreConfiguredOperators<T | IRuleOperator>[]
+    preConfiguredOperators?: IPreConfiguredOperators<T | IRuleOperator>[],
 ) {
     if (preConfiguredOperators) {
         if (ruleOperatorList.length === 0) {

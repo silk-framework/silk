@@ -109,7 +109,7 @@ export default function SearchItem({
                         text={<OverflowText inline>{type.label}</OverflowText>}
                     />
                 ))}
-            </MenuItem>,
+            </MenuItem>
         );
     }
 
@@ -180,7 +180,7 @@ export default function SearchItem({
                                         }
                                     >
                                         {item.description}
-                                    </Markdown>,
+                                    </Markdown>
                                 )}
                         </OverflowText>
                     </OverviewItemLine>
@@ -191,7 +191,7 @@ export default function SearchItem({
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
-                                            item.type[0].toUpperCase() + item.type.substr(1),
+                                            item.type[0].toUpperCase() + item.type.substr(1)
                                         )}
                                         searchValue={searchValue}
                                     />
@@ -283,8 +283,8 @@ export default function SearchItem({
                                     e.stopPropagation();
                                     dispatch(
                                         routerOp.goToPage(
-                                            `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`,
-                                        ),
+                                            `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`
+                                        )
                                     );
                                 }}
                             />

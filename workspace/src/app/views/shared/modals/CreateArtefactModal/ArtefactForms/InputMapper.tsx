@@ -33,7 +33,7 @@ interface IProps {
 
 export type RegisterForExternalChangesFn = (
     paramId: string,
-    handleUpdates: (value: { value: string; label?: string }) => any,
+    handleUpdates: (value: { value: string; label?: string }) => any
 ) => any;
 
 /** The attributes for the GUI components. */

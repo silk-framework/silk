@@ -1042,7 +1042,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
             changeElementsInternal((elements) => {
                 deselectNodes(elements);
-                selectNodes(stickyNoteNode);
+                selectNodes([stickyNoteNode]);
                 const updatedElements = [...elements, stickyNoteNode];
                 startChangeTransaction();
                 addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode), elements);
@@ -1230,7 +1230,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 );
                 if (freeHandle) {
                     // Connect to free handle
-                    toTargetHandleId = freeHandle.id;
+                    toTargetHandleId = freeHandle.id ?? undefined;
                 } else {
                     // No free handle exists, do nothing
                     return currentElements;
@@ -1637,8 +1637,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * Adds highlighting for all matching nodes in the canvas and optionally removed existing highlighting.
      */
     type HighlightState = {
-        intent?: NodeContentProps<any, any>["intent"];
-        highlightColor?: NodeContentProps<any, any>["highlightColor"];
+        intent?: NodeContentProps<any>["intent"];
+        highlightColor?: NodeContentProps<any>["highlightColor"];
     };
     const highlightNodes = (nodeIds: string[], highlightState: HighlightState, removeExistingHighlighting: boolean) => {
         const currentHighlighting = (node: RuleEditorNode): HighlightState => {

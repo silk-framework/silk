@@ -60,7 +60,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed, notifications, del
         const itemType = t(
             item.id
                 ? `common.dataTypes.${item.type ? item.type.toLowerCase() : "genericArtefactLabel"}`
-                : "common.dataTypes.project",
+                : "common.dataTypes.project"
         );
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} delay={0} />,
@@ -99,7 +99,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed, notifications, del
                                                 </Tooltip>
                                             </Link>
                                         </li>
-                                    ),
+                                    )
                                 )}
                             </ul>
                         </div>

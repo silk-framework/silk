@@ -94,8 +94,8 @@ export type RecursivePartial<T> = {
     [P in keyof T]?: T[P] extends (infer U)[]
         ? RecursivePartial<U>[]
         : T[P] extends object
-          ? RecursivePartial<T[P]>
-          : T[P];
+        ? RecursivePartial<T[P]>
+        : T[P];
 };
 
 export const withShallow = (component) => shallow(component);
@@ -108,7 +108,7 @@ export const withRender = (component) => render(component);
 export const testWrapper = (
     component: React.ReactNode,
     history: History<LocationState> = createBrowserHistory<LocationState>(),
-    initialState: RecursivePartial<IStore> = {},
+    initialState: RecursivePartial<IStore> = {}
 ) => {
     const store = createStore(history, initialState);
     // Set path name of global mock
@@ -175,7 +175,7 @@ export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
 /** Finds a single element corresponding to the selector or fails. */
 export const findSingleElement = (
     wrapper: ReactWrapper<any, any>,
-    cssSelector: string | EnzymePropSelector,
+    cssSelector: string | EnzymePropSelector
 ): ReactWrapper<any, any> => {
     wrapper.update();
     const element = findAll(wrapper, cssSelector);
@@ -186,12 +186,12 @@ export const findSingleElement = (
 export const elementHtmlToContain = async (
     wrapper: ReactWrapper<any, any>,
     selector: string | EnzymePropSelector,
-    substring: string,
+    substring: string
 ) => {
     await waitFor(() => expect(findSingleElement(wrapper, selector).html()).toContain(substring), {
         onTimeout: (err) => {
             console.warn(
-                `Element with selector '${selector}' did not contain sub-string '${substring}'! Printing wrapper HTML:`,
+                `Element with selector '${selector}' did not contain sub-string '${substring}'! Printing wrapper HTML:`
             );
             logWrapperHtml(wrapper);
             return err;
@@ -293,7 +293,7 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
 
 /** Returns the Axios queue item based on the given criteria. */
 const axiosMockItemByCriteria = (
-    criteria: string | ExtendedAxiosMockRequestCriteria,
+    criteria: string | ExtendedAxiosMockRequestCriteria
 ): AxiosMockQueueItem | undefined => {
     if (typeof criteria === "string") {
         return mockAxios.getReqByUrl(criteria);
@@ -321,7 +321,7 @@ const axiosMockItemByCriteria = (
                     return matchingQueueItems[0];
                 default:
                     console.warn(
-                        "More than 1 request found for request criteria. Returning last match. Criteria: " + criteria,
+                        "More than 1 request found for request criteria. Returning last match. Criteria: " + criteria
                     );
                     return matchingQueueItems[matchingQueueItems.length - 1];
             }
@@ -359,7 +359,7 @@ interface ExtendedAxiosMockRequestCriteria extends AxiosMockRequestCriteria {
 export const mockAxiosResponse = (
     criteria: string | ExtendedAxiosMockRequestCriteria,
     response?: HttpResponse | AxiosError,
-    silentMode?: boolean,
+    silentMode?: boolean
 ): void => {
     mockAxios.interceptors.response.use(responseInterceptorOnSuccess, responseInterceptorOnError);
     const requestQueueItem = axiosMockItemByCriteria(criteria);
@@ -423,7 +423,7 @@ export const checkRequestMade = (
     url: string,
     method: string = "GET",
     data: any = null,
-    partialEquality: boolean = false,
+    partialEquality: boolean = false
 ): void => {
     const reqInfo = mockAxios.getReqMatching({
         url: url,
@@ -482,7 +482,7 @@ export class RenderResultApi {
         const element = this.findAll(cssSelector)[idx] as HTMLButtonElement;
         this.assert(
             element,
-            `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`,
+            `No element with selector '${cssSelector}' ${idx !== 0 ? `at index ${idx} ` : ""}has been found!`
         );
         if (element.click) {
             element.click();

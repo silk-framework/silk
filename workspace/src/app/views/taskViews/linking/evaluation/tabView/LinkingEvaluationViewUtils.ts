@@ -32,7 +32,7 @@ export const getEvaluatedLinks = async (
     filters: Array<keyof typeof LinkEvaluationFilters> = [],
     sortBy: LinkEvaluationSortBy[] = [],
     includeReferenceLinks = false,
-    includeEvaluationLinks = true,
+    includeEvaluationLinks = true
 ): Promise<FetchResponse<LinkRuleEvaluationResult>> =>
     fetch({
         method: "POST",
@@ -54,7 +54,7 @@ export const updateReferenceLink = async (
     taskId: string,
     source: string,
     target: string,
-    linkType: ReferenceLinkType,
+    linkType: ReferenceLinkType
 ): Promise<FetchResponse<any>> =>
     fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/referenceLink`),
@@ -76,7 +76,7 @@ export const referenceLinksChangeRequest = async (
         generateNegative?: boolean;
     },
     method: "DELETE" | "PUT",
-    body?: any,
+    body?: any
 ): Promise<FetchResponse<any>> =>
     fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${taskId}/referenceLinks`),
@@ -90,13 +90,10 @@ export const getOperatorPath = (operatorInput: any): Array<{ id: string; path: s
         return [{ path: operatorInput.path, id: operatorInput.id }];
     }
 
-    return operatorInput.inputs.reduce(
-        (acc, val) => {
-            acc = [...acc, ...getOperatorPath(val)];
-            return acc;
-        },
-        [] as Array<{ id: string; path: string }>,
-    );
+    return operatorInput.inputs.reduce((acc, val) => {
+        acc = [...acc, ...getOperatorPath(val)];
+        return acc;
+    }, [] as Array<{ id: string; path: string }>);
 };
 
 export const getLinkRuleInputPaths = (operatorInput: ISimilarityOperator) =>
@@ -115,13 +112,13 @@ export const getLinkRuleInputPaths = (operatorInput: ISimilarityOperator) =>
             }
             return linkRuleInputPaths;
         },
-        { source: {}, target: {} } as EvaluationLinkInputValue<string>,
+        { source: {}, target: {} } as EvaluationLinkInputValue<string>
     );
 
 export const getOperatorLabel = (
     operator: any,
     operatorPlugins: IPluginDetails[],
-    emptyPathLabel: string,
+    emptyPathLabel: string
 ): string | undefined => {
     switch (operator.type) {
         case "Aggregation":

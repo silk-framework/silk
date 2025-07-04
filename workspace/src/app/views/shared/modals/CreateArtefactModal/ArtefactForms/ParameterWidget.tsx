@@ -16,7 +16,7 @@ import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import {dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion} from "./ParameterAutoCompletion";
+import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
@@ -343,6 +343,9 @@ export const missingDependentParameters = (
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
     return dependsOnParameters.filter(
         (paramId) =>
-            !dependentValueIsSet(dependentValues[parameterPrefix + paramId]?.value, hasDefaultValue(parameterPrefix + paramId))
+            !dependentValueIsSet(
+                dependentValues[parameterPrefix + paramId]?.value,
+                hasDefaultValue(parameterPrefix + paramId)
+            )
     );
 };

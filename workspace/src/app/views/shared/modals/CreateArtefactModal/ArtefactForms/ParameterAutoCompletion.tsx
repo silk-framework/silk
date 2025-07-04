@@ -143,7 +143,7 @@ export const ParameterAutoCompletion = ({
     const handleAutoCompleteInput = async (
         input: string,
         autoCompletion: IPropertyAutocomplete,
-        limit = AUTOCOMPLETION_LIMIT,
+        limit = AUTOCOMPLETION_LIMIT
     ): Promise<IAutocompleteDefaultResponse[]> => {
         try {
             if (autoCompletion.customAutoCompletionRequest) {
@@ -236,7 +236,7 @@ export const ParameterAutoCompletion = ({
                           itemFromQuery: (query) => ({ value: query }),
                           itemRenderer: suggestFieldUtils.createNewItemRendererFactory(
                               (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
-                              "item-add-artefact",
+                              "item-add-artefact"
                           ),
                       }
             }
@@ -268,7 +268,7 @@ export const labelAndOrValueItemRenderer = (
     autoCompleteResponse: IAutocompleteDefaultResponse,
     query: string,
     modifiers: SuggestFieldItemRendererModifierProps,
-    handleSelectClick: () => any,
+    handleSelectClick: () => any
 ): JSX.Element | string => {
     const labelValueKindOfSame =
         (autoCompleteResponse.label ?? "").toLowerCase() === autoCompleteResponse.value.toLowerCase();
