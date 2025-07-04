@@ -24,7 +24,7 @@ import scala.collection.mutable.ArrayBuffer
   id = "camelcasetokenizer",
   categories = Array("Tokenization"),
   label = "Camel case tokenizer",
-  description = "Tokenizes a camel case string. That is it splits strings between a lower case characted and an upper case character."
+  description = "Tokenizes a camel case string. That is it splits strings between a lower case character and an upper case character."
 )
 @TransformExamples(Array(
   new TransformExample(

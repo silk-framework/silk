@@ -49,6 +49,7 @@ import {
     Markdown,
     nodeDefaultUtils,
     NodeContentProps,
+    NodeContentHandleProps,
     StickyNote,
     NodeDimensions,
 } from "@eccenca/gui-elements";
@@ -1199,7 +1200,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addEdge = (
         sourceNodeId: string,
         targetNodeId: string,
-        targetHandleId: string | undefined,
+        targetHandleId: NodeContentHandleProps["id"],
         previousTargetHandle?: string,
     ) => {
         if (targetHandleId && !isValidEdge(sourceNodeId, targetNodeId, targetHandleId)) {
@@ -1207,7 +1208,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
         changeElementsInternal((els) => {
             let currentElements = els;
-            let toTargetHandleId: string | undefined | null = targetHandleId;
+            let toTargetHandleId: NodeContentHandleProps["id"] = targetHandleId;
             if (!targetHandleId) {
                 // If the target handle is not defined, connect to the first empty handle
                 const node = utils.nodeById(els, targetNodeId);

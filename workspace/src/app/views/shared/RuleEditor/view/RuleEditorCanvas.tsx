@@ -1,4 +1,5 @@
 import { Background, BackgroundVariant, ConnectionLineType, Controls, Edge, OnLoadParams } from "react-flow-renderer";
+import { ReactFlow, HandleDefaultProps } from "@eccenca/gui-elements";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import {
     GridColumn,

@@ -6,6 +6,7 @@ import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.metrics.MeterRegistryProvider
 import org.silkframework.runtime.metrics.MetricsConfig.prefix
 import org.silkframework.runtime.resource._
+import play.api.libs.json.JsString
 import play.api.mvc.RequestHeader
 import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
@@ -46,10 +47,18 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
 
 object WorkbenchConfig {
   private lazy val cfg = DefaultConfig.instance()
+  private val defaultProjectPageSuffixKey = "workbench.project.defaultUrlSuffix"
   lazy val publicProtocol: String = if(WorkbenchConfig.useHttps(cfg)) "https" else "http"
   lazy val publicHost: String = WorkbenchConfig.host(cfg).getOrElse("localhost:9000")
   lazy val publicBaseUrl: String = s"$publicProtocol://$publicHost"
   lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
+  lazy val defaultProjectPageSuffix: Option[String] = {
+    if(cfg.hasPath(defaultProjectPageSuffixKey)) {
+      Some(cfg.getString(defaultProjectPageSuffixKey))
+    } else {
+      None
+    }
+  }
 
   /** The public host name and port of the server this application runs on. */
   def host(config: TypesafeConfig): Option[String] = {
