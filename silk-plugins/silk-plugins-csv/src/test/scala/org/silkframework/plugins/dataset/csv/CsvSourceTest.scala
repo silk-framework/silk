@@ -27,7 +27,8 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
   val settings =
     CsvSettings(
       quote = None,
-      arraySeparator = None
+      arraySeparator = None,
+      trimWhitespaceAndNonPrintableCharacters = true
     )
 
   val noSeparatorSettings: CsvSettings = settings.copy(separator = ' ')
