@@ -33,6 +33,9 @@ trait CsvDatasetTrait {
    */
   def clearBeforeExecution: Boolean
 
+  /** Trim whitespace and non-printable characters. This is configurable due to backward-compatibility reasons. */
+  def trimWhitespaceAndNonPrintableCharacters: Boolean
+
   val separatorChar: Char =
     if (separator == "\\t") { '\t' }
     else if (separator.length == 1) { separator.head }
