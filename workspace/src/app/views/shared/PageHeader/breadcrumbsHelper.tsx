@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { BreadcrumbList, BreadcrumbItemProps } from "@eccenca/gui-elements";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import appRoutes from "../../../appRoutes";
-import { getFullRoutePath } from "../../../utils/routerUtils";
+import { absoluteProjectPath, getFullRoutePath } from "../../../utils/routerUtils";
 import { SERVE_PATH } from "../../../constants/path";
 
 export function fetchBreadcrumbs(WrappedComponent) {
@@ -24,7 +24,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
                     matchPath(location.pathname, {
                         path: getFullRoutePath(route.path),
                         exact: route.exact,
-                    })
+                    }),
                 )
                 .filter(Boolean);
 
@@ -49,7 +49,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
 
             if (params.projectId) {
                 updatedBread.push({
-                    href: getFullRoutePath(`/projects/${params.projectId}`),
+                    href: absoluteProjectPath(params.projectId),
                     // text: params.projectId
                     text: await labelFunction("projectId"),
                 });
@@ -73,7 +73,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
                         return requestProjectMetadata(params.projectId).then((metadata) => metadata.data.label);
                     case "taskId":
                         return requestTaskMetadata(params.taskId, params.projectId).then(
-                            (metadata) => metadata.data.label || metadata.data.id
+                            (metadata) => metadata.data.label || metadata.data.id,
                         );
                     default: {
                         return params[breadcrumbId];
