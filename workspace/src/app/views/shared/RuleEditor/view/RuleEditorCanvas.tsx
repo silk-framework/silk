@@ -254,7 +254,7 @@ export const RuleEditorCanvas = () => {
                     `div[data-handlepos = "left"][data-handleid="${handle.id}"]`,
                 );
                 if (handleDom) {
-                    handleAction(handle as HandleProps, handleDom);
+                    handleAction(handle, handleDom);
                 }
             });
     };
@@ -270,7 +270,7 @@ export const RuleEditorCanvas = () => {
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(`div[data-handlepos = "right"]`);
                 if (handleDom) {
-                    handleAction(handle as HandleProps, handleDom);
+                    handleAction(handle, handleDom);
                 }
             });
     };
