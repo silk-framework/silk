@@ -47,8 +47,8 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
   private def createCsvWriter() = {
     val writerSettings = new CsvWriterSettings
 
-    // Allow the processing of non-printable characters.
-    writerSettings.trimValues(false)
+    // Optionally allow the processing of non-printable characters.
+    writerSettings.trimValues(settings.trimWhitespaceAndNonPrintableCharacters)
 
     writerSettings.getFormat.setLineSeparator("\n")
     if(properties.nonEmpty) {
