@@ -182,8 +182,16 @@ object CopyTasksRequest {
       // Copy all variables that are known to be referenced by a task
       for(variableName <- task.referencedVariables if variableName.scope == TemplateVariableScopes.project && !copiedVariables.contains(variableName)) {
         val sourceVariable = sourceProject.templateVariables.get(variableName.name)
-        targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
-        copiedVariables += variableName
+        // Only copy the variable if it is not already defined in the target project with the same value
+        targetProject.templateVariables.all.map.get(sourceVariable.name) match {
+          case Some(existingVariable) =>
+            if(existingVariable.value != sourceVariable.value) {
+              throw BadUserInputException(s"Cannot copy variable '${sourceVariable.name}' because it already exists in the target project with a different value: '${existingVariable.value}' vs. '${sourceVariable.value}'.")
+            }
+          case None =>
+            targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
+            copiedVariables += variableName
+        }
       }
       // The referenced variables are not necessarily complete, so we need to add variables that are found by an UnboundVariablesException
       try {
