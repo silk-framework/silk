@@ -169,7 +169,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 tagName === "INPUT" ||
                 // In CodeMirror the target has this structure.
                 (tagName === "BR" && e.target?.parentElement == null) ||
-                e.target?.classList.contains("cm-line")
+                e.target?.classList.contains("cm-line") ||
+                // Or this structure when a string is highlighted for auto-completion
+                e.target?.classList.contains("eccgui-autosuggestion__text--highlighted") ||
+                // Or this if an empty line after double-clicking
+                e.target?.classList.contains("cm-widgetBuffer")
             ) {
                 // User tries to paste text into an input field
                 return;
