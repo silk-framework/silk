@@ -158,8 +158,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     */
   private def formatNode(uriPattern: String, fetchEntityUri: Boolean): Option[String] = {
     // Check if this is a leaf node
-    if(!fetchEntityUri &&
-      (node.isInstanceOf[InMemoryXmlText] || node.isInstanceOf[InMemoryXmlAttribute] || (node.child.length >= 1 && node.child.forall(_.isInstanceOf[InMemoryXmlText])))) {
+    if(!fetchEntityUri) {
       Some(node.text)
     } else if(uriPattern.nonEmpty || fetchEntityUri) {
       Some(generateUri(uriPattern))
