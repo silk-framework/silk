@@ -157,8 +157,8 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     * For non-leaf nodes, a URI is generated.
     */
   private def formatNode(uriPattern: String, fetchEntityUri: Boolean): Option[String] = {
-    // Check if this is a leaf node
-    if(!fetchEntityUri) {
+    // Check if a string or URI is expected
+    if(!fetchEntityUri && (node.child.length == 0 || node.child.forall(_.isInstanceOf[InMemoryXmlText]))) {
       Some(node.text)
     } else if(uriPattern.nonEmpty || fetchEntityUri) {
       Some(generateUri(uriPattern))
