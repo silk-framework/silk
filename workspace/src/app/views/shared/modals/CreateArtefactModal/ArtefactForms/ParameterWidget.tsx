@@ -16,13 +16,14 @@ import { InputMapper, RegisterForExternalChangesFn } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import {dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion} from "./ParameterAutoCompletion";
+import { dependentValueIsSet, DependsOnParameterValueAny, ParameterAutoCompletion } from "./ParameterAutoCompletion";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../plugins/PluginRegistry";
 import { ParameterExtensions } from "../../../../plugins/plugin.types";
 import { ArtefactFormParameter } from "./ArtefactFormParameter";
 import { optionallyLabelledParameterToValue } from "../../../../taskViews/linking/linking.types";
 import { ArtefactDocumentation } from "../CreateArtefactModal";
 import { PARAMETER_DOC_PREFIX } from "./TaskForm";
+import { YamlEditor } from "../../../../../views/shared/YamlEditor";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -111,7 +112,7 @@ export const ParameterWidget = (props: IProps) => {
         parameterCallbacks,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
-        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS
+        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS,
     );
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
@@ -133,7 +134,7 @@ export const ParameterWidget = (props: IProps) => {
         taskParameter.param,
         dependentValues.current,
         formParameterPrefix,
-        hasDefaultValue
+        hasDefaultValue,
     ).map((paramId) => parameterCallbacks.parameterLabel(formParameterPrefix + paramId));
     /** Text that should be displayed below the input element for this parameter as long as there is no error message displayed. */
     const infoHelperText =
@@ -225,7 +226,7 @@ export const ParameterWidget = (props: IProps) => {
                                 parameterCallbacks={parameterCallbacks}
                             />
                         );
-                    }
+                    },
                 )}
             </FieldSet>
         );
@@ -262,7 +263,7 @@ export const ParameterWidget = (props: IProps) => {
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
                 : defaultValueAsJs(propertyDetails, true)
-            : initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value);
+            : (initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value));
         return (
             <ArtefactFormParameter
                 projectId={projectId}
@@ -283,8 +284,13 @@ export const ParameterWidget = (props: IProps) => {
                     initialValue,
                     defaultValue: defaultValueAsJs(propertyDetails, !!autoCompletion),
                 }}
+                pluginId={pluginId}
+                autoCompletion={autoCompletion}
+                dependentValue={dependentValue}
+                defaultValue={parameterCallbacks.defaultValue}
+                formParamId={formParamId}
                 inputElementFactory={(initialValueReplace, onChange) => {
-                    if (autoCompletion) {
+                    if (autoCompletion && propertyDetails.parameterType !== INPUT_TYPES.KEY_VALUE_PAIRS) {
                         const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
                         return (
                             <ParameterAutoCompletion
@@ -308,6 +314,21 @@ export const ParameterWidget = (props: IProps) => {
                                 defaultValue={parameterCallbacks.defaultValue}
                                 required={required}
                                 registerForExternalChanges={parameterCallbacks.registerForExternalChanges}
+                            />
+                        );
+                    } else if (autoCompletion && propertyDetails.parameterType === INPUT_TYPES.KEY_VALUE_PAIRS) {
+                        return (
+                            <YamlEditor
+                                projectId={projectId}
+                                pluginId={pluginId}
+                                autoCompletion={autoCompletion}
+                                id={formParamId}
+                                initialValue={initialValue}
+                                onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
+                                autoCompletionRequestDelay={200}
+                                defaultValue={parameterCallbacks.defaultValue}
+                                dependentValue={dependentValue}
+                                formParamId={formParamId}
                             />
                         );
                     } else {
@@ -338,11 +359,14 @@ export const missingDependentParameters = (
     propertyDetails: IArtefactItemProperty,
     dependentValues: Record<string, DependsOnParameterValueAny | undefined>,
     parameterPrefix: string,
-    hasDefaultValue: (paramId: string) => boolean
+    hasDefaultValue: (paramId: string) => boolean,
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
     return dependsOnParameters.filter(
         (paramId) =>
-            !dependentValueIsSet(dependentValues[parameterPrefix + paramId]?.value, hasDefaultValue(parameterPrefix + paramId))
+            !dependentValueIsSet(
+                dependentValues[parameterPrefix + paramId]?.value,
+                hasDefaultValue(parameterPrefix + paramId),
+            ),
     );
 };
