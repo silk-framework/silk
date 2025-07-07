@@ -149,7 +149,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                 }
                 if (status.success) {
                     close();
-                    dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+                    dispatch(routerOp.goToPage(absoluteProjectPath(status.projectId!)));
                 } else {
                     setStartProjectImportExecutionError([
                         status.failureMessage ?? "Project could not be imported.",
@@ -189,7 +189,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
                 file: fileData.name,
                 details: details,
-            })
+            }),
         );
         uppy.reset();
     };
@@ -201,8 +201,8 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
             setUploadError(
                 t(
                     "ProjectImportModal.responseInvalid",
-                    "Invalid response received from project upload. Project import cannot proceed."
-                )
+                    "Invalid response received from project upload. Project import cannot proceed.",
+                ),
             );
             uppy.reset();
         }
@@ -230,7 +230,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     disabled={false}
                 >
                     {t("ProjectImportModal.importBtn")}
-                </Button>
+                </Button>,
             );
         } else if (projectImportDetails.projectAlreadyExists) {
             approveReplacement
@@ -243,7 +243,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           disabled={false}
                       >
                           {t("ProjectImportModal.replaceImportBtn")}
-                      </Button>
+                      </Button>,
                   )
                 : actions.push(
                       <Button
@@ -254,7 +254,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                           disabled={false}
                       >
                           {t("ProjectImportModal.importUnderFreshIdBtn")}
-                      </Button>
+                      </Button>,
                   );
         }
     }
@@ -262,7 +262,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     actions.push(
         <Button key="cancel" onClick={closeDialog}>
             {t("common.action.cancel")}
-        </Button>
+        </Button>,
     );
     // Add 'Back' button
     actions.push(
@@ -272,7 +272,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                     {t("common.words.back", "Back")}
                 </Button>
             )}
-        </CardActionsAux>
+        </CardActionsAux>,
     );
 
     const uploaderElement = (
@@ -342,7 +342,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
                         <p>
                             {t(
                                 "ProjectImportModal.warningExistingProject",
-                                "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+                                "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID.",
                             )}
                         </p>
                         <Spacing />
@@ -393,11 +393,11 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     ) : projectDetailsError !== null ? (
         errorRetryElement(
             "Failed to retrieve project import details. " + projectDetailsError,
-            () => projectImportId && loadProjectImportDetails(projectImportId)
+            () => projectImportId && loadProjectImportDetails(projectImportId),
         )
     ) : startProjectImportExecutionError ? (
         errorRetryElement(`${t("common.messages.anErrorHasOccurred")} ${startProjectImportExecutionError[0]}`, () =>
-            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
+            startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2]),
         )
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)

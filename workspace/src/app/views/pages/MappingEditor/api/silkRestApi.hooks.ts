@@ -1,6 +1,7 @@
 /** Returns frontend init data or undefined if it has not been fetched, yet. */
 import { useEffect, useState } from "react";
 import silkApi from "./silkRestApi";
+import { setDefaultProjectPageSuffix } from "../../../../utils/routerUtils";
 
 /** Config information from the backend to initialize the frontend. */
 export interface IInitFrontend {
@@ -23,6 +24,9 @@ export interface IInitFrontend {
 
     /** The URI of the logged-in user. */
     userUri?: string;
+
+    /** The default project page suffix. */
+    defaultProjectPageSuffix?: string;
 }
 
 interface IProps {
@@ -39,7 +43,12 @@ export const useInitFrontend = (errorHandler?: ErrorHandler) => {
     useEffect(() => {
         silkApi
             .initFrontendInfo()
-            .then(({ data }) => setFrontendData(data))
+            .then(({ data }) => {
+                if (data.defaultProjectPagePrefix) {
+                    setDefaultProjectPageSuffix(data.defaultProjectPagePrefix);
+                }
+                setFrontendData(data);
+            })
             .catch(({ status, data }) => {
                 if (errorHandler) {
                     // No meaningful default value, let called handle the error.

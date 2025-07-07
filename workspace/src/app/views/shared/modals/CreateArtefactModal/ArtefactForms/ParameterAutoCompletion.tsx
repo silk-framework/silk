@@ -66,7 +66,7 @@ export interface ParameterAutoCompletionProps {
      * without replacing the complete path.
      */
     partialAutoCompletion?: (
-        inputType: "source" | "target"
+        inputType: "source" | "target",
     ) => (inputString: string, cursorPosition: number) => Promise<IPartialAutoCompleteResult | undefined>;
 }
 

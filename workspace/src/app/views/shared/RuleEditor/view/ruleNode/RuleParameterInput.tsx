@@ -157,6 +157,7 @@ export const RuleParameterInput = ({
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}
                     multiline
+                    outerDivAttributes={preventEventsFromBubblingToReactFlow}
                     {...sizeParameters}
                 />
             );
@@ -171,6 +172,7 @@ export const RuleParameterInput = ({
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}
                     multiline
+                    outerDivAttributes={preventEventsFromBubblingToReactFlow}
                     {...sizeParameters}
                 />
             );

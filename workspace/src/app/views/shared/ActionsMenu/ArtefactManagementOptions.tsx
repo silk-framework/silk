@@ -15,6 +15,7 @@ import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu"
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 import { SERVE_PATH } from "../../../constants/path";
+import { absoluteProjectPath } from "../../../utils/routerUtils";
 
 interface IProps {
     projectId: string;
@@ -77,7 +78,7 @@ export function ArtefactManagementOptions({
         toggleDeleteModal();
         let afterPage = "";
         if (taskId) {
-            afterPage = `projects/${projectId}`;
+            afterPage = absoluteProjectPath(projectId);
         } else {
             // Deleted project, workspace state may have changed
             dispatch(commonOp.fetchCommonSettingsAsync());

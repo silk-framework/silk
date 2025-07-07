@@ -43,7 +43,7 @@ const calculateBookmark = (
     id: string,
     unBookmarkedSuffix: string | undefined,
     tabViews: Partial<IProjectTaskView & IItemLink>[],
-    search = ""
+    search = "",
 ) => {
     const pathnameArray = window.location.pathname.split("/");
     const [currentTab] = pathnameArray.slice(-1);
@@ -134,12 +134,12 @@ export function ProjectTaskTabView({
                 handlerRemoveModal && handlerRemoveModal();
             }
         },
-        [unsavedChanges, handlerRemoveModal]
+        [unsavedChanges, handlerRemoveModal],
     );
 
     // Either the ID of an IItemLink or the view ID or undefined
     const activeTab: IProjectTaskView | IItemLink | undefined =
-        activeIframePath?.id ?? itemLinkActive
+        (activeIframePath?.id ?? itemLinkActive)
             ? (selectedTab as IItemLink)
             : (taskViews ?? []).find((v) => v.id === selectedTab);
 
@@ -263,14 +263,14 @@ export function ProjectTaskTabView({
         const unBlock = history.block((location) =>
             !location.search.length && unsavedChanges && !openTabSwitchPrompt
                 ? (t("Metadata.unsavedMetaDataWarning") as string)
-                : undefined
+                : undefined,
         );
         return () => unBlock();
     }, [unsavedChanges, openTabSwitchPrompt]);
 
     const getInitialActiveLink = (
         itemLinks: IItemLink[],
-        taskViews: IProjectTaskView[]
+        taskViews: IProjectTaskView[],
     ): IItemLink | string | undefined => {
         const initial = [...taskViews, ...itemLinks].find((elem) => {
             return elem.id === getBookmark();
@@ -289,7 +289,7 @@ export function ProjectTaskTabView({
                     const regex = new RegExp("\\?.*", "gi");
                     const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
                     const focusedIframeSource = itemLinks.find((link) =>
-                        parsedCurrentIframePath.endsWith(link.path.replace(regex, ""))
+                        parsedCurrentIframePath.endsWith(link.path.replace(regex, "")),
                     );
                     setActiveIframePath(focusedIframeSource);
                 }
@@ -352,6 +352,18 @@ export function ProjectTaskTabView({
     const viewActionsUnsavedChanges = React.useCallback((status: boolean) => {
         setUnsavedChanges(status);
     }, []);
+
+    const customModalPreventEvents = React.useMemo(() => {
+        const eventHandlers = {
+            ...modalPreventEvents,
+        };
+        const pluginId = taskViewConfig?.pluginId;
+        if (pluginId === "linking" || pluginId === "workflow" || pluginId === "transform") {
+            // Workaround for mouseup event being swallowed before its handled when connecting edges in the react-flow editors
+            eventHandlers.onMouseUp = () => {};
+        }
+        return eventHandlers;
+    }, [taskViewConfig?.pluginId]);
 
     const extendedViewActions: IViewActions = {
         ...viewActions,
@@ -493,7 +505,7 @@ export function ProjectTaskTabView({
                     size="fullscreen"
                     isOpen={true}
                     onClose={() => handlerRemoveModalWrapper()}
-                    wrapperDivProps={modalPreventEvents}
+                    wrapperDivProps={customModalPreventEvents}
                 >
                     <ErrorBoundary>{tabsWidget(projectId, taskId)}</ErrorBoundary>
                 </Modal>
