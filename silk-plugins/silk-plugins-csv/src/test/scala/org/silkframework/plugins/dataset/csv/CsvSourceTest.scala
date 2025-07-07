@@ -82,7 +82,7 @@ class CsvSourceTest extends AnyFlatSpec with Matchers {
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
   }
 
-  "For C.csv, CsvParser" should "trim the whitespaces if so configured" in {
+  "For spaced_persons.csv, CsvParser" should "trim the whitespaces if so configured" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath, UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
     val persons = spacedSource.retrieve(entityDesc).entities.toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
