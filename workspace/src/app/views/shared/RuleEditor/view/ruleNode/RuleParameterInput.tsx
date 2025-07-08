@@ -157,7 +157,7 @@ export const RuleParameterInput = ({
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}
                     multiline
-                    outerDivAttributes={preventEventsFromBubblingToReactFlow}
+                    outerDivAttributes={preventMouseEventsFromBubblingToReactFlow}
                     {...sizeParameters}
                 />
             );
@@ -172,7 +172,7 @@ export const RuleParameterInput = ({
                     autoCompletionRequestDelay={500}
                     validationRequestDelay={250}
                     multiline
-                    outerDivAttributes={preventEventsFromBubblingToReactFlow}
+                    outerDivAttributes={preventMouseEventsFromBubblingToReactFlow}
                     {...sizeParameters}
                 />
             );
@@ -193,7 +193,7 @@ export const RuleParameterInput = ({
                         small={true}
                         growVertically={false}
                         rows={2}
-                        {...preventEventsFromBubblingToReactFlow}
+                        {...preventMouseEventsFromBubblingToReactFlow}
                     />
                 );
             }
@@ -214,7 +214,7 @@ export const RuleParameterInput = ({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         onChange(e.target.value);
                     }}
-                    {...preventEventsFromBubblingToReactFlow}
+                    {...preventMouseEventsFromBubblingToReactFlow}
                 />
             );
         case "resource":
@@ -261,13 +261,17 @@ export const RuleParameterInput = ({
                 );
             } else {
                 return (
-                    <TextFieldWithCharacterWarnings {...inputAttributes} {...preventEventsFromBubblingToReactFlow} />
+                    <TextFieldWithCharacterWarnings
+                        {...inputAttributes}
+                        {...preventMouseEventsFromBubblingToReactFlow}
+                    />
                 );
             }
     }
 };
 
-const preventEventsFromBubblingToReactFlow = {
+/** Prevents that mouse events on specific input component are bubbling up to react-flow which would lead to issues in those components. */
+export const preventMouseEventsFromBubblingToReactFlow = {
     onMouseDown: (event: MouseEvent<any>) => event.stopPropagation(),
     onMouseUp: (event: MouseEvent<any>) => event.stopPropagation(),
     onContextMenu: (event: MouseEvent<any>) => event.stopPropagation(),

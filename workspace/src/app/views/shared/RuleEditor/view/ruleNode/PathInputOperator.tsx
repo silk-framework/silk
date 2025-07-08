@@ -1,13 +1,12 @@
-import {ParameterAutoCompletionProps} from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
+import { ParameterAutoCompletionProps } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 import React from "react";
-import {IAutocompleteDefaultResponse} from "@ducks/shared/typings";
-import {Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag} from "@eccenca/gui-elements";
-import {useTranslation} from "react-i18next";
-import {checkValuePathValidity} from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
-import {
-    CodeAutocompleteFieldPartialAutoCompleteResult
-} from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { Button, CodeAutocompleteField, IconButton, MenuItem, Select, Spacing, Tag } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
+import { checkValuePathValidity } from "../../../../../views/pages/MappingEditor/HierarchicalMapping/store";
+import { CodeAutocompleteFieldPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import { RuleEditorEvaluationCallbackContext } from "../../contexts/RuleEditorEvaluationContext";
+import { preventMouseEventsFromBubblingToReactFlow } from "./RuleParameterInput";
 
 /** Language filter related properties. */
 export interface LanguageFilterProps {
@@ -51,12 +50,16 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         // This onChange handler uses the up-to-date language filter
         activeOnChangeHandler?: (value: IAutocompleteDefaultResponse) => any;
         // Current label language
-        currentPathLabelLanguage: string | undefined
-    }>({ initialized: false, currentValue: parameterAutoCompletionProps.initialValue, currentPathLabelLanguage: undefined });
+        currentPathLabelLanguage: string | undefined;
+    }>({
+        initialized: false,
+        currentValue: parameterAutoCompletionProps.initialValue,
+        currentPathLabelLanguage: undefined,
+    });
     const [showLanguageFilterButton, setShowLanguageFilterButton] = React.useState(false);
     const languageFilterSupport = inputPathFunctions.languageFilter ?? DEFAULT_LANGUAGE_FILTER_SUPPORT;
-    const context = React.useContext(PathInputOperatorContext)
-    const evaluationCallbackContext = React.useContext(RuleEditorEvaluationCallbackContext)
+    const context = React.useContext(PathInputOperatorContext);
+    const evaluationCallbackContext = React.useContext(RuleEditorEvaluationCallbackContext);
 
     const checkPathToShowFilterButton = React.useCallback((path?: string) => {
         const pathType = path ? languageFilterSupport.pathType(path) : "URI";
@@ -66,21 +69,21 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
     const fetchLabel = (value: string) => {
         const property = extractProperty(value);
         return inputPathFunctions.inputPathLabel?.(property ?? value);
-    }
+    };
 
     // Update label on the fly if user new path labels are available because of user language change
-    if(context.pathLabelsAvailableForLang !== internalState.current.currentPathLabelLanguage) {
-        const value = internalState.current.currentValue ?? parameterAutoCompletionProps.initialValue
-        if(value) {
-            const label = fetchLabel(value.value)
-            if(label) {
+    if (context.pathLabelsAvailableForLang !== internalState.current.currentPathLabelLanguage) {
+        const value = internalState.current.currentValue ?? parameterAutoCompletionProps.initialValue;
+        if (value) {
+            const label = fetchLabel(value.value);
+            if (label) {
                 internalState.current.currentValue = {
                     ...value,
-                    label
-                }
+                    label,
+                };
             }
         }
-        internalState.current.currentPathLabelLanguage = context.pathLabelsAvailableForLang
+        internalState.current.currentPathLabelLanguage = context.pathLabelsAvailableForLang;
     }
 
     React.useEffect(() => {
@@ -102,7 +105,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
         let value = v;
         if (!value.label && inputPathFunctions.inputPathLabel) {
             // try to get label
-            const label = fetchLabel(v.value)
+            const label = fetchLabel(v.value);
             value = { ...v, label };
         }
         internalState.current.currentValue = value;
@@ -163,45 +166,50 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
     const onChange = React.useMemo(() => (value: string) => activeProps.onChange({ value }), [activeProps.onChange]);
     const fetchSuggestion = React.useMemo(() => {
         const inputType = activeProps.pluginId.replace("PathInput", "") as "source" | "target";
-        const fetchFunctionToUse = (
+        const fetchFunctionToUse =
             (activeProps.partialAutoCompletion && activeProps.partialAutoCompletion(inputType)) ||
-            (async () => undefined)
-        );
+            (async () => undefined);
         // Add label resolution to the fetch function
-        return async (inputString: string, cursorPosition: number): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
+        return async (
+            inputString: string,
+            cursorPosition: number,
+        ): Promise<CodeAutocompleteFieldPartialAutoCompleteResult | undefined> => {
             const result = await fetchFunctionToUse(inputString, cursorPosition);
-            if(result) {
+            if (result) {
                 return {
                     ...result,
-                    replacementResults: result.replacementResults.map(replacementResult => {
+                    replacementResults: result.replacementResults.map((replacementResult) => {
                         return {
                             ...replacementResult,
-                            replacements: replacementResult.replacements.map(replacement => {
-                                if(replacement.label) {
-                                    return replacement
+                            replacements: replacementResult.replacements.map((replacement) => {
+                                if (replacement.label) {
+                                    return replacement;
                                 } else {
                                     // try to add label
                                     const property = extractProperty(replacement.value);
                                     const label = inputPathFunctions.inputPathLabel?.(property ?? replacement.value);
                                     return {
                                         ...replacement,
-                                        label
-                                    }
+                                        label,
+                                    };
                                 }
-                            })
-                        }
-                    })
-                }
+                            }),
+                        };
+                    }),
+                };
             }
-        }
+        };
     }, [activeProps.partialAutoCompletion, activeProps.pluginId]);
     const checkInput = React.useMemo(() => {
         return (value) => checkValuePathValidity(value, activeProps.projectId);
     }, [activeProps.projectId]);
 
-    const onFocusChange = React.useCallback((hasFocus: boolean) => {
-        evaluationCallbackContext.enableErrorModal(!hasFocus);
-    }, [evaluationCallbackContext.enableErrorModal])
+    const onFocusChange = React.useCallback(
+        (hasFocus: boolean) => {
+            evaluationCallbackContext.enableErrorModal(!hasFocus);
+        },
+        [evaluationCallbackContext.enableErrorModal],
+    );
 
     const autoCompletionInput = React.useMemo(() => {
         return (
@@ -216,6 +224,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
                 autoCompletionRequestDelay={500}
                 validationRequestDelay={250}
                 onFocusChange={onFocusChange}
+                outerDivAttributes={preventMouseEventsFromBubblingToReactFlow}
             />
         );
     }, [fetchSuggestion, initialValue, onChange, checkInput, overwrittenProps]);
@@ -232,7 +241,9 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
             {currentLabel ? (
                 <>
                     <Spacing size={"tiny"} />
-                    <Tag round={true} htmlTitle={currentLabel}>{currentLabel}</Tag>
+                    <Tag round={true} htmlTitle={currentLabel}>
+                        {currentLabel}
+                    </Tag>
                 </>
             ) : null}
         </LanguageSwitcherContext.Provider>
@@ -388,9 +399,9 @@ export const extractProperty = (path: string): string | undefined => {
 
 interface PathInputOperatorContextProps {
     /** The language for which path labels are available for. */
-    pathLabelsAvailableForLang: string | undefined
+    pathLabelsAvailableForLang: string | undefined;
 }
 
 export const PathInputOperatorContext = React.createContext<PathInputOperatorContextProps>({
-    pathLabelsAvailableForLang: undefined
-})
+    pathLabelsAvailableForLang: undefined,
+});
