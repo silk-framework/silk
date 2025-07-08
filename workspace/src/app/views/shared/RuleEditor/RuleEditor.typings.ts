@@ -241,3 +241,11 @@ export interface RuleEditorValidationNode {
 }
 
 export const RULE_EDITOR_NOTIFICATION_INSTANCE = "RuleEditor";
+
+/** Functions that return meta data of a path. */
+export interface PathMetaDataFunctions {
+    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
+    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** Returns the label for the path. */
+    inputPathLabel?: (inputPathPluginId: string, path: string) => string | undefined;
+}

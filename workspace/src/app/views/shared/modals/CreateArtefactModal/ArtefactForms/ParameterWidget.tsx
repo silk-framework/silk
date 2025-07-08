@@ -111,7 +111,7 @@ export const ParameterWidget = (props: IProps) => {
         parameterCallbacks,
     } = props;
     const parameterExtensions = pluginRegistry.pluginComponent<ParameterExtensions>(
-        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS
+        SUPPORTED_PLUGINS.DI_PARAMETER_EXTENSIONS,
     );
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = parameterExtensions ? parameterExtensions.extend(taskParameter.param) : taskParameter.param;
@@ -133,7 +133,7 @@ export const ParameterWidget = (props: IProps) => {
         taskParameter.param,
         dependentValues.current,
         formParameterPrefix,
-        hasDefaultValue
+        hasDefaultValue,
     ).map((paramId) => parameterCallbacks.parameterLabel(formParameterPrefix + paramId));
     /** Text that should be displayed below the input element for this parameter as long as there is no error message displayed. */
     const infoHelperText =
@@ -225,7 +225,7 @@ export const ParameterWidget = (props: IProps) => {
                                 parameterCallbacks={parameterCallbacks}
                             />
                         );
-                    }
+                    },
                 )}
             </FieldSet>
         );
@@ -262,7 +262,7 @@ export const ParameterWidget = (props: IProps) => {
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
                 : defaultValueAsJs(propertyDetails, true)
-            : initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value);
+            : (initialValues[formParamId]?.value ?? optionallyLabelledParameterToValue(propertyDetails.value));
         return (
             <ArtefactFormParameter
                 projectId={projectId}
@@ -338,14 +338,14 @@ export const missingDependentParameters = (
     propertyDetails: IArtefactItemProperty,
     dependentValues: Record<string, DependsOnParameterValueAny | undefined>,
     parameterPrefix: string,
-    hasDefaultValue: (paramId: string) => boolean
+    hasDefaultValue: (paramId: string) => boolean,
 ): string[] => {
     const dependsOnParameters = propertyDetails.autoCompletion?.autoCompletionDependsOnParameters ?? [];
     return dependsOnParameters.filter(
         (paramId) =>
             !dependentValueIsSet(
                 dependentValues[parameterPrefix + paramId]?.value,
-                hasDefaultValue(parameterPrefix + paramId)
-            )
+                hasDefaultValue(parameterPrefix + paramId),
+            ),
     );
 };

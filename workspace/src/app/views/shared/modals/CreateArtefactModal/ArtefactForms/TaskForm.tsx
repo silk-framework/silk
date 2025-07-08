@@ -75,7 +75,7 @@ const TAGS = "tags";
 const datasetConfigPreview = (
     projectId: string,
     pluginId: string,
-    parameterValues: TaskParameters
+    parameterValues: TaskParameters,
 ): IDatasetConfigPreview => {
     return {
         project: projectId,
@@ -98,11 +98,13 @@ const extractDefaultValues = (pluginDetails: IPluginDetails): Map<string, string
     const traverse = (parameterId: string, parameter: IArtefactItemProperty, prefix: string = "") => {
         m.set(
             prefix + parameterId,
-            parameter.value && typeof parameter.value === "object" ? parameter.value.value : (parameter.value as string)
+            parameter.value && typeof parameter.value === "object"
+                ? parameter.value.value
+                : (parameter.value as string),
         );
         if (parameter.properties) {
             Object.entries(parameter.properties).forEach(([id, prop]) =>
-                traverse(id, prop, `${prefix}${parameterId}.`)
+                traverse(id, prop, `${prefix}${parameterId}.`),
             );
         }
     };
@@ -149,11 +151,11 @@ export function TaskForm({
         updateTask
             ? updateTask
             : newTaskPreConfiguration && newTaskPreConfiguration.preConfiguredParameterValues
-            ? {
-                  parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
-                  variableTemplateValues: {},
-              }
-            : undefined
+              ? {
+                    parameterValues: newTaskPreConfiguration.preConfiguredParameterValues,
+                    variableTemplateValues: {},
+                }
+              : undefined,
     );
     const [t] = useTranslation();
     const parameterLabels = React.useRef(new Map<string, string>());
@@ -165,7 +167,7 @@ export function TaskForm({
         (fullParameterId: string) => {
             return updateTask?.variableTemplateValues[fullParameterId] != null;
         },
-        [updateTask]
+        [updateTask],
     );
 
     const handleEscapeKey = React.useCallback(() => {
@@ -248,13 +250,13 @@ export function TaskForm({
             prefix: string,
             params: [string, IArtefactItemProperty][],
             parameterValues: Record<string, any>,
-            requiredParameters: string[]
+            requiredParameters: string[],
         ) => {
             // Construct array of parameter keys that other parameters depend on
             const autoCompletionParams = params.filter(([key, propertyDetails]) => propertyDetails.autoCompletion);
             const dependsOnParameters = autoCompletionParams.flatMap(
                 ([key, propertyDetails]) =>
-                    (propertyDetails.autoCompletion as IPropertyAutocomplete).autoCompletionDependsOnParameters
+                    (propertyDetails.autoCompletion as IPropertyAutocomplete).autoCompletionDependsOnParameters,
             );
             params.forEach(([paramId, param]) => {
                 const fullParameterId = prefix + paramId;
@@ -272,11 +274,11 @@ export function TaskForm({
                                     ? parameterValues[paramId].value
                                     : parameterValues[paramId]
                                 : {},
-                            param.required ? param.required : []
+                            param.required ? param.required : [],
                         );
                     } else {
                         console.warn(
-                            `Parameter '${fullParameterId}' is of type "object", but has no parameters object defined!`
+                            `Parameter '${fullParameterId}' is of type "object", but has no parameters object defined!`,
                         );
                     }
                 } else {
@@ -290,7 +292,7 @@ export function TaskForm({
                             // Boolean is by default set to false
                             required: requiredParameters.includes(paramId) && param.parameterType !== "boolean",
                             ...valueRestrictions(fullParameterId, param),
-                        }
+                        },
                     );
                     // Set default value
                     let currentValue = value;
@@ -316,7 +318,7 @@ export function TaskForm({
                     }
                     // Add dependent parameters
                     (param.autoCompletion?.autoCompletionDependsOnParameters ?? []).forEach((dependsOn) =>
-                        addDependentParameter(fullParameterId, prefix + dependsOn)
+                        addDependentParameter(fullParameterId, prefix + dependsOn),
                     );
                 }
             });
@@ -350,8 +352,8 @@ export function TaskForm({
         registerParameters(
             "",
             visibleParams,
-            updateTask ? updateTask.parameterValues : newTaskPreConfiguration?.preConfiguredParameterValues ?? {},
-            requiredRootParameters
+            updateTask ? updateTask.parameterValues : (newTaskPreConfiguration?.preConfiguredParameterValues ?? {}),
+            requiredRootParameters,
         );
         setFormValueKeys(returnKeys);
 
@@ -406,12 +408,12 @@ export function TaskForm({
                 });
             }
         },
-        []
+        [],
     );
 
     const handleTagSelectionChange = React.useCallback(
         (params: MultiSelectSelectionProps<Keyword>) => setValue(TAGS, params),
-        []
+        [],
     );
     const preConfiguredFileAndLabel =
         newTaskPreConfiguration?.preConfiguredParameterValues?.file && newTaskPreConfiguration?.metaData?.label;
@@ -445,7 +447,7 @@ export function TaskForm({
                 onChange={handleChange(DESCRIPTION)}
             />
         ),
-        []
+        [],
     );
 
     const datasetConfigValues = React.useCallback(() => {
@@ -601,7 +603,7 @@ export function TaskForm({
                                     validate: triggerValidation,
                                     errorMessage: t(
                                         "form.validations.parameter",
-                                        "Parameter validation failed. Please fix the issues first."
+                                        "Parameter validation failed. Please fix the issues first.",
                                     ),
                                 }}
                                 datasetConfigValues={datasetConfigValues}

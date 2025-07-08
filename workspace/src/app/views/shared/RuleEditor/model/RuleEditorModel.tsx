@@ -55,7 +55,7 @@ import {
 } from "@eccenca/gui-elements";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
-import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { PUBLIC_URL } from "../../../../constants/path";
@@ -119,6 +119,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setInteractive = useStoreActions((a) => a.setInteractive);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
+    // Stores the language filter config for each node, so the config object can be used in dependency lists.
+    const inputPathFunctionsConfigs = React.useRef<Map<string, InputPathFunctions>>(new Map());
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
     const ruleEvaluationContext: RuleEditorEvaluationContextProps =
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
@@ -168,7 +170,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 tagName === "INPUT" ||
                 // In CodeMirror the target has this structure.
                 (tagName === "BR" && e.target?.parentElement == null) ||
-                e.target?.classList.contains("cm-line")
+                e.target?.classList.contains("cm-line") ||
+                // Or this structure when a string is highlighted for auto-completion
+                e.target?.classList.contains("eccgui-autosuggestion__text--highlighted") ||
+                // Or this if an empty line after double-clicking
+                e.target?.classList.contains("cm-widgetBuffer")
             ) {
                 // User tries to paste text into an input field
                 return;
@@ -1744,18 +1750,36 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
 
-    const languageFilterEnabled = (nodeId: string): LanguageFilterProps | undefined => {
+    const inputPathFunctions = (nodeId: string): InputPathFunctions => {
         const node = nodeMap.get(nodeId);
         if (node) {
-            const enabled =
-                node.node.pluginType === "PathInputOperator" &&
-                !!ruleEditorContext.datasetCharacteristics.get(node.node.pluginId)?.supportedPathExpressions
-                    .languageFilter;
-            return {
-                enabled,
-                pathType: (path: string) => ruleEditorContext.inputPathPluginPathType?.(node.node.pluginId, path),
-            };
+            const existingLanguageFilterConfig = inputPathFunctionsConfigs.current.get(nodeId);
+            if (existingLanguageFilterConfig) {
+                return existingLanguageFilterConfig;
+            } else {
+                const { pluginId, pluginType } = node.node;
+                const enabled =
+                    node.node.pluginType === "PathInputOperator" &&
+                    !!ruleEditorContext.datasetCharacteristics.get(pluginId)?.supportedPathExpressions.languageFilter;
+                const inputPathLabel =
+                    pluginType === "PathInputOperator"
+                        ? (path: string) => {
+                              return ruleEditorContext.pathMetaData?.inputPathLabel?.(pluginId, path);
+                          }
+                        : undefined;
+                const newConfig: InputPathFunctions = {
+                    languageFilter: {
+                        enabled,
+                        pathType: (path: string) =>
+                            ruleEditorContext.pathMetaData?.inputPathPluginPathType?.(pluginId, path),
+                    },
+                    inputPathLabel,
+                };
+                inputPathFunctionsConfigs.current.set(nodeId, newConfig);
+                return newConfig;
+            }
         }
+        return {};
     };
 
     // Context for creating new nodes
@@ -1772,7 +1796,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext,
         updateNodeParameters: changeNodeParametersSingleTransaction,
         readOnlyMode: ruleEditorContext.readOnlyMode ?? false,
-        languageFilterEnabled,
+        inputPathFunctions,
         changeNodeSize: changeSize,
     });
 

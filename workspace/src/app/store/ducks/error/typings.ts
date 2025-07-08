@@ -35,4 +35,4 @@ export interface IErrorState {
     errors: Array<ApplicationError>;
 }
 
-export type ApplicationError = DIErrorFormat & { errorNotificationInstanceId?: string };
+export type ApplicationError = DIErrorFormat & { errorNotificationInstanceId?: string, notAutoOpen?: boolean };

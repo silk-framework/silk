@@ -3,7 +3,7 @@ import { IAutocompleteDefaultResponse, IRequestAutocompletePayload } from "@duck
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 
 export const getAutocompleteResultsAsync = async (
-    payload: IRequestAutocompletePayload
+    payload: IRequestAutocompletePayload,
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return requestAutocompleteResults({
         limit: 10000,

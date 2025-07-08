@@ -18,7 +18,7 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null,
-    options?: ErrorHandlerOptions
+    options?: ErrorHandlerOptions,
 ) => JSX.Element | null;
 
 interface ErrorHandlerOptions {
@@ -30,6 +30,8 @@ interface ErrorHandlerOptions {
     onDismiss?: () => any;
     /** The intent of the notification. Default: "danger" */
     intent?: "danger" | "warning";
+    /** If this is true, the error will not trigger opening the notification queue. */
+    notAutoOpen?: boolean;
 }
 
 type ErrorHandlerRegisterShortFuncType = (
@@ -37,7 +39,7 @@ type ErrorHandlerRegisterShortFuncType = (
     langKey: string,
     /** The error cause. */
     cause: DIErrorTypes | null,
-    options?: ErrorHandlerOptions
+    options?: ErrorHandlerOptions,
 ) => JSX.Element | null;
 
 interface ErrorHandlerDict {
@@ -66,9 +68,9 @@ const useErrorHandler = (): ErrorHandlerDict => {
         errorId: string,
         errorMessage: string,
         cause: DIErrorTypes | null,
-        options?: ErrorHandlerOptions
+        options?: ErrorHandlerOptions,
     ) => {
-        const { errorNotificationInstanceId, onDismiss, intent } = options ?? {};
+        const { errorNotificationInstanceId, onDismiss, intent, notAutoOpen } = options ?? {};
         const error: RegisterErrorType = {
             id: errorId,
             message: errorMessage,
@@ -91,7 +93,8 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: "warning",
                     },
                     errorNotificationInstanceId,
-                })
+                    notAutoOpen,
+                }),
             );
             return <Notification message={tempUnavailableMessage} />;
         } else if (isNotFoundError(cause)) {
@@ -106,7 +109,8 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: intent === "warning" ? intent : undefined,
                     },
                     errorNotificationInstanceId,
-                })
+                    notAutoOpen,
+                }),
             );
             const detailMessage = diErrorMessage(cause);
             return (
@@ -134,7 +138,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (
         langKey: string,
         cause: DIErrorTypes | null,
-        options?: ErrorHandlerOptions
+        options?: ErrorHandlerOptions,
     ) => {
         return registerError(langKey, t(langKey), cause, options);
     };

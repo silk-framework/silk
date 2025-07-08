@@ -186,7 +186,7 @@ class HierarchicalMapping extends React.Component {
                     askForRemove: false,
                     loading: false,
                 });
-            }
+            },
         );
     };
 
