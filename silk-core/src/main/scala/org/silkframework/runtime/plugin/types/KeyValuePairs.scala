@@ -8,6 +8,10 @@ import scala.jdk.CollectionConverters.{MapHasAsJava, MapHasAsScala}
 
 case class KeyValuePairs(values: Map[String, String])
 
+object KeyValuePairs {
+  def empty: KeyValuePairs = KeyValuePairs(Map.empty[String, String])
+}
+
 object KeyValuePairsType extends StringParameterType[KeyValuePairs] {
 
   override def name: String = "keyValuePairs"
