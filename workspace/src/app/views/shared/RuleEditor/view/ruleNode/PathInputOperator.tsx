@@ -214,6 +214,8 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
     const autoCompletionInput = React.useMemo(() => {
         return (
             <CodeAutocompleteField
+                id={parameterAutoCompletionProps.formParamId}
+                readOnly={parameterAutoCompletionProps.readOnly}
                 {...overwrittenProps.inputProps}
                 initialValue={initialValue}
                 onChange={onChange}
