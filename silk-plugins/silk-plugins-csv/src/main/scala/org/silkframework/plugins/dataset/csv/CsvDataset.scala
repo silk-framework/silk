@@ -49,7 +49,7 @@ case class CsvDataset (
          value = "If set to true this will clear the specified file before executing a workflow that writes to it.",
          advanced = true)
   clearBeforeExecution: Boolean = false,
-  @Param(label = "Optionally trim whitespace and non-printable characters.",
+  @Param(label = "Trim whitespace and non-printable characters.",
          value = "If set to true, this will trim whitespace and non-printable characters from the contents of the CSV dataset.",
          advanced = true)
   override val trimWhitespaceAndNonPrintableCharacters: Boolean = false) extends Dataset
