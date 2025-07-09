@@ -15,6 +15,7 @@
 package org.silkframework.util
 
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
+import scala.collection.StringOps
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.util.matching.Regex
@@ -139,8 +140,21 @@ class StringUtils(str: String) {
   }
 
   /**
+   * Converts a string to lower camel case.
+   * e.g. "Hello World" is converted to "helloWorld"
+   * @return
+   */
+  def lowerCamelCase: String = {
+    def lowerFirst(s: String): String = {
+      if (s == null || s.isEmpty || s.charAt(0).isLower) s
+      else new StringOps(s).updated(0, s.charAt(0).toLower)
+    }
+    lowerFirst(upperCamelCase)
+  }
+
+  /**
     * Converts a string to upper camel case.
-    * e.g. "Hello World" is converted to HelloWorld
+    * e.g. "Hello World" is converted to "HelloWorld"
     * @return
     */
   def upperCamelCase: String = {

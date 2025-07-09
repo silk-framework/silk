@@ -200,12 +200,14 @@ export const ArtefactFormParameter = ({
     }, []);
 
     const showSwitchButton = showRareActions || showVariableTemplateInput; // always show for variable templates
+    const isTemplateInputType = parameterType === INPUT_TYPES.TEMPLATE;
     const multiline =
-        parameterType &&
-        (parameterType.startsWith("code-") ||
-            [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.KEY_VALUE_PAIRS].includes(
-                parameterType,
-            ));
+        (parameterType &&
+            (parameterType.startsWith("code-") ||
+                [INPUT_TYPES.RESTRICTION, INPUT_TYPES.MULTILINE_STRING, INPUT_TYPES.KEY_VALUE_PAIRS].includes(
+                    parameterType,
+                ))) ||
+        isTemplateInputType;
 
     return (
         <FieldItem
@@ -234,7 +236,7 @@ export const ArtefactFormParameter = ({
                         maxWidth: showSwitchButton ? "calc(100% - 3.5px - 32px)" : "100%", // set full width minus tiny spacing and icon button width
                     }}
                 >
-                    {supportVariableTemplateElement && showVariableTemplateInput ? (
+                    {(supportVariableTemplateElement && showVariableTemplateInput) || isTemplateInputType ? (
                         <TemplateInputComponent
                             projectId={projectId}
                             parameterId={parameterId}
@@ -249,7 +251,7 @@ export const ArtefactFormParameter = ({
                             onTemplateValueChange={onTemplateValueChange}
                             setValidationError={setValidationError}
                             evaluatedValueMessage={
-                                supportVariableTemplateElement.showTemplatePreview ? setTemplateInfoMessage : undefined
+                                supportVariableTemplateElement?.showTemplatePreview ? setTemplateInfoMessage : undefined
                             }
                             allowSensitiveVariables={isPasswordInput}
                             parameterType={parameterType}

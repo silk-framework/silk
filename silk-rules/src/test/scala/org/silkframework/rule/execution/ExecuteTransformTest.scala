@@ -4,7 +4,7 @@ import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.config.PlainTask
 import org.silkframework.dataset.{DataSource, DatasetSpec, EmptyDataset, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -14,15 +14,11 @@ import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.runtime.activity.{ActivityContext, StatusHolder, UserContext, ValueHolder}
 import org.silkframework.runtime.iterator.CloseableIterator
-import org.silkframework.runtime.templating.{GlobalTemplateVariables, TemplateVariablesReader}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{Identifier, MockitoSugar, Uri}
 
 class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
-
-  implicit val userContext: UserContext = UserContext.Empty
-  implicit val prefixes: Prefixes = Prefixes.empty
-  implicit val variables: TemplateVariablesReader = GlobalTemplateVariables
 
   it should "output faulty entities to error output" in {
     val prop = "http://prop"
@@ -30,14 +26,15 @@ class ExecuteTransformTest extends AnyFlatSpec with Matchers with MockitoSugar {
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())(any(), any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(CloseableIterator(entities.iterator), entities.head.schema, null))
     when(dataSourceMock.underlyingTask).thenReturn(PlainTask("inputTaskDummy", DatasetSpec(InternalDataset())))
     val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
       PlainTask("transformTask", transform),
       inputTask = _ => PlainTask("dummy", DatasetSpec(EmptyDataset)),
       input = _ => dataSourceMock,
-      output = _ => outputMock
+      output = _ => outputMock,
+      pluginContext = _ => PluginContext.empty,
     )
     val contextMock = mock[ActivityContext[TransformReport]]
     val executeTransformResultHolder = new ValueHolder[TransformReport](None)

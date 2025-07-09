@@ -23,4 +23,5 @@ export const INPUT_TYPES = {
     IDENTIFIER: "identifier",
     GRAPH_URI: "graph uri",
     KEY_VALUE_PAIRS: "keyValuePairs",
+    TEMPLATE: "template",
 };

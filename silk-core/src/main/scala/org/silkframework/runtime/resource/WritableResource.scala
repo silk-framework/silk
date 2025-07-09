@@ -19,7 +19,7 @@ trait WritableResource extends Resource {
     *
     * @param write A function that accepts an output stream and writes to it.
     */
-  def write(append: Boolean = false)(write: OutputStream => Unit): Unit = {
+  def write[R](append: Boolean = false)(write: OutputStream => R): R = {
     val outputStream = createOutputStream(append)
     try {
       write(outputStream)

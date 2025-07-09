@@ -3,6 +3,7 @@ package org.silkframework.execution
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{LocalEntities, MultiEntityTable}
+import org.silkframework.execution.typed.TypedEntities
 import org.silkframework.runtime.iterator.CloseableIterator
 
 import scala.util.Try
@@ -19,12 +20,17 @@ case class ReportingIterable(entities: Iterable[Entity])(implicit executionRepor
 }
 
 /**
-  * An entity iterator that forwards all entity traversals to an execution report.
-  */
-case class ReportingIterator(entities: CloseableIterator[Entity])(implicit executionReport: ExecutionReportUpdater, prefixes: Prefixes) extends CloseableIterator[Entity] {
-  private var schemaReported = false
+ * An iterator that forwards all traversals to an execution report.
+ */
+class GenericReportingIterator[T](entities: CloseableIterator[T])(implicit executionReport: ExecutionReportUpdater) extends CloseableIterator[T] {
+
   @volatile
   private var closed = false
+
+  /**
+   * May be overridden to add sample entities to the execution report.
+   */
+  protected def addEntitySample(entity: T): Unit = { }
 
   override def hasNext: Boolean = {
     try {
@@ -42,7 +48,7 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
     }
   }
 
-  override def next(): Entity = {
+  override def next(): T = {
     val entity =
       try {
         entities.next()
@@ -52,11 +58,7 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
           executionReport.executionDone()
           throw ex
       }
-    if(!schemaReported) {
-      schemaReported = true
-      executionReport.startNewOutputSamples(entity.schema)
-    }
-    executionReport.addEntityAsSampleEntity(entity)
+    addEntitySample(entity)
     executionReport.increaseEntityCounter()
     entity
   }
@@ -70,16 +72,37 @@ case class ReportingIterator(entities: CloseableIterator[Entity])(implicit execu
   }
 }
 
+/**
+  * An entity iterator that forwards all entity traversals to an execution report.
+  */
+case class ReportingIterator(entities: CloseableIterator[Entity])
+                            (implicit executionReport: ExecutionReportUpdater, prefixes: Prefixes) extends GenericReportingIterator[Entity](entities) {
+
+  private var schemaReported = false
+
+  override protected def addEntitySample(entity: Entity): Unit = {
+    if(!schemaReported) {
+      schemaReported = true
+      executionReport.startNewOutputSamples(entity.schema)
+    }
+    executionReport.addEntityAsSampleEntity(entity)
+  }
+}
+
+
+
 object ReportingIterator {
 
   /**
-   * Adds a execution reporter to a local entities table and potential sub tables.
+   * Adds an execution reporter to a local entities table and potential sub tables.
    */
   def addReporter(entities: LocalEntities)(implicit executionReport: ExecutionReportUpdater, prefixes: Prefixes): LocalEntities = {
     val reportingTraversable = ReportingIterator(CloseableIterator(entities.entities))(executionReport, prefixes)
     entities match {
       case multiTable: MultiEntityTable =>
         multiTable.copy(entities = reportingTraversable, subTables = multiTable.subTables.map(addReporter))
+      case typedEntities: TypedEntities[Any, _] =>
+        typedEntities.updateTypedEntities(new GenericReportingIterator[Any](typedEntities.typedEntities))
       case _ =>
         entities.updateEntities(reportingTraversable, entities.entitySchema)
     }

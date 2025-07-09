@@ -13,10 +13,11 @@ import scala.util.matching.Regex
   * If the input comes from a local zip file, use the [[ZipFileResourceLoader]] instead.
   *
   * @param zip      A factory method to (re-)create the ZIP input stream.
-  * @param basePath The based path inside the zip from which the resources are loaded.
+ *  @param zipPath  The path of the ZIP file itself.
+  * @param basePath The base path inside the zip from which the resources are loaded.
   *                 If empty, the resources from the root are loaded.
   */
-case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputStream, basePath: String = "") {
+case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputStream, zipPath: String, basePath: String = "") {
 
   /* The max size of the ZIP resource, so that it will be kept in memory when iterating over the resources.
      This should avoid file access overhead for many small resources. The actual compressed size of the resource might be larger,
@@ -48,12 +49,12 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
   // Creates a compressed, in-memory or file based resource from the ZIP input stream.
   private def createCompressedResource[U](entry: ZipEntry, z: ZipInputStream): WritableResource with ResourceWithKnownTypes = {
     val r = if (entry.getCompressedSize <= maxCompressedSizeForInMemory) {
-      CompressedInMemoryResource(entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq)
+      CompressedInMemoryResource(entry.getName, zipPath, Some(entry.getName), ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq)
     } else {
       val tempFile = File.createTempFile("zipResource", ".bin")
       tempFile.deleteOnExit()
       // Since there is no way to know when the last resource will not be used anymore, we set the deleteOnGC flag, so it gets eventually deleted.
-      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
+      CompressedFileResource(tempFile, entry.getName, zipPath, Some(entry.getName), ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
     }
     r.writeStream(z)
     r
@@ -62,7 +63,9 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
 
 object ZipInputStreamResourceIterator{
 
-  def apply(resource: Resource, basePath: String): ZipInputStreamResourceIterator = apply(() => new ZipInputStream(new BufferedInputStream(resource.inputStream)), basePath)
+  def apply(resource: Resource, basePath: String): ZipInputStreamResourceIterator = {
+    apply(() => new ZipInputStream(new BufferedInputStream(resource.inputStream)), resource.path, basePath)
+  }
 
   def listEntries(stream: ZipInputStream): Iterator[ZipEntry] = new Iterator[ZipEntry] {
     private var nextEntry: ZipEntry = null

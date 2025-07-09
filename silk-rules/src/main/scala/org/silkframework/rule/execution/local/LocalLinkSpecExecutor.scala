@@ -11,7 +11,6 @@ import org.silkframework.rule.LinkSpec.{MAX_LINK_LIMIT, MAX_LINK_LIMIT_CONFIG_KE
 import org.silkframework.rule.execution._
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig, TaskContext}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
@@ -72,12 +71,12 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
   private class EntitySource(table: LocalEntities) extends DataSource {
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                         (implicit context: PluginContext): EntityHolder = {
       table
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                              (implicit context: PluginContext): EntityHolder = {
       EmptyEntityTable(underlyingTask)
     }
 

@@ -4,7 +4,7 @@ import { RuleNodeFormParameter } from "./RuleNodeFormParameter";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { partitionArray } from "../../../../../utils/basicUtils";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { LanguageFilterProps } from "./PathInputOperator";
+import { InputPathFunctions } from "./PathInputOperator";
 
 export interface RuleNodeParametersProps {
     nodeId: string;
@@ -21,8 +21,8 @@ export interface RuleNodeParametersProps {
     hasAdvancedSection?: boolean;
     /** When used inside a modal, the behavior of some components will be optimized. */
     insideModal: boolean;
-    /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
-    languageFilter?: LanguageFilterProps;
+    /** Functions that are specific to input path rule operators. */
+    inputPathFunctions: InputPathFunctions;
 }
 
 /** The parameter widget of a rule node. */
@@ -34,13 +34,13 @@ export const RuleNodeParameterForm = ({
     large,
     hasAdvancedSection,
     insideModal,
-    languageFilter,
+    inputPathFunctions,
     parameterDefaultValue,
 }: RuleNodeParametersProps) => {
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const { matches: normalParameters, nonMatches: advancedParameters } = partitionArray(
         parameters,
-        (param) => !param.parameterSpecification.advanced
+        (param) => !param.parameterSpecification.advanced,
     );
 
     const shownParameters = [...normalParameters];
@@ -57,7 +57,7 @@ export const RuleNodeParameterForm = ({
                 pluginId={pluginId}
                 large={large}
                 insideModal={insideModal}
-                languageFilter={languageFilter}
+                inputPathFunctions={inputPathFunctions}
             />
         );
     };

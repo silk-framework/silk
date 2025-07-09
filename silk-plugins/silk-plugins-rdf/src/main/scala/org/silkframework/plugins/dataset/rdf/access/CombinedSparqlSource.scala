@@ -8,6 +8,7 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.iterator.RepeatedIterator
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.Uri
 
 /**
@@ -23,7 +24,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                       (implicit context: PluginContext): EntityHolder = {
     val sourceIterator = sparqlSources.iterator
     val allEntities = new RepeatedIterator[Entity](() => sourceIterator.nextOption().map(_.retrieve(entitySchema, limit).entities))
     GenericEntityTable(allEntities, entitySchema, underlyingTask)
@@ -37,7 +38,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+                            (implicit context: PluginContext): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {

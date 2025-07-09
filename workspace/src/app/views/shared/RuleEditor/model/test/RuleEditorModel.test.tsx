@@ -39,8 +39,8 @@ describe("Rule editor model", () => {
             JSON.stringify(
                 currentContext()
                     .ruleOperatorNodes()
-                    .sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))
-            )
+                    .sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1)),
+            ),
         );
     };
     // Fetch the current react-flow nodes
@@ -71,9 +71,9 @@ describe("Rule editor model", () => {
         validateConnection: (
             fromRuleOperatorNode: RuleEditorValidationNode,
             toRuleOperatorNode: RuleEditorValidationNode,
-            targetPortIdx: number
+            targetPortIdx: number,
         ) => boolean = () => true,
-        stickyNotes: StickyNote[] = []
+        stickyNotes: StickyNote[] = [],
     ) => {
         modelContext = undefined;
         const ruleModel = withMount(
@@ -96,6 +96,7 @@ describe("Rule editor model", () => {
                         validateConnection,
                         instanceId: "id",
                         datasetCharacteristics: new Map(),
+                        partialAutoCompletion: () => async () => undefined,
                     }}
                 >
                     <ReactFlowProvider>
@@ -103,8 +104,8 @@ describe("Rule editor model", () => {
                             <RuleEditorModelTestComponent />
                         </RuleEditorModel>
                     </ReactFlowProvider>
-                </RuleEditorContext.Provider>
-            )
+                </RuleEditorContext.Provider>,
+            ),
         );
         await waitFor(() => {
             expect(modelContext).toBeTruthy();
@@ -217,7 +218,7 @@ describe("Rule editor model", () => {
 
     const allStickyNodes = () =>
         currentContext().elements.filter(
-            (elem) => elem.type === LINKING_NODE_TYPES.stickynote && modelUtils.isNode(elem)
+            (elem) => elem.type === LINKING_NODE_TYPES.stickynote && modelUtils.isNode(elem),
         );
 
     /** Test UNDO and REDO behavior. The last check is always the current state. Each check before tests the states
@@ -261,7 +262,7 @@ describe("Rule editor model", () => {
                 node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
                 node({ nodeId: "node B", inputs: ["node A"] }),
             ],
-            [operator("pluginA", 0)]
+            [operator("pluginA", 0)],
         );
         // 2 nodes and 1 edge
         await waitFor(async () => {
@@ -274,14 +275,14 @@ describe("Rule editor model", () => {
     it("should add new nodes and undo & redo", async () => {
         await ruleEditorModel(
             [node({ nodeId: "pluginA" }), node({ nodeId: "node B", inputs: ["pluginA"] })],
-            [operator("pluginA")]
+            [operator("pluginA")],
         );
         const checkBeforeAdd = () => {
             expect(currentContext().elements).toHaveLength(3);
             expect(
                 currentContext()
                     .elements.map((e) => e.id)
-                    .sort((left, right) => (left < right ? 1 : -1))
+                    .sort((left, right) => (left < right ? 1 : -1)),
             ).toStrictEqual(["pluginA", "node B", "1"]);
         };
         checkBeforeAdd();
@@ -300,10 +301,10 @@ describe("Rule editor model", () => {
             expect(
                 currentContext()
                     .ruleOperatorNodes()
-                    .map((node) => node.nodeId)
+                    .map((node) => node.nodeId),
             ).toStrictEqual(["pluginA", "node B", "pluginA_2", "pluginA_3"]);
             expect(
-                modelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position
+                modelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position,
             ).toStrictEqual(position);
             expect(currentContext().ruleOperatorNodes()[2].position).toStrictEqual(position);
         };
@@ -328,7 +329,7 @@ describe("Rule editor model", () => {
 
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.style).not.toStrictEqual(
-                defaultStyle
+                defaultStyle,
             );
         };
         act(() => {
@@ -350,7 +351,7 @@ describe("Rule editor model", () => {
         const newContent = "**new Content**";
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.businessData.stickyNote).toEqual(
-                newContent
+                newContent,
             );
         };
         act(() => {
@@ -372,7 +373,7 @@ describe("Rule editor model", () => {
         const randomNewNodeDimensions = { width: DEFAULT_NODE_WIDTH + 30, height: DEFAULT_NODE_HEIGHT + 10 };
         const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.nodeDimensions).toEqual(
-                randomNewNodeDimensions
+                randomNewNodeDimensions,
             );
         };
         act(() => {
@@ -390,7 +391,7 @@ describe("Rule editor model", () => {
                 node({ nodeId: "nodeB", inputs: ["nodeA"] }),
                 node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
             ],
-            [operator("pluginA")]
+            [operator("pluginA")],
         );
         const checkBeforeDelete = () => {
             // 3 nodes, 3 edges
@@ -409,7 +410,7 @@ describe("Rule editor model", () => {
             expect(
                 currentContext()
                     .ruleOperatorNodes()
-                    .map((node) => node.nodeId)
+                    .map((node) => node.nodeId),
             ).toStrictEqual(["nodeB", "nodeC"]);
         };
         checkAfterDelete();
@@ -503,11 +504,11 @@ describe("Rule editor model", () => {
                 node({ nodeId: "nodeB", inputs: ["nodeA"], position: { x: 2, y: 3 } }),
                 node({ nodeId: "nodeC", position: { x: 3, y: 4 } }),
             ],
-            [operator("pluginA")]
+            [operator("pluginA")],
         );
         const checkPositions = (data: [string, number, number][]) => {
             expect(currentOperatorNodes().map((n) => ({ pos: n.position, id: n.nodeId }))).toStrictEqual(
-                data.map((d) => ({ id: `node${d[0]}`, pos: { x: d[1], y: d[2] } }))
+                data.map((d) => ({ id: `node${d[0]}`, pos: { x: d[1], y: d[2] } })),
             );
         };
         const beforeUpdateCheck = () => {
@@ -604,7 +605,7 @@ describe("Rule editor model", () => {
                     },
                 }),
             ],
-            [operator("pluginA")]
+            [operator("pluginA")],
         );
         act(() => {
             // Need to run this in separate act, since moveNode runs async
@@ -625,7 +626,7 @@ describe("Rule editor model", () => {
                 node({ nodeId: "nodeB", inputs: ["nodeA"] }),
                 node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
             ],
-            [operator("pluginA")]
+            [operator("pluginA")],
         );
         const checkBeforeDelete = () => {
             expect(currentContext().elements).toHaveLength(6);
@@ -662,7 +663,7 @@ describe("Rule editor model", () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(9);
             expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
-                currentContext().ruleOperatorNodes().length
+                currentContext().ruleOperatorNodes().length,
             );
         };
         checkAfterCopyAndPaste();
@@ -676,7 +677,7 @@ describe("Rule editor model", () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(12);
             expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
-                currentContext().ruleOperatorNodes().length
+                currentContext().ruleOperatorNodes().length,
             );
         };
         checkAfterCopyAndPaste2nd();
@@ -713,7 +714,7 @@ describe("Rule editor model", () => {
             node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
         ]);
         const edge = currentContext().elements.find(
-            (elem) => modelUtils.isEdge(elem) && modelUtils.asEdge(elem)!!.target === "nodeB"
+            (elem) => modelUtils.isEdge(elem) && modelUtils.asEdge(elem)!!.target === "nodeB",
         );
         const before = currentContext().elements.length;
         const checkBeforeDelete = () => {
@@ -753,7 +754,7 @@ describe("Rule editor model", () => {
         const recordedTransaction = async (
             stateLabel: string,
             changeAction: () => any,
-            additionalCheck: () => any | Promise<any> = () => {}
+            additionalCheck: () => any | Promise<any> = () => {},
         ) => {
             act(() => {
                 currentContext().executeModelEditOperation.startChangeTransaction();
@@ -790,7 +791,7 @@ describe("Rule editor model", () => {
                 await waitFor(() => {
                     expect(allNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
                 });
-            }
+            },
         );
         await recordedTransaction("Change node parameter", () => {
             currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new param value");
@@ -826,7 +827,7 @@ describe("Rule editor model", () => {
             currentContext().executeModelEditOperation.changeStickyNodeProperties(
                 "sticky",
                 "#ffee12",
-                "another sticky note"
+                "another sticky note",
             );
         });
 
@@ -975,13 +976,13 @@ describe("Rule editor model", () => {
             execute().deleteEdges(
                 modelUtils
                     .findEdges({ elements: currentContext().elements, source: "inputNode5", target: "nodeE" })
-                    .map((e) => e.id)
+                    .map((e) => e.id),
             );
             // This should reduce the number of inputs, since the last connection was removed.
             execute().deleteEdges(
                 modelUtils
                     .findEdges({ elements: currentContext().elements, source: "inputNode8", target: "nodeF" })
-                    .map((e) => e.id)
+                    .map((e) => e.id),
             );
         });
         const checkAfterChange = () => {

@@ -50,7 +50,7 @@ class PluginApiTest extends AnyFlatSpec with IntegrationTestTrait with Matchers 
   it should "have all relevant properties for task plugins" in {
     val jsonResult = taskPlugins
     jsonResult.as[JsObject].values.take(5).foreach { pd =>
-      pd.as[JsObject].keys mustBe Set("title", "categories", "description", "taskType", "pluginType", "actions")
+      pd.as[JsObject].keys must contain allOf("title", "categories", "description", "taskType", "pluginType", "actions")
     }
   }
 

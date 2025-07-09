@@ -28,6 +28,11 @@ trait Resource {
   def path: String
 
   /**
+   * If the resource is part of a compressed archive, this is the path to the entry within the archive.
+   */
+  def entryPath: Option[String] = None
+
+  /**
     * Checks if this resource exists.
     */
   def exists: Boolean

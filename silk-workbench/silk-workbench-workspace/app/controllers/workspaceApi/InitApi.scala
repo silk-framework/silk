@@ -2,6 +2,7 @@ package controllers.workspaceApi
 
 import java.util.logging.Logger
 import com.typesafe.config.ConfigValueType
+import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.doc.InitApiDoc
@@ -84,7 +85,8 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     }.getOrElse(resultJson)
     val withVersion = version.map(v => withDmUrl + ("version" -> v)).getOrElse(withDmUrl)
     val withUser = userContext.user.map(user => withVersion + ("userUri" -> JsString(user.uri))).getOrElse(withVersion)
-    Ok(withUser)
+    val withDefaultProjectPageSuffix = WorkbenchConfig.defaultProjectPageSuffix.map(suffix => withUser + ("defaultProjectPageSuffix" -> JsString(suffix))).getOrElse(withUser)
+    Ok(withDefaultProjectPageSuffix)
   }
 
   val supportedLanguages = Set("en", "de")
