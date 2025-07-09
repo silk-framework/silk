@@ -25,7 +25,7 @@
         "lint:js": "eslint --ignore-path .gitignore '{src,test}/**/*.{js,jsx,ts,tsx}'"
     },
     "dependencies": {
-        "@eccenca/gui-elements": "^24.1.0-rc.5",
+        "@eccenca/gui-elements": "^24.3.0",
         "@eccenca/superagent": "^1.4.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.9.7",

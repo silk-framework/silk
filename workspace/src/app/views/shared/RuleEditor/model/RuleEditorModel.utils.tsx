@@ -16,7 +16,7 @@ import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { IconButton, NodeContentHandleProps, NodeContentProps, NodeDimensions } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
+import { InputPathFunctions, LanguageFilterProps } from "../view/ruleNode/PathInputOperator";
 
 /** Constants */
 
@@ -70,8 +70,8 @@ export interface IOperatorCreateContext {
     updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
     // If the operator is in permanent read-only mode
     readOnlyMode: boolean;
-    /** If for this operator there is a language filter supported. Currently only path operators are affected by this option. */
-    languageFilterEnabled: (nodeId: string) => LanguageFilterProps | undefined;
+    /** Fetch the input path functions for the given node. This will be an empty object for non-pah operators. */
+    inputPathFunctions: (nodeId: string) => InputPathFunctions;
     /** change node size */
     changeNodeSize: (nodeId: string, newNodeDimensions: NodeDimensions) => void;
 }
@@ -80,7 +80,7 @@ export interface IOperatorCreateContext {
 function createOperatorNode(
     node: IRuleOperatorNode,
     nodeOperations: IOperatorNodeOperations,
-    operatorContext: IOperatorCreateContext
+    operatorContext: IOperatorCreateContext,
 ): RuleEditorNode {
     operatorContext.initParameters(node.nodeId, node.parameters);
     const position = {
@@ -230,12 +230,12 @@ function initNodeBaseIdsFactory() {
     const createNewOperatorNode = (
         newNode: Omit<IRuleOperatorNode, "nodeId">,
         nodeOperations: IOperatorNodeOperations,
-        operatorContext: IOperatorCreateContext
+        operatorContext: IOperatorCreateContext,
     ): RuleEditorNode => {
         return createOperatorNode(
             { ...newNode, nodeId: freshNodeId(newNode.pluginId) },
             nodeOperations,
-            operatorContext
+            operatorContext,
         );
     };
     return { createNewOperatorNode, initNodeBaseIds, freshNodeId };
@@ -251,7 +251,7 @@ function createEdgeFactory() {
         sourceNodeId: string,
         targetNodeId: string,
         targetHandleId: string,
-        edgeType: string
+        edgeType: string,
     ): Edge {
         edgeCounter += 1;
         return {

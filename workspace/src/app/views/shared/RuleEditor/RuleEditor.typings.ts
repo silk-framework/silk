@@ -138,7 +138,7 @@ export interface RuleOperatorNodeParameters {
 }
 
 /** Rule editor node with required business data. For convenience. */
-export interface NodeContentPropsWithBusinessData<T> extends Omit<NodeContentProps<T, RuleNodeContentProps>, "label"> {
+export interface NodeContentPropsWithBusinessData<T> extends Omit<NodeContentProps<T>, "label" | "businessData"> {
     label: string; // NodeContent now also allows JSX.Element, lead to TS error in DI because this interface was used directly
     businessData: T & { stickyNote?: string | undefined };
 }
@@ -241,3 +241,11 @@ export interface RuleEditorValidationNode {
 }
 
 export const RULE_EDITOR_NOTIFICATION_INSTANCE = "RuleEditor";
+
+/** Functions that return meta data of a path. */
+export interface PathMetaDataFunctions {
+    /** Returns for a path input plugin and a path the type of the given path. Returns undefined if either the plugin does not exist or the path data is unknown. */
+    inputPathPluginPathType?: (inputPathPluginId: string, path: string) => string | undefined;
+    /** Returns the label for the path. */
+    inputPathLabel?: (inputPathPluginId: string, path: string) => string | undefined;
+}

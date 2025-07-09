@@ -30,6 +30,8 @@ interface ErrorHandlerOptions {
     onDismiss?: () => any;
     /** The intent of the notification. Default: "danger" */
     intent?: "danger" | "warning";
+    /** If this is true, the error will not trigger opening the notification queue. */
+    notAutoOpen?: boolean;
 }
 
 type ErrorHandlerRegisterShortFuncType = (
@@ -68,7 +70,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
         cause: DIErrorTypes | null,
         options?: ErrorHandlerOptions,
     ) => {
-        const { errorNotificationInstanceId, onDismiss, intent } = options ?? {};
+        const { errorNotificationInstanceId, onDismiss, intent, notAutoOpen } = options ?? {};
         const error: RegisterErrorType = {
             id: errorId,
             message: errorMessage,
@@ -91,6 +93,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: "warning",
                     },
                     errorNotificationInstanceId,
+                    notAutoOpen,
                 }),
             );
             return <Notification message={tempUnavailableMessage} />;
@@ -106,6 +109,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         alternativeIntent: intent === "warning" ? intent : undefined,
                     },
                     errorNotificationInstanceId,
+                    notAutoOpen,
                 }),
             );
             const detailMessage = diErrorMessage(cause);
