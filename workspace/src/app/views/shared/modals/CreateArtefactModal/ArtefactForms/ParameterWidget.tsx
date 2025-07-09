@@ -259,6 +259,7 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         const isTemplateParameter = parameterCallbacks.initialTemplateFlag(formParamId);
+        const showYamlEditorInput = autoCompletion && propertyDetails.parameterType === INPUT_TYPES.KEY_VALUE_PAIRS;
         const initialValue = autoCompletion
             ? initialValues[formParamId]
                 ? initialValues[formParamId].value
@@ -290,7 +291,22 @@ export const ParameterWidget = (props: IProps) => {
                 defaultValue={parameterCallbacks.defaultValue}
                 formParamId={formParamId}
                 inputElementFactory={(initialValueReplace, onChange) => {
-                    if (autoCompletion && propertyDetails.parameterType !== INPUT_TYPES.KEY_VALUE_PAIRS) {
+                    if (showYamlEditorInput) {
+                        return (
+                            <YamlEditor
+                                projectId={projectId}
+                                pluginId={pluginId}
+                                autoCompletion={autoCompletion}
+                                id={formParamId}
+                                initialValue={initialValue?.value ?? initialValue}
+                                onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
+                                autoCompletionRequestDelay={200}
+                                defaultValue={parameterCallbacks.defaultValue}
+                                dependentValue={dependentValue}
+                                formParamId={formParamId}
+                            />
+                        );
+                    } else if (autoCompletion) {
                         const currentInitialValue = initialValueReplace ? initialValueReplace : undefined;
                         return (
                             <ParameterAutoCompletion
@@ -314,21 +330,6 @@ export const ParameterWidget = (props: IProps) => {
                                 defaultValue={parameterCallbacks.defaultValue}
                                 required={required}
                                 registerForExternalChanges={parameterCallbacks.registerForExternalChanges}
-                            />
-                        );
-                    } else if (autoCompletion && propertyDetails.parameterType === INPUT_TYPES.KEY_VALUE_PAIRS) {
-                        return (
-                            <YamlEditor
-                                projectId={projectId}
-                                pluginId={pluginId}
-                                autoCompletion={autoCompletion}
-                                id={formParamId}
-                                initialValue={initialValue.value}
-                                onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
-                                autoCompletionRequestDelay={200}
-                                defaultValue={parameterCallbacks.defaultValue}
-                                dependentValue={dependentValue}
-                                formParamId={formParamId}
                             />
                         );
                     } else {
