@@ -323,7 +323,7 @@ export const ParameterWidget = (props: IProps) => {
                                 pluginId={pluginId}
                                 autoCompletion={autoCompletion}
                                 id={formParamId}
-                                initialValue={initialValue}
+                                initialValue={initialValue.value}
                                 onChange={(value) => (onChange ? onChange(value) : changeHandlers[formParamId](value))}
                                 autoCompletionRequestDelay={200}
                                 defaultValue={parameterCallbacks.defaultValue}

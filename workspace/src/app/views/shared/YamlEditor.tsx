@@ -195,9 +195,7 @@ export const YamlEditor: React.FC<YamlEditorProps> = (props) => {
                 const previousLineHasColonOrIsEmpty =
                     !previousLine || previousLine.text.indexOf(":") > -1 || !previousLine.text.length;
                 const currentLineHasTextJustBeforeColon =
-                    cursorLine &&
-                    ((indexOfColumn > -1 && cursor < indexOfColumn) || indexOfColumn < 0) &&
-                    !!queryStr?.length;
+                    cursorLine && ((indexOfColumn > -1 && cursor < indexOfColumn) || indexOfColumn < 0);
 
                 if (
                     previousLineHasColonOrIsEmpty &&
