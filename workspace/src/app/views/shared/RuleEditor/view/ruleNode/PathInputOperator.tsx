@@ -229,7 +229,7 @@ export const PathInputOperator = ({ parameterAutoCompletionProps, inputPathFunct
                 outerDivAttributes={preventMouseEventsFromBubblingToReactFlow}
             />
         );
-    }, [fetchSuggestion, initialValue, onChange, checkInput, overwrittenProps]);
+    }, [fetchSuggestion, initialValue, onChange, checkInput, overwrittenProps, parameterAutoCompletionProps.readOnly]);
 
     const currentLabel = internalState.current.currentValue?.label;
     return (
