@@ -23,7 +23,7 @@ trait TemplateVariablesReader {
     *
     * @throws NotFoundException If no variable with the given name has been found.
     */
-  def get(name: String)(implicit user: UserContext): TemplateVariable = {
+  def get(name: String): TemplateVariable = {
     all.map.get(name) match {
       case Some(v) =>
         v
