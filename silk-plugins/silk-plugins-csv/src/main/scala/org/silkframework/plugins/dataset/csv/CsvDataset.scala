@@ -48,8 +48,14 @@ case class CsvDataset (
   @Param(label = "Delete file before workflow execution",
          value = "If set to true this will clear the specified file before executing a workflow that writes to it.",
          advanced = true)
-  clearBeforeExecution: Boolean = false) extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
-                                         with CsvDatasetTrait with TextBulkResourceBasedDataset {
+  clearBeforeExecution: Boolean = false,
+  @Param(label = "Trim whitespace and non-printable characters.",
+         value = "If set to true, this will trim whitespace and non-printable characters from the contents of the CSV dataset.",
+         advanced = true)
+  override val trimWhitespaceAndNonPrintableCharacters: Boolean = false) extends Dataset
+                                                                         with DatasetPluginAutoConfigurable[CsvDataset]
+                                                                         with CsvDatasetTrait
+                                                                         with TextBulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
@@ -132,7 +138,8 @@ object CsvDataset {
       maxCharsPerColumn = settings.maxCharsPerColumn.getOrElse(DEFAULT_MAX_CHARS_PER_COLUMN),
       quoteEscapeCharacter = settings.quoteEscapeChar.toString,
       ignoreBadLines = ignoreBadLines,
-      linesToSkip = settings.linesToSkip
+      linesToSkip = settings.linesToSkip,
+      trimWhitespaceAndNonPrintableCharacters = settings.trimWhitespaceAndNonPrintableCharacters
     )
   }
 }

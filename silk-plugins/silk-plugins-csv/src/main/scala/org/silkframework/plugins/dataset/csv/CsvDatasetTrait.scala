@@ -33,6 +33,9 @@ trait CsvDatasetTrait {
    */
   def clearBeforeExecution: Boolean
 
+  /** Trim whitespace and non-printable characters. This is configurable due to backward-compatibility reasons. */
+  def trimWhitespaceAndNonPrintableCharacters: Boolean
+
   val separatorChar: Char =
     if (separator == "\\t") { '\t' }
     else if (separator.length == 1) { separator.head }
@@ -59,5 +62,7 @@ trait CsvDatasetTrait {
   def mimeType: Option[String] = Some("text/csv")
 
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
-    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec, clearBeforeExecution = clearBeforeExecution)
+    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip,
+    codec = codec, clearBeforeExecution = clearBeforeExecution,
+    trimWhitespaceAndNonPrintableCharacters = trimWhitespaceAndNonPrintableCharacters)
 }
