@@ -1,5 +1,6 @@
 package org.silkframework.runtime.templating
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.NotFoundException
 
 /**
@@ -22,7 +23,7 @@ trait TemplateVariablesReader {
     *
     * @throws NotFoundException If no variable with the given name has been found.
     */
-  def get(name: String): TemplateVariable = {
+  def get(name: String)(implicit user: UserContext): TemplateVariable = {
     all.map.get(name) match {
       case Some(v) =>
         v

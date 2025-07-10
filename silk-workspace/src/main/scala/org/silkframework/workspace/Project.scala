@@ -33,15 +33,20 @@ import scala.util.control.NonFatal
 
 /**
  * A project.
+ *
+ * @param initialConfig The initial project configuration.
+ * @param provider The workspace provider used to read and write this project.
+ * @param resources The resource manager for holding project file resources.
+ * @param loadingUser The user context for loading tasks and variables initially. Should not be used after the project has been loaded.
+ *
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager)
-             (implicit userContext: UserContext) extends ProjectTrait {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager, loadingUser: UserContext) extends ProjectTrait {
 
   private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
-  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id))
+  val templateVariables: TemplateVariablesManager = new ProjectTemplateVariablesManager(provider.projectVariables(initialConfig.id)(loadingUser), loadingUser)
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
@@ -51,7 +56,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
-  loadTasks()
+  loadTasks()(loadingUser)
 
   /** Initializes the project, i.e. registers modules and loads tasks. */
   private def loadTasks()(implicit userContext: UserContext): Unit = {
@@ -103,7 +108,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   private val projectActivities = {
-    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = userContext)
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = loadingUser)
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
     var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
