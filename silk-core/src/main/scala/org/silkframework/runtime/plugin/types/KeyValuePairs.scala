@@ -4,12 +4,13 @@ import org.silkframework.runtime.plugin.{PluginContext, StringParameterType}
 import org.snakeyaml.engine.v2.api.{Dump, DumpSettings, Load, LoadSettings}
 import org.snakeyaml.engine.v2.common.FlowStyle
 
-import scala.jdk.CollectionConverters.{MapHasAsJava, MapHasAsScala}
+import scala.collection.immutable.ListMap
+import scala.jdk.CollectionConverters.MapHasAsJava
 
-case class KeyValuePairs(values: Map[String, String])
+case class KeyValuePairs(values: ListMap[String, String])
 
 object KeyValuePairs {
-  def empty: KeyValuePairs = KeyValuePairs(Map.empty[String, String])
+  def empty: KeyValuePairs = KeyValuePairs(ListMap.empty[String, String])
 }
 
 object KeyValuePairsType extends StringParameterType[KeyValuePairs] {
@@ -20,13 +21,17 @@ object KeyValuePairsType extends StringParameterType[KeyValuePairs] {
 
   def fromString(str: String)(implicit context: PluginContext): KeyValuePairs = {
     if(str.trim.isEmpty) {
-      KeyValuePairs(Map.empty[String, String])
+      KeyValuePairs.empty
     } else {
       val settings = LoadSettings.builder.build
       val load = new Load(settings)
       val values = load.loadFromString(str) match {
         case map: java.util.Map[_, _] =>
-          map.asScala.map { case (k, v) => k.toString -> v.toString }.toMap
+          var keyValues = ListMap.empty[String, String]
+          map.forEach((k, v) => {
+            keyValues = keyValues.updated(k.toString, v.toString)
+          })
+          keyValues
         case _ =>
           throw new IllegalArgumentException(s"Expected a map, but got: $str")
       }
