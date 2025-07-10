@@ -1,5 +1,5 @@
 import React, { KeyboardEventHandler, useEffect, useState } from "react";
-import { Button, FieldItem, IconButton, Notification, SimpleDialog, Spacing, TextField } from "@eccenca/gui-elements";
+import { Button, FieldItem, IconButton, Notification, SimpleDialog, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
@@ -25,6 +25,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [description, setDescription] = useState(item.description);
     const [customId, setCustomId] = React.useState<string>("");
     const [identifierValidationMsg, setIdentifierValidationMsg] = React.useState<string>("");
+    const [initialLoading, setInitialLoading] = useState(true);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     // Label of the project or task that should be cloned
@@ -37,7 +38,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     }, [item]);
 
     const prepareCloning = async () => {
-        setLoading(true);
+        setInitialLoading(true);
         try {
             const response =
                 item.projectId && item.id
@@ -50,7 +51,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
-            setLoading(false);
+            setInitialLoading(false);
         }
     };
 
@@ -128,10 +129,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         [item, description, newLabel, customId],
     );
 
-    return loading ? (
-        <Loading delay={0} />
-    ) : (
-        <SimpleDialog
+    return <SimpleDialog
             data-test-id={"clone-item-to-modal"}
             size="small"
             title={
@@ -157,7 +155,8 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     key="clone"
                     affirmative
                     onClick={handleCloning}
-                    disabled={!newLabel}
+                    disabled={!newLabel || initialLoading}
+                    loading={loading}
                     data-test-id={"clone-modal-button"}
                 >
                     {t("common.action.clone")}
@@ -175,7 +174,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }),
                 }}
             >
-                <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} autoFocus={true} />
+                {initialLoading ?
+                    <Spinner position={"inline"} size={"small"} /> :
+                    <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} autoFocus={true} />
+                }
             </FieldItem>
 
             <FieldItem
@@ -211,5 +213,4 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 />
             )}
         </SimpleDialog>
-    );
 }
