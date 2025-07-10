@@ -128,7 +128,7 @@ abstract class XmlSourceTestBase extends AnyFlatSpec with Matchers with TestPlug
     }
 
     it should s"generate correct URIs for non-leaf nodes when the URI pattern is defined ($fileName)" in {
-      (persons withUriPattern "http://example.org/Property{Value}" atPath "Person" valuesAt "Properties/Property") shouldBe
+      (persons withUriPattern "http://example.org/Property{Value}" atPath "Person" entityURIsAt "Properties/Property") shouldBe
         Seq(Seq("http://example.org/PropertyV1", "http://example.org/PropertyV2", "http://example.org/PropertyV3"), Seq())
     }
 
