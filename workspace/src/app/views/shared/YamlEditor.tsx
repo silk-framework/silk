@@ -287,16 +287,17 @@ export const YamlEditor: React.FC<YamlEditorProps> = (props) => {
 
                 //getOffsetRange helps get the offset from the beginning of the line
                 const { fromOffset } = getOffsetRange(editorState.cm, from, to);
+                const valueWithColon = `${value}: `;
                 editorState.cm.dispatch({
                     changes: {
                         from: fromOffset,
-                        insert: value,
+                        insert: valueWithColon,
                         to: fromOffset + query.length,
                     },
                 });
                 closeDropDown();
                 const cursorLine = editorState.cm.state.doc.lineAt(cursor).number;
-                const newCursorPos = editorState.cm.state.doc.line(cursorLine).from + (from + value.length);
+                const newCursorPos = editorState.cm.state.doc.line(cursorLine).from + (from + valueWithColon.length);
 
                 editorState.cm.dispatch({ selection: { anchor: newCursorPos } });
                 editorState.cm.focus();
