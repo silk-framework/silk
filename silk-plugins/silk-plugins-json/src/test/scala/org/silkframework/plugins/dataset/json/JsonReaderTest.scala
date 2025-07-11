@@ -87,7 +87,7 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     evaluate(rootItems, "data/#array/#text") should equal (Seq("\"A\"", "\"B\""))
   }
 
-  it should "allow retrieving type 3 (name based) UUID based on the string represenation of a JSON node" in {
+  it should "allow retrieving type 3 (name based) UUID based on the string representation of a JSON node" in {
     evaluate(persons, "#uuid") should equal (Seq("0de70622-5999-36e8-a042-79a0de80f02c", "074b8358-f844-3cb4-a6e8-af2bf456e885"))
   }
 
