@@ -10,7 +10,7 @@ import org.silkframework.rule.execution.TransformReportBuilder
 import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.iterator.CloseableIterator
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, Uri}
 
 import java.util.logging.Logger
 import scala.collection.mutable
@@ -98,6 +98,10 @@ class TransformedEntities(task: Task[TransformSpec],
       for (uri <- uris) yield {
         if(count > 0 && outputSchema.singleEntity && rule.isInstanceOf[RootMappingRule]) {
           throw new MultipleValuesException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
+        }
+        if(subjectRule.isDefined && !Uri(uri).isValidUri) {
+          // The URI rule has generated an invalid URI
+          throw new ValidationException(s"URI rule of object mapping '$ruleLabel' has generated an invalid URI: '$uri'!")
         }
 
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
