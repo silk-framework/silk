@@ -1,5 +1,6 @@
 package org.silkframework.runtime.templating
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.NotFoundException
 
 /**
