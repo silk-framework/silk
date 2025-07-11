@@ -15,7 +15,7 @@ class JsonSourceStreamingMaxMemoryTest extends AnyFlatSpec with Matchers with Co
 
   private val memoryTestJson = ClasspathResource("org/silkframework/plugins/dataset/json/memoryTest.json")
 
-  private val source = new JsonSourceStreaming("testSource", memoryTestJson, "", "")
+  private val source = new JsonSourceStreaming("testSource", memoryTestJson, "", "", navigateIntoArrays = true)
 
   it should "not load large nodes into memory" in {
     noException should be thrownBy loadEntities("smallString")

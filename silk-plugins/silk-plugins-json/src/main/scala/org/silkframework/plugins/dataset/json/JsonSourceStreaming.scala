@@ -16,7 +16,7 @@ import org.silkframework.util.{Identifier, Uri}
 import java.net.URLEncoder
 
 
-class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: String, uriPattern: String) extends JsonSource(taskId, basePath, uriPattern) {
+class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: String, uriPattern: String, navigateIntoArrays: Boolean) extends JsonSource(taskId, basePath, uriPattern) {
 
   protected def createParser(): JsonParser = {
     val factory = new JsonFactoryBuilder().configure(StreamReadFeature.AUTO_CLOSE_SOURCE, true).build()
@@ -68,7 +68,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
       nextEntity = None
       while (nextEntity.isEmpty && hasMoreEntities && limit.forall(count < _)) {
         val parentName = reader.currentName
-        val node = JsonTraverser.fromNode(taskId, reader.buildNode(), parentName)
+        val node = JsonTraverser.fromNode(taskId, reader.buildNode(), navigateIntoArrays, parentName)
 
         // Generate URI
         val uri =

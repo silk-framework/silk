@@ -4,13 +4,13 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.DatasetCharacteristics.SpecialPaths
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
-import org.silkframework.plugins.dataset.json.JsonTraverser.resolveArray
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
 
 import java.net.{URLDecoder, URLEncoder}
 import java.nio.charset.StandardCharsets
+import java.util.UUID
 
 /**
   * Data structure to traverse JSON files.
@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets
   * @param parentOpt - the parent traverser for backward traversal
   * @param value     - the current json object
   */
-case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], parentName: Option[String] = None, value: JsonNode) {
+case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], parentName: Option[String] = None, value: JsonNode, navigateIntoArrays: Boolean) {
 
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
@@ -29,8 +29,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         }
       case obj: JsonObject =>
         val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
-        obj.values.get(decodedProp).toSeq.flatMap(resolveArray).map(value => asNewParent(prop, value))
-      case array: JsonArray if array.value.nonEmpty =>
+        obj.values.get(decodedProp).toSeq.map(value => asNewParent(prop, value)).flatMap(_.resolveArray())
+      case array: JsonArray if array.value.nonEmpty && (navigateIntoArrays || prop.uri == JsonDataset.specialPaths.ARRAY) =>
         array.value.flatMap(v => keepParent(v).children(prop)).toSeq
       case _ =>
         Nil
@@ -77,14 +77,10 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     */
   def select(path: Seq[String]): Seq[JsonTraverser] = {
     value match {
-      case _: JsonObject if path.nonEmpty =>
+      case _: JsonObject | _: JsonArray if path.nonEmpty =>
         children(path.head).flatMap(value => value.select(path.tail))
-      case array: JsonArray if array.value.nonEmpty =>
-        array.value.flatMap(value => keepParent(value).select(path)).toSeq
-      case _: JsonArray =>
-        Seq()
       case _: JsonNode if path.isEmpty =>
-        Seq(this)
+        resolveArray()
       case _: JsonNode =>
         Seq()
     }
@@ -92,11 +88,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
   def select(path: List[PathOperator]): Seq[JsonTraverser] = {
     value match {
-      case _: JsonObject if path.nonEmpty =>
+      case _: JsonObject | _: JsonArray if path.nonEmpty =>
         selectOnObject(path)
-      case array: JsonArray if array.value.nonEmpty =>
-        val t = array.value.map(value => keepParent(value).select(path))
-        t.flatten.toSeq
       case _: JsonNull =>
         Seq() // JsNull is a JsValue, so it has to be handled before JsValue
       case _: JsonNode if path.isEmpty =>
@@ -106,12 +99,12 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     }
   }
 
-  private def selectOnObject(path: List[PathOperator]) = {
+  private def selectOnObject(path: List[PathOperator]): Seq[JsonTraverser] = {
     val values = path.head match {
       case ForwardOperator(prop) =>
         children(prop)
       case BackwardOperator(_) =>
-        parentOpt.toSeq.map(_.traverser)
+        navigateBack().toSeq.map(_.traverser)
       case _ =>
         Seq.empty
     }
@@ -130,10 +123,33 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         prop.uri match {
           case JsonDataset.specialPaths.ID =>
             Seq(nodeId(value))
+          case JsonDataset.specialPaths.UUID =>
+            Seq(nodeUuid(value))
           case JsonDataset.specialPaths.TEXT =>
             Seq(value.toString())
+          case JsonDataset.specialPaths.ARRAY_TEXT =>
+            parentOpt.map(_.traverser.value) match {
+              case Some(array: JsonArray) =>
+                // If the parent is an array, we return the string representation of the whole array
+                // As this will be called for each element in the array, we only return it if the current value is the first element of the array
+                if (array.value.headOption.contains(value)) {
+                  Seq(array.toString())
+                } else {
+                  Seq.empty
+                }
+              case _ =>
+                // Otherwise, we return the string representation of the current value
+                Seq(value.toString())
+            }
           case JsonDataset.specialPaths.KEY =>
            parentName.toSeq
+          case JsonDataset.specialPaths.ARRAY if !navigateIntoArrays =>
+            value match {
+              case array: JsonArray if array.value.nonEmpty =>
+                array.value.flatMap(v => keepParent(v).evaluate(tail, generateUris)).toSeq
+              case _ =>
+                Seq()
+            }
           case SpecialPaths.LINE.value =>
             Seq(value.position.line.toString)
           case SpecialPaths.COLUMN.value =>
@@ -142,7 +158,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
             children(prop).flatMap(child => child.evaluate(tail, generateUris))
         }
       case BackwardOperator(_) :: tail =>
-        parentOpt match {
+        navigateBack() match {
           case Some(parent) =>
             parent.traverser.evaluate(tail, generateUris)
           case None =>
@@ -155,6 +171,18 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
       case _: LanguageFilter =>
         throw new IllegalArgumentException("For JSON, language filters are not applicable.")
     }
+  }
+
+  /**
+   * Navigates back to next property (i.e., non-array) parent.
+   * @return
+   */
+  def navigateBack(): Option[ParentTraverser] = {
+    var currentParent = parentOpt
+    while (currentParent.isDefined && currentParent.get.property.isEmpty) {
+      currentParent = currentParent.get.traverser.parentOpt
+    }
+    currentParent
   }
 
   private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator], generateUris: Boolean): Seq[String] = {
@@ -191,6 +219,13 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     nodeToString(value).hashCode.toString
   }
 
+  /**
+   * Generates a UUID for the given JSON node based on its string representation.
+   */
+  private def nodeUuid(value: JsonNode): String = {
+    UUID.nameUUIDFromBytes(nodeToString(value).getBytes(StandardCharsets.UTF_8)).toString
+  }
+
   def evaluate(path: TypedPath): Seq[String] = evaluate(path.operators, path.valueType == ValueType.URI)
 
   /**
@@ -205,33 +240,35 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     }
   }
 
-  def asNewParent(prop: Uri, value: JsonNode, parentName: Option[String] = None): JsonTraverser = {
-    JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), parentName = parentName, value)
+  /**
+   * Resolves all nested arrays in a JSON node.
+   */
+  private def resolveArray(): Seq[JsonTraverser] = {
+    value match {
+      case array: JsonArray if navigateIntoArrays =>
+        array.value.map(keepParent).flatMap(_.resolveArray()).toSeq
+      case _ =>
+        Seq(this)
+    }
   }
 
-  def keepParent(value: JsonNode): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, parentName = parentName, value)
+  def asNewParent(prop: Uri, value: JsonNode, parentName: Option[String] = None): JsonTraverser = {
+    JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, Some(prop))), parentName = parentName, value, navigateIntoArrays)
+  }
+
+  def keepParent(value: JsonNode): JsonTraverser = {
+    JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, None)), parentName = parentName, value, navigateIntoArrays)
+  }
 }
 
 object JsonTraverser {
-  def fromResource(taskId: Identifier, resource: Resource): JsonTraverser = {
-    JsonTraverser(taskId, None, None, resource.read(JsonNodeSerializer.parse))
+  def fromResource(taskId: Identifier, resource: Resource, navigateIntoArrays: Boolean = true): JsonTraverser = {
+    JsonTraverser(taskId, None, None, resource.read(JsonNodeSerializer.parse), navigateIntoArrays)
   }
 
-  def fromNode(taskId: Identifier, json: JsonNode, parentName: Option[String] = None): JsonTraverser = {
-    JsonTraverser(taskId, None, parentName, json)
-  }
-
-  /**
-    * Resolves all nested arrays in a JSON node.
-    */
-  private def resolveArray(node: JsonNode): Seq[JsonNode] = {
-    node match {
-      case array: JsonArray =>
-        array.value.flatMap(resolveArray).toSeq
-      case _ =>
-        Seq(node)
-    }
+  def fromNode(taskId: Identifier, json: JsonNode, navigateIntoArrays: Boolean, parentName: Option[String] = None): JsonTraverser = {
+    JsonTraverser(taskId, None, parentName, json, navigateIntoArrays)
   }
 }
 
-case class ParentTraverser(traverser: JsonTraverser, property: Uri)
+case class ParentTraverser(traverser: JsonTraverser, property: Option[Uri])
