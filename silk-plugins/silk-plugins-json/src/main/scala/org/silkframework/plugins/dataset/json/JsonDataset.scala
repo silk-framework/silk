@@ -88,6 +88,8 @@ object JsonDataset {
         SpecialPathInfo(specialPaths.UUID, Some("Generates a type 3 (name based) UUID from the string representation of the JSON node or value."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.TEXT,
           Some("The string value of a node. This will turn a JSON object into it's string representation."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(specialPaths.ARRAY_TEXT,
+          Some("The string value of a node. If the parent of the node is an array it will return the string represenation of the array instead."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.KEY, Some("The name of the current object key"), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(specialPaths.ARRAY, Some("Navigate into an array. If 'navigate into arrays' is set, this path is not needed.")),
         SpecialPaths.LINE,
