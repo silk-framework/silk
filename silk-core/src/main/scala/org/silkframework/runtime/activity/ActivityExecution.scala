@@ -200,17 +200,17 @@ private class ActivityExecution[T](activity: Activity[T],
       runningThread = Some(Thread.currentThread())
     }
     if (!activity.wasCancelled() && !parent.exists(_.status().isInstanceOf[Canceling])) {
-      val startTime = System.currentTimeMillis()
-      startTimestamp = Some(Instant.ofEpochMilli(startTime))
+      val startTimeInstant = Instant.now
+      startTimestamp = Option(startTimeInstant)
       try {
         activity.run(this)
         StatusLock.synchronized {
-          status.update(Status.Finished(success = true, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled()))
+          status.update(Status.Finished(success = true, System.currentTimeMillis - startTimeInstant.toEpochMilli, cancelled = activity.wasCancelled()))
         }
       } catch {
         case ex: Throwable =>
           StatusLock.synchronized {
-            status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
+            status.update(Status.Finished(success = false, System.currentTimeMillis - startTimeInstant.toEpochMilli, cancelled = activity.wasCancelled(), Some(ex)))
             if(!activity.wasCancelled()) {
               throw ex
             }

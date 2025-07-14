@@ -95,9 +95,9 @@ class ActivitySearchApiIntegrationTest extends AnyFlatSpec
   it should "allowing sorting by recent updates" in {
     // Start two caches after another so they got a defined update order
     val cache1 = project.task[GenericDatasetSpec]("xmlA1").activity[TypesCache]
-    val cache2 = project.task[GenericDatasetSpec]("xmlA2").activity[TypesCache]
     cache1.control.waitUntilFinished()
     cache1.startBlocking()
+    val cache2 = project.task[GenericDatasetSpec]("xmlA2").activity[TypesCache]
     cache2.control.waitUntilFinished()
     cache2.startBlocking()
 
