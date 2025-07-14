@@ -61,15 +61,34 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     evaluate(valuesWithSpaces, "space+value") should equal (Seq("Berlin", "Hamburg"))
   }
 
-  it should "allow retrieving ids and texts from array values" in {
+  it should "allow retrieving ids and texts from array values (if navigateToArrays is true)" in {
     val example = json("exampleArrays.json")
 
     val arrayItems = example.select("data" :: Nil)
     evaluate(arrayItems, "#id") should equal (Seq("65", "66"))
     evaluate(arrayItems, "#text") should equal (Seq("\"A\"", "\"B\""))
+    evaluate(arrayItems, "#arrayText") should equal (Seq("[\"A\",\"B\"]"))
 
     val rootItems = Seq(example)
     evaluate(rootItems, "data/#text") should equal (Seq("\"A\"", "\"B\""))
+    evaluate(rootItems, "data/#arrayText") should equal (Seq("[\"A\",\"B\"]"))
+  }
+
+  it should "allow retrieving ids and texts from array values (if navigateToArrays is false)" in {
+    val example = json("exampleArrays.json", navigateIntoArrays = false)
+
+    // As navigating into arrays is disabled, we do not get the individual items, but rather the whole array
+    val array = example.select("data" :: Nil)
+    evaluate(array, "#text") should equal (Seq("[\"A\",\"B\"]")) // The whole array as a string
+    evaluate(array, "#array/#text") should equal (Seq("\"A\"", "\"B\""))
+
+    val rootItems = Seq(example)
+    evaluate(rootItems, "data/#text") should equal (Seq("[\"A\",\"B\"]"))
+    evaluate(rootItems, "data/#array/#text") should equal (Seq("\"A\"", "\"B\""))
+  }
+
+  it should "allow retrieving type 3 (name based) UUID based on the string representation of a JSON node" in {
+    evaluate(persons, "#uuid") should equal (Seq("0de70622-5999-36e8-a042-79a0de80f02c", "074b8358-f844-3cb4-a6e8-af2bf456e885"))
   }
 
   it should "allow retrieving a JSON object as string" in {
@@ -96,8 +115,8 @@ class JsonReaderTest extends AnyFlatSpec with Matchers {
     values.flatMap(value => value.evaluate(UntypedPath.parse(path).asStringTypedPath))
   }
 
-  private def json(fileName: String) = {
+  private def json(fileName: String, navigateIntoArrays: Boolean = true): JsonTraverser = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
-    JsonTraverser.fromResource("alibi_task_id", resources.get(fileName))
+    JsonTraverser.fromResource("alibi_task_id", resources.get(fileName), navigateIntoArrays)
   }
 }

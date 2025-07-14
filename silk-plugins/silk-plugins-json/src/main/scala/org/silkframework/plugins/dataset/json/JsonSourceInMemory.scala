@@ -15,7 +15,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.logging.{Level, Logger}
 
-class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[JsonNode], basePath: String, uriPattern: String) extends JsonSource(taskId, basePath, uriPattern) {
+class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[JsonNode], basePath: String, uriPattern: String, navigateIntoArrays: Boolean) extends JsonSource(taskId, basePath, uriPattern) {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -33,7 +33,7 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
                        (implicit context: PluginContext): EntityHolder = {
     val entities = nodes().flatMap { node =>
       logger.log(Level.FINE, "Retrieving data from JSON.")
-      val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node)
+      val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node, navigateIntoArrays)
       val selectedElements = jsonTraverser.select(basePathParts)
       val subPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
       val subPathElements =
@@ -54,7 +54,7 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
     } else {
       val retrievedEntities = nodes().flatMap { node =>
         logger.log(Level.FINE, "Retrieving data from JSON.")
-        val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node)
+        val jsonTraverser = JsonTraverser.fromNode(underlyingTask.id, node, navigateIntoArrays)
         val selectedElements = jsonTraverser.select(basePathParts)
         retrieveEntities(selectedElements, entitySchema, entities.map(_.uri).toSet)
       }
@@ -98,15 +98,15 @@ class JsonSourceInMemory(taskId: Identifier, nodes: () => CloseableIterator[Json
 
 object JsonSourceInMemory {
 
-  def apply(taskId: Identifier, str: String, basePath: String, uriPattern: String): JsonSourceInMemory = {
-    new JsonSourceInMemory(taskId, () => new JsonNodeIterator(new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8))), basePath, uriPattern)
+  def fromString(taskId: Identifier, str: String, basePath: String, uriPattern: String, navigateIntoArrays: Boolean = true): JsonSourceInMemory = {
+    new JsonSourceInMemory(taskId, () => new JsonNodeIterator(new ByteArrayInputStream(str.getBytes(StandardCharsets.UTF_8))), basePath, uriPattern, navigateIntoArrays)
   }
 
-  def apply(file: Resource, basePath: String, uriPattern: String): JsonSourceInMemory = {
+  def fromResource(file: Resource, basePath: String, uriPattern: String, navigateIntoArrays: Boolean = true): JsonSourceInMemory = {
     if(file.nonEmpty) {
-      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => new JsonNodeIterator(file.inputStream), basePath, uriPattern)
+      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => new JsonNodeIterator(file.inputStream), basePath, uriPattern, navigateIntoArrays)
     } else {
-      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => CloseableIterator.empty, basePath, uriPattern)
+      new JsonSourceInMemory(Identifier.fromAllowed(file.name), () => CloseableIterator.empty, basePath, uriPattern, navigateIntoArrays)
     }
   }
 
