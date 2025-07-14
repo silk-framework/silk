@@ -184,10 +184,8 @@ object CopyTasksRequest {
         val sourceVariable = sourceProject.templateVariables.get(variableName.name)
         // Only copy the variable if it is not already defined in the target project with the same value
         targetProject.templateVariables.all.map.get(sourceVariable.name) match {
-          case Some(existingVariable) =>
-            if(existingVariable.value != sourceVariable.value) {
-              throw BadUserInputException(s"Cannot copy variable '${sourceVariable.name}' because it already exists in the target project with a different value: '${existingVariable.value}' vs. '${sourceVariable.value}'.")
-            }
+          case Some(_) =>
+            // The variable exists already, so we won't copy it
           case None =>
             targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
             copiedVariables += variableName
