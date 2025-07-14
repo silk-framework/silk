@@ -491,6 +491,9 @@
             "timeout": "Timeout"
         }
     },
+    "evaluationTabRow": {
+        "validationErrorOverall": "There exists at least one validation error for this entity: {{error}}"
+    },
     "transformEvaluationTabView": {
         "table": {
             "header": {
