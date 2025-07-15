@@ -333,14 +333,6 @@ object PeakTransformApi {
       val entity = exampleEntities.next()
       try {
         val transformResult = rule(entity)
-        if(rule.isInstanceOf[ComplexUriMapping]) {
-          // Values of complex URI mappings are not validated elsewhere
-          val invalidUri = transformResult.values.find(uri  => !Uri(uri).isValidUri)
-          if(invalidUri.isDefined) {
-            errorCounter += 1
-            errorMessage = s"URI rule has generated an invalid URI: '${invalidUri.get}'!"
-          }
-        }
         for(error <- transformResult.errors) {
           errorCounter += 1
           if (errorMessage.isEmpty) {

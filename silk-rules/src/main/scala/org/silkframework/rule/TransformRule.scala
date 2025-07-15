@@ -8,7 +8,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
-import org.silkframework.rule.input.{Input, PathInput, TransformInput, Value}
+import org.silkframework.rule.input.{Input, OperatorEvaluationError, PathInput, TransformInput, Value}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
@@ -343,6 +343,16 @@ case class ComplexUriMapping(id: Identifier = "complexURI",
 
   override def withContext(taskContext: TaskContext): ComplexUriMapping = {
     copy(operator = operator.withContext(taskContext))
+  }
+
+  override def apply(entity: Entity): Value = {
+    val v = super.apply(entity)
+    val invalidUri = v.values.find(uri => !Uri(uri).isValidUri)
+    if(invalidUri.isDefined && v.errors.isEmpty) {
+      // The URI rule has generated an invalid URI
+      return v.copy(errors = Seq(OperatorEvaluationError(id, new ValidationException(s"URI rule has generated an invalid URI: '${invalidUri.get}'!"))))
+    }
+    v
   }
 }
 

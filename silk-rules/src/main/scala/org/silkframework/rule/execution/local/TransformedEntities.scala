@@ -99,10 +99,6 @@ class TransformedEntities(task: Task[TransformSpec],
         if(count > 0 && outputSchema.singleEntity && rule.isInstanceOf[RootMappingRule]) {
           throw new MultipleValuesException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
         }
-        if(subjectRule.isDefined && !Uri(uri).isValidUri) {
-          // The URI rule has generated an invalid URI
-          throw new ValidationException(s"URI rule of object mapping '$ruleLabel' has generated an invalid URI: '$uri'!")
-        }
 
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
