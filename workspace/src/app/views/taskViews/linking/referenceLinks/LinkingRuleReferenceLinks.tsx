@@ -20,7 +20,7 @@ import {
     TableHeader,
     TableRow,
     Toolbar,
-    ToolbarSection,
+    ToolbarSection, Tooltip,
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
@@ -144,6 +144,7 @@ export const LinkingRuleReferenceLinks = ({
                                         small
                                         data-test-id={"reference-links-show-confirmed-links"}
                                         elevated={showConfirmedOnly}
+                                        tooltip={t("ReferenceLinks.confirmedOnlyTooltip")}
                                         disabled={!showConfirmedOnly && positiveLinks <= 0}
                                         onClick={() => {
                                             setShowConfirmedOnly(!showConfirmedOnly);
@@ -156,6 +157,7 @@ export const LinkingRuleReferenceLinks = ({
                                         small
                                         data-test-id={"reference-links-show-declined-links"}
                                         elevated={showDeclinedOnly}
+                                        tooltip={t("ReferenceLinks.declinedOnlyTooltip")}
                                         disabled={!showDeclinedOnly && negativeLinks <= 0}
                                         onClick={() => {
                                             setShowDeclinedOnly(!showDeclinedOnly);
@@ -170,8 +172,9 @@ export const LinkingRuleReferenceLinks = ({
                             {!!showLinkType ? (
                                 <>
                                     <Button
-                                        small
+                                        size={"small"}
                                         key={"certain"}
+                                        tooltip={t("ReferenceLinks.certainOnlyTooltip")}
                                         data-test-id={"reference-links-show-certain-links"}
                                         elevated={!showUncertainLinks}
                                         onClick={() => showLinksOfType("labeled")}
@@ -179,8 +182,9 @@ export const LinkingRuleReferenceLinks = ({
                                         {t("ReferenceLinks.certainOnly")}
                                     </Button>
                                     <Button
-                                        small
+                                        size={"small"}
                                         key={"uncertain"}
+                                        tooltip={t("ReferenceLinks.uncertainOnlyTooltip")}
                                         data-test-id={"reference-links-show-uncertain-links"}
                                         elevated={showUncertainLinks}
                                         onClick={() => showLinksOfType("unlabeled")}
@@ -190,15 +194,17 @@ export const LinkingRuleReferenceLinks = ({
                                     <Spacing vertical={true} size="small" />
                                 </>
                             ) : null}
-                            <Checkbox
-                                data-test-id={"reference-links-show-mismatches"}
-                                disabled={misMatches <= 0}
-                                checked={showOnlyMismatches}
-                                onChange={() => setShowOnlyMismatches((prev) => !prev)}
-                                style={{ margin: "0px" }}
-                            >
-                                {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
-                            </Checkbox>
+                            <Tooltip content={t("ReferenceLinks.mismatchCheckboxTooltip")}>
+                                <Checkbox
+                                    data-test-id={"reference-links-show-mismatches"}
+                                    disabled={misMatches <= 0}
+                                    checked={showOnlyMismatches}
+                                    onChange={() => setShowOnlyMismatches((prev) => !prev)}
+                                    style={{margin: "0px"}}
+                                >
+                                    {t("ReferenceLinks.mismatchCheckboxTitle", {nrMismatches: misMatches})}
+                                </Checkbox>
+                            </Tooltip>
                             <Spacing vertical={true} size="small" />
                         </>
                     )}
