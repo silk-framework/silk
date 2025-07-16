@@ -20,7 +20,7 @@ import {
     TableHeader,
     TableRow,
     Toolbar,
-    ToolbarSection, Tooltip,
+    ToolbarSection, Tooltip, ConfidenceValue,
 } from "@eccenca/gui-elements";
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
@@ -253,13 +253,14 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksTable = () => {
         return (
             <>
-                <Table columnWidths={["30px", "30px", "40%", "40%", "100px"]}>
+                <Table columnWidths={["30px", "30px", "35%", "35%", "90px", "100px"]}>
                     <TableHead>
                         <TableRow>
                             <TableHeader key={"marker-column"}>&nbsp;</TableHeader>
                             <TableHeader key={"warning-column"}>&nbsp;</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}</TableHeader>
                             <TableHeader>{t("ActiveLearning.config.entitiyPair.targetColumnTitle")}</TableHeader>
+                            <TableHeader>{t("linkingEvaluationTabView.table.header.score")}</TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
@@ -305,6 +306,13 @@ export const LinkingRuleReferenceLinks = ({
                                               </TableCell>
                                               <TableCell>{sourceLabel}</TableCell>
                                               <TableCell>{targetLabel}</TableCell>
+                                              <TableCell>
+                                                  {link.score ? <ConfidenceValue
+                                                          value={link.score}
+                                                      /> :
+                                                      "N/A"
+                                                  }
+                                              </TableCell>
                                               <TableCell>
                                                   <Toolbar>
                                                       <ToolbarSection>
