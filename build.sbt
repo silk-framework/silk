@@ -159,7 +159,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .settings(
     name := "Silk Plugins CSV",
     libraryDependencies += "com.univocity" % "univocity-parsers" % "2.9.1",
-    libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.4.0"
+    libraryDependencies += "com.github.albfernandez" % "juniversalchardet" % "2.5.0"
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
@@ -398,7 +398,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
     libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.5" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
     libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.31",
     libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.8",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "5.18.2"
+    libraryDependencies += "org.webjars" % "swagger-ui" % "5.26.2"
   )
 
 lazy val workbench = (project in file("silk-workbench"))
