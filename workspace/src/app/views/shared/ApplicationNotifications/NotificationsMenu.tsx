@@ -34,7 +34,7 @@ export function NotificationsMenu({ autoDisplayNotifications = true, errorNotifi
 
     useApplicationHeaderOverModals(
         notificationQueue.messages.length > 0,
-        "diapp-applicationnotifications--filledqueue"
+        "diapp-applicationnotifications--filledqueue",
     );
 
     const toggleNotifications = () => {
@@ -121,7 +121,7 @@ export const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefi
 /** Decide if to show a message based on the instance ID. */
 const showMessage = (
     message?: DIErrorFormat & { errorNotificationInstanceId?: string },
-    errorNotificationInstanceId?: string
+    errorNotificationInstanceId?: string,
 ): boolean => {
     return (
         !!message &&

@@ -38,7 +38,7 @@ import { invalidValueResult } from "../../../views/shared/RuleEditor/view/ruleNo
 import { diErrorMessage } from "@ducks/error/typings";
 import { Notification, highlighterUtils, StickyNote } from "@eccenca/gui-elements";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import {languageFilterRegex, PathInputOperatorContext} from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
+import { languageFilterRegex, PathInputOperatorContext } from "../../shared/RuleEditor/view/ruleNode/PathInputOperator";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -81,7 +81,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const targetPathMetaData = React.useRef<PathWithMetaData[]>([]);
     const targetPathLabels = React.useRef<Map<string, string>>(new Map());
     // In which language the path labels are available
-    const [pathLabelsAvailableForLang, setPathLabelsAvailableForLang] = React.useState<string | undefined>()
+    const [pathLabelsAvailableForLang, setPathLabelsAvailableForLang] = React.useState<string | undefined>();
     const [loading, setLoading] = React.useState(true);
     const [initError, setInitError] = React.useState<any | undefined>(undefined);
     const pendingRequests = React.useRef(2);
@@ -92,7 +92,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const optionalContext = React.useContext(LinkingRuleEditorOptionalContext);
 
     React.useEffect(() => {
-        fetchAllPaths()
+        fetchAllPaths();
     }, [projectId, linkingTaskId, prefLang]);
 
     const reducePendingRequestCount = () => {
@@ -144,8 +144,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     const fetchAllPaths = async () => {
         await fetchPaths("source");
         await fetchPaths("target");
-        setPathLabelsAvailableForLang(prefLang)
-    }
+        setPathLabelsAvailableForLang(prefLang);
+    };
 
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
@@ -441,57 +441,65 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         return <Loading />;
     }
 
-    return <PathInputOperatorContext.Provider value={{
-        pathLabelsAvailableForLang
-    }}>
-        <LinkingRuleEvaluation
-            projectId={projectId}
-            linkingTaskId={linkingTaskId}
-            numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
+    return (
+        <PathInputOperatorContext.Provider
+            value={{
+                pathLabelsAvailableForLang,
+            }}
         >
-            <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+            <LinkingRuleEvaluation
                 projectId={projectId}
-                taskId={linkingTaskId}
-                fetchRuleData={fetchTaskData}
-                fetchRuleOperators={fetchLinkingRuleOperatorDetails}
-                partialAutoCompletion={fetchPartialAutoCompletionResult}
-                saveRule={saveLinkageRule}
-                getStickyNotes={utils.getStickyNotes}
-                convertRuleOperator={ruleUtils.convertRuleOperator}
-                viewActions={viewActions}
-                convertToRuleOperatorNodes={utils.convertLinkingTaskToRuleOperatorNodes}
-                additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
-                addAdditionParameterSpecifications={(pluginDetails) => {
-                    switch (pluginDetails.pluginType) {
-                        case "ComparisonOperator":
-                            return pluginDetails.distanceMeasureRange === "boolean"
-                                ? [["weight", weightParameterSpec]]
-                                : [
-                                      ["threshold", thresholdParameterSpec(pluginDetails)],
-                                      ["weight", weightParameterSpec],
-                                  ];
-                        case "AggregationOperator":
-                            return [["weight", weightParameterSpec]];
-                        default:
-                            return [];
-                    }
-                }}
-                validateConnection={ruleUtils.validateConnection}
-                tabs={tabs}
-                additionalToolBarComponents={() => [
-                    <LinkingRuleCacheInfo key="LinkingRuleCacheInfo" projectId={projectId} taskId={linkingTaskId} />,
-                ]}
-                showRuleOnly={!!optionalContext.showRuleOnly}
-                hideMinimap={!!optionalContext.hideMinimap}
-                zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
-                initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
-                instanceId={instanceId}
-                fetchDatasetCharacteristics={fetchDatasetCharacteristics}
-                pathMetaData={{
-                    inputPathPluginPathType,
-                    inputPathLabel,
-                }}
-            />
-        </LinkingRuleEvaluation>
-    </PathInputOperatorContext.Provider>;
+                linkingTaskId={linkingTaskId}
+                numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
+            >
+                <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+                    projectId={projectId}
+                    taskId={linkingTaskId}
+                    fetchRuleData={fetchTaskData}
+                    fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+                    partialAutoCompletion={fetchPartialAutoCompletionResult}
+                    saveRule={saveLinkageRule}
+                    getStickyNotes={utils.getStickyNotes}
+                    convertRuleOperator={ruleUtils.convertRuleOperator}
+                    viewActions={viewActions}
+                    convertToRuleOperatorNodes={utils.convertLinkingTaskToRuleOperatorNodes}
+                    additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
+                    addAdditionParameterSpecifications={(pluginDetails) => {
+                        switch (pluginDetails.pluginType) {
+                            case "ComparisonOperator":
+                                return pluginDetails.distanceMeasureRange === "boolean"
+                                    ? [["weight", weightParameterSpec]]
+                                    : [
+                                          ["threshold", thresholdParameterSpec(pluginDetails)],
+                                          ["weight", weightParameterSpec],
+                                      ];
+                            case "AggregationOperator":
+                                return [["weight", weightParameterSpec]];
+                            default:
+                                return [];
+                        }
+                    }}
+                    validateConnection={ruleUtils.validateConnection}
+                    tabs={tabs}
+                    additionalToolBarComponents={() => [
+                        <LinkingRuleCacheInfo
+                            key="LinkingRuleCacheInfo"
+                            projectId={projectId}
+                            taskId={linkingTaskId}
+                        />,
+                    ]}
+                    showRuleOnly={!!optionalContext.showRuleOnly}
+                    hideMinimap={!!optionalContext.hideMinimap}
+                    zoomRange={optionalContext.zoomRange ?? [0.25, 1.5]}
+                    initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
+                    instanceId={instanceId}
+                    fetchDatasetCharacteristics={fetchDatasetCharacteristics}
+                    pathMetaData={{
+                        inputPathPluginPathType,
+                        inputPathLabel,
+                    }}
+                />
+            </LinkingRuleEvaluation>
+        </PathInputOperatorContext.Provider>
+    );
 };
