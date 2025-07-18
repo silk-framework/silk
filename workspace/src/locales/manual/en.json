@@ -491,6 +491,9 @@
             "timeout": "Timeout"
         }
     },
+    "evaluationTabRow": {
+        "validationErrorOverall": "There exists at least one validation error for this entity: {{error}}"
+    },
     "transformEvaluationTabView": {
         "table": {
             "header": {
@@ -1165,16 +1168,21 @@
     },
     "ReferenceLinks": {
         "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
+        "mismatchCheckboxTooltip": "If active, show only reference links where the currently best learned rule has computed a different decision than the user.",
         "mismatchWithRule": "Current best rule decides differently",
         "showList": "Show link list",
         "hideList": "Hide link list",
         "confirmedOnly": "Confirmed only ({{nr}})",
+        "confirmedOnlyTooltip": "If this filter is active only confirmed reference links are shown.",
         "declinedOnly": "Declined only ({{nr}})",
+        "declinedOnlyTooltip": "If this filter is active only declined reference links are shown.",
         "confirmed": "Confirmed",
         "declined": "Declined",
         "certainOnly": "Certain",
+        "certainOnlyTooltip": "Show only reference links that are either confirmed or declined.",
         "uncertain": "Uncertain",
         "uncertainOnly": "Uncertain",
+        "uncertainOnlyTooltip": "Show only reference links without a decision.",
         "removeLink": "Delete reference link",
         "checkFeedback": "Re-evaluate feedback decision",
         "source": "Source",
@@ -1215,7 +1223,8 @@
             "errors": {
                 "emptyResult": "Preview has returned no results.",
                 "emptyWithExceptions": "Preview has returned no results, possibly because of transform validation errors.",
-                "notSupported": "Input source does not support the transform preview."
+                "notSupported": "Input source does not support the transform preview.",
+                "withExceptions": "At least one problem has been detected: {{error}}"
             }
         }
     },

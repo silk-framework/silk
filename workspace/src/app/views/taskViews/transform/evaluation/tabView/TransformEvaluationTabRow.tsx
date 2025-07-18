@@ -1,6 +1,6 @@
 import React from "react";
 import { IPluginDetails } from "@ducks/common/typings";
-import { TableCell, TableExpandedRow, TableExpandRow, TreeNodeInfo, Spacing } from "@eccenca/gui-elements";
+import { TableCell, TableExpandedRow, TableExpandRow, TreeNodeInfo, Spacing, Icon } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { newNode, NodeTagValues } from "./TransformEvaluationTabViewUtils";
 import {
@@ -51,7 +51,7 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
 
         const buildTree = React.useCallback(() => {
             setMultipleTrees(
-                entity.values.map((e, idx) => {
+                entity.values.map((evaluatedValue, idx) => {
                     const matchingRuleType = (
                         rules[idx].operator
                             ? rules[idx]
@@ -118,11 +118,13 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                         }
                     };
 
-                    generateTree(matchingRuleType.operator!, e, treeNodeInfo);
+                    generateTree(matchingRuleType.operator!, evaluatedValue, treeNodeInfo);
                     return treeNodeInfo;
                 })
             );
         }, [treeExpansionMap, expandRowTrees]);
+
+        const existingError = entity.values.find(v => !!v.error)?.error
 
         return (
             <>
@@ -136,7 +138,8 @@ const TransformEvaluationTabRow: React.FC<TransformEvaluationTabRowProps> = Reac
                             : t("linkingEvaluationTabView.table.expandRow")
                     }
                 >
-                    <TableCell style={{ verticalAlign: "middle" }}>{rowItem.uri}</TableCell>
+                    <TableCell style={{ verticalAlign: "middle" }}>{rowItem.uri} {existingError ?
+                        <Icon name={"state-warning"} intent={"warning"} tooltipText={t("evaluationTabRow.validationErrorOverall", {error: existingError})} /> : ""}</TableCell>
                 </TableExpandRow>
                 {(rowIsExpanded && (
                     <TableExpandedRow colSpan={colSpan} className="linking-table__expanded-row-container">
