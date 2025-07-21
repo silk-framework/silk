@@ -32,11 +32,12 @@ import {
 } from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
-import { IInitFrontend, useInitFrontend } from "../../../api/silkRestApi.hooks";
+import { useInitFrontend } from "../../../api/silkRestApi.hooks";
 import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
 import { useTranslation } from "react-i18next";
 import { GlobalMappingEditorContext } from "../../../contexts/GlobalMappingEditorContext";
+import {IInitFrontend} from "@ducks/common/typings";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
