@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.{FixedSchemaPort, Prefixes, TaskSpec}
+import org.silkframework.config.{DefaultConfig, FixedSchemaPort, Prefixes, TaskSpec}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
@@ -9,7 +9,7 @@ import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.Project
-import org.silkframework.workspace.activity.dataset.DatasetUtils
+import org.silkframework.workspace.activity.PathsCacheTrait.useFullRestrictions
 
 /**
   * Defines methods useful to all paths caches.
@@ -46,7 +46,7 @@ trait PathsCacheTrait {
   private def retrievePaths(dataSource: DataSource, datasetSelection: DatasetSelection)
                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     dataSource match {
-      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
+      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) if useFullRestrictions =>
         val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
         val sparqlRestriction = datasetSelection.restriction.operator match {
           case Some(CustomOperator(sparqlExpression)) =>
@@ -58,6 +58,19 @@ trait PathsCacheTrait {
       case source: DataSource =>
         // Retrieve most frequent paths
         source.retrievePaths(datasetSelection.typeUri, maxDepth, maxPaths)
+    }
+  }
+}
+
+object PathsCacheTrait {
+
+  private val useFullRestrictions: Boolean = {
+    val cfg = DefaultConfig.instance()
+    val key = "caches.paths.useFullRestrictions"
+    if(cfg.hasPath(key)) {
+      cfg.getBoolean(key)
+    } else {
+      true
     }
   }
 }
