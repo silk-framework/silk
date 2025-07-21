@@ -198,7 +198,7 @@ object CopyTasksRequest {
         case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
           for(missingVar <- unboundEx.missingVars if missingVar.scope == TemplateVariableScopes.project) {
             val sourceVariable = sourceProject.templateVariables.get(missingVar.name)
-            val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withFirst(sourceVariable))
+            val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withLast(sourceVariable))
             targetProject.templateVariables.put(newVariables)
           }
           f
