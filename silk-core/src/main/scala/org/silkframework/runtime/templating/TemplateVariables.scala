@@ -82,6 +82,13 @@ case class TemplateVariables(variables: Seq[TemplateVariable]) {
   }
 
   /**
+   * Returns a copy with an added variable at the end.
+   */
+  def withLast(variable: TemplateVariable): TemplateVariables = {
+    TemplateVariables(variables :+ variable)
+  }
+
+  /**
    * Returns only non-sensitive variables
    */
   def withoutSensitiveVariables(): TemplateVariables = {
