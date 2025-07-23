@@ -171,7 +171,6 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.2",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.7"
   )
 
