@@ -82,10 +82,6 @@ lazy val commonSettings = Seq(
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
-  // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
-  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.15.4",
-  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.15.4",
-
   scalacOptions ++= compilerParams._2,
   javacOptions ++= compilerParams._1,
 
@@ -175,7 +171,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.15.4",
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.19.2",
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.7"
   )
 
