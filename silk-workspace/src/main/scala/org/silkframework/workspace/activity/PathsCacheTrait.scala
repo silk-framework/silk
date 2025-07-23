@@ -46,7 +46,7 @@ trait PathsCacheTrait {
   private def retrievePaths(dataSource: DataSource, datasetSelection: DatasetSelection)
                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     dataSource match {
-      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) if useFullRestrictions =>
+      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) if useFullRestrictions || datasetSelection.typeUri.isEmpty =>
         val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
         val sparqlRestriction = datasetSelection.restriction.operator match {
           case Some(CustomOperator(sparqlExpression)) =>
