@@ -74,7 +74,7 @@ lazy val commonSettings = Seq(
   (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.16" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.18",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.3.1" % Test,
@@ -127,8 +127,8 @@ lazy val rules = (project in file("silk-rules"))
   .settings(
     name := "Silk Rules",
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.7",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "5.4.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.4.0" exclude("org.slf4j", "slf4j-log4j12")
+    libraryDependencies += "org.apache.jena" % "jena-core" % "5.5.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "5.5.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -149,7 +149,7 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings *)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.4.0" % "test",
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-main" % "5.5.0" % "test",
     libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.4.1"
 )
 
