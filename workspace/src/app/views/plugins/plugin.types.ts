@@ -5,7 +5,7 @@ import { TestableComponent } from "@eccenca/gui-elements";
 export type IPreview = IDatasetConfigPreview | IResourcePreview | IDatasetPreview | FixedPreview;
 
 interface IValidation {
-    validate: () => boolean;
+    validate: () => boolean | Promise<boolean>;
     errorMessage: string;
 }
 
