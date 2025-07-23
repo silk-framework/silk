@@ -12,6 +12,7 @@ import EventEmitter from "../utils/EventEmitter";
 import ExpandButton from "../elements/buttons/ExpandButton";
 import { getHistory } from "../../../../../store/configureStore";
 
+/** The top rule (root or object) for a specific level in the mapping hierarchy. */
 class RootMappingRule extends React.Component {
     state = {
         expanded: false,
@@ -88,12 +89,8 @@ class RootMappingRule extends React.Component {
                     search: `?${new URLSearchParams({ ruleId: this.props.rule.id })}`,
                 });
             this.expandedRuleRef.current?.scrollIntoView({ behavior: "smooth" });
-        } else {
-            !this.props.startFullScreen &&
-                history.replace({
-                    search: "",
-                });
         }
+        // Collapsing the object rule should have no effect on the currently selected rule
     }
 
     handleToggleExpand() {

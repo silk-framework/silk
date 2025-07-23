@@ -121,6 +121,7 @@ const MappingsList = ({
                                     {items.map((item, index) => (
                                         <DraggableItem
                                             {...item.props}
+                                            parentRuleId={currentRuleId}
                                             pos={index}
                                             handleCopy={handleCopy}
                                             handleClone={handleClone}

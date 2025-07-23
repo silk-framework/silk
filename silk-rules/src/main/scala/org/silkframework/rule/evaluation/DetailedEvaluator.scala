@@ -17,8 +17,9 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.Entity
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.rule.{LinkageRule, TransformRule}
-import org.silkframework.util.DPair
+import org.silkframework.rule.{ComplexUriMapping, LinkageRule, TransformRule}
+import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.{DPair, Uri}
 
 import scala.util.control.NonFatal
 
@@ -72,7 +73,6 @@ object DetailedEvaluator {
       case Some(rule) => rule(entity).values
       case None => Seq(entity.uri.toString)
     }
-
     val values = for(rule <- rules) yield apply(rule, entity)
     DetailedEntity(uris, values, rules)
   }
@@ -89,6 +89,14 @@ object DetailedEvaluator {
       } catch {
         case NonFatal(ex) =>
           return result.withError(ex)
+      }
+    }
+    // Complex URI mapping rules need to be validated separately
+    if(rule.isInstanceOf[ComplexUriMapping]) {
+      val invalidUri = result.values.find(uri  => !Uri(uri).isValidUri)
+      if(invalidUri.isDefined) {
+        // The URI rule has generated an invalid URI
+        return result.withError(new ValidationException(s"URI rule of object mapping has generated an invalid URI: '${invalidUri.get}'!"))
       }
     }
     // Return validated result
