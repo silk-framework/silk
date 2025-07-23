@@ -75,10 +75,10 @@ lazy val commonSettings = Seq(
   (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.19" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "7.0.0" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "6.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.5.18",
   libraryDependencies += "org.mockito" % "mockito-core" % "5.18.0" % Test,
-  libraryDependencies += "com.google.inject" % "guice" % "7.0.0" % "test",
+  libraryDependencies += "com.google.inject" % "guice" % "6.0.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
@@ -109,7 +109,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.2",
-    libraryDependencies += "commons-io" % "commons-io" % "2.16.1",
+    libraryDependencies += "commons-io" % "commons-io" % "2.20.0",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.8.0",
     libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
     libraryDependencies += "xalan" % "xalan" % "2.7.3",
@@ -390,7 +390,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(commonSettings *)
   .settings(
     name := "Silk Workbench OpenAPI",
-    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.5" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
+    libraryDependencies += "io.kinoplan" %% "swagger-play" % "0.0.7" exclude("org.scala-lang.modules", "scala-java8-compat_2.13") ,
     libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.1.31",
     libraryDependencies += "com.networknt" % "json-schema-validator" % "1.5.8",
     libraryDependencies += "org.webjars" % "swagger-ui" % "5.26.2"
