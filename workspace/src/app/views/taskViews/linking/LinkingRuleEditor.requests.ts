@@ -149,7 +149,8 @@ export const partialAutoCompleteLinkingInputPaths = (
     inputType: "source" | "target",
     inputString: string,
     cursorPosition: number,
-    limit?: number
+    limit?: number,
+    langPref?: string
 ): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/completions/partialSourcePaths`),
@@ -161,6 +162,7 @@ export const partialAutoCompleteLinkingInputPaths = (
             inputString,
             cursorPosition,
             maxSuggestions: limit,
+            langPref
         },
     });
 };
