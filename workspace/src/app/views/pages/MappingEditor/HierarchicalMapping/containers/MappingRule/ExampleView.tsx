@@ -39,7 +39,7 @@ interface RuleExamples {
     sourcePaths: string[][];
     results: RuleExample[];
     status: {
-        id: "success" | "not supported" | "empty with exceptions" | "empty" | string;
+        id: "success" | "with exceptions" | "not supported" | "empty with exceptions" | "empty" | string;
         msg?: string;
     };
 }
@@ -181,6 +181,19 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
                             </TableHeader>
                         </TableRow>
                     </TableHead>
+                    {resultsCount > 0 && examples.status.id === "with exceptions" && examples.status.msg ?
+                        <TableBody>
+                            <TableRow key={"errorRow"}>
+                                <TableCell colSpan={3}>
+                                    <ProblemNotification
+                                        message={t("HierarchicalMapping.ExampleView.errors.withExceptions", {error: examples.status.msg})}
+                                        details={examples.status.msg}
+                                    />
+                                </TableCell>
+                            </TableRow>
+                        </TableBody> :
+                        null
+                    }
                     {_.map(examples.results, (result, index) => (
                         <TableBody key={`tbody_${index}`}>
                             {sourcePaths.map((sourcePath, i) => (

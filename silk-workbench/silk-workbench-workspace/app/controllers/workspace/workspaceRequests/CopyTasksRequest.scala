@@ -182,8 +182,14 @@ object CopyTasksRequest {
       // Copy all variables that are known to be referenced by a task
       for(variableName <- task.referencedVariables if variableName.scope == TemplateVariableScopes.project && !copiedVariables.contains(variableName)) {
         val sourceVariable = sourceProject.templateVariables.get(variableName.name)
-        targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
-        copiedVariables += variableName
+        // Only copy the variable if it is not already defined in the target project with the same value
+        targetProject.templateVariables.all.map.get(sourceVariable.name) match {
+          case Some(_) =>
+            // The variable exists already, so we won't copy it
+          case None =>
+            targetProject.templateVariables.put(targetProject.templateVariables.all.withFirst(sourceVariable))
+            copiedVariables += variableName
+        }
       }
       // The referenced variables are not necessarily complete, so we need to add variables that are found by an UnboundVariablesException
       try {
@@ -192,7 +198,7 @@ object CopyTasksRequest {
         case InvalidPluginParameterValueException(_, unboundEx: UnboundVariablesException) =>
           for(missingVar <- unboundEx.missingVars if missingVar.scope == TemplateVariableScopes.project) {
             val sourceVariable = sourceProject.templateVariables.get(missingVar.name)
-            val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withFirst(sourceVariable))
+            val newVariables = resolveAndAddMissingVariables(targetProject.templateVariables.all.withLast(sourceVariable))
             targetProject.templateVariables.put(newVariables)
           }
           f

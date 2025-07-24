@@ -24,7 +24,7 @@ import org.silkframework.util.{Identifier, Uri}
 case class BinaryFileDataset(
     @Param("The file to read or write.")
     file: WritableResource,
-    @Param(label = "ZIP file regex", value = "If the file is a ZIP file, read files are filtered via this regex. If empty, the zip itself will be returned to readers.", advanced = true)
+    @Param(label = "ZIP file regex", value = "If the file is a ZIP file, read files are filtered via this regex. If empty, the zip itself will be returned to readers.")
     override val zipFileRegex: String = ".*") extends Dataset with BulkResourceBasedDataset {
 
   override def mimeType: Option[String] = Some(BinaryFileDataset.mimeType)
