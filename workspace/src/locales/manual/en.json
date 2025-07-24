@@ -460,6 +460,9 @@
             "projectTitle": "Project title",
             "title": "Title"
         },
+        "taskForm": {
+            "resetMessage": "Following parameters have been reset because they depend on the changed parameter '{{dependOn}}': {{parameters}}"
+        },
         "validations": {
             "float": "must be a valid floating point number",
             "integer": "must be a valid integer number",
