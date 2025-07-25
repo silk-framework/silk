@@ -30,7 +30,7 @@ export class ErrorResponse {
         detail: string,
         status: number | undefined | null,
         cause?: ErrorResponse,
-        canBeIgnored: boolean = false
+        canBeIgnored: boolean = false,
     ) {
         this.title = title;
         this.detail = detail;
@@ -49,7 +49,7 @@ export class FetchError {
 
     isFetchError: boolean = true;
 
-    errorDetails: AxiosError;
+    errorDetails: AxiosError<any>;
 
     errorType: ErrorType;
 
@@ -109,7 +109,7 @@ const httpStatusToTitle = (status?: number) => {
 
 /** Error response. */
 export class HttpError extends FetchError {
-    constructor(errorDetails: AxiosError) {
+    constructor(errorDetails: AxiosError<any>) {
         super();
 
         this.errorDetails = errorDetails;
@@ -122,14 +122,14 @@ export class HttpError extends FetchError {
                 errorResponse.title,
                 errorResponse.detail,
                 errorDetails.response.status,
-                errorResponse.cause
+                errorResponse.cause,
             );
         } else {
             // Got no JSON response, create error response object
             this.errorResponse = new ErrorResponse(
                 httpStatusToTitle(errorDetails.response?.status),
                 "",
-                errorDetails.response?.status
+                errorDetails.response?.status,
             );
         }
     }
@@ -145,7 +145,7 @@ export class NetworkError extends FetchError {
         this.errorResponse = new ErrorResponse(
             "Network Error",
             `There does not seem to be a network connection to the server. Please check your connection or contact support`,
-            undefined
+            undefined,
         );
     }
 }
@@ -163,7 +163,7 @@ export class AbortError extends FetchError {
             "This request has been cancelled, e.g. by navigating away from the page triggering the request.",
             undefined,
             undefined,
-            true
+            true,
         );
     }
 }
@@ -172,7 +172,7 @@ export const responseInterceptorOnSuccess = (response: AxiosResponse): any => {
     return new FetchResponse(response);
 };
 
-export const responseInterceptorOnError = (error: AxiosError) => {
+export const responseInterceptorOnError = (error) => {
     if (axios.isCancel(error)) {
         return Promise.reject({
             response: {
