@@ -7,7 +7,7 @@ import org.scalatest.matchers.should.Matchers
 /**
   * Created by Christian Wartner on 12.08.2016.
   */
-class RemoveRemoteStopwordsTransformerTest extends AnyFlatSpec with Matchers with MockServerTestTrait {
+class RemoveRemoteStopWordsTransformerTest extends AnyFlatSpec with Matchers with MockServerTestTrait {
 
   "RemoveRemoteStopwordsTransformer" should "return 'x'" in {
     withAdditionalServer(Seq(
@@ -16,7 +16,7 @@ class RemoveRemoteStopwordsTransformerTest extends AnyFlatSpec with Matchers wit
         content = Some("the\nis\n")
       )
     )) { port =>
-      val transformer = RemoveRemoteStopwordsTransformer(s"http://localhost:$port/stopwords.txt")
+      val transformer = RemoveRemoteStopWordsTransformer(s"http://localhost:$port/stopwords.txt")
       transformer.apply(Seq(Seq("the tree is big"))).map(_.trim) should equal(Seq("tree big"))
     }
   }
