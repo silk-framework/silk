@@ -193,29 +193,21 @@ export const requestChangePrefixes = async (
     prefixUri: string,
     projectId: string
 ): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
-            method: "PUT",
-            body: prefixUri,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    const {data} = await fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
+        method: "PUT",
+        body: prefixUri,
+    });
+    return data;
 };
 
 //missing-type
 export const requestRemoveProjectPrefix = async (prefixName: string, projectId: string): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
-            method: "DELETE",
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    const {data} = await fetch({
+        url: workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`),
+        method: "DELETE",
+    });
+    return data;
 };
 
 //missing-type
