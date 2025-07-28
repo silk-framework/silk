@@ -80,7 +80,7 @@ class RulePlugins extends PluginModule {
         classOf[RemoveSpecialCharsTransformer] ::
         classOf[ConvertCharsetTransformer] ::
         classOf[RemoveValues] ::
-        classOf[RemoveRemoteStopwords] ::
+        classOf[RemoveRemoteStopwordsTransformer] ::
         classOf[RemoveEmptyValues] ::
         classOf[RemoveParentheses] ::
         classOf[TrimTransformer] ::

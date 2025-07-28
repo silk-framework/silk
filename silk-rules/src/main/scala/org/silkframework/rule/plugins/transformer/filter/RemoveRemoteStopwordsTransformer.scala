@@ -11,7 +11,7 @@ import scala.io.Source
   label = "Remove stopwords (remote stopword list)",
   description = "Removes stopwords from all values. The stopword list is retrieved via a http connection (e.g. https://sites.google.com/site/kevinbouge/stopwords-lists/stopwords_de.txt). Each line in the stopword list contains a stopword. The separator defines a regex that is used for detecting words."
 )
-case class RemoveRemoteStopwords(stopWordListUrl: String, separator: String = "[\\s-]+") extends SimpleTransformer {
+case class RemoveRemoteStopwordsTransformer(stopWordListUrl: String, separator: String = "[\\s-]+") extends SimpleTransformer {
 
   private val stopWords = loadStopWords
 
