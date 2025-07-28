@@ -26,4 +26,3 @@ case class RemoveRemoteStopWordsTransformer(stopWordListUrl: String, separator: 
     loadStopWords(stopWordListUrl)
   }
 }
-

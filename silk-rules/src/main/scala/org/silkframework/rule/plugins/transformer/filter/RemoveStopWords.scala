@@ -4,6 +4,11 @@ import org.silkframework.rule.input.SimpleTransformer
 
 import scala.util.matching.Regex
 
+/**
+ * Transformer which removes the stop words provided by its implementations.
+ *
+ * @param separator Regular Expressions for the separator between single words.
+ */
 abstract class RemoveStopWords(separator: String = "[\\s-]+") extends SimpleTransformer {
   def stopWords: Set[String]
 
