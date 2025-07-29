@@ -303,6 +303,9 @@ export interface IInitFrontend {
     /** If the assistant feature is enabled. */
     assistantSupported: boolean;
 
+    /** If the mapping creator is enabled. */
+    mappingCreatorEnabled: boolean;
+
     /** The default project page suffix. */
     defaultProjectPageSuffix?: string;
 }
