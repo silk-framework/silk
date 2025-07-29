@@ -3,6 +3,7 @@ import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typi
 
 import { ContextMenu, MenuItem } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import { useStoreGlobalTableSettings } from "../../../hooks/useStoreGlobalTableSettings";
 
 interface IProps {
     sortersList: ISorterListItemState[];
@@ -13,6 +14,11 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
     const [t] = useTranslation();
+    const { updateGlobalTableSettings } = useStoreGlobalTableSettings({
+        sorters: sortersList,
+        activeSortBy: activeSort.sortBy,
+        onSort,
+    });
 
     return (
         <div className={"sortButton"} data-test-id={"sortButton"}>
@@ -29,7 +35,10 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
                                     : "list-sortdesc"
                                 : undefined
                         }
-                        onClick={() => onSort(item.id)}
+                        onClick={() => {
+                            onSort(item.id);
+                            updateGlobalTableSettings({ sortBy: item.id });
+                        }}
                     />
                 ))}
             </ContextMenu>
