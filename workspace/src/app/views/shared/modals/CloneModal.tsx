@@ -1,15 +1,23 @@
-import React, { KeyboardEventHandler, useEffect, useState } from "react";
-import { Button, FieldItem, IconButton, Notification, SimpleDialog, Spacing, Spinner, TextField } from "@eccenca/gui-elements";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
-import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { Loading } from "../Loading/Loading";
-import { useTranslation } from "react-i18next";
-import { IModalItem } from "@ducks/shared/typings";
+import React, {KeyboardEventHandler, useEffect, useState} from "react";
+import {
+    Button,
+    FieldItem,
+    IconButton,
+    Notification,
+    SimpleDialog,
+    Spacing,
+    Spinner,
+    TextField
+} from "@eccenca/gui-elements";
+import {ErrorResponse, FetchError} from "../../../services/fetch/responseInterceptor";
+import {requestCloneProject, requestCloneTask} from "@ducks/workspace/requests";
+import {requestProjectMetadata, requestTaskMetadata} from "@ducks/shared/requests";
+import {useTranslation} from "react-i18next";
+import {IModalItem} from "@ducks/shared/typings";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
-import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
-import { debounce } from "lodash";
-import { TaskDocumentationModal } from "./CreateArtefactModal/TaskDocumentationModal";
+import {requestProjectIdValidation, requestTaskIdValidation} from "@ducks/common/requests";
+import {debounce} from "lodash";
+import {TaskDocumentationModal} from "./CreateArtefactModal/TaskDocumentationModal";
 
 export interface ICloneOptions {
     item: IModalItem;
@@ -142,6 +150,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 item.id
             }
             isOpen={true}
+            preventSimpleClosing={loading}
             onClose={onDiscard}
             headerOptions={
                 <IconButton
@@ -161,7 +170,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 >
                     {t("common.action.clone")}
                 </Button>,
-                <Button key="cancel" onClick={onDiscard}>
+                <Button key="cancel" onClick={onDiscard} disabled={loading}>
                     {t("common.action.cancel")}
                 </Button>,
             ]}
