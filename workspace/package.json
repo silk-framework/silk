@@ -32,7 +32,7 @@
         "@uppy/core": "1.17.0",
         "@uppy/react": "1.11.10",
         "@uppy/xhr-upload": "1.7.5",
-        "axios": "^0.26.1",
+        "axios": "^0.30.0",
         "bfj": "6.1.1",
         "connected-react-router": "^6.9.3",
         "dagre": "^0.8.5",
