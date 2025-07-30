@@ -127,7 +127,7 @@ class HierarchicalMapping extends React.Component {
          * FIXME: move this functionality to RemoveConfirmDialog component and refactor this component which will work as a portal
          */
         if (args) {
-            const { id, uri, type, parent } = args;
+            const { id, uri, type, parent, displayLabel } = args;
             this.setState({
                 editingElements: [],
                 elementToDelete: {
@@ -135,6 +135,7 @@ class HierarchicalMapping extends React.Component {
                     uri,
                     type,
                     parent,
+                    label: displayLabel
                 },
                 askForRemove: true,
                 removeFunction: this.handleConfirmRemove,
@@ -281,6 +282,7 @@ class HierarchicalMapping extends React.Component {
                             mappingType={elementToDelete.type}
                             handleConfirmRemove={this.state.removeFunction}
                             handleCancelRemove={this.handleCancelRemove}
+                            label={elementToDelete.label}
                         />
                     )}
                     <PromptModal
