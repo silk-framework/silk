@@ -30,13 +30,13 @@ export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTag
                     registerError(
                         "MultiTagSelect-handleTagQueryChange",
                         "An error occurred while searching for tags.",
-                        ex
+                        ex,
                     );
                     return [];
                 }
             }
         },
-        [projectId]
+        [projectId],
     );
 
     return (
@@ -61,6 +61,7 @@ export const MultiTagSelect = ({ projectId, handleTagSelectionChange, initialTag
                 label: removeExtraSpaces(query),
             })}
             requestDelay={200}
+            clearQueryOnSelection={true} // workaround that another Tab does not uncheck matches
         />
     );
 };
