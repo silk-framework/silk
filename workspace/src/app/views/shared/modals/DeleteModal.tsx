@@ -73,29 +73,24 @@ export default function DeleteModal({
             danger
             title={title}
             isOpen={isOpen}
-            canEscapeKeyClose={true}
+            canEscapeKeyClose={!removeLoading}
             onClose={onDiscard}
             data-test-id={otherProps["data-test-id"]}
-            actions={
-                removeLoading ? (
-                    <Loading delay={0} />
-                ) : (
-                    [
-                        <Button
-                            key="remove"
-                            disruptive
-                            onClick={onConfirm}
-                            disabled={(confirmationRequired && !isConfirmed) || deleteDisabled}
-                            data-test-id={"remove-item-button"}
-                        >
-                            {t("common.action.delete", "Delete")}
-                        </Button>,
-                        <Button key="cancel" onClick={onDiscard}>
-                            {alternativeCancelButtonLabel ?? t("common.action.cancel", "Cancel")}
-                        </Button>,
-                    ]
-                )
-            }
+            actions={[
+                <Button
+                    key="remove"
+                    disruptive
+                    onClick={onConfirm}
+                    loading={removeLoading}
+                    disabled={(confirmationRequired && !isConfirmed) || deleteDisabled}
+                    data-test-id={"remove-item-button"}
+                >
+                    {t("common.action.delete", "Delete")}
+                </Button>,
+                <Button key="cancel" onClick={onDiscard} disabled={removeLoading}>
+                    {alternativeCancelButtonLabel ?? t("common.action.cancel", "Cancel")}
+                </Button>,
+            ]}
             {...otherProps}
         >
             {otherContent && (
