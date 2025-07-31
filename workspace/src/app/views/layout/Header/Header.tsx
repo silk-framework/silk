@@ -56,7 +56,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     useKeyboardHeaderShortcuts();
     const diUserMenuItems = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
     const diUserMenuFooter = pluginRegistry.pluginReactComponent<UserMenuFooterProps>(
-        SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER
+        SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER,
     );
     const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
 
@@ -82,7 +82,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             <ApplicationHeader aria-label={`${APPLICATION_NAME()}${brandingSuffix}`}>
                 <ApplicationTitle
                     href={getFullRoutePath("?itemType=project&page=1&limit=10")}
-                    prefix={""}
+                    prefix={APPLICATION_CORPORATION_NAME()}
                     isNotDisplayed={!isApplicationSidebarExpanded}
                     isApplicationSidebarExpanded={isApplicationSidebarExpanded}
                     depiction={
