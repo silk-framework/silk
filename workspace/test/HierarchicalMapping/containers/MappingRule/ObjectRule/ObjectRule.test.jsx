@@ -166,6 +166,7 @@ describe("ObjectMappingRule Component", () => {
                 uri: "uri",
                 type: "root",
                 parent: "",
+                displayLabel: "label",
             });
         });
     });
