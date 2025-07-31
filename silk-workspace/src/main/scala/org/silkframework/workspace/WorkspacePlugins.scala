@@ -1,7 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.plugins.dataset.DatasetTypeAutoCompletionProvider
-import org.silkframework.plugins.filter.RemoveStopWordsTransformer
+import org.silkframework.plugins.filter.{RemoveDefaultStopWordsTransformer, RemoveStopWordsTransformer}
 import org.silkframework.plugins.transformer.value.ReadParameter
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginModule}
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
@@ -76,6 +76,7 @@ class WorkspacePlugins extends PluginModule {
   def rulePlugins: List[Class[_ <: AnyPlugin]] = {
     classOf[ReadParameter] ::
     classOf[RemoveStopWordsTransformer] ::
+    classOf[RemoveDefaultStopWordsTransformer] ::
     Nil
   }
 
